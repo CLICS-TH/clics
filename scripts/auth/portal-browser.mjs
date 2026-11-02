@@ -19,10 +19,13 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const PORTAL = 'http://localhost:3000';
+// A Portal origin that is not on the Google sign-in allow-list in config.js.
+const PORTAL_OFF_LIST = 'http://localhost:3010';
 const API = 'http://localhost:3001';
 const DASH = 'http://localhost:3002';
 // Where the dashboard really serves. The browser always sees DASH, because the Portal's config.js
@@ -30,6 +33,11 @@ const DASH = 'http://localhost:3002';
 const DASH_UPSTREAM = process.env.DASH_UPSTREAM || DASH;
 const SUPABASE = 'https://rgwnnexokstctugwtwub.supabase.co';
 const SUPABASE_JS = 'https://esm.sh/@supabase/supabase-js@2.49.4';
+const GSI = 'https://accounts.google.com/gsi/client';
+// config.js ships with an empty client ID until the OAuth client is registered (#282); the harness
+// supplies one, and a scenario can append more config lines through `configTail`.
+const CI_GOOGLE_CLIENT_ID = 'ci-client.apps.googleusercontent.com';
+let configTail = '';
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 
 const USERS = {
@@ -68,10 +76,10 @@ function listen(server, port) {
 }
 
 // Mirrors vercel.json cleanUrls: '/' -> index.html, '/x' -> x.html.
-function portalServer() {
+function portalServer(origin = PORTAL) {
   return createServer(async (req, res) => {
     try {
-      let p = decodeURIComponent(new URL(req.url, PORTAL).pathname);
+      let p = decodeURIComponent(new URL(req.url, origin).pathname);
       if (p === '/') p = '/index.html';
       let file = normalize(join(ROOT, p));
       if (!file.startsWith(ROOT)) { res.writeHead(403).end(); return; }
@@ -80,7 +88,8 @@ function portalServer() {
       if (!s && !extname(file)) { file += '.html'; s = await stat(file).catch(() => null); }
       if (!s) { res.writeHead(404).end('not found'); return; }
       res.writeHead(200, { 'content-type': MIME[extname(file)] || 'application/octet-stream' });
-      res.end(await readFile(file));
+      const body = await readFile(file);
+      res.end(p === '/js/config.js' ? `${body}\nwindow.CLICS_GOOGLE_CLIENT_ID = '${CI_GOOGLE_CLIENT_ID}';\n${configTail}\n` : body);
     } catch { res.writeHead(500).end('err'); }
   });
 }
@@ -134,17 +143,52 @@ async function supabaseModule() {
 // GoTrue's endpoints, enough for setSession (GET /user), updateUser (PUT /user) and signOut.
 // Each PUT /user body is kept, so a scenario can check what the page actually sent.
 const gotrueUpdates = [];
+// The ID-token grant: bodies kept for the nonce check; `idTokenRejected` makes GoTrue refuse it.
+const idTokenGrants = [];
+const authorizeRequests = [];
+let idTokenRejected = false;
+let gotrueLogouts = 0;
 function gotrue(route) {
   const req = route.request();
   const { pathname } = new URL(req.url());
   const user = { id: 'sb-user', aud: 'authenticated', role: 'authenticated', email: 'phys@ci.test', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
-  const headers = { 'access-control-allow-origin': PORTAL, 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
+  const headers = { 'access-control-allow-origin': req.headers().origin || PORTAL, 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
   if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+  if (pathname === '/auth/v1/authorize') authorizeRequests.push(req.url());
+  if (pathname === '/auth/v1/token' && new URL(req.url()).searchParams.get('grant_type') === 'id_token') {
+    idTokenGrants.push(req.postDataJSON());
+    if (idTokenRejected) return route.fulfill({ status: 400, headers, json: { error: 'invalid_grant', error_description: 'Nonces mismatch' } });
+    const access_token = fakeJwt(USERS.physician);
+    return route.fulfill({ status: 200, headers, json: { access_token, refresh_token: 'ci-refresh', expires_in: 3600, token_type: 'bearer', user: { ...user, app_metadata: { provider: 'google' } } } });
+  }
+  if (pathname === '/auth/v1/logout') gotrueLogouts++;
   if (pathname === '/auth/v1/user' && req.method() === 'PUT') gotrueUpdates.push(req.postDataJSON());
   if (pathname === '/auth/v1/user') return route.fulfill({ status: 200, headers, json: user });
   if (pathname === '/auth/v1/logout') return route.fulfill({ status: 204, headers });
+  if (pathname === '/auth/v1/authorize') return route.fulfill({ status: 200, headers: { ...headers, 'content-type': 'text/html' }, body: 'authorize stub' });
   return route.fulfill({ status: 404, headers, json: { error: 'not stubbed' } });
 }
+
+// Stands in for Google's sign-in script. Its button hands the page whatever a scenario put in
+// window.__gisNext, as Google's callback would. The page's own calls are logged for the node side.
+const FAKE_GSI = `
+window.google = { accounts: { id: {
+  initialize(cfg) {
+    window.__gisCfg = cfg;
+    console.log('pw:gis-init ' + JSON.stringify({ client_id: cfg.client_id, nonce: cfg.nonce, ux_mode: cfg.ux_mode, auto_select: cfg.auto_select }));
+  },
+  renderButton(el, opts) {
+    const b = document.createElement('button');
+    b.id = 'fakeGoogleBtn'; b.type = 'button'; b.textContent = 'Google';
+    b.style.minWidth = opts.width + 'px';
+    console.log('pw:gis-width ' + opts.width);
+    b.onclick = () => window.__gisCfg.callback(window.__gisNext || {});
+    el.appendChild(b);
+  },
+  prompt() { console.log('pw:gis-prompt'); },
+} } };
+`;
+let gsiBlocked = false;
 
 const PORTAL_PUBLIC = new Set(['/', '/login', '/auth/callback', '/reset', '/forgot', '/manual', '/guest-chat', '/invite']);
 const TOKEN_IN_URL = /access_token|refresh_token|[?&]token=/;
@@ -333,6 +377,55 @@ function landingSightings(page) {
   return seen;
 }
 
+// What the Google sign-in page did: requests for Google's script, each GIS initialisation (with
+// the hashed nonce Google was given), any One Tap prompt, and every main-frame URL.
+function watchGoogle(page, ctx) {
+  const log = { gsi: [], inits: [], prompts: 0, urls: [] };
+  ctx.on('request', (r) => { if (r.url().startsWith(GSI)) log.gsi.push(r.url()); });
+  page.on('console', (m) => {
+    const text = m.text();
+    if (text.startsWith('pw:gis-init ')) log.inits.push(JSON.parse(text.slice('pw:gis-init '.length)));
+    if (text === 'pw:gis-prompt') log.prompts++;
+  });
+  page.on('framenavigated', (f) => { if (f === page.mainFrame()) log.urls.push(f.url()); });
+  return log;
+}
+
+async function until(cond, what, ms = 8000) {
+  for (let waited = 0; waited < ms; waited += 100) {
+    if (await cond()) return;
+    await sleep(100);
+  }
+  throw new Error(`timed out waiting for ${what}`);
+}
+
+const sha256hex = (v) => createHash('sha256').update(v).digest('hex');
+
+function resetGoogleStubs() {
+  idTokenGrants.length = 0;
+  authorizeRequests.length = 0;
+  gotrueLogouts = 0;
+  idTokenRejected = false;
+  gsiBlocked = false;
+}
+
+// A press that must reach Supabase's authorize endpoint and never ask Google directly.
+async function checkRedirectPress(t, page, ctx, origin, where) {
+  const g = watchGoogle(page, ctx);
+  await page.goto(`${origin}/login`);
+  await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+  await page.click('#googleBtn');
+  await until(() => authorizeRequests.length > 0, `${where}: a request to Supabase's authorize endpoint`);
+  const url = new URL(authorizeRequests[0]);
+  t.check(url.searchParams.get('provider') === 'google', `${where}: authorize provider is ${url.searchParams.get('provider')}`);
+  t.check(url.searchParams.get('redirect_to') === `${origin}/auth/callback`, `${where}: redirect_to is ${url.searchParams.get('redirect_to')}`);
+  t.check(g.gsi.length === 0, `${where}: Google's script was requested (${g.gsi.length}x)`);
+  t.check(idTokenGrants.length === 0, `${where}: the ID-token grant ran`);
+  const { origins } = await ctx.storageState();
+  const flow = origins.find((o) => o.origin === origin)?.localStorage.find((e) => e.name === 'clics_oauth_flow')?.value;
+  t.check(flow && JSON.parse(flow).kind === 'signup', `${where}: the signup flow marker is ${flow}`);
+}
+
 // Holds every response under `prefix` for a while, as a slow network would.
 function slowDown(ctx, prefix, ms = 1500) {
   return ctx.route((url) => url.href.startsWith(prefix), async (route) => { await sleep(ms); await route.fallback(); });
@@ -511,6 +604,102 @@ const SCENARIOS = [
     },
   },
   {
+    name: 'Login Google sign-in in-page: no Google request before the press, hashed nonce, lands on the Callback page',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const g = watchGoogle(page, ctx);
+      await page.setViewportSize({ width: 320, height: 800 });
+      await page.goto(`${PORTAL}/login`);
+      await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      await settle(page);
+      t.check(g.gsi.length === 0, `Google's script was requested before the press: ${g.gsi.join(', ')}`);
+      await page.click('#googleBtn');
+      await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      t.check(g.gsi.length === 1, `Google's script was requested ${g.gsi.length}x after the press`);
+      t.check(!(await page.locator('#googleBtn').isVisible()), 'our button still shows beside Google\'s');
+      t.check(g.prompts === 0, 'the page called One Tap prompt()');
+      const fits = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
+      t.check(fits, 'Google\'s button, at the width the page asked for, makes the 320px page scroll sideways');
+      t.check(await page.evaluate(() => document.activeElement?.classList.contains('google-gis-slot')), 'focus did not move to Google\'s button area after the press');
+      t.check(g.inits.length === 1 && g.inits[0].client_id === CI_GOOGLE_CLIENT_ID, `GIS initialised with ${JSON.stringify(g.inits)}`);
+      t.check(g.inits[0]?.ux_mode === 'popup' && g.inits[0]?.auto_select === false, `GIS ux_mode/auto_select are ${g.inits[0]?.ux_mode}/${g.inits[0]?.auto_select}`);
+      await page.evaluate(() => { window.__gisNext = { credential: 'ci-google-id-token' }; });
+      await page.click('#fakeGoogleBtn');
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      const grant = idTokenGrants[0];
+      t.check(grant?.provider === 'google' && grant?.id_token === 'ci-google-id-token', `GoTrue got ${JSON.stringify(grant)}`);
+      t.check(!!grant?.nonce && sha256hex(grant.nonce) === g.inits[0]?.nonce, 'the nonce given to Google is not the SHA-256 hex of the nonce given to Supabase');
+      t.check(g.urls.some((u) => new URL(u).pathname === '/auth/callback'), `the page never reached /auth/callback: ${g.urls.join(' -> ')}`);
+      t.check(authorizeRequests.length === 0, 'the page also went through Supabase\'s authorize endpoint');
+      t.check(gotrueLogouts === 0, 'sign-in called GoTrue /logout');
+      const stored = await storedTokens(ctx);
+      t.check(stored.includes(`${PORTAL} clics_token`), 'no clics_token stored after Google sign-in');
+      t.check(!stored.some((e) => e.includes(' sb-')), `Supabase session keys left: ${stored.join(', ')}`);
+      t.check(!TOKEN_IN_URL.test(page.url()), `token in the address bar ${page.url()}`);
+    },
+  },
+  {
+    name: 'Login Google sign-in in-page: a blocked script, a Google error and a Supabase rejection keep the user on /login, each render has a new nonce',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const g = watchGoogle(page, ctx);
+      const errShown = () => page.evaluate(() => { const e = document.getElementById('error'); return e.style.display !== 'none' ? e.textContent : ''; });
+      const clearErr = () => page.evaluate(() => { document.getElementById('error').style.display = 'none'; });
+      const bilingual = (msg) => { const [th, en] = msg.split(' / '); return THAI.test(th) && /[A-Za-z]{4}/.test((en || '').replace(/Google/g, '')); };
+      await page.goto(`${PORTAL}/login`);
+      await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      gsiBlocked = true;
+      await page.click('#googleBtn');
+      await until(async () => !!(await errShown()), 'the blocked-script message');
+      t.check(bilingual(await errShown()), `blocked script message is not bilingual: "${await errShown()}"`);
+      t.check(await page.locator('#googleBtn').isEnabled() && await page.locator('#googleBtn').isVisible(), 'our button is not usable after the script failed to load');
+      gsiBlocked = false;
+      await clearErr();
+      await page.click('#googleBtn');
+      await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      await page.evaluate(() => { window.__gisNext = {}; });
+      await page.click('#fakeGoogleBtn');
+      await until(async () => (await errShown()) && g.inits.length === 2, 'the Google-error message and a new render');
+      t.check(bilingual(await errShown()), `Google error message is not bilingual: "${await errShown()}"`);
+      t.check(new URL(page.url()).pathname === '/login', `a Google error ended on ${page.url()}`);
+      t.check(g.inits[0].nonce !== g.inits[1].nonce, 'the second render reused the first nonce');
+      await clearErr();
+      idTokenRejected = true;
+      await page.evaluate(() => { localStorage.setItem('sb-ci-auth-token', '{}'); window.__gisNext = { credential: 'ci-google-id-token' }; });
+      await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible' });
+      await page.click('#fakeGoogleBtn');
+      await until(async () => (await errShown()) && g.inits.length === 3, 'the Supabase-rejection message and a new render');
+      t.check(bilingual(await errShown()), `Supabase rejection message is not bilingual: "${await errShown()}"`);
+      t.check(new URL(page.url()).pathname === '/login', `a Supabase rejection ended on ${page.url()}`);
+      t.check(sha256hex(idTokenGrants[0].nonce) === g.inits[1].nonce, 'the rejected grant did not carry the nonce Google was given');
+      t.check(new Set(g.inits.map((i) => i.nonce)).size === 3, 'two renders shared a nonce');
+      const left = (await storedTokens(ctx)).filter((e) => e.includes(' sb-') || e.endsWith('clics_token'));
+      t.check(left.length === 0, `a failed attempt left ${left.join(', ')}`);
+      idTokenRejected = false;
+      await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible' });
+      await page.click('#fakeGoogleBtn');
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      t.check(sha256hex(idTokenGrants.at(-1).nonce) === g.inits[2].nonce, 'the retry did not carry the latest nonce');
+      t.check(gotrueLogouts === 0, 'a failed attempt called GoTrue /logout');
+    },
+  },
+  {
+    name: 'Login Google sign-in on an origin off the allow-list goes through Supabase\'s authorize endpoint',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      await checkRedirectPress(t, page, ctx, PORTAL_OFF_LIST, 'off-list origin');
+    },
+  },
+  {
+    name: 'Login Google sign-in with the mode set to redirect goes through Supabase\'s authorize endpoint',
+    config: "window.CLICS_GOOGLE_SIGNIN.login = 'redirect';",
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      await checkRedirectPress(t, page, ctx, PORTAL, 'redirect mode');
+    },
+  },
+  {
     name: 'Google callback, Sign out, Back',
     async run(t, page, ctx) {
       await page.goto(`${PORTAL}/login`);
@@ -665,6 +854,10 @@ const SCENARIOS = [
         // logEventStrict's rollback is the exception to "most actions still go ahead".
         const logPara = await page.locator('section[aria-labelledby="collect-h"] li').filter({ hasText: th ? 'บันทึกการตรวจสอบเก็บ' : 'The audit log records' }).first().innerText();
         t.check((th ? /ถูกยกเลิก/ : /undone/).test(logPara), `[${lang}] the log-failure sentence has no lock exception`);
+        // Choosing Google loads Google's script from Google (ADR 0007): the entry says so, and keeps its "only if you choose" line.
+        const googleRow = await page.locator('section[aria-labelledby="proc-h"] .policy-facts > div').filter({ has: page.locator('dt', { hasText: /^Google$/ }) }).locator('dd').innerText();
+        t.check((th ? /เฉพาะเมื่อคุณเลือกเข้าสู่ระบบด้วย Google/ : /Only if you choose to sign in with Google/).test(googleRow), `[${lang}] the Google line lost its "only if you choose" wording: "${googleRow}"`);
+        t.check((th ? /โหลดโค้ดเข้าสู่ระบบจาก Google/ : /loads Google's sign-in code from Google/).test(googleRow) && /\bIP\b/.test(googleRow) && (th ? /ข้อมูลเบราว์เซอร์/ : /browser details/).test(googleRow), `[${lang}] the Google line does not say Google's code is loaded from Google and Google receives the IP address and browser details: "${googleRow}"`);
         t.check((th ? /ผู้ดูแลระบบ CLICS/ : /CLICS system administrators/i).test(identity), `[${lang}] no readers line says the CLICS system administrators see the licence number and last four digits`);
       }
       await page.click('.lang-switch [data-set-lang="th"]');
@@ -905,7 +1098,7 @@ const SCENARIOS = [
 ];
 
 async function main() {
-  const servers = [await listen(portalServer(), 3000), await listen(apiServer(), 3001)];
+  const servers = [await listen(portalServer(), 3000), await listen(portalServer(PORTAL_OFF_LIST), 3010), await listen(apiServer(), 3001)];
   const dashUp = await fetch(`${DASH_UPSTREAM}/login`).then((r) => r.ok).catch(() => false);
   if (!dashUp) { console.error(`audit-dashboard is not serving at ${DASH_UPSTREAM}`); process.exit(1); }
   if (process.argv[2] === '--serve') { console.log(`Portal ${PORTAL}, stub backend ${API}; Ctrl-C to stop`); return; }
@@ -930,8 +1123,9 @@ async function main() {
         await route.fulfill({ response });
       });
     }
-    await ctx.route((url) => !url.href.startsWith(PORTAL) && !url.href.startsWith(API) && !url.href.startsWith(DASH), (route) => {
+    await ctx.route((url) => !url.href.startsWith(PORTAL) && !url.href.startsWith(PORTAL_OFF_LIST) && !url.href.startsWith(API) && !url.href.startsWith(DASH), (route) => {
       const url = route.request().url();
+      if (url.startsWith(GSI)) return gsiBlocked ? route.abort() : route.fulfill({ status: 200, contentType: 'text/javascript', body: FAKE_GSI });
       if (url.startsWith(SUPABASE_JS)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: supabaseJs, headers: { 'access-control-allow-origin': '*' } });
       if (url.startsWith(SUPABASE)) return gotrue(route);
       return route.abort();
@@ -943,6 +1137,7 @@ async function main() {
       const [tag, href] = m.text().split(' ');
       if (tag === 'pw:bfcache-restore' && isPrivate(href)) privateRestores++;
     });
+    configTail = s.config || '';
     const problems = [];
     const t = { check: (ok, msg) => { if (!ok) problems.push(msg); } };
     try {

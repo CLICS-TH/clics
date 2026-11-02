@@ -151,6 +151,7 @@
   <script src="/js/config.js"></script>
   <script src="/js/forward.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/google-signin.js"></script>
   <script type="module" src="/js/supabase-client.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
@@ -170,15 +171,14 @@
       function setup() {
         if (!window.sbClient) return; // not configured → leave Google hidden
         document.getElementById('googleWrap').style.display = '';
-        document.getElementById('googleBtn').addEventListener('click', async () => {
-          localStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' }));
-          const redirectTo = location.origin + '/auth/callback';
-          const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
-          if (error) {
+        clicsGoogleSignIn(document.getElementById('googleBtn'), {
+          flow: 'login',
+          marker: { kind: 'signup' },
+          onError: (message) => {
             const errEl = document.getElementById('error');
-            errEl.textContent = error.message || 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.';
+            errEl.textContent = message;
             errEl.style.display = 'block';
-          }
+          },
         });
       }
       if (typeof window.CLICS_SUPABASE_CONFIGURED === 'boolean') setup();
