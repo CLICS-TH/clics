@@ -1,6 +1,6 @@
 {
   "case_id": "dka-young-adult",
-  "version": "2",
+  "version": "3",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "นักศึกษาหญิงอายุ 20 ปี มาโรงพยาบาลชุมชน อาเจียนและหอบเหนื่อยตั้งแต่เมื่อวาน",
@@ -147,6 +147,18 @@
             }
           },
           {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
             "id": "e",
             "tier": "weaker",
             "label": {
@@ -215,8 +227,8 @@
               "en": "Fingerstick glucose, urine dipstick"
             },
             "line": {
-              "th": "ทำข้างเตียงได้ทันที เห็นน้ำตาลและคีโตนในปัสสาวะ",
-              "en": "Bedside and instant, showing glucose and urine ketones."
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
             }
           },
           {
@@ -269,6 +281,18 @@
             }
           },
           {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนจากปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
             "id": "d",
             "tier": "reasonable",
             "label": {
@@ -276,8 +300,8 @@
               "en": "Fingerstick glucose, urine dipstick"
             },
             "line": {
-              "th": "ทำข้างเตียงได้ทันที เห็นน้ำตาลและคีโตนในปัสสาวะ",
-              "en": "Bedside and instant, showing glucose and urine ketones."
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
             }
           },
           {
@@ -405,6 +429,18 @@
             }
           },
           {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
             "id": "c",
             "tier": "reasonable",
             "label": {
@@ -473,8 +509,8 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลินที่นี่ แล้วส่งต่อ",
-              "en": "Fluids, a K check and insulin start here before transfer."
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
             }
           },
           {
@@ -612,6 +648,18 @@
             }
           },
           {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
             "id": "c",
             "tier": "reasonable",
             "label": {
@@ -680,8 +728,8 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลินที่นี่ แล้วส่งต่อ",
-              "en": "Fluids, a K check and insulin start here before transfer."
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
             }
           },
           {
@@ -819,6 +867,18 @@
             }
           },
           {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
             "id": "c",
             "tier": "reasonable",
             "label": {
@@ -887,8 +947,8 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลินที่นี่ แล้วส่งต่อ",
-              "en": "Fluids, a K check and insulin start here before transfer."
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
             }
           },
           {
@@ -928,7 +988,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Two review rounds by fresh reviewers against the 2024 ADA/EASD/JBDS consensus, WHO and Thai practice, the second on the gate-revised text. Doses (insulin 0.1 units/kg/h, 0.05 units/kg/h as the weaker option), the potassium thresholds, the moderate grade at pH 7.15 and the fluids-first order match the consensus; every insulin option states how potassium is handled and every first-test option checks glucose. Fixed in review: ketones added to the step-2 R osmolality panel; a 2-hourly-glucose drip option replaced with a bolus-then-drip option; the urine-ketone reveal on minimal-test paths reworded; Thai/English route words aligned. SC rapid-acting insulin stays at the reasonable tier, limited to uncomplicated mild to moderate DKA. Sandbox run pending."
+      "findings": "Three review rounds by fresh reviewers against the 2024 ADA/EASD/JBDS consensus, WHO and Thai practice, the later two on the gate-revised text. Doses (insulin 0.1 units/kg/h, 0.05 units/kg/h as the weaker option), the potassium thresholds, the moderate grade at pH 7.15 and the fluids-first order match the consensus; every insulin option states how potassium is handled and every first-test option checks glucose. Fixed in review: ketones added to the step-2 R osmolality panel; a 2-hourly-glucose drip option replaced with a bolus-then-drip option; the urine-ketone reveal on minimal-test paths reworded; Thai/English route words aligned. SC rapid-acting insulin stays at the reasonable tier, limited to uncomplicated mild to moderate DKA. Third round on v3: bedside-test options added to step-2 B and W; the refer option added to K-unknown banks with K replaced and insulin gated on safe K; two parity fixes applied. Sandbox run pending."
     }
   }
 }
