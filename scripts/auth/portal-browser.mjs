@@ -922,6 +922,7 @@ const SCENARIOS = [
       await button.click();
       await until(async () => !!(await shown()), 'the blocked-script message');
       t.check(bilingual(await shown()), `blocked script message is not bilingual: "${await shown()}"`);
+      t.check(!/อีเมล|email/i.test(await shown()), `blocked script message sends a signed-in user to email sign-in: "${await shown()}"`);
       t.check(await button.isEnabled() && await button.isVisible(), 'Link Google is not usable after the script failed to load');
       gsiBlocked = false;
       await page.evaluate(() => { document.getElementById('linkGoogleMsg').textContent = ''; });
@@ -933,6 +934,7 @@ const SCENARIOS = [
       await page.click('#fakeGoogleBtn');
       await until(async () => (await shown()) && g.inits.length === 3, 'the Supabase-rejection message and a new render');
       t.check(bilingual(await shown()), `Supabase rejection message is not bilingual: "${await shown()}"`);
+      t.check(/เชื่อม/.test(await shown()) && /link/i.test(await shown()), `Supabase rejection message does not talk about linking: "${await shown()}"`);
       t.check(sha256hex(idTokenGrants[0].nonce) === g.inits[1].nonce, 'the rejected grant did not carry the nonce Google was given');
       t.check(new Set(g.inits.map((i) => i.nonce)).size === 3, 'two renders shared a nonce');
       t.check(new URL(page.url()).pathname === '/dashboard', `a failed attempt ended on ${page.url()}`);

@@ -48,6 +48,7 @@
   window.clicsGoogleSignIn = function (button, opts) {
     var slot = null;
     var width = 320;
+    var linking = opts.flow === 'link'; // already signed in: the sign-in wording would misdirect
 
     function fail(message) {
       dropSupabaseKeys();
@@ -70,7 +71,8 @@
       window.sbClient.auth.signInWithIdToken({ provider: 'google', token: response.credential, nonce: nonce.raw }).then(function (r) {
         var session = r.data && r.data.session;
         if (r.error || !session) {
-          fail('เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองใหม่ / Google sign-in failed. Please try again.');
+          fail(linking ? 'เชื่อมบัญชี Google ไม่สำเร็จ กรุณาลองใหม่ / Could not link your Google account. Please try again.'
+            : 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองใหม่ / Google sign-in failed. Please try again.');
           return renderGoogleButton();
         }
         localStorage.setItem('clics_oauth_flow', JSON.stringify(opts.marker));
@@ -119,7 +121,8 @@
       }).catch(function () {
         if (slot) { slot.remove(); slot = null; }
         button.style.display = ''; button.disabled = false;
-        fail('โหลดปุ่ม Google ไม่สำเร็จ ลองใหม่หรือใช้อีเมลและรหัสผ่าน / Could not load the Google button. Try again or use email and password.');
+        fail(linking ? 'โหลดปุ่ม Google ไม่สำเร็จ กรุณาลองใหม่ / Could not load the Google button. Please try again.'
+          : 'โหลดปุ่ม Google ไม่สำเร็จ ลองใหม่หรือใช้อีเมลและรหัสผ่าน / Could not load the Google button. Try again or use email and password.');
       });
     }
 
