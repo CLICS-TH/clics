@@ -9,10 +9,22 @@ Onboarding is **Google self-service for physicians (auto-active) + A/B invite li
 | **Custom SMTP provider** (SendGrid/SES/Mailgun…) | Auth → Settings → SMTP | The built-in mailer only delivers to project-team addresses — real physicians/auditors get no OTP/reset email without this. |
 | **`{{ .Token }}` in BOTH "Confirm signup" AND "Magic Link" templates** | Auth → Email Templates | This template edit (not a code argument) makes the email a **6-digit OTP** instead of a link. The invite password path (admin-created, unconfirmed account) sends the **"Confirm signup"** template — editing only "Magic Link" is not enough. (Template editing unlocks only after custom SMTP is configured.) |
 | **Confirm signup / Reset Password templates** | Auth → Email Templates | Branded copy + correct token/link. |
-| **Google provider** + Client ID/Secret | Auth → Providers → Google | Required for `signInWithOAuth({provider:'google'})`. Create the OAuth client in Google Cloud Console first. |
+| **Google provider** + Client ID/Secret | Auth → Providers → Google | Required for `signInWithOAuth({provider:'google'})`. Create the OAuth client in Google Cloud Console first. For the in-page mode below, the same client ID must be listed among the provider's client IDs and **Skip nonce checks must stay off**. |
 | **Redirect URL allow-list** | Auth → URL Configuration | Add both front-end origins + `…/auth/callback` + `…/reset` + `localhost`. |
 | **Auth rate limits** (`otp`, `email`) | Auth → Rate Limits | Throttle OTP send + brute-force. Custom SMTP starts at 30 emails/hr — raise as needed. |
 | **Anon (publishable) key** | Project → API | Copy into the front-end env (below). The **service-role key never goes to a browser**. |
+
+## 1b. Google sign-in mode (in-page vs redirect, ADR 0008)
+
+The Portal asks Google itself through Google Identity Services (GIS), so Google's chooser names `physician-ui.vercel.app` instead of the Supabase project domain. `physician-ui/public/js/google-config.js` holds the switch (a separate file because the booth promo's source digest covers `config.js`):
+
+| Config | Meaning |
+|---|---|
+| `CLICS_GOOGLE_SIGNIN = { login, invite, link }` | Per flow, `'gis'` (default) or `'redirect'` (the old Supabase redirect). Only `login` is wired today; invite and Link Google follow. |
+| `CLICS_GOOGLE_ORIGINS` | Allow-list of page origins where `gis` runs: `https://physician-ui.vercel.app`, `http://localhost:3000`. Any other origin (Vercel previews) uses the redirect. Must match the OAuth client's **Authorized JavaScript origins** exactly (no wildcards). |
+| `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect.** Set to the client ID listed in Supabase's Google provider (#282). |
+
+How it runs: pressing "Continue with Google" loads Google's script (never on page load), swaps in Google's own button (popup, no One Tap), trades the credential with `signInWithIdToken` and a fresh hashed nonce, writes the same flow marker the redirect writes, and goes to `/auth/callback#access_token=…`. The Callback page finishes both modes. **Rollback:** set the flow to `'redirect'` and redeploy.
 
 ## 2. Env vars
 

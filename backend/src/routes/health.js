@@ -8,7 +8,7 @@ const { probeRimplDeep } = require('../services/rimpl-client');
 const evalDrain = require('../services/eval-drain');
 const { resolveScope } = require('../lib/eval-scope');
 const { getSetting } = require('../lib/settings');
-const { chainHead } = require('../services/audit-chain');
+const { chainHead, isMissingFn } = require('../services/audit-chain');
 const { lockInForce, modelLockCheck } = require('../services/model-lock');
 
 const router = Router();
@@ -197,14 +197,36 @@ async function checkModelLock(lock, rimplCheck) {
   }
 }
 
+// What anon and authenticated can reach through PostgREST (ADR 0007: PostgREST is not an app surface).
+// db/migration-postgrest-closed.sql revokes it all, but a grant typed into the SQL editor, or a table
+// created under Supabase's default ACLs, reopens it silently. public.postgrest_exposure() lists every
+// such grant from the catalog and reads no table rows.
+//   * Any row degrades the verdict: patient data is readable or writable with the anon key.
+//   * not_installed does not degrade, so the backend can deploy before the owner applies the migration.
+//   * An error or timeout is reported, not degraded on: the supabase check owns a DB outage.
+async function checkPostgrestSurface() {
+  try {
+    const { data, error } = await withTimeout(supabase.rpc('postgrest_exposure'), SUPABASE_TIMEOUT_MS);
+    if (isMissingFn(error)) return { status: 'not_installed' };
+    if (error) return { status: 'error', error: error.message || String(error) };
+    // A set-returning RPC answers with an array; anything else proves nothing about the surface.
+    if (!Array.isArray(data)) return { status: 'error', error: 'unexpected postgrest_exposure result' };
+    if (data.length === 0) return { status: 'closed' };
+    return { status: 'degraded', objects: [...new Set(data.map((r) => r.object_name))].sort(), count: data.length };
+  } catch (e) {
+    return { status: 'error', error: e.message };
+  }
+}
+
 router.get('/deep', async (_req, res) => {
-  const [supabaseCheck, rimplCheck, evalQueue, auditChain, modelLock] = await Promise.all([
-    checkSupabase(), checkRimpl(), checkEvalQueue(), checkAuditChain(), readModelLock(),
+  const [supabaseCheck, rimplCheck, evalQueue, auditChain, modelLock, postgrestSurface] = await Promise.all([
+    checkSupabase(), checkRimpl(), checkEvalQueue(), checkAuditChain(), readModelLock(), checkPostgrestSurface(),
   ]);
   const lockCheck = await checkModelLock(modelLock, rimplCheck);
-  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue, audit_chain: auditChain, model_lock: lockCheck };
+  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue, audit_chain: auditChain,
+    model_lock: lockCheck, postgrest_surface: postgrestSurface };
   const allUp = supabaseCheck.status === 'up' && rimplCheck.status === 'up' && evalQueue.status !== 'down'
-    && lockCheck.status !== 'down';
+    && lockCheck.status !== 'down' && postgrestSurface.status !== 'degraded';
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'backend',

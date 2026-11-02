@@ -55,7 +55,7 @@ describe('prompt labels: every manifest variant is what /chat stamps', () => {
     expect(M.canonicalJson(committed.manifest.expected.code)).toBe(M.canonicalJson(M.expectedCode()));
   });
 
-  const variants = M.CHAT_PROMPT_VARIANTS.filter((v) => v.name !== 'rescue' && v.name !== 'booth');
+  const variants = M.CHAT_PROMPT_VARIANTS.filter((v) => !['rescue', 'booth', 'booth+grill'].includes(v.name));
   test.each(variants.map((v) => [v.name, v.opts]))('%s', async (name, opts) => {
     callAI.mockResolvedValue(r(`${GOOD}\n\n${P.evidenceLineFor('moderate')}`));
     const res = await send({ socratic: opts.socratic, artifacts: opts.artifacts, evidence_marker: opts.evidenceMarker });
@@ -80,10 +80,22 @@ describe('prompt labels: every manifest variant is what /chat stamps', () => {
     expect(call(0).maxTokens).toBe(committed.manifest.expected.code.decoding.chat.booth.max_tokens);
   });
 
-  test('ten variants, ten distinct labels', () => {
+  test('booth+grill — the kiosk prompt when the next step\'s bank is sent, at its own ceiling', async () => {
+    callAI.mockResolvedValue(r('{"reply":"Reasonable.","variant_id":"v1","bridge":"","option_ids":["a","b","c"]}'));
+    const bank = {
+      variants: [{ id: 'v1', question: { th: 'ขั้นต่อไป', en: 'Next' } }],
+      options: ['best', 'reasonable', 'weaker'].map((tier, i) => ({ id: 'abc'[i], tier, label: { th: 'ก', en: 'a' }, line: { th: 'ข', en: 'b' } })),
+    };
+    const res = await send({ booth_mode: true, booth_bank: bank });
+    expect(call(0).systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_BOOTH_GRILL);
+    expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat['booth+grill'].label);
+    expect(call(0).maxTokens).toBe(committed.manifest.expected.code.decoding.chat.booth_grill.max_tokens);
+  });
+
+  test('eleven variants, eleven distinct labels', () => {
     const labels = Object.values(committed.manifest.expected.code.prompts.chat).map((e) => e.label);
-    expect(labels).toHaveLength(10);
-    expect(new Set(labels).size).toBe(10);
+    expect(labels).toHaveLength(11);
+    expect(new Set(labels).size).toBe(11);
   });
 });
 

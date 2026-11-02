@@ -14,6 +14,9 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
 - [ ] **Booth migrations applied, in this order,** to the prod Supabase: re-apply `db/migration-booth-plays.sql`
       (idempotent; it replaces `booth_start_play` with the version that refuses a start once the switch is off),
       then apply `db/migration-booth-purge.sql` (`booth_event_summary` and the `booth_event_purges` record).
+      From #246 on, `migration-booth-plays.sql` drops the one-argument `booth_start_play` for the
+      `(event, case, version)` one, so re-apply it only together with a backend deploy that has #246, and
+      deploy the kiosk (Vercel), the backend and rimpl as one release: an older backend or kiosk ends every play.
 - [ ] **Check, read-only:** `cd backend && node ../scripts/booth/purge-event.mjs --event FREEZE-CHECK` prints
       `dry run: nothing deleted` and `plays 0`. A `Next step:` line that says to apply
       `db/migration-booth-purge.sql` means the purge migration is not applied.

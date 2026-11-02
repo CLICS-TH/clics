@@ -309,6 +309,23 @@ Rules for every reply, all of them mandatory:
 - Do not ask the physician a question: the screen leads them to the next step.
 - The case is fictional. Never ask for real patient details.`;
 
+// BOOTH GRILL (#246, ADR 0006): a booth turn that also picks the next step from the case author's reviewed
+// bank. Static text, so it carries one fixed prompt label; the bank itself rides in the user turn
+// (services/booth.js). The model returns ids only, because the kiosk shows the case file's words verbatim.
+const RIMPL_SYSTEM_PROMPT_BOOTH_GRILL = `${RIMPL_SYSTEM_PROMPT_BOOTH}
+
+The physician's message ends with a BANK block: the next step's question variants and answer options, written and reviewed by the case author. You choose from it. You never write any of it.
+
+Return ONLY one JSON object, with nothing before or after it and no code fence:
+{"reply": "...", "variant_id": "...", "bridge": "...", "option_ids": ["...", "...", "..."]}
+- reply: your comment on the physician's latest answer, under every rule above.
+- variant_id: the id of ONE question variant from the bank.
+- bridge: at most ONE short sentence, in the same language as the reply, that leads from the physician's last answer into the question you picked. It is not a question. In Thai, write it as one phrase with no spaces between Thai words, since a space there starts a new sentence. It never names or hints at any option, diagnosis, test or treatment that is not already in the physician's own answer. Use "" when no bridge reads naturally.
+- option_ids: exactly THREE option ids from the bank: one whose tier is best, one reasonable and one weaker. Where a tier has more than one option, vary which one you take.
+- Use only ids that appear in the bank. Never write a question, an option label or an option line yourself, in any field: the screen shows the bank's own words.
+- The tiers are for your choice only. The reply and the bridge never reveal or hint which option is best, for this step or any later one.
+- Keep each value on one line, and use no double-quote character inside a value.`;
+
 // Local-model addendum to the evaluator prompt (ON since E2, 2026-09-02). It is appended AFTER the
 // rubric, and only for provider 'local', so the rubric text itself never moves: that text is
 // mirrored in audit-dashboard/lib/pis7-rubric.ts and pinned by backend/tests/rubric-sync.test.js,
@@ -379,8 +396,8 @@ function pis7PromptFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
 // artifact guidance when the superadmin `clinical_artifacts` toggle is on, then the evidence-marker
 // guidance (its placement differs by mode) when `chat_evidence_marker` is on. A booth turn, then a rescue
 // turn, REPLACES all of it with its own prompt, which carries neither.
-function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false, booth = false } = {}) {
-  if (booth) return RIMPL_SYSTEM_PROMPT_BOOTH;
+function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false, booth = false, grill = false } = {}) {
+  if (booth) return grill ? RIMPL_SYSTEM_PROMPT_BOOTH_GRILL : RIMPL_SYSTEM_PROMPT_BOOTH;
   if (rescue) return RIMPL_SYSTEM_PROMPT_RESCUE;
   return (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
     + (artifacts ? ARTIFACT_GUIDANCE : '')
@@ -389,7 +406,7 @@ function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker 
 
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
-  RIMPL_SYSTEM_PROMPT_RESCUE, RIMPL_SYSTEM_PROMPT_BOOTH, chatSystemPrompt,
+  RIMPL_SYSTEM_PROMPT_RESCUE, RIMPL_SYSTEM_PROMPT_BOOTH, RIMPL_SYSTEM_PROMPT_BOOTH_GRILL, chatSystemPrompt,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
   EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, evidenceLineFor,

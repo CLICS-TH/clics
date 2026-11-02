@@ -132,6 +132,12 @@ jobs:
       - name: booth-purge — booth_event_summary against a throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/booth-purge-test.sh
+      # PostgREST closed (db/migration-postgrest-closed.sql, ADR 0007): applies it twice over the real RLS policies
+      # and asserts anon, an assigned auditor and the owning physician are refused every read, write and app
+      # function while service_role is not, and that postgrest_exposure() lists a re-grant and schema.sql matches.
+      - name: postgrest-surface — PostgREST data surface closed, against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/postgrest-surface-test.sh
       # The rehearsal's latency gate (score-latency.mjs) and the retention script's report and refusal paths
       # (purge-event.mjs against a fake backend). Package-free node --test, so no npm install.
       - name: booth-scripts — Score-latency gate and purge-event tests
