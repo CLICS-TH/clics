@@ -122,6 +122,7 @@ const CHAT_PROMPT_VARIANTS = Object.freeze([
   })))),
   { name: 'rescue', opts: { rescue: true } },
   { name: 'booth', opts: { booth: true } },
+  { name: 'booth+grill', opts: { booth: true, grill: true } },
 ]);
 
 const evaluators = () => POLICY.PROVIDER_NAMES.filter((n) => POLICY.servesPurpose(n, 'evaluate'));
@@ -174,6 +175,7 @@ function expectedCode() {
         } },
         evidence_line: { max_tokens: T.CHAT_LIMIT_DEFAULTS.evidenceLine.maxTokens },
         booth: { max_tokens: T.CHAT_LIMIT_DEFAULTS.booth.maxTokens },
+        booth_grill: { max_tokens: T.CHAT_LIMIT_DEFAULTS.boothGrill.maxTokens },
       },
       num_ctx: Object.fromEntries(localInstances.map(([name, { envPrefix }]) => [name, {
         default: POLICY.LOCAL_NUM_CTX_DEFAULT > 0 ? POLICY.LOCAL_NUM_CTX_DEFAULT : null,

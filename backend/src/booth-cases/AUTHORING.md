@@ -16,7 +16,7 @@ Each question offers three options, one from each tier. The AI picks which three
 
 ## Where the file goes
 
-Put each case at `backend/src/booth-cases/<EVENT_CODE>/<case_id>.json`. There is one folder per booth event, such as `NFCME-2026/`. Never put a tree-format case directly in `booth-cases/`. That folder's top level holds the old single-path case files.
+Put each case at `backend/src/booth-cases/<EVENT_CODE>/<case_id>.json`. There is one folder per booth event, such as `NFCME-2026/`. Never put a case directly in `booth-cases/`. The loader reads only event folders.
 
 - `case_id` uses lowercase letters, digits and hyphens, up to 32 characters. It equals the file name without `.json`.
 - `event_code` uses capital letters, digits and hyphens. It equals the folder name.

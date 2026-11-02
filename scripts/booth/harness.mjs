@@ -23,7 +23,9 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
 const { DEMO_LABEL, DOMAINS, COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
-const KASE = JSON.parse(await readFile(join(CASES, 'NFCME-2026.json'), 'utf8'));
+const TREE = JSON.parse(await readFile(fileURLToPath(new URL('../../backend/tests/fixtures/booth-case-tree.json', import.meta.url)), 'utf8'));
+/** The `case` a started play carries: the vignette only; each step's text arrives in a Next. */
+const KASE = { vignette: TREE.vignette };
 
 const BANNED = [/on[-\s]?premise/i, /validated/i, /ติดตั้งภายในองค์กร/];
 const withoutDemoLabel = (text) => text.split(DEMO_LABEL.th).join('').split(DEMO_LABEL.en).join('');
@@ -59,15 +61,77 @@ function startServer() {
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
 }
 
+const TIER_LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
+const bankFor = (tree, path) => (path.length === 0 ? tree.banks.step1 : tree.banks[`step${path.length + 1}`][path]);
+
+/** The tier path the visitor's answers walked: a tapped answer takes its option's tier, a typed one is W. */
+function pathOf(tree, answers) {
+  let path = '';
+  for (const a of answers) {
+    const tier = 'choice' in a ? bankFor(tree, path).options.find((o) => o.id === a.choice)?.tier : 'weaker';
+    path += TIER_LETTER[tier] ?? 'W';
+  }
+  return path;
+}
+
+/**
+ * The Next the stub issues for `path`, built the way the server does but deterministic: the last variant, and
+ * the bank's default trio rotated by step so a tier never keeps one position. Text is the bank's, copied.
+ */
+function nextFor(tree, path, bridge = '') {
+  const bank = bankFor(tree, path);
+  const variant = bank.variants[bank.variants.length - 1];
+  const shift = path.length % 3;
+  const ids = [...bank.default_trio.slice(shift), ...bank.default_trio.slice(0, shift)];
+  const options = ids.map((id) => { const o = bank.options.find((x) => x.id === id); return { id, label: o.label, line: o.line }; });
+  return { ask: { variant: variant.id, bridge, options: ids }, question: variant.question, options };
+}
+
+const BRIDGE = (n) => (n === 1 ? 'คุณนึกถึงปอดอักเสบได้ตรงกับอาการที่เห็น' : 'ลองคิดต่อถึงการดูแลผู้ป่วยรายนี้');
+// 120 characters, the contract's ceiling for a bridge, one sentence.
+const LONG_BRIDGE = 'คุณเชื่อมโยงไข้ ไอมีเสมหะ และเสียงกรอบแกรบที่ปอดขวาล่างได้ดี ลองคิดว่าผลตรวจไหนช่วยยืนยันและบอกความรุนแรงของโรคชัดที่สุด';
+
+/** The heaviest Next one real bank can issue: its longest variant and its longest option of each tier. */
+function heaviestBankNext(tree, bridge = LONG_BRIDGE) {
+  const size = (b) => b.th.length + b.en.length;
+  const picks = Object.entries({ '': tree.banks.step1, ...tree.banks.step2, ...tree.banks.step3 }).map(([path, bank]) => {
+    const variant = [...bank.variants].sort((a, b) => size(b.question) - size(a.question))[0];
+    const options = ['best', 'reasonable', 'weaker'].map((tier) => bank.options.filter((o) => o.tier === tier)
+      .sort((a, b) => size(b.label) + size(b.line) - size(a.label) - size(a.line))[0]);
+    const weight = size(variant.question) + options.reduce((n, o) => n + size(o.label) + size(o.line), 0);
+    return { path, weight, next: { ask: { variant: variant.id, bridge, options: options.map((o) => o.id) }, question: variant.question,
+      options: options.map(({ id, label, line }) => ({ id, label, line })) } };
+  });
+  return picks.sort((a, b) => b.weight - a.weight)[0];
+}
+
+/** A Next of the longest fixture texts (question and the three longest options, any bank) for the fit checks. */
+function longestNext(tree, bridge = LONG_BRIDGE) {
+  const banks = [tree.banks.step1, ...Object.values(tree.banks.step2), ...Object.values(tree.banks.step3)];
+  const thLen = (b) => b.th.length + b.en.length;
+  const question = banks.flatMap((b) => b.variants).sort((a, b) => thLen(b.question) - thLen(a.question))[0].question;
+  const seen = new Set();
+  const options = banks.flatMap((b) => b.options).sort((a, b) => thLen(b.label) + thLen(b.line) - thLen(a.label) - thLen(a.line))
+    .filter((o) => !seen.has(o.id) && seen.add(o.id)).slice(0, 3).map(({ id, label, line }) => ({ id, label, line }));
+  return { ask: { variant: 'v1', bridge, options: options.map((o) => o.id) }, question, options };
+}
+
 const REPLY = (n) => `AI reply ${n}: <b>not markup</b>\nsecond line\nคำตอบนี้ครอบคลุมประเด็นสำคัญแล้ว ลองพิจารณาผลน้ำตาลสะสมร่วมกับประวัติครอบครัว และนัดติดตามอาการภายใน 3 เดือน`;
 const SIG = (n) => `sig-${n}`;
+const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, next: nextFor(TREE, ''), sig: SIG(0) };
+/** The default reply to answer n: reply n, its sig, and (after answers 1 and 2) the Next for the path walked. */
+function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length) } = {}) {
+  const n = answers.length;
+  return { status: 'replied', reply, reply_sig: SIG(n), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
+}
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
 
 /**
  * A fresh stub per kiosk. Default routes:
- *   'GET /booth/status'            { open: true, event_code, case_version }
- *   'POST /booth/plays'            { play_id, tag: 42, case: <the real case file>, answer_max_chars: 500 }
- *   'POST /booth/plays/:id/reply'  { status: 'replied', reply: REPLY(answers.length), reply_sig: SIG(answers.length) }
+ *   'GET /booth/status'            { open: true, event_code }
+ *   'POST /booth/plays'            START: { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig }
+ *   'POST /booth/plays/:id/reply'  replyBody(answers): reply n, SIG(n), next for the tier path walked (n < 3)
+ * The case is backend/tests/fixtures/booth-case-tree.json.
  *   'GET /booth/board'             { board: { today: [], event: [] } }
  *   'POST /booth/plays/:id/score'  SCORED
  * opts.routes merges over these: key -> (call, calls) => ({ status, body }) | 'abort'. Unknown keys answer 404.
@@ -78,9 +142,9 @@ function makeStub({ routes = {} } = {}) {
   const calls = [];
   const holds = new Map();
   const table = {
-    'GET /booth/status': () => ({ status: 200, body: { open: true, event_code: KASE.event_code, case_version: KASE.version } }),
-    'POST /booth/plays': () => ({ status: 201, body: { play_id: PLAY_ID, tag: 42, case: KASE, answer_max_chars: 500 } }),
-    'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: { status: 'replied', reply: REPLY(call.body?.answers?.length), reply_sig: SIG(call.body?.answers?.length) } }),
+    'GET /booth/status': () => ({ status: 200, body: { open: true, event_code: TREE.event_code } }),
+    'POST /booth/plays': () => ({ status: 201, body: START }),
+    'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: replyBody(call.body?.answers ?? []) }),
     'GET /booth/board': () => ({ status: 200, body: { board: { today: [], event: [] } } }),
     'POST /booth/plays/:id/score': () => ({ status: 200, body: SCORED }),
     ...routes,
@@ -372,10 +436,10 @@ async function scanSources() {
     ['physician-ui/public/booth.html', ROOT, (f) => f === 'booth.html'],
     ['physician-ui/public/css/booth*.css', join(ROOT, 'css'), (f) => /^booth.*\.css$/.test(f)],
     ['physician-ui/public/js/booth-*.js', join(ROOT, 'js'), (f) => /^booth-.*\.js$/.test(f)],
-    ['backend/src/booth-cases/*.json', CASES, (f) => f.endsWith('.json')],
+    ['backend/src/booth-cases/*/*.json', CASES, (f) => /^[^/]+\/[^/]+\.json$/.test(f)],
   ];
   for (const [glob, dir, match] of groups) {
-    const files = (await readdir(dir)).filter(match).sort();
+    const files = (await readdir(dir, { recursive: true })).filter(match).sort();
     const hits = [];
     for (const f of files) {
       const text = withoutDemoLabel(await readFile(join(dir, f), 'utf8'));
@@ -396,7 +460,8 @@ async function shot(page, name) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, PLAY_ID, REPLY, SIG, SCORED };
+const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, REPLY, SIG, SCORED,
+  START, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, heaviestBankNext, replyBody };
 
 try {
   await scanSources();

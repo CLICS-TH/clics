@@ -112,11 +112,6 @@ body.booth {
 .case-card--full .vignette .bi-th { font-size: calc(42 * var(--u)); line-height: 1.65; }
 .case-card--full .vignette .bi-en { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 .vignette .bi-en { margin-top: calc(12 * var(--u)); }
-.placeholder-badge {
-  padding: calc(8 * var(--u)) calc(24 * var(--u));
-  border: var(--line) dashed var(--ink); border-radius: var(--radius-s); background: var(--canvas);
-}
-.placeholder-badge .bi-th, .placeholder-badge .bi-en { font-size: var(--text-en); font-weight: 600; color: var(--ink); line-height: 1.5; }
 
 .step-sheet {
   flex: none; box-sizing: border-box;
@@ -132,6 +127,14 @@ body.booth {
 .step-of .bi-th, .step-of .bi-en { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
 .question .bi-th { font-size: var(--text-q-th); font-weight: 600; line-height: 1.45; }
 .question .bi-en { font-size: var(--text-q-en); line-height: 1.35; }
+.prompt { display: flex; flex-direction: column; }
+/* Bridge and question read as one card: the AI's lead-in on top, the question beneath it on the same rail. */
+.prompt--bridged { border-left: calc(8 * var(--u)) solid var(--ai-border); border-radius: var(--radius-s); background: var(--ai-bg); overflow: hidden; }
+.ai-bridge { padding: calc(16 * var(--u)) calc(28 * var(--u)); color: var(--ai-text); font-size: var(--text-small-th); line-height: 1.55; }
+.ai-bridge .ai-label { margin-right: calc(12 * var(--u)); font-size: var(--text-en); }
+/* A bridge costs the sheet two lines; the vignette peek gives them back (it was read in full one screen ago). */
+.play-body:has(.prompt--bridged) > .case-card { min-height: calc(140 * var(--u)); }
+.prompt--bridged .question { padding: calc(16 * var(--u)) calc(28 * var(--u)) calc(20 * var(--u)); background: var(--card); border-top: var(--line) solid var(--ai-border); }
 
 .options { display: flex; flex-direction: column; gap: calc(20 * var(--u)); }
 .booth-btn.option { align-items: flex-start; padding: calc(24 * var(--u)) calc(28 * var(--u)); }

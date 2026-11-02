@@ -48,6 +48,9 @@
           "booth": {
             "max_tokens": 400
           },
+          "booth_grill": {
+            "max_tokens": 600
+          },
           "deep": {
             "max_tokens": {
               "default": 8000,
@@ -133,6 +136,10 @@
           "booth": {
             "label": "chat-prompt-9836fc3d",
             "sha256": "9836fc3d621c03270c8ace45b3071dc556525e82df2b4453540a904637c87e7e"
+          },
+          "booth+grill": {
+            "label": "chat-prompt-219eb112",
+            "sha256": "219eb11211896e4ceffdab3f8deaefe39e2176787a3fa76e0f485b5f61aad0dc"
           },
           "examiner": {
             "label": "chat-prompt-c6efcfc6",
@@ -326,5 +333,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "51c96f4f018ef968c99e0635fecfd9cff8c559b2e259de32e4865dcb7d502b9f"
+  "sha256": "5cfcc89ba8e5e5027d0f4105346dd41f2d8287d6a4490cf517d11581d71c513e"
 }
