@@ -13,8 +13,8 @@ const WATCH = { kind: 'watch' };
 
 /** @type {Record<string, ScreenPolicy>} */
 const SCREEN_POLICY = {
-  starting: HOLD, replying: HOLD, scoring: HOLD,
-  vignette: WATCH, step: WATCH, typing: WATCH, reply: WATCH,
+  drawing: HOLD, starting: HOLD, replying: HOLD, scoring: HOLD,
+  teaser: WATCH, vignette: WATCH, step: WATCH, typing: WATCH, reply: WATCH,
   scored: { kind: 'reset', ms: 45_000 }, unavailable: { kind: 'reset', ms: 45_000 },
   stopped: { kind: 'reset', ms: 6_000 },
 };

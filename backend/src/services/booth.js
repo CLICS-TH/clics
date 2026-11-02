@@ -46,7 +46,7 @@ const DAY_MS = 86_400_000;
  *   A reply may be '' when the AI gave none for that step; its sig still binds the ''.
  * @typedef {{ tag: number, score: number, at: string }} BoardEntry
  * @typedef {{ today: BoardEntry[], event: BoardEntry[] }} Board
- * @typedef {'bad_request' | 'closed' | 'not_found' | 'not_started' | 'replayed' | 'unavailable'} Refusal
+ * @typedef {'bad_request' | 'case_off' | 'closed' | 'not_found' | 'not_started' | 'replayed' | 'unavailable'} Refusal
  * @typedef {{ body: object } | { refused: Refusal }} Result
  */
 
@@ -66,6 +66,12 @@ const DialogueSchema = z.object({
   asks: z.array(AskSchema).min(1).max(STEPS),
   sigs: z.array(z.string().max(64)).min(1).max(STEPS + 1),
 }).strict();
+
+const CASE_ID = z.string().regex(/^[a-z0-9][a-z0-9-]{0,31}$/);
+// The kiosk's seen list is at most the event's pool (about 11 cases) plus the one it was reset to.
+const SEEN_MAX = 20;
+const DrawSchema = z.object({ seen: z.array(CASE_ID).max(SEEN_MAX) }).strict();
+const StartSchema = z.object({ case_id: CASE_ID }).strict();
 
 const DomainsSchema = ScoreSchema.pick(Object.fromEntries(DOMAIN_KEYS.map((k) => [k, true])));
 
@@ -112,8 +118,9 @@ function eventCases(code) {
   return caseCache.get(key);
 }
 
-// The tracer serves the first admitted case; #248 replaces this with the draw.
-const servedCase = (code) => eventCases(code)[0] ?? null;
+// The one place that decides which cases a visitor can be dealt or start: the event's admitted cases. #249's
+// per-case switch filters here, so the draw and the start can never disagree.
+const liveCases = (code) => eventCases(code);
 
 const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
 // The bank for step n is keyed by the tier letters of the n answers before it.
@@ -206,20 +213,19 @@ async function readBoothEvent() {
 
 function eventState(event, now) {
   if (!event.enabled) return { open: false, reason: 'off' };
-  const kase = servedCase(event.code);
-  if (!kase || !event.opensAt || !event.closesAt || event.ceilingUsd == null || event.opensAt >= event.closesAt) {
+  if (liveCases(event.code).length === 0 || !event.opensAt || !event.closesAt || event.ceilingUsd == null || event.opensAt >= event.closesAt) {
     return { open: false, reason: 'misconfigured' };
   }
   if (now < event.opensAt) return { open: false, reason: 'not_yet' };
   if (now >= event.closesAt) return { open: false, reason: 'ended' };
-  return { open: true, kase };
+  return { open: true };
 }
 
 async function openEvent(now) {
   const event = await readBoothEvent();
   if (!event) return { refused: 'unavailable' };
   const state = eventState(event, now);
-  return state.open ? { event, kase: state.kase } : { refused: 'closed' };
+  return state.open ? { event } : { refused: 'closed' };
 }
 
 /** The case the play started on, at the version it started with: never the event's current case. */
@@ -432,11 +438,54 @@ async function boothStatus(now = new Date()) {
   return { body: { open: state.open, ...(state.open ? {} : { reason: state.reason }), event_code: event.code } };
 }
 
-/** @returns {Promise<Result>} body: { play_id, tag, answer_max_chars, case: { vignette }, next, sig } */
-async function startPlay(now = new Date()) {
+/** The live cases played least this event. Counted per case with a head request: a plain select stops at 1000 rows.
+ *  @returns {Promise<object[] | null>} null when a count cannot be read: a wrong draw is worse than none */
+async function leastPlayed(code, live) {
+  const counts = await Promise.all(live.map(async (kase) => {
+    const { count, error } = await supabase.from('booth_plays').select('id', { count: 'exact', head: true })
+      .eq('event_code', code).eq('case_id', kase.case_id);
+    return error || !Number.isInteger(count) ? null : count;
+  }));
+  if (counts.includes(null)) return null;
+  const least = Math.min(...counts);
+  return live.filter((_, i) => counts[i] === least);
+}
+
+/** Writes nothing. A first draw (empty `seen`) is the least-played live case; a reroll is a random live case not in
+ *  `seen`. With every live case seen, any but the last one seen (the kiosk then restarts its list from the one
+ *  returned); ids in `seen` that are no longer live are ignored.
+ *  @returns {Promise<Result>} body: { case_id, teaser: { th, en } } and nothing else of the case */
+async function drawCase(input, now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
-  const { event, kase } = opened;
+  const parsed = DrawSchema.safeParse(input);
+  if (!parsed.success) return { refused: 'bad_request' };
+  const { seen } = parsed.data;
+  const live = liveCases(opened.event.code);
+  let pool;
+  if (seen.length === 0) {
+    pool = await leastPlayed(opened.event.code, live);
+    if (!pool) return { refused: 'unavailable' };
+  } else {
+    pool = live.filter((k) => !seen.includes(k.case_id));
+    if (pool.length === 0) {
+      const others = live.filter((k) => k.case_id !== seen[seen.length - 1]);
+      pool = others.length ? others : live;
+    }
+  }
+  const { case_id, teaser } = randomOf(pool);
+  return { body: { case_id, teaser } };
+}
+
+/** @returns {Promise<Result>} body: { play_id, tag, answer_max_chars, case: { vignette }, next, sig } */
+async function startPlay(input, now = new Date()) {
+  const opened = await openEvent(now);
+  if (opened.refused) return opened;
+  const parsed = StartSchema.safeParse(input);
+  if (!parsed.success) return { refused: 'bad_request' };
+  const { event } = opened;
+  const kase = liveCases(event.code).find((k) => k.case_id === parsed.data.case_id);
+  if (!kase) return { refused: 'case_off' };
   // PostgREST answers a table function with an array of rows.
   const { data, error } = await supabase.rpc('booth_start_play',
     { p_event: event.code, p_case: kase.case_id, p_version: kase.version });
@@ -672,6 +721,6 @@ async function updateBoothSettings(input) {
 }
 
 module.exports = {
-  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, startPlay, replyToStep,
+  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
   scorePlay, boothSettings, updateBoothSettings,
 };

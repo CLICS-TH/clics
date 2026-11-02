@@ -34,6 +34,7 @@ export const BOARD = { today: entries([7, 19, TAG, 3, 25, 11, 30, 8, 14, 2], 79.
 
 const ROUTES = {
   'GET /booth/status': () => ({ open: true, event_code: KASE.event_code }),
+  'POST /booth/draw': () => ({ case_id: KASE.case_id, teaser: KASE.teaser }),
   'POST /booth/plays': () => ({
     play_id: '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f', tag: TAG, case: { vignette: KASE.vignette }, answer_max_chars: 500, next: nextFor(''), sig: 'sig-0',
   }),

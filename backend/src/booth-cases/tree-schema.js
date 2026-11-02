@@ -61,7 +61,7 @@ const CaseTreeSchema = z.object({
 const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && kase?.admission?.sandbox);
 
 // Thai combining marks take no width at the kiosk. Budgets are the line counts measured at the
-// kiosk's font sizes (PR #233); the teaser budget is provisional, not measured at the kiosk.
+// kiosk's font sizes (PR #233); the teaser budget is measured by scripts/booth/scenarios/draw.mjs.
 const BUDGETS = {
   teaser: { th: 120, en: 180 },
   vignette: { th: 300, en: 450 },
