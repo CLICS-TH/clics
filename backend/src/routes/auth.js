@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
@@ -59,16 +60,22 @@ async function activeCouncil(councilId) {
 
 // supabase-js has no getUserByEmail; scan the admin list (cheap at pilot scale). Used by the invite
 // password flow to recover a half-provisioned account whose email already has an auth user.
+// Returns { user, error }: a failed scan is an error, never "no such user", so the caller can refuse.
 async function findAuthUserByEmail(email) {
   const target = (email || '').toLowerCase();
-  for (let page = 1; page <= 20; page++) { // cap 20*200 = 4000 users, ample for the pilot
-    const { data, error } = await authSupabase.auth.admin.listUsers({ page, perPage: 200 });
-    if (error || !data?.users?.length) return null;
-    const hit = data.users.find(u => (u.email || '').toLowerCase() === target);
-    if (hit) return hit;
-    if (data.users.length < 200) return null; // last page
+  try {
+    for (let page = 1; page <= 20; page++) { // cap 20*200 = 4000 users, ample for the pilot
+      const { data, error } = await authSupabase.auth.admin.listUsers({ page, perPage: 200 });
+      if (error) return { user: null, error };
+      if (!data?.users?.length) return { user: null, error: null };
+      const hit = data.users.find(u => (u.email || '').toLowerCase() === target);
+      if (hit) return { user: hit, error: null };
+      if (data.users.length < 200) return { user: null, error: null }; // last page
+    }
+    return { user: null, error: null };
+  } catch (error) {
+    return { user: null, error };
   }
-  return null;
 }
 
 // Verify an emailed OTP. An admin-created (unconfirmed) account produces a 'signup'-type token
@@ -543,25 +550,27 @@ router.post('/invite/:token/accept', async (req, res) => {
   if (!body.otp) {
     if (!body.password) return res.status(400).json({ error: 'Password is required.' });
     const userMeta = { invite_signup: { full_name_th: body.full_name_th, full_name_en: body.full_name_en } };
+    // body.password was only validated above. It reaches GoTrue at step 2, after the code verifies;
+    // until then the unconfirmed user holds a random password nobody knows.
     const { data: created, error: cErr } = await supabase.auth.admin.createUser({
-      email: inv.email, password: body.password, email_confirm: false, user_metadata: userMeta,
+      email: inv.email, password: crypto.randomBytes(32).toString('base64url'), email_confirm: false, user_metadata: userMeta,
     });
     if (cErr) {
       // The email already has an auth user. Distinguish a HALF-PROVISIONED invite (an earlier
       // attempt created the user + sent an OTP, then was abandoned → no professionals row yet) from a
       // fully-registered account. Without recovery the invitee was bricked: retry 409'd "sign in",
       // but sign-in 403s (no professionals row). Recover the half-provisioned case in place.
-      const existing = await findAuthUserByEmail(inv.email);
-      if (existing) {
-        const { data: prof } = await supabase.from('professionals').select('id').eq('id', existing.id).maybeSingle();
-        if (prof) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
-        // Reuse the pending user: apply the newly-entered password + name, then (re)send the code.
-        const { error: uErr } = await supabase.auth.admin.updateUserById(existing.id, { password: body.password, user_metadata: userMeta });
-        if (uErr) {
-          console.error('[auth] invite recovery password set failed:', uErr.status ?? 'no status', uErr.message);
-          return res.status(502).json({ error: 'Could not set your password. Please try again.' });
-        }
+      // The invite token proves nothing about who owns the email (an admin holds the copy-link while
+      // Resend is in sandbox), so the new password is NOT applied here: step 2 sets it once the
+      // emailed code has verified. Here we only (re)send the code to the real inbox.
+      const { user: existing, error: lookupErr } = await findAuthUserByEmail(inv.email);
+      if (lookupErr || !existing) {
+        console.error('[auth] invite recovery: could not resolve the existing auth user:',
+          lookupErr ? `${lookupErr.status ?? 'no status'} ${lookupErr.message}` : `createUser failed (${cErr.status ?? 'no status'} ${cErr.message}) and no auth user has this email`);
+        return res.status(502).json({ error: 'Could not start your sign-up. Please try again.' });
       }
+      const { data: prof } = await supabase.from('professionals').select('id').eq('id', existing.id).maybeSingle();
+      if (prof) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
       const { error: otpErr } = await authAnon.auth.signInWithOtp({ email: inv.email, options: { shouldCreateUser: false } });
       if (otpErr) return res.status(502).json({ error: 'Could not send the verification code. Please try again.' });
       return res.status(202).json({ status: 'otp_sent', email: inv.email });
@@ -571,15 +580,34 @@ router.post('/invite/:token/accept', async (req, res) => {
     return res.status(202).json({ status: 'otp_sent', email: inv.email });
   }
 
+  if (!body.password) return res.status(400).json({ error: 'Password is required.' });
   const { data: vData, error: vErr } = await verifyEmailOtp(inv.email, body.otp);
   if (vErr || !vData?.user) return res.status(400).json({ error: 'Invalid or expired code.' });
+  // The code proved the caller owns this inbox; this is the only place body.password reaches GoTrue.
+  const { data: registered } = await supabase.from('professionals').select('id').eq('id', vData.user.id).maybeSingle();
+  if (registered) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
+  const { error: uErr } = await supabase.auth.admin.updateUserById(vData.user.id, {
+    password: body.password,
+    user_metadata: { invite_signup: { full_name_th: body.full_name_th, full_name_en: body.full_name_en } },
+  });
+  if (uErr) {
+    console.error('[auth] invite accept: password set failed:', uErr.status ?? 'no status', uErr.message);
+    return res.status(502).json({ error: 'Could not set your password. Please try again.' });
+  }
+  // GoTrue deletes every session of a user whose password is updated, so the verifyOtp session is
+  // dead now. The CLICS token IS a Supabase access token: mint it after the update, never before.
+  const { data: sData, error: sErr } = await authSupabase.auth.signInWithPassword({ email: inv.email, password: body.password });
+  if (sErr || !sData?.session?.access_token) {
+    console.error('[auth] invite accept: sign-in after password set failed:', sErr?.status ?? 'no status', sErr?.message);
+    return res.status(502).json({ error: 'Could not sign you in. Please try again.' });
+  }
   const md = vData.user.user_metadata?.invite_signup || {};
   const out = await finalize({
     authUserId: vData.user.id,
     full_name_th: body.full_name_th || md.full_name_th,
     full_name_en: body.full_name_en || md.full_name_en,
     identity: null,
-    session_token: vData.session?.access_token,
+    session_token: sData.session.access_token,
   });
   return res.status(out.http).json(out.json);
 });
