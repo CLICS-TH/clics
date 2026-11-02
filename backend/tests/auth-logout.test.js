@@ -112,6 +112,24 @@ describe('POST /auth/invite/:token/accept, half-provisioned recovery', () => {
   });
 
   describe('step 1, send the code', () => {
+    it('creates a fresh user with a server-generated password, never the one the link holder sent', async () => {
+      supabase.auth.admin.createUser.mockResolvedValue({ data: { user: { id: 'auth-new' } }, error: null });
+      const res = await sendCode();
+      expect(res.status).toBe(202);
+      expect(supabase.auth.admin.createUser).toHaveBeenCalledTimes(1);
+      const arg = supabase.auth.admin.createUser.mock.calls[0][0];
+      expect(arg.password).not.toBe(PASSWORD);
+      expect(arg.password).toEqual(expect.any(String));
+      expect(arg.password.length).toBeGreaterThanOrEqual(32);
+      expect(arg).toMatchObject({ email: PENDING.email, email_confirm: false });
+    });
+
+    it('still rejects a weak password at step 1', async () => {
+      const res = await accept({ password: 'weak' });
+      expect(res.status).toBe(400);
+      expect(supabase.auth.admin.createUser).not.toHaveBeenCalled();
+    });
+
     it('sends the code and does NOT set the password on the existing auth user', async () => {
       const res = await sendCode();
       expect(res.status).toBe(202);

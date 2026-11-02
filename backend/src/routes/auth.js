@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
@@ -549,8 +550,10 @@ router.post('/invite/:token/accept', async (req, res) => {
   if (!body.otp) {
     if (!body.password) return res.status(400).json({ error: 'Password is required.' });
     const userMeta = { invite_signup: { full_name_th: body.full_name_th, full_name_en: body.full_name_en } };
+    // body.password was only validated above. It reaches GoTrue at step 2, after the code verifies;
+    // until then the unconfirmed user holds a random password nobody knows.
     const { data: created, error: cErr } = await supabase.auth.admin.createUser({
-      email: inv.email, password: body.password, email_confirm: false, user_metadata: userMeta,
+      email: inv.email, password: crypto.randomBytes(32).toString('base64url'), email_confirm: false, user_metadata: userMeta,
     });
     if (cErr) {
       // The email already has an auth user. Distinguish a HALF-PROVISIONED invite (an earlier
@@ -580,9 +583,7 @@ router.post('/invite/:token/accept', async (req, res) => {
   if (!body.password) return res.status(400).json({ error: 'Password is required.' });
   const { data: vData, error: vErr } = await verifyEmailOtp(inv.email, body.otp);
   if (vErr || !vData?.user) return res.status(400).json({ error: 'Invalid or expired code.' });
-  // The code proved the caller owns this inbox; only now may the password be set. Step 1 never sets
-  // it on a pre-existing auth user, and a fresh user's step-1 password is overwritten here too, so
-  // the password that ends up on the account is the one sent by whoever holds the code.
+  // The code proved the caller owns this inbox; this is the only place body.password reaches GoTrue.
   const { data: registered } = await supabase.from('professionals').select('id').eq('id', vData.user.id).maybeSingle();
   if (registered) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
   const { error: uErr } = await supabase.auth.admin.updateUserById(vData.user.id, {
