@@ -19,7 +19,8 @@ app.use(express.json());
 app.use('/auth', authRouter);
 
 const CALLER = { id: 'u-1', email: 'u1@test.local', role: 'physician', status: 'active' };
-const authError = (status, message) => Object.assign(new Error(message), { name: 'AuthApiError', __isAuthError: true, status });
+const { AuthApiError } = require('@supabase/auth-js');
+const authError = (status, message) => new AuthApiError(message, status, 'test');
 
 let errorLog;
 beforeEach(() => {

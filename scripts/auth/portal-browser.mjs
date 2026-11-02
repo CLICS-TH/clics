@@ -354,6 +354,33 @@ const SCENARIOS = [
     },
   },
   {
+    // #203: the route now answers 502 when the server-side revoke fails. Sign out must not change.
+    name: 'email sign-in, Sign out while the revoke fails, Back',
+    async run(t, page, ctx) {
+      let revokeCalls = 0;
+      await ctx.route(`${API}/auth/logout`, (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        revokeCalls++;
+        return route.fulfill({
+          status: 502, contentType: 'application/json',
+          headers: { 'access-control-allow-origin': PORTAL },
+          body: JSON.stringify({ error: 'Could not end the session on the server.', code: 'revoke_failed' }),
+        });
+      });
+      await page.goto(`${PORTAL}/forgot`);
+      await emailSignIn(page, USERS.physician);
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await page.click('#logoutBtn');
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      t.check(revokeCalls === 1, `revoke called ${revokeCalls} times`);
+      t.check(!(await page.locator('#error').isVisible()), `login shows a notice: ${await page.locator('#error').textContent()}`);
+      await assertSignedOut(t, page, ctx, 'after Sign out');
+      await walkBack(t, page, ctx, 'email');
+    },
+  },
+  {
     name: 'email sign-in, two private pages, Sign out, Back',
     privateRestore: true,
     async run(t, page, ctx) {
