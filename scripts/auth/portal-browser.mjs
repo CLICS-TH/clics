@@ -46,6 +46,8 @@ const USERS = {
   alpha: { id: 'u-alpha', email: 'alpha@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ALPHA', full_name_en: 'ALPHA' },
   bravo: { id: 'u-bravo', email: 'bravo@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'BRAVO', full_name_en: 'BRAVO' },
   invitee: { id: 'u-invitee', email: 'invitee@ci.test', role: 'admin', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ผู้รับเชิญ', full_name_en: 'CI Invitee', council_id: 'c1' },
+  auditor: { id: 'u-auditor', email: 'auditor@ci.test', role: 'auditor', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ผู้ตรวจ ทดสอบ', full_name_en: 'CI Auditor', council_id: 'c1' },
+  superadmin: { id: 'u-super', email: 'super@ci.test', role: 'superadmin', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ซูเปอร์ ทดสอบ', full_name_en: 'CI Superadmin' },
   dualRole: { id: 'u-dual', email: 'dual@ci.test', role: 'physician', can_audit: true, consented_at: '2026-01-01T00:00:00Z', full_name_th: 'แพทย์ ผู้ตรวจ', full_name_en: 'CI Dual Role' },
 };
 // Bank details only their owner may see; the cross-user scenario looks for the marker on screen.
@@ -94,6 +96,12 @@ function portalServer(origin = PORTAL) {
   });
 }
 
+// What POST /auth/oauth/google/complete answers: a scenario swaps `googleComplete`, which gets the request
+// body and returns [status, json]. `completeCalls` keeps every body; `lastIssued` is the CLICS token last handed out.
+const completeCalls = [];
+let googleComplete = null;
+let lastIssued = null;
+
 // The backend keeps accepting a token after sign-out, as a not-yet-revoked JWT would: every
 // assertion below is about what the browser keeps, not about server-side revocation.
 function apiServer() {
@@ -109,13 +117,19 @@ function apiServer() {
     const body = raw ? JSON.parse(raw) : {};
     const path = new URL(req.url, API).pathname;
     const json = (status, data) => { res.writeHead(status, { ...cors, 'content-type': 'application/json' }); res.end(JSON.stringify(data)); };
-    const session = (u) => json(200, { access_token: fakeJwt(u), user: u });
+    const session = (u, status = 200) => { lastIssued = fakeJwt(u); json(status, { access_token: lastIssued, user: u }); };
 
     if (path === '/auth/login') {
       const u = Object.values(USERS).find((x) => x.email === body.email);
       return u ? session(u) : json(401, { error: 'Invalid email or password' });
     }
-    if (path === '/auth/oauth/google/complete') return session(USERS.physician);
+    if (path === '/auth/oauth/google/complete') {
+      completeCalls.push(body);
+      const [status, data] = googleComplete ? googleComplete(body) : [200, USERS.physician];
+      return data?.role ? session(data, status) : json(status, data);
+    }
+    if (path === '/auth/councils') return json(200, [{ id: 'c1', name_th: 'สภาทดสอบ', name_en: 'CI Council' }]);
+    if (path === '/auth/specialties') return json(200, [{ id: 's1', name_th: 'อายุรศาสตร์', name_en: 'Internal Medicine' }]);
     if (path === '/auth/invite/CI-INVITE' && req.method === 'GET') return json(200, { email: USERS.invitee.email, role: 'admin', council: { name_th: 'สภาทดสอบ', name_en: 'CI Council' } });
     if (path === '/auth/invite/CI-INVITE/accept') {
       return body.otp ? json(201, { access_token: fakeJwt(USERS.invitee), user: USERS.invitee }) : json(202, { status: 'otp_sent', email: USERS.invitee.email });
@@ -147,6 +161,7 @@ const gotrueUpdates = [];
 const idTokenGrants = [];
 const authorizeRequests = [];
 let idTokenRejected = false;
+let lastGoogleAccessToken = null;
 let gotrueLogouts = 0;
 function gotrue(route) {
   const req = route.request();
@@ -159,6 +174,7 @@ function gotrue(route) {
     idTokenGrants.push(req.postDataJSON());
     if (idTokenRejected) return route.fulfill({ status: 400, headers, json: { error: 'invalid_grant', error_description: 'Nonces mismatch' } });
     const access_token = fakeJwt(USERS.physician);
+    lastGoogleAccessToken = access_token;
     return route.fulfill({ status: 200, headers, json: { access_token, refresh_token: 'ci-refresh', expires_in: 3600, token_type: 'bearer', user: { ...user, app_metadata: { provider: 'google' } } } });
   }
   if (pathname === '/auth/v1/logout') gotrueLogouts++;
@@ -402,11 +418,37 @@ async function until(cond, what, ms = 8000) {
 const sha256hex = (v) => createHash('sha256').update(v).digest('hex');
 
 function resetGoogleStubs() {
+  completeCalls.length = 0;
+  googleComplete = null;
+  lastIssued = null;
   idTokenGrants.length = 0;
   authorizeRequests.length = 0;
   gotrueLogouts = 0;
   idTokenRejected = false;
   gsiBlocked = false;
+}
+
+// From /login to Google's credential reaching the page: press ours, then Google's button.
+async function pressThroughGis(page, ctx) {
+  const g = watchGoogle(page, ctx);
+  await page.goto(`${PORTAL}/login`);
+  await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+  await page.click('#googleBtn');
+  await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
+  await page.evaluate(() => { window.__gisNext = { credential: 'ci-google-id-token' }; });
+  await page.click('#fakeGoogleBtn');
+  return g;
+}
+
+// What the Callback page must leave behind after any Google sign-in that ends signed in.
+async function checkSignedInClean(t, ctx, where) {
+  const stored = await storedTokens(ctx);
+  t.check(stored.includes(`${PORTAL} clics_token`), `${where}: no clics_token stored`);
+  t.check(!stored.some((e) => e.includes(' sb-')), `${where}: Supabase session keys left: ${stored.join(', ')}`);
+  t.check(gotrueLogouts === 0, `${where}: sign-in called GoTrue /logout`);
+  const { origins } = await ctx.storageState();
+  const token = origins.find((o) => o.origin === PORTAL)?.localStorage.find((e) => e.name === 'clics_token')?.value;
+  t.check(token === lastIssued, `${where}: the stored clics_token is not the one the backend issued`);
 }
 
 // A press that must reach Supabase's authorize endpoint and never ask Google directly.
@@ -637,8 +679,54 @@ const SCENARIOS = [
       t.check(stored.includes(`${PORTAL} clics_token`), 'no clics_token stored after Google sign-in');
       t.check(!stored.some((e) => e.includes(' sb-')), `Supabase session keys left: ${stored.join(', ')}`);
       t.check(!TOKEN_IN_URL.test(page.url()), `token in the address bar ${page.url()}`);
+      t.check(completeCalls.length === 1 && completeCalls[0].access_token === lastGoogleAccessToken && !('council_id' in completeCalls[0]),
+        `signup completion was called ${completeCalls.length}x with ${JSON.stringify(completeCalls[0])}, not once with the Supabase session token and no council`);
+      t.check(await page.evaluate(() => JSON.parse(localStorage.getItem('clics_user') || '{}').role) === 'physician', 'the stored user is not the physician the backend returned');
+      await checkSignedInClean(t, ctx, 'active physician');
     },
   },
+  {
+    name: 'Login Google sign-in in-page: a new physician gets the council picker, then one complete call with council, level and specialty',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      googleComplete = (body) => (body.council_id === undefined
+        ? [400, { error: { code: 'council_required' } }]
+        : [201, USERS.physician]);
+      await pressThroughGis(page, ctx);
+      await page.locator('#councilCard').waitFor({ state: 'visible', timeout: 10000 });
+      t.check(new URL(page.url()).pathname === '/auth/callback', `the picker is not on the Callback page: ${page.url()}`);
+      t.check(completeCalls.length === 1 && completeCalls[0].access_token === lastGoogleAccessToken && !('council_id' in completeCalls[0]),
+        `the first complete call was ${JSON.stringify(completeCalls)}, not the token alone`);
+      t.check(!(await storedTokens(ctx)).includes(`${PORTAL} clics_token`), 'a clics_token was stored before the council was picked');
+      await page.locator('#council option[value="c1"]').waitFor({ state: 'attached', timeout: 10000 });
+      await page.selectOption('#council', 'c1');
+      await page.locator('#specialtyGroup').waitFor({ state: 'visible', timeout: 10000 });
+      await page.selectOption('#trainingLevel', 'resident');
+      await page.selectOption('#specialty', 's1');
+      await page.click('#councilBtn');
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      t.check(completeCalls.length === 2, `${completeCalls.length} complete calls in all, not two`);
+      const second = completeCalls[1] || {};
+      t.check(second.access_token === lastGoogleAccessToken && second.council_id === 'c1' && second.specialty_id === 's1' && second.position === 'resident',
+        `the second complete call was ${JSON.stringify(second)}`);
+      await checkSignedInClean(t, ctx, 'council picker');
+    },
+  },
+  ...['admin', 'auditor', 'superadmin'].map((role) => ({
+    name: `Login Google sign-in in-page: the ${role} role is handed to the dashboard with the CLICS token`,
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      googleComplete = () => [200, USERS[role]];
+      const handoffs = [];
+      ctx.on('request', (r) => { if (r.url().startsWith(`${DASH}/login?token=`)) handoffs.push(r.url()); });
+      await pressThroughGis(page, ctx);
+      await until(() => handoffs.length > 0, `the ${role} Handoff to ${DASH}/login`);
+      t.check(new URL(handoffs[0]).searchParams.get('token') === lastIssued, `the ${role} Handoff carried a token other than the one the backend issued`);
+      t.check(completeCalls.length === 1 && completeCalls[0].access_token === lastGoogleAccessToken, `the ${role} complete call was ${JSON.stringify(completeCalls)}`);
+      await checkSignedInClean(t, ctx, `${role} Handoff`);
+    },
+  })),
   {
     name: 'Login Google sign-in in-page: a blocked script, a Google error and a Supabase rejection keep the user on /login, each render has a new nonce',
     async run(t, page, ctx) {
