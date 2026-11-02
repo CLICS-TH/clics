@@ -180,14 +180,14 @@ curl -s "$BASE/auth/invite/$TOK"
 user and emails a code; the second verifies it.
 
 ```bash
-# step 1 — sets password, sends the 6-digit code
+# step 1 — sends the 6-digit code (the password that counts is the one sent at step 2)
 curl -s -X POST "$BASE/auth/invite/$TOK/accept" -H 'content-type: application/json' \
   -d '{"method":"password","password":"Pilot12345","full_name_th":"สมหญิง ตรวจสอบ","full_name_en":"Somying Tructsob"}'
 # -> 202 {"status":"otp_sent","email":"…"}
 
-# step 2 — verify the emailed code; provisions in the invited role
+# step 2 — verify the emailed code; sets the password, provisions in the invited role
 curl -s -X POST "$BASE/auth/invite/$TOK/accept" -H 'content-type: application/json' \
-  -d '{"method":"password","full_name_th":"สมหญิง ตรวจสอบ","full_name_en":"Somying Tructsob","otp":"<code>"}'
+  -d '{"method":"password","full_name_th":"สมหญิง ตรวจสอบ","full_name_en":"Somying Tructsob","password":"Pilot12345","otp":"<code>"}'
 ```
 
 Expected on step 2 — HTTP **201** for **both** roles (the invite is the vetting):
