@@ -62,7 +62,7 @@ The kiosk fits each field into a fixed number of lines. Thai is counted without 
 | label | 26 | 36 |
 | line | 44 | 70 |
 
-The teaser budget is provisional. It was not measured at the kiosk.
+The teaser budget was measured at the kiosk (1080x1920 and 2160x3840). A teaser at the full 120 Thai and 180 English characters takes 4 Thai and 4 English lines and leaves 11 Thai lines of room above the two buttons, with no scrolling. The harness checks this on every run (`scripts/booth/scenarios/draw.mjs`).
 
 ## Safety rules
 

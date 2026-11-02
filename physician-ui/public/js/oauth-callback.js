@@ -116,6 +116,9 @@ async function completeInvite() {
   if ((res.status === 201 || res.ok) && res.body?.access_token) {
     routeActive(res.body);
   } else {
+    // A rejected invite (for example another Google account than the invited email) must not leave
+    // this Supabase session behind. No signOut: see routeActive.
+    try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
     showError(errText(res.body));
   }
 }

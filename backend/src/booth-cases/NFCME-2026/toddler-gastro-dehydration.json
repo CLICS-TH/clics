@@ -1,0 +1,1083 @@
+{
+  "case_id": "toddler-gastro-dehydration",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "เด็กหญิงวัยขวบครึ่ง อาเจียนและถ่ายเหลวมา 2 วัน แม่พามาโรงพยาบาลชุมชน",
+    "en": "An 18-month-old girl with 2 days of vomiting and loose stools, brought by her mother to a community hospital"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ เด็กหญิงอายุ 1 ปี 6 เดือน แม่พามาโรงพยาบาลชุมชนเพราะถ่ายเหลวเป็นน้ำวันละราว 8 ครั้งมา 2 วัน ไม่มีมูกเลือด วันนี้อาเจียน 3 ครั้ง ไข้ 38.2 °C งอแง ตาโหล ดื่มน้ำอย่างกระหายเมื่อยื่นให้ หนังหน้าท้องคืนกลับช้า ชีพจร 140 ครั้ง/นาที capillary refill 2 วินาที ผ้าอ้อมเปียกน้อยลง น้ำหนัก 10 กก.",
+    "en": "A fictional 18-month-old girl is brought by her mother to a community hospital with 2 days of watery stools, about 8 a day, without blood or mucus, and 3 vomits today. Fever 38.2 °C. She is irritable, has sunken eyes and drinks eagerly when offered water. An abdominal skin pinch goes back slowly. Pulse 140/min, capillary refill 2 seconds, and fewer wet nappies. Weight 10 kg."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "การวินิจฉัยใดเข้ากับเด็กคนนี้มากที่สุด",
+            "en": "Which diagnosis fits this child best?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "age",
+          "tier": "best",
+          "label": {
+            "th": "ลำไส้อักเสบเฉียบพลัน ขาดน้ำ",
+            "en": "Acute gastroenteritis, dehydrated"
+          },
+          "line": {
+            "th": "ถ่ายเป็นน้ำ อาเจียน และตาโหล เข้ากับลำไส้ติดเชื้อ",
+            "en": "Watery stools, vomiting and sunken eyes fit a gut infection."
+          }
+        },
+        {
+          "id": "moddehyd",
+          "tier": "best",
+          "label": {
+            "th": "อุจจาระร่วง ขาดน้ำปานกลาง",
+            "en": "Diarrhoea with moderate dehydration"
+          },
+          "line": {
+            "th": "ตาโหล กระหายน้ำ หนังคืนช้า บ่งชี้ว่าขาดน้ำปานกลาง",
+            "en": "Sunken eyes, thirst and slow skin pinch indicate moderate dehydration."
+          }
+        },
+        {
+          "id": "viral",
+          "tier": "reasonable",
+          "label": {
+            "th": "ลำไส้อักเสบจากไวรัส",
+            "en": "Viral gastroenteritis"
+          },
+          "line": {
+            "th": "โรตาไวรัสและโนโรไวรัสเป็นสาเหตุหลักของท้องร่วงวัยนี้",
+            "en": "Rotavirus and norovirus lead the causes of diarrhoea at this age."
+          }
+        },
+        {
+          "id": "uti",
+          "tier": "weaker",
+          "label": {
+            "th": "ทางเดินปัสสาวะติดเชื้อ",
+            "en": "Urinary tract infection"
+          },
+          "line": {
+            "th": "ไข้และอาเจียนในเด็กเล็กอาจมาจากทางเดินปัสสาวะ",
+            "en": "Fever and vomiting in a toddler can come from a urinary infection."
+          }
+        },
+        {
+          "id": "intus",
+          "tier": "weaker",
+          "label": {
+            "th": "ลำไส้กลืนกัน",
+            "en": "Intussusception"
+          },
+          "line": {
+            "th": "อาเจียนในเด็กวัยนี้ชวนให้นึกถึงลำไส้กลืนกัน",
+            "en": "Vomiting at this age brings intussusception to mind."
+          }
+        }
+      ],
+      "default_trio": [
+        "age",
+        "viral",
+        "uti"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะตรวจหรือประเมินอะไรเป็นอันดับแรก",
+              "en": "What do you check or assess first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ควรตรวจอะไรก่อน เพื่อวางแผนการให้น้ำ",
+              "en": "Which checks come first to plan her fluids?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "assess",
+            "tier": "best",
+            "label": {
+              "th": "ชั่งน้ำหนัก ประเมินการขาดน้ำ",
+              "en": "Weight and dehydration signs"
+            },
+            "line": {
+              "th": "จัดระดับการขาดน้ำข้างเตียง และใช้คำนวณปริมาณ ORS",
+              "en": "Grades fluid loss at the bedside and sets the ORS volume."
+            }
+          },
+          {
+            "id": "urineout",
+            "tier": "best",
+            "label": {
+              "th": "ดูอาการขาดน้ำและปริมาณปัสสาวะ",
+              "en": "Dehydration signs and urine output"
+            },
+            "line": {
+              "th": "บอกระดับการขาดน้ำ และติดตามการตอบสนองต่อ ORS ได้",
+              "en": "Shows the degree of fluid loss and tracks the response to ORS."
+            }
+          },
+          {
+            "id": "elec",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจเกลือแร่และครีเอตินีน",
+              "en": "Serum electrolytes and creatinine"
+            },
+            "line": {
+              "th": "ดูระดับโซเดียมและการทำงานของไตควบคู่กับการให้น้ำ",
+              "en": "Checks sodium and kidney function alongside rehydration."
+            }
+          },
+          {
+            "id": "glucose",
+            "tier": "reasonable",
+            "label": {
+              "th": "เจาะน้ำตาลปลายนิ้ว",
+              "en": "Capillary blood glucose"
+            },
+            "line": {
+              "th": "เด็กที่อาเจียนอาจมีน้ำตาลต่ำ เจาะปลายนิ้วรู้ผลเร็ว",
+              "en": "A vomiting toddler can run low on sugar; a fingerprick shows it fast."
+            }
+          },
+          {
+            "id": "stool",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจอุจจาระและเพาะเชื้อ",
+              "en": "Stool microscopy and culture"
+            },
+            "line": {
+              "th": "หาเชื้อแบคทีเรียหรือพยาธิที่ทำให้ถ่ายเหลว",
+              "en": "Looks for a bacterial or parasitic cause of the diarrhoea."
+            }
+          },
+          {
+            "id": "cbc",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ CBC และ CRP",
+              "en": "Complete blood count and CRP"
+            },
+            "line": {
+              "th": "ดูการติดเชื้อและการอักเสบที่เป็นต้นเหตุของไข้",
+              "en": "Gauges infection and inflammation behind the fever."
+            }
+          }
+        ],
+        "default_trio": [
+          "assess",
+          "elec",
+          "stool"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณบอกสาเหตุแล้ว จะตรวจอะไรเป็นอันดับแรก",
+              "en": "You have named the cause. What do you check first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ที่ห้องตรวจวันนี้ จะประเมินอะไรก่อน",
+              "en": "What do you assess first in clinic today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "assess",
+            "tier": "best",
+            "label": {
+              "th": "ชั่งน้ำหนัก ประเมินการขาดน้ำ",
+              "en": "Weight and dehydration signs"
+            },
+            "line": {
+              "th": "จัดระดับการขาดน้ำข้างเตียง และใช้คำนวณปริมาณ ORS",
+              "en": "Grades fluid loss at the bedside and sets the ORS volume."
+            }
+          },
+          {
+            "id": "elec",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจเกลือแร่และครีเอตินีน",
+              "en": "Serum electrolytes and creatinine"
+            },
+            "line": {
+              "th": "ดูระดับโซเดียมและการทำงานของไตควบคู่กับการให้น้ำ",
+              "en": "Checks sodium and kidney function alongside rehydration."
+            }
+          },
+          {
+            "id": "glucose",
+            "tier": "reasonable",
+            "label": {
+              "th": "เจาะน้ำตาลปลายนิ้ว",
+              "en": "Capillary blood glucose"
+            },
+            "line": {
+              "th": "เด็กที่อาเจียนอาจมีน้ำตาลต่ำ เจาะปลายนิ้วรู้ผลเร็ว",
+              "en": "A vomiting toddler can run low on sugar; a fingerprick shows it fast."
+            }
+          },
+          {
+            "id": "stool",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจอุจจาระและเพาะเชื้อ",
+              "en": "Stool microscopy and culture"
+            },
+            "line": {
+              "th": "หาเชื้อแบคทีเรียหรือพยาธิที่ทำให้ถ่ายเหลว",
+              "en": "Looks for a bacterial or parasitic cause of the diarrhoea."
+            }
+          },
+          {
+            "id": "cbc",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ CBC และ CRP",
+              "en": "Complete blood count and CRP"
+            },
+            "line": {
+              "th": "ดูการติดเชื้อและการอักเสบที่เป็นต้นเหตุของไข้",
+              "en": "Gauges infection and inflammation behind the fever."
+            }
+          }
+        ],
+        "default_trio": [
+          "assess",
+          "glucose",
+          "stool"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ท้องนุ่ม คลำไม่พบก้อน จะตรวจอะไรเป็นอันดับแรก",
+              "en": "Her abdomen is soft with no mass. What do you check first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะตรวจหรือประเมินสิ่งใดเป็นอันดับแรก",
+              "en": "What do you check or assess first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "assess",
+            "tier": "best",
+            "label": {
+              "th": "ชั่งน้ำหนัก ประเมินการขาดน้ำ",
+              "en": "Weight and dehydration signs"
+            },
+            "line": {
+              "th": "จัดระดับการขาดน้ำข้างเตียง และใช้คำนวณปริมาณ ORS",
+              "en": "Grades fluid loss at the bedside and sets the ORS volume."
+            }
+          },
+          {
+            "id": "urineout",
+            "tier": "best",
+            "label": {
+              "th": "ดูอาการขาดน้ำและปริมาณปัสสาวะ",
+              "en": "Dehydration signs and urine output"
+            },
+            "line": {
+              "th": "บอกระดับการขาดน้ำ และติดตามการตอบสนองต่อ ORS ได้",
+              "en": "Shows the degree of fluid loss and tracks the response to ORS."
+            }
+          },
+          {
+            "id": "urinetest",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจปัสสาวะ",
+              "en": "Urinalysis"
+            },
+            "line": {
+              "th": "หาการติดเชื้อทางเดินปัสสาวะที่อาจเป็นต้นเหตุของไข้",
+              "en": "Looks for a urinary infection behind the fever."
+            }
+          },
+          {
+            "id": "elec",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจเกลือแร่และครีเอตินีน",
+              "en": "Serum electrolytes and creatinine"
+            },
+            "line": {
+              "th": "ดูระดับโซเดียมและการทำงานของไตควบคู่กับการให้น้ำ",
+              "en": "Checks sodium and kidney function alongside rehydration."
+            }
+          },
+          {
+            "id": "us",
+            "tier": "weaker",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้อง",
+              "en": "Abdominal ultrasound"
+            },
+            "line": {
+              "th": "มองหาลำไส้กลืนกันที่อาจทำให้อาเจียน",
+              "en": "Looks for intussusception as a cause of the vomiting."
+            }
+          },
+          {
+            "id": "stool",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจอุจจาระและเพาะเชื้อ",
+              "en": "Stool microscopy and culture"
+            },
+            "line": {
+              "th": "หาเชื้อแบคทีเรียหรือพยาธิที่ทำให้ถ่ายเหลว",
+              "en": "Looks for a bacterial or parasitic cause of the diarrhoea."
+            }
+          }
+        ],
+        "default_trio": [
+          "assess",
+          "urinetest",
+          "us"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำหนัก 10 กก. ขาดน้ำปานกลาง จะดูแลอย่างไร",
+              "en": "She weighs 10 kg with moderate dehydration. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ประเมินแล้วพบว่าขาดน้ำปานกลาง แผนการรักษาคืออะไร",
+              "en": "Grading shows moderate dehydration. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "ondan",
+            "tier": "reasonable",
+            "label": {
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
+            },
+            "line": {
+              "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
+              "en": "Settles the vomiting so she can drink more ORS."
+            }
+          },
+          {
+            "id": "iv",
+            "tier": "reasonable",
+            "label": {
+              "th": "IV LRS หาก ORS ไม่ได้ผล",
+              "en": "IV Ringer's lactate if ORS fails"
+            },
+            "line": {
+              "th": "เปลี่ยนเป็นให้ IV เมื่อลอง ORS แล้วอาเจียนออกซ้ำ ๆ",
+              "en": "Switches to IV fluid when an ORS trial keeps coming back up."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "planb",
+          "ondan",
+          "abx"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลเลือดปกติทั้งหมด จะดูแลอย่างไร",
+              "en": "Her blood results are all normal. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจอยู่ในเกณฑ์ปกติ แผนการให้น้ำคืออะไร",
+              "en": "The results are within normal limits. What is your fluid plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "orsonly",
+            "tier": "reasonable",
+            "label": {
+              "th": "ORS 750 มล. ใน 4 ชม.",
+              "en": "ORS 750 mL over 4 h"
+            },
+            "line": {
+              "th": "ทดแทนน้ำที่ขาดทางปากภายใน 4 ชม.",
+              "en": "Replaces the fluid deficit by mouth over 4 hours."
+            }
+          },
+          {
+            "id": "iv",
+            "tier": "reasonable",
+            "label": {
+              "th": "IV LRS หาก ORS ไม่ได้ผล",
+              "en": "IV Ringer's lactate if ORS fails"
+            },
+            "line": {
+              "th": "เปลี่ยนเป็นให้ IV เมื่อลอง ORS แล้วอาเจียนออกซ้ำ ๆ",
+              "en": "Switches to IV fluid when an ORS trial keeps coming back up."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "planb",
+          "orsonly",
+          "abx"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลตรวจไม่ได้ช่วยมากนัก เด็กยังตาโหลอยู่ จะดูแลอย่างไร",
+              "en": "The results add little, and her eyes are still sunken. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจเบื้องต้นปกติ ยังกระหายน้ำ แผนการรักษาคืออะไร",
+              "en": "Early results are normal and she is still thirsty. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "iv",
+            "tier": "reasonable",
+            "label": {
+              "th": "IV LRS หาก ORS ไม่ได้ผล",
+              "en": "IV Ringer's lactate if ORS fails"
+            },
+            "line": {
+              "th": "เปลี่ยนเป็นให้ IV เมื่อลอง ORS แล้วอาเจียนออกซ้ำ ๆ",
+              "en": "Switches to IV fluid when an ORS trial keeps coming back up."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "clinic",
+          "iv",
+          "abx"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ชั่งได้ 10 กก. ประเมินแล้วขาดน้ำปานกลาง จะดูแลอย่างไร",
+              "en": "She weighs 10 kg and grades as moderately dehydrated. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "อาการเข้าได้กับขาดน้ำปานกลาง แผนการรักษาคืออะไร",
+              "en": "Her signs fit moderate dehydration. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "ondan",
+            "tier": "reasonable",
+            "label": {
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
+            },
+            "line": {
+              "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
+              "en": "Settles the vomiting so she can drink more ORS."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "planb",
+          "ondan",
+          "abx"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลเลือดปกติ เด็กยังตาโหลและกระหายน้ำ จะดูแลอย่างไร",
+              "en": "Labs are normal; she is still thirsty with sunken eyes. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจปกติ หนังหน้าท้องยังคืนช้า แผนคืออะไร",
+              "en": "The results are normal and her skin pinch is still slow. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "ondan",
+            "tier": "reasonable",
+            "label": {
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
+            },
+            "line": {
+              "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
+              "en": "Settles the vomiting so she can drink more ORS."
+            }
+          },
+          {
+            "id": "orsonly",
+            "tier": "reasonable",
+            "label": {
+              "th": "ORS 750 มล. ใน 4 ชม.",
+              "en": "ORS 750 mL over 4 h"
+            },
+            "line": {
+              "th": "ทดแทนน้ำที่ขาดทางปากภายใน 4 ชม.",
+              "en": "Replaces the fluid deficit by mouth over 4 hours."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "planb",
+          "ondan",
+          "abx"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลตรวจไม่ได้ช่วยมากนัก ยังตาโหลและหนังคืนช้า จะดูแลอย่างไร",
+              "en": "Results add little; still sunken eyes, slow pinch. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจเบื้องต้นปกติ ตาโหลและหนังคืนช้า แผนคืออะไร",
+              "en": "Early results are normal; sunken eyes, slow skin pinch. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "iv",
+            "tier": "reasonable",
+            "label": {
+              "th": "IV LRS หาก ORS ไม่ได้ผล",
+              "en": "IV Ringer's lactate if ORS fails"
+            },
+            "line": {
+              "th": "เปลี่ยนเป็นให้ IV เมื่อลอง ORS แล้วอาเจียนออกซ้ำ ๆ",
+              "en": "Switches to IV fluid when an ORS trial keeps coming back up."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "clinic",
+          "iv",
+          "abx"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ท้องนุ่ม ประเมินแล้วขาดน้ำปานกลาง จะดูแลอย่างไร",
+              "en": "Her abdomen is soft; she grades as moderately dehydrated. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "น้ำหนัก 10 กก. อาการเข้าได้กับขาดน้ำปานกลาง แผนคืออะไร",
+              "en": "She weighs 10 kg and her signs fit moderate dehydration. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "ondan",
+            "tier": "reasonable",
+            "label": {
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
+            },
+            "line": {
+              "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
+              "en": "Settles the vomiting so she can drink more ORS."
+            }
+          },
+          {
+            "id": "iv",
+            "tier": "reasonable",
+            "label": {
+              "th": "IV LRS หาก ORS ไม่ได้ผล",
+              "en": "IV Ringer's lactate if ORS fails"
+            },
+            "line": {
+              "th": "เปลี่ยนเป็นให้ IV เมื่อลอง ORS แล้วอาเจียนออกซ้ำ ๆ",
+              "en": "Switches to IV fluid when an ORS trial keeps coming back up."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "planb",
+          "ondan",
+          "abx"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลตรวจปกติ เด็กยังตาโหลและกระหายน้ำ จะดูแลอย่างไร",
+              "en": "Results are normal; she is still thirsty, eyes sunken. How do you manage her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจปกติ หนังหน้าท้องยังคืนช้า แผนการรักษาคืออะไร",
+              "en": "Results are normal and her skin pinch is still slow. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "orsonly",
+            "tier": "reasonable",
+            "label": {
+              "th": "ORS 750 มล. ใน 4 ชม.",
+              "en": "ORS 750 mL over 4 h"
+            },
+            "line": {
+              "th": "ทดแทนน้ำที่ขาดทางปากภายใน 4 ชม.",
+              "en": "Replaces the fluid deficit by mouth over 4 hours."
+            }
+          },
+          {
+            "id": "iv",
+            "tier": "reasonable",
+            "label": {
+              "th": "IV LRS หาก ORS ไม่ได้ผล",
+              "en": "IV Ringer's lactate if ORS fails"
+            },
+            "line": {
+              "th": "เปลี่ยนเป็นให้ IV เมื่อลอง ORS แล้วอาเจียนออกซ้ำ ๆ",
+              "en": "Switches to IV fluid when an ORS trial keeps coming back up."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "planb",
+          "orsonly",
+          "abx"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลเบื้องต้นปกติ เด็กยังตาโหลและกระหายน้ำ แผนคืออะไร",
+              "en": "Early results are normal; still thirsty, eyes sunken. What is your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจไม่ได้ช่วยมากนัก หนังหน้าท้องยังคืนช้า แผนคืออะไร",
+              "en": "Results add little, and her skin pinch is still slow. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "clinic",
+            "tier": "best",
+            "label": {
+              "th": "ป้อน ORS 750 มล. และซิงค์",
+              "en": "ORS 750 mL fed in sips, plus zinc"
+            },
+            "line": {
+              "th": "ป้อนทีละน้อยใน 4 ชม. เสริมหลังถ่าย ประเมินซ้ำที่ 4 ชม.",
+              "en": "Small sips over 4 h, more after each stool, recheck at 4 h."
+            }
+          },
+          {
+            "id": "planb",
+            "tier": "best",
+            "label": {
+              "th": "ORS 750 มล./4 ชม. และซิงค์",
+              "en": "ORS 750 mL over 4 h, plus zinc"
+            },
+            "line": {
+              "th": "แผน B WHO เสริม ORS ทุกครั้งที่ถ่าย ประเมินซ้ำ 4 ชม.",
+              "en": "WHO Plan B, extra ORS after each stool, reassessed at 4 h."
+            }
+          },
+          {
+            "id": "orsonly",
+            "tier": "reasonable",
+            "label": {
+              "th": "ORS 750 มล. ใน 4 ชม.",
+              "en": "ORS 750 mL over 4 h"
+            },
+            "line": {
+              "th": "ทดแทนน้ำที่ขาดทางปากภายใน 4 ชม.",
+              "en": "Replaces the fluid deficit by mouth over 4 hours."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ORS ร่วมกับยาปฏิชีวนะชนิดกิน",
+              "en": "ORS plus an oral antibiotic"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อแบคทีเรียไปพร้อมกับการให้น้ำ",
+              "en": "Covers a bacterial cause alongside the fluids."
+            }
+          }
+        ],
+        "default_trio": [
+          "clinic",
+          "orsonly",
+          "abx"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Three rounds by fresh reviewers (claude-opus-5-5, none wrote the case) against the WHO diarrhoea manual and IMCI (Plan B 75 mL/kg ORS over 4 h = 750 mL at 10 kg; zinc 20 mg/day for 10-14 days), ESPGHAN 2014 and Thai acute-diarrhoea and rational-drug-use practice, all cited from recall; the #244 gate added its own review between rounds 2 and 3. Final text: no option gives an antidiarrhoeal agent (diosmectite, unsuitable under age 2, was removed); ondansetron is a single oral dose at reasonable tier; IV Ringer's lactate is reasonable and conditional on a failed ORS trial; every weaker option is safe and includes ORS where it is a management choice. Both best step-3 options give the full Plan B (750 mL ORS by mouth over 4 h, zinc, ORS after each stool, reassessment at 4 h), with no breastfeeding claim. Step-3 questions reveal only what the chosen step-2 checks can show, with a dehydration grade only on paths that graded it. Thai and English were aligned on the IV fluid name and trigger, 'WHO', the 4 h recheck, ปริมาณปัสสาวะ, creatinine and 'first'."
+    }
+  }
+}

@@ -81,6 +81,7 @@ let rpcCalls;
 let rpcOverride;
 let afterReserve;
 let standingsError;
+let countError;
 
 const matches = (row, ctx) => ctx.eqs.every(([c, v]) => row[c] === v)
   && ctx.iss.every(([c, v]) => (v === null ? row[c] == null : row[c] === v));
@@ -137,6 +138,10 @@ function resolve(table, kind, ctx) {
     const keys = (ctx.ins.find(([c]) => c === 'key') || [])[1] || [];
     return settings.rows.filter((r) => keys.includes(r.key));
   }
+  if (table === 'booth_plays' && kind === 'list' && ctx.selectArgs?.[1]?.head) {
+    if (countError) return { data: null, error: countError };
+    return { data: null, error: null, count: [...plays.values()].filter((r) => matches(r, ctx)).length };
+  }
   if (table === 'booth_plays' && kind === 'list') {
     if (standingsError) return { data: null, error: standingsError };
     return [...plays.values()].filter((r) => matches(r, ctx)).map((r) => ({ ...r }));
@@ -180,6 +185,7 @@ beforeEach(() => {
   rpcOverride = {};
   afterReserve = null;
   standingsError = null;
+  countError = null;
   jest.clearAllMocks();
   rimplChat.mockImplementation(async () => ({ ...CHAT_OK }));
   rimplEvaluate.mockImplementation(async () => ({ ...EVAL_OK }));
@@ -189,8 +195,8 @@ beforeEach(() => {
 afterEach(() => { console.warn.mockRestore(); console.info.mockRestore(); delete process.env.BOOTH_CASES_DIR; });
 
 // A play as the kiosk holds it: the dialogue it sends back, the next ask it shows, and the tier path so far.
-async function begin() {
-  const res = await post('/booth/plays', {});
+async function begin(kase = KASE) {
+  const res = await post('/booth/plays', { case_id: kase.case_id });
   expect(res.status).toBe(201);
   return { id: res.body.play_id, next: res.body.next, path: '',
     d: { answers: [], replies: [], asks: [res.body.next.ask], sigs: [res.body.sig] } };
@@ -286,7 +292,7 @@ describe('GET /booth/status', () => {
   });
 });
 
-describe.each([['/booth/plays'], ['/booth/plays/:id/reply'], ['/booth/plays/:id/score']])('POST %s while closed', (route) => {
+describe.each([['/booth/draw'], ['/booth/plays'], ['/booth/plays/:id/reply'], ['/booth/plays/:id/score']])('POST %s while closed', (route) => {
   test.each(CLOSED)('%s answers 403 closed and calls neither the database functions nor rimpl', async (_name, _reason, over) => {
     settings = { rows: eventSettings(over) };
     const play = seedPlay();
@@ -316,7 +322,7 @@ describe('POST /booth/plays', () => {
   test('answers 201 with the play, the vignette, a step-1 ask of one option per tier shown in the case file\'s words, and sig 0', async () => {
     const playId = crypto.randomUUID();
     rpcOverride.booth_start_play = () => ({ data: [{ play_id: playId, play_tag: 42 }], error: null });
-    const res = await post('/booth/plays', {});
+    const res = await post('/booth/plays', { case_id: KASE.case_id });
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ play_id: playId, tag: 42, answer_max_chars: 500, case: { vignette: KASE.vignette },
       next: shown(bank(''), res.body.next.ask), sig: expect.any(String) });
@@ -336,7 +342,7 @@ describe('POST /booth/plays', () => {
     const positions = new Set();
     for (let i = 0; i < 30; i += 1) {
       newIp();
-      const { next } = (await post('/booth/plays', {})).body;
+      const { next } = (await post('/booth/plays', { case_id: KASE.case_id })).body;
       positions.add(next.options.findIndex((o) => bank('').options.find((x) => x.id === o.id).tier === 'best'));
     }
     expect(positions.size).toBeGreaterThan(1);
@@ -347,9 +353,237 @@ describe('POST /booth/plays', () => {
     ['no row', () => ({ data: [], error: null })],
   ])('booth_start_play returning %s answers 503', async (_name, rpc) => {
     rpcOverride.booth_start_play = rpc;
-    const res = await post('/booth/plays', {});
+    const res = await post('/booth/plays', { case_id: KASE.case_id });
     expect(res.status).toBe(503);
     expect(res.body.reason).toBe('unavailable');
+  });
+});
+
+describe('POST /booth/plays: the case it starts on (#248)', () => {
+  test.each([
+    ['no body', undefined],
+    ['an empty body', {}],
+    ['a case_id that is not text', { case_id: 5 }],
+    ['a case_id that is not a case id', { case_id: 'Not A Case' }],
+    ['an extra field', { case_id: KASE.case_id, extra: 1 }],
+  ])('%s answers 400 bad_request and starts nothing', async (_name, body) => {
+    const res = await post('/booth/plays', body);
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: expect.any(String), reason: 'bad_request' });
+    expect(rpcCalls).toEqual([]);
+  });
+
+  test.each([
+    ['unknown to the event', () => casesDir(KASE), 'nope'],
+    ['in the event but not admitted', () => casesDir(KASE, edited((k) => { k.case_id = 'dark-1'; delete k.admission; })), 'dark-1'],
+    ['admitted for another event', () => casesDir(KASE, edited((k) => { k.case_id = 'elsewhere'; k.event_code = 'OTHER-2026'; })), 'elsewhere'],
+  ])('a case_id %s answers 409 case_off, with no database function called and no play written', async (_name, dir, id) => {
+    process.env.BOOTH_CASES_DIR = dir();
+    const res = await post('/booth/plays', { case_id: id });
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ error: 'That case is not available.', reason: 'case_off' });
+    expect(res.headers['cache-control']).toBe('no-store');
+    expect(rpcCalls).toEqual([]);
+    expect(m.all('booth_plays')).toEqual([]);
+  });
+
+  test('a case_id of the pool starts on that case, at its version: the play row and the function call carry both', async () => {
+    const [one, two] = [caseNo(1), caseNo(2)];
+    process.env.BOOTH_CASES_DIR = casesDir(one, two);
+    const p = await begin(two);
+    expect(rpcCalls).toEqual([['booth_start_play', { p_event: EVENT, p_case: 'case-2', p_version: two.version }]]);
+    expect(plays.get(p.id)).toMatchObject({ case_id: 'case-2', case_version: two.version });
+    expect(p.next).toEqual(shown(bankFor(two, ''), p.next.ask));
+  });
+});
+
+// A pool of admitted cases that differ only in their id, version and teaser.
+const caseNo = (n) => edited((k) => {
+  k.case_id = `case-${n}`;
+  k.version = `v${n}`;
+  k.teaser = { th: `ชายวัย ${40 + n} ปี มีไข้และไอมา 3 วัน`, en: `A ${40 + n}-year-old man with fever and cough for 3 days` };
+});
+
+describe('POST /booth/draw (#248)', () => {
+  const POOL = [1, 2, 3, 4].map(caseNo);
+  const IDS = POOL.map((k) => k.case_id);
+  const drawn = async (seen = []) => {
+    newIp();
+    const res = await post('/booth/draw', { seen });
+    expect(res.status).toBe(200);
+    return res.body.case_id;
+  };
+  const drawnMany = async (n, seen) => {
+    const out = [];
+    for (let i = 0; i < n; i += 1) out.push(await drawn(seen));
+    return out;
+  };
+  const played = (case_id, n, over = {}) => { for (let i = 0; i < n; i += 1) seedPlay({ case_id, ...over }); };
+
+  beforeEach(() => { process.env.BOOTH_CASES_DIR = casesDir(...POOL); });
+
+  test('answers 200 with the case id and its teaser, and never caches', async () => {
+    const res = await post('/booth/draw', { seen: [] });
+    expect(res.status).toBe(200);
+    expect(res.headers['cache-control']).toBe('no-store');
+    const kase = POOL.find((k) => k.case_id === res.body.case_id);
+    expect(kase).toBeDefined();
+    expect(res.body.teaser).toEqual(kase.teaser);
+  });
+
+  test('the body holds exactly the case id and the teaser: no vignette, no option text, no version, no bank', async () => {
+    const res = await post('/booth/draw', { seen: [] });
+    expect(Object.keys(res.body).sort()).toEqual(['case_id', 'teaser']);
+    expect(Object.keys(res.body.teaser).sort()).toEqual(['en', 'th']);
+    const text = JSON.stringify(res.body);
+    const kase = POOL.find((k) => k.case_id === res.body.case_id);
+    expect(text).not.toContain(kase.vignette.th);
+    expect(text).not.toContain(kase.vignette.en);
+    expect(text).not.toContain(kase.version);
+    for (const o of kase.banks.step1.options) {
+      expect(text).not.toContain(o.label.th);
+      expect(text).not.toContain(o.line.en);
+    }
+  });
+
+  test('a first draw is a case played least this event: the one case with no play is always drawn', async () => {
+    played('case-1', 3);
+    played('case-2', 2, { status: 'scored' });
+    played('case-3', 1, { status: 'abandoned' });
+    expect(new Set(await drawnMany(15))).toEqual(new Set(['case-4']));
+  });
+
+  test('plays of another event and plays of no case do not count', async () => {
+    played('case-1', 2);
+    played('case-2', 2);
+    played('case-3', 2);
+    played('case-4', 5, { event_code: 'OTHER-2026' });
+    played(null, 5);
+    expect(new Set(await drawnMany(60))).toEqual(new Set(['case-4']));
+  });
+
+  test('a tie is broken at random: over many first draws every tied case comes up, and no other', async () => {
+    played('case-1', 4);
+    played('case-2', 1);
+    played('case-3', 1);
+    played('case-4', 1);
+    expect(new Set(await drawnMany(60))).toEqual(new Set(['case-2', 'case-3', 'case-4']));
+  });
+
+  test('with no plays at all every live case is tied, and each comes up', async () => {
+    expect(new Set(await drawnMany(80))).toEqual(new Set(IDS));
+  });
+
+  test('the first draw counts each live case with a head request, never by reading rows', async () => {
+    await post('/booth/draw', { seen: [] });
+    const reads = m.all('booth_plays');
+    expect(reads).toHaveLength(4);
+    for (const q of reads) {
+      expect(q.op).toBe('select');
+      expect(q.selectArgs[1]).toEqual({ count: 'exact', head: true });
+      expect(q.eqs).toContainEqual(['event_code', EVENT]);
+    }
+    expect(reads.map((q) => q.eqs.find(([c]) => c === 'case_id')[1]).sort()).toEqual(IDS);
+  });
+
+  test('a reroll never returns a case already seen while one is left, and reads no play', async () => {
+    const seen = ['case-1', 'case-3'];
+    expect(new Set(await drawnMany(40, seen))).toEqual(new Set(['case-2', 'case-4']));
+    expect(new Set(await drawnMany(10, ['case-1', 'case-2', 'case-3']))).toEqual(new Set(['case-4']));
+    expect(m.all('booth_plays')).toEqual([]);
+  });
+
+  test('a reroll is at random, not by play counts', async () => {
+    played('case-2', 9);
+    expect(new Set(await drawnMany(80, ['case-1']))).toEqual(new Set(['case-2', 'case-3', 'case-4']));
+  });
+
+  test('with every live case seen, a reroll is any case but the last one seen, and every other comes up', async () => {
+    expect(new Set(await drawnMany(60, ['case-3', 'case-1', 'case-4', 'case-2']))).toEqual(new Set(['case-3', 'case-1', 'case-4']));
+  });
+
+  test('ids in seen that are not live are ignored', async () => {
+    expect(new Set(await drawnMany(60, ['nope', 'case-1']))).toEqual(new Set(['case-2', 'case-3', 'case-4']));
+    expect(new Set(await drawnMany(80, ['nope']))).toEqual(new Set(IDS));
+    expect(new Set(await drawnMany(80, ['case-1', 'case-2', 'case-3', 'case-4', 'gone']))).toEqual(new Set(IDS));
+  });
+
+  test('a case that is not live is never drawn: an unadmitted case and a case of another event stay out', async () => {
+    process.env.BOOTH_CASES_DIR = casesDir(caseNo(1), caseNo(2),
+      edited((k) => { k.case_id = 'dark-1'; delete k.admission; }), edited((k) => { k.case_id = 'elsewhere'; k.event_code = 'OTHER-2026'; }));
+    expect(new Set([...await drawnMany(40), ...await drawnMany(40, ['case-1'])])).toEqual(new Set(['case-1', 'case-2']));
+  });
+
+  test('a pool of one case draws that case, first draw and reroll alike', async () => {
+    process.env.BOOTH_CASES_DIR = casesDir(caseNo(1));
+    expect(await drawn()).toBe('case-1');
+    expect(await drawn(['case-1'])).toBe('case-1');
+  });
+
+  test('a draw writes nothing: no insert, update or upsert, no function call, no play row', async () => {
+    await drawnMany(5);
+    await drawnMany(5, ['case-1']);
+    await drawnMany(5, IDS);
+    expect(writes()).toEqual([]);
+    expect(rpcCalls).toEqual([]);
+    expect(plays.size).toBe(0);
+    expect(rimplChat).not.toHaveBeenCalled();
+  });
+
+  test('a drawn case id starts a play on that case', async () => {
+    const id = await drawn();
+    const res = await post('/booth/plays', { case_id: id });
+    expect(res.status).toBe(201);
+    expect(plays.get(res.body.play_id)).toMatchObject({ case_id: id });
+  });
+
+  test('a count that cannot be read answers 503 unavailable and draws no case', async () => {
+    countError = { message: 'connection reset' };
+    const res = await post('/booth/draw', { seen: [] });
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ error: expect.any(String), reason: 'unavailable' });
+  });
+
+  test('a count with no number answers 503 too', async () => {
+    const real = supabase.from;
+    supabase.from = (table) => {
+      const q = real(table);
+      return table === 'booth_plays' ? Object.assign(q, { then: (ok, no) => Promise.resolve({ data: null, error: null }).then(ok, no) }) : q;
+    };
+    try {
+      expect((await post('/booth/draw', { seen: [] })).status).toBe(503);
+    } finally {
+      supabase.from = real;
+    }
+  });
+
+  test('a reroll needs no count, so it still answers when counts cannot be read', async () => {
+    countError = { message: 'connection reset' };
+    expect((await post('/booth/draw', { seen: ['case-1'] })).status).toBe(200);
+  });
+
+  test('a settings read error answers 503 and draws nothing', async () => {
+    settings = { error: { message: 'connection reset' } };
+    expect((await post('/booth/draw', { seen: [] })).status).toBe(503);
+  });
+
+  test.each([
+    ['no body', undefined],
+    ['an empty body', {}],
+    ['seen that is not a list', { seen: 'case-1' }],
+    ['seen holding a non-id', { seen: [1] }],
+    ['seen holding text that is not a case id', { seen: ['Not A Case'] }],
+    ['seen of 21 ids', { seen: Array.from({ length: 21 }, (_, i) => `case-${i}`) }],
+    ['an extra field', { seen: [], case_id: 'case-1' }],
+  ])('%s answers 400 bad_request and reads nothing', async (_name, body) => {
+    const res = await post('/booth/draw', body);
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: expect.any(String), reason: 'bad_request' });
+    expect(m.all('booth_plays')).toEqual([]);
+  });
+
+  test('seen of 20 ids is accepted', async () => {
+    expect((await post('/booth/draw', { seen: Array.from({ length: 20 }, (_, i) => `case-${i}`) })).status).toBe(200);
   });
 });
 
@@ -607,7 +841,7 @@ describe('the play\'s own case', () => {
     const p = await begin();
     process.env.BOOTH_CASES_DIR = casesDir(KASE, OTHER);
     newIp();
-    expect((await post('/booth/plays', {})).status).toBe(201);
+    expect((await post('/booth/plays', { case_id: 'aa-first' })).status).toBe(201);
     expect(rpcNamed('booth_start_play').at(-1)).toMatchObject({ p_case: 'aa-first' });
     await answer(p, 'best');
     expect(rimplChat.mock.calls[0][0].message.startsWith(`${KASE.vignette.th}\n\n`)).toBe(true);
@@ -644,7 +878,7 @@ describe('the play\'s own case', () => {
     process.env.BOOTH_CASES_DIR = casesDir(edited((k) => { delete k.admission; }));
     rpcCalls = [];
     expect((await get('/booth/status')).body).toEqual({ open: false, reason: 'misconfigured', event_code: EVENT });
-    expect((await post('/booth/plays', {})).status).toBe(403);
+    expect((await post('/booth/plays', { case_id: KASE.case_id })).status).toBe(403);
     expect((await answer(p, 'best')).status).toBe(403);
     expect((await score(p)).status).toBe(403);
     expect(rpcCalls).toEqual([]);
@@ -1147,9 +1381,21 @@ describe('rate limits', () => {
   });
 
   test('the 13th call under /booth/plays in a minute answers 429 while /booth/status still answers', async () => {
-    for (let i = 0; i < 12; i += 1) expect((await post('/booth/plays', {})).status).toBe(201);
-    expect((await post('/booth/plays', {})).status).toBe(429);
+    const start = () => post('/booth/plays', { case_id: KASE.case_id });
+    for (let i = 0; i < 12; i += 1) expect((await start()).status).toBe(201);
+    expect((await start()).status).toBe(429);
     expect((await get('/booth/status')).status).toBe(200);
+  });
+
+  test('draws stay out of the general budget: 100 rerolls answer 200 and /booth/status and /booth/plays still answer', async () => {
+    for (let i = 0; i < 100; i += 1) expect((await post('/booth/draw', { seen: ['case-x'] })).status).toBe(200);
+    expect((await get('/booth/status')).status).toBe(200);
+    expect((await post('/booth/plays', { case_id: KASE.case_id })).status).toBe(201);
+  });
+
+  test('the 241st call to /booth/draw in a minute answers 429', async () => {
+    for (let i = 0; i < 240; i += 1) expect((await post('/booth/draw', { seen: ['case-x'] })).status).toBe(200);
+    expect((await post('/booth/draw', { seen: ['case-x'] })).status).toBe(429);
   });
 
   test('the guest per-IP limits do not reach /booth, and booth traffic leaves the guest budget alone', async () => {

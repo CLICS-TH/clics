@@ -2,28 +2,35 @@
 // precache list: the page posts { type: 'precache', urls } with everything it loaded plus the loop's files.
 // Loop media is cache-first. Each time the manifest comes from the network, every cached loop file is revalidated
 // (a file replaced under the same name is fetched again) and files the manifest no longer lists are dropped.
-// The page also posts { type: 'case', kase } after a play starts, so the last case served is kept offline.
+// The page also posts { type: 'case', id, kase } after a play starts, and the case is kept offline at
+// /booth-case/<id>.json, one entry per case played. The event's pool is a handful of cases, so nothing is evicted.
 const CACHE = 'clics-booth-v1';
 const NETWORK_TIMEOUT_MS = 4_000;
 const LOOP_DIR = '/booth-loop/';
 const MANIFEST = `${LOOP_DIR}manifest.json`;
-const CASE_KEY = '/booth-case.json';
+const ID = '[a-z0-9][a-z0-9-]{0,31}';
+const CASE_ID = new RegExp(`^${ID}$`);
+const CASE_PATH = new RegExp(`^/booth-case/${ID}\\.json$`);
+const LEGACY_CASE_KEY = '/booth-case.json';
 
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => event.waitUntil((async () => {
   for (const name of await caches.keys()) if (name !== CACHE) await caches.delete(name);
+  // The single-case entry of the build before the pool: no page asks for it any more.
+  await (await caches.open(CACHE)).delete(LEGACY_CASE_KEY);
   await self.clients.claim();
 })()));
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'precache' && Array.isArray(event.data.urls)) event.waitUntil(precache(event.data.urls));
-  if (event.data?.type === 'case' && event.data.kase && typeof event.data.kase === 'object') event.waitUntil(keepCase(event.data.kase));
+  const { type, id, kase, urls } = event.data ?? {};
+  if (type === 'precache' && Array.isArray(urls)) event.waitUntil(precache(urls));
+  if (type === 'case' && typeof id === 'string' && CASE_ID.test(id) && kase && typeof kase === 'object') event.waitUntil(keepCase(id, kase));
 });
 
-async function keepCase(kase) {
+async function keepCase(id, kase) {
   const cache = await caches.open(CACHE);
-  await cache.put(CASE_KEY, new Response(JSON.stringify(kase), { headers: { 'Content-Type': 'application/json' } }));
+  await cache.put(`/booth-case/${id}.json`, new Response(JSON.stringify(kase), { headers: { 'Content-Type': 'application/json' } }));
 }
 
 async function precache(urls) {
@@ -42,8 +49,8 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname === CASE_KEY) {
-    event.respondWith(caches.open(CACHE).then((c) => c.match(CASE_KEY)).then((hit) => hit ?? new Response(null, { status: 404 })));
+  if (CASE_PATH.test(url.pathname)) {
+    event.respondWith(caches.open(CACHE).then((c) => c.match(url.pathname)).then((hit) => hit ?? new Response(null, { status: 404 })));
     return;
   }
   const isMedia = url.pathname.startsWith(LOOP_DIR) && url.pathname !== MANIFEST;

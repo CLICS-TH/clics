@@ -109,9 +109,10 @@ body.booth {
   background: linear-gradient(to bottom, var(--card-clear), var(--card)); pointer-events: none;
 }
 .case-card--full { flex: 1 1 auto; justify-content: center; padding: calc(48 * var(--u)); }
-.case-card--full .vignette .bi-th { font-size: calc(42 * var(--u)); line-height: 1.65; }
-.case-card--full .vignette .bi-en { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
+.case-card--full :is(.vignette, .teaser) .bi-th { font-size: calc(42 * var(--u)); line-height: 1.65; }
+.case-card--full :is(.vignette, .teaser) .bi-en { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 .vignette .bi-en { margin-top: calc(12 * var(--u)); }
+.play-actions--stack { flex-direction: column; }
 
 .step-sheet {
   flex: none; box-sizing: border-box;

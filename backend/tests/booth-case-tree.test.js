@@ -115,3 +115,13 @@ describe('admission', () => {
     expect(isAdmitted(k)).toBe(false);
   });
 });
+
+describe('the teaser budget the kiosk harness fits (scripts/booth/scenarios/draw.mjs)', () => {
+  const withTeaser = (teaser) => caseTreeProblems({ ...read(FIXTURE), teaser }).filter((p) => p.startsWith('teaser'));
+
+  test('120 Thai and 180 English characters are accepted, one more of either is rejected', () => {
+    expect(withTeaser({ th: 'ก'.repeat(120), en: 'x'.repeat(180) })).toEqual([]);
+    expect(withTeaser({ th: 'ก'.repeat(121), en: 'x'.repeat(180) })).toHaveLength(1);
+    expect(withTeaser({ th: 'ก'.repeat(120), en: 'x'.repeat(181) })).toHaveLength(1);
+  });
+});
