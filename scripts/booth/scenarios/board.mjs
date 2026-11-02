@@ -1,5 +1,15 @@
+import { fileURLToPath } from 'node:url';
+
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const BOARD_KEY = 'GET /booth/board';
+// A fixture loop whose items all allow the board, so these scenarios do not depend on the shipped manifest,
+// whose promo hides the board.
+const fixture = (name) => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url));
+const LOOP_FILES = {
+  '/booth-loop/manifest.json': fixture('manifest-trimmed.json'),
+  '/booth-loop/slide-a.png': fixture('loop-slide.png'),
+  '/booth-loop/clip.mp4': fixture('loop-clip.mp4'),
+};
 const TAG_ICONS = ['flag', 'shield', 'clock', 'message', 'folder', 'clipboard', 'paperclip', 'eye', 'check',
   'checkCircle', 'hourglass', 'help'];
 
@@ -76,6 +86,8 @@ export default [
         const res = await route.fetch();
         await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_LANDING_QR = true;\n` });
       });
+      // The booth worker may have cached config.js already, and a page it controls never reaches page.route.
+      await page.evaluate(async () => { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); });
       await page.reload({ waitUntil: 'domcontentloaded' });
       await toResult(k);
       await h.screenCheck(page, 'result card with QR', { demo: true });
@@ -105,7 +117,7 @@ export default [
     async run(h) {
       let fail = false;
       const stub = h.makeStub({ routes: { [BOARD_KEY]: () => (fail ? { status: 503, body: { reason: 'unavailable' } } : { status: 200, body: { board: BOARD } }) } });
-      const k = await h.kiosk({ stub });
+      const k = await h.kiosk({ stub, files: LOOP_FILES });
       const { page } = k;
       await k.shell('start');
       await page.waitForSelector('.loop-stage [data-booth-slot="loop-board"] [data-board]', { timeout: 10_000 });

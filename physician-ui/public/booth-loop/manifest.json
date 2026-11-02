@@ -1,1 +1,4 @@
-{ "items": [ { "type": "video", "src": "/booth-loop/promo.mp4" } ] }
+{ "items": [
+  { "type": "video", "src": "/booth-loop/promo.mp4", "board": false },
+  { "type": "board", "seconds": 15 }
+] }

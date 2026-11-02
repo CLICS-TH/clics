@@ -52,13 +52,17 @@ The booth's idle screen (`/booth`) plays the files listed in `public/booth-loop/
 ```json
 { "items": [
   { "type": "image", "src": "/booth-loop/forum-results.png", "seconds": 10 },
-  { "type": "video", "src": "/booth-loop/promo.mp4" }
+  { "type": "video", "src": "/booth-loop/promo.mp4", "board": false },
+  { "type": "board", "seconds": 15 }
 ] }
 ```
 
 - Drop the file in `public/booth-loop/` and list it in the manifest. An image needs `seconds` (1 to 120); a
   video plays to its end. File names may have spaces and Thai; write them as named. Anything else, or a `src`
   outside `/booth-loop/`, is skipped with a `booth loop: skipped manifest item` warning in the console.
+- The leaderboard panel shows over the bottom of every file unless the item says `"board": false`. The promo
+  says so, because its own captions reach the bottom of the frame. A `{ "type": "board", "seconds": N }` item
+  shows the board alone over the CLICS wordmark for N seconds (1 to 120), so the board stays in the loop.
 - Portrait 1080×1920. Videos are H.264 MP4 with no sound track (the booth plays them muted).
 - The booth caches loop files and keeps playing them offline. Each time it reads the manifest online it asks
   the server whether each cached file changed (ETag), so a file replaced under the same name plays from the next
