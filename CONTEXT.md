@@ -24,6 +24,16 @@ _Avoid_: privacy policy page, PDPA page, terms
 The Portal passing a signed-in admin, auditor or superadmin to the audit-dashboard with their token.
 _Avoid_: SSO, redirect login
 
+**Sign out**:
+Ending the session on this device and asking the server to end it everywhere. It looks the same to the user whether or not the server succeeds.
+_Avoid_: logout (when meaning only clearing the browser), revoke
+
+## Audit
+
+**De-identified view**:
+The only form in which an auditor sees a PLE: its case text and conversation after the PII filter, in the CLICS screens. Never the chief complaint, title or conversation as the physician typed them.
+_Avoid_: blinded copy, redacted transcript, filtered PLE
+
 ## Booth
 
 **Booth Mode**:
