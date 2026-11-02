@@ -70,7 +70,7 @@ jest.mock('../src/lib/supabase', () => {
     supabase: {
       from: (table) => builder(table),
       rpc: (name) => (name === 'next_pseudonym' ? Promise.resolve({ data: 'P-001', error: null }) : Promise.resolve({ data: null, error: null })),
-      auth: { admin: { createUser: () => Promise.resolve({ data: { user: { id: 'x' } }, error: null }), deleteUser: () => Promise.resolve({}) }, signOut: () => Promise.resolve({}) },
+      auth: { admin: { createUser: () => Promise.resolve({ data: { user: { id: 'x' } }, error: null }), updateUserById: () => Promise.resolve({ data: null, error: null }), deleteUser: () => Promise.resolve({}) }, signOut: () => Promise.resolve({}) },
     },
     authAnon: { auth: {
       signInWithOtp: () => Promise.resolve({ error: null }),
@@ -148,7 +148,7 @@ test('invite accept: physician invite → 201 active; dormant license columns NO
   });
 
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'หมอ', full_name_en: 'Doc',
+    method: 'password', otp: '123456', password: 'Str0ng!Passw0rd', full_name_th: 'หมอ', full_name_en: 'Doc',
   });
 
   expect(r.status).toBe(201);
@@ -167,7 +167,7 @@ test('invite accept: AUDITOR invite → 201 ACTIVE on accept (was 202 pending un
   });
 
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor',
+    method: 'password', otp: '123456', password: 'Str0ng!Passw0rd', full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor',
   });
 
   expect(r.status).toBe(201);
@@ -200,7 +200,7 @@ test('invite accept: re-accepting an already-claimed invite → 409', async () =
   });
 
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '12340',
+    method: 'password', otp: '123456', password: 'Str0ng!Passw0rd', full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '12340',
   });
 
   expect(r.status).toBe(409);
@@ -210,7 +210,7 @@ test('invite accept: re-accepting an already-claimed invite → 409', async () =
 test('invite accept: an invite whose row is no longer pending → 404 (idempotent reject)', async () => {
   m.state.invite = { ...pendingInvite('physician'), status: 'accepted' };
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '12340',
+    method: 'password', otp: '123456', password: 'Str0ng!Passw0rd', full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '12340',
   });
   expect(r.status).toBe(404);
 });
