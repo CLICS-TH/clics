@@ -1,6 +1,6 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "1",
+  "version": "3",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
@@ -8,7 +8,7 @@
   },
   "vignette": {
     "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
-    "en": "A fictional 68-year-old fruit farmer smoked for 40 years and quit 2 years ago. He uses an inhaler every day. Over 3 days he has grown more breathless, with more sputum that has turned green. Temperature 37.8 °C, pulse 106, respiratory rate 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases and uses his accessory muscles to breathe. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
+    "en": "A fictional 68-year-old fruit farmer smoked for 40 years and quit 2 years ago. He uses an inhaler every day. Over 3 days he has grown more breathless and coughs up more sputum, which has turned green. Temperature 37.8 °C, pulse 106, respiratory rate 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases and uses his accessory muscles to breathe. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
   },
   "banks": {
     "step1": {
@@ -30,7 +30,7 @@
         {
           "id": "v3",
           "question": {
-            "th": "อะไรทำให้เขาหอบเหนื่อยมากขึ้นครั้งนี้",
+            "th": "ครั้งนี้เขาหอบมากขึ้นจากอะไร",
             "en": "What explains his worse breathing this time?"
           }
         }
@@ -92,8 +92,8 @@
             "en": "Acute asthma attack"
           },
           "line": {
-            "th": "เสียงวี้ดและหายใจออกยาวพบได้ในหอบหืด",
-            "en": "Wheeze and a long expiration are classic in asthma."
+            "th": "เสียงวี้ดและหายใจออกยาวพบบ่อยในหอบหืด",
+            "en": "Wheeze and a long expiration are common in asthma."
           }
         }
       ],
@@ -109,15 +109,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนแล้ว คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Oxygen is on. Which first tests do you order?"
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ที่ห้องฉุกเฉิน ให้ออกซิเจนแล้ว จะตรวจอะไรต่อ",
-              "en": "In the ER, with oxygen on, what do you check next?"
+              "th": "เริ่มพ่นยาและให้ออกซิเจนแล้ว จะส่งตรวจอะไรต่อ",
+              "en": "The inhaled drug and oxygen have started. What do you order next?"
             }
           }
         ],
@@ -130,8 +130,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
-              "en": "Checks CO2, pneumonia, pneumothorax and heart disease."
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
             }
           },
           {
@@ -167,7 +167,7 @@
             },
             "line": {
               "th": "หาชนิดเชื้อที่ทำให้เสมหะเปลี่ยนเป็นสีเขียว",
-              "en": "Names the germ that turned the sputum green."
+              "en": "Looks for the germ that turned the sputum green."
             }
           }
         ],
@@ -182,15 +182,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนแล้ว คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Oxygen is on. Which first tests do you order?"
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ที่ห้องฉุกเฉิน ให้ออกซิเจนแล้ว จะตรวจอะไรต่อ",
-              "en": "In the ER, with oxygen on, what do you check next?"
+              "th": "เริ่มพ่นยาและให้ออกซิเจนแล้ว จะส่งตรวจอะไรต่อ",
+              "en": "The inhaled drug and oxygen have started. What do you order next?"
             }
           }
         ],
@@ -203,8 +203,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
-              "en": "Checks CO2, pneumonia, pneumothorax and heart disease."
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
             }
           },
           {
@@ -240,7 +240,7 @@
             },
             "line": {
               "th": "หาชนิดเชื้อที่ทำให้เสมหะเปลี่ยนเป็นสีเขียว",
-              "en": "Names the germ that turned the sputum green."
+              "en": "Looks for the germ that turned the sputum green."
             }
           }
         ],
@@ -255,22 +255,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "SpO2 88% ให้ O2 เป้า 88–92% แล้ว จะส่งตรวจอะไร",
-              "en": "SpO2 was 88%; O2 now targets 88–92%. Which tests now?"
+              "th": "SpO2 88% เริ่มพ่นยาและ O2 แล้ว ตรวจอะไร",
+              "en": "SpO2 88%; the inhaled drug and O2 have started. Which tests?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนแล้ว คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Oxygen is on. Which first tests do you order?"
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ที่ห้องฉุกเฉิน ให้ออกซิเจนแล้ว จะตรวจอะไรต่อ",
-              "en": "In the ER, with oxygen on, what do you check next?"
+              "th": "เริ่มพ่นยาและให้ออกซิเจนแล้ว จะส่งตรวจอะไรต่อ",
+              "en": "The inhaled drug and oxygen have started. What do you order next?"
             }
           }
         ],
@@ -283,8 +283,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
-              "en": "Checks CO2, pneumonia, pneumothorax and heart disease."
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
             }
           },
           {
@@ -327,8 +327,8 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อัลตราซาวด์หัวใจก่อน",
-              "en": "Echocardiogram first"
+              "th": "อัลตราซาวด์หัวใจ",
+              "en": "Echocardiogram"
             },
             "line": {
               "th": "เห็นการบีบตัวของหัวใจได้ชัดเจน",
@@ -349,22 +349,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "ABG pH 7.37 PaCO2 48 เอกซเรย์ไม่พบปอดอักเสบ แผนคือ",
-              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on X-ray. Your plan?"
+              "th": "ABG pH 7.37 PaCO2 48 CXR ไม่มีปอดอักเสบ ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on CXR. Which drugs?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
             }
           }
         ],
@@ -373,152 +373,135 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
             }
           },
           {
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยา+ไฮโดรคอร์ติโซนฉีด",
-              "en": "Nebs + IV hydrocortisone"
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
             },
             "line": {
-              "th": "สเตียรอยด์ฉีดได้ขนาดยาแน่นอนในคนที่หอบมาก",
-              "en": "An IV steroid gives a sure dose to a breathless man."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
-              "en": "Nebs + steroid + IV meropenem"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
-              "en": "The widest cover, resistant bacteria included."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "BR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
-            },
-            "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
-            },
-            "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "MDI+spacer และเพรดนิโซโลน",
-              "en": "MDI with spacer + prednisolone"
-            },
-            "line": {
-              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
-              "en": "A spacer works about as well as a nebuliser."
+              "th": "ใช้ได้เมื่อกลืนยาลำบาก",
+              "en": "Suits a patient who finds swallowing hard."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
-              "en": "Nebs + prednisolone for 14 days"
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
-              "en": "A longer course gives the inflammation more time to settle."
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "WBC 13,000/มม.³ K 3.6 มิลลิโมล/ล. ให้ยาอะไร",
+              "en": "WBC 13,000/µL, K 3.6 mmol/L. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "ให้ทางหลอดเลือดดำเมื่อกลืนยาลำบาก",
+              "en": "Goes IV for a patient who struggles to swallow."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "f"
+          "g"
         ]
       },
       "BW": {
@@ -526,15 +509,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
             }
           }
         ],
@@ -543,79 +526,67 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
             },
             "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "MDI+spacer และเพรดนิโซโลน",
-              "en": "MDI with spacer + prednisolone"
-            },
-            "line": {
-              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
-              "en": "A spacer works about as well as a nebuliser."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
-              "en": "Nebs + steroid + IV meropenem"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
-              "en": "The widest cover, resistant bacteria included."
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
-              "en": "Nebs + prednisolone for 14 days"
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
-              "en": "A longer course gives the inflammation more time to settle."
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "e"
+          "f"
         ]
       },
       "RB": {
@@ -623,22 +594,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "ABG pH 7.37 PaCO2 48 เอกซเรย์ไม่พบปอดอักเสบ แผนคือ",
-              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on X-ray. Your plan?"
+              "th": "ABG pH 7.37 PaCO2 48 CXR ไม่มีปอดอักเสบ ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on CXR. Which drugs?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
             }
           }
         ],
@@ -647,152 +618,135 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
             }
           },
           {
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยา+ไฮโดรคอร์ติโซนฉีด",
-              "en": "Nebs + IV hydrocortisone"
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
             },
             "line": {
-              "th": "สเตียรอยด์ฉีดได้ขนาดยาแน่นอนในคนที่หอบมาก",
-              "en": "An IV steroid gives a sure dose to a breathless man."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
-              "en": "Nebs + steroid + IV meropenem"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
-              "en": "The widest cover, resistant bacteria included."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "RR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
-            },
-            "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
-            },
-            "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "MDI+spacer และเพรดนิโซโลน",
-              "en": "MDI with spacer + prednisolone"
-            },
-            "line": {
-              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
-              "en": "A spacer works about as well as a nebuliser."
+              "th": "ใช้ได้เมื่อกลืนยาลำบาก",
+              "en": "Suits a patient who finds swallowing hard."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
-              "en": "Nebs + prednisolone for 14 days"
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
-              "en": "A longer course gives the inflammation more time to settle."
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "WBC 13,000/มม.³ CRP 60 มก./ล. ให้ยาอะไร",
+              "en": "WBC 13,000/µL, CRP 60 mg/L. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "ให้ทางหลอดเลือดดำเมื่อกลืนยาลำบาก",
+              "en": "Goes IV for a patient who struggles to swallow."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "f"
+          "g"
         ]
       },
       "RW": {
@@ -800,15 +754,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
             }
           }
         ],
@@ -817,249 +771,60 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
             },
             "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "MDI+spacer และเพรดนิโซโลน",
-              "en": "MDI with spacer + prednisolone"
-            },
-            "line": {
-              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
-              "en": "A spacer works about as well as a nebuliser."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
-              "en": "Nebs + steroid + IV meropenem"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
-              "en": "The widest cover, resistant bacteria included."
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
-              "en": "Nebs + prednisolone for 14 days"
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
-              "en": "A longer course gives the inflammation more time to settle."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "WB": {
-        "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "ABG pH 7.37 PaCO2 48 เอกซเรย์ไม่พบปอดอักเสบ แผนคือ",
-              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on X-ray. Your plan?"
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
             }
           },
           {
-            "id": "v1",
-            "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
-            },
-            "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
-            },
-            "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยา+ไฮโดรคอร์ติโซนฉีด",
-              "en": "Nebs + IV hydrocortisone"
-            },
-            "line": {
-              "th": "สเตียรอยด์ฉีดได้ขนาดยาแน่นอนในคนที่หอบมาก",
-              "en": "An IV steroid gives a sure dose to a breathless man."
-            }
-          },
-          {
-            "id": "e",
+            "id": "g",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
-              "en": "Nebs + steroid + IV meropenem"
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
-              "en": "The widest cover, resistant bacteria included."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "WR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
-            },
-            "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
-            },
-            "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "MDI+spacer และเพรดนิโซโลน",
-              "en": "MDI with spacer + prednisolone"
-            },
-            "line": {
-              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
-              "en": "A spacer works about as well as a nebuliser."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
-              "en": "Nebs + prednisolone for 14 days"
-            },
-            "line": {
-              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
-              "en": "A longer course gives the inflammation more time to settle."
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
             }
           }
         ],
@@ -1069,20 +834,27 @@
           "f"
         ]
       },
-      "WW": {
+      "WB": {
         "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 CXR ไม่มีปอดอักเสบ ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on CXR. Which drugs?"
+            }
+          },
           {
             "id": "v1",
             "question": {
-              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
-              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
-              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
             }
           }
         ],
@@ -1091,79 +863,220 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
-              "en": "Nebs + prednisolone + antibiotic"
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
-              "en": "Treats bronchospasm, inflammation and infection together."
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+amox-clav",
-              "en": "Nebs + steroid + amox-clav"
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
-              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
-              "en": "Nebs and oral prednisolone"
-            },
-            "line": {
-              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
-              "en": "Treats bronchospasm and inflammation, the core of care."
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
             }
           },
           {
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "MDI+spacer และเพรดนิโซโลน",
-              "en": "MDI with spacer + prednisolone"
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
             },
             "line": {
-              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
-              "en": "A spacer works about as well as a nebuliser."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
-              "en": "Nebs + steroid + IV meropenem"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
-              "en": "The widest cover, resistant bacteria included."
+              "th": "ใช้ได้เมื่อกลืนยาลำบาก",
+              "en": "Suits a patient who finds swallowing hard."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
-              "en": "Nebs + prednisolone for 14 days"
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
-              "en": "A longer course gives the inflammation more time to settle."
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "NT-proBNP ปกติ จะให้ยาอะไรเพิ่ม",
+              "en": "NT-proBNP is normal. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "ให้ทางหลอดเลือดดำเมื่อกลืนยาลำบาก",
+              "en": "Goes IV for a patient who struggles to swallow."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "e"
+          "g"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
         ]
       }
     }
@@ -1172,7 +1085,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Fresh reviewer against GOLD 2025, the Thai COPD guideline and WHO COPD guidance. No option harms the patient. Fixed: step-2 questions now state oxygen is on before tests; the best test sets include a blood gas; the CRP line says it decides whether to give an antibiotic; Thai and English matched on the potassium, IV steroid, oral prednisolone, IV meropenem and community pneumonia wording; the blood gas and X-ray result is revealed only on paths whose step 2 ordered them. Kept as notes: the 14-day prednisolone, meropenem, peak flow and echo-first options stay weaker and safe; nebs plus prednisolone without an antibiotic stays reasonable."
+      "findings": "Re-run on the version-3 text against GOLD 2025, the Thai COPD guideline, WHO COPD guidance and the repo bank entry. No unsafe option, by content or by omission: every step-3 option pairs a steroid with an antibiotic while the stems keep the bronchodilator and oxygen running. No tier error in any of the 13 banks, and each reveal shows only what its path's step-2 tests ordered. Fixed in this round: the IV hydrocortisone and IV amox-clav lines no longer claim an advantage over oral, the step-1 Thai variant ends as a question, the echocardiogram label lost 'first', and the step-2 W fallback question matches in Thai and English. Notes kept: azithromycin stays reasonable given pneumococcal macrolide resistance in Thailand; levofloxacin, IV ceftriaxone and peak flow stay weaker and safe."
     }
   }
 }
