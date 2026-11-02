@@ -38,8 +38,7 @@ async function withClock(k) {
 
 async function toVignette(k) {
   await k.shell('start');
-  await k.tap('[data-action="start"]');
-  await k.screen('vignette');
+  await k.toVignette();
 }
 
 async function toLastReply(k) {
@@ -114,8 +113,12 @@ export default [
         return !!slot && slot.closest('.loop-stage').compareDocumentPosition(document.querySelector('.shell-tap')) === Node.DOCUMENT_POSITION_FOLLOWING;
       }), 'loop: the loop-board slot sits in the stage, under the start button, so a tap on the board starts a play too');
       await page.touchscreen.tap(x, y);
+      await k.screen('teaser');
+      h.check(stub.of('POST /booth/draw').length === 1 && stub.of(START).length === 0,
+        `loop: a tap on the media deals exactly one case and starts no play (${stub.of('POST /booth/draw').length} draws, ${stub.of(START).length} starts)`);
+      await k.tap('[data-action="start-case"]');
       await k.screen('vignette');
-      h.check(stub.of(START).length === 1, `loop: a tap on the media starts exactly one play (${stub.of(START).length})`);
+      h.check(stub.of(START).length === 1, `loop: a tap on the media, then "Start this case", starts exactly one play (${stub.of(START).length})`);
       await k.close();
     },
   },
@@ -151,8 +154,7 @@ export default [
         h.check(hasBoth(await barText(page), h.COPY.tapToTry), `${mode} -> open: the Tap-to-try bar appears`);
         const log = await loopLog(page);
         h.check(log.same && inOrder(log.srcs), `${mode} -> open: the loop did not restart (same media layer, items in order: ${log.srcs.map((s) => s.split('/').pop()).join(' ')})`);
-        await k.tap('[data-action="start"]');
-        await k.screen('vignette');
+        await k.toVignette();
         h.check(stub.of(START).length === 1, `${mode} -> open: a tap starts a play`);
         await k.close();
       }
@@ -288,32 +290,80 @@ export default [
     },
   },
   {
-    name: 'offline cache: the case of the last play started is kept, and offline the kiosk shows the loop with no way to start',
+    name: 'offline cache: the case of a play started is kept under its own path, and offline the kiosk shows the loop with no way to start',
     async run(h) {
       const k = await h.kiosk({ files: FILES, label: 'case offline' });
       const { page, stub } = k;
+      const path = `/booth-case/${h.DRAW.case_id}.json`;
       await k.shell('start');
       const missing = await cached(k);
       if (!h.check(missing.length === 0, `case: the offline cache is ready${missing.length ? ` (missing ${missing.join(', ')})` : ''}`)) return;
       await toVignette(k);
-      const readCase = () => page.evaluate(async () => {
-        const res = await caches.match('/booth-case.json');
+      const readCase = () => page.evaluate(async (p) => {
+        const res = await caches.match(p);
         return res ? res.json() : null;
-      });
+      }, path);
       let kase = await readCase();
       for (let i = 0; i < 40 && !kase; i++) { await h.sleep(250); kase = await readCase(); }
-      h.check(h.same(kase, h.KASE), 'case: the case the play started with is in the booth cache');
+      h.check(h.same(kase, h.KASE), `case: the case the play started with is in the booth cache at ${path}`);
+      h.check(await page.evaluate(async () => !(await caches.match('/booth-case.json'))), 'case: nothing is kept at the old single-case path');
       await k.offline(true);
       await page.reload({ waitUntil: 'domcontentloaded' });
       await k.shell('offline');
-      const served = await page.evaluate(async () => {
-        const res = await fetch('/booth-case.json');
+      const served = await page.evaluate(async (p) => {
+        const res = await fetch(p);
         return res.ok ? res.json() : res.status;
-      });
-      h.check(h.same(served, h.KASE), 'case, offline reload: GET /booth-case.json serves the case from the cache');
+      }, path);
+      h.check(h.same(served, h.KASE), `case, offline reload: GET ${path} serves the case from the cache`);
       h.check(await page.locator('[data-action="start"]').count() === 0 && hasBoth(await barText(page), h.COPY.offline),
         'case, offline reload: the offline bar shows and there is no Tap-to-try (a play needs the server to start and to score)');
       h.check(stub.of(START).length === 1, `case, offline reload: no play was started offline (${stub.of(START).length} starts in all)`);
+      await k.close();
+    },
+  },
+  {
+    name: 'offline cache: two plays on two cases keep both, each under its own path, and a case never played is 404 offline',
+    async run(h) {
+      const second = { case_id: 'second-case', teaser: { th: 'หญิงอายุ 30 ปี ปวดท้องมา 2 วัน', en: 'A 30-year-old woman with abdominal pain for 2 days' } };
+      const secondCase = { vignette: { th: 'หญิงอายุ 30 ปี ปวดท้องมา 2 วัน และคลื่นไส้', en: 'A 30-year-old woman with abdominal pain for 2 days and nausea' } };
+      const stub = h.makeStub({ routes: {
+        'POST /booth/draw': (_call, calls) => ({ status: 200, body: calls.filter((c) => c.key === 'POST /booth/draw').length === 1 ? h.DRAW : second }),
+        'POST /booth/plays': (call) => ({ status: 201, body: { ...h.START, case: call.body.case_id === second.case_id ? secondCase : h.KASE } }),
+      } });
+      const k = await h.kiosk({ files: FILES, stub, label: 'two cases offline' });
+      const { page } = k;
+      await k.shell('start');
+      const missing = await cached(k);
+      if (!h.check(missing.length === 0, `two cases: the offline cache is ready${missing.length ? ` (missing ${missing.join(', ')})` : ''}`)) return;
+      const path = (c) => `/booth-case/${c.case_id}.json`;
+      const kept = (c) => page.evaluate(async (p) => (await (await caches.match(p))?.json()) ?? null, path(c));
+      const waitKept = async (c, want) => {
+        for (let i = 0; i < 40 && !h.same(await kept(c), want); i++) await h.sleep(250);
+        return kept(c);
+      };
+      await toVignette(k);
+      h.check(h.same(await waitKept(h.DRAW, h.KASE), h.KASE), `two cases: the first case is kept at ${path(h.DRAW)}`);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await toVignette(k);
+      h.check(h.same(await waitKept(second, secondCase), secondCase), `two cases: the second case is kept at ${path(second)}`);
+      h.check(h.same(await kept(h.DRAW), h.KASE), 'two cases: the first case is still kept after the second');
+      await k.offline(true);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await k.shell('offline');
+      const fetched = (p) => page.evaluate(async (u) => {
+        try {
+          const res = await fetch(u);
+          return res.ok ? await res.json() : res.status;
+        } catch {
+          return 'failed';
+        }
+      }, p);
+      h.check(h.same(await fetched(path(h.DRAW)), h.KASE) && h.same(await fetched(path(second)), secondCase),
+        'two cases, offline reload: both are served from the cache, each its own');
+      h.check(await fetched('/booth-case/never-played.json') === 404, 'two cases, offline reload: a case never played is 404');
+      const notServed = (v) => v === 404 || v === 'failed';
+      h.check(notServed(await fetched('/booth-case/Not_An_Id.json')) && notServed(await fetched('/booth-case.json')),
+        'two cases, offline reload: a path that is not a case id, and the old single-case path, are not served');
       await k.close();
     },
   },

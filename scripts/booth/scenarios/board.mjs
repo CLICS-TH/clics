@@ -23,8 +23,7 @@ const RANKED = (h) => ({ ...h.SCORED, rank_today: 3, rank_event: 5, board: BOARD
 
 async function toResult(k) {
   await k.shell('start');
-  await k.tap('[data-action="start"]');
-  await k.screen('vignette');
+  await k.toVignette();
   await k.tap('[data-action="begin"]');
   for (let n = 1; n <= 3; n++) {
     await k.screen('step');
@@ -130,8 +129,7 @@ export default [
       h.check(stub.of(BOARD_KEY).length === 1, 'loop board: one request on mount');
 
       fail = true;
-      await k.tap('[data-action="start"]');
-      await k.screen('vignette');
+      await k.toVignette();
       const before = stub.of(BOARD_KEY).length;
       await h.sleep(300);
       h.check(stub.of(BOARD_KEY).length === before && await page.locator('[data-booth-slot="loop-board"]').count() === 0,

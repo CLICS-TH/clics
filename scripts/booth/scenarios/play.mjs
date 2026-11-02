@@ -41,8 +41,7 @@ async function checkStep(h, page, path, bridge, label) {
 
 async function toStep(k) {
   await k.shell('start');
-  await k.tap('[data-action="start"]');
-  await k.screen('vignette');
+  await k.toVignette();
   await k.tap('[data-action="begin"]');
   await k.screen('step');
 }
@@ -68,9 +67,7 @@ export default [
       const { page, stub } = k;
       await k.shell('start');
       await h.screenCheck(page, 'start screen');
-      await k.tap('[data-action="start"]');
-
-      await k.screen('vignette');
+      await k.toVignette();
       await h.screenCheck(page, 'vignette');
       await h.shot(page, 'vignette');
       h.check(await text(page, '.vignette .bi-th') === h.KASE.vignette.th && await text(page, '.vignette .bi-en') === h.KASE.vignette.en,
