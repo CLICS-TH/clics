@@ -948,10 +948,11 @@ const SCENARIOS = [
     },
   },
   {
-    name: 'Link Google with the shipped config (redirect) goes through Supabase\'s authorize endpoint',
+    name: 'Link Google with the mode set to redirect goes through Supabase\'s authorize endpoint',
+    config: "window.CLICS_GOOGLE_SIGNIN.link = 'redirect';",
     async run(t, page, ctx) {
       resetGoogleStubs();
-      await checkRedirectPress(t, page, ctx, PORTAL, 'shipped link mode', true);
+      await checkRedirectPress(t, page, ctx, PORTAL, 'redirect link mode', true);
     },
   },
   {
