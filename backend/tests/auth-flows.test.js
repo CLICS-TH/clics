@@ -79,7 +79,7 @@ jest.mock('../src/lib/supabase', () => {
     } },
     authSupabase: { auth: {
       getUser: (...a) => auth.getUser(...a),
-      signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'no' } }),
+      signInWithPassword: () => Promise.resolve({ data: { session: { access_token: 'signed-in' } }, error: null }),
     } },
   };
 

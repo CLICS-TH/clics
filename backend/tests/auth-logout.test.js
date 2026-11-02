@@ -6,6 +6,7 @@ jest.mock('../src/lib/supabase', () => {
   mock.supabase.auth = { admin: { createUser: jest.fn(), updateUserById: jest.fn(), deleteUser: jest.fn() } };
   mock.authAnon.auth.signInWithOtp = jest.fn();
   mock.authAnon.auth.verifyOtp = jest.fn();
+  mock.authSupabase.auth.signInWithPassword = jest.fn();
   return mock;
 });
 
@@ -107,6 +108,7 @@ describe('POST /auth/invite/:token/accept, half-provisioned recovery', () => {
       data: { user: { id: 'auth-9', email: PENDING.email, user_metadata: {} }, session: { access_token: 'sess-9' } }, error: null,
     });
     supabase.auth.admin.updateUserById.mockResolvedValue({ data: { user: { id: 'auth-9' } }, error: null });
+    authSupabase.auth.signInWithPassword.mockResolvedValue({ data: { session: { access_token: 'fresh-tok' } }, error: null });
   });
 
   describe('step 1, send the code', () => {
@@ -159,6 +161,21 @@ describe('POST /auth/invite/:token/accept, half-provisioned recovery', () => {
       expect(authAnon.auth.verifyOtp.mock.invocationCallOrder[0])
         .toBeLessThan(supabase.auth.admin.updateUserById.mock.invocationCallOrder[0]);
       expect(m.find('professionals', 'insert')).toBeDefined();
+    });
+
+    it('returns a token minted after the password update, not the verifyOtp session GoTrue just deleted', async () => {
+      const res = await verifyCode();
+      expect(res.body.access_token).toBe('fresh-tok');
+      expect(authSupabase.auth.signInWithPassword).toHaveBeenCalledWith({ email: PENDING.email, password: PASSWORD });
+      expect(supabase.auth.admin.updateUserById.mock.invocationCallOrder[0])
+        .toBeLessThan(authSupabase.auth.signInWithPassword.mock.invocationCallOrder[0]);
+    });
+
+    it('answers 502 and provisions nothing when the sign-in after the password update fails', async () => {
+      authSupabase.auth.signInWithPassword.mockResolvedValue({ data: null, error: authError(500, 'sign-in failed') });
+      const res = await verifyCode();
+      expect(res.status).toBe(502);
+      expect(m.find('professionals', 'insert')).toBeUndefined();
     });
 
     it('answers 400 and sets no password when the code is wrong', async () => {

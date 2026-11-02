@@ -78,6 +78,7 @@ jest.mock('../src/lib/supabase', () => {
       resetPasswordForEmail: () => Promise.resolve({ error: null }),
     } },
     authSupabase: { auth: {
+      signInWithPassword: () => Promise.resolve({ data: { session: { access_token: 'signed-in' } }, error: null }),
       getUser: () => Promise.resolve(
         state.caller
           ? { data: { user: { id: state.caller.id, email: 'caller@test.local' } }, error: null }

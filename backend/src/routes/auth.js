@@ -593,13 +593,20 @@ router.post('/invite/:token/accept', async (req, res) => {
     console.error('[auth] invite accept: password set failed:', uErr.status ?? 'no status', uErr.message);
     return res.status(502).json({ error: 'Could not set your password. Please try again.' });
   }
+  // GoTrue deletes every session of a user whose password is updated, so the verifyOtp session is
+  // dead now. The CLICS token IS a Supabase access token: mint it after the update, never before.
+  const { data: sData, error: sErr } = await authSupabase.auth.signInWithPassword({ email: inv.email, password: body.password });
+  if (sErr || !sData?.session?.access_token) {
+    console.error('[auth] invite accept: sign-in after password set failed:', sErr?.status ?? 'no status', sErr?.message);
+    return res.status(502).json({ error: 'Could not sign you in. Please try again.' });
+  }
   const md = vData.user.user_metadata?.invite_signup || {};
   const out = await finalize({
     authUserId: vData.user.id,
     full_name_th: body.full_name_th || md.full_name_th,
     full_name_en: body.full_name_en || md.full_name_en,
     identity: null,
-    session_token: vData.session?.access_token,
+    session_token: sData.session.access_token,
   });
   return res.status(out.http).json(out.json);
 });
