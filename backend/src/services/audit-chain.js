@@ -54,4 +54,4 @@ async function chainHead() {
   return { status: 'up', head_seq: Number(r.head_seq), head_hash: r.head_hash, head_at: r.head_at };
 }
 
-module.exports = { verifyChain, chainHead };
+module.exports = { verifyChain, chainHead, isMissingFn };
