@@ -31,3 +31,30 @@ test('the migration seeds exactly the BOOTH_SETTINGS keys, switched off, for an 
   expect(code).toBe('NFCME-2026');
   expect(fs.existsSync(path.join(__dirname, '../src/booth-cases', `${code}.json`))).toBe(true);
 });
+
+test('the purge function locks the switch rows the backend reads and the advisory key booth_start_play takes', () => {
+  const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  const locked = /where key in \(([^)]*)\) order by key for update/.exec(purge);
+  expect(locked).not.toBeNull();
+  expect([...locked[1].matchAll(/'([a-z_]+)'/g)].map(([, k]) => k).sort())
+    .toEqual([BOOTH_SETTINGS.code, BOOTH_SETTINGS.enabled].sort());
+  const lockKey = (sql) => /pg_advisory_xact_lock\(([^;]+)\);/.exec(sql)?.[1];
+  expect(lockKey(purge)).toBe(lockKey(SQL));
+  expect(lockKey(purge)).toBeDefined();
+});
+
+test('booth_start_play is defined only in the plays migration, and starts a play only while booth_enabled = 1', () => {
+  const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  expect(purge).not.toMatch(/function\s+public\.booth_start_play/);
+  const body = /function public\.booth_start_play\(p_event text\)[\s\S]*?\$\$([\s\S]*?)\$\$/.exec(SQL)?.[1];
+  expect(body).toBeDefined();
+  expect(body).toContain(`key = '${BOOTH_SETTINGS.enabled}' and value = 1`);
+});
+
+test('booth_event_purges holds aggregates only, under the booth_plays event-code CHECK', () => {
+  expect([...(schemaFromSql().booth_event_purges ?? [])].sort()).toEqual(['attempt_id', 'event_code', 'id', 'purged_at', 'summary']);
+  const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  const check = (sql) => /check \(event_code ~ '([^']+)'\)/.exec(sql)?.[1];
+  expect(check(purge)).toBe(check(SQL));
+  expect(check(purge)).toBeDefined();
+});
