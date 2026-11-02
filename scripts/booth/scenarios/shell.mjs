@@ -47,7 +47,7 @@ async function toLastReply(k) {
   await k.tap('[data-action="begin"]');
   for (let i = 0; i < 3; i++) {
     await k.screen('step');
-    await k.tap('[data-option="a"]');
+    await k.tap('.options > [data-option]:nth-child(1)');
     await k.screen('reply');
     if (i < 2) await k.tap('[data-action="next"]');
   }
@@ -329,7 +329,7 @@ export default [
       await k.tap('[data-action="begin"]');
       await k.screen('step');
       await k.offline(true);
-      await k.tap('[data-option="a"]');
+      await k.tap('.options > [data-option]:nth-child(1)');
       await k.screen('stopped');
       h.check(hasBoth(await page.locator('#booth').innerText(), h.COPY.stoppedOffline), 'mid-play: "The connection was lost", TH and EN');
       await k.shell('offline', 15_000);

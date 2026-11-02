@@ -3,7 +3,18 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-export const KASE = JSON.parse(await readFile(fileURLToPath(new URL('../../../backend/src/booth-cases/NFCME-2026.json', import.meta.url)), 'utf8'));
+export const CASE_FILE = fileURLToPath(new URL('../../../backend/src/booth-cases/NFCME-2026/leptospirosis.json', import.meta.url));
+export const KASE = JSON.parse(await readFile(CASE_FILE, 'utf8'));
+const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
+const bankFor = (path, kase = KASE) => (path === '' ? kase.banks.step1 : kase.banks[`step${path.length + 1}`][path]);
+
+/** The video needs the same frames on every capture, so the stub asks the first variant and the bank's own option order. */
+export function nextFor(path, kase = KASE) {
+  const bank = bankFor(path, kase);
+  const options = bank.options.filter((o) => bank.default_trio.includes(o.id)).map(({ id, label, line }) => ({ id, label, line }));
+  return { ask: { variant: bank.variants[0].id, bridge: '', options: options.map((o) => o.id) }, question: bank.variants[0].question, options };
+}
+const pathOf = (answers) => answers.reduce((path, a) => path + ('choice' in a ? LETTER[bankFor(path).options.find((o) => o.id === a.choice).tier] : 'W'), '');
 const API = 'http://localhost:3001';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
 export const TAG = 42;
@@ -22,9 +33,14 @@ const entries = (tags, top) => tags.map((tag, i) => ({ tag, score: tag === TAG ?
 export const BOARD = { today: entries([7, 19, TAG, 3, 25, 11, 30, 8, 14, 2], 79.4), event: entries([7, 19, TAG, 3, 25, 11, 30, 8, 14, 2], 79.4) };
 
 const ROUTES = {
-  'GET /booth/status': () => ({ open: true, event_code: KASE.event_code, case_version: KASE.version }),
-  'POST /booth/plays': () => ({ play_id: '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f', tag: TAG, case: KASE, answer_max_chars: 500 }),
-  'POST /booth/plays/:id/reply': (body) => ({ status: 'replied', reply: REPLIES[body.answers.length - 1], reply_sig: `sig-${body.answers.length}` }),
+  'GET /booth/status': () => ({ open: true, event_code: KASE.event_code }),
+  'POST /booth/plays': () => ({
+    play_id: '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f', tag: TAG, case: { vignette: KASE.vignette }, answer_max_chars: 500, next: nextFor(''), sig: 'sig-0',
+  }),
+  'POST /booth/plays/:id/reply': ({ answers }) => ({
+    status: 'replied', reply: REPLIES[answers.length - 1], reply_sig: `sig-${answers.length}`,
+    ...(answers.length < 3 ? { next: nextFor(pathOf(answers)) } : {}),
+  }),
   'POST /booth/plays/:id/score': () => ({ ...SCORE, rank_today: 3, rank_event: 3, board: BOARD }),
   'GET /booth/board': () => ({ board: BOARD }),
 };
