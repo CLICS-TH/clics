@@ -34,8 +34,8 @@ const DASH_UPSTREAM = process.env.DASH_UPSTREAM || DASH;
 const SUPABASE = 'https://rgwnnexokstctugwtwub.supabase.co';
 const SUPABASE_JS = 'https://esm.sh/@supabase/supabase-js@2.49.4';
 const GSI = 'https://accounts.google.com/gsi/client';
-// config.js ships with an empty client ID until the OAuth client is registered (#282); the harness
-// supplies one, and a scenario can append more config lines through `configTail`.
+// The harness pins its own client ID after google-config.js, and a scenario can append more config lines
+// through `configTail`.
 const CI_GOOGLE_CLIENT_ID = 'ci-client.apps.googleusercontent.com';
 let configTail = '';
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.woff2': 'font/woff2' };
@@ -89,7 +89,7 @@ function portalServer(origin = PORTAL) {
       if (!s) { res.writeHead(404).end('not found'); return; }
       res.writeHead(200, { 'content-type': MIME[extname(file)] || 'application/octet-stream' });
       const body = await readFile(file);
-      res.end(p === '/js/config.js' ? `${body}\nwindow.CLICS_GOOGLE_CLIENT_ID = '${CI_GOOGLE_CLIENT_ID}';\n${configTail}\n` : body);
+      res.end(p === '/js/google-config.js' ? `${body}\nwindow.CLICS_GOOGLE_CLIENT_ID = '${CI_GOOGLE_CLIENT_ID}';\n${configTail}\n` : body);
     } catch { res.writeHead(500).end('err'); }
   });
 }

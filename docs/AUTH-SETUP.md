@@ -16,13 +16,13 @@ Onboarding is **Google self-service for physicians (auto-active) + A/B invite li
 
 ## 1b. Google sign-in mode (in-page vs redirect, ADR 0007)
 
-The Portal asks Google itself through Google Identity Services (GIS), so Google's chooser names `physician-ui.vercel.app` instead of the Supabase project domain. `physician-ui/public/js/config.js` holds the switch:
+The Portal asks Google itself through Google Identity Services (GIS), so Google's chooser names `physician-ui.vercel.app` instead of the Supabase project domain. `physician-ui/public/js/google-config.js` holds the switch (a separate file because the booth promo's source digest covers `config.js`):
 
 | Config | Meaning |
 |---|---|
 | `CLICS_GOOGLE_SIGNIN = { login, invite, link }` | Per flow, `'gis'` (default) or `'redirect'` (the old Supabase redirect). Only `login` is wired today; invite and Link Google follow. |
 | `CLICS_GOOGLE_ORIGINS` | Allow-list of page origins where `gis` runs: `https://physician-ui.vercel.app`, `http://localhost:3000`. Any other origin (Vercel previews) uses the redirect. Must match the OAuth client's **Authorized JavaScript origins** exactly (no wildcards). |
-| `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect.** Set to the client ID listed in Supabase's Google provider (registered 2026-11-02, #282). |
+| `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect.** Set to the client ID listed in Supabase's Google provider (#282). |
 
 How it runs: pressing "Continue with Google" loads Google's script (never on page load), swaps in Google's own button (popup, no One Tap), trades the credential with `signInWithIdToken` and a fresh hashed nonce, writes the same flow marker the redirect writes, and goes to `/auth/callback#access_token=…`. The Callback page finishes both modes. **Rollback:** set the flow to `'redirect'` and redeploy.
 
