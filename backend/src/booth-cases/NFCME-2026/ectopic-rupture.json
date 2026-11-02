@@ -52,8 +52,8 @@
           "id": "b",
           "tier": "best",
           "label": {
-            "th": "ท้องนอกมดลูก มีเลือดออกในท้อง",
-            "en": "Tubal pregnancy, bleeding inside"
+            "th": "ท้องนอกมดลูก มีเลือดในช่องท้อง",
+            "en": "Ectopic with internal bleeding"
           },
           "line": {
             "th": "ปวดร้าวที่ปลายไหล่บ่งว่ามีเลือดในช่องท้อง",
@@ -76,12 +76,12 @@
           "id": "d",
           "tier": "reasonable",
           "label": {
-            "th": "แท้งบุตร",
-            "en": "Miscarriage"
+            "th": "ช็อกจากเลือดออกในช่องท้อง",
+            "en": "Shock from bleeding in the abdomen"
           },
           "line": {
-            "th": "ประจำเดือนขาดร่วมกับเลือดออกทางช่องคลอดพบบ่อย",
-            "en": "A late period with vaginal bleeding is a common pattern."
+            "th": "อธิบายชีพจรเร็วและความดันต่ำได้ตรง",
+            "en": "It explains the fast pulse and low BP directly."
           }
         },
         {
@@ -138,7 +138,7 @@
             "id": "upt_scan",
             "tier": "best",
             "label": {
-              "th": "ตรวจครรภ์และอัลตราซาวด์",
+              "th": "ตรวจครรภ์ อัลตราซาวด์ข้างเตียง",
               "en": "Pregnancy test + bedside scan"
             },
             "line": {
@@ -171,15 +171,15 @@
             }
           },
           {
-            "id": "tvs",
+            "id": "fast",
             "tier": "reasonable",
             "label": {
-              "th": "อัลตราซาวด์ทางช่องคลอด",
-              "en": "Transvaginal ultrasound"
+              "th": "อัลตราซาวด์ข้างเตียง (FAST)",
+              "en": "Bedside FAST scan"
             },
             "line": {
-              "th": "เห็นมดลูกและท่อนำไข่ได้ชัดกว่า",
-              "en": "Gives a clearer view of the uterus and tubes."
+              "th": "เห็นเลือดในช่องท้องได้ทันทีที่ข้างเตียง",
+              "en": "Shows blood in the abdomen right at the bedside."
             }
           },
           {
@@ -213,8 +213,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "การตรวจใดช่วยบอกได้ว่าเลือดออกจากที่ใด",
-              "en": "Which test helps show where the bleeding comes from?"
+              "th": "เธอช็อกและได้สารน้ำอยู่ ควรส่งตรวจอะไรก่อน",
+              "en": "She is in shock on IV fluids. Which tests come first?"
             }
           }
         ],
@@ -223,7 +223,7 @@
             "id": "upt_scan",
             "tier": "best",
             "label": {
-              "th": "ตรวจครรภ์และอัลตราซาวด์",
+              "th": "ตรวจครรภ์ อัลตราซาวด์ข้างเตียง",
               "en": "Pregnancy test + bedside scan"
             },
             "line": {
@@ -244,15 +244,15 @@
             }
           },
           {
-            "id": "tvs",
+            "id": "fast",
             "tier": "reasonable",
             "label": {
-              "th": "อัลตราซาวด์ทางช่องคลอด",
-              "en": "Transvaginal ultrasound"
+              "th": "อัลตราซาวด์ข้างเตียง (FAST)",
+              "en": "Bedside FAST scan"
             },
             "line": {
-              "th": "เห็นมดลูกและท่อนำไข่ได้ชัดกว่า",
-              "en": "Gives a clearer view of the uterus and tubes."
+              "th": "เห็นเลือดในช่องท้องได้ทันทีที่ข้างเตียง",
+              "en": "Shows blood in the abdomen right at the bedside."
             }
           },
           {
@@ -282,7 +282,7 @@
         ],
         "default_trio": [
           "upt_scan",
-          "tvs",
+          "fast",
           "cbc_ua"
         ]
       },
@@ -308,7 +308,7 @@
             "id": "upt_scan",
             "tier": "best",
             "label": {
-              "th": "ตรวจครรภ์และอัลตราซาวด์",
+              "th": "ตรวจครรภ์ อัลตราซาวด์ข้างเตียง",
               "en": "Pregnancy test + bedside scan"
             },
             "line": {
@@ -378,15 +378,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ตรวจครรภ์ผลบวก อัลตราซาวด์พบน้ำในช่องท้อง จะทำอย่างไร",
-              "en": "Urine hCG is positive and the scan shows free fluid. Your plan?"
+              "th": "ผลออกครบ ตรวจครรภ์ผลบวก มีน้ำในช่องท้อง จะทำอย่างไร",
+              "en": "All results are in: hCG positive, free fluid in the abdomen. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ยืนยันว่าตั้งครรภ์และมีเลือดในช่องท้อง ขั้นต่อไปคืออะไร",
-              "en": "Pregnancy is confirmed with blood in the abdomen. Next step?"
+              "th": "ผลออกครบ ตั้งครรภ์และมีเลือดในช่องท้อง ขั้นต่อไปคืออะไร",
+              "en": "All results are in: pregnant, with blood in the abdomen. Next step?"
             }
           }
         ],
@@ -419,7 +419,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -428,15 +428,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -454,7 +454,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -463,15 +463,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลยืนยันการตั้งครรภ์ ความดันลดลงเหลือ 84/50 จะดูแลอย่างไร",
-              "en": "The results confirm a pregnancy and her BP falls to 84/50. Your plan?"
+              "th": "ผลออกครบ ตรวจครรภ์บวก มดลูกว่าง มีน้ำในท้อง จะทำอย่างไร",
+              "en": "All results are in: hCG positive, empty uterus, free fluid. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "โพรงมดลูกว่างและมีน้ำในช่องท้อง ขั้นต่อไปคืออะไร",
-              "en": "The uterus is empty and there is free fluid. Next step?"
+              "th": "ความดัน 84/50 ผลเข้าได้กับท้องนอกมดลูก ขั้นต่อไปคืออะไร",
+              "en": "BP falls to 84/50 and the results fit an ectopic. Next step?"
             }
           }
         ],
@@ -504,7 +504,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -513,15 +513,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -539,7 +539,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -548,15 +548,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "Hb 8.2 ความดัน 82/50 ตรวจครรภ์ผลบวก จะทำอย่างไร",
-              "en": "Hb is 8.2 and BP falls to 82/50. Urine hCG is positive. Your plan?"
+              "th": "Hb 8.2 ความดัน 82/50 ตรวจครรภ์เพิ่ม ผลบวก จะทำอย่างไร",
+              "en": "Hb 8.2, BP 82/50, and the team adds a urine hCG: positive. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ผลตรวจครรภ์เป็นบวกและเธอซีดลง ขั้นต่อไปคืออะไร",
-              "en": "Her pregnancy test is positive and she looks paler. Next step?"
+              "th": "ทีมส่งตรวจครรภ์เพิ่มได้ผลบวก และเธอซีดลง ขั้นต่อไปคืออะไร",
+              "en": "The team adds a pregnancy test: positive. She looks paler. Next step?"
             }
           }
         ],
@@ -589,7 +589,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -598,15 +598,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -624,7 +624,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -633,15 +633,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ครรภ์ผลบวก มดลูกว่าง และมีน้ำในช่องท้อง จะทำอย่างไร",
-              "en": "hCG is positive, the uterus is empty and there is free fluid. Your plan?"
+              "th": "ผลออกครบ ตรวจครรภ์ผลบวก มีน้ำในช่องท้อง จะทำอย่างไร",
+              "en": "All results are in: hCG positive, free fluid in the abdomen. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ผลเข้าได้กับท้องนอกมดลูกที่มีเลือดออก ขั้นต่อไปคืออะไร",
-              "en": "The results fit a bleeding ectopic pregnancy. Next step?"
+              "th": "ผลออกครบ เข้าได้กับท้องนอกมดลูกที่มีเลือดออก ขั้นต่อไปคืออะไร",
+              "en": "All results are in and fit a bleeding ectopic. Next step?"
             }
           }
         ],
@@ -674,7 +674,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -683,15 +683,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -709,7 +709,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -718,15 +718,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "โพรงมดลูกว่าง มีก้อนข้างมดลูกซ้ายและน้ำในท้อง จะทำอย่างไร",
-              "en": "Empty uterus, a left adnexal mass and free fluid. Your plan?"
+              "th": "ผลออกครบ ตรวจครรภ์บวก มดลูกว่าง มีน้ำในท้อง จะทำอย่างไร",
+              "en": "All results are in: hCG positive, empty uterus, free fluid. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ความดันลดเหลือ 84/50 และตรวจครรภ์ผลบวก ขั้นต่อไปคืออะไร",
-              "en": "Her BP falls to 84/50 and hCG is positive. Next step?"
+              "th": "ความดัน 84/50 ผลเข้าได้กับท้องนอกมดลูก ขั้นต่อไปคืออะไร",
+              "en": "BP falls to 84/50 and the results fit an ectopic. Next step?"
             }
           }
         ],
@@ -759,7 +759,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -768,15 +768,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -794,7 +794,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -803,15 +803,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "Hb 8.2 ตรวจครรภ์ผลบวก ความดัน 82/50 จะทำอย่างไร",
-              "en": "Hb is 8.2, hCG is positive and BP is now 82/50. Your plan?"
+              "th": "Hb 8.2 ความดัน 82/50 ตรวจครรภ์เพิ่ม ผลบวก จะทำอย่างไร",
+              "en": "Hb 8.2, BP 82/50, and the team adds a urine hCG: positive. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ผลบ่งว่าเป็นท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
-              "en": "The picture points to a ruptured ectopic. Next step?"
+              "th": "ทีมตรวจเพิ่ม ผลบ่งว่าท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
+              "en": "Further tests point to a ruptured ectopic. Next step?"
             }
           }
         ],
@@ -844,7 +844,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -853,15 +853,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -879,7 +879,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -888,15 +888,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ครรภ์ผลบวก มดลูกว่างและมีน้ำในท้อง จะทำอย่างไร",
-              "en": "hCG is positive and the scan shows an empty uterus and free fluid. Your plan?"
+              "th": "ผลออกครบ ตรวจครรภ์ผลบวก มีน้ำในช่องท้อง จะทำอย่างไร",
+              "en": "All results are in: hCG positive, free fluid in the abdomen. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นี่คือท้องนอกมดลูกแตก ความดัน 84/50 ขั้นต่อไปคืออะไร",
-              "en": "This is a ruptured ectopic pregnancy, BP 84/50. Next step?"
+              "th": "ผลออกครบ ท้องนอกมดลูกแตก ความดัน 84/50 ขั้นต่อไปคืออะไร",
+              "en": "All results are in: a ruptured ectopic, BP 84/50. Next step?"
             }
           }
         ],
@@ -929,7 +929,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -938,15 +938,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -964,7 +964,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -973,15 +973,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลบ่งว่าท้องนอกมดลูกแตก ความดัน 84/50 จะทำอย่างไร",
-              "en": "The results show a ruptured ectopic pregnancy, BP 84/50. Your plan?"
+              "th": "ผลออกครบ ตรวจครรภ์บวก มดลูกว่าง มีน้ำในท้อง จะทำอย่างไร",
+              "en": "All results are in: hCG positive, empty uterus, free fluid. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "โพรงมดลูกว่างและมีเลือดในช่องท้อง ขั้นต่อไปคืออะไร",
-              "en": "The uterus is empty and there is blood in the abdomen. Next step?"
+              "th": "ความดัน 84/50 ผลบ่งว่าท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
+              "en": "BP falls to 84/50 and the results show a ruptured ectopic. Next step?"
             }
           }
         ],
@@ -1014,7 +1014,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -1023,15 +1023,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -1049,7 +1049,7 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       },
@@ -1058,8 +1058,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "Hb 8.2 ตรวจครรภ์ผลบวก นี่คือท้องนอกมดลูกแตก จะทำอย่างไร",
-              "en": "Hb is 8.2 and hCG is positive. This is a ruptured ectopic. Your plan?"
+              "th": "ทีมส่งตรวจเพิ่ม ได้ Hb 8.2 ตรวจครรภ์ผลบวก จะทำอย่างไร",
+              "en": "The team adds tests: Hb 8.2, hCG positive. Your plan?"
             }
           },
           {
@@ -1099,7 +1099,7 @@
             "id": "lap",
             "tier": "reasonable",
             "label": {
-              "th": "ผ่าตัดผ่านกล้อง",
+              "th": "ตัดท่อนำไข่ผ่านกล้อง",
               "en": "Laparoscopic salpingectomy"
             },
             "line": {
@@ -1108,15 +1108,15 @@
             }
           },
           {
-            "id": "saline2l",
+            "id": "saline1l",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
-              "en": "2 L saline bolus, then surgery"
+              "th": "สารน้ำ 1 ลิตร เตรียมห้องผ่าตัด",
+              "en": "1 L fluid, prepare theatre"
             },
             "line": {
-              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
-              "en": "Restores volume quickly on the way to theatre."
+              "th": "ให้ปริมาตรเร็วระหว่างเตรียมเลือดและห้องผ่าตัด",
+              "en": "Restores volume fast while blood and theatre get ready."
             }
           },
           {
@@ -1134,10 +1134,17 @@
         ],
         "default_trio": [
           "operate",
-          "saline2l",
+          "saline1l",
           "salpingostomy"
         ]
       }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Fresh reviewer, checked against WHO, NICE NG126, RCOG, ACOG PB 193 and ATLS 10th. Must-fix, both fixed: step-3 questions revealed results the visitor never ordered, so each now says the team's results are in; a 2 L saline bolus was tiered reasonable, now 1 L crystalloid while blood and theatre are readied. Should-fix, fixed: transvaginal scan replaced by bedside FAST, miscarriage replaced by shock from intra-abdominal bleeding, one step-2 question and one Thai/English label mismatch. Nits fixed: two clipped Thai labels. Salpingostomy kept as weaker, for the sandbox physicians to confirm."
     }
   }
 }
