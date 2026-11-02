@@ -39,17 +39,13 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
     try { localStorage.setItem('clics_user', JSON.stringify({ ...user, ...u })); } catch {}
     const linked = Array.isArray(u.linked_providers) && u.linked_providers.includes('google');
     if (linked) return;
-    whenSbReady(() => { if (window.CLICS_SUPABASE_CONFIGURED && window.sbClient) wrap.style.display = ''; });
+    whenSbReady(() => {
+      // whenSbReady can fire twice (the ready event, then its 8 s fallback): wire the button once.
+      if (!window.CLICS_SUPABASE_CONFIGURED || !window.sbClient || wrap.style.display === '') return;
+      wrap.style.display = '';
+      clicsGoogleSignIn(btn, { flow: 'link', marker: { kind: 'link' }, onError: (m) => { if (msg) msg.textContent = m; } });
+    });
   })();
-
-  btn.addEventListener('click', async () => {
-    if (!window.sbClient) { if (msg) msg.textContent = 'Google ไม่พร้อมใช้งาน / Google not available.'; return; }
-    btn.disabled = true;
-    try { localStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'link' })); } catch {}
-    const redirectTo = location.origin + '/auth/callback';
-    const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
-    if (error) { btn.disabled = false; if (msg) msg.textContent = error.message || 'เชื่อมบัญชีไม่สำเร็จ / Link failed.'; }
-  });
 })();
 
 // ---- Pilot: informed-consent gate (human-subjects study). The banner was removed by request;
