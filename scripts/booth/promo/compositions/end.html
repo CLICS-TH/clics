@@ -1,0 +1,47 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #end-lockup { position: absolute; left: 0; right: 0; top: 360px; display: flex; align-items: center; justify-content: center; gap: 44px; }
+    #end-icon { width: 220px; height: 220px; }
+    #end-word { font-family: var(--font-serif); font-size: 230px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+    #end-tap { position: absolute; left: 108px; right: 108px; top: 760px; text-align: center; }
+    #end-tap .th { font-size: 84px; line-height: 1.4; font-weight: 700; color: var(--ink); }
+    #end-tap .en { margin-top: 16px; font-size: 52px; line-height: 1.3; font-weight: 600; color: var(--accent); }
+    #end-facts { position: absolute; left: 108px; right: 108px; top: 1180px; text-align: center; display: flex; flex-direction: column; gap: 48px; }
+    #end-facts .th { font-size: 44px; line-height: 1.45; font-weight: 600; color: var(--ink); }
+    #end-facts .en { font-size: 34px; line-height: 1.3; font-weight: 500; color: var(--body); }
+  </style>
+  <div id="root" data-composition-id="end" data-width="1080" data-height="1920">
+    <div class="ground"></div>
+    <div id="end-lockup-clip" class="clip" data-start="0" data-duration="6" data-track-index="2">
+      <div id="end-lockup">
+        <img id="end-icon" src="assets/capture/favicon.svg" alt="" />
+        <span id="end-word">CLICS</span>
+      </div>
+    </div>
+    <div id="end-tap" class="clip" data-start="0" data-duration="6" data-track-index="3">
+      <p class="th" lang="th">แตะหน้าจอ<br />เพื่อลอง CLICS</p>
+      <p class="en" lang="en">Tap the screen to try CLICS</p>
+    </div>
+    <div id="end-facts" class="clip" data-start="0" data-duration="6" data-track-index="4">
+      <div id="end-f1">
+        <p class="th" lang="th">ไม่ต้องลงชื่อเข้าใช้ และไม่เก็บข้อมูลส่วนตัว</p>
+        <p class="en" lang="en">No sign-in, and no personal data kept</p>
+      </div>
+      <div id="end-f2">
+        <p class="th" lang="th">โครงการนำร่องยังไม่เริ่ม<br />และผลยังไม่นับเป็นหน่วยกิต CME</p>
+        <p class="en" lang="en">The pilot has not started, and results are not CME credit</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#end-icon", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, 0.05);
+    tl.fromTo("#end-word", { opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power3.out" }, 0.3);
+    tl.fromTo("#end-tap .th", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0.75);
+    tl.fromTo("#end-tap .en", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0.85);
+    tl.fromTo("#end-f1", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 1.2);
+    tl.fromTo("#end-f2", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 1.4);
+    window.__timelines["end"] = tl;
+  </script>
+</template>
