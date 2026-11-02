@@ -3,11 +3,11 @@
   "version": "1",
   "event_code": "NFCME-2026",
   "teaser": {
-    "th": "ชายวัย 58 ปี มีไข้ แผลในปาก และผื่นลามมา 2 วัน",
-    "en": "A 58-year-old man with fever, mouth sores and a spreading rash for 2 days"
+    "th": "ชายวัย 58 ปี มาโรงพยาบาลชุมชน มีไข้ แผลในปาก และผื่นลามมา 2 วัน",
+    "en": "A 58-year-old man at a community hospital with fever, mouth sores and a spreading rash for 2 days"
   },
   "vignette": {
-    "th": "ผู้ป่วยสมมติ ชายอายุ 58 ปี มาโรงพยาบาลชุมชนด้วยไข้ เจ็บตา แผลในปาก และผื่นแดงคล้ำลามที่หน้าและลำตัวมา 2 วัน 3 สัปดาห์ก่อนคลินิกเริ่มยาอัลโลพูรินอลให้เพราะกรดยูริกสูง อุณหภูมิ 38.6 องศาเซลเซียส ชีพจร 112 ครั้งต่อนาที ความดันโลหิต 112/70 มม.ปรอท มีตุ่มน้ำที่ลำตัว ผิวหนังหลุดลอกเมื่อถูเบา ๆ ราวร้อยละ 12 ของผิวกาย ริมฝีปากเป็นสะเก็ด และตาแดงทั้งสองข้าง",
+    "th": "ผู้ป่วยสมมติ ชายอายุ 58 ปี มาโรงพยาบาลชุมชนด้วยไข้ เจ็บตา แผลในปาก และผื่นแดงคล้ำลามที่หน้าและลำตัวมา 2 วัน เมื่อ 3 สัปดาห์ก่อนคลินิกเริ่มยาอัลโลพูรินอลให้เพราะกรดยูริกสูง อุณหภูมิ 38.6 องศาเซลเซียส ชีพจร 112 ครั้งต่อนาที ความดันโลหิต 112/70 มม.ปรอท มีตุ่มน้ำที่ลำตัว ผิวหนังหลุดลอกเมื่อถูเบา ๆ ราวร้อยละ 12 ของผิวกาย ริมฝีปากเป็นสะเก็ด และตาแดงทั้งสองข้าง",
     "en": "A fictional 58-year-old man comes to a community hospital with 2 days of fever, sore eyes, mouth sores and a dusky red rash spreading over his face and trunk. Three weeks ago a clinic started allopurinol for high uric acid. Temperature 38.6 °C, pulse 112/min, BP 112/70 mmHg. Blisters on the trunk, and the skin peels off with a gentle rub over about 12% of his body. His lips are crusted and both eyes are red."
   },
   "banks": {
@@ -23,7 +23,7 @@
         {
           "id": "v2",
           "question": {
-            "th": "ผื่นและแผลเยื่อบุนี้เข้าได้กับโรคใดมากที่สุด",
+            "th": "ผื่นและแผลในปากนี้เข้าได้กับโรคใดมากที่สุด",
             "en": "Which diagnosis fits this rash and these mouth sores best?"
           }
         },
@@ -81,7 +81,7 @@
           },
           "line": {
             "th": "ไข้ร่วมกับตุ่มน้ำพบได้บ่อยในอีสุกอีใส",
-            "en": "Fever with blisters is typical of chickenpox."
+            "en": "Fever with blisters is common in chickenpox."
           }
         },
         {
@@ -89,7 +89,7 @@
           "tier": "weaker",
           "label": {
             "th": "SSSS ผิวลอกจากพิษเชื้อสแตฟ",
-            "en": "Staphylococcal scalded skin"
+            "en": "Staph scalded skin (SSSS)"
           },
           "line": {
             "th": "ไข้ร่วมกับผิวลอกเกิดจากพิษของเชื้อสแตฟได้",
@@ -110,7 +110,7 @@
             "id": "v1",
             "question": {
               "th": "สงสัย SJS/TEN จะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "SJS/TEN is likely. Which tests come first?"
+              "en": "SJS/TEN is suspected. Which tests come first?"
             }
           },
           {
@@ -130,8 +130,8 @@
               "en": "Blood tests for SCORTEN"
             },
             "line": {
-              "th": "CBC ค่าไต น้ำตาล และไบคาร์บอเนตบอกความรุนแรง",
-              "en": "CBC, BUN, glucose and bicarbonate grade his risk."
+              "th": "BUN น้ำตาล และไบคาร์บอเนตใช้คิด SCORTEN",
+              "en": "BUN, glucose and bicarbonate feed the SCORTEN score."
             }
           },
           {
@@ -206,15 +206,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "จะส่งตรวจอะไรก่อนเพื่อแยกผื่นนี้",
-              "en": "Which tests come first to sort out this rash?"
+              "th": "การตรวจแรกใดช่วยวางแผนดูแลเขาได้มากที่สุด",
+              "en": "Which first tests guide his care most?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "การตรวจแรกใดช่วยได้มากที่สุดในตอนนี้",
-              "en": "Which first tests help most right now?"
+              "th": "วันนี้จะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which tests come first today?"
             }
           }
         ],
@@ -239,8 +239,8 @@
               "en": "Blood tests for SCORTEN"
             },
             "line": {
-              "th": "CBC ค่าไต น้ำตาล และไบคาร์บอเนตบอกความรุนแรง",
-              "en": "CBC, BUN, glucose and bicarbonate grade his risk."
+              "th": "BUN น้ำตาล และไบคาร์บอเนตใช้คิด SCORTEN",
+              "en": "BUN, glucose and bicarbonate feed the SCORTEN score."
             }
           },
           {
@@ -324,7 +324,7 @@
               "en": "Skin biopsy"
             },
             "line": {
-              "th": "ผลชิ้นเนื้อแยกโรคผิวลอกแต่ละชนิดออกจากกันได้",
+              "th": "ผลชิ้นเนื้อแยกโรคตุ่มน้ำแต่ละชนิดออกจากกันได้",
               "en": "Histology tells the blistering diseases apart."
             }
           },
@@ -336,8 +336,8 @@
               "en": "Blood culture"
             },
             "line": {
-              "th": "ไข้ร่วมกับผิวลอกเปิดทางให้ติดเชื้อในกระแสเลือด",
-              "en": "Fever with raw skin opens the way to sepsis."
+              "th": "ผิวที่หลุดลอกเปิดทางให้ติดเชื้อในกระแสเลือด",
+              "en": "Raw, peeling skin opens the way to sepsis."
             }
           },
           {
@@ -378,14 +378,14 @@
           {
             "id": "v1",
             "question": {
-              "th": "BUN สูง SCORTEN 3 คะแนน ผิวหลุดร้อยละ 12 ดูแลอย่างไร",
-              "en": "Admission BUN is high, SCORTEN is 3, 12% of skin detached. Your plan?"
+              "th": "BUN แรกรับ 32 มก./ดล. SCORTEN 3 จะดูแลอย่างไร",
+              "en": "Admission BUN is 32 mg/dL and SCORTEN is 3. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "เข้าได้กับ SJS-TEN overlap ขั้นต่อไปคืออะไร",
+              "th": "เป็น SJS-TEN overlap ขั้นต่อไปคืออะไร",
               "en": "This is SJS-TEN overlap. What is your next step?"
             }
           }
@@ -395,68 +395,68 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "หยุดยา ให้สารน้ำ แล้วส่งต่อ",
-              "en": "Stop allopurinol, IV fluids, refer"
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
             },
             "line": {
-              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่งตัว",
-              "en": "Fluids and eye care start now while transfer is arranged."
+              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่ง ICU",
+              "en": "Fluids and eye care start now while ICU transfer is arranged."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
+              "th": "ทีมแพทย์ผิวหนังโรงพยาบาลศูนย์ดูแล SJS/TEN บ่อย",
+              "en": "A regional hospital's dermatology team treats SJS/TEN often."
             }
           },
           {
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา ส่งหออายุรกรรมจังหวัด",
-              "en": "Stop drug, refer to a medical ward"
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ และส่งไปหออายุรกรรมโรงพยาบาลจังหวัด",
-              "en": "Stops the cause and sends him to a provincial medical ward."
+              "th": "โรงพยาบาลศูนย์มีอายุรแพทย์และ ICU พร้อมรับดูแลต่อ",
+              "en": "A regional hospital has physicians and an ICU to take over."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้ยาแก้แพ้ แล้วส่งต่อ",
-              "en": "Stop drug, antihistamine, then refer"
+              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
+              "en": "Stop drug, antihistamine, burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งตัวไปรักษาต่อ",
-              "en": "Stops the cause, adds an antihistamine and sends him on."
+              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
+              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
+              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
+              "en": "Stop drug, IV steroid, to ICU"
             },
             "line": {
               "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
@@ -492,48 +492,48 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
+              "th": "ทีมแพทย์ผิวหนังโรงพยาบาลศูนย์ดูแล SJS/TEN บ่อย",
+              "en": "A regional hospital's dermatology team treats SJS/TEN often."
             }
           },
           {
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา ส่งหออายุรกรรมจังหวัด",
-              "en": "Stop drug, refer to a medical ward"
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ และส่งไปหออายุรกรรมโรงพยาบาลจังหวัด",
-              "en": "Stops the cause and sends him to a provincial medical ward."
+              "th": "โรงพยาบาลศูนย์มีอายุรแพทย์และ ICU พร้อมรับดูแลต่อ",
+              "en": "A regional hospital has physicians and an ICU to take over."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้ยาแก้แพ้ แล้วส่งต่อ",
-              "en": "Stop drug, antihistamine, then refer"
+              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
+              "en": "Stop drug, antihistamine, burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งตัวไปรักษาต่อ",
-              "en": "Stops the cause, adds an antihistamine and sends him on."
+              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
+              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
             }
           }
         ],
@@ -562,57 +562,57 @@
         ],
         "options": [
           {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
-            },
-            "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
-            }
-          },
-          {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "หยุดยา ให้สารน้ำ แล้วส่งต่อ",
-              "en": "Stop allopurinol, IV fluids, refer"
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
             },
             "line": {
-              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่งตัว",
-              "en": "Fluids and eye care start now while transfer is arranged."
+              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่ง ICU",
+              "en": "Fluids and eye care start now while ICU transfer is arranged."
             }
           },
           {
-            "id": "d",
+            "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา ส่งหออายุรกรรมจังหวัด",
-              "en": "Stop drug, refer to a medical ward"
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ และส่งไปหออายุรกรรมโรงพยาบาลจังหวัด",
-              "en": "Stops the cause and sends him to a provincial medical ward."
+              "th": "ทีมแพทย์ผิวหนังโรงพยาบาลศูนย์ดูแล SJS/TEN บ่อย",
+              "en": "A regional hospital's dermatology team treats SJS/TEN often."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
+              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
+              "en": "Stop drug, IV steroid, to ICU"
             },
             "line": {
               "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
               "en": "Some centres give a short steroid course early in SJS/TEN."
             }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
+              "en": "Stop drug, IV antibiotics, to ICU"
+            },
+            "line": {
+              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
+              "en": "Some centres give antibiotics for fever during transfer."
+            }
           }
         ],
         "default_trio": [
-          "a",
-          "d",
+          "b",
+          "c",
           "f"
         ]
       },
@@ -638,55 +638,55 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
             }
           },
           {
-            "id": "c",
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่ง ICU",
+              "en": "Fluids and eye care start now while ICU transfer is arranged."
+            }
+          },
+          {
+            "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
+              "th": "โรงพยาบาลศูนย์มีอายุรแพทย์และ ICU พร้อมรับดูแลต่อ",
+              "en": "A regional hospital has physicians and an ICU to take over."
             }
           },
           {
-            "id": "e",
+            "id": "g",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้ยาแก้แพ้ แล้วส่งต่อ",
-              "en": "Stop drug, antihistamine, then refer"
+              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
+              "en": "Stop drug, IV antibiotics, to ICU"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งตัวไปรักษาต่อ",
-              "en": "Stops the cause, adds an antihistamine and sends him on."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
-            },
-            "line": {
-              "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
-              "en": "Some centres give a short steroid course early in SJS/TEN."
+              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
+              "en": "Some centres give antibiotics for fever during transfer."
             }
           }
         ],
         "default_trio": [
           "a",
-          "c",
-          "e"
+          "d",
+          "g"
         ]
       },
       "RR": {
@@ -711,48 +711,48 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "หยุดยา ส่งหออายุรกรรมจังหวัด",
-              "en": "Stop drug, refer to a medical ward"
-            },
-            "line": {
-              "th": "หยุดยาต้นเหตุ และส่งไปหออายุรกรรมโรงพยาบาลจังหวัด",
-              "en": "Stops the cause and sends him to a provincial medical ward."
+              "th": "ทีมแพทย์ผิวหนังโรงพยาบาลศูนย์ดูแล SJS/TEN บ่อย",
+              "en": "A regional hospital's dermatology team treats SJS/TEN often."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้ยาแก้แพ้ แล้วส่งต่อ",
-              "en": "Stop drug, antihistamine, then refer"
+              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
+              "en": "Stop drug, antihistamine, burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งตัวไปรักษาต่อ",
-              "en": "Stops the cause, adds an antihistamine and sends him on."
+              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
+              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
+              "en": "Stop drug, IV steroid, to ICU"
+            },
+            "line": {
+              "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
+              "en": "Some centres give a short steroid course early in SJS/TEN."
             }
           }
         ],
@@ -784,43 +784,55 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "หยุดยา ให้สารน้ำ แล้วส่งต่อ",
-              "en": "Stop allopurinol, IV fluids, refer"
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
             },
             "line": {
-              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่งตัว",
-              "en": "Fluids and eye care start now while transfer is arranged."
+              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่ง ICU",
+              "en": "Fluids and eye care start now while ICU transfer is arranged."
             }
           },
           {
-            "id": "c",
+            "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
+              "th": "โรงพยาบาลศูนย์มีอายุรแพทย์และ ICU พร้อมรับดูแลต่อ",
+              "en": "A regional hospital has physicians and an ICU to take over."
             }
           },
           {
-            "id": "f",
+            "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
+              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
+              "en": "Stop drug, antihistamine, burn unit"
             },
             "line": {
-              "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
-              "en": "Some centres give a short steroid course early in SJS/TEN."
+              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
+              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
+              "en": "Stop drug, IV antibiotics, to ICU"
+            },
+            "line": {
+              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
+              "en": "Some centres give antibiotics for fever during transfer."
             }
           }
         ],
         "default_trio": [
           "b",
-          "c",
-          "f"
+          "d",
+          "e"
         ]
       },
       "WB": {
@@ -845,54 +857,66 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "หยุดยา ให้สารน้ำ แล้วส่งต่อ",
-              "en": "Stop allopurinol, IV fluids, refer"
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
             },
             "line": {
-              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่งตัว",
-              "en": "Fluids and eye care start now while transfer is arranged."
+              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่ง ICU",
+              "en": "Fluids and eye care start now while ICU transfer is arranged."
             }
           },
           {
-            "id": "d",
+            "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา ส่งหออายุรกรรมจังหวัด",
-              "en": "Stop drug, refer to a medical ward"
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ และส่งไปหออายุรกรรมโรงพยาบาลจังหวัด",
-              "en": "Stops the cause and sends him to a provincial medical ward."
+              "th": "ทีมแพทย์ผิวหนังโรงพยาบาลศูนย์ดูแล SJS/TEN บ่อย",
+              "en": "A regional hospital's dermatology team treats SJS/TEN often."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
+              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
+              "en": "Stop drug, IV steroid, to ICU"
             },
             "line": {
               "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
               "en": "Some centres give a short steroid course early in SJS/TEN."
             }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
+              "en": "Stop drug, IV antibiotics, to ICU"
+            },
+            "line": {
+              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
+              "en": "Some centres give antibiotics for fever during transfer."
+            }
           }
         ],
         "default_trio": [
           "a",
-          "d",
+          "c",
           "f"
         ]
       },
@@ -901,8 +925,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ส่งตรวจแล้ว แพทย์ผิวหนังทางโทรศัพท์ว่าเป็น SJS/TEN",
-              "en": "The tests are sent. A dermatologist on the phone calls it SJS/TEN. Plan?"
+              "th": "ส่งตรวจแล้ว แพทย์ผิวหนังว่าเป็น SJS/TEN ทำอย่างไรต่อ",
+              "en": "The tests are sent. A dermatologist calls it SJS/TEN. Your plan?"
             }
           },
           {
@@ -918,55 +942,55 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "หยุดอัลโลพูรินอล ส่งต่อด่วน",
-              "en": "Stop allopurinol, refer urgently"
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุทันที และส่งไปหน่วยดูแลแผลไหม้หรือ ICU",
-              "en": "Stop the cause now and send him to a burn unit or ICU."
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
             }
           },
           {
-            "id": "c",
+            "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "หยุดยา ให้ยาแก้แพ้ แล้วส่งต่อ",
-              "en": "Stop drug, antihistamine, then refer"
-            },
-            "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งตัวไปรักษาต่อ",
-              "en": "Stops the cause, adds an antihistamine and sends him on."
+              "th": "โรงพยาบาลศูนย์มีอายุรแพทย์และ ICU พร้อมรับดูแลต่อ",
+              "en": "A regional hospital has physicians and an ICU to take over."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
+              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
+              "en": "Stop drug, IV steroid, to ICU"
             },
             "line": {
               "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
               "en": "Some centres give a short steroid course early in SJS/TEN."
             }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
+              "en": "Stop drug, IV antibiotics, to ICU"
+            },
+            "line": {
+              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
+              "en": "Some centres give antibiotics for fever during transfer."
+            }
           }
         ],
         "default_trio": [
           "a",
-          "c",
-          "e"
+          "d",
+          "f"
         ]
       },
       "WW": {
@@ -974,8 +998,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลตรวจไวรัสจากตุ่มน้ำเป็นลบ แพทย์ผิวหนังว่าเป็น SJS/TEN",
-              "en": "The blister virus test is negative. A dermatologist calls it SJS/TEN. Plan?"
+              "th": "ตรวจไวรัสจากตุ่มน้ำได้ผลลบ แพทย์ว่าเป็น SJS/TEN ทำอย่างไร",
+              "en": "The blister virus test is negative. A doctor calls it SJS/TEN. Your plan?"
             }
           },
           {
@@ -991,43 +1015,55 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "หยุดยา ให้สารน้ำ แล้วส่งต่อ",
-              "en": "Stop allopurinol, IV fluids, refer"
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
             },
             "line": {
-              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่งตัว",
-              "en": "Fluids and eye care start now while transfer is arranged."
+              "th": "เริ่มสารน้ำและดูแลตาทันทีระหว่างประสานส่ง ICU",
+              "en": "Fluids and eye care start now while ICU transfer is arranged."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "หยุดยา รับไว้ ดูแลร่วมแพทย์ผิวหนัง",
-              "en": "Stop drug, admit, derm co-manages"
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
             },
             "line": {
-              "th": "ดูแลบนหอผู้ป่วยตามคำแนะนำแพทย์ผิวหนังทางโทรศัพท์",
-              "en": "Ward care here, guided by a dermatologist by phone."
+              "th": "ทีมแพทย์ผิวหนังโรงพยาบาลศูนย์ดูแล SJS/TEN บ่อย",
+              "en": "A regional hospital's dermatology team treats SJS/TEN often."
             }
           },
           {
-            "id": "f",
-            "tier": "weaker",
+            "id": "d",
+            "tier": "reasonable",
             "label": {
-              "th": "หยุดยา ให้สเตียรอยด์ แล้วส่งต่อ",
-              "en": "Stop drug, IV steroid, then refer"
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
             },
             "line": {
-              "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
-              "en": "Some centres give a short steroid course early in SJS/TEN."
+              "th": "โรงพยาบาลศูนย์มีอายุรแพทย์และ ICU พร้อมรับดูแลต่อ",
+              "en": "A regional hospital has physicians and an ICU to take over."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
+              "en": "Stop drug, antihistamine, burn unit"
+            },
+            "line": {
+              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
+              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
             }
           }
         ],
         "default_trio": [
           "b",
           "c",
-          "f"
+          "e"
         ]
       }
     }
@@ -1036,7 +1072,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Fresh reviewer, checked against BAD 2016 SJS/TEN guidance, SCORTEN and Thai HLA-B*5801 and SJS/TEN practice. Vignette facts correct: SCORTEN 2 from the vignette, 3 with the admission BUN, and 12% detachment is SJS-TEN overlap. Step-1 and step-2 tiers sound. Fixed: admit-here now has dermatologist co-management; ciclosporin (specialist, nephrotoxic, no referral) replaced by referral to a provincial medical ward; antihistamine and IV-steroid options now refer and the itch claim is gone; WW question no longer assumes a Tzanck result; BB, BW and RB questions state the admission BUN; two Thai lines and the Tzanck and SSSS wording now match the English."
+      "findings": "Fresh reviewer, re-run on the final text, checked against BAD 2016 SJS/TEN guidance, SCORTEN, and Thai HLA-B*5801 and SJS/TEN practice. The vignette fits SJS-TEN overlap from allopurinol: 12% detachment, 3-week latency, SCORTEN 2 from the vignette and 3 with the admission BUN of 32 mg/dL. Every step-3 option stops allopurinol and transfers him out of the community hospital, no option is unsafe, and every step-3 question is true on every path that reaches it. Fixed from this review: the antibiotic line no longer claims a prophylactic benefit; IV labels say IV in Thai too; the SCORTEN line no longer lists CBC; the BB question gives the BUN value; the Thai vignette separates its two time spans. Open nits: EM major as a reasonable step-1 diagnosis is generous, and the burn-unit option leaves eye care to the fluids option."
     }
   }
 }
