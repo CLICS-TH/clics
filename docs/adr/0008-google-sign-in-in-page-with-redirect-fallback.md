@@ -6,7 +6,7 @@ Three choices here look odd without context:
 
 - **Two clicks.** Our "Continue with Google" button only loads `accounts.google.com/gsi/client` and swaps itself for Google's button. Loading it with the page would send every visitor's IP to Google, and the Privacy page promises Google sees only people who choose Google sign-in. GIS returns an ID token only from Google's own button or One Tap, so our button cannot open the popup itself. No One Tap: it fires without a click and is unreliable on iOS Safari.
 - **The page hands the session to the Callback page in the URL hash.** After `signInWithIdToken` the page writes the usual flow marker and goes to `/auth/callback#access_token=…&refresh_token=…`, the same shape the Supabase redirect lands. Signup completion, the council picker, invite accept, Link Google and the token rule stay in one handler for both modes.
-- **The redirect stays.** `CLICS_GOOGLE_SIGNIN` in `config.js` selects the mode per flow, and the in-page mode runs only on origins listed under the OAuth client's Authorized JavaScript origins (no wildcards, so Vercel previews fall back to the redirect). Rolling back is a config change and a redeploy. The Callback page and the OAuth rescue (ADR 0003) therefore stay.
+- **The redirect stays.** `CLICS_GOOGLE_SIGNIN` in `google-config.js` selects the mode per flow, and the in-page mode runs only on origins listed under the OAuth client's Authorized JavaScript origins (no wildcards, so Vercel previews fall back to the redirect). Rolling back is a config change and a redeploy. The Callback page and the OAuth rescue (ADR 0003) therefore stay.
 
 `gsi/client` carries no SRI hash: Google serves it unversioned and changes it without notice.
 
