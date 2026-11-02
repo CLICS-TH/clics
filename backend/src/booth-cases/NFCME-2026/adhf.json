@@ -1,0 +1,1044 @@
+{
+  "case_id": "adhf",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชายวัย 68 ปี หอบเหนื่อยและนอนราบไม่ได้มา 5 วัน",
+    "en": "A 68-year-old man, breathless and unable to lie flat for 5 days"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชาย 68 ปี ความดันโลหิตสูง เคยเป็นกล้ามเนื้อหัวใจขาดเลือดเมื่อ 2 ปีก่อน เลิกบุหรี่ 10 ปี ขาดยา 2 สัปดาห์ มาโรงพยาบาลชุมชน หอบเหนื่อยมากขึ้น 5 วัน ต้องลุกนั่งหายใจตอนกลางคืน ขาบวมสองข้าง ไม่มีไข้ ชีพจร 108/นาที สม่ำเสมอ ความดัน 168/96 มม.ปรอท หายใจ 28/นาที SpO2 89% (อากาศปกติ) หลอดเลือดดำที่คอโป่ง มีเสียงกรอบแกรบที่ฐานปอดสองข้าง ขากดบุ๋ม รู้สึกตัวดี",
+    "en": "A fictional 68-year-old man with hypertension and a heart attack 2 years ago, an ex-smoker for 10 years, ran out of his tablets 2 weeks ago. He comes to a community hospital with 5 days of worsening breathlessness and sits up at night to breathe. Both legs are swollen. No fever. Pulse 108/min and regular, BP 168/96 mmHg, respiratory rate 28/min, SpO2 89% on room air. Raised neck veins, crackles at both lung bases, pitting leg oedema. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและผลตรวจนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "หัวใจล้มเหลวเฉียบพลัน",
+            "en": "Acute decompensated heart failure"
+          },
+          "line": {
+            "th": "หอบเมื่อนอนราบ ขาบวม และหลอดเลือดดำที่คอโป่ง",
+            "en": "Breathless lying flat, leg swelling and raised neck veins."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "น้ำท่วมปอดจากหัวใจ",
+            "en": "Cardiogenic pulmonary oedema"
+          },
+          "line": {
+            "th": "กรอบแกรบสองข้างและออกซิเจนต่ำในผู้ป่วยโรคหัวใจ",
+            "en": "Crackles at both bases and low oxygen in a heart patient."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ปอดอักเสบจากชุมชน",
+            "en": "Community-acquired pneumonia"
+          },
+          "line": {
+            "th": "หอบ ออกซิเจนต่ำ และมีเสียงกรอบแกรบในปอด",
+            "en": "Breathlessness, low oxygen and crackles in the lungs."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "หอบหืดกำเริบ",
+            "en": "Asthma attack"
+          },
+          "line": {
+            "th": "หอบเหนื่อยตอนกลางคืนพบได้บ่อยในโรคหอบหืด",
+            "en": "Breathlessness at night is common in asthma."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ปอดอุดกั้นเรื้อรังกำเริบ",
+            "en": "COPD exacerbation"
+          },
+          "line": {
+            "th": "อดีตคนสูบบุหรี่ที่หอบเหนื่อยมากขึ้นทีละน้อย",
+            "en": "A former smoker whose breathing slowly got worse."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ที่ห้องฉุกเฉินตอนนี้ คุณจะตรวจอะไรก่อน",
+              "en": "What do you check first in the emergency room now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
+              "en": "ECG and troponin"
+            },
+            "line": {
+              "th": "หากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
+              "en": "Looks for a heart attack that may have set this off."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
+              "en": "Chest X-ray and ECG"
+            },
+            "line": {
+              "th": "เห็นน้ำในปอดและดูหัวใจได้ในคราวเดียว",
+              "en": "Shows lung fluid and checks the heart in one go."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ค่าไต เกลือแร่ และน้ำตาล",
+              "en": "Kidney function, salts and sugar"
+            },
+            "line": {
+              "th": "ใช้วางแผนให้ยาขับปัสสาวะอย่างปลอดภัย",
+              "en": "Guides safe diuretic dosing."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ดีไดเมอร์",
+              "en": "D-dimer"
+            },
+            "line": {
+              "th": "ช่วยคัดกรองลิ่มเลือดอุดกั้นในปอด",
+              "en": "Screens for a clot in the lungs."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ย้อมเสมหะและเพาะเชื้อ",
+              "en": "Sputum Gram stain and culture"
+            },
+            "line": {
+              "th": "หาเชื้อก่อโรคหากเป็นปอดอักเสบ",
+              "en": "Finds the organism if this is pneumonia."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "จะตรวจอะไรก่อนเพื่อหาสาเหตุของอาการหอบ",
+              "en": "Which tests first to find the cause of his breathlessness?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
+              "en": "ECG and troponin"
+            },
+            "line": {
+              "th": "หากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
+              "en": "Looks for a heart attack that may have set this off."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
+              "en": "Chest X-ray and ECG"
+            },
+            "line": {
+              "th": "เห็นน้ำในปอดและดูหัวใจได้ในคราวเดียว",
+              "en": "Shows lung fluid and checks the heart in one go."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ค่าไต เกลือแร่ และน้ำตาล",
+              "en": "Kidney function, salts and sugar"
+            },
+            "line": {
+              "th": "ใช้วางแผนให้ยาขับปัสสาวะอย่างปลอดภัย",
+              "en": "Guides safe diuretic dosing."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ดีไดเมอร์",
+              "en": "D-dimer"
+            },
+            "line": {
+              "th": "ช่วยคัดกรองลิ่มเลือดอุดกั้นในปอด",
+              "en": "Screens for a clot in the lungs."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ย้อมเสมหะและเพาะเชื้อ",
+              "en": "Sputum Gram stain and culture"
+            },
+            "line": {
+              "th": "หาเชื้อก่อโรคหากเป็นปอดอักเสบ",
+              "en": "Finds the organism if this is pneumonia."
+            }
+          }
+        ],
+        "default_trio": [
+          "b",
+          "c",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ฟังปอดได้ยินเสียงกรอบแกรบสองข้าง ตรวจอะไรก่อน",
+              "en": "Crackles at both lung bases. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "จะตรวจอะไรก่อนเพื่อหาสาเหตุของอาการหอบ",
+              "en": "Which tests first to find the cause of his breathlessness?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
+              "en": "ECG and troponin"
+            },
+            "line": {
+              "th": "หากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
+              "en": "Looks for a heart attack that may have set this off."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
+              "en": "Chest X-ray and ECG"
+            },
+            "line": {
+              "th": "เห็นน้ำในปอดและดูหัวใจได้ในคราวเดียว",
+              "en": "Shows lung fluid and checks the heart in one go."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ค่าไต เกลือแร่ และน้ำตาล",
+              "en": "Kidney function, salts and sugar"
+            },
+            "line": {
+              "th": "ใช้วางแผนให้ยาขับปัสสาวะอย่างปลอดภัย",
+              "en": "Guides safe diuretic dosing."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ดีไดเมอร์",
+              "en": "D-dimer"
+            },
+            "line": {
+              "th": "ช่วยคัดกรองลิ่มเลือดอุดกั้นในปอด",
+              "en": "Screens for a clot in the lungs."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ย้อมเสมหะและเพาะเชื้อ",
+              "en": "Sputum Gram stain and culture"
+            },
+            "line": {
+              "th": "หาเชื้อก่อโรคหากเป็นปอดอักเสบ",
+              "en": "Finds the organism if this is pneumonia."
+            }
+          }
+        ],
+        "default_trio": [
+          "b",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะเริ่มรักษาอย่างไรตอนนี้",
+              "en": "How do you start treatment now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ค่าไตและเกลือแร่ปกติ จะรักษาอย่างไร",
+              "en": "Kidney function and salts are normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะเริ่มรักษาอย่างไรตอนนี้",
+              "en": "How do you start treatment now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ค่าไตและเกลือแร่ปกติ จะรักษาอย่างไร",
+              "en": "Kidney function and salts are normal. Your plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "หัวใจเต้นเร็ว โทรโปนินปกติ จะรักษาอย่างไร",
+              "en": "Fast heart rate and a normal troponin. Your plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ค่าไตและเกลือแร่ปกติ จะรักษาอย่างไร",
+              "en": "Kidney function and salts are normal. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบหัวใจโตและน้ำท่วมปอดสองข้าง จะรักษาอย่างไร",
+              "en": "The X-ray shows a large heart and fluid in both lungs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "คุณจะเริ่มรักษาอย่างไรตอนนี้",
+              "en": "How do you start treatment now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ฉีด",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจน ฟูโรซีไมด์ฉีด ไนเตรต",
+              "en": "Oxygen, IV furosemide, nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตจึงช่วยลดภาระหัวใจได้อีก",
+              "en": "With his high BP, a nitrate further unloads the heart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์ฉีดและรับนอนโรงพยาบาล",
+              "en": "IV furosemide and admit"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะทางหลอดเลือดออกฤทธิ์เร็วกว่ายากิน",
+              "en": "An IV diuretic acts faster than tablets."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ชนิดกิน",
+              "en": "Oxygen and oral furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำด้วยยาขับปัสสาวะที่คุ้นเคย",
+              "en": "Corrects low oxygen with a familiar diuretic."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  }
+}
