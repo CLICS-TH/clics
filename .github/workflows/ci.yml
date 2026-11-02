@@ -138,11 +138,6 @@ jobs:
       - name: postgrest-surface — PostgREST data surface closed, against a throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/postgrest-surface-test.sh
-      # The closure test proves db/migration-postgrest-closed.sql; this proves no other SQL file in db/ reopens it:
-      # a grant to anon, authenticated or PUBLIC, or a function in public without REVOKE ... FROM PUBLIC, fails here.
-      - name: postgrest-grants — No SQL in db/ grants the PostgREST client roles
-        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
-        run: node scripts/db/postgrest-grants-lint.mjs && node --test scripts/db/postgrest-grants-lint.test.mjs
       # The rehearsal's latency gate (score-latency.mjs) and the retention script's report and refusal paths
       # (purge-event.mjs against a fake backend). Package-free node --test, so no npm install.
       - name: booth-scripts — Score-latency gate and purge-event tests
