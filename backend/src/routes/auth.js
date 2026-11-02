@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
+const { isAuthSessionMissingError } = require('@supabase/supabase-js');
 const { verifyJwt } = require('../middleware/auth');
 const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit, effectiveTokenLimit } = require('../lib/usage');
@@ -140,7 +141,8 @@ router.post('/logout', verifyJwt, async (req, res) => {
   // JWT makes the token 401 on its next use. (Explicit logout — does NOT conflict with the
   // "never signOut after STORING the token" login rule.)
   // auth-js returns an AuthError as a value and throws only on a network failure, so both are read.
-  // A 401/404 means the session is already gone. The clients clear storage whatever this answers.
+  // A 401/404, or GoTrue's session_not_found (AuthSessionMissingError, status 400), means the session
+  // is already gone. The clients clear storage whatever this answers.
   const token = req.headers.authorization.slice(7);
   let error;
   try {
@@ -148,7 +150,8 @@ router.post('/logout', verifyJwt, async (req, res) => {
   } catch (e) {
     error = e;
   }
-  if (error && error.status !== 401 && error.status !== 404) {
+  const alreadyGone = error && (error.status === 401 || error.status === 404 || isAuthSessionMissingError(error));
+  if (error && !alreadyGone) {
     console.error('[auth] logout revoke failed:', error.status ?? 'no status', error.message);
     return res.status(502).json({ error: 'Could not end the session on the server.', code: 'revoke_failed' });
   }
