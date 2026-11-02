@@ -1,0 +1,1274 @@
+{
+  "case_id": "leptospirosis",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชาวนาอายุ 42 ปี ไข้สูง ปวดศีรษะ และปวดน่องมา 3 วัน",
+    "en": "A 42-year-old rice farmer with high fever, headache and calf pain for 3 days"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 42 ปี อาชีพทำนา มาโรงพยาบาลชุมชนด้วยไข้สูง ปวดศีรษะ และปวดน่องมาก เป็นมา 3 วัน สัปดาห์ก่อนลุยน้ำท่วมในนาอยู่หลายวัน อุณหภูมิ 39.0 องศาเซลเซียส ชีพจร 100 ครั้งต่อนาที ความดันโลหิต 118/74 มม.ปรอท ตาแดงแต่ไม่มีขี้ตา กดเจ็บที่น่องทั้งสองข้าง ไม่มีผื่น ตรวจทั่วตัวไม่พบแผลสะเก็ดดำ รู้สึกตัวดีและปัสสาวะออกปกติ",
+    "en": "A fictional 42-year-old rice farmer comes to a community hospital with 3 days of high fever, headache and severe calf pain. Last week he waded through flooded paddy fields for several days. Temperature 39.0 °C, pulse 100/min, BP 118/74 mmHg. Red eyes without discharge, and both calves are tender. No rash, and no eschar on a full skin check. He is alert and passing urine normally."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและประวัตินี้เข้าได้กับโรคใดมากที่สุด",
+            "en": "Which diagnosis fits this story best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "หลังลุยน้ำท่วม คุณคิดถึงโรคใดเป็นอันดับแรก",
+            "en": "After the flood-water wading, what do you think of first?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "โรคฉี่หนู (เลปโตสไปโรซิส)",
+            "en": "Leptospirosis"
+          },
+          "line": {
+            "th": "ลุยน้ำท่วม ปวดน่อง และตาแดงในคนทำนา",
+            "en": "Flood-water exposure, calf pain and red eyes in a rice farmer."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "เลปโตสไปโรซิสระยะแรก",
+            "en": "Early leptospirosis"
+          },
+          "line": {
+            "th": "ไข้เริ่มราว 1 สัปดาห์หลังลุยน้ำ เข้ากับระยะฟักตัว",
+            "en": "Fever began about a week after the wading, within the incubation time."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "โรคสครับไทฟัส",
+            "en": "Scrub typhus"
+          },
+          "line": {
+            "th": "ไข้และปวดศีรษะในคนทำงานกลางทุ่ง พบบ่อยในชนบท",
+            "en": "Fever and headache in a field worker, common in rural areas."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "ไข้เลือดออก",
+            "en": "Dengue"
+          },
+          "line": {
+            "th": "ไข้สูงเฉียบพลันและปวดกล้ามเนื้อในหน้าฝน",
+            "en": "Sudden high fever and muscle pain in the rainy season."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ไข้หวัดใหญ่",
+            "en": "Influenza"
+          },
+          "line": {
+            "th": "ไข้สูง ปวดศีรษะ และปวดเมื่อยตัวเข้าได้กับไข้หวัดใหญ่",
+            "en": "High fever, headache and body aches fit influenza."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันนี้ที่โรงพยาบาลชุมชนคุณจะตรวจอะไรก่อน",
+              "en": "What do you check first at the community hospital today?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ตรวจอะไรก่อนเพื่อวางแผนรักษาวันนี้",
+              "en": "What do you test first to plan care today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CBC ค่าไต ค่าตับ และปัสสาวะ",
+              "en": "CBC, kidney, liver tests, urinalysis"
+            },
+            "line": {
+              "th": "ประเมินไต ตับ และเกล็ดเลือด ซึ่งบอกความรุนแรง",
+              "en": "Checks kidneys, liver and platelets, which set the severity."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจเลือดพื้นฐานและชุดตรวจเร็ว",
+              "en": "Basic bloods and a rapid test"
+            },
+            "line": {
+              "th": "ประเมินความรุนแรงและอาจช่วยยืนยันโรคได้ในวันนี้",
+              "en": "Grades severity and may support the diagnosis today."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ชุดตรวจโรคฉี่หนูแบบเร็ว",
+              "en": "Leptospira rapid test"
+            },
+            "line": {
+              "th": "ได้ผลเร็ว อาจช่วยสนับสนุนการวินิจฉัยได้ในวันนี้",
+              "en": "Quick, and may support the diagnosis today."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ PCR เชื้อเลปโตสไปรา",
+              "en": "Leptospira PCR"
+            },
+            "line": {
+              "th": "ตรวจพบดีเอ็นเอของเชื้อได้ตั้งแต่สัปดาห์แรก",
+              "en": "Detects Leptospira DNA from the first week."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อในเลือดอย่างเดียว",
+              "en": "Blood culture alone"
+            },
+            "line": {
+              "th": "หาเชื้อแบคทีเรียในกระแสเลือดก่อนเริ่มยา",
+              "en": "Looks for bacteria in the blood before antibiotics start."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ตรวจทั่วตัวอีกครั้งไม่พบแผลสะเก็ดดำ จะตรวจอะไรก่อน",
+              "en": "A second skin check finds no eschar. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CBC ค่าไต ค่าตับ และปัสสาวะ",
+              "en": "CBC, kidney, liver tests, urinalysis"
+            },
+            "line": {
+              "th": "ประเมินไต ตับ และเกล็ดเลือด ซึ่งบอกความรุนแรง",
+              "en": "Checks kidneys, liver and platelets, which set the severity."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจเลือดพื้นฐานและชุดตรวจเร็ว",
+              "en": "Basic bloods and a rapid test"
+            },
+            "line": {
+              "th": "ประเมินความรุนแรงและอาจช่วยยืนยันโรคได้ในวันนี้",
+              "en": "Grades severity and may support the diagnosis today."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ชุดตรวจสครับไทฟัสแบบเร็ว",
+              "en": "Scrub typhus rapid test"
+            },
+            "line": {
+              "th": "ได้ผลเร็ว อาจช่วยแยกสครับไทฟัสได้ในวันนี้",
+              "en": "Quick, and may help sort out scrub typhus today."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ Weil-Felix",
+              "en": "Weil-Felix test"
+            },
+            "line": {
+              "th": "ราคาถูกและมีในโรงพยาบาลหลายแห่ง",
+              "en": "Cheap and available in many hospitals."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อในเลือดอย่างเดียว",
+              "en": "Blood culture alone"
+            },
+            "line": {
+              "th": "หาเชื้อแบคทีเรียในกระแสเลือดก่อนเริ่มยา",
+              "en": "Looks for bacteria in the blood before antibiotics start."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ทดสอบทูร์นิเคต์ได้ผลลบ คุณจะตรวจอะไรก่อน",
+              "en": "The tourniquet test is negative. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ไข้วันที่ 3 คุณจะตรวจอะไรก่อนในวันนี้",
+              "en": "Day 3 of fever. What do you test first today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CBC ค่าไต ค่าตับ และปัสสาวะ",
+              "en": "CBC, kidney, liver tests, urinalysis"
+            },
+            "line": {
+              "th": "ประเมินไต ตับ และเกล็ดเลือด ซึ่งบอกความรุนแรง",
+              "en": "Checks kidneys, liver and platelets, which set the severity."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจเลือดพื้นฐานและ NS1",
+              "en": "Basic bloods and dengue NS1"
+            },
+            "line": {
+              "th": "ประเมินความรุนแรงและตรวจไข้เลือดออกได้ในคราวเดียว",
+              "en": "Grades severity and tests for dengue in one go."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "CBC และ NS1 ไข้เลือดออก",
+              "en": "CBC and dengue NS1"
+            },
+            "line": {
+              "th": "ดูเกล็ดเลือด ฮีมาโตคริต และหาไข้เลือดออกได้เร็ว",
+              "en": "Shows platelets and haematocrit and finds dengue fast."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ CBC อย่างเดียว",
+              "en": "CBC alone"
+            },
+            "line": {
+              "th": "ดูเกล็ดเลือดและเม็ดเลือดขาวได้เร็วและถูก",
+              "en": "Shows platelets and white cells quickly and cheaply."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ IgM ไข้เลือดออก",
+              "en": "Dengue IgM serology"
+            },
+            "line": {
+              "th": "ช่วยยืนยันการติดเชื้อไข้เลือดออกที่เพิ่งเกิด",
+              "en": "Helps confirm a recent dengue infection."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ชุดตรวจเร็วโรคฉี่หนูให้ผลบวก จะรักษาอย่างไร",
+              "en": "The Leptospira rapid test is positive. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ส่งเลือดเพิ่ม: เกล็ดเลือด 110,000 ไตตับปกติ รักษาอย่างไร",
+              "en": "Basic bloods added: platelets 110,000, kidney and liver normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ชุดตรวจเร็วสครับไทฟัสให้ผลลบ จะรักษาอย่างไร",
+              "en": "The scrub typhus rapid test is negative. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ส่งเลือดเพิ่ม: เกล็ดเลือด 110,000 ไตตับปกติ รักษาอย่างไร",
+              "en": "Basic bloods added: platelets 110,000, kidney and liver normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ ขั้นต่อไปคืออะไร",
+              "en": "Platelets 110,000, kidney and liver tests normal. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "NS1 ให้ผลลบ เกล็ดเลือด 110,000 จะรักษาอย่างไร",
+              "en": "NS1 is negative, platelets 110,000. How do you treat him?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ส่งเลือดเพิ่ม: เกล็ดเลือด 110,000 ไตตับปกติ รักษาอย่างไร",
+              "en": "Basic bloods added: platelets 110,000, kidney and liver normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
+              "en": "Admit for IV ceftriaxone plus doxy"
+            },
+            "line": {
+              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
+              "en": "Covers both infections with a close watch on his course."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะม็อกซีซิลลินกิน 7 วัน",
+              "en": "Oral amoxicillin for 7 days"
+            },
+            "line": {
+              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
+              "en": "Treats mild leptospirosis with tablets at home."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "รับนอน ฉีดเพนิซิลลิน",
+              "en": "Admit for IV penicillin"
+            },
+            "line": {
+              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
+              "en": "Full IV treatment and a close watch on his course."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "No harmful option on any path; doxycycline-first is correct where leptospirosis and scrub typhus are co-endemic. Fixed: step-3 reveals on BR, BW, RR, RW, WW and WB that cited results their step-2 test never produced; the step-1 incubation line; the review-tomorrow Thai/English mismatch; the scrub typhus Thai term; the community-hospital wording."
+    }
+  }
+}
