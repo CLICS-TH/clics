@@ -58,6 +58,7 @@ function refreshLoop(manifest) {
     if (!Array.isArray(items)) return;
     const listed = new Set();
     for (const item of items) {
+      if (typeof item?.src !== 'string') continue;
       try { listed.add(new URL(item?.src, self.location.origin).pathname); } catch { /* parseItem warns on the page */ }
     }
     const cache = await caches.open(CACHE);
