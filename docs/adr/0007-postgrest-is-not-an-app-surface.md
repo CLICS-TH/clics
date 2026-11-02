@@ -16,14 +16,6 @@ Every CLICS data read and write goes through the backend or RIMPL on the service
   - `create or replace` of an existing function keeps its ACL.
   - A drop and re-create, or a new overload, is a new function and arrives open.
   - Re-running an older migration that does either reopens the surface until the closure migration is re-run after it.
-- CI checks two things:
-  - **The hermetic Postgres test** proves the closure migration on stand-in tables. The stand-ins carry the real RLS policies on `ples`, `messages` and `audit_scores`. The test checks that `anon`, an assigned auditor and the owning physician are refused reads, writes and app function calls, and that the privilege listing sees a deliberate re-grant.
-  - **A static lint** of `db/schema.sql` and `db/migration-*.sql` fails on any of these:
-    - a grant to `anon`, `authenticated` or `PUBLIC`, except `USAGE` alone on a schema;
-    - default privileges granted to those roles;
-    - ownership given to `anon` or `authenticated`;
-    - a function in `public` with no `REVOKE ... FROM PUBLIC` on the same signature in the same file.
-  - Findings in migrations that predate the closure are listed in a reviewed baseline. A baseline line that no longer matches fails the lint, but nothing stops a new line being added.
-  - The lint reads SQL text, so it does not see grants built in dynamic `EXECUTE`, `CREATE AGGREGATE`, `ALTER FUNCTION ... SET SCHEMA public`, SQL outside the top level of `db/`, a `--` inside a string literal, role membership, or anything done in the SQL editor or by `supabase_admin`.
-- In production, `/health/deep`'s `postgrest_surface` check lists the tables, views, sequences, columns and functions in `public` on which `anon` or `authenticated` holds an effective privilege, counting `PUBLIC`, and reports degraded when the list is not empty. It does not read schema privileges or default privileges.
+- CI checks only the closure migration itself. The hermetic Postgres test runs it on stand-in tables. The stand-ins carry a hand-copied subset of the RLS policies on `ples`, `messages` and `audit_scores` (9 of the 14), not policies loaded from `db/schema.sql`. The test checks that `anon`, an assigned auditor and the owning physician are refused reads, writes and app function calls, and that the privilege listing sees a deliberate re-grant. No CI check stops a later migration from reopening the surface; a lint for that is planned in #304.
+- In production, `/health/deep`'s `postgrest_surface` check lists the tables, views, sequences, columns and functions in `public` on which `anon` or `authenticated` holds an effective privilege, counting `PUBLIC`, and reports degraded when the list is not empty. It skips objects that belong to an extension (pgvector), and it does not read schema privileges or default privileges.
 - A future feature that wants direct client reads (Realtime, a client-side query) needs a new ADR, not a grant.
