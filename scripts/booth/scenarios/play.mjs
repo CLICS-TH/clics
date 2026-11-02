@@ -3,6 +3,41 @@ const SCORE_KEY = 'POST /booth/plays/:id/score';
 
 const text = (page, sel) => page.locator(sel).first().textContent({ timeout: 5000 });
 const count = (page, sel) => page.locator(sel).count();
+const opt = (n) => `.options > [data-option]:nth-child(${n})`;
+
+/** The step on screen, read from the DOM: the option ids, letters and texts, the question and the bridge. */
+const readStep = (page) => page.evaluate(() => {
+  const t = (e, s) => e.querySelector(s)?.textContent ?? null;
+  return {
+    options: [...document.querySelectorAll('.options > [data-option]')].map((e) => ({
+      id: e.dataset.option, letter: t(e, '.opt-letter'),
+      label: { th: t(e, '.opt-label .bi-th'), en: t(e, '.opt-label .bi-en') },
+      line: { th: t(e, '.opt-line .bi-th'), en: t(e, '.opt-line .bi-en') },
+    })),
+    question: { th: t(document, '.step-sheet .question .bi-th'), en: t(document, '.step-sheet .question .bi-en') },
+    bridge: t(document, '.step-sheet [data-bridge] .bridge-text'),
+    bridgeLabel: t(document, '.step-sheet [data-bridge] .ai-label'),
+  };
+});
+
+/**
+ * The step on screen is the fixture's bank for `path` word for word: the variant the ask names, its three options
+ * in the ask's order, lettered A/B/C by position, and the bridge shown exactly when it is not ''.
+ */
+async function checkStep(h, page, path, bridge, label) {
+  const bank = h.bankFor(h.TREE, path);
+  const { ask } = h.nextFor(h.TREE, path, bridge);
+  const shown = await readStep(page);
+  const want = ask.options.map((id, i) => {
+    const o = bank.options.find((x) => x.id === id);
+    return { id, letter: 'ABC'[i], label: o.label, line: o.line };
+  });
+  h.check(h.same(shown.options, want), `${label}: the three options of bank ${path || 'step1'} in the ask's order, case text word for word, lettered A/B/C`);
+  h.check(h.same(shown.question, bank.variants.find((v) => v.id === ask.variant).question), `${label}: the question is variant ${ask.variant} of the bank, word for word`);
+  h.check(bridge === '' ? shown.bridge === null : shown.bridge === bridge && shown.bridgeLabel === 'AI',
+    `${label}: ${bridge === '' ? 'no bridge when the bridge is \'\'' : 'the AI-labelled bridge above the question, as sent'}`);
+  return ask;
+}
 
 async function toStep(k) {
   await k.shell('start');
@@ -12,9 +47,9 @@ async function toStep(k) {
   await k.screen('step');
 }
 
-async function answerAll(k, choice = 'a') {
+async function answerAll(k, n = 1) {
   for (;;) {
-    await k.tap(`[data-option="${choice}"]`);
+    await k.tap(opt(n));
     await k.page.waitForSelector('#booth [data-screen="reply"], #booth [data-screen="unavailable"], #booth [data-screen="stopped"]', { timeout: 10_000 });
     const at = await k.screenNow();
     if (at !== 'reply') return at;
@@ -38,10 +73,6 @@ export default [
       await k.screen('vignette');
       await h.screenCheck(page, 'vignette');
       await h.shot(page, 'vignette');
-      h.check(h.KASE.placeholder === true
-        ? (await text(page, '[data-placeholder]')).includes(h.COPY.placeholder.th) && (await text(page, '[data-placeholder]')).includes(h.COPY.placeholder.en)
-        : await count(page, '[data-placeholder]') === 0,
-      'vignette: the placeholder badge shows, TH and EN, exactly when the case file is a placeholder');
       h.check(await text(page, '.vignette .bi-th') === h.KASE.vignette.th && await text(page, '.vignette .bi-en') === h.KASE.vignette.en,
         'vignette: the case file\'s vignette, Thai then English');
       await k.tap('[data-action="begin"]');
@@ -49,21 +80,18 @@ export default [
       await k.screen('step');
       await h.screenCheck(page, 'step 1 pop-up');
       await h.shot(page, 'step');
-      const shown = await page.$$eval('[data-option]', (els) => els.map((e) => ({
-        id: e.dataset.option,
-        label: { th: e.querySelector('.opt-label .bi-th').textContent, en: e.querySelector('.opt-label .bi-en').textContent },
-        line: { th: e.querySelector('.opt-line .bi-th').textContent, en: e.querySelector('.opt-line .bi-en').textContent },
-      })));
-      h.check(h.same(shown, h.KASE.steps[0].options), 'step 1: three option cards, each the case\'s label and line in TH and EN');
+      const ask1 = await checkStep(h, page, '', '', 'step 1');
       h.check(await count(page, '[data-action="type-own"]') === 1, 'step 1: a "type my own" card');
-      h.check((await text(page, '.step-of')).includes('1') && await text(page, '.question .bi-th') === h.KASE.steps[0].question.th, 'step 1: "Step 1 of 3" and the case\'s question');
+      h.check((await text(page, '.step-of')).includes('1'), 'step 1: "Step 1 of 3"');
+      const pick1 = ask1.options[1];
 
-      await k.doubleTap('[data-option="b"]');
+      await k.doubleTap(opt(2));
       await k.screen('reply');
       h.check(stub.of(REPLY_KEY).length === 1, `a double tap on an option sends one reply request (${stub.of(REPLY_KEY).length})`);
       const r1 = stub.of(REPLY_KEY)[0];
       h.check(r1.path === `/booth/plays/${h.PLAY_ID}/reply`, 'step 1: the reply goes to the play\'s own id');
-      h.check(h.same(r1.body, { answers: [{ choice: 'b' }], replies: [], reply_sigs: [] }), `step 1: reply body is { answers: [{ choice: 'b' }], replies: [], reply_sigs: [] } (${JSON.stringify(r1.body)})`);
+      h.check(h.same(r1.body, { answers: [{ choice: pick1 }], replies: [], asks: [ask1], sigs: [h.SIG(0)] }),
+        `step 1: reply body is { answers: [the tapped id], replies: [], asks: [ask 1], sigs: [start sig] } (${JSON.stringify(r1.body)})`);
       const aiLabel = await page.evaluate(() => window.AI_LABEL?.th);
       h.check(await text(page, '.ai-label') === aiLabel && aiLabel === 'AI', 'reply 1: labelled "AI" (js/ui.js AI_LABEL) and nothing else');
       const bubble = await page.locator('.ai-text').evaluate((e) => {
@@ -87,7 +115,7 @@ export default [
       h.check(bubble.text === h.REPLY(1) && bubble.phrasesOnly && bubble.topToBottom,
         'reply 1: the AI reply is plain text in phrase spans, markup shown as typed, newline kept, read top to bottom');
       h.check(await text(page, '.answer-card .bi-th') === h.COPY.yourAnswer.th
-        && await text(page, '.answer-choice .bi-th') === h.KASE.steps[0].options[1].label.th, 'reply 1: the chosen option is shown as the answer');
+        && await text(page, '.answer-choice .bi-th') === h.bankFor(h.TREE, '').options.find((o) => o.id === pick1).label.th, 'reply 1: the chosen option is shown as the answer');
       await h.screenCheck(page, 'reply 1');
 
       await k.doubleTap('[data-action="next"]');
@@ -95,15 +123,22 @@ export default [
       const landed = await k.screenNow();
       if (!h.check(landed === 'step' && stub.of(REPLY_KEY).length === 1, `a double tap on "Next step" lands on step 2 and nothing more (on '${landed}')`)) return;
       await k.screen('step');
-      h.check((await text(page, '.step-of')).includes('2') && await text(page, '.question .bi-th') === h.KASE.steps[1].question.th, 'step 2: "Step 2 of 3" and the case\'s question');
-      await k.tap('[data-option="a"]');
+      h.check((await text(page, '.step-of')).includes('2'), 'step 2: "Step 2 of 3"');
+      const path1 = h.pathOf(h.TREE, [{ choice: pick1 }]);
+      const ask2 = await checkStep(h, page, path1, h.BRIDGE(1), `step 2 (path ${path1})`);
+      await h.screenCheck(page, 'step 2 with a bridge');
+      await h.shot(page, 'step-bridge');
+      const pick2 = ask2.options[0];
+      await k.tap(opt(1));
       await k.screen('reply');
-      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'b' }, { choice: 'a' }], replies: [h.REPLY(1)], reply_sigs: [h.SIG(1)] }),
-        'step 2: reply body carries both answers and reply 1 back verbatim');
+      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: pick1 }, { choice: pick2 }], replies: [h.REPLY(1)], asks: [ask1, ask2], sigs: [h.SIG(0), h.SIG(1)] }),
+        'step 2: reply body carries both answers, reply 1 verbatim, both asks and two sigs');
       await k.tap('[data-action="next"]');
 
       await k.screen('step');
       h.check((await text(page, '.step-of')).includes('3'), 'step 3: "Step 3 of 3"');
+      const path2 = h.pathOf(h.TREE, [{ choice: pick1 }, { choice: pick2 }]);
+      const ask3 = await checkStep(h, page, path2, h.BRIDGE(2), `step 3 (path ${path2})`);
       await k.tap('[data-action="type-own"]');
       await k.screen('typing');
       await h.screenCheck(page, 'step 3 typing sheet');
@@ -126,8 +161,9 @@ export default [
       await h.shot(page, 'typing');
       await k.tap('[data-action="send"]');
       await k.screen('reply');
-      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: [{ choice: 'b' }, { choice: 'a' }, { text: 'line one\nline two' }], replies: [h.REPLY(1), h.REPLY(2)], reply_sigs: [h.SIG(1), h.SIG(2)] }),
-        'step 3: reply body carries the typed answer, newline kept, and both earlier replies');
+      const typed = [{ choice: pick1 }, { choice: pick2 }, { text: 'line one\nline two' }];
+      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: typed, replies: [h.REPLY(1), h.REPLY(2)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2)] }),
+        'step 3: reply body carries the typed answer, newline kept, both earlier replies, three asks, three sigs');
       h.check(await text(page, '.answer-text') === 'line one\nline two', 'reply 3: the typed answer is shown as typed');
 
       const release = stub.hold(SCORE_KEY);
@@ -142,9 +178,8 @@ export default [
       await h.shot(page, 'result');
       const score = stub.of(SCORE_KEY);
       h.check(score.length === 1 && h.same(score[0].body, {
-        answers: [{ choice: 'b' }, { choice: 'a' }, { text: 'line one\nline two' }], replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)],
-        reply_sigs: [h.SIG(1), h.SIG(2), h.SIG(3)],
-      }), 'score: one request with all three answers and all three replies as the stub sent them');
+        answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)],
+      }), 'score: one request with three answers, three replies, three asks and four sigs as the stub sent them');
       h.check(await text(page, '.result-card .booth-tag') === 'Booth #042', 'result: the booth tag "Booth #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
       const bars = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
@@ -193,18 +228,17 @@ export default [
     },
   },
   {
-    name: 'soft reply failure: 502 ai_unavailable shows a note, and the play goes on with its receipt',
+    name: 'empty reply: a 200 with reply \'\' shows a note, and the next step comes with no bridge',
     async run(h) {
       const stub = h.makeStub({ routes: {
-        [REPLY_KEY]: (call, calls) => (calls.filter((c) => c.key === REPLY_KEY).length === 1
-          ? { status: 502, body: { error: 'The AI is unavailable.', reason: 'ai_unavailable', reply_sig: 'sig-none-1' } }
-          : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length), reply_sig: h.SIG(call.body.answers.length) } }),
+        [REPLY_KEY]: (call) => ({ status: 200, body: call.body.answers.length === 1
+          ? h.replyBody(call.body.answers, { reply: '', bridge: '' }) : h.replyBody(call.body.answers) }),
       } });
       const k = await h.kiosk({ stub });
       await toStep(k);
-      await k.tap('[data-option="c"]');
+      await k.tap(opt(3));
       await k.page.waitForSelector('#booth [data-screen="reply"], #booth [data-screen="stopped"]', { timeout: 10_000 });
-      if (!h.check(await k.screenNow() === 'reply', `a 502 ai_unavailable reply does not stop the play (on '${await k.screenNow()}')`)) return;
+      if (!h.check(await k.screenNow() === 'reply', `an empty reply does not stop the play (on '${await k.screenNow()}')`)) return;
       await k.screen('reply');
       const note = await k.page.locator('.reply-note').innerText().catch(() => '');
       h.check(note.includes(h.COPY.noReply.th) && note.includes(h.COPY.noReply.en), 'reply 1: the "no AI reply for this step" note, TH and EN');
@@ -214,24 +248,79 @@ export default [
       await h.shot(k.page, 'no-reply');
       await k.tap('[data-action="next"]');
       await k.screen('step');
+      const first = [{ choice: h.START.next.ask.options[2] }];
       h.check((await text(k.page, '.step-of')).includes('2'), 'the play goes on to step 2');
-      h.check(await answerAll(k, 'b') === 'reply', 'steps 2 and 3 answered');
-      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'c' }, { choice: 'b' }], replies: [''], reply_sigs: ['sig-none-1'] }),
-        `step 2: the missing reply goes back as "" with the 502's receipt (${JSON.stringify(stub.of(REPLY_KEY)[1]?.body)})`);
+      await checkStep(h, k.page, h.pathOf(h.TREE, first), '', 'step 2 after an empty reply');
+      h.check(await answerAll(k, 2) === 'reply', 'steps 2 and 3 answered');
+      h.check(h.same(stub.of(REPLY_KEY)[1]?.body?.replies, ['']) && h.same(stub.of(REPLY_KEY)[1]?.body?.sigs, [h.SIG(0), h.SIG(1)]),
+        `step 2: the empty reply goes back as "" with its sig (${JSON.stringify(stub.of(REPLY_KEY)[1]?.body)})`);
       await k.tap('[data-action="see-score"]');
       await k.screen('scored');
       h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.replies, ['', h.REPLY(2), h.REPLY(3)]), 'score: replies are "", reply 2, reply 3');
-      h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.reply_sigs, ['sig-none-1', h.SIG(2), h.SIG(3)]), 'score: reply_sigs carry the receipt, sig 2, sig 3');
+      h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.sigs, [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)]), 'score: four sigs, start first');
       await k.close();
+    },
+  },
+  {
+    name: 'a reply to answer 1 or 2 without a usable next stops the play',
+    async run(h) {
+      const stub = h.makeStub({ routes: { [REPLY_KEY]: (call) => {
+        const { next, ...rest } = h.replyBody(call.body.answers);
+        return { status: 200, body: rest };
+      } } });
+      const k = await h.kiosk({ stub });
+      await toStep(k);
+      await k.tap(opt(2));
+      await k.screen('stopped');
+      h.check(stub.of(REPLY_KEY).length === 1, 'reply 1 without next: the play stops rather than guess step 2');
+      await k.close();
+    },
+  },
+  {
+    name: 'fit: every bank of every case file, its tallest texts under a 120-character bridge, at 1080x1920 and 2160x3840',
+    async run(h) {
+      h.check([...h.LONG_BRIDGE].length === 120, `the long bridge is 120 characters (${[...h.LONG_BRIDGE].length})`);
+      const banks = await h.caseBankNexts();
+      // Both sizes at once, each in its own kiosk: a size walks every bank on one page, a fresh play per bank.
+      await Promise.all([[1080, 1920], [2160, 3840]].map(async ([width, height]) => {
+        let start = null;
+        const stub = h.makeStub({ routes: { 'POST /booth/plays': () => ({ status: 201, body: { ...h.START, next: start } }) } });
+        const k = await h.kiosk({ stub, width, height, label: `fit at ${width}x${height}` });
+        const show = async (next) => {
+          start = next;
+          await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
+          await toStep(k);
+        };
+        const misfits = [];
+        let tallest = { over: -Infinity };
+        for (const { name, next } of banks) {
+          await show(next);
+          const shown = await readStep(k.page);
+          const { over } = await k.page.evaluate(() => {
+            const body = document.querySelector('.play-body').getBoundingClientRect();
+            const below = (s) => Math.max(...[...document.querySelectorAll(s)].map((e) => e.getBoundingClientRect().bottom - body.bottom));
+            return { over: Math.max(below('.options > [data-option]'), below('[data-action="type-own"]')) };
+          });
+          const words = shown.bridge === h.LONG_BRIDGE && h.same(shown.question, next.question)
+            && h.same(shown.options.map(({ id, label, line }) => ({ id, label, line })), next.options);
+          if (over > tallest.over) tallest = { name, next, over };
+          if (!words || over > 1) misfits.push(`${name} (${words ? `${Math.round(over)}px below` : 'text differs'})`);
+        }
+        h.check(misfits.length === 0, `${width}x${height}: all ${banks.length} distinct banks show their text word for word, `
+          + `with all three options and "type my own" on screen without scrolling (tallest ${tallest.name}, `
+          + `${Math.round(-tallest.over)}px to spare)${misfits.length ? `; misfits: ${misfits.join(', ')}` : ''}`);
+        await show(tallest.next);
+        await h.screenCheck(k.page, `step, the tallest bank (${tallest.name}), ${width}x${height}`);
+        await h.shot(k.page, `step-tallest-${width}`);
+        await k.close();
+      }));
     },
   },
   {
     name: 'ceiling refusal on a reply ends the play on the unavailable card',
     async run(h) {
       const stub = h.makeStub({ routes: {
-        [REPLY_KEY]: (call) => (call.body.answers.length === 2
-          ? { status: 200, body: { status: 'unavailable' } }
-          : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length), reply_sig: h.SIG(call.body.answers.length) } }),
+        [REPLY_KEY]: (call) => ({ status: 200, body: call.body.answers.length === 2 ? { status: 'unavailable' } : h.replyBody(call.body.answers) }),
       } });
       const k = await h.kiosk({ stub });
       await toStep(k);
@@ -248,7 +337,7 @@ export default [
       const refused = h.makeStub({ routes: { [REPLY_KEY]: () => ({ status: 409, body: { error: 'The play is not started.', reason: 'not_started' } }) } });
       const k = await h.kiosk({ stub: refused, label: '409 refusal' });
       await toStep(k);
-      await k.tap('[data-option="a"]');
+      await k.tap(opt(1));
       await k.screen('stopped');
       await h.screenCheck(k.page, 'stopped (refusal)');
       const shown = await k.page.locator('#booth').innerText();
@@ -261,7 +350,7 @@ export default [
       const lost = h.makeStub({ routes: { [REPLY_KEY]: () => 'abort' } });
       const k2 = await h.kiosk({ stub: lost, label: 'lost connection' });
       await toStep(k2);
-      await k2.tap('[data-option="a"]');
+      await k2.tap(opt(1));
       await k2.screen('stopped');
       const shown2 = await k2.page.locator('#booth').innerText();
       h.check(shown2.includes(h.COPY.stoppedOffline.th) && shown2.includes(h.COPY.stoppedOffline.en), 'lost connection: "The connection was lost", TH and EN');
@@ -271,7 +360,7 @@ export default [
   {
     name: 'closed and offline: a notice and no way to start a play',
     async run(h) {
-      const closed = h.makeStub({ routes: { 'GET /booth/status': () => ({ status: 200, body: { open: false, reason: 'off', event_code: 'NFCME-2026', case_version: 'x' } }) } });
+      const closed = h.makeStub({ routes: { 'GET /booth/status': () => ({ status: 200, body: { open: false, reason: 'off', event_code: 'NFCME-2026' } }) } });
       const k = await h.kiosk({ stub: closed, label: 'closed' });
       await k.shell('closed');
       const t = await k.page.locator('#booth').innerText();

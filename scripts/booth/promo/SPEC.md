@@ -16,11 +16,11 @@ LOOK:    the Portal's own booth look, not a new one. Ground #faf9f5 (booth --can
          shadow 0 24 60 rgba(20,20,19,.18). Captions live in the band above it (y 150-580).
 OBJECTS: the Landing page's fixture-built screenshots (PLE chat, PIS-7 radar, domain scores) and the booth
          flow captured in the fixture world of scripts/booth/promo/stub.mjs: a stubbed booth API with the real
-         NFCME-2026 case and an empty attract loop, so no staff loop file can reach a frame. The result card and
+         NFCME-2026 case (NFCME-2026/leptospirosis.json) and an empty attract loop, so no staff loop file can reach a frame. The result card and
          both boards show Booth #042 with one score. Nothing invented: every screen is the product's own render.
 CASE:    the video shows the case's vignette and step 1 (question, options, the visitor's pick). The owner kept
          the NFCME-2026 case for the promo (2026-10-29): if a clinical review changes the vignette or step 1,
-         re-run render.sh. promo.lock.json digests those parts (and the placeholder flag), so the booth harness
+         re-run render.sh. promo.lock.json digests those parts (step 1 as the stub asks it), so the booth harness
          fails until the promo is re-rendered; changes to steps 2-3 leave it alone. The lock also digests every
          file the capture served the booth page (capture-files.json), so a kiosk copy or CSS edit needs a
          re-render too.

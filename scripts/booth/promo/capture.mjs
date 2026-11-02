@@ -56,11 +56,11 @@ try {
   await screen('vignette');
   await shot('vignette');
   await page.locator('[data-action="begin"]').tap();
-  const picks = ['b', 'c', 'b'];
+  const picks = [2, 3, 2];
   for (let n = 0; n < 3; n++) {
     await screen('step');
     await shot(`step${n + 1}`);
-    await page.locator(`[data-option="${picks[n]}"]`).tap();
+    await page.locator(`.options > [data-option]:nth-child(${picks[n]})`).tap();
     await screen('reply');
     await shot(`reply${n + 1}`);
     await page.locator(`[data-action="${n === 2 ? 'see-score' : 'next'}"]`).tap();

@@ -21,6 +21,15 @@ const router = Router();
 // ACTUAL tokens used, not the ceiling; the per-user $0.50 cap still bounds total spend.
 const { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits'); // RIMPL_CHAT_MAX_TOKENS, default 4000; RIMPL_CHAT_DEEP_MAX_TOKENS, default 8000
 
+const BoothId = z.string().regex(/^[a-z][a-z0-9_]{0,15}$/);
+const BoothText = z.object({ th: z.string().min(1).max(300), en: z.string().min(1).max(300) }).strict();
+const BoothBankSchema = z.object({
+  variants: z.array(z.object({ id: BoothId, question: BoothText }).strict()).min(1).max(3),
+  options: z.array(z.object({
+    id: BoothId, tier: z.enum(['best', 'reasonable', 'weaker']), label: BoothText, line: BoothText,
+  }).strict()).min(3).max(6),
+}).strict();
+
 const ChatSchema = z.object({
   ple_id: z.string(),
   // Per-turn cap: see lib/turn-limits.js (sized so no real physician or assistant turn can hit it).
@@ -64,6 +73,10 @@ const ChatSchema = z.object({
   // Booth Mode (#209/#211): the backend (#210) sends it for a conference-kiosk play. true -> the turn is
   // answered by services/booth.js, not the PLE pipeline below. An older RIMPL strips it (zod drops it).
   booth_mode: z.boolean().default(false),
+  // Grill play (#246, ADR 0006): the next step's bank, the case author's reviewed fictional text, not user
+  // input. Sent with booth_mode, absent for the reply to the last answer. Bounds mirror the backend's
+  // tree-schema.js Bank with headroom on the strings.
+  booth_bank: BoothBankSchema.optional(),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -130,7 +143,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -155,7 +168,7 @@ router.post('/', async (req, res) => {
       deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
     // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
     // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
-    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), signal }));
+    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, signal }));
     const ragDocs = await ragLookup(cleanMessage);
     const messages = buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint);
 
