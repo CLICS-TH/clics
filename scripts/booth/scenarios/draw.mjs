@@ -1,9 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const { caseTreeProblems } = createRequire(import.meta.url)('../../../backend/src/booth-cases/tree-schema.js');
 const CASES = fileURLToPath(new URL('../../../backend/src/booth-cases', import.meta.url));
 
 const DRAW = 'POST /booth/draw';
@@ -195,11 +193,8 @@ export default [
     async run(h) {
       const real = await Promise.all((await readdir(CASES, { recursive: true })).filter((f) => /^[^/]+\/[^/]+\.json$/.test(f)).sort()
         .map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8')).teaser]));
-      const legal = caseTreeProblems({ ...h.TREE, teaser: LONGEST.teaser }).filter((p) => p.startsWith('teaser'));
-      const over = caseTreeProblems({ ...h.TREE, teaser: { th: `${LONGEST.teaser.th}ก`, en: `${LONGEST.teaser.en}x` } }).filter((p) => p.startsWith('teaser'));
-      h.check(legal.length === 0 && widthOf.th(LONGEST.teaser.th) === TEASER_BUDGET.th && widthOf.en(LONGEST.teaser.en) === TEASER_BUDGET.en,
-        `fit: the test teaser is the legal maximum, ${TEASER_BUDGET.th} Thai and ${TEASER_BUDGET.en} English characters, and the case-file contract accepts it${legal.length ? ` (${legal.join('; ')})` : ''}`);
-      h.check(over.length === 2, 'fit: one character more in either language is rejected by the case-file contract');
+      h.check(widthOf.th(LONGEST.teaser.th) === TEASER_BUDGET.th && widthOf.en(LONGEST.teaser.en) === TEASER_BUDGET.en,
+        `fit: the test teaser is the budget's maximum, ${TEASER_BUDGET.th} Thai and ${TEASER_BUDGET.en} English characters (backend/tests/booth-case-tree.test.js proves the case-file contract accepts exactly that)`);
       const list = [['longest legal', LONGEST], ['fixture', h.DRAW], ...real.map(([f, teaser]) => [f, { case_id: f.split('/')[1].slice(0, -5), teaser }])];
       const ids = new Set();
       const unique = list.filter(([, d]) => !ids.has(d.case_id) && ids.add(d.case_id));
