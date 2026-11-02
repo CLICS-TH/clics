@@ -20,7 +20,7 @@ The Portal asks Google itself through Google Identity Services (GIS), so Google'
 
 | Config | Meaning |
 |---|---|
-| `CLICS_GOOGLE_SIGNIN = { login, invite, link }` | Per flow, `'gis'` or `'redirect'` (the old Supabase redirect). `login` and `link` are wired; invite follows. Link Google runs on `'gis'` since the email-merge proof (2026-11-02, CLICS-TH/clics#285): Supabase merges a Google ID-token sign-in into the existing email-and-password user, and the backend's same-id link check passes. Set `link` back to `'redirect'` to roll back. |
+| `CLICS_GOOGLE_SIGNIN = { login, invite, link }` | Per flow, `'gis'` or `'redirect'` (the old Supabase redirect). `login`, `invite` and `link` are wired. Link Google runs on `'gis'` since the email-merge proof (2026-11-02, CLICS-TH/clics#285): Supabase merges a Google ID-token sign-in into the existing email-and-password user, and the backend's same-id link check passes. Set a flow back to `'redirect'` to roll back. |
 | `CLICS_GOOGLE_ORIGINS` | Allow-list of page origins where `gis` runs: `https://physician-ui.vercel.app`, `http://localhost:3000`. Any other origin (Vercel previews) uses the redirect. Must match the OAuth client's **Authorized JavaScript origins** exactly (no wildcards). |
 | `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect.** Set to the client ID listed in Supabase's Google provider (#282). |
 

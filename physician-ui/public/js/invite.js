@@ -2,6 +2,7 @@
 // then lets the invitee finish via Google (OAuth) OR a password (two-step OTP).
 // Backend: GET /auth/invite/:token  →  POST /auth/invite/:token/accept.
 //  - password step1 (no otp) → 202 otp_sent;  step2 (with otp) → 201 active
+//    Step 2 re-sends the password: the server sets it only after the emailed code verifies.
 //  - google → 201 active
 // An accepted invite is always 'active' immediately — physicians AND auditors. There is
 // no license gate and no 'pending_license_review' state.
@@ -71,19 +72,15 @@ function withClient(cb) {
 withClient(() => {
   if (!window.sbClient) return; // OAuth not configured → password-only (Google block stays hidden)
   document.getElementById('googleWrap').style.display = '';
-  document.getElementById('googleBtn').addEventListener('click', async () => {
-    const acceptErr = document.getElementById('acceptErr');
-    hideErr(acceptErr);
-    // Stash the invite context so /auth/callback knows to acceptInvite (not the normal signup).
-    // localStorage (not sessionStorage): the OAuth round-trip can come back in a fresh
-    // browsing context where sessionStorage is empty.
-    localStorage.setItem('clics_oauth_flow', JSON.stringify({
-      kind: 'invite', token,
-    }));
-    const redirectTo = location.origin + '/auth/callback';
-    const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
-    if (error) showErr(acceptErr, error.message || 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.');
+  const googleBtn = document.getElementById('googleBtn');
+  const acceptErr = document.getElementById('acceptErr');
+  // The marker tells /auth/callback to accept the invite instead of running the normal signup.
+  clicsGoogleSignIn(googleBtn, {
+    flow: 'invite',
+    marker: { kind: 'invite', token },
+    onError: (message) => showErr(acceptErr, message),
   });
+  googleBtn.addEventListener('click', () => hideErr(acceptErr));
 });
 
 // ---- Password method, step 1: create + send OTP ----
@@ -130,6 +127,7 @@ verifyBtn.addEventListener('click', async () => {
   verifyBtn.disabled = true; verifyBtn.textContent = 'กำลังยืนยัน... / Verifying...';
   const res = await api.acceptInvite(token, {
     method: 'password', otp,
+    password: document.getElementById('password').value,
     full_name_th: document.getElementById('th').value.trim(),
     full_name_en: document.getElementById('en').value.trim(),
   });

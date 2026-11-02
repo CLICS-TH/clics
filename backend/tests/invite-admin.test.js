@@ -70,7 +70,7 @@ jest.mock('../src/lib/supabase', () => {
     supabase: {
       from: builder,
       rpc: (name) => (name === 'next_pseudonym' ? Promise.resolve({ data: 'P-001', error: null }) : Promise.resolve({ data: null, error: null })),
-      auth: { admin: { createUser: () => Promise.resolve({ data: { user: { id: 'x' } }, error: null }), deleteUser: () => Promise.resolve({}) }, signOut: () => Promise.resolve({}) },
+      auth: { admin: { createUser: () => Promise.resolve({ data: { user: { id: 'x' } }, error: null }), updateUserById: () => Promise.resolve({ data: null, error: null }), deleteUser: () => Promise.resolve({}) }, signOut: () => Promise.resolve({}) },
     },
     authAnon: { auth: {
       signInWithOtp: () => Promise.resolve({ error: null }),
@@ -78,6 +78,7 @@ jest.mock('../src/lib/supabase', () => {
       resetPasswordForEmail: () => Promise.resolve({ error: null }),
     } },
     authSupabase: { auth: {
+      signInWithPassword: () => Promise.resolve({ data: { session: { access_token: 'signed-in' } }, error: null }),
       getUser: () => Promise.resolve(
         state.caller
           ? { data: { user: { id: state.caller.id, email: 'caller@test.local' } }, error: null }
@@ -205,7 +206,7 @@ test('accepting an admin invite → ACTIVE role-admin professional with council_
   });
 
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'ผู้ดูแลใหม่', full_name_en: 'New Director',
+    method: 'password', otp: '123456', password: 'Str0ng!Passw0rd', full_name_th: 'ผู้ดูแลใหม่', full_name_en: 'New Director',
   });
 
   expect(r.status).toBe(201);                 // no 409 slot_full — the council admin pool admits them

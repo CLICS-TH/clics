@@ -7,6 +7,7 @@ const { costUsd } = require('../lib/pricing');
 const { ScoreSchema } = require('../lib/schemas');
 const { compositeScore, WEIGHTS } = require('./ple-gate');
 const { rimplChat, rimplEvaluate } = require('./rimpl-client');
+const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 
 const BOOTH_SETTINGS = Object.freeze({
   code: 'booth_event_code',
@@ -36,45 +37,38 @@ const DAY_MS = 86_400_000;
 
 /**
  * @typedef {{ choice: string } | { text: string }} Answer
- * @typedef {{ answers: Answer[], replies: string[], reply_sigs: string[] }} Dialogue
- *   reply: 1..3 answers and answers.length - 1 replies (the step being answered is answers.length).
- *   score: exactly 3 of each. A reply may be '' when the AI gave none for that step.
- *   reply_sigs[i] is the reply_sig /reply answered with replies[i], so a client cannot send a reply the AI never
- *   gave. An empty reply needs one too: /reply signs '' when the AI call for that step failed, so a client cannot
- *   skip the AI.
+ * @typedef {{ variant: string, bridge: string, options: string[] }} Ask  the ids the server issued for one step
+ * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], sigs: string[] }} Dialogue
+ *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
+ *   A reply may be '' when the AI gave none for that step; its sig still binds the ''.
  * @typedef {{ tag: number, score: number, at: string }} BoardEntry
  * @typedef {{ today: BoardEntry[], event: BoardEntry[] }} Board
- * @typedef {'bad_request' | 'closed' | 'not_found' | 'not_started' | 'ai_unavailable' | 'unavailable'} Refusal
- * @typedef {{ body: object } | { refused: Refusal, reply_sig?: string }} Result
+ * @typedef {'bad_request' | 'closed' | 'not_found' | 'not_started' | 'unavailable'} Refusal
+ * @typedef {{ body: object } | { refused: Refusal }} Result
  */
 
-const Bilingual = z.object({ th: z.string().trim().min(1), en: z.string().trim().min(1) }).strict();
-const CaseSchema = z.object({
-  placeholder: z.boolean().optional(),
-  event_code: z.string(),
-  version: z.string().min(1),
-  vignette: Bilingual,
-  steps: z.array(z.object({
-    question: Bilingual,
-    options: z.array(z.object({ id: z.string().regex(/^[a-z]$/), label: Bilingual, line: Bilingual }).strict())
-      .length(3)
-      .refine((os) => new Set(os.map((o) => o.id)).size === os.length, 'option ids must be unique'),
-  }).strict()).length(STEPS),
+const BRIDGE_MAX_CHARS = 120;
+const AskSchema = z.object({
+  variant: z.string().max(16),
+  bridge: z.string().max(BRIDGE_MAX_CHARS),
+  options: z.array(z.string().max(16)).length(3),
 }).strict();
 
 const DialogueSchema = z.object({
   answers: z.array(z.union([
-    z.object({ choice: z.string() }).strict(),
+    z.object({ choice: z.string().max(16) }).strict(),
     z.object({ text: z.string().trim().min(1).max(ANSWER_MAX_CHARS) }).strict(),
   ])).min(1).max(STEPS),
   replies: z.array(z.string().max(REPLY_MAX_CHARS)).max(STEPS),
-  reply_sigs: z.array(z.string().max(64)).max(STEPS),
+  asks: z.array(AskSchema).min(1).max(STEPS),
+  sigs: z.array(z.string().max(64)).min(1).max(STEPS + 1),
 }).strict();
 
 const DomainsSchema = ScoreSchema.pick(Object.fromEntries(DOMAIN_KEYS.map((k) => [k, true])));
 
 const SAFE_EVENT_CODE = /^[A-Z0-9][A-Z0-9-]{0,31}$/;
-const CASES_DIR = path.join(__dirname, '..', 'booth-cases');
+// Tests point BOOTH_CASES_DIR at a folder holding the fixture case.
+const casesDir = () => process.env.BOOTH_CASES_DIR || path.join(__dirname, '..', 'booth-cases');
 const caseCache = new Map();
 
 /** A bare local time would be read in the server's zone (UTC on Railway), seven hours off Bangkok. The refine
@@ -85,19 +79,99 @@ const UNAVAILABLE = Object.freeze({ body: Object.freeze({ status: 'unavailable' 
 const PAST_STARTED = new Set(['not_started', 'not_found']);
 const usd = (x) => Math.round(x * 1e6) / 1e6;
 
-function boothCase(code) {
-  if (typeof code !== 'string' || !SAFE_EVENT_CODE.test(code)) return null;
-  if (!caseCache.has(code)) caseCache.set(code, loadCase(code));
-  return caseCache.get(code);
+function readCase(file, id, code) {
+  let raw;
+  try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return { why: 'is not readable JSON' }; }
+  const problems = caseTreeProblems(raw);
+  if (problems.length) return { why: `has ${problems.length} problem(s), first ${problems[0]}` };
+  const kase = CaseTreeSchema.parse(raw);
+  if (kase.case_id !== id || kase.event_code !== code) return { why: 'is not named after its case_id and event folder' };
+  return isAdmitted(kase) ? { kase } : { why: 'is not admitted' };
 }
 
-function loadCase(code) {
-  try {
-    const parsed = CaseSchema.safeParse(JSON.parse(fs.readFileSync(path.join(CASES_DIR, `${code}.json`), 'utf8')));
-    return parsed.success && parsed.data.event_code === code ? parsed.data : null;
-  } catch {
-    return null;
+/** Pure but for the read: the admitted cases of one event under `dir`, by case_id. */
+function readEventCases(dir, code) {
+  let files;
+  try { files = fs.readdirSync(path.join(dir, code)).filter((f) => f.endsWith('.json')); } catch { return []; }
+  return files.flatMap((f) => {
+    const id = f.slice(0, -'.json'.length);
+    const { kase, why } = readCase(path.join(dir, code, f), id, code);
+    // Left-out cases are logged because a booth with none left reads only as 'misconfigured'.
+    if (why) console.warn(`[booth] case ${code}/${f} left out: it ${why}`);
+    return kase ? [kase] : [];
+  }).sort((a, b) => (a.case_id < b.case_id ? -1 : a.case_id > b.case_id ? 1 : 0));
+}
+
+function eventCases(code) {
+  if (typeof code !== 'string' || !SAFE_EVENT_CODE.test(code)) return [];
+  const key = `${casesDir()}\0${code}`;
+  if (!caseCache.has(key)) caseCache.set(key, readEventCases(casesDir(), code));
+  return caseCache.get(key);
+}
+
+// The tracer serves the first admitted case; #248 replaces this with the draw.
+const servedCase = (code) => eventCases(code)[0] ?? null;
+
+const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
+// The bank for step n is keyed by the tier letters of the n answers before it.
+const BANK_AT = [(banks) => banks.step1, (banks, p) => banks.step2[p], (banks, p) => banks.step3[p]];
+const bankAt = (kase, tierPath) => BANK_AT[tierPath.length](kase.banks, tierPath);
+
+const randomOf = (list) => list[crypto.randomInt(list.length)];
+function shuffled(list) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = crypto.randomInt(i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
   }
+  return out;
+}
+
+// Thai marks a sentence break with a space, so a space between two Thai letters ends a sentence. Before the closing
+// mark, a sentence mark ends one too, spaced or not ("Good!Now"); a decimal point (3.5) does not.
+const THAI_BREAK = /[\u0E00-\u0E7F]\s+[\u0E00-\u0E7F]/u;
+function oneSentence(s) {
+  if (s === '') return true;
+  if (s !== s.trim() || s.length > BRIDGE_MAX_CHARS || /[\r\n]/.test(s)) return false;
+  const body = s.replace(/[.!?…]+$/u, '');
+  return !/[!?…]|\.(?!\d)/u.test(body) && !THAI_BREAK.test(body);
+}
+
+/** The ask is the bank's own variant and three distinct options of it, one per tier; the bridge is checked apart. */
+function askPicksFrom(bank, ask) {
+  const options = ask.options.map((id) => bank.options.find((o) => o.id === id));
+  return bank.variants.some((v) => v.id === ask.variant) && new Set(ask.options).size === 3
+    && options.every(Boolean) && TIERS.every(({ name }) => options.some((o) => o.tier === name));
+}
+const isValidAsk = (bank, ask) => askPicksFrom(bank, ask) && oneSentence(ask.bridge);
+
+// Every trio is shuffled here so a tier never maps to a screen position.
+const fallbackAsk = (bank) => ({ variant: bank.variants[0].id, bridge: '', options: shuffled(bank.default_trio) });
+const firstAsk = (bank) => ({
+  variant: randomOf(bank.variants).id,
+  bridge: '',
+  options: shuffled(TIERS.map(({ name }) => randomOf(bank.options.filter((o) => o.tier === name)).id)),
+});
+
+/** The AI's pick as an ask for `bank`, or the fallback. A pick wrong only in its bridge keeps the pick. */
+function askFromPick(bank, pick) {
+  if (!pick || typeof pick.variant_id !== 'string' || !Array.isArray(pick.option_ids) || pick.option_ids.length !== 3
+    || !pick.option_ids.every((id) => typeof id === 'string')) return fallbackAsk(bank);
+  const bridge = typeof pick.bridge === 'string' ? pick.bridge.trim() : '';
+  const ask = { variant: pick.variant_id, bridge: oneSentence(bridge) ? bridge : '', options: shuffled(pick.option_ids) };
+  return askPicksFrom(bank, ask) ? ask : fallbackAsk(bank);
+}
+
+/** What the kiosk shows for an ask: the case file's text, in ask.options order. */
+function nextOf(bank, ask) {
+  return {
+    ask,
+    question: bank.variants.find((v) => v.id === ask.variant).question,
+    options: ask.options.map((id) => {
+      const { label, line } = bank.options.find((o) => o.id === id);
+      return { id, label, line };
+    }),
+  };
 }
 
 const instant = (text) => (BoothTimeSchema.safeParse(text).success ? new Date(text) : null);
@@ -129,7 +203,7 @@ async function readBoothEvent() {
 
 function eventState(event, now) {
   if (!event.enabled) return { open: false, reason: 'off' };
-  const kase = boothCase(event.code);
+  const kase = servedCase(event.code);
   if (!kase || !event.opensAt || !event.closesAt || event.ceilingUsd == null || event.opensAt >= event.closesAt) {
     return { open: false, reason: 'misconfigured' };
   }
@@ -145,17 +219,27 @@ async function openEvent(now) {
   return state.open ? { event, kase: state.kase } : { refused: 'closed' };
 }
 
-function replyKey() {
-  const secret = process.env.GUEST_TOKEN_SECRET;
-  if (!secret && process.env.NODE_ENV === 'production') throw new Error('GUEST_TOKEN_SECRET is required in production');
-  return crypto.createHmac('sha256', secret || 'clics-dev-guest-secret-do-not-use-in-prod').update('booth-reply-v1').digest();
+/** The case the play started on, at the version it started with: never the event's current case. */
+async function playCase(playId, event) {
+  const { data: row, error } = await supabase.from('booth_plays').select('case_id, case_version')
+    .eq('id', playId).eq('event_code', event.code).maybeSingle();
+  if (error) return { refused: 'unavailable' };
+  if (!row) return { refused: 'not_found' };
+  const kase = eventCases(event.code).find((k) => k.case_id === row.case_id);
+  return kase && kase.version === row.case_version ? { kase } : UNAVAILABLE;
 }
 
-/** Binds reply `step` (0-based) to its play, the dialogue it answered (answers 0..step, replies before it) and its
- *  text, so replies from separate calls cannot be spliced into one dialogue. */
-function replySig(playId, step, { answers, replies }, reply) {
-  return crypto.createHmac('sha256', replyKey())
-    .update(JSON.stringify([playId, step, answers.slice(0, step + 1), replies.slice(0, step), reply])).digest('base64url');
+function turnKey() {
+  const secret = process.env.GUEST_TOKEN_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') throw new Error('GUEST_TOKEN_SECRET is required in production');
+  return crypto.createHmac('sha256', secret || 'clics-dev-guest-secret-do-not-use-in-prod').update('booth-turn-v1').digest();
+}
+
+/** Turn k (0..3) binds everything the server had issued after k answers: the answers and replies before it and the
+ *  asks through the next one, so a client can neither invent a reply nor answer an option it was not offered. */
+function turnSig(playId, k, { answers, replies, asks }) {
+  return crypto.createHmac('sha256', turnKey())
+    .update(JSON.stringify([playId, k, answers.slice(0, k), replies.slice(0, k), asks.slice(0, k + 1)])).digest('base64url');
 }
 
 function sigMatches(expected, given) {
@@ -164,28 +248,50 @@ function sigMatches(expected, given) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-/** @returns {Dialogue | null} */
+/** Walks the asks along the tier path; a typed answer goes down the weaker branch (ADR 0006).
+ *  @returns {string | null} the tier path, or null when an ask or a tapped answer does not fit its bank */
+function walkPath(kase, { answers, asks }) {
+  let tierPath = '';
+  for (const [i, answer] of answers.entries()) {
+    const bank = bankAt(kase, tierPath);
+    if (!isValidAsk(bank, asks[i])) return null;
+    if (!('choice' in answer)) { tierPath += 'W'; continue; }
+    if (!asks[i].options.includes(answer.choice)) return null;
+    tierPath += LETTER[bank.options.find((o) => o.id === answer.choice).tier];
+  }
+  return tierPath;
+}
+
+/** @returns {(Dialogue & { tierPath: string }) | null} */
 function parseDialogue(kase, playId, raw, phase) {
   const parsed = DialogueSchema.safeParse(raw);
   if (!parsed.success) return null;
-  const { answers, replies, reply_sigs: sigs } = parsed.data;
-  const counted = (phase === 'score'
-    ? answers.length === STEPS && replies.length === STEPS
-    : replies.length === answers.length - 1) && sigs.length === replies.length;
-  const known = answers.every((a, i) => !('choice' in a) || kase.steps[i].options.some((o) => o.id === a.choice));
-  const given = counted && replies.every((r, i) => sigMatches(replySig(playId, i, parsed.data, r), sigs[i]));
-  return counted && known && given ? parsed.data : null;
+  const d = parsed.data;
+  const n = d.answers.length;
+  const counted = phase === 'score'
+    ? n === STEPS && d.replies.length === STEPS && d.asks.length === STEPS && d.sigs.length === STEPS + 1
+    : d.replies.length === n - 1 && d.asks.length === n && d.sigs.length === n;
+  if (!counted || !d.sigs.every((s, k) => sigMatches(turnSig(playId, k, d), s))) return null;
+  const tierPath = walkPath(kase, d);
+  return tierPath === null ? null : { ...d, tierPath };
+}
+
+function saidFor(bank, answer) {
+  if (!('choice' in answer)) return answer.text;
+  const { label, line } = bank.options.find((o) => o.id === answer.choice);
+  return `${label.th}: ${line.th}`;
 }
 
 // Turn 1 carries the vignette because the evaluator reads the transcript alone (chief_complaint only seeds
-// rimpl's de-identification registry).
-function dialogueTurns(kase, { answers, replies }) {
+// rimpl's de-identification registry). The bridge into question i+1 came from the same AI call as reply i, so it
+// closes that assistant turn: the evaluator scores the physician turns, and an AI sentence never sits in one.
+function dialogueTurns(kase, { answers, replies, asks, tierPath }) {
   return answers.flatMap((answer, i) => {
-    const step = kase.steps[i];
-    const option = 'choice' in answer ? step.options.find((o) => o.id === answer.choice) : null;
-    const said = option ? `${option.label.th}: ${option.line.th}` : answer.text;
-    const physician = { role: 'physician', content: `${i === 0 ? `${kase.vignette.th}\n\n` : ''}${step.question.th}\n${said}` };
-    return replies[i] ? [physician, { role: 'assistant', content: replies[i] }] : [physician];
+    const bank = bankAt(kase, tierPath.slice(0, i));
+    const question = bank.variants.find((v) => v.id === asks[i].variant).question.th;
+    const physician = { role: 'physician', content: `${i === 0 ? `${kase.vignette.th}\n\n` : ''}${question}\n${saidFor(bank, answer)}` };
+    const assistant = [replies[i], asks[i + 1]?.bridge].filter(Boolean).join(' ');
+    return assistant ? [physician, { role: 'assistant', content: assistant }] : [physician];
   });
 }
 
@@ -272,40 +378,42 @@ async function claimAsUnavailable(playId, event) {
 /** A typed answer reaches the evaluator as written and could address it, so only a play of tapped choices ranks. */
 const rankable = ({ answers }) => answers.every((a) => 'choice' in a);
 
-async function finish(playId, event, domains, ranked) {
+async function finish(playId, event, domains, ranked, tierPath) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
-    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked })
+    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked, tier_path: tierPath })
     .eq('id', playId).eq('status', 'unavailable').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
   return { body: await scoredBody(playId, event, composite, domains, scoredAt) };
 }
 
-/** @returns {Promise<Result>} body: { open, reason?, event_code, case_version } */
+/** @returns {Promise<Result>} body: { open, reason?, event_code } */
 async function boothStatus(now = new Date()) {
   const event = await readBoothEvent();
   if (!event) return { refused: 'unavailable' };
   const state = eventState(event, now);
-  return {
-    body: {
-      open: state.open,
-      ...(state.open ? {} : { reason: state.reason }),
-      event_code: event.code,
-      case_version: boothCase(event.code)?.version ?? null,
-    },
-  };
+  return { body: { open: state.open, ...(state.open ? {} : { reason: state.reason }), event_code: event.code } };
 }
 
-/** @returns {Promise<Result>} body: { play_id, tag, case, answer_max_chars } */
+/** @returns {Promise<Result>} body: { play_id, tag, answer_max_chars, case: { vignette }, next, sig } */
 async function startPlay(now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
+  const { event, kase } = opened;
   // PostgREST answers a table function with an array of rows.
-  const { data, error } = await supabase.rpc('booth_start_play', { p_event: opened.event.code });
+  const { data, error } = await supabase.rpc('booth_start_play',
+    { p_event: event.code, p_case: kase.case_id, p_version: kase.version });
   const row = Array.isArray(data) ? data[0] : null;
   if (error || !row) return { refused: 'unavailable' };
-  return { body: { play_id: row.play_id, tag: row.play_tag, case: opened.kase, answer_max_chars: ANSWER_MAX_CHARS } };
+  const bank = kase.banks.step1;
+  const ask = firstAsk(bank);
+  return {
+    body: {
+      play_id: row.play_id, tag: row.play_tag, answer_max_chars: ANSWER_MAX_CHARS, case: { vignette: kase.vignette },
+      next: nextOf(bank, ask), sig: turnSig(row.play_id, 0, { answers: [], replies: [], asks: [ask] }),
+    },
+  };
 }
 
 /** @returns {Promise<Result>} body: { board: Board } */
@@ -316,12 +424,17 @@ async function boardFor(now = new Date()) {
   return s ? { body: { board: boardOf(s) } } : { refused: 'unavailable' };
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig } | { status: 'unavailable' }; an
- *    ai_unavailable refusal carries the reply_sig of '' for the step. */
+const bankForAi = ({ variants, options }) => ({ variants, options });
+
+/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig, next? } | { status: 'unavailable' }.
+ *    An AI call that fails or gives no reply still answers 'replied', with reply '' and the fallback ask. */
 async function replyToStep(playId, input, now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
-  const { event, kase } = opened;
+  const { event } = opened;
+  const played = await playCase(playId, event);
+  if (!played.kase) return played;
+  const { kase } = played;
   const dialogue = parseDialogue(kase, playId, input, 'reply');
   if (!dialogue) return { refused: 'bad_request' };
 
@@ -330,25 +443,28 @@ async function replyToStep(playId, input, now = new Date()) {
   if (PAST_STARTED.has(reserved)) return { refused: reserved };
   if (reserved !== 'reserved') return { refused: 'unavailable' };
 
-  const step = dialogue.answers.length - 1;
-  // The receipt for a step the AI was asked and gave nothing: the score accepts '' for that step only with it.
-  const failed = { refused: 'ai_unavailable', reply_sig: replySig(playId, step, dialogue, '') };
+  const n = dialogue.answers.length;
+  const bank = n < STEPS ? bankAt(kase, dialogue.tierPath) : null;
   const history = dialogueTurns(kase, dialogue);
   const { content: message } = history.pop();
-  let res;
+  let res = null;
   try {
     // No chief_complaint: rimpl prefixes it to the last user turn, and turn 1 already carries the vignette.
-    res = await rimplChat({ ple_id: playId, history, message, language: 'th', booth_mode: true },
-      { timeoutMs: REPLY_TIMEOUT_MS });
+    res = await rimplChat({ ple_id: playId, history, message, language: 'th', booth_mode: true,
+      ...(bank ? { booth_bank: bankForAi(bank) } : {}) }, { timeoutMs: REPLY_TIMEOUT_MS });
   } catch (err) {
     // The reservation stays: a call that failed or timed out may still have been billed.
     console.warn(`[booth] reply failed for ${playId}: ${err.status || err.name}`);
-    return failed;
   }
-  await settle(playId, res, REPLY_RESERVE_USD);
+  if (res) await settle(playId, res, REPLY_RESERVE_USD);
   const reply = typeof res?.content === 'string' ? res.content.trim().slice(0, REPLY_MAX_CHARS) : '';
-  if (!reply) return failed;
-  return { body: { status: 'replied', reply, reply_sig: replySig(playId, step, dialogue, reply) } };
+  const ask = bank && (reply ? askFromPick(bank, res.pick) : fallbackAsk(bank));
+  const issued = {
+    answers: dialogue.answers, replies: [...dialogue.replies, reply], asks: ask ? [...dialogue.asks, ask] : dialogue.asks,
+  };
+  return {
+    body: { status: 'replied', reply, reply_sig: turnSig(playId, n, issued), ...(ask ? { next: nextOf(bank, ask) } : {}) },
+  };
 }
 
 /** The score call's outcome, and what its latency line needs: `reason` for an unavailable one, `provider` for a
@@ -356,7 +472,10 @@ async function replyToStep(playId, input, now = new Date()) {
 async function scoreOutcome(playId, input, now) {
   const opened = await openEvent(now);
   if (opened.refused) return { result: opened, reason: 'event' };
-  const { event, kase } = opened;
+  const { event } = opened;
+  const played = await playCase(playId, event);
+  if (!played.kase) return { result: played, reason: 'case' };
+  const { kase } = played;
   const dialogue = parseDialogue(kase, playId, input, 'score');
   if (!dialogue) return { result: { refused: 'bad_request' } };
 
@@ -383,7 +502,7 @@ async function scoreOutcome(playId, input, now) {
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
   if (!domains.success) return { result: UNAVAILABLE, reason: 'schema' };
-  const result = await finish(playId, event, domains.data, rankable(dialogue));
+  const result = await finish(playId, event, domains.data, rankable(dialogue), dialogue.tierPath);
   return result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider: res.provider };
 }
 
@@ -484,6 +603,6 @@ async function updateBoothSettings(input) {
 }
 
 module.exports = {
-  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, replySig, standings, boothStatus, boardFor, startPlay, replyToStep,
+  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, standings, boothStatus, boardFor, startPlay, replyToStep,
   scorePlay, boothSettings, updateBoothSettings,
 };

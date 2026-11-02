@@ -106,6 +106,11 @@ let lastIssued = null;
 const linkCalls = [];
 let linkGoogle = null;
 
+// What POST /auth/invite/CI-INVITE/accept answers to method 'google': a scenario swaps `inviteGoogle`
+// (body in, [status, json] out). `inviteCalls` keeps every body.
+const inviteCalls = [];
+let inviteGoogle = null;
+
 // The backend keeps accepting a token after sign-out, as a not-yet-revoked JWT would: every
 // assertion below is about what the browser keeps, not about server-side revocation.
 function apiServer() {
@@ -136,6 +141,11 @@ function apiServer() {
     if (path === '/auth/specialties') return json(200, [{ id: 's1', name_th: 'อายุรศาสตร์', name_en: 'Internal Medicine' }]);
     if (path === '/auth/invite/CI-INVITE' && req.method === 'GET') return json(200, { email: USERS.invitee.email, role: 'admin', council: { name_th: 'สภาทดสอบ', name_en: 'CI Council' } });
     if (path === '/auth/invite/CI-INVITE/accept') {
+      if (body.method === 'google') {
+        inviteCalls.push(body);
+        const [status, data] = inviteGoogle ? inviteGoogle(body) : [201, USERS.invitee];
+        return data?.role ? session(data, status) : json(status, data);
+      }
       return body.otp ? json(201, { access_token: fakeJwt(USERS.invitee), user: USERS.invitee }) : json(202, { status: 'otp_sent', email: USERS.invitee.email });
     }
     if (path === '/auth/logout') {
@@ -431,6 +441,8 @@ const sha256hex = (v) => createHash('sha256').update(v).digest('hex');
 function resetGoogleStubs() {
   completeCalls.length = 0;
   googleComplete = null;
+  inviteCalls.length = 0;
+  inviteGoogle = null;
   lastIssued = null;
   linkCalls.length = 0;
   linkGoogle = null;
@@ -441,10 +453,10 @@ function resetGoogleStubs() {
   gsiBlocked = false;
 }
 
-// From /login to Google's credential reaching the page: press ours, then Google's button.
-async function pressThroughGis(page, ctx) {
+// From a page with a Google button to Google's credential reaching the page: press ours, then Google's button.
+async function pressThroughGis(page, ctx, path = '/login') {
   const g = watchGoogle(page, ctx);
-  await page.goto(`${PORTAL}/login`);
+  await page.goto(`${PORTAL}${path}`);
   await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
   await page.click('#googleBtn');
   await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
@@ -464,17 +476,17 @@ async function checkSignedInClean(t, ctx, where) {
   t.check(token === lastIssued, `${where}: the stored clics_token is not the one the backend issued`);
 }
 
-// A press that must reach Supabase's authorize endpoint and never ask Google directly. `link` presses
-// Link Google on the dashboard of a signed-in physician instead of the Login page's button.
-async function checkRedirectPress(t, page, ctx, origin, where, link = false) {
+// A press that must reach Supabase's authorize endpoint and never ask Google directly. `signedIn` presses
+// Link Google on the dashboard of a signed-in physician instead of the page's own button.
+async function checkRedirectPress(t, page, ctx, origin, where, { path = '/login', marker = { kind: 'signup' }, signedIn = false } = {}) {
   const g = watchGoogle(page, ctx);
-  await page.goto(`${origin}/login`);
-  if (link) {
+  await page.goto(`${origin}${path}`);
+  if (signedIn) {
     await emailSignIn(page, USERS.physician, { open: false });
     await page.waitForURL(`${origin}/dashboard`);
     await settle(page);
   }
-  const button = link ? '#linkGoogleBtn' : '#googleBtn';
+  const button = signedIn ? '#linkGoogleBtn' : '#googleBtn';
   await page.locator(button).waitFor({ state: 'visible', timeout: 10000 });
   await page.click(button);
   await until(() => authorizeRequests.length > 0, `${where}: a request to Supabase's authorize endpoint`);
@@ -485,9 +497,8 @@ async function checkRedirectPress(t, page, ctx, origin, where, link = false) {
   t.check(idTokenGrants.length === 0, `${where}: the ID-token grant ran`);
   const { origins } = await ctx.storageState();
   const flow = origins.find((o) => o.origin === origin)?.localStorage.find((e) => e.name === 'clics_oauth_flow')?.value;
-  const kind = link ? 'link' : 'signup';
-  t.check(flow && JSON.parse(flow).kind === kind, `${where}: the flow marker is ${flow}, not ${kind}`);
-  if (link) t.check(!!(await clicsToken(ctx, origin)), `${where}: the press dropped clics_token`);
+  t.check(flow && JSON.stringify(JSON.parse(flow)) === JSON.stringify(marker), `${where}: the flow marker is ${flow}, not ${JSON.stringify(marker)}`);
+  if (signedIn) t.check(!!(await clicsToken(ctx, origin)), `${where}: the press dropped clics_token`);
 }
 
 const clicsToken = async (ctx, origin = PORTAL) => (await ctx.storageState()).origins.find((o) => o.origin === origin)?.localStorage.find((e) => e.name === 'clics_token')?.value;
@@ -923,6 +934,11 @@ const SCENARIOS = [
       await until(async () => !!(await shown()), 'the blocked-script message');
       t.check(bilingual(await shown()), `blocked script message is not bilingual: "${await shown()}"`);
       t.check(!/อีเมล|email/i.test(await shown()), `blocked script message sends a signed-in user to email sign-in: "${await shown()}"`);
+      await page.setViewportSize({ width: 320, height: 700 });
+      const msgBox = await page.locator('#linkGoogleMsg').evaluate((el) => ({ px: parseFloat(getComputedStyle(el).fontSize), role: el.getAttribute('role'), wide: el.scrollWidth > el.clientWidth || el.getBoundingClientRect().right > innerWidth}));
+      t.check(msgBox.px >= 15.33, `the link failure message is ${msgBox.px}px, below the 15.33px Thai floor`);
+      t.check(msgBox.role === 'alert', `the link failure message has role=${msgBox.role}, so a screen reader says nothing`);
+      t.check(!msgBox.wide, 'the link failure message overflows its box or the 320px screen');
       t.check(await button.isEnabled() && await button.isVisible(), 'Link Google is not usable after the script failed to load');
       gsiBlocked = false;
       await page.evaluate(() => { document.getElementById('linkGoogleMsg').textContent = ''; });
@@ -952,7 +968,7 @@ const SCENARIOS = [
     config: "window.CLICS_GOOGLE_SIGNIN.link = 'redirect';",
     async run(t, page, ctx) {
       resetGoogleStubs();
-      await checkRedirectPress(t, page, ctx, PORTAL, 'redirect link mode', true);
+      await checkRedirectPress(t, page, ctx, PORTAL, 'redirect link mode', { marker: { kind: 'link' }, signedIn: true });
     },
   },
   {
@@ -960,7 +976,105 @@ const SCENARIOS = [
     config: "window.CLICS_GOOGLE_SIGNIN.link = 'gis';",
     async run(t, page, ctx) {
       resetGoogleStubs();
-      await checkRedirectPress(t, page, ctx, PORTAL_OFF_LIST, 'off-list origin link', true);
+      await checkRedirectPress(t, page, ctx, PORTAL_OFF_LIST, 'off-list origin link', { marker: { kind: 'link' }, signedIn: true });
+    },
+  },
+  {
+    name: 'Invite Google sign-in in-page: no Google request before the press, hashed nonce, the accept call carries the Supabase token, the admin is handed to the dashboard',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const g = watchGoogle(page, ctx);
+      const handoffs = [];
+      ctx.on('request', (r) => { if (r.url().startsWith(`${DASH}/login?token=`)) handoffs.push(r.url()); });
+      await page.goto(`${PORTAL}/invite?token=CI-INVITE`);
+      await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      await settle(page);
+      t.check(g.gsi.length === 0, `Google's script was requested before the press: ${g.gsi.join(', ')}`);
+      await page.click('#googleBtn');
+      await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      t.check(g.gsi.length === 1, `Google's script was requested ${g.gsi.length}x after the press`);
+      t.check(!(await page.locator('#googleBtn').isVisible()), 'our button still shows beside Google\'s');
+      t.check(g.prompts === 0, 'the page called One Tap prompt()');
+      t.check(g.inits.length === 1 && g.inits[0].client_id === CI_GOOGLE_CLIENT_ID, `GIS initialised with ${JSON.stringify(g.inits)}`);
+      t.check(g.inits[0]?.ux_mode === 'popup' && g.inits[0]?.auto_select === false, `GIS ux_mode/auto_select are ${g.inits[0]?.ux_mode}/${g.inits[0]?.auto_select}`);
+      await page.evaluate(() => { window.__gisNext = { credential: 'ci-google-id-token' }; });
+      await page.click('#fakeGoogleBtn');
+      await until(() => handoffs.length > 0, `the invitee's Handoff to ${DASH}/login`);
+      const grant = idTokenGrants[0];
+      t.check(grant?.provider === 'google' && grant?.id_token === 'ci-google-id-token', `GoTrue got ${JSON.stringify(grant)}`);
+      t.check(!!grant?.nonce && sha256hex(grant.nonce) === g.inits[0]?.nonce, 'the nonce given to Google is not the SHA-256 hex of the nonce given to Supabase');
+      t.check(g.urls.some((u) => new URL(u).pathname === '/auth/callback'), `the page never reached /auth/callback: ${g.urls.join(' -> ')}`);
+      t.check(authorizeRequests.length === 0, 'the page also went through Supabase\'s authorize endpoint');
+      t.check(inviteCalls.length === 1 && inviteCalls[0].method === 'google' && inviteCalls[0].access_token === lastGoogleAccessToken,
+        `the accept call was ${JSON.stringify(inviteCalls)}, not one google call with the Supabase session token`);
+      t.check(completeCalls.length === 0, `the normal signup completion ran ${completeCalls.length}x`);
+      t.check(new URL(handoffs[0]).searchParams.get('token') === lastIssued, 'the Handoff carried a token other than the one the backend issued');
+      await checkSignedInClean(t, ctx, 'invitee Handoff');
+    },
+  },
+  {
+    name: 'Invite Google sign-in in-page: a Google email other than the invited one ends on the Callback error card with no session left',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const message = 'Your Google email must match the invited email.';
+      inviteGoogle = () => [403, { error: message }];
+      await pressThroughGis(page, ctx, '/invite?token=CI-INVITE');
+      await page.locator('#errorCard').waitFor({ state: 'visible', timeout: 10000 });
+      t.check(new URL(page.url()).pathname === '/auth/callback', `the error is not on the Callback page: ${page.url()}`);
+      t.check((await page.locator('#errorMsg').innerText()).includes(message), `the error card says "${await page.locator('#errorMsg').innerText()}"`);
+      t.check(inviteCalls.length === 1, `${inviteCalls.length} accept calls, not one`);
+      const left = (await storedTokens(ctx)).filter((e) => e.includes(' sb-') || e.endsWith('clics_token') || e.endsWith('clics_user'));
+      t.check(left.length === 0, `a rejected invite left ${left.join(', ')}`);
+      t.check(gotrueLogouts === 0, 'a rejected invite called GoTrue /logout');
+    },
+  },
+  {
+    name: 'Invite Google sign-in on an origin off the allow-list goes through Supabase\'s authorize endpoint with the invite marker',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      await checkRedirectPress(t, page, ctx, PORTAL_OFF_LIST, 'off-list origin', { path: '/invite?token=CI-INVITE', marker: { kind: 'invite', token: 'CI-INVITE' } });
+    },
+  },
+  {
+    name: 'Invite Google sign-in with the mode set to redirect goes through Supabase\'s authorize endpoint with the invite marker',
+    config: "window.CLICS_GOOGLE_SIGNIN.invite = 'redirect';",
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      await checkRedirectPress(t, page, ctx, PORTAL, 'redirect mode', { path: '/invite?token=CI-INVITE', marker: { kind: 'invite', token: 'CI-INVITE' } });
+    },
+  },
+  {
+    name: 'Invite Google sign-in in-page: a blocked script, a Google error and a Supabase rejection keep the user on /invite with a bilingual message',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const g = watchGoogle(page, ctx);
+      const errShown = () => page.evaluate(() => { const e = document.getElementById('acceptErr'); return e.style.display !== 'none' ? e.textContent : ''; });
+      const bilingual = (msg) => { const [th, en] = msg.split(' / '); return THAI.test(th) && /[A-Za-z]{4}/.test((en || '').replace(/Google/g, '')); };
+      await page.goto(`${PORTAL}/invite?token=CI-INVITE`);
+      await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      gsiBlocked = true;
+      await page.click('#googleBtn');
+      await until(async () => !!(await errShown()), 'the blocked-script message');
+      t.check(bilingual(await errShown()), `blocked script message is not bilingual: "${await errShown()}"`);
+      t.check(await page.locator('#googleBtn').isEnabled() && await page.locator('#googleBtn').isVisible(), 'our button is not usable after the script failed to load');
+      gsiBlocked = false;
+      await page.click('#googleBtn');
+      t.check(!(await errShown()), 'pressing the button again left the old message on screen');
+      await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      await page.evaluate(() => { window.__gisNext = {}; });
+      await page.click('#fakeGoogleBtn');
+      await until(async () => (await errShown()) && g.inits.length === 2, 'the Google-error message and a new render');
+      t.check(bilingual(await errShown()), `Google error message is not bilingual: "${await errShown()}"`);
+      idTokenRejected = true;
+      await page.evaluate(() => { document.getElementById('acceptErr').style.display = 'none'; localStorage.setItem('sb-ci-auth-token', '{}'); window.__gisNext = { credential: 'ci-google-id-token' }; });
+      await page.click('#fakeGoogleBtn');
+      await until(async () => (await errShown()) && g.inits.length === 3, 'the Supabase-rejection message and a new render');
+      t.check(bilingual(await errShown()), `Supabase rejection message is not bilingual: "${await errShown()}"`);
+      t.check(new URL(page.url()).pathname === '/invite', `a failed attempt ended on ${page.url()}`);
+      t.check(inviteCalls.length === 0, `${inviteCalls.length} accept calls after attempts that never got a session`);
+      const left = (await storedTokens(ctx)).filter((e) => e.includes(' sb-') || e.endsWith('clics_token'));
+      t.check(left.length === 0, `a failed attempt left ${left.join(', ')}`);
+      t.check(gotrueLogouts === 0, 'a failed attempt called GoTrue /logout');
     },
   },
   {

@@ -16,7 +16,7 @@ const { callAI, providerSupportsThinking, supportsThinking } = require('../src/s
 const { ragLookup } = require('../src/services/rag');
 const { QueueFullError } = require('../src/services/providers/runtime');
 const P = require('../src/lib/prompts');
-const { BOOTH_MAX_TOKENS, CHAT_MAX_TOKENS } = require('../src/lib/turn-limits');
+const { BOOTH_MAX_TOKENS, BOOTH_GRILL_MAX_TOKENS, CHAT_MAX_TOKENS } = require('../src/lib/turn-limits');
 
 const BOOTH_PROMPT = P.chatSystemPrompt({ booth: true });
 const r = (text, extra = {}) => ({ text, tokenCount: 20, inputTokens: 12, outputTokens: 8, provider: 'local-tutor', model: 'qwen-tutor', ...extra });
@@ -133,7 +133,7 @@ describe('the reply a booth turn returns', () => {
     expect(res.body).toEqual({
       content: 'Reasonable.', refs: [], token_count: 20, input_tokens: 12, output_tokens: 8,
       provider: 'local-tutor', model: 'qwen-tutor', prompt_version: expect.stringMatching(/^chat-prompt-[0-9a-f]{8}$/),
-      failed_over_from: 'anthropic',
+      failed_over_from: 'anthropic', pick: null,
     });
   });
 
@@ -179,4 +179,111 @@ test('without booth_mode the turn is a PLE turn: the mode prompt at the chat cei
     expect(res.status).toBe(200);
     expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: P.chatSystemPrompt({}), maxTokens: CHAT_MAX_TOKENS });
   }
+});
+
+const BANK = {
+  variants: [
+    { id: 'q_first', question: { th: 'ขั้นต่อไปคุณจะส่งตรวจอะไร', en: 'What test next?' } },
+    { id: 'q_alt', question: { th: 'คุณจะยืนยันการวินิจฉัยอย่างไร', en: 'How would you confirm it?' } },
+  ],
+  options: [
+    { id: 'mat', tier: 'best', label: { th: 'ส่งตรวจ MAT', en: 'Send MAT' }, line: { th: 'ยืนยันด้วยซีรัม', en: 'Confirm by serology' } },
+    { id: 'pcr', tier: 'best', label: { th: 'ส่งตรวจ PCR', en: 'Send PCR' }, line: { th: 'ได้ผลเร็วในสัปดาห์แรก', en: 'Fast in week one' } },
+    { id: 'cbc', tier: 'reasonable', label: { th: 'ตรวจ CBC ซ้ำ', en: 'Repeat CBC' }, line: { th: 'ดูเกล็ดเลือด', en: 'Watch platelets' } },
+    { id: 'wait', tier: 'weaker', label: { th: 'รอดูอาการ', en: 'Watch and wait' }, line: { th: 'นัดดูอาการสองวัน', en: 'Review in two days' } },
+  ],
+};
+const GRILL_PROMPT = P.chatSystemPrompt({ booth: true, grill: true });
+const PICK = { variant_id: 'q_alt', bridge: 'Fever after floodwater narrows the next question.', option_ids: ['pcr', 'cbc', 'wait'] };
+const grillJson = (extra = {}) => JSON.stringify({ reply: 'Thinking of exposure is a strength; weigh the timing.', ...PICK, ...extra });
+
+describe('the grill play: a booth turn with the next step\'s bank', () => {
+  test('one call at the grill ceiling with the fixed grill prompt, which keeps every booth rule', async () => {
+    callAI.mockResolvedValue(r(grillJson()));
+    const res = await send({ booth_mode: true, booth_bank: BANK });
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: GRILL_PROMPT, maxTokens: BOOTH_GRILL_MAX_TOKENS });
+    expect(call(0).systemPrompt.startsWith(BOOTH_PROMPT)).toBe(true);
+    expect(call(0).systemPrompt).toMatch(/Return ONLY one JSON object/);
+    expect(call(0).systemPrompt).toMatch(/Never write a question, an option label or an option line yourself/);
+    expect(call(0).systemPrompt).not.toContain('q_first');
+    expect(res.body.prompt_version).not.toBe((await send({ booth_mode: true })).body.prompt_version);
+  });
+
+  test('the bank (ids, tiers, Thai text) rides at the end of the last user turn only, after the de-identified history', async () => {
+    callAI.mockResolvedValue(r(grillJson()));
+    await send({ ...PII_TURN, booth_mode: true });
+    const plain = call(0).messages;
+    callAI.mockClear();
+    await send({ ...PII_TURN, booth_mode: true, booth_bank: BANK });
+    const msgs = call(0).messages;
+    expect(msgs.slice(0, -1)).toEqual(plain.slice(0, -1));
+    const last = msgs[msgs.length - 1].content;
+    expect(last.startsWith(plain[plain.length - 1].content)).toBe(true);
+    for (const s of ['q_alt', 'mat', '"tier":"weaker"', 'รอดูอาการ', 'ได้ผลเร็วในสัปดาห์แรก']) expect(last).toContain(s);
+    expect(last).not.toContain('Watch and wait');
+    const wire = JSON.stringify(callAI.mock.calls);
+    for (const leak of LEAKS) expect(wire).not.toContain(leak);
+  });
+
+  test('a JSON reply returns its reply as content and the pick as sent, unjudged', async () => {
+    callAI.mockResolvedValue(r(grillJson({ option_ids: ['pcr', 'mat', 'nope'] })));
+    const res = await send({ booth_mode: true, booth_bank: BANK });
+    expect(res.body.content).toBe('Thinking of exposure is a strength; weigh the timing.');
+    expect(res.body.pick).toEqual({ ...PICK, option_ids: ['pcr', 'mat', 'nope'] });
+  });
+
+  test('a fenced JSON reply is still read, and an artifact inside the reply is stripped', async () => {
+    callAI.mockResolvedValue(r('```json\n' + grillJson({ reply: 'Good.\n:::artifact{type="x" title="y"}\nbody\n:::' }) + '\n```'));
+    const res = await send({ booth_mode: true, booth_bank: BANK });
+    expect(res.body.pick).toEqual(PICK);
+    expect(res.body.content).not.toContain(':::');
+  });
+
+  test('a reply whose pick fields have the wrong types keeps the reply and drops the pick', async () => {
+    callAI.mockResolvedValue(r(grillJson({ option_ids: 'pcr,cbc,wait' })));
+    const res = await send({ booth_mode: true, booth_bank: BANK });
+    expect(res.body.content).toBe('Thinking of exposure is a strength; weigh the timing.');
+    expect(res.body.pick).toBeNull();
+  });
+
+  test.each([
+    ['truncated JSON', '{"reply": "Thinking of exposure is a strength", "variant_id": "q_a'],
+    ['JSON with no reply', JSON.stringify(PICK)],
+    ['a repeated key', '{"reply": "a", "reply": "b", "variant_id": "q_alt", "bridge": "", "option_ids": []}'],
+  ])('%s: pick null and no JSON on the screen', async (_label, text) => {
+    callAI.mockResolvedValue(r(text));
+    const res = await send({ booth_mode: true, booth_bank: BANK });
+    expect(res.status).toBe(200);
+    expect(res.body.pick).toBeNull();
+    expect(res.body.content).toBe('');
+  });
+
+  test('plain prose instead of JSON: pick null, the prose is the reply', async () => {
+    callAI.mockResolvedValue(r('Thinking of exposure is a strength.'));
+    const res = await send({ booth_mode: true, booth_bank: BANK });
+    expect(res.body).toMatchObject({ content: 'Thinking of exposure is a strength.', pick: null });
+  });
+
+  test('no bank: today\'s plain booth turn, and JSON-looking text passes through untouched', async () => {
+    callAI.mockResolvedValue(r(grillJson()));
+    const res = await send({ booth_mode: true });
+    expect(call(0)).toMatchObject({ systemPrompt: BOOTH_PROMPT, maxTokens: BOOTH_MAX_TOKENS });
+    expect(res.body.pick).toBeNull();
+    expect(res.body.content).toBe(grillJson());
+  });
+
+  test.each([
+    ['an id outside the pattern', { ...BANK, variants: [{ id: 'Q1', question: BANK.variants[0].question }] }],
+    ['an unknown tier', { ...BANK, options: [...BANK.options.slice(1), { ...BANK.options[0], tier: 'top' }] }],
+    ['a missing language', { ...BANK, variants: [{ id: 'q1', question: { th: 'ถาม' } }] }],
+    ['an extra key', { ...BANK, default_trio: ['mat', 'cbc', 'wait'] }],
+    ['too few options', { ...BANK, options: BANK.options.slice(0, 2) }],
+    ['too many variants', { ...BANK, variants: [1, 2, 3, 4].map((i) => ({ id: `q${i}`, question: BANK.variants[0].question })) }],
+  ])('a bank with %s is refused with 400 before any call', async (_label, bank) => {
+    const res = await send({ booth_mode: true, booth_bank: bank });
+    expect(res.status).toBe(400);
+    expect(callAI).not.toHaveBeenCalled();
+  });
 });

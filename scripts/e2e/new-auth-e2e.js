@@ -209,7 +209,7 @@ async function acceptInvite({ tag, role, saT, council_id }) {
   const otp = await getOtp(email);
   if (!otp) return soft(`invite accept ${tag}`, 'could not obtain an OTP via the admin API (set SUPABASE_* or verify generateLink)');
 
-  const step2 = await req('POST', `/auth/invite/${token}/accept`, { body: { method: 'password', otp, ...names } });
+  const step2 = await req('POST', `/auth/invite/${token}/accept`, { body: { method: 'password', otp, password: PASSWORD, ...names } });
   if (step2.json?.user?.id) track(email, step2.json.user.id);
   if (ok(step2.status === 201, `${role} ${tag}: invite accept → 201`, `got ${step2.status} ${JSON.stringify(step2.json?.status || step2.json)}`)) {
     ok(step2.json?.status === 'active', `${role} ${tag}: status=active on accept`, step2.json?.status);
