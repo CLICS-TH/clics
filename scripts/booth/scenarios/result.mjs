@@ -28,8 +28,7 @@ function scoreSets() {
 
 async function toResult(k) {
   await k.shell('start');
-  await k.tap('[data-action="start"]');
-  await k.screen('vignette');
+  await k.toVignette();
   await k.tap('[data-action="begin"]');
   for (let n = 1; n <= 3; n++) {
     await k.screen('step');
@@ -114,8 +113,7 @@ export default [
       await h.sleep(500);
       await k.tap('[data-board-overlay] [data-action="close-board"]');
       h.check(await page.locator('[data-board-overlay]').count() === 0, 'loop: Close removes the overlay and the loop is back');
-      await k.tap('[data-action="start"]');
-      await k.screen('vignette');
+      await k.toVignette();
       h.check(stub.of(START_KEY).length === 1, 'loop: a tap elsewhere still starts a play');
       await k.close();
 
