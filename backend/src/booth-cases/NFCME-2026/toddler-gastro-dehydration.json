@@ -3,12 +3,12 @@
   "version": "1",
   "event_code": "NFCME-2026",
   "teaser": {
-    "th": "เด็กหญิงวัยขวบครึ่ง อาเจียนและถ่ายเหลวมา 2 วัน",
-    "en": "An 18-month-old girl with vomiting and loose stools for 2 days"
+    "th": "เด็กหญิงวัยขวบครึ่ง อาเจียนและถ่ายเหลวมา 2 วัน แม่พามาโรงพยาบาลชุมชน",
+    "en": "An 18-month-old girl with 2 days of vomiting and loose stools, brought by her mother to a community hospital"
   },
   "vignette": {
     "th": "ผู้ป่วยสมมติ เด็กหญิงอายุ 1 ปี 6 เดือน แม่พามาโรงพยาบาลชุมชนเพราะถ่ายเหลวเป็นน้ำวันละราว 8 ครั้งมา 2 วัน ไม่มีมูกเลือด วันนี้อาเจียน 3 ครั้ง ไข้ 38.2 °C งอแง ตาโหล ดื่มน้ำอย่างกระหายเมื่อยื่นให้ หนังหน้าท้องคืนกลับช้า ชีพจร 140 ครั้ง/นาที capillary refill 2 วินาที ผ้าอ้อมเปียกน้อยลง น้ำหนัก 10 กก.",
-    "en": "A fictional 18-month-old girl is brought by her mother to a community hospital with 2 days of watery stools, about 8 a day, without blood, and 3 vomits today. Temperature 38.2 °C. She is irritable, has sunken eyes and drinks eagerly when offered water. An abdominal skin pinch goes back slowly. Pulse 140/min, capillary refill 2 seconds, and fewer wet nappies. Weight 10 kg."
+    "en": "A fictional 18-month-old girl is brought by her mother to a community hospital with 2 days of watery stools, about 8 a day, without blood or mucus, and 3 vomits today. Fever 38.2 °C. She is irritable, has sunken eyes and drinks eagerly when offered water. An abdominal skin pinch goes back slowly. Pulse 140/min, capillary refill 2 seconds, and fewer wet nappies. Weight 10 kg."
   },
   "banks": {
     "step1": {
@@ -49,8 +49,8 @@
             "en": "Diarrhoea with moderate dehydration"
           },
           "line": {
-            "th": "ตาโหล กระหายน้ำ หนังคืนช้า บ่งว่าขาดน้ำปานกลาง",
-            "en": "Sunken eyes, thirst and slow skin pinch mark moderate dehydration."
+            "th": "ตาโหล กระหายน้ำ หนังคืนช้า บ่งชี้ว่าขาดน้ำปานกลาง",
+            "en": "Sunken eyes, thirst and slow skin pinch indicate moderate dehydration."
           }
         },
         {
@@ -61,8 +61,8 @@
             "en": "Viral gastroenteritis"
           },
           "line": {
-            "th": "โรตาไวรัสและโนโรไวรัสเป็นสาเหตุหลักในเด็กวัยนี้",
-            "en": "Rotavirus and norovirus cause most diarrhoea at this age."
+            "th": "โรตาไวรัสและโนโรไวรัสเป็นสาเหตุหลักของท้องร่วงวัยนี้",
+            "en": "Rotavirus and norovirus lead the causes of diarrhoea at this age."
           }
         },
         {
@@ -85,7 +85,7 @@
             "en": "Intussusception"
           },
           "line": {
-            "th": "เด็กวัยนี้ที่อาเจียนต้องนึกถึงลำไส้กลืนกันด้วย",
+            "th": "อาเจียนในเด็กวัยนี้ชวนให้นึกถึงลำไส้กลืนกัน",
             "en": "Vomiting at this age brings intussusception to mind."
           }
         }
@@ -103,7 +103,7 @@
             "id": "v1",
             "question": {
               "th": "คุณจะตรวจหรือประเมินอะไรเป็นอันดับแรก",
-              "en": "What do you check first?"
+              "en": "What do you check or assess first?"
             }
           },
           {
@@ -131,7 +131,7 @@
             "id": "urineout",
             "tier": "best",
             "label": {
-              "th": "ประเมินอาการขาดน้ำ ปัสสาวะ",
+              "th": "ดูอาการขาดน้ำและปัสสาวะ",
               "en": "Dehydration signs and urine output"
             },
             "line": {
@@ -291,7 +291,7 @@
           {
             "id": "v2",
             "question": {
-              "th": "คุณจะตรวจหรือประเมินสิ่งใดก่อนเป็นอันดับแรก",
+              "th": "คุณจะตรวจหรือประเมินสิ่งใดเป็นอันดับแรก",
               "en": "What do you check or assess first?"
             }
           }
@@ -313,7 +313,7 @@
             "id": "urineout",
             "tier": "best",
             "label": {
-              "th": "ประเมินอาการขาดน้ำ ปัสสาวะ",
+              "th": "ดูอาการขาดน้ำและปัสสาวะ",
               "en": "Dehydration signs and urine output"
             },
             "line": {
@@ -390,8 +390,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ประเมินแล้วขาดน้ำปานกลาง แผนการรักษาคืออะไร",
-              "en": "Grading confirms moderate dehydration. What is your plan?"
+              "th": "ประเมินแล้วพบว่าขาดน้ำปานกลาง แผนการรักษาคืออะไร",
+              "en": "Grading shows moderate dehydration. What is your plan?"
             }
           }
         ],
@@ -416,8 +416,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
-              "en": "Small frequent sips, feeding goes on, signs rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้นมแม่ต่อ เริ่มอาหารหลัง 4 ชม.",
+              "en": "Small frequent sips, breastfeeds go on, food resumes after 4 h."
             }
           },
           {
@@ -429,7 +429,7 @@
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
-              "en": "Settles the vomiting so more ORS stays down."
+              "en": "Settles the vomiting so she can drink more ORS."
             }
           },
           {
@@ -437,7 +437,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -502,7 +502,7 @@
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
-              "en": "Settles the vomiting so more ORS stays down."
+              "en": "Settles the vomiting so she can drink more ORS."
             }
           },
           {
@@ -510,7 +510,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -533,7 +533,7 @@
             "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "th": "ORS ร่วมกับไดออสเมคไทต์",
               "en": "ORS plus diosmectite"
             },
             "line": {
@@ -574,8 +574,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
-              "en": "Small frequent sips, feeding goes on, signs rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้นมแม่ต่อ เริ่มอาหารหลัง 4 ชม.",
+              "en": "Small frequent sips, breastfeeds go on, food resumes after 4 h."
             }
           },
           {
@@ -595,7 +595,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -659,8 +659,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
-              "en": "Small frequent sips, feeding goes on, signs rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้นมแม่ต่อ เริ่มอาหารหลัง 4 ชม.",
+              "en": "Small frequent sips, breastfeeds go on, food resumes after 4 h."
             }
           },
           {
@@ -672,7 +672,7 @@
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
-              "en": "Settles the vomiting so more ORS stays down."
+              "en": "Settles the vomiting so she can drink more ORS."
             }
           },
           {
@@ -733,7 +733,7 @@
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
-              "en": "Settles the vomiting so more ORS stays down."
+              "en": "Settles the vomiting so she can drink more ORS."
             }
           },
           {
@@ -741,7 +741,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -764,7 +764,7 @@
             "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "th": "ORS ร่วมกับไดออสเมคไทต์",
               "en": "ORS plus diosmectite"
             },
             "line": {
@@ -805,8 +805,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
-              "en": "Small frequent sips, feeding goes on, signs rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้นมแม่ต่อ เริ่มอาหารหลัง 4 ชม.",
+              "en": "Small frequent sips, breastfeeds go on, food resumes after 4 h."
             }
           },
           {
@@ -826,7 +826,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -890,8 +890,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
-              "en": "Small frequent sips, feeding goes on, signs rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้นมแม่ต่อ เริ่มอาหารหลัง 4 ชม.",
+              "en": "Small frequent sips, breastfeeds go on, food resumes after 4 h."
             }
           },
           {
@@ -903,7 +903,7 @@
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
-              "en": "Settles the vomiting so more ORS stays down."
+              "en": "Settles the vomiting so she can drink more ORS."
             }
           },
           {
@@ -911,7 +911,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -976,7 +976,7 @@
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
-              "en": "Settles the vomiting so more ORS stays down."
+              "en": "Settles the vomiting so she can drink more ORS."
             }
           },
           {
@@ -984,7 +984,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -1007,7 +1007,7 @@
             "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "th": "ORS ร่วมกับไดออสเมคไทต์",
               "en": "ORS plus diosmectite"
             },
             "line": {
@@ -1060,8 +1060,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
-              "en": "Small frequent sips, feeding goes on, signs rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้นมแม่ต่อ เริ่มอาหารหลัง 4 ชม.",
+              "en": "Small frequent sips, breastfeeds go on, food resumes after 4 h."
             }
           },
           {
@@ -1069,7 +1069,7 @@
             "tier": "reasonable",
             "label": {
               "th": "ริงเกอร์แลคเตททางหลอดเลือด",
-              "en": "IV Ringer's lactate rehydration"
+              "en": "IV Ringer's lactate"
             },
             "line": {
               "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
@@ -1092,7 +1092,7 @@
             "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "th": "ORS ร่วมกับไดออสเมคไทต์",
               "en": "ORS plus diosmectite"
             },
             "line": {
@@ -1113,7 +1113,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Fresh reviewer (did not write the case) checked every variant and option against WHO diarrhoea/IMCI guidance (Plan B 75 mL/kg ORS over 4 h, zinc 20 mg/day 10-14 days), ESPGHAN 2014, NICE CG84 and Thai acute-diarrhoea and RDU practice. Doses, volumes and dehydration grading correct; no option withholds rehydration or feeding. Fixed: 2 must-fix path-logic issues (WR question claimed normal urine on an electrolytes path; BW/RW/WW reported stool-culture results on the same visit), replaced weaker 'admit for IV fluids and antibiotics' with ORS plus diosmectite (RDU), toned down the IV Ringer's lactate line, stated ondansetron as one oral dose, aligned Thai lines for Plan B and supervised ORS, plus 4 wording nits. Tiers confirmed: ondansetron and IV Ringer's lactate reasonable, ORS plus oral antibiotic weaker."
+      "findings": "Two rounds by fresh reviewers (claude-opus-5-5, did not write the case) against the WHO diarrhoea manual and IMCI (Plan B 75 mL/kg ORS over 4 h, so 750 mL at 10 kg; zinc 20 mg/day 10-14 days), ESPGHAN 2014, NICE CG84 and Thai acute-diarrhoea and RDU practice (cited from recall). Round 1 fixed two path-logic errors (WR claimed normal urine on an electrolytes path; BW/RW/WW read stool culture on the same visit), replaced weaker 'admit for IV fluids and antibiotics' with ORS plus diosmectite, stated ondansetron as one oral dose and toned down the IV line. Round 2, on the final text, found no must-fix: volumes, grading, tiers and path reveals are correct and every weaker option includes ORS; the supervised-ORS line now follows Plan B (breastfeeding continues, food resumes after 4 h) and Thai/English evidence verbs, hedges and labels were aligned."
     }
   }
 }
