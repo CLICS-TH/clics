@@ -6,7 +6,13 @@ const LOOP_DIR = '/booth-loop/';
 const MANIFEST = `${LOOP_DIR}manifest.json`;
 const RETRY_MS = 60_000;
 
-/** @typedef {{ type: 'image', src: string, seconds: number } | { type: 'video', src: string }} LoopItem */
+/**
+ * The loop board shows only over an item whose `board` is true. A file says `"board": false` when its own text
+ * reaches the bottom of the frame (the promo's demo labels and end card, #216); a `board` item shows the board
+ * alone over the stage's wordmark for `seconds`.
+ * @typedef {({ type: 'image', src: string, seconds: number } | { type: 'video', src: string }
+ *   | { type: 'board', seconds: number }) & { board: boolean }} LoopItem
+ */
 
 /** The item's path, percent-encoded as the browser sends it (staff file names have spaces and Thai), or null. */
 const loopPath = (src) => {
@@ -21,13 +27,16 @@ const loopPath = (src) => {
   }
 };
 
+const validSeconds = (n) => Number.isInteger(n) && n >= 1 && n <= 120;
+
 /** @returns {LoopItem | null} */
 function parseItem(item) {
+  if (item?.type === 'board' && validSeconds(item.seconds)) return { type: 'board', seconds: item.seconds, board: true };
   const src = loopPath(item?.src);
-  if (src && item.type === 'image' && Number.isInteger(item.seconds) && item.seconds >= 1 && item.seconds <= 120) {
-    return { type: 'image', src, seconds: item.seconds };
+  if (src && item.type === 'image' && validSeconds(item.seconds)) {
+    return { type: 'image', src, seconds: item.seconds, board: item.board !== false };
   }
-  if (src && item.type === 'video' && src.endsWith('.mp4')) return { type: 'video', src };
+  if (src && item.type === 'video' && src.endsWith('.mp4')) return { type: 'video', src, board: item.board !== false };
   console.warn('booth loop: skipped manifest item', item);
   return null;
 }
@@ -46,7 +55,8 @@ export async function loadLoopItems() {
 
 /**
  * Plays the loop in a media layer appended to `container`. The layer is empty (and hidden by CSS) until an item
- * has loaded, so whatever sits under it shows through. data-loop-kind / data-loop-src name the item on screen.
+ * has loaded, so whatever sits under it shows through. data-loop-kind / data-loop-src name the item on screen, and
+ * data-loop-board="on" lets the loop board show over it; with no item on screen yet the board stays hidden.
  * @param {HTMLElement} container
  * @returns {{ stop: () => void }}
  */
@@ -56,19 +66,28 @@ export function mountLoop(container) {
   const life = new AbortController();
 
   const put = (node, item) => {
-    layer.replaceChildren(node);
+    layer.replaceChildren(...(node ? [node] : []));
     layer.dataset.loopKind = item.type;
-    layer.dataset.loopSrc = item.src;
+    if (item.src) layer.dataset.loopSrc = item.src;
+    else delete layer.dataset.loopSrc;
+    layer.dataset.loopBoard = item.board ? 'on' : 'off';
   };
   const clear = () => {
     layer.replaceChildren();
     delete layer.dataset.loopKind;
     delete layer.dataset.loopSrc;
+    delete layer.dataset.loopBoard;
   };
 
   /** Resolves true once the item has played through, false if it failed to load or play, or the loop stopped. */
   const show = (item) => new Promise((resolve) => {
     let timer = 0;
+    if (item.type === 'board') {
+      put(null, item);
+      timer = setTimeout(() => resolve(true), item.seconds * 1000);
+      life.signal.addEventListener('abort', () => { clearTimeout(timer); resolve(false); }, { once: true });
+      return;
+    }
     const node = item.type === 'image'
       ? el('img', { alt: '', decoding: 'async' })
       : el('video', { muted: '', playsinline: '', autoplay: '', preload: 'auto' });

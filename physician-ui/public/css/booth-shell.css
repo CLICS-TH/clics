@@ -18,7 +18,7 @@
 .loop-media > img, .loop-media > video { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 .loop-board { position: absolute; left: var(--gutter); right: var(--gutter); bottom: var(--gutter); max-height: 50%; overflow: hidden; }
-.loop-board:empty { display: none; }
+.loop-board:empty, .loop-media:not([data-loop-board="on"]) ~ .loop-board { display: none; }
 
 .loop-bar {
   grid-area: 2 / 1 / 3 / 2; box-sizing: border-box; min-height: calc(200 * var(--u));
