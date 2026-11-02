@@ -24,6 +24,36 @@ _Avoid_: privacy policy page, PDPA page, terms
 The Portal passing a signed-in admin, auditor or superadmin to the audit-dashboard with their token.
 _Avoid_: SSO, redirect login
 
+**Google sign-in**:
+Signing in to the Portal with a Google account, whether to sign up, to accept an invite, or to link Google to an existing account.
+_Avoid_: OAuth login, social login
+
+**Google sign-in mode**:
+Which way a Google sign-in reaches Google: in the Portal's own page (the default), or by a redirect through Supabase (the fallback).
+_Avoid_: GIS flag, OAuth mode
+
+**Callback page**:
+The Portal page at `/auth/callback` that finishes every Google sign-in, in either mode.
+_Avoid_: redirect page, OAuth return
+
+**OAuth rescue**:
+The head script at the Portal root that forwards a stray sign-in return to the Callback page.
+_Avoid_: root redirect
+
+**Link Google**:
+Adding Google sign-in to an account that already signs in with email and password.
+_Avoid_: connect Google, merge accounts
+
+**Sign out**:
+Ending the session on this device and asking the server to end it everywhere. It looks the same to the user whether or not the server succeeds.
+_Avoid_: logout (when meaning only clearing the browser), revoke
+
+## Audit
+
+**De-identified view**:
+The only form in which an auditor sees a PLE: its case text and conversation after the PII filter, in the CLICS screens. Never the chief complaint, title or conversation as the physician typed them.
+_Avoid_: blinded copy, redacted transcript, filtered PLE
+
 ## Booth
 
 **Booth Mode**:

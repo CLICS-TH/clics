@@ -72,6 +72,10 @@ const EVIDENCE_LINE_MAX_TOKENS = 128;
 // compliant reply needs ~150-300 tokens; 400 never truncates one, stops a runaway after a few sentences,
 // and keeps the turn fast. Fixed in code, no env. Cost is the tokens actually written, not this ceiling.
 const BOOTH_MAX_TOKENS = 400;
+// A booth turn that also picks from the bank (#246) wraps that reply in JSON with a one-sentence bridge
+// (<= 120 chars, up to ~120 Thai tokens), a variant id, three option ids and the keys: ~460 tokens at
+// the worst case. Truncated JSON loses the reply AND the pick, so the headroom is wider than for plain text.
+const BOOTH_GRILL_MAX_TOKENS = 600;
 
 // OPTIONAL-RETRY CUTOFF. The backend hangs up on a chat turn after RIMPL_CHAT_TIMEOUT_MS (default 100 s,
 // backend/src/services/rimpl-client.js CHAT_TIMEOUT_MS) and fails it closed with a 502. RIMPL is not told
@@ -93,6 +97,7 @@ const CHAT_LIMIT_DEFAULTS = Object.freeze({
   }),
   evidenceLine: Object.freeze({ maxTokens: EVIDENCE_LINE_MAX_TOKENS }),
   booth: Object.freeze({ maxTokens: BOOTH_MAX_TOKENS }),
+  boothGrill: Object.freeze({ maxTokens: BOOTH_GRILL_MAX_TOKENS }),
   optionalRetryCutoffMs: Object.freeze({ default: OPTIONAL_RETRY_CUTOFF_DEFAULT_MS, env: 'RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS' }),
 });
 
@@ -111,6 +116,6 @@ const RETRY_POLICY = Object.freeze({ thinking: false, maxTokens: CHAT_MAX_TOKENS
 
 module.exports = {
   CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS,
-  BOOTH_MAX_TOKENS, DEEP_REASONING_ALLOWANCE, CHAT_LIMIT_DEFAULTS, TIER_POLICY, RETRY_POLICY,
+  BOOTH_MAX_TOKENS, BOOTH_GRILL_MAX_TOKENS, DEEP_REASONING_ALLOWANCE, CHAT_LIMIT_DEFAULTS, TIER_POLICY, RETRY_POLICY,
   resolveChatMaxTokens, resolveChatDeepMaxTokens,
 };
