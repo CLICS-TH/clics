@@ -1,0 +1,1192 @@
+{
+  "case_id": "copd-exacerbation",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชายวัย 68 ปี เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
+    "en": "A 68-year-old man, more breathless and coughing for 3 days"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อคอช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
+    "en": "A fictional 68-year-old fruit farmer smoked for 40 years and quit 2 years ago. He uses an inhaler every day. Over 3 days he has grown more breathless, with more sputum that has turned green. Temperature 37.8 °C, pulse 106, respiratory rate 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases and uses his neck muscles to breathe. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและผลตรวจนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "อะไรทำให้เขาหอบเหนื่อยมากขึ้นครั้งนี้",
+            "en": "What explains his worse breathing this time?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ปอดอุดกั้นเรื้อรังกำเริบ",
+            "en": "Acute exacerbation of COPD"
+          },
+          "line": {
+            "th": "หอบมากขึ้นและเสมหะเปลี่ยนในคนสูบบุหรี่นาน",
+            "en": "Worse breathing and changed sputum in a long-term smoker."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "COPD กำเริบจากการติดเชื้อ",
+            "en": "COPD flare triggered by infection"
+          },
+          "line": {
+            "th": "เสมหะมากขึ้นและเขียวขึ้นชี้ว่าติดเชื้อกระตุ้น",
+            "en": "More and greener sputum points to an infective trigger."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ปอดอักเสบติดเชื้อ",
+            "en": "Community-acquired pneumonia"
+          },
+          "line": {
+            "th": "ไข้ต่ำ ๆ และเสมหะเขียวเข้าได้กับปอดอักเสบ",
+            "en": "Low fever and green sputum fit pneumonia."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "หัวใจล้มเหลวกำเริบ",
+            "en": "Acute heart failure"
+          },
+          "line": {
+            "th": "หอบเหนื่อยในผู้สูงอายุมักมาจากหัวใจ",
+            "en": "Breathlessness in older adults often comes from the heart."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "หอบหืดกำเริบ",
+            "en": "Acute asthma attack"
+          },
+          "line": {
+            "th": "เสียงวี้ดและหายใจออกยาวพบได้ในหอบหืด",
+            "en": "Wheeze and a long expiration are classic in asthma."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ที่ห้องฉุกเฉินคุณจะตรวจอะไรก่อน",
+              "en": "What do you check first in the emergency room?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
+              "en": "Chest X-ray and ECG"
+            },
+            "line": {
+              "th": "หาปอดอักเสบ ลมรั่ว และโรคหัวใจที่ซ่อนอยู่",
+              "en": "Looks for pneumonia, pneumothorax and hidden heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "CBC และเกลือแร่ในเลือด",
+              "en": "CBC and electrolytes"
+            },
+            "line": {
+              "th": "ดูการติดเชื้อและโพแทสเซียมต่ำจากยาพ่น",
+              "en": "Shows infection and low potassium from salbutamol."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อเสมหะ",
+              "en": "Sputum culture"
+            },
+            "line": {
+              "th": "หาชนิดเชื้อที่ทำให้เสมหะเปลี่ยนเป็นสีเขียว",
+              "en": "Names the germ that turned the sputum green."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ที่ห้องฉุกเฉินคุณจะตรวจอะไรก่อน",
+              "en": "What do you check first in the emergency room?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
+              "en": "Chest X-ray and ECG"
+            },
+            "line": {
+              "th": "หาปอดอักเสบ ลมรั่ว และโรคหัวใจที่ซ่อนอยู่",
+              "en": "Looks for pneumonia, pneumothorax and hidden heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "CBC และ CRP",
+              "en": "CBC and CRP"
+            },
+            "line": {
+              "th": "ช่วยประเมินการติดเชื้อเพื่อเลือกยาปฏิชีวนะ",
+              "en": "Gauges the infection to guide the antibiotic choice."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อเสมหะ",
+              "en": "Sputum culture"
+            },
+            "line": {
+              "th": "หาชนิดเชื้อที่ทำให้เสมหะเปลี่ยนเป็นสีเขียว",
+              "en": "Names the germ that turned the sputum green."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "SpO2 88% ขณะหายใจอากาศปกติ คุณจะตรวจอะไรก่อน",
+              "en": "SpO2 is 88% on room air. Which tests come first?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ที่ห้องฉุกเฉินคุณจะตรวจอะไรก่อน",
+              "en": "What do you check first in the emergency room?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
+              "en": "Chest X-ray and ECG"
+            },
+            "line": {
+              "th": "หาปอดอักเสบ ลมรั่ว และโรคหัวใจที่ซ่อนอยู่",
+              "en": "Looks for pneumonia, pneumothorax and hidden heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจเลือด NT-proBNP",
+              "en": "NT-proBNP blood test"
+            },
+            "line": {
+              "th": "ช่วยแยกหัวใจล้มเหลวออกจากโรคปอด",
+              "en": "Helps tell heart failure apart from lung disease."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "วัด peak flow ข้างเตียง",
+              "en": "Bedside peak flow"
+            },
+            "line": {
+              "th": "วัดการตีบของหลอดลมได้เร็วข้างเตียง",
+              "en": "Gives a quick bedside measure of airway narrowing."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อัลตราซาวด์หัวใจก่อน",
+              "en": "Echocardiogram first"
+            },
+            "line": {
+              "th": "เห็นการบีบตัวของหัวใจได้ชัดเจน",
+              "en": "Shows clearly how well the heart pumps."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยา+ไฮโดรคอร์ติโซนฉีด",
+              "en": "Nebs + IV hydrocortisone"
+            },
+            "line": {
+              "th": "สเตียรอยด์ทางหลอดเลือดได้ขนาดยาแน่นอน",
+              "en": "An IV steroid gives a sure dose to a breathless man."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "en": "Nebs + steroid + IV meropenem"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
+              "en": "The widest cover, resistant bacteria included."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "MDI+spacer และเพรดนิโซโลน",
+              "en": "MDI with spacer + prednisolone"
+            },
+            "line": {
+              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
+              "en": "A spacer works about as well as a nebuliser."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
+              "en": "Nebs + prednisolone for 14 days"
+            },
+            "line": {
+              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
+              "en": "A longer course gives the inflammation more time to settle."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "MDI+spacer และเพรดนิโซโลน",
+              "en": "MDI with spacer + prednisolone"
+            },
+            "line": {
+              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
+              "en": "A spacer works about as well as a nebuliser."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "en": "Nebs + steroid + IV meropenem"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
+              "en": "The widest cover, resistant bacteria included."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
+              "en": "Nebs + prednisolone for 14 days"
+            },
+            "line": {
+              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
+              "en": "A longer course gives the inflammation more time to settle."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์ไม่พบปอดอักเสบ ให้ O2 เป้า 88–92% แล้ว แผนคือ",
+              "en": "No pneumonia on X-ray. O2 runs at 88–92%. Your plan?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยา+ไฮโดรคอร์ติโซนฉีด",
+              "en": "Nebs + IV hydrocortisone"
+            },
+            "line": {
+              "th": "สเตียรอยด์ทางหลอดเลือดได้ขนาดยาแน่นอน",
+              "en": "An IV steroid gives a sure dose to a breathless man."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "en": "Nebs + steroid + IV meropenem"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
+              "en": "The widest cover, resistant bacteria included."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์ไม่พบปอดอักเสบ ให้ O2 เป้า 88–92% แล้ว แผนคือ",
+              "en": "No pneumonia on X-ray. O2 runs at 88–92%. Your plan?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "MDI+spacer และเพรดนิโซโลน",
+              "en": "MDI with spacer + prednisolone"
+            },
+            "line": {
+              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
+              "en": "A spacer works about as well as a nebuliser."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
+              "en": "Nebs + prednisolone for 14 days"
+            },
+            "line": {
+              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
+              "en": "A longer course gives the inflammation more time to settle."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์ไม่พบปอดอักเสบ ให้ O2 เป้า 88–92% แล้ว แผนคือ",
+              "en": "No pneumonia on X-ray. O2 runs at 88–92%. Your plan?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "MDI+spacer และเพรดนิโซโลน",
+              "en": "MDI with spacer + prednisolone"
+            },
+            "line": {
+              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
+              "en": "A spacer works about as well as a nebuliser."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "en": "Nebs + steroid + IV meropenem"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
+              "en": "The widest cover, resistant bacteria included."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
+              "en": "Nebs + prednisolone for 14 days"
+            },
+            "line": {
+              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
+              "en": "A longer course gives the inflammation more time to settle."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์พบปอดโป่งพอง หัวใจขนาดปกติ แผนคือ",
+              "en": "X-ray: hyperinflated lungs, normal heart size. Your plan?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยา+ไฮโดรคอร์ติโซนฉีด",
+              "en": "Nebs + IV hydrocortisone"
+            },
+            "line": {
+              "th": "สเตียรอยด์ทางหลอดเลือดได้ขนาดยาแน่นอน",
+              "en": "An IV steroid gives a sure dose to a breathless man."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "en": "Nebs + steroid + IV meropenem"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
+              "en": "The widest cover, resistant bacteria included."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์พบปอดโป่งพอง หัวใจขนาดปกติ แผนคือ",
+              "en": "X-ray: hyperinflated lungs, normal heart size. Your plan?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "MDI+spacer และเพรดนิโซโลน",
+              "en": "MDI with spacer + prednisolone"
+            },
+            "line": {
+              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
+              "en": "A spacer works about as well as a nebuliser."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
+              "en": "Nebs + prednisolone for 14 days"
+            },
+            "line": {
+              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
+              "en": "A longer course gives the inflammation more time to settle."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์พบปอดโป่งพอง หัวใจขนาดปกติ แผนคือ",
+              "en": "X-ray: hyperinflated lungs, normal heart size. Your plan?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
+              "en": "He is on oxygen to SpO2 88–92%. What comes next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ออกซิเจนเป้า 88–92% แล้ว คุณจะให้ยาอะไร",
+              "en": "Oxygen is set to 88–92%. Which drugs do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน+ยาปฏิชีวนะ",
+              "en": "Nebs + prednisolone + antibiotic"
+            },
+            "line": {
+              "th": "ครบทั้งหลอดลมตีบ การอักเสบ และการติดเชื้อ",
+              "en": "Treats bronchospasm, inflammation and infection together."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
+              "en": "Nebs + steroid + amoxicillin-clav"
+            },
+            "line": {
+              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "พ่นยาและเพรดนิโซโลน",
+              "en": "Nebs and oral prednisolone"
+            },
+            "line": {
+              "th": "รักษาหลอดลมตีบและการอักเสบซึ่งเป็นแกนหลัก",
+              "en": "Treats bronchospasm and inflammation, the core of care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "MDI+spacer และเพรดนิโซโลน",
+              "en": "MDI with spacer + prednisolone"
+            },
+            "line": {
+              "th": "ยาพ่นผ่าน spacer ได้ผลใกล้เคียงเครื่องพ่นละออง",
+              "en": "A spacer works about as well as a nebuliser."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "en": "Nebs + steroid + IV meropenem"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างที่สุดรวมถึงเชื้อดื้อยา",
+              "en": "The widest cover, resistant bacteria included."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "พ่นยา+เพรดนิโซโลน 14 วัน",
+              "en": "Nebs + prednisolone for 14 days"
+            },
+            "line": {
+              "th": "คอร์สยาวให้เวลาการอักเสบสงบลงมากขึ้น",
+              "en": "A longer course gives the inflammation more time to settle."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      }
+    }
+  }
+}
