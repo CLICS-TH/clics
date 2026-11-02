@@ -1,0 +1,994 @@
+{
+  "case_id": "dka-young-adult",
+  "version": "3",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "นักศึกษาหญิงอายุ 20 ปี มาโรงพยาบาลชุมชน อาเจียนและหอบเหนื่อยตั้งแต่เมื่อวาน",
+    "en": "A 20-year-old female student at a community hospital, vomiting and breathless since yesterday"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ หญิงอายุ 20 ปี นักศึกษามหาวิทยาลัย มาโรงพยาบาลชุมชนด้วยอาเจียนหลายครั้งและปวดท้องมา 1 วัน สองสัปดาห์ก่อนกระหายน้ำ ปัสสาวะบ่อย และน้ำหนักลด 4 กิโลกรัม อุณหภูมิ 37.2 องศาเซลเซียส ชีพจร 120 ครั้งต่อนาที ความดันโลหิต 100/62 มม.ปรอท หายใจลึกและเร็ว 30 ครั้งต่อนาที ปากแห้ง ลมหายใจมีกลิ่นผลไม้ ท้องกดเจ็บทั่วไปเล็กน้อย ซึมเล็กน้อยแต่ตอบคำถามได้",
+    "en": "A fictional 20-year-old university student comes to a community hospital with 1 day of repeated vomiting and abdominal pain. For 2 weeks she has been thirsty, passing urine often, and has lost 4 kg. Temperature 37.2 °C, pulse 120/min, BP 100/62 mmHg, deep rapid breathing at 30/min. Dry mouth, fruity breath and mild diffuse abdominal tenderness. She is drowsy but answers questions."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการทั้งหมดนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which condition best explains all of this?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "หายใจหอบลึกร่วมกับอาเจียน นึกถึงภาวะใด",
+            "en": "Deep breathing with vomiting. What do you suspect?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ภาวะกรดคีโตนจากเบาหวาน",
+            "en": "Diabetic ketoacidosis"
+          },
+          "line": {
+            "th": "กระหายน้ำ ปัสสาวะบ่อย ผอมลง หายใจหอบลึก เข้ากันได้ดี",
+            "en": "Thirst, polyuria, weight loss and deep breathing fit it."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "เบาหวานชนิดที่ 1 รายใหม่ มี DKA",
+            "en": "New type 1 diabetes with DKA"
+          },
+          "line": {
+            "th": "อายุน้อย ผอมลงเร็ว และมาด้วยภาวะกรดคีโตน",
+            "en": "Young, losing weight fast, and presenting with ketoacidosis."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ภาวะน้ำตาลสูงออสโมลาร์สูง",
+            "en": "Hyperosmolar hyperglycaemic state"
+          },
+          "line": {
+            "th": "กระหายน้ำ ปัสสาวะมาก และขาดน้ำชัดเจนเข้ากับภาวะนี้",
+            "en": "Thirst, heavy urine output and marked dehydration fit it."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "กระเพาะและลำไส้อักเสบเฉียบพลัน",
+            "en": "Acute gastroenteritis"
+          },
+          "line": {
+            "th": "อาเจียน ปวดท้อง และขาดน้ำพบบ่อยในโรคนี้",
+            "en": "Vomiting, abdominal pain and dehydration are common in it."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ไส้ติ่งอักเสบเฉียบพลัน",
+            "en": "Acute appendicitis"
+          },
+          "line": {
+            "th": "ปวดท้องและอาเจียนในคนหนุ่มสาวอาจเป็นไส้ติ่ง",
+            "en": "Abdominal pain and vomiting in a young adult can be appendicitis."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณสงสัย DKA จะส่งตรวจอะไรก่อน",
+              "en": "You suspect DKA. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรเพื่อยืนยันและประเมินความรุนแรง",
+              "en": "Which tests confirm it and gauge its severity?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, measures acidity and K."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนจากปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วอย่างเดียว",
+              "en": "Fingerstick glucose only"
+            },
+            "line": {
+              "th": "ตรวจง่ายที่สุด และบอกได้ทันทีว่าน้ำตาลสูง",
+              "en": "The simplest bedside test, showing high glucose at once."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณสงสัยภาวะน้ำตาลสูงวิกฤต จะตรวจอะไรก่อน",
+              "en": "You suspect a hyperglycaemic crisis. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรเพื่อแยก DKA กับ HHS",
+              "en": "Which tests tell DKA from HHS?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, measures acidity and K."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน ออสโมลาลิตี VBG K",
+              "en": "Glucose, ketone, osmolality, VBG, K"
+            },
+            "line": {
+              "th": "แยก DKA ออกจาก HHS และได้ค่า K ในคราวเดียว",
+              "en": "Tells DKA from HHS and measures K in one go."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วอย่างเดียว",
+              "en": "Fingerstick glucose only"
+            },
+            "line": {
+              "th": "ตรวจง่ายที่สุด และบอกได้ทันทีว่าน้ำตาลสูง",
+              "en": "The simplest bedside test, showing high glucose at once."
+            }
+          }
+        ],
+        "default_trio": [
+          "b",
+          "d",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ญาติเล่าว่าเธอดื่มน้ำและปัสสาวะบ่อยมาก ตรวจอะไรก่อน",
+              "en": "Her family says she drinks and urinates a lot. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ลมหายใจมีกลิ่นผลไม้ ควรส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Her breath smells fruity. Which tests come first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, measures acidity and K."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนจากปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วและ CBC",
+              "en": "Fingerstick glucose and CBC"
+            },
+            "line": {
+              "th": "ดูน้ำตาลพร้อมหาการติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "en": "Checks glucose and looks for an infection that set this off."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "Saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ อินซูลินหยด และ K เริ่มที่นี่ก่อนส่งต่อ",
+              "en": "Fluids, insulin drip and K start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS K อินซูลินออกฤทธิ์เร็ว SC",
+              "en": "Saline, K, SC rapid-acting insulin"
+            },
+            "line": {
+              "th": "ใช้ได้ใน DKA เบาถึงปานกลางที่ปราศจากภาวะแทรกซ้อน",
+              "en": "Suits uncomplicated mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
+            },
+            "line": {
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินหยดในหอ",
+              "en": "Saline, K check, ward insulin drip"
+            },
+            "line": {
+              "th": "รักษาครบที่นี่ ใกล้บ้านและญาติดูแลได้",
+              "en": "Full treatment here, close to home and family."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "e",
+          "d"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "Saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ อินซูลินหยด และ K เริ่มที่นี่ก่อนส่งต่อ",
+              "en": "Fluids, insulin drip and K start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS K อินซูลินออกฤทธิ์เร็ว SC",
+              "en": "Saline, K, SC rapid-acting insulin"
+            },
+            "line": {
+              "th": "ใช้ได้ใน DKA เบาถึงปานกลางที่ปราศจากภาวะแทรกซ้อน",
+              "en": "Suits uncomplicated mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
+            },
+            "line": {
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินหยดในหอ",
+              "en": "Saline, K check, ward insulin drip"
+            },
+            "line": {
+              "th": "รักษาครบที่นี่ ใกล้บ้านและญาติดูแลได้",
+              "en": "Full treatment here, close to home and family."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "e",
+          "d"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "Saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ อินซูลินหยด และ K เริ่มที่นี่ก่อนส่งต่อ",
+              "en": "Fluids, insulin drip and K start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS K อินซูลินออกฤทธิ์เร็ว SC",
+              "en": "Saline, K, SC rapid-acting insulin"
+            },
+            "line": {
+              "th": "ใช้ได้ใน DKA เบาถึงปานกลางที่ปราศจากภาวะแทรกซ้อน",
+              "en": "Suits uncomplicated mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
+            },
+            "line": {
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "สารน้ำ ตรวจ K ให้ K อินซูลินเมื่อ K ปลอดภัย แล้วส่งต่อ",
+              "en": "Fluids, K check and top-up, insulin once K is safe, then transfer."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินหยดในหอ",
+              "en": "Saline, K check, ward insulin drip"
+            },
+            "line": {
+              "th": "รักษาครบที่นี่ ใกล้บ้านและญาติดูแลได้",
+              "en": "Full treatment here, close to home and family."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "e",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Three review rounds by fresh reviewers against the 2024 ADA/EASD/JBDS consensus, WHO and Thai practice, the later two on the gate-revised text. Doses (insulin 0.1 units/kg/h, 0.05 units/kg/h as the weaker option), the potassium thresholds, the moderate grade at pH 7.15 and the fluids-first order match the consensus; every insulin option states how potassium is handled and every first-test option checks glucose. Fixed in review: ketones added to the step-2 R osmolality panel; a 2-hourly-glucose drip option replaced with a bolus-then-drip option; the urine-ketone reveal on minimal-test paths reworded; Thai/English route words aligned. SC rapid-acting insulin stays at the reasonable tier, limited to uncomplicated mild to moderate DKA. Third round on v3: bedside-test options added to step-2 B and W; the refer option added to K-unknown banks with K replaced and insulin gated on safe K; two parity fixes applied. Sandbox run pending."
+    }
+  }
+}
