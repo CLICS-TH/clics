@@ -1,10 +1,10 @@
 {
   "case_id": "dka-young-adult",
-  "version": "1",
+  "version": "2",
   "event_code": "NFCME-2026",
   "teaser": {
-    "th": "นักศึกษาหญิงอายุ 20 ปี อาเจียนและหายใจหอบลึกตั้งแต่เมื่อวาน",
-    "en": "A 20-year-old student vomiting and breathing deep and fast since yesterday"
+    "th": "นักศึกษาหญิงอายุ 20 ปี มาโรงพยาบาลชุมชน อาเจียนและหอบเหนื่อยตั้งแต่เมื่อวาน",
+    "en": "A 20-year-old female student at a community hospital, vomiting and breathless since yesterday"
   },
   "vignette": {
     "th": "ผู้ป่วยสมมติ หญิงอายุ 20 ปี นักศึกษามหาวิทยาลัย มาโรงพยาบาลชุมชนด้วยอาเจียนหลายครั้งและปวดท้องมา 1 วัน สองสัปดาห์ก่อนกระหายน้ำ ปัสสาวะบ่อย และน้ำหนักลด 4 กิโลกรัม อุณหภูมิ 37.2 องศาเซลเซียส ชีพจร 120 ครั้งต่อนาที ความดันโลหิต 100/62 มม.ปรอท หายใจลึกและเร็ว 30 ครั้งต่อนาที ปากแห้ง ลมหายใจมีกลิ่นผลไม้ ท้องกดเจ็บทั่วไปเล็กน้อย ซึมเล็กน้อยแต่ตอบคำถามได้",
@@ -64,7 +64,7 @@
           "id": "c",
           "tier": "reasonable",
           "label": {
-            "th": "ภาวะออสโมลาร์สูง (HHS)",
+            "th": "ภาวะน้ำตาลสูงออสโมลาร์สูง",
             "en": "Hyperosmolar hyperglycaemic state"
           },
           "line": {
@@ -131,26 +131,14 @@
             },
             "line": {
               "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
-              "en": "Confirms the crisis type, grades acidosis and measures K."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "reasonable",
-            "label": {
-              "th": "น้ำตาลปลายนิ้วและปัสสาวะ",
-              "en": "Fingerstick glucose, urine dipstick"
-            },
-            "line": {
-              "th": "ทำข้างเตียงได้ทันที เห็นน้ำตาลและคีโตนในปัสสาวะ",
-              "en": "Bedside and instant, showing glucose and urine ketones."
+              "en": "Confirms the crisis type, measures acidity and K."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำตาลและคีโตนปลายนิ้ว",
+              "th": "น้ำตาลและคีโตนจากปลายนิ้ว",
               "en": "Fingerstick glucose and ketone"
             },
             "line": {
@@ -159,34 +147,22 @@
             }
           },
           {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "CBC และเพาะเชื้อในเลือด",
-              "en": "CBC and blood culture"
-            },
-            "line": {
-              "th": "หาการติดเชื้อที่อาจเป็นตัวกระตุ้นของอาการ",
-              "en": "Looks for an infection that may have set this off."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อัลตราซาวด์ช่องท้อง",
-              "en": "Abdominal ultrasound"
+              "th": "น้ำตาลปลายนิ้วอย่างเดียว",
+              "en": "Fingerstick glucose only"
             },
             "line": {
-              "th": "หาสาเหตุของอาการปวดท้องและอาเจียน",
-              "en": "Looks for a cause of the pain and vomiting."
+              "th": "ตรวจง่ายที่สุด และบอกได้ทันทีว่าน้ำตาลสูง",
+              "en": "The simplest bedside test, showing high glucose at once."
             }
           }
         ],
         "default_trio": [
           "a",
-          "b",
-          "d"
+          "c",
+          "e"
         ]
       },
       "R": {
@@ -201,8 +177,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ควรส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Which tests come first?"
+              "th": "ตรวจอะไรเพื่อแยก DKA กับ HHS",
+              "en": "Which tests tell DKA from HHS?"
             }
           }
         ],
@@ -216,14 +192,26 @@
             },
             "line": {
               "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
-              "en": "Confirms the crisis type, grades acidosis and measures K."
+              "en": "Confirms the crisis type, measures acidity and K."
             }
           },
           {
             "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน ออสโมลาลิตี VBG K",
+              "en": "Glucose, ketone, osmolality, VBG, K"
+            },
+            "line": {
+              "th": "แยก DKA ออกจาก HHS และได้ค่า K ในคราวเดียว",
+              "en": "Tells DKA from HHS and measures K in one go."
+            }
+          },
+          {
+            "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำตาลปลายนิ้วและปัสสาวะ",
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
               "en": "Fingerstick glucose, urine dipstick"
             },
             "line": {
@@ -232,46 +220,22 @@
             }
           },
           {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "น้ำตาลและคีโตนปลายนิ้ว",
-              "en": "Fingerstick glucose and ketone"
-            },
-            "line": {
-              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
-              "en": "Quick bedside tests that confirm high ketones."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "CBC และเพาะเชื้อในเลือด",
-              "en": "CBC and blood culture"
-            },
-            "line": {
-              "th": "หาการติดเชื้อที่อาจเป็นตัวกระตุ้นของอาการ",
-              "en": "Looks for an infection that may have set this off."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อัลตราซาวด์ช่องท้อง",
-              "en": "Abdominal ultrasound"
+              "th": "น้ำตาลปลายนิ้วอย่างเดียว",
+              "en": "Fingerstick glucose only"
             },
             "line": {
-              "th": "หาสาเหตุของอาการปวดท้องและอาเจียน",
-              "en": "Looks for a cause of the pain and vomiting."
+              "th": "ตรวจง่ายที่สุด และบอกได้ทันทีว่าน้ำตาลสูง",
+              "en": "The simplest bedside test, showing high glucose at once."
             }
           }
         ],
         "default_trio": [
-          "a",
           "b",
-          "d"
+          "d",
+          "e"
         ]
       },
       "W": {
@@ -301,14 +265,14 @@
             },
             "line": {
               "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
-              "en": "Confirms the crisis type, grades acidosis and measures K."
+              "en": "Confirms the crisis type, measures acidity and K."
             }
           },
           {
-            "id": "b",
+            "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "น้ำตาลปลายนิ้วและปัสสาวะ",
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
               "en": "Fingerstick glucose, urine dipstick"
             },
             "line": {
@@ -317,46 +281,22 @@
             }
           },
           {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "น้ำตาลและคีโตนปลายนิ้ว",
-              "en": "Fingerstick glucose and ketone"
-            },
-            "line": {
-              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
-              "en": "Quick bedside tests that confirm high ketones."
-            }
-          },
-          {
-            "id": "d",
+            "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "CBC และเพาะเชื้อในเลือด",
-              "en": "CBC and blood culture"
+              "th": "น้ำตาลปลายนิ้วและ CBC",
+              "en": "Fingerstick glucose and CBC"
             },
             "line": {
-              "th": "หาการติดเชื้อที่อาจเป็นตัวกระตุ้นของอาการ",
-              "en": "Looks for an infection that may have set this off."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "อัลตราซาวด์ช่องท้อง",
-              "en": "Abdominal ultrasound"
-            },
-            "line": {
-              "th": "หาสาเหตุของอาการปวดท้องและอาเจียน",
-              "en": "Looks for a cause of the pain and vomiting."
+              "th": "ดูน้ำตาลพร้อมหาการติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "en": "Checks glucose and looks for an infection that set this off."
             }
           }
         ],
         "default_trio": [
           "a",
-          "b",
-          "d"
+          "d",
+          "f"
         ]
       }
     },
@@ -366,8 +306,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "น้ำตาล 450 pH 7.15 HCO₃ 11 K 4.6 จะรักษาอย่างไร",
-              "en": "Glucose 450 mg/dL, pH 7.15, HCO₃ 11, K 4.6. Your plan?"
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
             }
           },
           {
@@ -384,7 +324,7 @@
             "tier": "best",
             "label": {
               "th": "NSS อินซูลินหยด และเติม K",
-              "en": "IV saline, insulin drip, potassium"
+              "en": "Saline, insulin drip, potassium"
             },
             "line": {
               "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
@@ -399,32 +339,32 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "เริ่มสารน้ำและอินซูลินที่นี่ แล้วส่งไปดูแลใกล้ชิด",
-              "en": "Fluids and insulin start here, then transfer for close care."
+              "th": "สารน้ำ อินซูลินหยด และ K เริ่มที่นี่ก่อนส่งต่อ",
+              "en": "Fluids, insulin drip and K start here before transfer."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "NSS และอินซูลินใต้ผิวหนัง",
-              "en": "IV saline and SC rapid insulin"
+              "th": "NSS K อินซูลินออกฤทธิ์เร็ว SC",
+              "en": "Saline, K, SC rapid-acting insulin"
             },
             "line": {
-              "th": "อินซูลินใต้ผิวหนังใช้ได้ใน DKA ระดับเบาถึงปานกลาง",
-              "en": "SC rapid insulin works in mild to moderate DKA."
+              "th": "ใช้ได้ใน DKA เบาถึงปานกลางที่ปราศจากภาวะแทรกซ้อน",
+              "en": "Suits uncomplicated mild to moderate DKA."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
             }
           }
         ],
@@ -457,7 +397,7 @@
             "tier": "best",
             "label": {
               "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
-              "en": "Saline now, check K, insulin drip"
+              "en": "Saline, check K, insulin drip"
             },
             "line": {
               "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
@@ -465,39 +405,27 @@
             }
           },
           {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
-              "en": "Start DKA treatment, then refer"
-            },
-            "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
-              "en": "Fluids, a K check and insulin start here before transfer."
-            }
-          },
-          {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
-              "en": "Saline, check K, SC rapid insulin"
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
             },
             "line": {
-              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
-              "en": "After a K check, SC insulin suits mild to moderate DKA."
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
             }
           }
         ],
@@ -512,8 +440,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "พยาบาลพบน้ำตาล 450 มก./ดล. คีโตนปัสสาวะ 3+ ทำอย่างไร",
-              "en": "The nurse finds glucose 450 mg/dL and urine ketones 3+. Your plan?"
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
             }
           },
           {
@@ -530,7 +458,7 @@
             "tier": "best",
             "label": {
               "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
-              "en": "Saline now, check K, insulin drip"
+              "en": "Saline, check K, insulin drip"
             },
             "line": {
               "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
@@ -545,38 +473,38 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลินที่นี่ แล้วส่งต่อ",
               "en": "Fluids, a K check and insulin start here before transfer."
             }
           },
           {
-            "id": "c",
+            "id": "e",
             "tier": "reasonable",
             "label": {
-              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
-              "en": "Saline, check K, SC rapid insulin"
+              "th": "NSS ตรวจ K อินซูลินหยดในหอ",
+              "en": "Saline, K check, ward insulin drip"
             },
             "line": {
-              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
-              "en": "After a K check, SC insulin suits mild to moderate DKA."
+              "th": "รักษาครบที่นี่ ใกล้บ้านและญาติดูแลได้",
+              "en": "Full treatment here, close to home and family."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
             }
           }
         ],
         "default_trio": [
           "a",
-          "c",
+          "e",
           "d"
         ]
       },
@@ -585,8 +513,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "น้ำตาล 450 pH 7.15 HCO₃ 11 K 4.6 จะรักษาอย่างไร",
-              "en": "Glucose 450 mg/dL, pH 7.15, HCO₃ 11, K 4.6. Your plan?"
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
             }
           },
           {
@@ -603,7 +531,7 @@
             "tier": "best",
             "label": {
               "th": "NSS อินซูลินหยด และเติม K",
-              "en": "IV saline, insulin drip, potassium"
+              "en": "Saline, insulin drip, potassium"
             },
             "line": {
               "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
@@ -618,32 +546,32 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "เริ่มสารน้ำและอินซูลินที่นี่ แล้วส่งไปดูแลใกล้ชิด",
-              "en": "Fluids and insulin start here, then transfer for close care."
+              "th": "สารน้ำ อินซูลินหยด และ K เริ่มที่นี่ก่อนส่งต่อ",
+              "en": "Fluids, insulin drip and K start here before transfer."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "NSS และอินซูลินใต้ผิวหนัง",
-              "en": "IV saline and SC rapid insulin"
+              "th": "NSS K อินซูลินออกฤทธิ์เร็ว SC",
+              "en": "Saline, K, SC rapid-acting insulin"
             },
             "line": {
-              "th": "อินซูลินใต้ผิวหนังใช้ได้ใน DKA ระดับเบาถึงปานกลาง",
-              "en": "SC rapid insulin works in mild to moderate DKA."
+              "th": "ใช้ได้ใน DKA เบาถึงปานกลางที่ปราศจากภาวะแทรกซ้อน",
+              "en": "Suits uncomplicated mild to moderate DKA."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
             }
           }
         ],
@@ -676,7 +604,7 @@
             "tier": "best",
             "label": {
               "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
-              "en": "Saline now, check K, insulin drip"
+              "en": "Saline, check K, insulin drip"
             },
             "line": {
               "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
@@ -684,39 +612,27 @@
             }
           },
           {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
-              "en": "Start DKA treatment, then refer"
-            },
-            "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
-              "en": "Fluids, a K check and insulin start here before transfer."
-            }
-          },
-          {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
-              "en": "Saline, check K, SC rapid insulin"
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
             },
             "line": {
-              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
-              "en": "After a K check, SC insulin suits mild to moderate DKA."
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
             }
           }
         ],
@@ -731,8 +647,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "พยาบาลพบน้ำตาล 450 มก./ดล. คีโตนปัสสาวะ 3+ ทำอย่างไร",
-              "en": "The nurse finds glucose 450 mg/dL and urine ketones 3+. Your plan?"
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
             }
           },
           {
@@ -749,7 +665,7 @@
             "tier": "best",
             "label": {
               "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
-              "en": "Saline now, check K, insulin drip"
+              "en": "Saline, check K, insulin drip"
             },
             "line": {
               "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
@@ -764,38 +680,38 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลินที่นี่ แล้วส่งต่อ",
               "en": "Fluids, a K check and insulin start here before transfer."
             }
           },
           {
-            "id": "c",
+            "id": "e",
             "tier": "reasonable",
             "label": {
-              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
-              "en": "Saline, check K, SC rapid insulin"
+              "th": "NSS ตรวจ K อินซูลินหยดในหอ",
+              "en": "Saline, K check, ward insulin drip"
             },
             "line": {
-              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
-              "en": "After a K check, SC insulin suits mild to moderate DKA."
+              "th": "รักษาครบที่นี่ ใกล้บ้านและญาติดูแลได้",
+              "en": "Full treatment here, close to home and family."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
             }
           }
         ],
         "default_trio": [
           "a",
-          "c",
+          "e",
           "d"
         ]
       },
@@ -804,8 +720,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "น้ำตาล 450 pH 7.15 HCO₃ 11 K 4.6 จะรักษาอย่างไร",
-              "en": "Glucose 450 mg/dL, pH 7.15, HCO₃ 11, K 4.6. Your plan?"
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
             }
           },
           {
@@ -822,7 +738,7 @@
             "tier": "best",
             "label": {
               "th": "NSS อินซูลินหยด และเติม K",
-              "en": "IV saline, insulin drip, potassium"
+              "en": "Saline, insulin drip, potassium"
             },
             "line": {
               "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
@@ -837,32 +753,32 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "เริ่มสารน้ำและอินซูลินที่นี่ แล้วส่งไปดูแลใกล้ชิด",
-              "en": "Fluids and insulin start here, then transfer for close care."
+              "th": "สารน้ำ อินซูลินหยด และ K เริ่มที่นี่ก่อนส่งต่อ",
+              "en": "Fluids, insulin drip and K start here before transfer."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "NSS และอินซูลินใต้ผิวหนัง",
-              "en": "IV saline and SC rapid insulin"
+              "th": "NSS K อินซูลินออกฤทธิ์เร็ว SC",
+              "en": "Saline, K, SC rapid-acting insulin"
             },
             "line": {
-              "th": "อินซูลินใต้ผิวหนังใช้ได้ใน DKA ระดับเบาถึงปานกลาง",
-              "en": "SC rapid insulin works in mild to moderate DKA."
+              "th": "ใช้ได้ใน DKA เบาถึงปานกลางที่ปราศจากภาวะแทรกซ้อน",
+              "en": "Suits uncomplicated mild to moderate DKA."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
             }
           }
         ],
@@ -895,7 +811,7 @@
             "tier": "best",
             "label": {
               "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
-              "en": "Saline now, check K, insulin drip"
+              "en": "Saline, check K, insulin drip"
             },
             "line": {
               "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
@@ -903,39 +819,27 @@
             }
           },
           {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
-              "en": "Start DKA treatment, then refer"
-            },
-            "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
-              "en": "Fluids, a K check and insulin start here before transfer."
-            }
-          },
-          {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
-              "en": "Saline, check K, SC rapid insulin"
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
             },
             "line": {
-              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
-              "en": "After a K check, SC insulin suits mild to moderate DKA."
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
             }
           }
         ],
@@ -950,8 +854,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "พยาบาลพบน้ำตาล 450 มก./ดล. คีโตนปัสสาวะ 3+ ทำอย่างไร",
-              "en": "The nurse finds glucose 450 mg/dL and urine ketones 3+. Your plan?"
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
             }
           },
           {
@@ -968,7 +872,7 @@
             "tier": "best",
             "label": {
               "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
-              "en": "Saline now, check K, insulin drip"
+              "en": "Saline, check K, insulin drip"
             },
             "line": {
               "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
@@ -983,38 +887,38 @@
               "en": "Start DKA treatment, then refer"
             },
             "line": {
-              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลินที่นี่ แล้วส่งต่อ",
               "en": "Fluids, a K check and insulin start here before transfer."
             }
           },
           {
-            "id": "c",
+            "id": "e",
             "tier": "reasonable",
             "label": {
-              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
-              "en": "Saline, check K, SC rapid insulin"
+              "th": "NSS ตรวจ K อินซูลินหยดในหอ",
+              "en": "Saline, K check, ward insulin drip"
             },
             "line": {
-              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
-              "en": "After a K check, SC insulin suits mild to moderate DKA."
+              "th": "รักษาครบที่นี่ ใกล้บ้านและญาติดูแลได้",
+              "en": "Full treatment here, close to home and family."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ให้ NSS และส่งต่อด่วน",
-              "en": "IV saline and urgent referral"
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
-              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
             }
           }
         ],
         "default_trio": [
           "a",
-          "c",
+          "e",
           "d"
         ]
       }
@@ -1024,7 +928,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Fresh reviewer checked all 13 banks against the 2024 ADA/EASD/JBDS hyperglycaemic-crisis consensus, WHO and Thai practice. 2 must-fix: on the six step-3 paths with potassium unmeasured, a best and a reasonable option started insulin with no K check; both now check K first. 4 should-fix: a urine result shown to players who ordered a blood ketone test (now 'bedside tests'), and three Thai/English mismatches (K in the drip, transfer in the refer line, 'diabetic' in the DKA label). 4 nits fixed: no 'Confirms DKA' on the HHS path, 'new' in the T1DM label, a Thai line that only listed symptoms, Thai units. Key numbers (moderate DKA pH 7.15, HCO3 11; insulin 0.1 U/kg/h) confirmed correct. Sandbox run pending."
+      "findings": "Two review rounds by fresh reviewers against the 2024 ADA/EASD/JBDS consensus, WHO and Thai practice, the second on the gate-revised text. Doses (insulin 0.1 units/kg/h, 0.05 units/kg/h as the weaker option), the potassium thresholds, the moderate grade at pH 7.15 and the fluids-first order match the consensus; every insulin option states how potassium is handled and every first-test option checks glucose. Fixed in review: ketones added to the step-2 R osmolality panel; a 2-hourly-glucose drip option replaced with a bolus-then-drip option; the urine-ketone reveal on minimal-test paths reworded; Thai/English route words aligned. SC rapid-acting insulin stays at the reasonable tier, limited to uncomplicated mild to moderate DKA. Sandbox run pending."
     }
   }
 }
