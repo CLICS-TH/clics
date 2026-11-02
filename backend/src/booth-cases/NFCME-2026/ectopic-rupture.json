@@ -1,0 +1,1143 @@
+{
+  "case_id": "ectopic-rupture",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "หญิงวัย 28 ปี เป็นลมหลังปวดอุ้งเชิงกรานทันที",
+    "en": "A 28-year-old woman who fainted after sudden pelvic pain"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ หญิงอายุ 28 ปี มาโรงพยาบาลชุมชนด้วยปวดท้องน้อยซ้ายขึ้นทันทีมา 2 ชั่วโมง เป็นลมในห้องน้ำ 1 ครั้ง และปวดร้าวที่ปลายไหล่ ประจำเดือนขาดมา 7 สัปดาห์ มีเลือดออกทางช่องคลอดเล็กน้อย ชีพจร 120 ครั้งต่อนาที ความดันโลหิต 88/56 มม.ปรอท ซีดและเหงื่อออก ท้องน้อยกดเจ็บและเกร็ง ไม่มีไข้",
+    "en": "A fictional 28-year-old woman comes to a community hospital with sudden left lower abdominal pain for 2 hours. She fainted once in the bathroom and has pain at the tip of her shoulder. Her period is 7 weeks late, with light vaginal spotting. Pulse 120/min, BP 88/56 mmHg. She is pale and sweaty, and her lower abdomen is tender with guarding. No fever."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "ภาวะใดอธิบายอาการช็อกของเธอได้ดีที่สุด",
+            "en": "Which diagnosis best explains her shock?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "คุณคิดว่าอาการนี้เกิดจากอะไร",
+            "en": "What do you think is causing this?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ท้องนอกมดลูกแตก",
+            "en": "Ruptured ectopic pregnancy"
+          },
+          "line": {
+            "th": "ประจำเดือนขาด ปวดท้องทันที และช็อก เข้าได้ดี",
+            "en": "A late period, sudden pain and shock fit it well."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "ท้องนอกมดลูก มีเลือดออกในท้อง",
+            "en": "Tubal pregnancy, bleeding inside"
+          },
+          "line": {
+            "th": "ปวดร้าวที่ปลายไหล่บ่งว่ามีเลือดในช่องท้อง",
+            "en": "Shoulder-tip pain points to blood in the abdomen."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ถุงน้ำคอร์ปัสลูเทียมแตก",
+            "en": "Ruptured corpus luteum cyst"
+          },
+          "line": {
+            "th": "ถุงน้ำรังไข่ที่แตกทำให้เลือดออกในช่องท้องได้",
+            "en": "A burst ovarian cyst can bleed into the abdomen."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "reasonable",
+          "label": {
+            "th": "แท้งบุตร",
+            "en": "Miscarriage"
+          },
+          "line": {
+            "th": "ประจำเดือนขาดร่วมกับเลือดออกทางช่องคลอดพบบ่อย",
+            "en": "A late period with vaginal bleeding is a common pattern."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ไส้ติ่งอักเสบเฉียบพลัน",
+            "en": "Acute appendicitis"
+          },
+          "line": {
+            "th": "ปวดท้องน้อยร่วมกับกดเจ็บและเกร็งเป็นอาการเด่น",
+            "en": "Lower abdominal pain with guarding is its classic sign."
+          }
+        },
+        {
+          "id": "f",
+          "tier": "weaker",
+          "label": {
+            "th": "รังไข่บิดขั้ว",
+            "en": "Ovarian torsion"
+          },
+          "line": {
+            "th": "ปวดท้องน้อยข้างเดียวขึ้นทันทีพบได้บ่อย",
+            "en": "Sudden one-sided pelvic pain is typical of it."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "e"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เปิดเส้นให้สารน้ำสองเส้นแล้ว ควรส่งตรวจอะไรก่อน",
+              "en": "Two IV lines are running. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้สารน้ำแล้ว จะตรวจอะไรเป็นอย่างแรก",
+              "en": "Fluids are running. What do you check first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "upt_scan",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจครรภ์และอัลตราซาวด์",
+              "en": "Pregnancy test + bedside scan"
+            },
+            "line": {
+              "th": "รู้ผลภายในนาที และเห็นเลือดในช่องท้องได้",
+              "en": "Answers in minutes and can show blood in the abdomen."
+            }
+          },
+          {
+            "id": "xmatch",
+            "tier": "best",
+            "label": {
+              "th": "หมู่เลือด จองเลือด และ Hb",
+              "en": "Group, cross-match and Hb"
+            },
+            "line": {
+              "th": "เตรียมเลือดให้พร้อมสำหรับให้เลือดและผ่าตัด",
+              "en": "Gets blood ready for transfusion and the operation."
+            }
+          },
+          {
+            "id": "bhcg",
+            "tier": "reasonable",
+            "label": {
+              "th": "ระดับ β-hCG ในเลือด",
+              "en": "Serum β-hCG level"
+            },
+            "line": {
+              "th": "ได้ระดับฮอร์โมนไว้อ่านคู่กับผลอัลตราซาวด์",
+              "en": "Gives a hormone level to read alongside the scan."
+            }
+          },
+          {
+            "id": "tvs",
+            "tier": "reasonable",
+            "label": {
+              "th": "อัลตราซาวด์ทางช่องคลอด",
+              "en": "Transvaginal ultrasound"
+            },
+            "line": {
+              "th": "เห็นมดลูกและท่อนำไข่ได้ชัดกว่า",
+              "en": "Gives a clearer view of the uterus and tubes."
+            }
+          },
+          {
+            "id": "cbc_ua",
+            "tier": "weaker",
+            "label": {
+              "th": "CBC และตรวจปัสสาวะ",
+              "en": "CBC and urinalysis"
+            },
+            "line": {
+              "th": "ดูความเข้มข้นเลือดและคัดกรองการติดเชื้อทางปัสสาวะ",
+              "en": "Shows the blood count and screens for a urine infection."
+            }
+          }
+        ],
+        "default_trio": [
+          "upt_scan",
+          "bhcg",
+          "cbc_ua"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้สารน้ำทางหลอดเลือดแล้ว ควรส่งตรวจอะไรก่อน",
+              "en": "IV fluids are running. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "การตรวจใดช่วยบอกได้ว่าเลือดออกจากที่ใด",
+              "en": "Which test helps show where the bleeding comes from?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "upt_scan",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจครรภ์และอัลตราซาวด์",
+              "en": "Pregnancy test + bedside scan"
+            },
+            "line": {
+              "th": "รู้ผลภายในนาที และเห็นเลือดในช่องท้องได้",
+              "en": "Answers in minutes and can show blood in the abdomen."
+            }
+          },
+          {
+            "id": "xmatch",
+            "tier": "best",
+            "label": {
+              "th": "หมู่เลือด จองเลือด และ Hb",
+              "en": "Group, cross-match and Hb"
+            },
+            "line": {
+              "th": "เตรียมเลือดให้พร้อมสำหรับให้เลือดและผ่าตัด",
+              "en": "Gets blood ready for transfusion and the operation."
+            }
+          },
+          {
+            "id": "tvs",
+            "tier": "reasonable",
+            "label": {
+              "th": "อัลตราซาวด์ทางช่องคลอด",
+              "en": "Transvaginal ultrasound"
+            },
+            "line": {
+              "th": "เห็นมดลูกและท่อนำไข่ได้ชัดกว่า",
+              "en": "Gives a clearer view of the uterus and tubes."
+            }
+          },
+          {
+            "id": "bhcg",
+            "tier": "reasonable",
+            "label": {
+              "th": "ระดับ β-hCG ในเลือด",
+              "en": "Serum β-hCG level"
+            },
+            "line": {
+              "th": "ได้ระดับฮอร์โมนไว้อ่านคู่กับผลอัลตราซาวด์",
+              "en": "Gives a hormone level to read alongside the scan."
+            }
+          },
+          {
+            "id": "cbc_ua",
+            "tier": "weaker",
+            "label": {
+              "th": "CBC และตรวจปัสสาวะ",
+              "en": "CBC and urinalysis"
+            },
+            "line": {
+              "th": "ดูความเข้มข้นเลือดและคัดกรองการติดเชื้อทางปัสสาวะ",
+              "en": "Shows the blood count and screens for a urine infection."
+            }
+          }
+        ],
+        "default_trio": [
+          "upt_scan",
+          "tvs",
+          "cbc_ua"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เธอได้สารน้ำทางหลอดเลือดแล้ว ควรส่งตรวจอะไรก่อน",
+              "en": "She is on IV fluids. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "หญิงวัยเจริญพันธุ์ปวดท้องแบบนี้ ควรตรวจอะไรก่อน",
+              "en": "A woman of childbearing age with this pain. Which test first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "upt_scan",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจครรภ์และอัลตราซาวด์",
+              "en": "Pregnancy test + bedside scan"
+            },
+            "line": {
+              "th": "รู้ผลภายในนาที และเห็นเลือดในช่องท้องได้",
+              "en": "Answers in minutes and can show blood in the abdomen."
+            }
+          },
+          {
+            "id": "xmatch",
+            "tier": "best",
+            "label": {
+              "th": "หมู่เลือด จองเลือด และ Hb",
+              "en": "Group, cross-match and Hb"
+            },
+            "line": {
+              "th": "เตรียมเลือดให้พร้อมสำหรับให้เลือดและผ่าตัด",
+              "en": "Gets blood ready for transfusion and the operation."
+            }
+          },
+          {
+            "id": "bhcg",
+            "tier": "reasonable",
+            "label": {
+              "th": "ระดับ β-hCG ในเลือด",
+              "en": "Serum β-hCG level"
+            },
+            "line": {
+              "th": "ได้ระดับฮอร์โมนไว้อ่านคู่กับผลอัลตราซาวด์",
+              "en": "Gives a hormone level to read alongside the scan."
+            }
+          },
+          {
+            "id": "cbc_ua",
+            "tier": "weaker",
+            "label": {
+              "th": "CBC และตรวจปัสสาวะ",
+              "en": "CBC and urinalysis"
+            },
+            "line": {
+              "th": "ดูความเข้มข้นเลือดและคัดกรองการติดเชื้อทางปัสสาวะ",
+              "en": "Shows the blood count and screens for a urine infection."
+            }
+          },
+          {
+            "id": "glu_lyte",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลและเกลือแร่ในเลือด",
+              "en": "Blood glucose and electrolytes"
+            },
+            "line": {
+              "th": "หาสาเหตุทางเมแทบอลิกของอาการเป็นลม",
+              "en": "Looks for a metabolic cause of the fainting."
+            }
+          }
+        ],
+        "default_trio": [
+          "upt_scan",
+          "bhcg",
+          "glu_lyte"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ตรวจครรภ์ผลบวก อัลตราซาวด์พบน้ำในช่องท้อง จะทำอย่างไร",
+              "en": "Urine hCG is positive and the scan shows free fluid. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ยืนยันว่าตั้งครรภ์และมีเลือดในช่องท้อง ขั้นต่อไปคืออะไร",
+              "en": "Pregnancy is confirmed with blood in the abdomen. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลยืนยันการตั้งครรภ์ ความดันลดลงเหลือ 84/50 จะดูแลอย่างไร",
+              "en": "The results confirm a pregnancy and her BP falls to 84/50. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "โพรงมดลูกว่างและมีน้ำในช่องท้อง ขั้นต่อไปคืออะไร",
+              "en": "The uterus is empty and there is free fluid. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "Hb 8.2 ความดัน 82/50 ตรวจครรภ์ผลบวก จะทำอย่างไร",
+              "en": "Hb is 8.2 and BP falls to 82/50. Urine hCG is positive. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจครรภ์เป็นบวกและเธอซีดลง ขั้นต่อไปคืออะไร",
+              "en": "Her pregnancy test is positive and she looks paler. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ครรภ์ผลบวก มดลูกว่าง และมีน้ำในช่องท้อง จะทำอย่างไร",
+              "en": "hCG is positive, the uterus is empty and there is free fluid. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเข้าได้กับท้องนอกมดลูกที่มีเลือดออก ขั้นต่อไปคืออะไร",
+              "en": "The results fit a bleeding ectopic pregnancy. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "โพรงมดลูกว่าง มีก้อนข้างมดลูกซ้ายและน้ำในท้อง จะทำอย่างไร",
+              "en": "Empty uterus, a left adnexal mass and free fluid. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ความดันลดเหลือ 84/50 และตรวจครรภ์ผลบวก ขั้นต่อไปคืออะไร",
+              "en": "Her BP falls to 84/50 and hCG is positive. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "Hb 8.2 ตรวจครรภ์ผลบวก ความดัน 82/50 จะทำอย่างไร",
+              "en": "Hb is 8.2, hCG is positive and BP is now 82/50. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลบ่งว่าเป็นท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
+              "en": "The picture points to a ruptured ectopic. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ครรภ์ผลบวก มดลูกว่างและมีน้ำในท้อง จะทำอย่างไร",
+              "en": "hCG is positive and the scan shows an empty uterus and free fluid. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นี่คือท้องนอกมดลูกแตก ความดัน 84/50 ขั้นต่อไปคืออะไร",
+              "en": "This is a ruptured ectopic pregnancy, BP 84/50. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลบ่งว่าท้องนอกมดลูกแตก ความดัน 84/50 จะทำอย่างไร",
+              "en": "The results show a ruptured ectopic pregnancy, BP 84/50. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "โพรงมดลูกว่างและมีเลือดในช่องท้อง ขั้นต่อไปคืออะไร",
+              "en": "The uterus is empty and there is blood in the abdomen. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "Hb 8.2 ตรวจครรภ์ผลบวก นี่คือท้องนอกมดลูกแตก จะทำอย่างไร",
+              "en": "Hb is 8.2 and hCG is positive. This is a ruptured ectopic. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ความดันลดเหลือ 82/50 จากท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
+              "en": "Her BP falls to 82/50 from a ruptured ectopic. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "operate",
+            "tier": "best",
+            "label": {
+              "th": "กู้ชีพและผ่าตัดฉุกเฉิน",
+              "en": "Resuscitate and operate now"
+            },
+            "line": {
+              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
+              "en": "Blood plus removal of the tube stops the bleeding."
+            }
+          },
+          {
+            "id": "transfer",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อด่วน ให้เลือดระหว่างทาง",
+              "en": "Urgent transfer with blood running"
+            },
+            "line": {
+              "th": "แจ้งห้องผ่าตัดปลายทาง มีพยาบาลและเลือดไปด้วย",
+              "en": "Theatre is called ahead, with a nurse and blood on board."
+            }
+          },
+          {
+            "id": "lap",
+            "tier": "reasonable",
+            "label": {
+              "th": "ผ่าตัดผ่านกล้อง",
+              "en": "Laparoscopic salpingectomy"
+            },
+            "line": {
+              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
+              "en": "Smaller wounds and a faster recovery with a skilled team."
+            }
+          },
+          {
+            "id": "saline2l",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 2 ลิตร แล้วผ่าตัด",
+              "en": "2 L saline bolus, then surgery"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรในหลอดเลือดได้เร็วก่อนเข้าห้องผ่าตัด",
+              "en": "Restores volume quickly on the way to theatre."
+            }
+          },
+          {
+            "id": "salpingostomy",
+            "tier": "weaker",
+            "label": {
+              "th": "ผ่าตัดเปิดท่อนำไข่ เก็บท่อไว้",
+              "en": "Salpingostomy to keep the tube"
+            },
+            "line": {
+              "th": "เก็บท่อนำไข่ไว้เพื่อโอกาสตั้งครรภ์ในอนาคต",
+              "en": "Keeps the tube for a future pregnancy."
+            }
+          }
+        ],
+        "default_trio": [
+          "operate",
+          "saline2l",
+          "salpingostomy"
+        ]
+      }
+    }
+  }
+}
