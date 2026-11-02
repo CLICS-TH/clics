@@ -50,7 +50,7 @@
           },
           "line": {
             "th": "ตาโหล กระหายน้ำ หนังคืนช้า บ่งว่าขาดน้ำปานกลาง",
-            "en": "Sunken eyes, thirst and slow skin pinch mark moderate loss."
+            "en": "Sunken eyes, thirst and slow skin pinch mark moderate dehydration."
           }
         },
         {
@@ -74,7 +74,7 @@
           },
           "line": {
             "th": "ไข้และอาเจียนในเด็กเล็กอาจมาจากทางเดินปัสสาวะ",
-            "en": "Fever and vomiting in a toddler can come from the urine."
+            "en": "Fever and vomiting in a toddler can come from a urinary infection."
           }
         },
         {
@@ -291,8 +291,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Which first tests do you order?"
+              "th": "คุณจะตรวจหรือประเมินสิ่งใดก่อนเป็นอันดับแรก",
+              "en": "What do you check or assess first?"
             }
           }
         ],
@@ -404,7 +404,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -416,16 +416,16 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมต่อ และประเมินอาการซ้ำ",
-              "en": "Small frequent sips, feeding goes on, and the signs are rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
+              "en": "Small frequent sips, feeding goes on, signs rechecked."
             }
           },
           {
             "id": "ondan",
             "tier": "reasonable",
             "label": {
-              "th": "ออนแดนซีตรอน 1 ครั้ง ก่อน ORS",
-              "en": "One ondansetron dose before ORS"
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
@@ -440,8 +440,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -489,7 +489,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -497,8 +497,8 @@
             "id": "ondan",
             "tier": "reasonable",
             "label": {
-              "th": "ออนแดนซีตรอน 1 ครั้ง ก่อน ORS",
-              "en": "One ondansetron dose before ORS"
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
@@ -513,8 +513,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -530,15 +530,15 @@
             }
           },
           {
-            "id": "admitabx",
+            "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "รับไว้ ให้น้ำเกลือและยาปฏิชีวนะ",
-              "en": "Admit for IV fluids and antibiotics"
+              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "en": "ORS plus diosmectite"
             },
             "line": {
-              "th": "รักษาการขาดน้ำและเชื้อที่อาจเป็นสาเหตุไปพร้อมกัน",
-              "en": "Treats the fluid loss and a possible bacterial cause at once."
+              "th": "ไดออสเมคไทต์อาจช่วยลดปริมาณอุจจาระลงได้บ้าง",
+              "en": "Diosmectite may trim the stool output a little."
             }
           }
         ],
@@ -553,15 +553,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลตรวจช่วยได้น้อย เด็กยังตาโหลอยู่ จะดูแลอย่างไร",
+              "th": "ผลตรวจไม่ได้ช่วยมากนัก เด็กยังตาโหลอยู่ จะดูแลอย่างไร",
               "en": "The results add little, and her eyes are still sunken. How do you manage her?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ผลตรวจปกติ เด็กยังกระหายน้ำ แผนการรักษาคืออะไร",
-              "en": "The results are normal and she is still thirsty. What is your plan?"
+              "th": "ผลตรวจเบื้องต้นปกติ ยังกระหายน้ำ แผนการรักษาคืออะไร",
+              "en": "Early results are normal and she is still thirsty. What is your plan?"
             }
           }
         ],
@@ -574,8 +574,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมต่อ และประเมินอาการซ้ำ",
-              "en": "Small frequent sips, feeding goes on, and the signs are rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
+              "en": "Small frequent sips, feeding goes on, signs rechecked."
             }
           },
           {
@@ -586,7 +586,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -598,8 +598,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -647,7 +647,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -659,16 +659,16 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมต่อ และประเมินอาการซ้ำ",
-              "en": "Small frequent sips, feeding goes on, and the signs are rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
+              "en": "Small frequent sips, feeding goes on, signs rechecked."
             }
           },
           {
             "id": "ondan",
             "tier": "reasonable",
             "label": {
-              "th": "ออนแดนซีตรอน 1 ครั้ง ก่อน ORS",
-              "en": "One ondansetron dose before ORS"
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
@@ -720,7 +720,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -728,8 +728,8 @@
             "id": "ondan",
             "tier": "reasonable",
             "label": {
-              "th": "ออนแดนซีตรอน 1 ครั้ง ก่อน ORS",
-              "en": "One ondansetron dose before ORS"
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
@@ -744,8 +744,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -761,15 +761,15 @@
             }
           },
           {
-            "id": "admitabx",
+            "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "รับไว้ ให้น้ำเกลือและยาปฏิชีวนะ",
-              "en": "Admit for IV fluids and antibiotics"
+              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "en": "ORS plus diosmectite"
             },
             "line": {
-              "th": "รักษาการขาดน้ำและเชื้อที่อาจเป็นสาเหตุไปพร้อมกัน",
-              "en": "Treats the fluid loss and a possible bacterial cause at once."
+              "th": "ไดออสเมคไทต์อาจช่วยลดปริมาณอุจจาระลงได้บ้าง",
+              "en": "Diosmectite may trim the stool output a little."
             }
           }
         ],
@@ -784,15 +784,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลตรวจช่วยได้น้อย เด็กยังขาดน้ำปานกลาง จะดูแลอย่างไร",
+              "th": "ผลตรวจไม่ได้ช่วยมากนัก ยังขาดน้ำปานกลาง จะดูแลอย่างไร",
               "en": "Results add little; she is still moderately dehydrated. How do you manage her?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ผลตรวจปกติ ตาโหลและหนังคืนช้า แผนคืออะไร",
-              "en": "The results are normal, with sunken eyes and slow skin pinch. What is your plan?"
+              "th": "ผลตรวจเบื้องต้นปกติ ตาโหลและหนังคืนช้า แผนคืออะไร",
+              "en": "Early results are normal; sunken eyes, slow skin pinch. What is your plan?"
             }
           }
         ],
@@ -805,8 +805,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมต่อ และประเมินอาการซ้ำ",
-              "en": "Small frequent sips, feeding goes on, and the signs are rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
+              "en": "Small frequent sips, feeding goes on, signs rechecked."
             }
           },
           {
@@ -817,7 +817,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -829,8 +829,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -864,7 +864,7 @@
           {
             "id": "v2",
             "question": {
-              "th": "น้ำหนัก 10 กก. อาการเข้ากับขาดน้ำปานกลาง แผนคืออะไร",
+              "th": "น้ำหนัก 10 กก. อาการเข้าได้กับขาดน้ำปานกลาง แผนคืออะไร",
               "en": "She weighs 10 kg and her signs fit moderate dehydration. What is your plan?"
             }
           }
@@ -878,7 +878,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -890,16 +890,16 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมต่อ และประเมินอาการซ้ำ",
-              "en": "Small frequent sips, feeding goes on, and the signs are rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
+              "en": "Small frequent sips, feeding goes on, signs rechecked."
             }
           },
           {
             "id": "ondan",
             "tier": "reasonable",
             "label": {
-              "th": "ออนแดนซีตรอน 1 ครั้ง ก่อน ORS",
-              "en": "One ondansetron dose before ORS"
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
@@ -914,8 +914,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -949,8 +949,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ปัสสาวะปกติ ขาดน้ำปานกลางจากลำไส้อักเสบ แผนคืออะไร",
-              "en": "Urine is normal: gastroenteritis with moderate dehydration. What is your plan?"
+              "th": "ผลตรวจปกติ ขาดน้ำปานกลางจากลำไส้อักเสบ แผนคืออะไร",
+              "en": "Results are normal: gastroenteritis, moderate dehydration. What is your plan?"
             }
           }
         ],
@@ -963,7 +963,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -971,8 +971,8 @@
             "id": "ondan",
             "tier": "reasonable",
             "label": {
-              "th": "ออนแดนซีตรอน 1 ครั้ง ก่อน ORS",
-              "en": "One ondansetron dose before ORS"
+              "th": "ออนแดนซีตรอนกิน 1 ครั้งก่อน ORS",
+              "en": "One oral ondansetron dose before ORS"
             },
             "line": {
               "th": "ลดอาเจียน เพื่อให้เด็กดื่ม ORS ได้มากขึ้น",
@@ -987,8 +987,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -1004,15 +1004,15 @@
             }
           },
           {
-            "id": "admitabx",
+            "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "รับไว้ ให้น้ำเกลือและยาปฏิชีวนะ",
-              "en": "Admit for IV fluids and antibiotics"
+              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "en": "ORS plus diosmectite"
             },
             "line": {
-              "th": "รักษาการขาดน้ำและเชื้อที่อาจเป็นสาเหตุไปพร้อมกัน",
-              "en": "Treats the fluid loss and a possible bacterial cause at once."
+              "th": "ไดออสเมคไทต์อาจช่วยลดปริมาณอุจจาระลงได้บ้าง",
+              "en": "Diosmectite may trim the stool output a little."
             }
           }
         ],
@@ -1027,14 +1027,14 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลตรวจปกติ เป็นลำไส้อักเสบ ขาดน้ำปานกลาง แผนคืออะไร",
-              "en": "Tests are normal: gastroenteritis, moderate dehydration. What is your plan?"
+              "th": "ผลเบื้องต้นเข้าได้กับลำไส้อักเสบ ขาดน้ำปานกลาง แผนคืออะไร",
+              "en": "Early results fit gastroenteritis with moderate dehydration. What is your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ผลตรวจช่วยได้น้อย เด็กยังขาดน้ำปานกลาง แผนคืออะไร",
+              "th": "ผลตรวจไม่ได้ช่วยมากนัก ยังขาดน้ำปานกลาง แผนคืออะไร",
               "en": "Results add little; she is still moderately dehydrated. What is your plan?"
             }
           }
@@ -1048,7 +1048,7 @@
               "en": "ORS 750 mL over 4 h, plus zinc"
             },
             "line": {
-              "th": "ทดแทนน้ำที่ขาดทางปากตามแผน B ขององค์การอนามัยโลก",
+              "th": "ทดแทนน้ำที่ขาดทางปากใน 4 ชม. ตามแผน B ของ WHO",
               "en": "WHO Plan B replaces the deficit by mouth over 4 hours."
             }
           },
@@ -1060,8 +1060,8 @@
               "en": "ORS in hospital, recheck at 4 h"
             },
             "line": {
-              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมต่อ และประเมินอาการซ้ำ",
-              "en": "Small frequent sips, feeding goes on, and the signs are rechecked."
+              "th": "ป้อนทีละน้อยบ่อย ๆ ให้กินนมและอาหารต่อ ประเมินซ้ำ",
+              "en": "Small frequent sips, feeding goes on, signs rechecked."
             }
           },
           {
@@ -1072,8 +1072,8 @@
               "en": "IV Ringer's lactate rehydration"
             },
             "line": {
-              "th": "ให้น้ำได้แน่นอนในเด็กที่ยังอาเจียนอยู่",
-              "en": "A sure route for fluid in a child who keeps vomiting."
+              "th": "ให้น้ำได้ต่อเนื่องหากเด็กอาเจียน ORS ออกมา",
+              "en": "Keeps fluid going if vomiting brings the ORS back up."
             }
           },
           {
@@ -1089,15 +1089,15 @@
             }
           },
           {
-            "id": "admitabx",
+            "id": "smectite",
             "tier": "weaker",
             "label": {
-              "th": "รับไว้ ให้น้ำเกลือและยาปฏิชีวนะ",
-              "en": "Admit for IV fluids and antibiotics"
+              "th": "ORS ร่วมกับยาดูดซับไดออสเมคไทต์",
+              "en": "ORS plus diosmectite"
             },
             "line": {
-              "th": "รักษาการขาดน้ำและเชื้อที่อาจเป็นสาเหตุไปพร้อมกัน",
-              "en": "Treats the fluid loss and a possible bacterial cause at once."
+              "th": "ไดออสเมคไทต์อาจช่วยลดปริมาณอุจจาระลงได้บ้าง",
+              "en": "Diosmectite may trim the stool output a little."
             }
           }
         ],
@@ -1107,6 +1107,13 @@
           "abx"
         ]
       }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Fresh reviewer (did not write the case) checked every variant and option against WHO diarrhoea/IMCI guidance (Plan B 75 mL/kg ORS over 4 h, zinc 20 mg/day 10-14 days), ESPGHAN 2014, NICE CG84 and Thai acute-diarrhoea and RDU practice. Doses, volumes and dehydration grading correct; no option withholds rehydration or feeding. Fixed: 2 must-fix path-logic issues (WR question claimed normal urine on an electrolytes path; BW/RW/WW reported stool-culture results on the same visit), replaced weaker 'admit for IV fluids and antibiotics' with ORS plus diosmectite (RDU), toned down the IV Ringer's lactate line, stated ondansetron as one oral dose, aligned Thai lines for Plan B and supervised ORS, plus 4 wording nits. Tiers confirmed: ondansetron and IV Ringer's lactate reasonable, ORS plus oral antibiotic weaker."
     }
   }
 }
