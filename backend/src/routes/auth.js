@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
+const { isAuthSessionMissingError } = require('@supabase/supabase-js');
 const { verifyJwt } = require('../middleware/auth');
 const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit, effectiveTokenLimit } = require('../lib/usage');
@@ -139,11 +140,20 @@ router.post('/logout', verifyJwt, async (req, res) => {
   // verifyJwt validates every request via authSupabase.auth.getUser, so an admin signOut of this
   // JWT makes the token 401 on its next use. (Explicit logout — does NOT conflict with the
   // "never signOut after STORING the token" login rule.)
+  // auth-js returns an AuthError as a value and throws only on a network failure, so both are read.
+  // A 401/404, or GoTrue's session_not_found (AuthSessionMissingError, status 400), means the session
+  // is already gone. The clients clear storage whatever this answers.
   const token = req.headers.authorization.slice(7);
+  let error;
   try {
-    await authSupabase.auth.admin.signOut(token, 'global');
+    ({ error } = await authSupabase.auth.admin.signOut(token, 'global'));
   } catch (e) {
-    console.error('[auth] logout revoke failed:', e.message); // best-effort; client clears storage regardless
+    error = e;
+  }
+  const alreadyGone = error && (error.status === 401 || error.status === 404 || isAuthSessionMissingError(error));
+  if (error && !alreadyGone) {
+    console.error('[auth] logout revoke failed:', error.status ?? 'no status', error.message);
+    return res.status(502).json({ error: 'Could not end the session on the server.', code: 'revoke_failed' });
   }
   res.json({ ok: true });
 });
@@ -546,7 +556,11 @@ router.post('/invite/:token/accept', async (req, res) => {
         const { data: prof } = await supabase.from('professionals').select('id').eq('id', existing.id).maybeSingle();
         if (prof) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
         // Reuse the pending user: apply the newly-entered password + name, then (re)send the code.
-        await supabase.auth.admin.updateUserById(existing.id, { password: body.password, user_metadata: userMeta });
+        const { error: uErr } = await supabase.auth.admin.updateUserById(existing.id, { password: body.password, user_metadata: userMeta });
+        if (uErr) {
+          console.error('[auth] invite recovery password set failed:', uErr.status ?? 'no status', uErr.message);
+          return res.status(502).json({ error: 'Could not set your password. Please try again.' });
+        }
       }
       const { error: otpErr } = await authAnon.auth.signInWithOtp({ email: inv.email, options: { shouldCreateUser: false } });
       if (otpErr) return res.status(502).json({ error: 'Could not send the verification code. Please try again.' });
