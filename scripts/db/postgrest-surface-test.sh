@@ -247,10 +247,30 @@ P -c "grant select on public.pseudonym_seq to anon; grant execute on function pu
 expect "a PUBLIC execute grant counts for both roles, and a sequence is listed" \
   "next_pseudonym()|function|anon;next_pseudonym()|function|authenticated;pseudonym_seq|sequence|anon" \
   "$(P -c "$(AS service_role "select string_agg(object_name || '|' || object_kind || '|' || grantee, ';' order by object_name, grantee) from public.postgrest_exposure() where object_kind in ('function', 'sequence')")" | tail -1)"
+P -c "create view public.leak_view as select chief_complaint from public.ples; grant select on public.leak_view to public;
+      create sequence public.leak_seq; grant usage on sequence public.leak_seq to public;
+      grant select (score) on public.audit_scores to public;"
+expect "a PUBLIC grant on a view, a sequence and a column is listed for both roles" \
+  "audit_scores.score|column|anon;audit_scores.score|column|authenticated;leak_seq|sequence|anon;leak_seq|sequence|authenticated;leak_view|view|anon;leak_view|view|authenticated" \
+  "$(P -c "$(AS service_role "select string_agg(distinct object_name || '|' || object_kind || '|' || grantee, ';') from public.postgrest_exposure() where object_name in ('leak_view', 'leak_seq', 'audit_scores.score')")" | tail -1)"
+if [ "$(P -c "show server_version_num")" -ge 170000 ]; then
+  P -c "grant maintain on public.audit_scores to anon"
+  expect "a MAINTAIN-only grant is listed (PG 17+)" "audit_scores|table|anon|MAINTAIN" \
+    "$(P -c "$(AS service_role "select string_agg(object_name || '|' || object_kind || '|' || grantee || '|' || privilege, ';') from public.postgrest_exposure() where object_name = 'audit_scores'")" | tail -1)"
+else
+  echo "  skip MAINTAIN listing (PostgreSQL $(P -c "show server_version") has no MAINTAIN)"
+fi
 P -f "$MIG" >/dev/null
 expect "re-running the migration closes them (listing empty)" "0" \
   "$(P -c "$(AS service_role "select count(*) from public.postgrest_exposure()")" | tail -1)"
 expect "  → auditor denied ples again" "denied table" "$(denied "$(AS auditor "select chief_complaint from public.ples")")"
+expect "  → anon denied the PUBLIC-granted view" "denied view" "$(denied "$(AS anon "select * from public.leak_view")")"
+expect "  → anon denied the PUBLIC-granted sequence" "denied sequence" "$(denied "$(AS anon "select nextval('public.leak_seq')")")"
+expect "  → authenticated denied the PUBLIC-granted column" "denied table" "$(denied "$(AS physician "select score from public.audit_scores")")"
+expect "  → no PUBLIC grant left on any relation in public" "0" \
+  "$(P -c "select count(*) from pg_class c, aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
+           where c.relnamespace = 'public'::regnamespace and c.relkind in ('r','p','v','m','f','S') and a.grantee = 0")"
+expect "  → service_role still reads ples" "ok" "$(denied "$(AS service_role "select title from public.ples")")"
 
 echo "db/schema.sql"
 sed -n '/^create or replace function public.postgrest_exposure()/,/^\$\$;/p' "$MIG" > "$DIR/fn-mig.sql"

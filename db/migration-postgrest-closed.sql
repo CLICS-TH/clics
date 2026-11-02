@@ -9,8 +9,9 @@
 -- no privilege at all.
 --
 -- WHAT.
---   1. Revokes every privilege on every table, view and sequence in `public` from anon and authenticated. A
---      table-level revoke also drops the column grants on messages (db/migration-message-provenance.sql).
+--   1. Revokes every privilege on every table, view and sequence in `public` from public, anon and
+--      authenticated. A table-level revoke also drops the column grants on messages
+--      (db/migration-message-provenance.sql).
 --   2. Revokes EXECUTE on every function in `public` that is not an extension member from public, anon and
 --      authenticated, and grants it to service_role. PUBLIC must go too: anon executes through it otherwise.
 --      Extension functions (pgvector) are left as their extension made them.
@@ -23,7 +24,7 @@
 --      guard for that drift: it reads public.postgrest_exposure() and degrades when the list is not empty.
 --   4. Enables RLS on ple_code_migration (created without it by db/migration-ple-rename.sql), when present.
 --   5. Creates public.postgrest_exposure(): every object in `public` where anon or authenticated holds an
---      effective privilege (a PUBLIC grant counts), including column grants. Catalogs only, never table rows.
+--      effective privilege (a PUBLIC grant counts), including column grants and MAINTAIN on PG 17+. Catalogs only, never table rows.
 --      Only service_role may execute it.
 --   No RLS policy is dropped or changed, and USAGE on schema public is untouched.
 --
@@ -34,8 +35,9 @@
 
 begin;
 
-revoke all on all tables in schema public from anon, authenticated;
-revoke all on all sequences in schema public from anon, authenticated;
+-- PUBLIC too: anon and authenticated hold whatever PUBLIC holds. service_role keeps its own explicit grants.
+revoke all on all tables in schema public from public, anon, authenticated;
+revoke all on all sequences in schema public from public, anon, authenticated;
 
 do $$
 declare
@@ -99,7 +101,8 @@ as $$
   select r.name, case when r.relkind in ('v', 'm') then 'view' else 'table' end, g.grantee, p.priv
   from rels r
   cross join roles g
-  cross join unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']) p(priv)
+  cross join unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']
+    || case when pg_catalog.current_setting('server_version_num')::int >= 170000 then array['MAINTAIN'] else '{}'::text[] end) p(priv)
   where r.relkind <> 'S' and pg_catalog.has_table_privilege(g.grantee, r.oid, p.priv)
   union all
   select r.name, 'sequence', g.grantee, p.priv

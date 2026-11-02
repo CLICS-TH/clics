@@ -1079,8 +1079,9 @@ revoke select on public.messages from anon, authenticated;
 grant select (id, ple_id, role, content, refs, socratic_question, token_count, created_at)
   on public.messages to authenticated;
 
-revoke all on all tables in schema public from anon, authenticated;
-revoke all on all sequences in schema public from anon, authenticated;
+-- PUBLIC too: anon and authenticated hold whatever PUBLIC holds. service_role keeps its own explicit grants.
+revoke all on all tables in schema public from public, anon, authenticated;
+revoke all on all sequences in schema public from public, anon, authenticated;
 
 do $$
 declare
@@ -1144,7 +1145,8 @@ as $$
   select r.name, case when r.relkind in ('v', 'm') then 'view' else 'table' end, g.grantee, p.priv
   from rels r
   cross join roles g
-  cross join unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']) p(priv)
+  cross join unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']
+    || case when pg_catalog.current_setting('server_version_num')::int >= 170000 then array['MAINTAIN'] else '{}'::text[] end) p(priv)
   where r.relkind <> 'S' and pg_catalog.has_table_privilege(g.grantee, r.oid, p.priv)
   union all
   select r.name, 'sequence', g.grantee, p.priv
