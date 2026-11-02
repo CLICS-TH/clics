@@ -115,7 +115,7 @@ body.booth {
 
 .step-sheet {
   flex: none; box-sizing: border-box;
-  display: flex; flex-direction: column; gap: calc(24 * var(--u));
+  display: flex; flex-direction: column; gap: calc(20 * var(--u));
   background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
   padding: calc(32 * var(--u));
   box-shadow: var(--shadow-sheet);
@@ -123,7 +123,8 @@ body.booth {
 }
 @keyframes booth-rise { from { transform: translateY(calc(48 * var(--u))); opacity: 0; } }
 .step-head { display: flex; flex-direction: column; gap: calc(12 * var(--u)); }
-.step-of { color: var(--accent); --bi-en: var(--accent); }
+/* Thai and English share one line here: the step count is the same short fact twice. */
+.bi.step-of { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: calc(16 * var(--u)); color: var(--accent); --bi-en: var(--accent); }
 .step-of .bi-th, .step-of .bi-en { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
 .question .bi-th { font-size: var(--text-q-th); font-weight: 600; line-height: 1.45; }
 .question .bi-en { font-size: var(--text-q-en); line-height: 1.35; }
@@ -131,13 +132,16 @@ body.booth {
 /* Bridge and question read as one card: the AI's lead-in on top, the question beneath it on the same rail. */
 .prompt--bridged { border-left: calc(8 * var(--u)) solid var(--ai-border); border-radius: var(--radius-s); background: var(--ai-bg); overflow: hidden; }
 .ai-bridge { padding: calc(16 * var(--u)) calc(28 * var(--u)); color: var(--ai-text); font-size: var(--text-small-th); line-height: 1.55; }
-.ai-bridge .ai-label { margin-right: calc(12 * var(--u)); font-size: var(--text-en); }
+.ai-bridge .ai-label { display: inline; margin-right: calc(12 * var(--u)); font-size: var(--text-en); }
+/* A bridge is one Thai phrase with no spaces, so its phrase box would drop below the label; inline, it runs on
+   beside it and wraps at Thai word boundaries. */
+.ai-bridge .ph { display: inline; }
 /* A bridge costs the sheet two lines; the vignette peek gives them back (it was read in full one screen ago). */
-.play-body:has(.prompt--bridged) > .case-card { min-height: calc(140 * var(--u)); }
+.play-body:has(.prompt--bridged) > .case-card { min-height: calc(112 * var(--u)); }
 .prompt--bridged .question { padding: calc(16 * var(--u)) calc(28 * var(--u)) calc(20 * var(--u)); background: var(--card); border-top: var(--line) solid var(--ai-border); }
 
-.options { display: flex; flex-direction: column; gap: calc(20 * var(--u)); }
-.booth-btn.option { align-items: flex-start; padding: calc(24 * var(--u)) calc(28 * var(--u)); }
+.options { display: flex; flex-direction: column; gap: calc(16 * var(--u)); }
+.booth-btn.option { align-items: flex-start; padding: calc(20 * var(--u)) calc(28 * var(--u)); }
 .opt-inner { display: flex; align-items: flex-start; gap: calc(24 * var(--u)); width: 100%; }
 .opt-letter {
   flex: none; display: grid; place-items: center;

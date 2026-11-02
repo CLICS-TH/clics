@@ -320,7 +320,7 @@ Return ONLY one JSON object, with nothing before or after it and no code fence:
 {"reply": "...", "variant_id": "...", "bridge": "...", "option_ids": ["...", "...", "..."]}
 - reply: your comment on the physician's latest answer, under every rule above.
 - variant_id: the id of ONE question variant from the bank.
-- bridge: at most ONE short sentence, in the same language as the reply, that leads from the physician's last answer into the question you picked. It is not a question. It never names or hints at any option, diagnosis, test or treatment that is not already in the physician's own answer. Use "" when no bridge reads naturally.
+- bridge: at most ONE short sentence, in the same language as the reply, that leads from the physician's last answer into the question you picked. It is not a question. In Thai, write it as one phrase with no spaces between Thai words, since a space there starts a new sentence. It never names or hints at any option, diagnosis, test or treatment that is not already in the physician's own answer. Use "" when no bridge reads naturally.
 - option_ids: exactly THREE option ids from the bank: one whose tier is best, one reasonable and one weaker. Where a tier has more than one option, vary which one you take.
 - Use only ids that appear in the bank. Never write a question, an option label or an option line yourself, in any field: the screen shows the bank's own words.
 - The tiers are for your choice only. The reply and the bridge never reveal or hint which option is best, for this step or any later one.

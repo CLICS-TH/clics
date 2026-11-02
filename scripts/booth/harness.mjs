@@ -6,7 +6,8 @@
  * through `h` and imports nothing from this file (it is the entry script; importing it would run it). The stub's
  * routes are keyed "METHOD /path" and a scenario merges its own over the defaults.
  *
- * Run: npm run test:booth   (repo root). Exits non-zero on any FAIL. Set BOOTH_SHOTS=<dir> to save screenshots.
+ * Run: npm run test:booth   (repo root). Exits non-zero on any FAIL. Set BOOTH_SHOTS=<dir> to save screenshots, and
+ * BOOTH_ONLY=<text> to run only the scenarios whose name contains it.
  */
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
@@ -38,6 +39,7 @@ const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
 const WAIT_MS = 10_000;
 const SETTLE_MS = 400;
 const SHOTS = process.env.BOOTH_SHOTS || null;
+const ONLY = process.env.BOOTH_ONLY || '';
 
 const fails = [];
 let passes = 0;
@@ -88,21 +90,31 @@ function nextFor(tree, path, bridge = '') {
 }
 
 const BRIDGE = (n) => (n === 1 ? 'คุณนึกถึงปอดอักเสบได้ตรงกับอาการที่เห็น' : 'ลองคิดต่อถึงการดูแลผู้ป่วยรายนี้');
-// 120 characters, the contract's ceiling for a bridge, one sentence.
-const LONG_BRIDGE = 'คุณเชื่อมโยงไข้ ไอมีเสมหะ และเสียงกรอบแกรบที่ปอดขวาล่างได้ดี ลองคิดว่าผลตรวจไหนช่วยยืนยันและบอกความรุนแรงของโรคชัดที่สุด';
+// 120 characters, the contract's ceiling for a bridge, and one sentence by the backend's rule: one Thai phrase,
+// with no space between Thai letters (booth.js oneSentence).
+const LONG_BRIDGE = 'คุณเชื่อมโยงไข้ไอมีเสมหะกับเสียงกรอบแกรบที่ปอดขวาล่างได้ดีจึงน่าคิดต่อว่าผลตรวจใดช่วยยืนยันและบอกความรุนแรงของโรคได้ชัดๆ';
 
-/** The heaviest Next one real bank can issue: its longest variant and its longest option of each tier. */
-function heaviestBankNext(tree, bridge = LONG_BRIDGE) {
+/** The tallest Next a bank can issue: its longest variant and its longest option of each tier. */
+function bankWorstNext(bank, bridge = LONG_BRIDGE) {
   const size = (b) => b.th.length + b.en.length;
-  const picks = Object.entries({ '': tree.banks.step1, ...tree.banks.step2, ...tree.banks.step3 }).map(([path, bank]) => {
-    const variant = [...bank.variants].sort((a, b) => size(b.question) - size(a.question))[0];
-    const options = ['best', 'reasonable', 'weaker'].map((tier) => bank.options.filter((o) => o.tier === tier)
-      .sort((a, b) => size(b.label) + size(b.line) - size(a.label) - size(a.line))[0]);
-    const weight = size(variant.question) + options.reduce((n, o) => n + size(o.label) + size(o.line), 0);
-    return { path, weight, next: { ask: { variant: variant.id, bridge, options: options.map((o) => o.id) }, question: variant.question,
-      options: options.map(({ id, label, line }) => ({ id, label, line })) } };
-  });
-  return picks.sort((a, b) => b.weight - a.weight)[0];
+  const variant = [...bank.variants].sort((a, b) => size(b.question) - size(a.question))[0];
+  const options = ['best', 'reasonable', 'weaker'].map((tier) => bank.options.filter((o) => o.tier === tier)
+    .sort((a, b) => size(b.label) + size(b.line) - size(a.label) - size(a.line))[0]);
+  return { ask: { variant: variant.id, bridge, options: options.map((o) => o.id) }, question: variant.question,
+    options: options.map(({ id, label, line }) => ({ id, label, line })) };
+}
+
+/** Every bank of the fixture and of every case file in backend/src/booth-cases/<EVENT>/, as its worst Next, with
+ *  identical Nexts kept once. Read per run, so a case file that lands on master is checked without a harness edit. */
+async function caseBankNexts(bridge = LONG_BRIDGE) {
+  const files = (await readdir(CASES, { recursive: true })).filter((f) => /^[^/]+\/[^/]+\.json$/.test(f)).sort();
+  const trees = [['fixture', TREE], ...await Promise.all(files.map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8'))]))];
+  const seen = new Set();
+  return trees.flatMap(([file, tree]) => Object.entries({ step1: tree.banks.step1,
+    ...Object.fromEntries(Object.entries(tree.banks.step2).map(([p, b]) => [`step2.${p}`, b])),
+    ...Object.fromEntries(Object.entries(tree.banks.step3).map(([p, b]) => [`step3.${p}`, b])) })
+    .map(([at, bank]) => ({ name: `${file} ${at}`, next: bankWorstNext(bank, bridge) })))
+    .filter(({ next }) => { const key = JSON.stringify(next); return !seen.has(key) && seen.add(key); });
 }
 
 /** A Next of the longest fixture texts (question and the three longest options, any bank) for the fit checks. */
@@ -461,7 +473,7 @@ const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
 const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, REPLY, SIG, SCORED,
-  START, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, heaviestBankNext, replyBody };
+  START, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
 
 try {
   await scanSources();
@@ -469,6 +481,7 @@ try {
   let count = 0;
   for (const file of files) {
     for (const sc of (await import(new URL(file, SCENARIOS))).default) {
+      if (!sc.name.includes(ONLY)) continue;
       count++;
       console.log(`\n== ${file}: ${sc.name}`);
       try { await sc.run(h); } catch (e) { check(false, `${sc.name} threw: ${String(e.message).split('\n')[0]}`); }

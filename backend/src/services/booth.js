@@ -127,8 +127,15 @@ function shuffled(list) {
   return out;
 }
 
-const oneSentence = (s) => s === '' || (s === s.trim() && s.length <= BRIDGE_MAX_CHARS && !/[\r\n]/.test(s)
-  && !/[.!?…]\s+\S/u.test(s));
+// Thai marks a sentence break with a space, so a space between two Thai letters ends a sentence. Before the closing
+// mark, a sentence mark ends one too, spaced or not ("Good!Now"); a decimal point (3.5) does not.
+const THAI_BREAK = /[\u0E00-\u0E7F]\s+[\u0E00-\u0E7F]/u;
+function oneSentence(s) {
+  if (s === '') return true;
+  if (s !== s.trim() || s.length > BRIDGE_MAX_CHARS || /[\r\n]/.test(s)) return false;
+  const body = s.replace(/[.!?…]+$/u, '');
+  return !/[!?…]|\.(?!\d)/u.test(body) && !THAI_BREAK.test(body);
+}
 
 /** The ask is the bank's own variant and three distinct options of it, one per tier; the bridge is checked apart. */
 function askPicksFrom(bank, ask) {
@@ -276,15 +283,15 @@ function saidFor(bank, answer) {
 }
 
 // Turn 1 carries the vignette because the evaluator reads the transcript alone (chief_complaint only seeds
-// rimpl's de-identification registry).
+// rimpl's de-identification registry). The bridge into question i+1 came from the same AI call as reply i, so it
+// closes that assistant turn: the evaluator scores the physician turns, and an AI sentence never sits in one.
 function dialogueTurns(kase, { answers, replies, asks, tierPath }) {
   return answers.flatMap((answer, i) => {
     const bank = bankAt(kase, tierPath.slice(0, i));
-    const { bridge, variant } = asks[i];
-    const question = bank.variants.find((v) => v.id === variant).question.th;
-    const content = `${i === 0 ? `${kase.vignette.th}\n\n` : ''}${bridge ? `${bridge} ` : ''}${question}\n${saidFor(bank, answer)}`;
-    const physician = { role: 'physician', content };
-    return replies[i] ? [physician, { role: 'assistant', content: replies[i] }] : [physician];
+    const question = bank.variants.find((v) => v.id === asks[i].variant).question.th;
+    const physician = { role: 'physician', content: `${i === 0 ? `${kase.vignette.th}\n\n` : ''}${question}\n${saidFor(bank, answer)}` };
+    const assistant = [replies[i], asks[i + 1]?.bridge].filter(Boolean).join(' ');
+    return assistant ? [physician, { role: 'assistant', content: assistant }] : [physician];
   });
 }
 

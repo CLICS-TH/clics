@@ -234,9 +234,10 @@ const said = (b, id) => { const o = b.options.find((x) => x.id === id); return `
 const question = (b, ask) => b.variants.find((v) => v.id === ask.variant).question.th;
 const physicianTurn = (i, tierPath, ask, s) => ({
   role: 'physician',
-  content: `${i === 0 ? `${KASE.vignette.th}\n\n` : ''}${ask.bridge ? `${ask.bridge} ` : ''}${question(bank(tierPath), ask)}\n${s}`,
+  content: `${i === 0 ? `${KASE.vignette.th}\n\n` : ''}${question(bank(tierPath), ask)}\n${s}`,
 });
-const aiTurn = (content) => ({ role: 'assistant', content });
+/** An assistant turn: the reply, closed by the bridge into the next question that the same AI call wrote. */
+const aiTurn = (reply, nextAsk) => ({ role: 'assistant', content: [reply, nextAsk?.bridge].filter(Boolean).join(' ') });
 /** What the kiosk must show for an ask: the bank's own text. */
 const shown = (b, ask) => ({
   ask,
@@ -409,8 +410,9 @@ describe('POST /booth/plays/:id/reply', () => {
     const [a1, a2, a3] = p.d.answers;
     const [k1, k2, k3] = p.d.asks;
     expect(k2.bridge).toBe('ดีครับ');
-    expect(args.history).toEqual([physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn('AI reply'),
-      physicianTurn(1, 'B', k2, 'ตรวจ CURB-65'), aiTurn('AI reply')]);
+    expect(args.history).toEqual([physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn('AI reply', k2),
+      physicianTurn(1, 'B', k2, 'ตรวจ CURB-65'), aiTurn('AI reply', k3)]);
+    expect(args.history[1].content).toBe('AI reply ดีครับ');
     expect(args.message).toBe(physicianTurn(2, 'BW', k3, said(bank('BW'), a3.choice)).content);
     expect(a2).toEqual({ text: 'ตรวจ CURB-65' });
   });
@@ -445,6 +447,9 @@ describe('POST /booth/plays/:id/reply', () => {
 
   test.each([
     ['two sentences', 'Good. Now think again.'],
+    ['two sentences with no space after the mark', 'Good!Now consider management.'],
+    ['two Thai sentences, split by a space', 'คุณนึกถึงการติดเชื้อ ลองดูการตรวจต่อ'],
+    ['a question mark before the end', 'Why?Think again'],
     ['a line break', 'ดีครับ\nต่อไป'],
     ['over 120 characters', 'ก'.repeat(121)],
     ['not text', 7],
@@ -454,6 +459,18 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     expect(p.next.ask).toMatchObject({ variant: pickFor(bank('B')).variant_id, bridge: '' });
     expect([...p.next.ask.options].sort()).toEqual([...pickFor(bank('B')).option_ids].sort());
+  });
+
+  test.each([
+    ['one Thai phrase', 'คุณนึกถึงการติดเชื้อได้ดี'],
+    ['a Latin term inside Thai', 'คุณคิดถึง CBC ได้ดี'],
+    ['a closing mark', 'Nice catch!'],
+    ['a decimal number', 'You weighed the 3.5 mmol/L lactate well.'],
+  ])('a one-sentence bridge with %s is kept', async (_name, bridge) => {
+    picking({ bridge });
+    const p = await begin();
+    await answer(p, 'best');
+    expect(p.next.ask.bridge).toBe(bridge);
   });
 
   test('the next answer must be one of the three ids offered: another option of the same bank answers 400', async () => {
@@ -679,6 +696,7 @@ describe('the per-play ceiling', () => {
 
 describe('POST /booth/plays/:id/score', () => {
   test('calls the evaluator once with the six-turn transcript, shadow false and a 60 s cap', async () => {
+    picking();
     const p2 = await begin();
     await answer(p2, 'best');
     await answer(p2, 'reasonable');
@@ -689,11 +707,25 @@ describe('POST /booth/plays/:id/score', () => {
     const [k1, k2, k3] = p2.d.asks;
     expect(rimplEvaluate.mock.calls).toEqual([[{
       ple_id: p2.id,
-      transcript: [physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn('AI reply'),
-        physicianTurn(1, 'B', k2, said(bank('B'), a2.choice)), aiTurn('AI reply'),
+      transcript: [physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn('AI reply', k2),
+        physicianTurn(1, 'B', k2, said(bank('B'), a2.choice)), aiTurn('AI reply', k3),
         physicianTurn(2, 'BR', k3, 'ตรวจ CURB-65'), aiTurn('AI reply')],
       patient_ref: null, chief_complaint: KASE.vignette.th, shadow: false,
     }, { timeoutMs: 60000 }]]);
+  });
+
+  test('the AI-written bridge is never in a physician turn the evaluator scores, only at the end of the AI turn that wrote it', async () => {
+    picking({ bridge: 'ลองคิดต่อ' });
+    const p = await begin();
+    await answer(p, 'best');
+    await answer(p, 'reasonable');
+    await answer(p, 'weaker');
+    await score(p);
+    const { transcript } = rimplEvaluate.mock.calls[0][0];
+    expect(p.d.asks.slice(1).map((k) => k.bridge)).toEqual(['ลองคิดต่อ', 'ลองคิดต่อ']);
+    expect(transcript.filter((t) => t.role === 'physician').some((t) => t.content.includes('ลองคิดต่อ'))).toBe(false);
+    expect(transcript.filter((t) => t.role === 'assistant').map((t) => t.content))
+      .toEqual(['AI reply ลองคิดต่อ', 'AI reply ลองคิดต่อ', 'AI reply']);
   });
 
   test('success answers the composite recomputed with the pilot weights and the seven domains, ignoring rimpl\'s composite', async () => {

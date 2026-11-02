@@ -277,39 +277,43 @@ export default [
     },
   },
   {
-    name: 'fit: the longest fixture texts with a 120-character Thai bridge, at 1080x1920 and 2160x3840',
+    name: 'fit: every bank of every case file, its tallest texts under a 120-character bridge, at 1080x1920 and 2160x3840',
     async run(h) {
       h.check([...h.LONG_BRIDGE].length === 120, `the long bridge is 120 characters (${[...h.LONG_BRIDGE].length})`);
-      const heaviest = h.heaviestBankNext(h.TREE);
-      const cases = [
-        { name: `heaviest real bank (${heaviest.path || 'step1'})`, next: heaviest.next, whole: true },
-        { name: 'longest texts of any bank', next: h.longestNext(h.TREE), whole: false },
-      ];
-      for (const [width, height] of [[1080, 1920], [2160, 3840]]) {
-        for (const c of cases) {
-          const label = `${c.name} at ${width}x${height}`;
-          const stub = h.makeStub({ routes: { 'POST /booth/plays': () => ({ status: 201, body: { ...h.START, next: c.next } }) } });
-          const k = await h.kiosk({ stub, width, height, label });
+      const banks = await h.caseBankNexts();
+      // Both sizes at once, each in its own kiosk: a size walks every bank on one page, a fresh play per bank.
+      await Promise.all([[1080, 1920], [2160, 3840]].map(async ([width, height]) => {
+        let start = null;
+        const stub = h.makeStub({ routes: { 'POST /booth/plays': () => ({ status: 201, body: { ...h.START, next: start } }) } });
+        const k = await h.kiosk({ stub, width, height, label: `fit at ${width}x${height}` });
+        const show = async (next) => {
+          start = next;
+          await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
           await toStep(k);
+        };
+        const misfits = [];
+        let tallest = { over: -Infinity };
+        for (const { name, next } of banks) {
+          await show(next);
           const shown = await readStep(k.page);
-          h.check(shown.bridge === h.LONG_BRIDGE && h.same(shown.question, c.next.question)
-            && h.same(shown.options.map(({ id, label: l, line }) => ({ id, label: l, line })), c.next.options),
-          `${label}: the long bridge, the question and the three options, word for word`);
-          const geo = await k.page.evaluate(() => {
-            const b = document.querySelector('[data-bridge]').getBoundingClientRect();
-            const q = document.querySelector('.step-sheet .question').getBoundingClientRect();
+          const { over } = await k.page.evaluate(() => {
             const body = document.querySelector('.play-body').getBoundingClientRect();
-            const inView = (s) => [...document.querySelectorAll(s)].every((e) => e.getBoundingClientRect().bottom <= body.bottom + 1);
-            return { gap: q.top - b.bottom, sameRail: Math.abs(b.left - q.left) < 1, options: inView('.options > [data-option]'), typeOwn: inView('[data-action="type-own"]') };
+            const below = (s) => Math.max(...[...document.querySelectorAll(s)].map((e) => e.getBoundingClientRect().bottom - body.bottom));
+            return { over: Math.max(below('.options > [data-option]'), below('[data-action="type-own"]')) };
           });
-          h.check(geo.gap >= -1 && geo.gap < 2 && geo.sameRail, `${label}: the bridge sits directly above the question on one rail (gap ${geo.gap.toFixed(1)}px)`);
-          h.check(c.whole ? geo.options && geo.typeOwn : geo.options,
-            `${label}: ${c.whole ? 'all three options and "type my own"' : 'all three options'} on screen without scrolling (options ${geo.options}, type-own ${geo.typeOwn})`);
-          await h.screenCheck(k.page, `step, ${label}`);
-          await h.shot(k.page, `step-${c.whole ? 'heaviest' : 'longest'}-${width}`);
-          await k.close();
+          const words = shown.bridge === h.LONG_BRIDGE && h.same(shown.question, next.question)
+            && h.same(shown.options.map(({ id, label, line }) => ({ id, label, line })), next.options);
+          if (over > tallest.over) tallest = { name, next, over };
+          if (!words || over > 1) misfits.push(`${name} (${words ? `${Math.round(over)}px below` : 'text differs'})`);
         }
-      }
+        h.check(misfits.length === 0, `${width}x${height}: all ${banks.length} distinct banks show their text word for word, `
+          + `with all three options and "type my own" on screen without scrolling (tallest ${tallest.name}, `
+          + `${Math.round(-tallest.over)}px to spare)${misfits.length ? `; misfits: ${misfits.join(', ')}` : ''}`);
+        await show(tallest.next);
+        await h.screenCheck(k.page, `step, the tallest bank (${tallest.name}), ${width}x${height}`);
+        await h.shot(k.page, `step-tallest-${width}`);
+        await k.close();
+      }));
     },
   },
   {

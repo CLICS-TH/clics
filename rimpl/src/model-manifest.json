@@ -138,8 +138,8 @@
             "sha256": "9836fc3d621c03270c8ace45b3071dc556525e82df2b4453540a904637c87e7e"
           },
           "booth+grill": {
-            "label": "chat-prompt-219eb112",
-            "sha256": "219eb11211896e4ceffdab3f8deaefe39e2176787a3fa76e0f485b5f61aad0dc"
+            "label": "chat-prompt-0fe824e9",
+            "sha256": "0fe824e9a2db468cc9be9661f166b72a3f9a08bcd27e050abedc2130009b85d0"
           },
           "examiner": {
             "label": "chat-prompt-c6efcfc6",
@@ -333,5 +333,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "5cfcc89ba8e5e5027d0f4105346dd41f2d8287d6a4490cf517d11581d71c513e"
+  "sha256": "ebd5c9667bce247b604d56805e11af28c7edccd7b05112c62475096d98035cb4"
 }
