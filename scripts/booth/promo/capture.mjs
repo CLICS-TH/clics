@@ -53,6 +53,9 @@ try {
   await page.waitForSelector('#booth[data-shell="start"]', { timeout: 10_000 });
   await settle();
   await page.locator('[data-action="start"]').tap();
+  await screen('teaser');
+  await settle();
+  await page.locator('[data-action="start-case"]').tap();
   await screen('vignette');
   await shot('vignette');
   await page.locator('[data-action="begin"]').tap();
