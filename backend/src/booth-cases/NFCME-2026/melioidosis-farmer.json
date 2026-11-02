@@ -1,0 +1,1018 @@
+{
+  "case_id": "melioidosis-farmer",
+  "version": "2",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชาวนาเบาหวานวัย 55 ปี มาโรงพยาบาลชุมชนด้วยไข้และไอ 10 วัน",
+    "en": "A 55-year-old diabetic rice farmer comes to a community hospital with 10 days of fever and cough."
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 55 ปี ทำนาที่อุบลราชธานี เป็นเบาหวานที่คุมน้ำตาลได้ไม่ดี มีไข้ ไอมีเสมหะ และน้ำหนักลดมา 10 วัน ช่วงหน้าฝนลงดำนาในโคลนทุกวัน อุณหภูมิ 39.2 °C ชีพจร 112 หายใจ 24 ครั้ง/นาที ความดัน 106/66 SpO2 93% ขณะหายใจอากาศปกติ ฟังได้เสียงกรอบแกรบที่ปอดขวาบน กดเจ็บใต้ชายโครงซ้าย น้ำตาลปลายนิ้ว 342 มก./ดล. รู้สึกตัวดี",
+    "en": "A fictional 55-year-old rice farmer from Ubon Ratchathani with poorly controlled diabetes has had fever, productive cough and weight loss for 10 days. It is the rainy season and he plants rice in the mud every day. Temperature 39.2 °C, pulse 112, respiratory rate 24, BP 106/66, SpO2 93% on room air. Crackles over the right upper chest and tenderness under the left ribs. Fingerstick glucose 342 mg/dL. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและประวัตินี้เข้าได้กับโรคใดมากที่สุด",
+            "en": "Which diagnosis fits these symptoms and history best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "ชาวนาเบาหวานรายนี้น่าจะเป็นโรคอะไร",
+            "en": "What does this diabetic farmer most likely have?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "เมลิออยโดสิส",
+            "en": "Melioidosis"
+          },
+          "line": {
+            "th": "เบาหวาน ทำนาหน้าฝน และปอดอักเสบ ชี้ไปทางโรคนี้",
+            "en": "Diabetes, rainy-season rice farming and pneumonia point here."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "เมลิออยโดสิสที่ปอด",
+            "en": "Pulmonary melioidosis"
+          },
+          "line": {
+            "th": "เสียงกรอบแกรบปอดขวาบนในชาวนาเบาหวานเข้ากับโรคนี้",
+            "en": "Right upper-lung crackles in a diabetic farmer fit it."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ปอดอักเสบจากชุมชน",
+            "en": "Community-acquired pneumonia"
+          },
+          "line": {
+            "th": "ไข้ ไอมีเสมหะ และเสียงกรอบแกรบเข้าได้กับโรคนี้",
+            "en": "Fever, productive cough and crackles fit it."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "reasonable",
+          "label": {
+            "th": "วัณโรคปอด",
+            "en": "Pulmonary tuberculosis"
+          },
+          "line": {
+            "th": "ไอ น้ำหนักลด ในผู้ป่วยเบาหวาน ทำให้นึกถึงวัณโรค",
+            "en": "Cough and weight loss in a diabetic bring TB to mind."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "เลปโตสไปโรสิส",
+            "en": "Leptospirosis"
+          },
+          "line": {
+            "th": "ชาวนาที่ลุยโคลนช่วงหน้าฝนเสี่ยงโรคนี้",
+            "en": "Farmers wading in rainy-season mud are at risk of it."
+          }
+        },
+        {
+          "id": "f",
+          "tier": "weaker",
+          "label": {
+            "th": "ไข้หวัดใหญ่",
+            "en": "Influenza"
+          },
+          "line": {
+            "th": "ไข้และไอพบบ่อยในไข้หวัดใหญ่ช่วงหน้าฝน",
+            "en": "Fever and cough are common in rainy-season flu."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "e"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เจาะเลือดแล้วให้ยาฆ่าเชื้อเข็มแรก ส่งตรวจอะไรเพิ่ม",
+              "en": "Blood is drawn and his first antibiotic dose given. Which further tests?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้ยาเข็มแรกหลังเจาะเลือดแล้ว ตรวจอะไรเพื่อยืนยันโรค",
+              "en": "His first dose followed the blood draw. Which tests confirm it?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เพาะเชื้อเลือด เสมหะ ป้ายคอ",
+              "en": "Blood, sputum and throat cultures"
+            },
+            "line": {
+              "th": "เพาะเชื้อหลายตำแหน่งทำให้พบเชื้อได้มากขึ้น",
+              "en": "Culturing several sites raises the yield."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เพาะเชื้อเลือด CXR U/S ช่องท้อง",
+              "en": "Blood culture, CXR, abdominal U/S"
+            },
+            "line": {
+              "th": "ยืนยันเชื้อ ดูปอด และหาฝีในตับและม้าม",
+              "en": "Confirms the organism, images the lung, seeks liver or spleen abscess."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อเลือดและเอกซเรย์ปอด",
+              "en": "Blood culture and chest X-ray"
+            },
+            "line": {
+              "th": "ยืนยันเชื้อและดูรอยโรคในปอด",
+              "en": "Confirms the organism and shows the lung lesion."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อเลือด CBC ค่าไต",
+              "en": "Blood culture, CBC, creatinine"
+            },
+            "line": {
+              "th": "ยืนยันเชื้อและใช้ค่าไตปรับขนาดยา",
+              "en": "Confirms the organism and sets the renal dose."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อเลือดและตรวจ IHA",
+              "en": "Blood culture and IHA serology"
+            },
+            "line": {
+              "th": "ผล IHA บวกบอกว่าเคยสัมผัสเชื้อ",
+              "en": "A positive IHA titre shows past exposure."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เจาะเลือดแล้วให้ยาฆ่าเชื้อเข็มแรก ตรวจอะไรเพื่อแยกโรค",
+              "en": "Blood is drawn and his first antibiotic dose given. Which tests sort the cause?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้ยาเข็มแรกหลังเจาะเลือดแล้ว ส่งตรวจอะไรต่อ",
+              "en": "His first dose followed the blood draw. Which tests next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เพาะเชื้อเลือด เสมหะ ป้ายคอ",
+              "en": "Blood, sputum and throat cultures"
+            },
+            "line": {
+              "th": "เพาะเชื้อหลายตำแหน่งทำให้พบเชื้อได้มากขึ้น",
+              "en": "Culturing several sites raises the yield."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อเลือด ส่งเสมหะหาวัณโรค",
+              "en": "Blood culture, sputum TB tests"
+            },
+            "line": {
+              "th": "หาเชื้อในเลือดและตรวจหาวัณโรคไปพร้อมกัน",
+              "en": "Looks for bacteraemia and tests for TB together."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อเลือดและเอกซเรย์ปอด",
+              "en": "Blood culture and chest X-ray"
+            },
+            "line": {
+              "th": "ยืนยันเชื้อและดูรอยโรคในปอด",
+              "en": "Confirms the organism and shows the lung lesion."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อเลือด ย้อมแกรมเสมหะ",
+              "en": "Blood culture, sputum Gram stain"
+            },
+            "line": {
+              "th": "ย้อมแกรมช่วยบอกกลุ่มเชื้อในเสมหะ",
+              "en": "The Gram stain helps show the class of organism in sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เจาะเลือดแล้วให้ยาเข็มแรก ภาพปอดขวาบนอักเสบ ตรวจอะไร",
+              "en": "Blood drawn, first dose in; X-ray shows right upper-lobe pneumonia. Which tests?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เจาะเลือดแล้วให้ยาฆ่าเชื้อเข็มแรก ส่งตรวจอะไรต่อ",
+              "en": "Blood is drawn and his first antibiotic dose given. Which tests next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เพาะเชื้อเลือด เสมหะ ป้ายคอ",
+              "en": "Blood, sputum and throat cultures"
+            },
+            "line": {
+              "th": "เพาะเชื้อหลายตำแหน่งทำให้พบเชื้อได้มากขึ้น",
+              "en": "Culturing several sites raises the yield."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อเลือด ตรวจเลปโตด่วน",
+              "en": "Blood culture, rapid lepto test"
+            },
+            "line": {
+              "th": "หาเชื้อในเลือดและตรวจเลปโตสไปโรสิสไปพร้อมกัน",
+              "en": "Looks for bacteraemia and tests for leptospirosis together."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อเลือด CBC ค่าไต",
+              "en": "Blood culture, CBC, creatinine"
+            },
+            "line": {
+              "th": "ยืนยันเชื้อและใช้ค่าไตปรับขนาดยา",
+              "en": "Confirms the organism and sets the renal dose."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เพาะเชื้อเลือด ตรวจไข้หวัดใหญ่",
+              "en": "Blood culture, flu test"
+            },
+            "line": {
+              "th": "ตรวจหาไข้หวัดใหญ่และเพาะเชื้อในเลือด",
+              "en": "Tests for flu and cultures the blood."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ยาเข็มแรกแล้ว แผนการรักษาทั้งหมดของคุณคืออะไร",
+              "en": "His first dose is in. What is your full treatment plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้ต่ออย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม→TMP-SMX อินซูลิน",
+              "en": "Ceftazidime → TMP-SMX, insulin"
+            },
+            "line": {
+              "th": "รักษาเชื้อครบสองระยะและคุมน้ำตาลไปพร้อมกัน",
+              "en": "Treats both phases and brings the glucose down together."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ยาเข็มแรกแล้ว แผนการรักษาทั้งหมดของคุณคืออะไร",
+              "en": "His first dose is in. What is your full treatment plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้ต่ออย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม→TMP-SMX อินซูลิน",
+              "en": "Ceftazidime → TMP-SMX, insulin"
+            },
+            "line": {
+              "th": "รักษาเชื้อครบสองระยะและคุมน้ำตาลไปพร้อมกัน",
+              "en": "Treats both phases and brings the glucose down together."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ยาเข็มแรกแล้ว แผนการรักษาทั้งหมดของคุณคืออะไร",
+              "en": "His first dose is in. What is your full treatment plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้ต่ออย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม→TMP-SMX อินซูลิน",
+              "en": "Ceftazidime → TMP-SMX, insulin"
+            },
+            "line": {
+              "th": "รักษาเชื้อครบสองระยะและคุมน้ำตาลไปพร้อมกัน",
+              "en": "Treats both phases and brings the glucose down together."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เพาะเชื้อเลือดขึ้นแกรมลบรูปแท่งติดสีสองขั้ว ให้ยาสูตรใด",
+              "en": "Blood culture grows a bipolar-staining Gram-negative rod. Which regimen?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แล็บแจ้งว่าน่าจะเป็น B. pseudomallei ควรให้ยาสูตรใด",
+              "en": "The lab reports likely B. pseudomallei. Which regimen should he be on?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม→TMP-SMX 20 สัปดาห์",
+              "en": "Ceftazidime → TMP-SMX 20 weeks"
+            },
+            "line": {
+              "th": "ระยะกำจัดเชื้อ 20 สัปดาห์ตามที่ใช้กันในไทย",
+              "en": "A 20-week eradication phase follows Thai practice."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เพาะเชื้อเลือดขึ้นแกรมลบรูปแท่งติดสีสองขั้ว ให้ยาสูตรใด",
+              "en": "Blood culture grows a bipolar-staining Gram-negative rod. Which regimen?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แล็บแจ้งว่าน่าจะเป็น B. pseudomallei ควรให้ยาสูตรใด",
+              "en": "The lab reports likely B. pseudomallei. Which regimen should he be on?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม→TMP-SMX 20 สัปดาห์",
+              "en": "Ceftazidime → TMP-SMX 20 weeks"
+            },
+            "line": {
+              "th": "ระยะกำจัดเชื้อ 20 สัปดาห์ตามที่ใช้กันในไทย",
+              "en": "A 20-week eradication phase follows Thai practice."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เพาะเชื้อเลือดขึ้นแกรมลบรูปแท่งติดสีสองขั้ว ให้ยาสูตรใด",
+              "en": "Blood culture grows a bipolar-staining Gram-negative rod. Which regimen?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แล็บแจ้งว่าน่าจะเป็น B. pseudomallei ควรให้ยาสูตรใด",
+              "en": "The lab reports likely B. pseudomallei. Which regimen should he be on?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม→TMP-SMX 20 สัปดาห์",
+              "en": "Ceftazidime → TMP-SMX 20 weeks"
+            },
+            "line": {
+              "th": "ระยะกำจัดเชื้อ 20 สัปดาห์ตามที่ใช้กันในไทย",
+              "en": "A 20-week eradication phase follows Thai practice."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เพาะเชื้อเลือดขึ้น B. pseudomallei ควรให้ยาสูตรใด",
+              "en": "Blood culture grows B. pseudomallei. Which regimen should he be on?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเพาะเชื้อยืนยันเมลิออยโดสิส ควรให้ยาสูตรใด",
+              "en": "Culture confirms melioidosis. Which regimen should he be on?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "เซฟตาซิดีม+ด็อกซี→TMP-SMX",
+              "en": "Ceftazidime + doxy → TMP-SMX"
+            },
+            "line": {
+              "th": "เพิ่มด็อกซีไซคลินให้ครอบคลุมเลปโตสไปโรสิสด้วย",
+              "en": "Adds doxycycline to cover leptospirosis as well."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เพาะเชื้อเลือดขึ้น B. pseudomallei ควรให้ยาสูตรใด",
+              "en": "Blood culture grows B. pseudomallei. Which regimen should he be on?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเพาะเชื้อยืนยันเมลิออยโดสิส ควรให้ยาสูตรใด",
+              "en": "Culture confirms melioidosis. Which regimen should he be on?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "เซฟตาซิดีม+ด็อกซี→TMP-SMX",
+              "en": "Ceftazidime + doxy → TMP-SMX"
+            },
+            "line": {
+              "th": "เพิ่มด็อกซีไซคลินให้ครอบคลุมเลปโตสไปโรสิสด้วย",
+              "en": "Adds doxycycline to cover leptospirosis as well."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เพาะเชื้อเลือดขึ้น B. pseudomallei ควรให้ยาสูตรใด",
+              "en": "Blood culture grows B. pseudomallei. Which regimen should he be on?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเพาะเชื้อยืนยันเมลิออยโดสิส ควรให้ยาสูตรใด",
+              "en": "Culture confirms melioidosis. Which regimen should he be on?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อ TMP-SMX",
+              "en": "IV ceftazidime, then TMP-SMX"
+            },
+            "line": {
+              "th": "ยาฉีด IV อย่างน้อย 2 สัปดาห์ แล้วกินยาต่อ 3-6 เดือน",
+              "en": "IV for at least 2 weeks, then 3–6 months of oral therapy."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "เซฟตาซิดีม+ด็อกซี→TMP-SMX",
+              "en": "Ceftazidime + doxy → TMP-SMX"
+            },
+            "line": {
+              "th": "เพิ่มด็อกซีไซคลินให้ครอบคลุมเลปโตสไปโรสิสด้วย",
+              "en": "Adds doxycycline to cover leptospirosis as well."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เมโรพีเนม IV แล้วต่อ TMP-SMX",
+              "en": "IV meropenem, then TMP-SMX"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อนี้ดี เหมาะกับผู้ป่วยช็อกหรืออยู่ไอซียู",
+              "en": "Covers this organism well and suits shock or ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟตาซิดีม IV แล้วต่อโคอะม็อก",
+              "en": "IV ceftazidime, then co-amoxiclav"
+            },
+            "line": {
+              "th": "โคอะม็อกซิคลาฟเป็นยาทางเลือกรองในระยะกำจัดเชื้อ",
+              "en": "Co-amoxiclav is a second-line drug for the eradication phase."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Opus 5.5 re-review 2026-11-02 of version 2, from memory of MERTH (Lancet 2014), Darwin 2020 and SSC 2021 (no online fetch). Facts sound; no unsafe option incl. by omission; tiers fit each path; no must-fix. Fixed: step2.W v1 draws blood before the first dose; R v1 and B b English matched to Thai; step-3 Thai question made natural; wording-parity and Thai-phrasing nits applied."
+    }
+  }
+}
