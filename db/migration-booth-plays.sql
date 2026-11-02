@@ -57,6 +57,11 @@ alter table public.booth_plays add column if not exists case_version text;
 alter table public.booth_plays add column if not exists tier_path text
   constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,3}$');
 
+-- #247: how many replies the play has had. A reply for step n claims it only from n - 1, so one step is answered
+-- once and a re-posted reply cannot draw the AI's tier for a typed answer again.
+alter table public.booth_plays add column if not exists replied_step smallint not null default 0
+  constraint booth_plays_replied_step_check check (replied_step between 0 and 3);
+
 -- DENY-ALL (RLS on, no policy): only the backend's service role reads or writes booth plays.
 alter table public.booth_plays enable row level security;
 

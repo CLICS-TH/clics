@@ -70,12 +70,12 @@ const bankFor = (tree, path) => (path.length === 0 ? tree.banks.step1 : tree.ban
 const TYPED_TIER = 'B';
 
 /** The tier path the visitor's answers walked: a tapped answer takes its option's tier, a typed one the tier the
- *  stub sorted it into (the kiosk posts it back on every later call; the last answer has none yet). */
+ *  stub sorted it into (the kiosk never sees it). */
 function pathOf(tree, answers) {
   let path = '';
   for (const a of answers) {
     const tier = 'choice' in a ? bankFor(tree, path).options.find((o) => o.id === a.choice)?.tier : null;
-    path += 'choice' in a ? TIER_LETTER[tier] ?? 'W' : a.tier ?? TYPED_TIER;
+    path += 'choice' in a ? TIER_LETTER[tier] ?? 'W' : TYPED_TIER;
   }
   return path;
 }
@@ -138,8 +138,7 @@ const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, ne
 /** The default reply to answer n: reply n, its sig, and (after answers 1 and 2) the Next for the path walked. */
 function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length) } = {}) {
   const n = answers.length;
-  const last = answers[n - 1];
-  return { status: 'replied', reply, reply_sig: SIG(n), ...('text' in last ? { answer_tier: TYPED_TIER } : {}), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
+  return { status: 'replied', reply, reply_sig: SIG(n), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
 
