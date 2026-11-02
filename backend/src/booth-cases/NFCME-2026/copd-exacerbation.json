@@ -126,8 +126,8 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "CXR, ECG และก๊าซในเลือด",
-              "en": "Chest X-ray, ECG and blood gas"
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
               "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
@@ -155,7 +155,7 @@
             },
             "line": {
               "th": "ดูการติดเชื้อและโพแทสเซียมต่ำจากยาขยายหลอดลม",
-              "en": "Shows infection and low potassium from bronchodilators."
+              "en": "Checks for infection and low potassium from bronchodilators."
             }
           },
           {
@@ -199,8 +199,8 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "CXR, ECG และก๊าซในเลือด",
-              "en": "Chest X-ray, ECG and blood gas"
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
               "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
@@ -279,8 +279,8 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "CXR, ECG และก๊าซในเลือด",
-              "en": "Chest X-ray, ECG and blood gas"
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
               "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
