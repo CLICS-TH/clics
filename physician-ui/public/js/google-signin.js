@@ -1,4 +1,4 @@
-// Google sign-in for the Portal (ADR 0007). One entry point, clicsGoogleSignIn(), wires a page's
+// Google sign-in for the Portal (ADR 0008). One entry point, clicsGoogleSignIn(), wires a page's
 // "Continue with Google" button for one flow. Two modes:
 //   gis      → the press loads Google's script (never before it), swaps in Google's own button, trades
 //              the credential with signInWithIdToken + a hashed nonce, then hands the session to the

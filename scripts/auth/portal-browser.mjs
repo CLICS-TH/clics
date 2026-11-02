@@ -854,7 +854,7 @@ const SCENARIOS = [
         // logEventStrict's rollback is the exception to "most actions still go ahead".
         const logPara = await page.locator('section[aria-labelledby="collect-h"] li').filter({ hasText: th ? 'บันทึกการตรวจสอบเก็บ' : 'The audit log records' }).first().innerText();
         t.check((th ? /ถูกยกเลิก/ : /undone/).test(logPara), `[${lang}] the log-failure sentence has no lock exception`);
-        // Choosing Google loads Google's script from Google (ADR 0007): the entry says so, and keeps its "only if you choose" line.
+        // Choosing Google loads Google's script from Google (ADR 0008): the entry says so, and keeps its "only if you choose" line.
         const googleRow = await page.locator('section[aria-labelledby="proc-h"] .policy-facts > div').filter({ has: page.locator('dt', { hasText: /^Google$/ }) }).locator('dd').innerText();
         t.check((th ? /เฉพาะเมื่อคุณเลือกเข้าสู่ระบบด้วย Google/ : /Only if you choose to sign in with Google/).test(googleRow), `[${lang}] the Google line lost its "only if you choose" wording: "${googleRow}"`);
         t.check((th ? /โหลดโค้ดเข้าสู่ระบบจาก Google/ : /loads Google's sign-in code from Google/).test(googleRow) && /\bIP\b/.test(googleRow) && (th ? /ข้อมูลเบราว์เซอร์/ : /browser details/).test(googleRow), `[${lang}] the Google line does not say Google's code is loaded from Google and Google receives the IP address and browser details: "${googleRow}"`);

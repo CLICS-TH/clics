@@ -14,7 +14,7 @@ Onboarding is **Google self-service for physicians (auto-active) + A/B invite li
 | **Auth rate limits** (`otp`, `email`) | Auth → Rate Limits | Throttle OTP send + brute-force. Custom SMTP starts at 30 emails/hr — raise as needed. |
 | **Anon (publishable) key** | Project → API | Copy into the front-end env (below). The **service-role key never goes to a browser**. |
 
-## 1b. Google sign-in mode (in-page vs redirect, ADR 0007)
+## 1b. Google sign-in mode (in-page vs redirect, ADR 0008)
 
 The Portal asks Google itself through Google Identity Services (GIS), so Google's chooser names `physician-ui.vercel.app` instead of the Supabase project domain. `physician-ui/public/js/google-config.js` holds the switch (a separate file because the booth promo's source digest covers `config.js`):
 

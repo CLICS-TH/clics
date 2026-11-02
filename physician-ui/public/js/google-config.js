@@ -1,4 +1,4 @@
-// Google sign-in settings (ADR 0007), loaded by the pages that start a Google sign-in. They live apart from
+// Google sign-in settings (ADR 0008), loaded by the pages that start a Google sign-in. They live apart from
 // config.js because the booth promo's source digest covers config.js, and the booth never reads these.
 // 'gis' asks Google in the Portal's own page, 'redirect' goes through Supabase as before. Roll back by setting
 // a flow to 'redirect' and redeploying. 'gis' also needs the OAuth client ID below and a page origin listed
