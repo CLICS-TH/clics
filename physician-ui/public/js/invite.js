@@ -71,19 +71,15 @@ function withClient(cb) {
 withClient(() => {
   if (!window.sbClient) return; // OAuth not configured → password-only (Google block stays hidden)
   document.getElementById('googleWrap').style.display = '';
-  document.getElementById('googleBtn').addEventListener('click', async () => {
-    const acceptErr = document.getElementById('acceptErr');
-    hideErr(acceptErr);
-    // Stash the invite context so /auth/callback knows to acceptInvite (not the normal signup).
-    // localStorage (not sessionStorage): the OAuth round-trip can come back in a fresh
-    // browsing context where sessionStorage is empty.
-    localStorage.setItem('clics_oauth_flow', JSON.stringify({
-      kind: 'invite', token,
-    }));
-    const redirectTo = location.origin + '/auth/callback';
-    const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
-    if (error) showErr(acceptErr, error.message || 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.');
+  const googleBtn = document.getElementById('googleBtn');
+  const acceptErr = document.getElementById('acceptErr');
+  // The marker tells /auth/callback to accept the invite instead of running the normal signup.
+  clicsGoogleSignIn(googleBtn, {
+    flow: 'invite',
+    marker: { kind: 'invite', token },
+    onError: (message) => showErr(acceptErr, message),
   });
+  googleBtn.addEventListener('click', () => hideErr(acceptErr));
 });
 
 // ---- Password method, step 1: create + send OTP ----
