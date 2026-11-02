@@ -1,0 +1,2 @@
+# Windows cmd.exe misparses LF-only batch files (labels and goto break).
+*.cmd text eol=crlf

@@ -9,7 +9,9 @@
 -- this table has NO transcript, answer-text, IP or device column, and none may be added
 -- (backend/tests/booth-consistency.test.js holds the column list).
 --
--- Idempotent. Apply to the prod Supabase BEFORE deploying the backend that mounts /booth.
+-- Idempotent. Apply to the prod Supabase BEFORE deploying the backend that mounts /booth. #217 changed
+-- booth_start_play (it now starts no play while booth_enabled = 0), so the owner-gated re-apply of this file, then
+-- migration-booth-purge.sql, is due before the Sun 1 Nov 18:00 freeze.
 --
 -- Switching the event on, until the superadmin booth card (#214) exists (times need an explicit offset):
 --   update public.app_settings set value = 1, updated_at = now() where key = 'booth_enabled';
@@ -58,6 +60,11 @@ returns table (play_id uuid, play_tag integer)
 language plpgsql as $$
 begin
   perform pg_advisory_xact_lock(hashtext('booth_plays:' || p_event));
+
+  -- Checked under the lock: a start admitted before a switch-off that waited out a purge (which commits only while
+  -- booth_enabled = 0, migration-booth-purge.sql) must not recreate a row. No row is the backend's 'unavailable'.
+  perform 1 from public.app_settings where key = 'booth_enabled' and value = 1;
+  if not found then return; end if;
 
   update public.booth_plays b
      set status = 'abandoned'

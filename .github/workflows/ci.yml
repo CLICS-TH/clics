@@ -37,6 +37,7 @@ jobs:
       manuals: ${{ steps.select.outputs.manuals }}
       portal_browser: ${{ steps.select.outputs.portal_browser }}
       responsive: ${{ steps.select.outputs.responsive }}
+      booth_scripts: ${{ steps.select.outputs.booth_scripts }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,6 +125,18 @@ jobs:
       - name: evaluator-lock-manifest — evaluator_model_lock manifest columns against a throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/evaluator-lock-manifest-test.sh
+      # Booth retention (db/migration-booth-purge.sql): booth_event_summary() checks the switch, deletes and
+      # summarizes in one transaction. This applies it twice to a throwaway PostgreSQL and asserts the summary
+      # math, the BP409 refusal, the grants, and two-session interleavings: a switch-on waits for an open purge,
+      # a purge waits for an open switch-on and refuses, no play starts mid-purge, the summary equals the rows deleted.
+      - name: booth-purge — booth_event_summary against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/booth-purge-test.sh
+      # The rehearsal's latency gate (score-latency.mjs) and the retention script's report and refusal paths
+      # (purge-event.mjs against a fake backend). Package-free node --test, so no npm install.
+      - name: booth-scripts — Score-latency gate and purge-event tests
+        if: ${{ !cancelled() && steps.select.outputs.booth_scripts == 'true' }}
+        run: npm run test:booth-scripts
       # Calibration — three-way.js decides G0.5, the programme's go/no-go. Its output is a number an
       # operator writes into a protocol document, so a plausible-but-wrong figure is far worse here than
       # a crash. The same SCOPE-LEAK defect (a `--manifest` filter narrowing a set a later consumer still
