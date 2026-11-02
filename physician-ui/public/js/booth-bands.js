@@ -1,46 +1,54 @@
 // Band descriptors for the booth result card (#250): one fixed Thai and English line for each PIS-7 domain and band.
 // No imports, so the harness can load this file as a data: URL like booth-copy.js.
 // Bands follow the rubric's own anchors (0 -> 3 -> 5, rimpl/src/lib/prompts.js PER-DOMAIN ANCHORS). Each line says what
-// this one play showed, never what the physician is: the rubric forbids reading a score as overall competence.
+// this one three-tap play showed (answers, choices, replies), never a free chat or what the physician is: the rubric forbids
+// reading a score as overall competence. Thai and English make the same strength of claim.
+
+/** Recorded like a case's admission.safety_review (ADR 0005): a fresh AI reviewer read all 21 pairs. */
+export const SAFETY_REVIEW = Object.freeze({
+  model: 'claude-opus-5-5',
+  date: '2026-11-02',
+  findings: 'No clinical claims and no judgment of the physician. Fixed: d5 claimed option-weighing the scorer cannot see, d2 drifted from depth of reasoning, English low bands harsher than Thai, d4 wrong for the first answer, Thai d1/d2/d6 read as translated.',
+});
 
 /** 0-2 is the low band, 3 the middle, 4-5 the high. */
 export const bandOf = (value) => (value <= 2 ? 'low' : value === 3 ? 'mid' : 'high');
 
 export const BAND_LINES = Object.freeze({
   d1: {
-    low: { th: 'คำถามรอบนี้ยังชี้จุดตัดสินใจสำคัญของเคสได้ไม่มาก', en: 'Your questions only partly reached the case\'s key decision.' },
-    mid: { th: 'คำถามชัดเจนและเกี่ยวกับเคส แต่ยังไม่เจาะลึก', en: 'Clear, relevant questions that stayed general.' },
-    high: { th: 'คำถามเฉพาะเจาะจงและนำไปสู่ประเด็นสำคัญของเคส', en: 'Specific questions that led to the case\'s key issues.' },
+    low: { th: 'คำตอบสามขั้นนี้ยังไม่ตรงประเด็นหลักของเคสนัก', en: 'Your three answers only partly addressed the case\'s main issue.' },
+    mid: { th: 'คำตอบสามขั้นนี้เกี่ยวกับเคส แต่ยังไม่ลงไปที่ประเด็นหลัก', en: 'Your three answers related to the case but stayed general.' },
+    high: { th: 'คำตอบสามขั้นนี้ตรงประเด็นหลักของเคสอย่างเจาะจง', en: 'Your three answers were specific to the case\'s main issue.' },
   },
   d2: {
-    low: { th: 'เหตุผลรอบนี้ยังสั้น เชื่อมกลไกกับหลักฐานน้อย', en: 'Reasoning stayed brief, with little tying mechanism to evidence.' },
-    mid: { th: 'มีเหตุผลที่เข้าใจได้ แต่ยังเชื่อมหลักฐานกับข้อจำกัดไม่ครบ', en: 'Sound reasoning, with evidence and limits not fully linked.' },
-    high: { th: 'เหตุผลชัดเจน เชื่อมกลไก หลักฐาน และข้อจำกัดเข้าด้วยกัน', en: 'Strong reasoning that linked mechanism, evidence and limits.' },
+    low: { th: 'ในคำตอบรอบนี้ ยังไม่ค่อยเห็นเหตุผลเบื้องหลังการเลือก', en: 'Your answers did not show much of the reasoning behind them.' },
+    mid: { th: 'คำตอบรอบนี้มีเหตุผลที่เข้าใจได้ แต่ยังไม่ลงลึก', en: 'Your answers gave sensible reasons but did not go into depth.' },
+    high: { th: 'คำตอบรอบนี้ให้เหตุผลได้ชัดเจนและลงลึก', en: 'Your answers gave clear reasons that went into depth.' },
   },
   d3: {
-    low: { th: 'ใช้ข้อมูลเฉพาะของผู้ป่วยรายนี้ค่อนข้างน้อย', en: 'Little of this patient\'s own details was used.' },
-    mid: { th: 'ใช้บริบทของผู้ป่วยบางส่วนประกอบการตัดสินใจ', en: 'Some of the patient\'s context shaped the decisions.' },
-    high: { th: 'ใช้บริบทของผู้ป่วยได้ดีและรู้ข้อจำกัด', en: 'Used the patient\'s context well, aware of its limits.' },
+    low: { th: 'คำตอบรอบนี้ใช้รายละเอียดของผู้ป่วยรายนี้ไม่มากนัก', en: 'Your answers did not draw much on this patient\'s details.' },
+    mid: { th: 'คำตอบรอบนี้ใช้รายละเอียดของผู้ป่วยรายนี้บางส่วน', en: 'Your answers used some of this patient\'s details.' },
+    high: { th: 'คำตอบรอบนี้ใช้รายละเอียดของผู้ป่วยรายนี้ได้หลายจุด', en: 'Your answers used many of this patient\'s details.' },
   },
   d4: {
-    low: { th: 'คำถามยังต่อยอดจากคำตอบที่ได้รับไม่มาก', en: 'Questions built little on the answers received.' },
-    mid: { th: 'มีคำถามต่อยอดที่เกี่ยวข้อง แต่ยังไม่ปรับแนวทาง', en: 'Relevant follow-ups, but the approach did not adapt.' },
-    high: { th: 'ปรับคำถามตามสิ่งที่ได้เรียนรู้ระหว่างทาง', en: 'Adapted questions to what the earlier answers showed.' },
+    low: { th: 'คำตอบขั้นถัดมายังต่อยอดจากขั้นก่อนหน้าไม่มากนัก', en: 'Your later answers did not build much on the step before.' },
+    mid: { th: 'คำตอบขั้นถัดมาต่อยอดจากขั้นก่อนหน้าได้บางส่วน', en: 'Your later answers partly built on the step before.' },
+    high: { th: 'คำตอบขั้นถัดมาต่อยอดจากขั้นก่อนหน้าอย่างชัดเจน', en: 'Your later answers clearly built on the step before.' },
   },
   d5: {
-    low: { th: 'ยังตั้งข้อสงสัยต่อคำตอบของ AI ไม่มาก', en: 'Little questioning of what the AI said.' },
-    mid: { th: 'ประเมินข้อจำกัดของ AI ได้พอสมควร', en: 'A fair appraisal of the AI\'s limits.' },
-    high: { th: 'แยกข้อเท็จจริง ความไม่แน่นอน และข้อจำกัดได้ชัดเจน', en: 'Clearly separated fact, uncertainty and limitation.' },
+    low: { th: 'รอบนี้ยังเห็นการชั่งน้ำหนักคำตอบจาก AI ไม่มากนัก', en: 'This play did not show much weighing of the AI\'s replies.' },
+    mid: { th: 'รอบนี้เห็นการชั่งน้ำหนักคำตอบจาก AI อยู่บ้าง', en: 'This play showed some weighing of the AI\'s replies.' },
+    high: { th: 'รอบนี้เห็นการชั่งน้ำหนักคำตอบจาก AI อย่างรอบคอบ', en: 'This play showed careful weighing of the AI\'s replies.' },
   },
   d6: {
-    low: { th: 'ยังสรุปหรือทบทวนสิ่งที่ได้เรียนรู้ไม่มาก', en: 'Little summing up of what was learned.' },
-    mid: { th: 'สรุปประเด็นได้ แต่ยังไม่ระบุสิ่งที่จะเรียนต่อ', en: 'A reasonable summary, without a named next step.' },
-    high: { th: 'สังเคราะห์ได้ดีและบอกสิ่งที่จะเรียนรู้ต่อ', en: 'Strong synthesis that named what to learn next.' },
+    low: { th: 'คำตอบสามขั้นนี้ยังไม่ค่อยประกอบกันเป็นภาพรวมของเคส', en: 'Your three answers did not quite come together as one picture.' },
+    mid: { th: 'คำตอบสามขั้นนี้ประกอบกันเป็นภาพรวมของเคสได้พอสมควร', en: 'Your three answers came together fairly well as one picture.' },
+    high: { th: 'คำตอบสามขั้นนี้ประกอบกันเป็นภาพรวมของเคสได้ชัดเจน', en: 'Your three answers came together as one clear picture.' },
   },
   d7: {
-    low: { th: 'วิธีใช้ AI รอบนี้ยังมีที่ปรับปรุงได้มาก', en: 'How the AI was used this time has room to grow.' },
-    mid: { th: 'สั่งงานและกำกับ AI ได้พอสมควร', en: 'A reasonable way of prompting and steering the AI.' },
-    high: { th: 'ใช้ AI อย่างมีวิจารณญาณและรู้ข้อจำกัดของ AI', en: 'Used the AI critically, aware of its limits.' },
+    low: { th: 'รอบนี้ยังเห็นการใช้คำตอบจาก AI เป็นเครื่องมือไม่มากนัก', en: 'This play did not show much use of the AI\'s replies as a tool.' },
+    mid: { th: 'รอบนี้เห็นการใช้คำตอบจาก AI เป็นเครื่องมืออยู่บ้าง', en: 'This play showed some use of the AI\'s replies as a tool.' },
+    high: { th: 'รอบนี้เห็นการใช้คำตอบจาก AI เป็นเครื่องมืออย่างเหมาะสม', en: 'This play showed appropriate use of the AI\'s replies as a tool.' },
   },
 });
 

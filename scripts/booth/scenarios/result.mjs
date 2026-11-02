@@ -11,7 +11,7 @@ const BAD = /on[-\s]?premise|validated\b|certif|ติดตั้งภาย�
 
 // booth-bands.js has no imports, so a data: URL loads it as the module it is.
 const SOURCE = await readFile(fileURLToPath(new URL('../../../physician-ui/public/js/booth-bands.js', import.meta.url)), 'utf8');
-const { BAND_LINES, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
+const { BAND_LINES, SAFETY_REVIEW, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
 
 const size = (line) => line.th.length + line.en.length;
 
@@ -50,6 +50,7 @@ export default [
         'bands: 7 domains x 3 bands, each with a Thai line and an English line in its own script');
       h.check(lines.every(([, , l]) => !BAD.test(`${l.th} ${l.en}`)), 'bands: no line says validated, on-premise or certificate');
       h.check(lines.every(([, , l]) => l.th.length <= 60 && l.en.length <= 70), 'bands: Thai lines <= 60 characters and English <= 70, so each stays within two lines');
+      h.check(SAFETY_REVIEW?.model && /^\d{4}-\d{2}-\d{2}$/.test(SAFETY_REVIEW.date) && SAFETY_REVIEW.findings, 'bands: the AI safety review is recorded with its model, date and findings (ADR 0005)');
       h.check([0, 1, 2, 3, 4, 5].map(bandOf).join() === 'low,low,low,mid,high,high', 'bands: 0-2 low, 3 middle, 4-5 high');
       h.check(weakestFirst({ d1: 3, d2: 1, d3: 3, d4: 1, d5: 5, d6: 0, d7: 3 }).slice(0, 3).join() === 'd6,d2,d4', 'bands: weakest first, a tie keeping the rubric\'s order');
     },
