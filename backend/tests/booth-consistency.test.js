@@ -4,19 +4,27 @@ const fs = require('fs');
 const path = require('path');
 const { BOOTH_SETTINGS, SAFE_EVENT_CODE } = require('../src/services/booth');
 const { schemaFromSql } = require('./helpers/sql-schema');
+const { CaseTreeSchema } = require('../src/booth-cases/tree-schema');
 
 const MIGRATION = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-plays.sql'), 'utf8');
 const SQL = MIGRATION.replace(/--[^\n]*/g, '');
 
 test('booth_plays has exactly the allowed columns', () => {
   expect([...(schemaFromSql().booth_plays ?? [])].sort()).toEqual(['id', 'event_code', 'tag', 'status', 'spend_usd',
-    'composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'created_at', 'scored_at', 'ranked'].sort());
+    'composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'created_at', 'scored_at', 'ranked', 'case_id', 'case_version',
+    'tier_path'].sort());
 });
 
 test('the case-file name guard is the booth_plays.event_code CHECK', () => {
   const check = /check \(event_code ~ '([^']+)'\)/.exec(SQL);
   expect(check).not.toBeNull();
   expect(SAFE_EVENT_CODE.source).toBe(check[1]);
+});
+
+test('the booth_plays.case_id CHECK is the case-file case_id rule, and tier_path holds up to three tier letters', () => {
+  const caseId = CaseTreeSchema.shape.case_id._def.checks.find((c) => c.kind === 'regex').regex;
+  expect(/check \(case_id ~ '([^']+)'\)/.exec(SQL)?.[1]).toBe(caseId.source);
+  expect(/check \(tier_path ~ '([^']+)'\)/.exec(SQL)?.[1]).toBe('^[BRW]{0,3}$');
 });
 
 test('the migration seeds exactly the BOOTH_SETTINGS keys, switched off, for an event that has a case file', () => {
@@ -29,7 +37,8 @@ test('the migration seeds exactly the BOOTH_SETTINGS keys, switched off, for an 
   expect(seeds[BOOTH_SETTINGS.ceilingUsd].value).toBe(3);
   const code = seeds[BOOTH_SETTINGS.code].text;
   expect(code).toBe('NFCME-2026');
-  expect(fs.existsSync(path.join(__dirname, '../src/booth-cases', `${code}.json`))).toBe(true);
+  const folder = path.join(__dirname, '../src/booth-cases', code);
+  expect(fs.readdirSync(folder).filter((f) => f.endsWith('.json')).length).toBeGreaterThan(0);
 });
 
 test('the purge function locks the switch rows the backend reads and the advisory key booth_start_play takes', () => {
@@ -46,9 +55,12 @@ test('the purge function locks the switch rows the backend reads and the advisor
 test('booth_start_play is defined only in the plays migration, and starts a play only while booth_enabled = 1', () => {
   const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
   expect(purge).not.toMatch(/function\s+public\.booth_start_play/);
-  const body = /function public\.booth_start_play\(p_event text\)[\s\S]*?\$\$([\s\S]*?)\$\$/.exec(SQL)?.[1];
+  const body = /function public\.booth_start_play\(p_event text, p_case text, p_version text\)[\s\S]*?\$\$([\s\S]*?)\$\$/.exec(SQL)?.[1];
   expect(body).toBeDefined();
   expect(body).toContain(`key = '${BOOTH_SETTINGS.enabled}' and value = 1`);
+  expect(SQL).toContain('drop function if exists public.booth_start_play(text);');
+  const access = [...SQL.matchAll(/(?:revoke all|grant execute) on function public\.booth_start_play\(([^)]*)\)/g)];
+  expect(access.map(([, args]) => args)).toEqual(['text, text, text', 'text, text, text']);
 });
 
 test('booth_event_purges holds aggregates only, under the booth_plays event-code CHECK', () => {

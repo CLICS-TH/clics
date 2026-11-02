@@ -84,6 +84,15 @@ test('a PLE turn sends no booth_mode key at all, so its body is unchanged by the
   }
 });
 
+test('booth_bank reaches the wire on a booth turn, and never on a PLE turn', async () => {
+  const bank = { variants: [{ id: 'v1', question: { th: 'ถาม', en: 'Q' } }], options: [] };
+  await rimplChat({ ...CALL, booth_mode: true, booth_bank: bank });
+  expect(sentBody().booth_bank).toEqual(bank);
+  global.fetch = jest.fn(async () => okResponse());
+  await rimplChat({ ...CALL, booth_bank: bank });
+  expect(sentBody()).not.toHaveProperty('booth_bank');
+});
+
 test('router_enabled and deep_mode reach the wire as booleans — a dropped deep_mode would un-stick a deep session', async () => {
   await rimplChat(CALL);
   expect(sentBody()).toMatchObject({ router_enabled: true, deep_mode: true });

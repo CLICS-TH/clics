@@ -219,13 +219,13 @@ setting booth_enabled 0 null
 P -c "truncate probe"
 bg "$(SR "begin; $(SUMMARY EVT-C true); select pg_sleep(2); $(stamp purge_commit) commit;")" a; A=$!
 sleep 0.5
-STARTED="$(P -c "$(SR "with s as (select * from booth_start_play('EVT-C')) select count(*) from s; $(stamp start_done)")")"
+STARTED="$(P -c "$(SR "with s as (select * from booth_start_play('EVT-C', 'fixture', '1')) select count(*) from s; $(stamp start_done)")")"
 wait "$A"
 expect "booth_start_play waited for the purge (same advisory lock)" "t" "$(waited purge_commit start_done)"
 expect "  → and, the booth being off, started nothing: no row returned, none left" "0|0" \
   "$STARTED|$(P -c "select count(*) from booth_plays where event_code = 'EVT-C'")"
 setting booth_enabled 1 null
-expect "with booth_enabled = 1 a start gets tag 1" "1" "$(P -c "$(SR "select play_tag from booth_start_play('EVT-C')")" | tail -1)"
+expect "with booth_enabled = 1 a start gets tag 1" "1" "$(P -c "$(SR "select play_tag from booth_start_play('EVT-C', 'fixture', '1')")" | tail -1)"
 setting booth_enabled 0 null
 
 echo "interleaving: a score that commits while the purge waits on its row"
