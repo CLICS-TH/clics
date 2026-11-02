@@ -3,16 +3,16 @@
 // a render; the booth harness (scenarios/promo.mjs) recomputes both digests and fails when either moved, so an
 // edited scene, stub or case step without a re-render, or a hand-swapped MP4, cannot ship unnoticed.
 // The booth page enters through capture-files.json, every file the capture served it; the case through the parts
-// the video shows: the vignette, step 1 and the placeholder badge (SPEC.md).
+// the video shows: the vignette and step 1 as the stub asks it (SPEC.md).
 import { createHash } from 'node:crypto';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CASE_FILE, nextFor } from './stub.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 export const REPO = fileURLToPath(new URL('../../../', import.meta.url));
 const PUBLIC = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
-const CASE = fileURLToPath(new URL('../../../backend/src/booth-cases/NFCME-2026.json', import.meta.url));
 export const PROMO = join(PUBLIC, 'booth-loop', 'promo.mp4');
 export const LOCK = join(HERE, 'promo.lock.json');
 export const SERVED = join(HERE, 'capture-files.json');
@@ -35,8 +35,8 @@ export async function sourcesDigest({ read = readFile } = {}) {
   ];
   const hash = createHash('sha256');
   for (const f of [...new Set(files)]) hash.update(`${relative(REPO, f)}\0${sha(await read(f))}\n`);
-  const kase = JSON.parse(await read(CASE, 'utf8'));
-  hash.update(`case\0${sha(JSON.stringify({ vignette: kase.vignette, step1: kase.steps[0], placeholder: kase.placeholder ?? false }))}\n`);
+  const kase = JSON.parse(await read(CASE_FILE, 'utf8'));
+  hash.update(`case\0${sha(JSON.stringify({ vignette: kase.vignette, step1: nextFor('', kase) }))}\n`);
   return hash.digest('hex');
 }
 

@@ -5,11 +5,22 @@ jest.mock('dotenv', () => ({ config: () => ({}) }));
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 jest.mock('../src/lib/audit', () => ({ logEvent: jest.fn(async () => {}), logEventStrict: jest.fn(async () => ({ ok: true })) }));
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const request = require('supertest');
 const { __mock: m } = require('../src/lib/supabase');
 const { logEvent } = require('../src/lib/audit');
 const app = require('../src/index');
 const { SUPERADMIN, ADMIN, AUDITOR, PHYSICIAN } = require('./helpers/roles');
+
+// The real NFCME-2026 case may be unadmitted, so the event's case here is the fixture filed under that code.
+const CASES_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
+const kase = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), event_code: 'NFCME-2026' };
+fs.mkdirSync(path.join(CASES_DIR, 'NFCME-2026'));
+fs.writeFileSync(path.join(CASES_DIR, 'NFCME-2026', `${kase.case_id}.json`), JSON.stringify(kase));
+process.env.BOOTH_CASES_DIR = CASES_DIR;
+afterAll(() => { delete process.env.BOOTH_CASES_DIR; });
 
 const OPENS = '2026-11-03T08:00:00+07:00';
 const CLOSES = '2026-11-04T18:00:00+07:00';
