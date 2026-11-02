@@ -77,6 +77,13 @@ const ChatSchema = z.object({
   // input. Sent with booth_mode, absent for the reply to the last answer. Bounds mirror the backend's
   // tree-schema.js Bank with headroom on the strings.
   booth_bank: BoothBankSchema.optional(),
+  // Typed answer (#247, ADR 0006): the last answer was typed, so this one call also sorts it into a tier. `current`
+  // is the bank the step offered (the yardstick), `next` the following step's bank for each tier the answer might
+  // land in (absent after the last answer). Takes the place of booth_bank.
+  booth_typed: z.object({
+    current: BoothBankSchema,
+    next: z.object({ best: BoothBankSchema, reasonable: BoothBankSchema, weaker: BoothBankSchema }).strict().optional(),
+  }).strict().optional(),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -143,7 +150,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -168,7 +175,7 @@ router.post('/', async (req, res) => {
       deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
     // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
     // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
-    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, signal }));
+    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed, signal }));
     const ragDocs = await ragLookup(cleanMessage);
     const messages = buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint);
 

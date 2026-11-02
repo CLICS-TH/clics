@@ -66,12 +66,16 @@ function startServer() {
 const TIER_LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const bankFor = (tree, path) => (path.length === 0 ? tree.banks.step1 : tree.banks[`step${path.length + 1}`][path]);
 
-/** The tier path the visitor's answers walked: a tapped answer takes its option's tier, a typed one is W. */
+/** The tier the stub sorts a typed answer into; best, so a typed answer steers away from the weaker branch. */
+const TYPED_TIER = 'B';
+
+/** The tier path the visitor's answers walked: a tapped answer takes its option's tier, a typed one the tier the
+ *  stub sorted it into (the kiosk posts it back on every later call; the last answer has none yet). */
 function pathOf(tree, answers) {
   let path = '';
   for (const a of answers) {
-    const tier = 'choice' in a ? bankFor(tree, path).options.find((o) => o.id === a.choice)?.tier : 'weaker';
-    path += TIER_LETTER[tier] ?? 'W';
+    const tier = 'choice' in a ? bankFor(tree, path).options.find((o) => o.id === a.choice)?.tier : null;
+    path += 'choice' in a ? TIER_LETTER[tier] ?? 'W' : a.tier ?? TYPED_TIER;
   }
   return path;
 }
@@ -134,7 +138,8 @@ const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, ne
 /** The default reply to answer n: reply n, its sig, and (after answers 1 and 2) the Next for the path walked. */
 function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length) } = {}) {
   const n = answers.length;
-  return { status: 'replied', reply, reply_sig: SIG(n), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
+  const last = answers[n - 1];
+  return { status: 'replied', reply, reply_sig: SIG(n), ...('text' in last ? { answer_tier: TYPED_TIER } : {}), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
 
@@ -472,7 +477,7 @@ async function shot(page, name) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, REPLY, SIG, SCORED,
+const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
   START, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
 
 try {

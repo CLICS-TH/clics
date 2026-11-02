@@ -93,6 +93,15 @@ test('booth_bank reaches the wire on a booth turn, and never on a PLE turn', asy
   expect(sentBody()).not.toHaveProperty('booth_bank');
 });
 
+test('booth_typed reaches the wire on a booth turn, and never on a PLE turn', async () => {
+  const typed = { current: { variants: [], options: [] } };
+  await rimplChat({ ...CALL, booth_mode: true, booth_typed: typed });
+  expect(sentBody().booth_typed).toEqual(typed);
+  global.fetch = jest.fn(async () => okResponse());
+  await rimplChat({ ...CALL, booth_typed: typed });
+  expect(sentBody()).not.toHaveProperty('booth_typed');
+});
+
 test('router_enabled and deep_mode reach the wire as booleans — a dropped deep_mode would un-stick a deep session', async () => {
   await rimplChat(CALL);
   expect(sentBody()).toMatchObject({ router_enabled: true, deep_mode: true });

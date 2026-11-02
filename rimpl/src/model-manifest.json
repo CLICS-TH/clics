@@ -141,6 +141,10 @@
             "label": "chat-prompt-0fe824e9",
             "sha256": "0fe824e9a2db468cc9be9661f166b72a3f9a08bcd27e050abedc2130009b85d0"
           },
+          "booth+typed": {
+            "label": "chat-prompt-92711c17",
+            "sha256": "92711c172b4dc67b973f1a3fa9357fab70d14a599ceb440dfaa50876546f559d"
+          },
           "examiner": {
             "label": "chat-prompt-c6efcfc6",
             "sha256": "c6efcfc63661e45e0216f04cd231b7ed2583b7b86e2bc981615bdb9b18068db2"
@@ -333,5 +337,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "ebd5c9667bce247b604d56805e11af28c7edccd7b05112c62475096d98035cb4"
+  "sha256": "f3345ead3df555878e477216014b615598ee9dee6521930db1d165cd91efa96d"
 }

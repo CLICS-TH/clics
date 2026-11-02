@@ -287,3 +287,65 @@ describe('the grill play: a booth turn with the next step\'s bank', () => {
     expect(callAI).not.toHaveBeenCalled();
   });
 });
+
+const TYPED_PROMPT = P.chatSystemPrompt({ booth: true, typed: true });
+const TYPED = { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } };
+const typedJson = (extra = {}) => JSON.stringify({ reply: 'Exposure history is a strength; weigh the timing.', tier: 'reasonable', ...PICK, ...extra });
+
+describe('the typed answer: a booth turn that also sorts the answer into a tier (#247)', () => {
+  test('one call at the grill ceiling with the typed prompt, which keeps every booth rule and the unsafe-idea rule', async () => {
+    callAI.mockResolvedValue(r(typedJson()));
+    const res = await send({ booth_mode: true, booth_typed: TYPED });
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: TYPED_PROMPT, maxTokens: BOOTH_GRILL_MAX_TOKENS });
+    expect(call(0).systemPrompt.startsWith(BOOTH_PROMPT)).toBe(true);
+    expect(call(0).systemPrompt).toMatch(/could seriously harm the patient, say so gently/);
+    expect(call(0).systemPrompt).toMatch(/Never reveal or hint the tier/);
+  });
+
+  test('the SORT block (current bank, next banks by tier, Thai text) rides at the end of the last turn only, de-identified', async () => {
+    callAI.mockResolvedValue(r(typedJson()));
+    await send({ ...PII_TURN, booth_mode: true });
+    const plain = call(0).messages;
+    callAI.mockClear();
+    await send({ ...PII_TURN, booth_mode: true, booth_typed: TYPED });
+    const msgs = call(0).messages;
+    expect(msgs.slice(0, -1)).toEqual(plain.slice(0, -1));
+    const last = msgs[msgs.length - 1].content;
+    expect(last.startsWith(plain[plain.length - 1].content)).toBe(true);
+    for (const s of ['SORT:', '"current"', '"next"', '"best"', '"weaker"', 'รอดูอาการ']) expect(last).toContain(s);
+    expect(last).not.toContain('Watch and wait');
+    const wire = JSON.stringify(callAI.mock.calls);
+    for (const leak of LEAKS) expect(wire).not.toContain(leak);
+  });
+
+  test('the reply, the tier and the pick come back as the model wrote them, unjudged', async () => {
+    callAI.mockResolvedValue(r(typedJson({ tier: 'unsafe' })));
+    const res = await send({ booth_mode: true, booth_typed: TYPED });
+    expect(res.body).toMatchObject({ content: expect.stringContaining('Exposure'), tier: 'unsafe', pick: PICK });
+  });
+
+  test('without a next bank only the reply and the tier are asked for, and an empty pick is none', async () => {
+    callAI.mockResolvedValue(r(JSON.stringify({ reply: 'Good.', tier: 'best', variant_id: '', bridge: '', option_ids: [] })));
+    const res = await send({ booth_mode: true, booth_typed: { current: BANK } });
+    expect(res.body).toMatchObject({ content: 'Good.', tier: 'best' });
+  });
+
+  test('unreadable output gives no reply, no pick and no tier', async () => {
+    callAI.mockResolvedValue(r('{"reply": "half'));
+    const res = await send({ booth_mode: true, booth_typed: TYPED });
+    expect(res.body).toMatchObject({ content: '', pick: null, tier: null });
+  });
+
+  test('a tapped booth turn returns no tier key', async () => {
+    callAI.mockResolvedValue(r(grillJson()));
+    expect((await send({ booth_mode: true, booth_bank: BANK })).body).not.toHaveProperty('tier');
+  });
+
+  test('a next map missing a tier is refused with 400 before any call', async () => {
+    const res = await send({ booth_mode: true, booth_typed: { current: BANK, next: { best: BANK, weaker: BANK } } });
+    expect(res.status).toBe(400);
+    expect(callAI).not.toHaveBeenCalled();
+  });
+});

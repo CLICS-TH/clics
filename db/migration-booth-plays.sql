@@ -45,8 +45,8 @@ create table if not exists public.booth_plays (
   )
 );
 
--- #212: a play whose answers were all tapped choices. Only these rank on the public board: a typed answer reaches the
--- evaluator as written and could address it. Added after the table went out, so it is an ALTER.
+-- #212: whether the play ranks on the public board. Since #247 every scored play ranks (a typed answer included);
+-- older rows keep false. Added after the table went out, so it is an ALTER.
 alter table public.booth_plays add column if not exists ranked boolean not null default false;
 
 -- #246: the case and version the play walked (reply and score rebuild the dialogue from that case alone) and the

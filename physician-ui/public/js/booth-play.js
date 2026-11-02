@@ -22,7 +22,7 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask   ids only, posted back as the server sent it
  * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
  * @typedef {{ id: string, tag: number, vignette: Bi, answerMax: number }} Play
- * @typedef {{ choice: string } | { text: string }} Answer
+ * @typedef {{ choice: string } | { text: string, tier?: string }} Answer   a typed answer gets the tier the server sorted it into
  * @typedef {{ composite: number, domains: Record<string, number>, body: object }} Score
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
  *
@@ -34,7 +34,7 @@ const GHOST_TAP_MS = 350;
  *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
  * @typedef {{ type: 'begin' } | { type: 'openTyping' } | { type: 'closeTyping' } | { type: 'answer', answer: Answer }
- *         | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' } | { type: 'scored', score: Score }
+ *         | { type: 'replied', text: string, sig: string, next: Next | null, tier: string | null } | { type: 'next' } | { type: 'scored', score: Score }
  *         | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
  */
@@ -89,7 +89,7 @@ function transition(s, ev) {
       return answer ? { ...s, answers: [...s.answers, answer], screen: { at: 'replying' } } : s;
     }
     case 'replied': return at === 'replying'
-      ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
+      ? { ...s, answers: withTier(s.answers, ev.tier), replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
       return { ...s, screen: { at: s.answers.length < STEPS ? 'step' : 'scoring' } };
@@ -98,6 +98,12 @@ function transition(s, ev) {
     case 'stop': return TERMINAL.has(at) ? s : { ...s, screen: { at: 'stopped', offline: ev.offline } };
     default: return s;
   }
+}
+
+/** The reply to a typed answer carries its tier; the server signs the answer with it, so it is posted back unchanged. */
+function withTier(answers, tier) {
+  const last = answers[answers.length - 1];
+  return tier && 'text' in last ? [...answers.slice(0, -1), { ...last, tier }] : answers;
 }
 
 function acceptAnswer(s, answer) {
@@ -123,7 +129,8 @@ async function requestReply(api, s) {
     const next = s.answers.length < STEPS ? parseNext(body?.next) : null;
     if (body?.status === 'replied' && typeof body.reply === 'string' && typeof body.reply_sig === 'string'
       && (next || s.answers.length === STEPS)) {
-      return { type: 'replied', text: body.reply, sig: body.reply_sig, next };
+      const tier = typeof body.answer_tier === 'string' ? body.answer_tier : null;
+      return { type: 'replied', text: body.reply, sig: body.reply_sig, next, tier };
     }
     return { type: 'stop', offline: false };
   } catch (e) {

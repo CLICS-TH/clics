@@ -26,6 +26,7 @@ const SCORE_TIMEOUT_MS = 60_000;
 const ANSWER_MAX_CHARS = 500;
 const REPLY_MAX_CHARS = 1200;
 const STEPS = 3;
+const LETTERS = TIERS.map((t) => t.letter);
 const DOMAIN_KEYS = Object.keys(WEIGHTS);
 const BOARD_SIZE = 10;
 // The read is ordered like byStanding, so every play above a fetched one is fetched too: a play outside the top
@@ -36,7 +37,9 @@ const BANGKOK_OFFSET_MS = 7 * 3_600_000;
 const DAY_MS = 86_400_000;
 
 /**
- * @typedef {{ choice: string } | { text: string }} Answer
+ * @typedef {{ choice: string } | { text: string, tier?: 'B' | 'R' | 'W' }} Answer
+ *   A typed answer carries the tier letter the AI sorted it into, from the reply to it. The kiosk echoes it back
+ *   on every later call; the last answer of a reply call has none yet (the AI sorts it in that call).
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask  the ids the server issued for one step
  * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], sigs: string[] }} Dialogue
  *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
@@ -57,7 +60,7 @@ const AskSchema = z.object({
 const DialogueSchema = z.object({
   answers: z.array(z.union([
     z.object({ choice: z.string().max(16) }).strict(),
-    z.object({ text: z.string().trim().min(1).max(ANSWER_MAX_CHARS) }).strict(),
+    z.object({ text: z.string().trim().min(1).max(ANSWER_MAX_CHARS), tier: z.enum(LETTERS).optional() }).strict(),
   ])).min(1).max(STEPS),
   replies: z.array(z.string().max(REPLY_MAX_CHARS)).max(STEPS),
   asks: z.array(AskSchema).min(1).max(STEPS),
@@ -235,11 +238,17 @@ function turnKey() {
   return crypto.createHmac('sha256', secret || 'clics-dev-guest-secret-do-not-use-in-prod').update('booth-turn-v1').digest();
 }
 
-/** Turn k (0..3) binds everything the server had issued after k answers: the answers and replies before it and the
- *  asks through the next one, so a client can neither invent a reply nor answer an option it was not offered. */
+// A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
+// canonical form is keyed by position, not by object key order.
+const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null]);
+
+/** Turn k (0..3) binds everything the server had issued after k answers: the answers (typed ones with their sorted
+ *  tier) and replies before it and the asks through the next one, so a client can neither invent a reply nor
+ *  answer an option it was not offered. */
 function turnSig(playId, k, { answers, replies, asks }) {
   return crypto.createHmac('sha256', turnKey())
-    .update(JSON.stringify([playId, k, answers.slice(0, k), replies.slice(0, k), asks.slice(0, k + 1)])).digest('base64url');
+    .update(JSON.stringify([playId, k, answers.slice(0, k).map(canonicalAnswer), replies.slice(0, k), asks.slice(0, k + 1)]))
+    .digest('base64url');
 }
 
 function sigMatches(expected, given) {
@@ -248,21 +257,30 @@ function sigMatches(expected, given) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-/** Walks the asks along the tier path; a typed answer goes down the weaker branch (ADR 0006).
- *  @returns {string | null} the tier path, or null when an ask or a tapped answer does not fit its bank */
-function walkPath(kase, { answers, asks }) {
+/** Walks the asks along the tier path. A tapped answer's tier is its option's; a typed answer's is the one the AI
+ *  sorted it into (ADR 0006), which the sigs bind. In a reply call the last answer, if typed, is still unsorted and
+ *  must carry no tier (the client has no say in it): the path then stops before it.
+ *  @returns {{ tierPath: string, unsorted: boolean } | null} null when an ask, a tapped answer or a tier does not fit */
+function walkPath(kase, { answers, asks }, phase) {
   let tierPath = '';
   for (const [i, answer] of answers.entries()) {
     const bank = bankAt(kase, tierPath);
     if (!isValidAsk(bank, asks[i])) return null;
-    if (!('choice' in answer)) { tierPath += 'W'; continue; }
-    if (!asks[i].options.includes(answer.choice)) return null;
-    tierPath += LETTER[bank.options.find((o) => o.id === answer.choice).tier];
+    if ('choice' in answer) {
+      if (!asks[i].options.includes(answer.choice)) return null;
+      tierPath += LETTER[bank.options.find((o) => o.id === answer.choice).tier];
+    } else if (phase === 'reply' && i === answers.length - 1) {
+      return answer.tier === undefined ? { tierPath, unsorted: true } : null;
+    } else if (answer.tier === undefined) {
+      return null;
+    } else {
+      tierPath += answer.tier;
+    }
   }
-  return tierPath;
+  return { tierPath, unsorted: false };
 }
 
-/** @returns {(Dialogue & { tierPath: string }) | null} */
+/** @returns {(Dialogue & { tierPath: string, unsorted: boolean }) | null} */
 function parseDialogue(kase, playId, raw, phase) {
   const parsed = DialogueSchema.safeParse(raw);
   if (!parsed.success) return null;
@@ -272,8 +290,8 @@ function parseDialogue(kase, playId, raw, phase) {
     ? n === STEPS && d.replies.length === STEPS && d.asks.length === STEPS && d.sigs.length === STEPS + 1
     : d.replies.length === n - 1 && d.asks.length === n && d.sigs.length === n;
   if (!counted || !d.sigs.every((s, k) => sigMatches(turnSig(playId, k, d), s))) return null;
-  const tierPath = walkPath(kase, d);
-  return tierPath === null ? null : { ...d, tierPath };
+  const walked = walkPath(kase, d, phase);
+  return walked === null ? null : { ...d, ...walked };
 }
 
 function saidFor(bank, answer) {
@@ -342,8 +360,7 @@ async function readStandings(event, dayOf) {
   return standings(rows, dayOf);
 }
 
-/** A rank of null means none: the standings did not load, the play is outside the top STANDINGS_MAX, or it has a
- *  typed answer and is not ranked. */
+/** A rank of null means none: the standings did not load, or the play is outside the top STANDINGS_MAX. */
 async function scoredBody(playId, event, composite, domains, scoredAt) {
   const s = await readStandings(event, Date.parse(scoredAt));
   const rank = (list) => {
@@ -375,14 +392,11 @@ async function claimAsUnavailable(playId, event) {
   return !error && Array.isArray(data) && data.length === 1;
 }
 
-/** A typed answer reaches the evaluator as written and could address it, so only a play of tapped choices ranks. */
-const rankable = ({ answers }) => answers.every((a) => 'choice' in a);
-
-async function finish(playId, event, domains, ranked, tierPath) {
+async function finish(playId, event, domains, tierPath) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
-    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked, tier_path: tierPath })
+    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked: true, tier_path: tierPath })
     .eq('id', playId).eq('status', 'unavailable').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
   return { body: await scoredBody(playId, event, composite, domains, scoredAt) };
@@ -426,6 +440,18 @@ async function boardFor(now = new Date()) {
 
 const bankForAi = ({ variants, options }) => ({ variants, options });
 
+const TIER_NAMES = TIERS.map((t) => t.name);
+/** The AI's tier for a typed answer as a letter. Anything but a tier it was given (unclear, unsafe, none) is weaker. */
+const sortedTier = (name) => LETTER[TIER_NAMES.includes(name) ? name : 'weaker'];
+
+/** What rimpl needs to sort a typed answer to step n: that step's bank, and for n < 3 the next step's bank per tier. */
+function typedBanks(kase, tierPath, n) {
+  return {
+    current: bankForAi(bankAt(kase, tierPath)),
+    ...(n < STEPS ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + letter))])) } : {}),
+  };
+}
+
 /** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig, next? } | { status: 'unavailable' }.
  *    An AI call that fails or gives no reply still answers 'replied', with reply '' and the fallback ask. */
 async function replyToStep(playId, input, now = new Date()) {
@@ -444,26 +470,34 @@ async function replyToStep(playId, input, now = new Date()) {
   if (reserved !== 'reserved') return { refused: 'unavailable' };
 
   const n = dialogue.answers.length;
-  const bank = n < STEPS ? bankAt(kase, dialogue.tierPath) : null;
   const history = dialogueTurns(kase, dialogue);
   const { content: message } = history.pop();
+  // A tapped answer already fixes the next bank. A typed one is sorted in this same call, so rimpl gets the step's
+  // own bank as the yardstick and the next step's bank for each tier it might sort the answer into.
+  const forAi = dialogue.unsorted ? { booth_typed: typedBanks(kase, dialogue.tierPath, n) }
+    : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, dialogue.tierPath)) } : {};
   let res = null;
   try {
     // No chief_complaint: rimpl prefixes it to the last user turn, and turn 1 already carries the vignette.
-    res = await rimplChat({ ple_id: playId, history, message, language: 'th', booth_mode: true,
-      ...(bank ? { booth_bank: bankForAi(bank) } : {}) }, { timeoutMs: REPLY_TIMEOUT_MS });
+    res = await rimplChat({ ple_id: playId, history, message, language: 'th', booth_mode: true, ...forAi },
+      { timeoutMs: REPLY_TIMEOUT_MS });
   } catch (err) {
     // The reservation stays: a call that failed or timed out may still have been billed.
     console.warn(`[booth] reply failed for ${playId}: ${err.status || err.name}`);
   }
   if (res) await settle(playId, res, REPLY_RESERVE_USD);
   const reply = typeof res?.content === 'string' ? res.content.trim().slice(0, REPLY_MAX_CHARS) : '';
+  const typed = dialogue.unsorted ? sortedTier(res?.tier) : null;
+  const tierPath = typed ? dialogue.tierPath + typed : dialogue.tierPath;
+  const bank = n < STEPS ? bankAt(kase, tierPath) : null;
   const ask = bank && (reply ? askFromPick(bank, res.pick) : fallbackAsk(bank));
-  const issued = {
-    answers: dialogue.answers, replies: [...dialogue.replies, reply], asks: ask ? [...dialogue.asks, ask] : dialogue.asks,
-  };
+  const answers = typed ? [...dialogue.answers.slice(0, -1), { ...dialogue.answers[n - 1], tier: typed }] : dialogue.answers;
+  const issued = { answers, replies: [...dialogue.replies, reply], asks: ask ? [...dialogue.asks, ask] : dialogue.asks };
   return {
-    body: { status: 'replied', reply, reply_sig: turnSig(playId, n, issued), ...(ask ? { next: nextOf(bank, ask) } : {}) },
+    body: {
+      status: 'replied', reply, reply_sig: turnSig(playId, n, issued),
+      ...(typed ? { answer_tier: typed } : {}), ...(ask ? { next: nextOf(bank, ask) } : {}),
+    },
   };
 }
 
@@ -502,7 +536,7 @@ async function scoreOutcome(playId, input, now) {
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
   if (!domains.success) return { result: UNAVAILABLE, reason: 'schema' };
-  const result = await finish(playId, event, domains.data, rankable(dialogue), dialogue.tierPath);
+  const result = await finish(playId, event, domains.data, dialogue.tierPath);
   return result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider: res.provider };
 }
 

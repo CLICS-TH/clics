@@ -161,8 +161,9 @@ export default [
       await h.shot(page, 'typing');
       await k.tap('[data-action="send"]');
       await k.screen('reply');
-      const typed = [{ choice: pick1 }, { choice: pick2 }, { text: 'line one\nline two' }];
-      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: typed, replies: [h.REPLY(1), h.REPLY(2)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2)] }),
+      const sent = [{ choice: pick1 }, { choice: pick2 }, { text: 'line one\nline two' }];
+      const typed = [sent[0], sent[1], { ...sent[2], tier: h.TYPED_TIER }];
+      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: sent, replies: [h.REPLY(1), h.REPLY(2)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2)] }),
         'step 3: reply body carries the typed answer, newline kept, both earlier replies, three asks, three sigs');
       h.check(await text(page, '.answer-text') === 'line one\nline two', 'reply 3: the typed answer is shown as typed');
 
