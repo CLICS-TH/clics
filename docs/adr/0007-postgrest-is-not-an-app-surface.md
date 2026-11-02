@@ -10,5 +10,12 @@ Every CLICS data read and write goes through the backend or RIMPL on the service
 
 ## Consequences
 
-- A new table, sequence or function in `public` is granted to `anon` and `authenticated` by the default ACLs owned by `supabase_admin`, which the migration role may not be able to change. The hermetic CI test and the `/health/deep` privilege check catch a reopened surface; a migration that adds an object revokes those grants in the same file.
+- `anon` and `authenticated` hold whatever `PUBLIC` holds, so the rule is: revoke from `public, anon, authenticated`, and never grant the client roles.
+- A table or sequence that the migration role (`postgres`) creates later arrives closed, because the closure migration changes that role's default privileges. An object that `supabase_admin` creates in `public` may still arrive granted, because `postgres` is expected to be refused when it tries to change `supabase_admin`'s defaults.
+- Every new function gets the built-in `PUBLIC` execute, which the closure migration leaves in place because it is a global default. So a migration that creates a function in `public` must revoke `PUBLIC` on it in the same file. Re-running an older migration that re-creates a function reopens it, so re-run the closure migration after it.
+- CI checks two things and nothing more:
+  - The hermetic Postgres test proves the closure migration itself: the client roles are refused every read, write and function call, and the privilege listing sees a re-grant.
+  - A static lint of `db/schema.sql` and `db/migration-*.sql` fails on a grant to `anon`, `authenticated` or `PUBLIC`, and on a function in `public` with no `REVOKE ... FROM PUBLIC` in the same file. Findings that predate the closure sit in a baseline that can only shrink.
+  The lint reads SQL text. It does not see dynamic `EXECUTE`, role membership, or anything done in the SQL editor or by `supabase_admin`.
+- In production, `/health/deep`'s `postgrest_surface` check reads the effective privileges, counting `PUBLIC`, and reports degraded when the client roles hold any. It is the only guard against drift that CI cannot see.
 - A future feature that wants direct client reads (Realtime, a client-side query) needs a new ADR, not a grant.
