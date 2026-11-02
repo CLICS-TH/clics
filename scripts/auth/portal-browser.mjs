@@ -650,9 +650,10 @@ const SCENARIOS = [
         const ethics = line(th ? /จริยธรรม/ : /ethics/i);
         t.check(ethics, `[${lang}] the /privacy readers list does not name the ethics role`);
         t.check((th ? /คำตอบของ AI/ : /AI reply/i).test(ethics) && (th ? /บันทึกการตรวจสอบ/ : /audit log/i).test(ethics), `[${lang}] the ethics line does not say the audit log can hold AI reply text`);
-        // #242: an assigned auditor can still read ples.chief_complaint and ples.title, which defaults to its first 120 characters.
-        const gap = line(th ? /ฐานข้อมูลยังไม่ได้กัน/ : /database does not yet stop/i);
-        t.check((th ? /อาการสำคัญ/ : /chief complaint/i).test(gap) && (th ? /ชื่อเรื่อง/ : /title/i).test(gap), `[${lang}] the auditor-gap line does not name both the chief complaint and the title: "${gap}"`);
+        // #281 closed the PostgREST surface that let an assigned auditor read ples.chief_complaint and ples.title (#242).
+        const auditor = line(th ? /ผู้ตรวจที่เป็นผู้เชี่ยวชาญ/ : /Expert auditors/);
+        t.check((th ? /ผ่านตัวกรองแล้ว/ : /after the filter/).test(auditor), `[${lang}] the auditor line does not say auditors see the filtered conversation: "${auditor}"`);
+        t.check(!(th ? /ฐานข้อมูลยังไม่ได้กัน|อาการสำคัญ/ : /does not yet stop|chief complaint/i).test(readers.join('\n')), `[${lang}] the readers list still describes the #242 auditor gap`);
         // admin.js /identity-queue serves admins (own council) and the superadmin (every council).
         const identity = line(th ? /เลขใบอนุญาต/ : /licence number/i);
         // A superadmin can also store professionals.license_number on create or edit (lib/provisioning.js),
