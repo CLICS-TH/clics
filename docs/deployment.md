@@ -122,6 +122,41 @@ is true and `GET /oversight/audit-log/verify` answers `consistent`. Then record 
 `consistent` into `intact`. From then on, `audit_log` refuses UPDATE / DELETE / TRUNCATE for every role,
 so no script may clean it up.
 
+### #279 round: PostgREST closure + logout contract
+
+`db/migration-postgrest-closed.sql` revokes every privilege `anon` and `authenticated` hold in `public`
+(GitHub #281, ADR 0007). After it, nobody reads or writes CLICS data through PostgREST with the anon key or a
+CLICS token. The backend is unaffected: it uses the service-role key. **Deploy the backend first, then the
+owner applies the migration.** The backend reports `not_installed` until the function exists. Run in this order:
+
+1. **Dashboard.** This round does not change it. Check that #228's build (`25cb3061`) is the live production
+   dashboard. If it is not, deploy the dashboard first (`cd audit-dashboard && vercel --prod --yes`).
+2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then
+   `curl -s https://backend-production-c12e4.up.railway.app/health/deep` reports `"service":"backend"` and
+   `checks.postgrest_surface.status` is `"not_installed"`.
+3. **Booth smoke, with no successful write.** It proves the #228 routes without touching the kiosk.
+   - Superadmin `GET /admin/booth` → 200 with the settings and counts.
+   - Superadmin `PATCH /admin/booth` with `{"ceiling_usd": -1}` → 400. A re-GET shows the settings unchanged.
+   - An admin or physician token → 403 on both.
+4. **Logout smoke.** Sign in a test account and Sign out. The old token now gets 401 on any authed route.
+5. **Migration.** The owner applies `db/migration-postgrest-closed.sql` on scaletest, then prod. Nobody else
+   applies it. It is re-runnable.
+6. **Closed.** `/health/deep` reads `checks.postgrest_surface.status: "closed"`. The production checks are
+   metadata queries only:
+
+   ```sql
+   select to_regprocedure('public.postgrest_exposure()');   -- non-null once applied
+   select * from public.postgrest_exposure();               -- zero rows when closed
+   ```
+
+   The function reads catalog metadata only, never a table row. Only `service_role` can execute it.
+7. **Portal.** Deploy the Privacy page change (`cd physician-ui && vercel --prod --yes`) only after production
+   reads `closed`. Until then the page's auditor line would claim a protection the database does not have.
+
+The migration header records whether `supabase_admin`'s default privileges could be changed. If they could not,
+a table created later through the dashboard can reopen the surface. `checks.postgrest_surface` covers that
+drift: any row degrades `/health/deep` to 503 and names the objects.
+
 **`migration-chat-turn-flags.sql` (chat router): either order is safe; apply the migration first if you
 can.** It needs `migration-message-provenance.sql` and `migration-message-client-turn-id.sql` already
 applied. It adds `messages.middleware_flags` and `ples.deep_mode_at`, lets `messages_superseded_reason_check`

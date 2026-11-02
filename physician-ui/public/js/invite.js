@@ -2,6 +2,7 @@
 // then lets the invitee finish via Google (OAuth) OR a password (two-step OTP).
 // Backend: GET /auth/invite/:token  →  POST /auth/invite/:token/accept.
 //  - password step1 (no otp) → 202 otp_sent;  step2 (with otp) → 201 active
+//    Step 2 re-sends the password: the server sets it only after the emailed code verifies.
 //  - google → 201 active
 // An accepted invite is always 'active' immediately — physicians AND auditors. There is
 // no license gate and no 'pending_license_review' state.
@@ -130,6 +131,7 @@ verifyBtn.addEventListener('click', async () => {
   verifyBtn.disabled = true; verifyBtn.textContent = 'กำลังยืนยัน... / Verifying...';
   const res = await api.acceptInvite(token, {
     method: 'password', otp,
+    password: document.getElementById('password').value,
     full_name_th: document.getElementById('th').value.trim(),
     full_name_en: document.getElementById('en').value.trim(),
   });

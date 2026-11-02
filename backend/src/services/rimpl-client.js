@@ -94,7 +94,7 @@ async function parseWithProvider(res) {
 // event is handed to `onEvent(name, data)` as it arrives, and the call still resolves with the same
 // body (or throws the same error) as a non-streamed call — taken from the final `done` event. rimpl
 // answers a rescue turn, and any failure before the first word, in plain JSON; both are read as before.
-async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, router_enabled, deep_mode, rescue_active, already_qualified, rescue_rounds, booth_mode, stream = false, onEvent }, { timeoutMs = CHAT_TIMEOUT_MS } = {}) {
+async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, router_enabled, deep_mode, rescue_active, already_qualified, rescue_rounds, booth_mode, booth_bank, stream = false, onEvent }, { timeoutMs = CHAT_TIMEOUT_MS } = {}) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: {
@@ -115,6 +115,7 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
       rescue_active: !!rescue_active, already_qualified: !!already_qualified,
       rescue_rounds: Math.max(0, Number(rescue_rounds) || 0),
       ...(booth_mode ? { booth_mode: true } : {}),
+      ...(booth_mode && booth_bank ? { booth_bank } : {}),
       ...(stream ? { stream: true } : {}) }),
     signal: AbortSignal.timeout(timeoutMs),
   });

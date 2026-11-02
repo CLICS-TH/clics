@@ -16,14 +16,13 @@ const REFUSAL = {
   closed: [403, 'The booth is closed.'],
   not_found: [404, 'No such booth play.'],
   not_started: [409, 'This booth play has already ended.'],
-  ai_unavailable: [502, 'The AI reply is unavailable right now.'],
   unavailable: [503, 'The booth is unavailable right now.'],
 };
 
 function send(res, result, ok = 200) {
   if ('body' in result) return res.status(ok).json(result.body);
   const [status, error] = REFUSAL[result.refused];
-  return res.status(status).json({ error, reason: result.refused, ...(result.reply_sig ? { reply_sig: result.reply_sig } : {}) });
+  return res.status(status).json({ error, reason: result.refused });
 }
 
 // Express 4 does not catch a rejected async handler.

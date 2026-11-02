@@ -23,7 +23,6 @@ export const COPY = Object.freeze({
   stillThereCount: { th: 'หน้าจอจะกลับไปหน้าแรกใน {n} วินาที', en: 'The screen goes back to the start in {n} seconds' },
   keepGoing: { th: 'ทำต่อ', en: 'Keep going' },
   starting: { th: 'กำลังเริ่ม', en: 'Starting' },
-  placeholder: { th: 'เคสตัวอย่างชั่วคราว', en: 'Placeholder case' },
   begin: { th: 'เริ่มตอบ', en: 'Start answering' },
   stepOf: { th: 'ขั้นที่ {n} จาก 3', en: 'Step {n} of 3' },
   typeOwn: { th: 'พิมพ์คำตอบเอง', en: 'Type my own' },
