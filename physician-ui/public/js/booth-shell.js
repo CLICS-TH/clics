@@ -73,7 +73,7 @@ async function registerWorker() {
     await document.fonts.ready;
     const loaded = performance.getEntriesByType('resource').map((e) => new URL(e.name))
       .filter((u) => u.origin === location.origin).map((u) => u.pathname + u.search);
-    const media = (await loadLoopItems()).map((item) => item.src);
+    const media = (await loadLoopItems()).map((item) => item.src).filter(Boolean);
     reg.active?.postMessage({ type: 'precache', urls: [...new Set([location.pathname, ...loaded, ...media])] });
   } catch {
     // no offline cache this load; the next load tries again
