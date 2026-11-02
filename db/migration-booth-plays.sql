@@ -9,9 +9,10 @@
 -- this table has NO transcript, answer-text, IP or device column, and none may be added
 -- (backend/tests/booth-consistency.test.js holds the column list).
 --
--- Idempotent. Apply to the prod Supabase BEFORE deploying the backend that mounts /booth. #217 changed
--- booth_start_play (it now starts no play while booth_enabled = 0), so the owner-gated re-apply of this file, then
--- migration-booth-purge.sql, is due before the Sun 1 Nov 18:00 freeze.
+-- Idempotent. #246 adds case_id, case_version and tier_path and replaces booth_start_play(text) with
+-- booth_start_play(text, text, text). The running backend calls only one of the two, so apply this file right
+-- before deploying the backend that sends p_case and p_version: a start fails in between. Then re-apply
+-- migration-booth-purge.sql, which reads the same advisory key.
 --
 -- Switching the event on, until the superadmin booth card (#214) exists (times need an explicit offset):
 --   update public.app_settings set value = 1, updated_at = now() where key = 'booth_enabled';
@@ -48,14 +49,25 @@ create table if not exists public.booth_plays (
 -- evaluator as written and could address it. Added after the table went out, so it is an ALTER.
 alter table public.booth_plays add column if not exists ranked boolean not null default false;
 
+-- #246: the case and version the play walked (reply and score rebuild the dialogue from that case alone) and the
+-- tier letters of its answers. Ids and letters only, never option or answer text (ADR 0004). Null on older rows.
+alter table public.booth_plays add column if not exists case_id text
+  constraint booth_plays_case_id_check check (case_id ~ '^[a-z0-9][a-z0-9-]{0,31}$');
+alter table public.booth_plays add column if not exists case_version text;
+alter table public.booth_plays add column if not exists tier_path text
+  constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,3}$');
+
 -- DENY-ALL (RLS on, no policy): only the backend's service role reads or writes booth plays.
 alter table public.booth_plays enable row level security;
 
 comment on table public.booth_plays is
-  'Booth Mode plays (ADR 0004): tag, demo score, d1-d7, spend and status only. No transcript, answer text, IP or '
+  'Booth Mode plays (ADR 0004): tag, demo score, d1-d7, spend, status, case id and version and tier path only. '
+  'No transcript, answer text, option text, IP or '
   'device data, and no link to professionals or ples. Deleted 30 days after the event (#217).';
 
-create or replace function public.booth_start_play(p_event text)
+drop function if exists public.booth_start_play(text);
+
+create or replace function public.booth_start_play(p_event text, p_case text, p_version text)
 returns table (play_id uuid, play_tag integer)
 language plpgsql as $$
 begin
@@ -70,8 +82,8 @@ begin
      set status = 'abandoned'
    where b.event_code = p_event and b.status = 'started' and b.created_at < now() - interval '30 minutes';
 
-  insert into public.booth_plays (event_code, tag)
-  select p_event, coalesce(max(b.tag), 0) + 1 from public.booth_plays b where b.event_code = p_event
+  insert into public.booth_plays (event_code, tag, case_id, case_version)
+  select p_event, coalesce(max(b.tag), 0) + 1, p_case, p_version from public.booth_plays b where b.event_code = p_event
   returning id, tag into play_id, play_tag;
   return next;
 end $$;
@@ -107,10 +119,10 @@ language sql as $$
   update public.booth_plays set spend_usd = spend_usd + p_delta where id = p_play;
 $$;
 
-revoke all on function public.booth_start_play(text) from public, anon, authenticated;
+revoke all on function public.booth_start_play(text, text, text) from public, anon, authenticated;
 revoke all on function public.booth_reserve_spend(uuid, text, numeric, numeric) from public, anon, authenticated;
 revoke all on function public.booth_settle_spend(uuid, numeric) from public, anon, authenticated;
-grant execute on function public.booth_start_play(text) to service_role;
+grant execute on function public.booth_start_play(text, text, text) to service_role;
 grant execute on function public.booth_reserve_spend(uuid, text, numeric, numeric) to service_role;
 grant execute on function public.booth_settle_spend(uuid, numeric) to service_role;
 

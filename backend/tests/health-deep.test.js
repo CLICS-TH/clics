@@ -710,3 +710,68 @@ describe('checks.model_lock', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+// checks.postgrest_surface (ADR 0007). public.postgrest_exposure() lists every object anon or
+// authenticated can reach. Rows degrade the verdict; a missing function or an error does not.
+// ---------------------------------------------------------------------------------------------
+describe('checks.postgrest_surface', () => {
+  beforeEach(() => {
+    m.reset(); probeRimplDeep.mockReset(); evalDrain.status.mockReturnValue(IDLE_DRAIN); invalidateScope();
+    supabaseUp();
+    probeRimplDeep.mockResolvedValue({ httpStatus: 200, body: { status: 'ok' } });
+  });
+  afterEach(() => { jest.restoreAllMocks(); });
+
+  const exposure = (answer) => {
+    const realRpc = supabase.rpc;
+    jest.spyOn(supabase, 'rpc').mockImplementation((name, ...rest) =>
+      (name === 'postgrest_exposure' ? Promise.resolve(answer) : realRpc(name, ...rest)));
+  };
+
+  test('nothing exposed → 200 ok, closed', async () => {
+    exposure({ data: [], error: null });
+    const res = await request(app).get('/health/deep');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.checks.postgrest_surface).toEqual({ status: 'closed' });
+  });
+
+  test('a grant reopened → 503 degraded, distinct objects named and sorted', async () => {
+    exposure({ data: [
+      { object_name: 'ples', object_kind: 'table', grantee: 'anon', privilege: 'SELECT' },
+      { object_name: 'messages.content', object_kind: 'column', grantee: 'authenticated', privilege: 'SELECT' },
+      { object_name: 'ples', object_kind: 'table', grantee: 'authenticated', privilege: 'UPDATE' },
+    ], error: null });
+    const res = await request(app).get('/health/deep');
+    expect(res.status).toBe(503);
+    expect(res.body.status).toBe('degraded');
+    expect(res.body.checks.postgrest_surface).toEqual({ status: 'degraded', objects: ['messages.content', 'ples'], count: 3 });
+    expect(res.body.checks.supabase.status).toBe('up');
+  });
+
+  test.each([
+    ['42883', { code: '42883', message: 'function public.postgrest_exposure() does not exist' }],
+    ['PGRST202', { code: 'PGRST202', message: 'Could not find the function public.postgrest_exposure without parameters' }],
+  ])('function missing (%s) → 200, not_installed: the backend deploys before the migration', async (_code, error) => {
+    exposure({ data: null, error });
+    const res = await request(app).get('/health/deep');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.checks.postgrest_surface).toEqual({ status: 'not_installed' });
+  });
+
+  test('any other error → reported, not degraded on', async () => {
+    exposure({ data: null, error: { code: '42501', message: 'permission denied for function postgrest_exposure' } });
+    const res = await request(app).get('/health/deep');
+    expect(res.status).toBe(200);
+    expect(res.body.checks.postgrest_surface).toEqual({ status: 'error', error: 'permission denied for function postgrest_exposure' });
+  });
+
+  test('a hanging call times out → error, not degraded on', async () => {
+    exposure(new Promise(() => {}));
+    const res = await request(app).get('/health/deep');
+    expect(res.status).toBe(200);
+    expect(res.body.checks.postgrest_surface).toMatchObject({ status: 'error', error: expect.stringMatching(/timeout/) });
+  });
+});

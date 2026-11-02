@@ -19,8 +19,9 @@ const GHOST_TAP_MS = 350;
 /**
  * @typedef {{ th: string, en: string }} Bi
  * @typedef {{ id: string, label: Bi, line: Bi }} Option
- * @typedef {{ placeholder: boolean, vignette: Bi, steps: { question: Bi, options: Option[] }[] }} BoothCase
- * @typedef {{ id: string, tag: number, kase: BoothCase, answerMax: number }} Play
+ * @typedef {{ variant: string, bridge: string, options: string[] }} Ask   ids only, posted back as the server sent it
+ * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
+ * @typedef {{ id: string, tag: number, vignette: Bi, answerMax: number }} Play
  * @typedef {{ choice: string } | { text: string }} Answer
  * @typedef {{ composite: number, domains: Record<string, number>, body: object }} Score
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
@@ -28,12 +29,12 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ at: 'vignette' } | { at: 'step' } | { at: 'typing' } | { at: 'replying' } | { at: 'reply' }
  *         | { at: 'scoring' } | { at: 'scored', score: Score } | { at: 'unavailable' }
  *         | { at: 'stopped', offline: boolean }} Screen
- * @typedef {{ play: Play, answers: Answer[], replies: string[], sigs: string[], screen: Screen }} PlayState
- *   sigs[i] is the reply_sig /reply gave with replies[i], also for an empty one (its 502 carries it); the backend
- *   scores only replies that carry theirs.
+ * @typedef {{ play: Play, steps: Next[], answers: Answer[], replies: string[], sigs: string[], screen: Screen }} PlayState
+ *   steps[i] is the Next the server issued for step i (start, then each reply); the asks posted back are its
+ *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
  * @typedef {{ type: 'begin' } | { type: 'openTyping' } | { type: 'closeTyping' } | { type: 'answer', answer: Answer }
- *         | { type: 'replied', text: string, sig: string } | { type: 'next' } | { type: 'scored', score: Score }
+ *         | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' } | { type: 'scored', score: Score }
  *         | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
  */
@@ -50,19 +51,19 @@ const TERMINAL = new Set(['scored', 'unavailable', 'stopped']);
  */
 export async function runPlay({ root, api }) {
   draw(root, 'starting', frame([waitView(COPY.starting)]));
-  let play = null;
+  let start = null;
   let offline = false;
   try {
-    play = parseStart(await api.post('/booth/plays', {}, { timeoutMs: START_TIMEOUT_MS }));
+    start = parseStart(await api.post('/booth/plays', {}, { timeoutMs: START_TIMEOUT_MS }));
   } catch (e) {
     offline = isOffline(e);
   }
-  if (!play) {
+  if (!start) {
     draw(root, 'stopped', frame([stoppedView(offline)]));
     return { kind: 'stopped' };
   }
   return new Promise((resolve) => {
-    let state = { play, answers: [], replies: [], sigs: [], screen: { at: 'vignette' } };
+    let state = { play: start.play, steps: [start.next], answers: [], replies: [], sigs: [start.sig], screen: { at: 'vignette' } };
     const dispatch = (ev) => {
       const next = transition(state, ev);
       if (next === state) return;
@@ -88,7 +89,7 @@ function transition(s, ev) {
       return answer ? { ...s, answers: [...s.answers, answer], screen: { at: 'replying' } } : s;
     }
     case 'replied': return at === 'replying'
-      ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], screen: { at: 'reply' } } : s;
+      ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
       return { ...s, screen: { at: s.answers.length < STEPS ? 'step' : 'scoring' } };
@@ -101,7 +102,7 @@ function transition(s, ev) {
 
 function acceptAnswer(s, answer) {
   if (s.screen.at === 'step' && 'choice' in answer) {
-    return stepOf(s).options.some((o) => o.id === answer.choice) ? { choice: answer.choice } : null;
+    return stepOf(s).ask.options.includes(answer.choice) ? { choice: answer.choice } : null;
   }
   if (s.screen.at === 'typing' && 'text' in answer) {
     const text = answer.text.trim();
@@ -111,20 +112,21 @@ function acceptAnswer(s, answer) {
 }
 
 const stepIndex = (s) => (s.screen.at === 'step' || s.screen.at === 'typing' ? s.answers.length : s.answers.length - 1);
-const stepOf = (s) => s.play.kase.steps[stepIndex(s)];
-const dialogue = (s) => ({ answers: s.answers, replies: s.replies, reply_sigs: s.sigs });
+const stepOf = (s) => s.steps[stepIndex(s)];
+const dialogue = (s) => ({ answers: s.answers, replies: s.replies, asks: s.steps.slice(0, s.answers.length).map((n) => n.ask), sigs: s.sigs });
 const isOffline = (e) => !(e instanceof BoothApiError && e.kind === 'http');
 
 async function requestReply(api, s) {
   try {
     const body = await api.post(`/booth/plays/${encodeURIComponent(s.play.id)}/reply`, dialogue(s), { timeoutMs: REPLY_TIMEOUT_MS });
-    if (body?.status === 'replied' && typeof body.reply === 'string' && typeof body.reply_sig === 'string') {
-      return { type: 'replied', text: body.reply, sig: body.reply_sig };
-    }
     if (body?.status === 'unavailable') return { type: 'unavailable' };
+    const next = s.answers.length < STEPS ? parseNext(body?.next) : null;
+    if (body?.status === 'replied' && typeof body.reply === 'string' && typeof body.reply_sig === 'string'
+      && (next || s.answers.length === STEPS)) {
+      return { type: 'replied', text: body.reply, sig: body.reply_sig, next };
+    }
     return { type: 'stop', offline: false };
   } catch (e) {
-    if (e instanceof BoothApiError && e.status === 502 && e.reason === 'ai_unavailable') return { type: 'replied', text: '', sig: e.replySig ?? '' };
     return { type: 'stop', offline: isOffline(e) };
   }
 }
@@ -142,21 +144,28 @@ async function requestScore(api, s) {
 
 const isBi = (v) => !!v && typeof v.th === 'string' && typeof v.en === 'string' && v.th.trim() !== '' && v.en.trim() !== '';
 
-function parseStart(body) {
-  const k = body?.case;
-  const stepOk = (st) => isBi(st?.question) && Array.isArray(st.options) && st.options.length === 3
-    && st.options.every((o) => typeof o?.id === 'string' && o.id !== '' && isBi(o.label) && isBi(o.line));
-  if (typeof body?.play_id !== 'string' || body.play_id === '' || !Number.isInteger(body.tag) || body.tag < 1
-    || !Number.isInteger(body.answer_max_chars) || body.answer_max_chars < 1
-    || !isBi(k?.vignette) || !Array.isArray(k.steps) || k.steps.length !== STEPS || !k.steps.every(stepOk)) {
+const isId = (v) => typeof v === 'string' && v !== '';
+
+/** @returns {Next | null} */
+function parseNext(n) {
+  const ask = n?.ask;
+  if (!isId(ask?.variant) || typeof ask.bridge !== 'string' || !Array.isArray(ask.options) || ask.options.length !== 3
+    || !ask.options.every(isId) || new Set(ask.options).size !== 3 || !isBi(n.question)
+    || !Array.isArray(n.options) || n.options.length !== 3
+    || !n.options.every((o, i) => o?.id === ask.options[i] && isBi(o.label) && isBi(o.line))) {
     return null;
   }
-  return {
-    id: body.play_id,
-    tag: body.tag,
-    answerMax: body.answer_max_chars,
-    kase: { placeholder: k.placeholder === true, vignette: k.vignette, steps: k.steps },
-  };
+  return { ask: { variant: ask.variant, bridge: ask.bridge, options: [...ask.options] }, question: n.question, options: n.options };
+}
+
+function parseStart(body) {
+  const next = parseNext(body?.next);
+  if (!isId(body?.play_id) || !Number.isInteger(body.tag) || body.tag < 1
+    || !Number.isInteger(body.answer_max_chars) || body.answer_max_chars < 1
+    || !isBi(body.case?.vignette) || !next || !isId(body.sig)) {
+    return null;
+  }
+  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette }, next, sig: body.sig };
 }
 
 function parseScore(body) {
@@ -205,17 +214,17 @@ function render(root, s, dispatch) {
 
 const VIEWS = {
   vignette: (s, button) => frame(
-    [caseCard(s.play.kase, 'case-card--full')],
+    [caseCard(s.play, 'case-card--full')],
     [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })]),
 
   step: (s, button) => {
     const step = stepOf(s);
     return frame([
-      caseCard(s.play.kase),
+      caseCard(s.play),
       el('section', { class: 'step-sheet', 'aria-label': step.question.en },
-        stepHead(s, step),
-        el('div', { class: 'options' }, ...step.options.map((o) => button(
-          [optionBody(o)], 'secondary wide option', () => ({ type: 'answer', answer: { choice: o.id } }), { 'data-option': o.id }))),
+        stepHead(s, step, { bridge: true }),
+        el('div', { class: 'options' }, ...step.options.map((o, i) => button(
+          [optionBody(o, i)], 'secondary wide option', () => ({ type: 'answer', answer: { choice: o.id } }), { 'data-option': o.id }))),
         button(labelled(COPY.typeOwn, 'pencil'), 'secondary wide', () => ({ type: 'openTyping' }), { 'data-action': 'type-own' })),
     ]);
   },
@@ -237,7 +246,7 @@ const VIEWS = {
         el('div', { class: 'typing-actions' },
           button(labelled(COPY.backToChoices), 'secondary', () => ({ type: 'closeTyping' }), { 'data-action': 'back' }),
           send)),
-      caseCard(s.play.kase, 'case-card--behind'),
+      caseCard(s.play, 'case-card--behind'),
     ]);
   },
 
@@ -275,21 +284,27 @@ const VIEWS = {
   stopped: (s) => frame([stoppedView(s.screen.offline)]),
 };
 
-function caseCard(kase, mod = '') {
-  return el('section', { class: `case-card ${mod}`.trim() },
-    kase.placeholder ? el('p', { class: 'placeholder-badge', dataset: { placeholder: '' } }, bi(COPY.placeholder)) : null,
-    bi(kase.vignette, 'vignette'));
+function caseCard(play, mod = '') {
+  return el('section', { class: `case-card ${mod}`.trim() }, bi(play.vignette, 'vignette'));
 }
 
-function stepHead(s, step) {
+// The bridge is the AI's lead-in to this question, so it sits in the question's own block, AI-labelled.
+function stepHead(s, step, { bridge = false } = {}) {
+  const lead = bridge && step.ask.bridge.trim() !== ''
+    ? el('p', { class: 'ai-bridge', dataset: { bridge: '' } },
+      el('span', { class: 'ai-label' }, window.AI_LABEL.th), ' ',
+      el('span', { class: 'bridge-text', lang: 'th' }, ...phrases(step.ask.bridge)))
+    : null;
   return el('header', { class: 'step-head' },
     bi(fill(COPY.stepOf, { n: stepIndex(s) + 1 }), 'step-of'),
-    bi(step.question, 'question'));
+    el('div', { class: lead ? 'prompt prompt--bridged' : 'prompt' }, lead, bi(step.question, 'question')));
 }
 
-function optionBody(o) {
+const LETTERS = ['A', 'B', 'C'];
+
+function optionBody(o, i) {
   return el('span', { class: 'opt-inner' },
-    el('span', { class: 'opt-letter', 'aria-hidden': 'true' }, o.id.toUpperCase()),
+    el('span', { class: 'opt-letter', 'aria-hidden': 'true' }, LETTERS[i]),
     el('span', { class: 'opt-text' }, bi(o.label, 'opt-label'), bi(o.line, 'opt-line')));
 }
 

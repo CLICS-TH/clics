@@ -196,6 +196,18 @@ describe('NavBar — leaving for the Portal', () => {
     expect(localStorage.getItem('clics_token')).toBeNull();
   });
 
+  // #203: the route answers 502 revoke_failed when the server-side revoke fails.
+  it('Logout still signs out, with no notice, when the revoke answers 502', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 502, json: async () => ({ error: 'x', code: 'revoke_failed' }) });
+    localStorage.setItem('clics_token', 'tok');
+    render(<NavBar />);
+    fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
+    await act(async () => {});
+    expect(window.location.href).toBe('https://physician-ui.vercel.app/login?logout=1');
+    expect(localStorage.getItem('clics_token')).toBeNull();
+    expect(sessionStorage.getItem('clics_reauth_next')).toBeNull();
+  });
+
   // The Portal's Sign out cannot clear this origin, so a session kept here would survive it (#189).
   it('Return to Physician drops this origin\'s session but keeps theme/view, then replaces itself with the Portal dashboard', () => {
     signIn({ role: 'physician', can_audit: true });
