@@ -7,8 +7,8 @@
     "en": "A 68-year-old man, more breathless and coughing for 3 days"
   },
   "vignette": {
-    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อคอช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
-    "en": "A fictional 68-year-old fruit farmer smoked for 40 years and quit 2 years ago. He uses an inhaler every day. Over 3 days he has grown more breathless, with more sputum that has turned green. Temperature 37.8 °C, pulse 106, respiratory rate 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases and uses his neck muscles to breathe. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
+    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
+    "en": "A fictional 68-year-old fruit farmer smoked for 40 years and quit 2 years ago. He uses an inhaler every day. Over 3 days he has grown more breathless, with more sputum that has turned green. Temperature 37.8 °C, pulse 106, respiratory rate 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases and uses his accessory muscles to breathe. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
   },
   "banks": {
     "step1": {
@@ -64,7 +64,7 @@
           "id": "c",
           "tier": "reasonable",
           "label": {
-            "th": "ปอดอักเสบติดเชื้อ",
+            "th": "ปอดอักเสบติดเชื้อในชุมชน",
             "en": "Community-acquired pneumonia"
           },
           "line": {
@@ -109,15 +109,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Which first tests do you order?"
+              "th": "ให้ออกซิเจนแล้ว คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Oxygen is on. Which first tests do you order?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ที่ห้องฉุกเฉินคุณจะตรวจอะไรก่อน",
-              "en": "What do you check first in the emergency room?"
+              "th": "ที่ห้องฉุกเฉิน ให้ออกซิเจนแล้ว จะตรวจอะไรต่อ",
+              "en": "In the ER, with oxygen on, what do you check next?"
             }
           }
         ],
@@ -126,12 +126,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
-              "en": "Chest X-ray and ECG"
+              "th": "CXR, ECG และก๊าซในเลือด",
+              "en": "Chest X-ray, ECG and blood gas"
             },
             "line": {
-              "th": "หาปอดอักเสบ ลมรั่ว และโรคหัวใจที่ซ่อนอยู่",
-              "en": "Looks for pneumonia, pneumothorax and hidden heart disease."
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
+              "en": "Checks CO2, pneumonia, pneumothorax and heart disease."
             }
           },
           {
@@ -154,8 +154,8 @@
               "en": "CBC and electrolytes"
             },
             "line": {
-              "th": "ดูการติดเชื้อและโพแทสเซียมต่ำจากยาพ่น",
-              "en": "Shows infection and low potassium from salbutamol."
+              "th": "ดูการติดเชื้อและโพแทสเซียมต่ำจากยาขยายหลอดลม",
+              "en": "Shows infection and low potassium from bronchodilators."
             }
           },
           {
@@ -182,15 +182,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Which first tests do you order?"
+              "th": "ให้ออกซิเจนแล้ว คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Oxygen is on. Which first tests do you order?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ที่ห้องฉุกเฉินคุณจะตรวจอะไรก่อน",
-              "en": "What do you check first in the emergency room?"
+              "th": "ที่ห้องฉุกเฉิน ให้ออกซิเจนแล้ว จะตรวจอะไรต่อ",
+              "en": "In the ER, with oxygen on, what do you check next?"
             }
           }
         ],
@@ -199,12 +199,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
-              "en": "Chest X-ray and ECG"
+              "th": "CXR, ECG และก๊าซในเลือด",
+              "en": "Chest X-ray, ECG and blood gas"
             },
             "line": {
-              "th": "หาปอดอักเสบ ลมรั่ว และโรคหัวใจที่ซ่อนอยู่",
-              "en": "Looks for pneumonia, pneumothorax and hidden heart disease."
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
+              "en": "Checks CO2, pneumonia, pneumothorax and heart disease."
             }
           },
           {
@@ -227,8 +227,8 @@
               "en": "CBC and CRP"
             },
             "line": {
-              "th": "ช่วยประเมินการติดเชื้อเพื่อเลือกยาปฏิชีวนะ",
-              "en": "Gauges the infection to guide the antibiotic choice."
+              "th": "ช่วยตัดสินใจเรื่องการให้ยาปฏิชีวนะ",
+              "en": "Helps decide whether he needs an antibiotic."
             }
           },
           {
@@ -255,22 +255,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "SpO2 88% ขณะหายใจอากาศปกติ คุณจะตรวจอะไรก่อน",
-              "en": "SpO2 is 88% on room air. Which tests come first?"
+              "th": "SpO2 88% ให้ O2 เป้า 88–92% แล้ว จะส่งตรวจอะไร",
+              "en": "SpO2 was 88%; O2 now targets 88–92%. Which tests now?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
-              "en": "Which first tests do you order?"
+              "th": "ให้ออกซิเจนแล้ว คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Oxygen is on. Which first tests do you order?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ที่ห้องฉุกเฉินคุณจะตรวจอะไรก่อน",
-              "en": "What do you check first in the emergency room?"
+              "th": "ที่ห้องฉุกเฉิน ให้ออกซิเจนแล้ว จะตรวจอะไรต่อ",
+              "en": "In the ER, with oxygen on, what do you check next?"
             }
           }
         ],
@@ -279,12 +279,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
-              "en": "Chest X-ray and ECG"
+              "th": "CXR, ECG และก๊าซในเลือด",
+              "en": "Chest X-ray, ECG and blood gas"
             },
             "line": {
-              "th": "หาปอดอักเสบ ลมรั่ว และโรคหัวใจที่ซ่อนอยู่",
-              "en": "Looks for pneumonia, pneumothorax and hidden heart disease."
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจร่วม",
+              "en": "Checks CO2, pneumonia, pneumothorax and heart disease."
             }
           },
           {
@@ -347,6 +347,13 @@
       "BB": {
         "variants": [
           {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 เอกซเรย์ไม่พบปอดอักเสบ แผนคือ",
+              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on X-ray. Your plan?"
+            }
+          },
+          {
             "id": "v1",
             "question": {
               "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
@@ -378,11 +385,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -390,7 +397,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -406,7 +413,7 @@
               "en": "Nebs + IV hydrocortisone"
             },
             "line": {
-              "th": "สเตียรอยด์ทางหลอดเลือดได้ขนาดยาแน่นอน",
+              "th": "สเตียรอยด์ฉีดได้ขนาดยาแน่นอนในคนที่หอบมาก",
               "en": "An IV steroid gives a sure dose to a breathless man."
             }
           },
@@ -414,7 +421,7 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
               "en": "Nebs + steroid + IV meropenem"
             },
             "line": {
@@ -463,11 +470,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -475,7 +482,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -548,11 +555,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -560,7 +567,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -584,7 +591,7 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
               "en": "Nebs + steroid + IV meropenem"
             },
             "line": {
@@ -616,8 +623,8 @@
           {
             "id": "v3",
             "question": {
-              "th": "เอกซเรย์ไม่พบปอดอักเสบ ให้ O2 เป้า 88–92% แล้ว แผนคือ",
-              "en": "No pneumonia on X-ray. O2 runs at 88–92%. Your plan?"
+              "th": "ABG pH 7.37 PaCO2 48 เอกซเรย์ไม่พบปอดอักเสบ แผนคือ",
+              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on X-ray. Your plan?"
             }
           },
           {
@@ -652,11 +659,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -664,7 +671,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -680,7 +687,7 @@
               "en": "Nebs + IV hydrocortisone"
             },
             "line": {
-              "th": "สเตียรอยด์ทางหลอดเลือดได้ขนาดยาแน่นอน",
+              "th": "สเตียรอยด์ฉีดได้ขนาดยาแน่นอนในคนที่หอบมาก",
               "en": "An IV steroid gives a sure dose to a breathless man."
             }
           },
@@ -688,7 +695,7 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
               "en": "Nebs + steroid + IV meropenem"
             },
             "line": {
@@ -706,13 +713,6 @@
       "RR": {
         "variants": [
           {
-            "id": "v3",
-            "question": {
-              "th": "เอกซเรย์ไม่พบปอดอักเสบ ให้ O2 เป้า 88–92% แล้ว แผนคือ",
-              "en": "No pneumonia on X-ray. O2 runs at 88–92%. Your plan?"
-            }
-          },
-          {
             "id": "v1",
             "question": {
               "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
@@ -744,11 +744,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -756,7 +756,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -798,13 +798,6 @@
       "RW": {
         "variants": [
           {
-            "id": "v3",
-            "question": {
-              "th": "เอกซเรย์ไม่พบปอดอักเสบ ให้ O2 เป้า 88–92% แล้ว แผนคือ",
-              "en": "No pneumonia on X-ray. O2 runs at 88–92%. Your plan?"
-            }
-          },
-          {
             "id": "v1",
             "question": {
               "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
@@ -836,11 +829,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -848,7 +841,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -872,7 +865,7 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
               "en": "Nebs + steroid + IV meropenem"
             },
             "line": {
@@ -904,8 +897,8 @@
           {
             "id": "v3",
             "question": {
-              "th": "เอกซเรย์พบปอดโป่งพอง หัวใจขนาดปกติ แผนคือ",
-              "en": "X-ray: hyperinflated lungs, normal heart size. Your plan?"
+              "th": "ABG pH 7.37 PaCO2 48 เอกซเรย์ไม่พบปอดอักเสบ แผนคือ",
+              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on X-ray. Your plan?"
             }
           },
           {
@@ -940,11 +933,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -952,7 +945,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -968,7 +961,7 @@
               "en": "Nebs + IV hydrocortisone"
             },
             "line": {
-              "th": "สเตียรอยด์ทางหลอดเลือดได้ขนาดยาแน่นอน",
+              "th": "สเตียรอยด์ฉีดได้ขนาดยาแน่นอนในคนที่หอบมาก",
               "en": "An IV steroid gives a sure dose to a breathless man."
             }
           },
@@ -976,7 +969,7 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
               "en": "Nebs + steroid + IV meropenem"
             },
             "line": {
@@ -994,13 +987,6 @@
       "WR": {
         "variants": [
           {
-            "id": "v3",
-            "question": {
-              "th": "เอกซเรย์พบปอดโป่งพอง หัวใจขนาดปกติ แผนคือ",
-              "en": "X-ray: hyperinflated lungs, normal heart size. Your plan?"
-            }
-          },
-          {
             "id": "v1",
             "question": {
               "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
@@ -1032,11 +1018,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -1044,7 +1030,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -1086,13 +1072,6 @@
       "WW": {
         "variants": [
           {
-            "id": "v3",
-            "question": {
-              "th": "เอกซเรย์พบปอดโป่งพอง หัวใจขนาดปกติ แผนคือ",
-              "en": "X-ray: hyperinflated lungs, normal heart size. Your plan?"
-            }
-          },
-          {
             "id": "v1",
             "question": {
               "th": "ให้ออกซิเจนเป้า SpO2 88–92% แล้ว ขั้นต่อไปคืออะไร",
@@ -1124,11 +1103,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+อะม็อกซี-คลาฟ",
-              "en": "Nebs + steroid + amoxicillin-clav"
+              "th": "พ่นยา+สเตียรอยด์+amox-clav",
+              "en": "Nebs + steroid + amox-clav"
             },
             "line": {
-              "th": "อะม็อกซี-คลาฟครอบคลุมเชื้อที่พบบ่อยใน COPD",
+              "th": "amox-clav ครอบคลุมเชื้อที่พบบ่อยใน COPD",
               "en": "Amoxicillin-clavulanate covers the usual COPD bacteria."
             }
           },
@@ -1136,7 +1115,7 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "พ่นยาและเพรดนิโซโลน",
+              "th": "พ่นยาและเพรดนิโซโลนชนิดกิน",
               "en": "Nebs and oral prednisolone"
             },
             "line": {
@@ -1160,7 +1139,7 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนม",
+              "th": "พ่นยา+สเตียรอยด์+เมอโรพีเนมฉีด",
               "en": "Nebs + steroid + IV meropenem"
             },
             "line": {
@@ -1187,6 +1166,13 @@
           "e"
         ]
       }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Fresh reviewer against GOLD 2025, the Thai COPD guideline and WHO COPD guidance. No option harms the patient. Fixed: step-2 questions now state oxygen is on before tests; the best test sets include a blood gas; the CRP line says it decides whether to give an antibiotic; Thai and English matched on the potassium, IV steroid, oral prednisolone, IV meropenem and community pneumonia wording; the blood gas and X-ray result is revealed only on paths whose step 2 ordered them. Kept as notes: the 14-day prednisolone, meropenem, peak flow and echo-first options stay weaker and safe; nebs plus prednisolone without an antibiotic stays reasonable."
     }
   }
 }
