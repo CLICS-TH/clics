@@ -1,0 +1,59 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #draw-deck { position: absolute; left: 110px; top: 720px; width: 860px; height: 640px; perspective: 2400px; }
+    .draw-card { position: absolute; inset: 0; border-radius: 40px; }
+    .draw-back { background: var(--accent); border: 6px solid var(--on-ink); display: flex; align-items: center; justify-content: center; }
+    .draw-back svg { width: 360px; height: 360px; }
+    #draw-flip { transform-style: preserve-3d; }
+    #draw-flip .face { position: absolute; inset: 0; border-radius: 40px; backface-visibility: hidden; }
+    #draw-face { background: var(--canvas); transform: rotateY(180deg); padding: 64px 64px 0; }
+    #draw-face .tag { display: inline-block; padding: 8px 28px 12px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 40px; line-height: 1.4; font-weight: 700; }
+    #draw-face .tag .e { font-weight: 500; }
+    #draw-face .th { white-space: nowrap; margin-top: 40px; font-size: 50px; line-height: 1.55; font-weight: 700; color: var(--ink); }
+    #draw-face .en { margin-top: 28px; font-size: 38px; line-height: 1.35; font-weight: 500; color: var(--body); }
+  </style>
+  <div id="root" class="on-ink" data-composition-id="draw" data-width="1080" data-height="1920">
+    <div class="ground ink"></div>
+    <div id="draw-head" class="step clip" data-start="0" data-duration="3.5" data-track-index="2">
+      <span class="num" id="draw-num">1</span>
+      <div>
+        <p class="th" lang="th"><span class="ln"><span id="draw-l1">สุ่มเคส</span></span></p>
+        <p class="en" lang="en"><span class="ln"><span id="draw-e1">Draw a case</span></span></p>
+      </div>
+    </div>
+    <div id="draw-deck" class="clip" data-start="0" data-duration="3.5" data-track-index="3" data-layout-allow-overlap>
+      <div id="draw-c3" class="draw-card draw-back"><svg viewBox="0 0 64 64" fill="none" data-layout-ignore><path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" stroke="#faf9f5" stroke-width="5" stroke-linecap="round" /><path d="M42 32 H47 L50 25 L54 39 L57 32 H60" stroke="#faf9f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+      <div id="draw-c2" class="draw-card draw-back"><svg viewBox="0 0 64 64" fill="none" data-layout-ignore><path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" stroke="#faf9f5" stroke-width="5" stroke-linecap="round" /><path d="M42 32 H47 L50 25 L54 39 L57 32 H60" stroke="#faf9f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+      <div id="draw-flip" class="draw-card">
+        <div class="face draw-back"><svg viewBox="0 0 64 64" fill="none" data-layout-ignore><path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" stroke="#faf9f5" stroke-width="5" stroke-linecap="round" /><path d="M42 32 H47 L50 25 L54 39 L57 32 H60" stroke="#faf9f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+        <!-- The case's own teaser (backend/src/booth-cases/NFCME-2026/leptospirosis.json), broken by hand at word
+             boundaries; lock.mjs digests the teaser, so a changed teaser fails the harness until this is re-rendered. -->
+        <div id="draw-face" class="face">
+          <span class="tag" lang="th">เคสสมมติ <span class="e" lang="en">Made-up case</span></span>
+          <p class="th" lang="th">ชาวนาอายุ 42 ปี<br />มาโรงพยาบาลชุมชนด้วยไข้สูง<br />ปวดศีรษะ และปวดน่องมา 3 วัน</p>
+          <p class="en" lang="en">A 42-year-old rice farmer at a community hospital with high fever, headache and calf pain for 3 days</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#draw-num", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 0.0);
+    tl.fromTo("#draw-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out" }, 0.08);
+    tl.fromTo("#draw-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.18);
+    // Shuffle: the three backs fan out and snap back, the top one flips to the case.
+    tl.fromTo(["#draw-c3", "#draw-c2", "#draw-flip"], { y: 1300 }, { y: 0, duration: 0.5, ease: "expo.out", stagger: 0.06 }, 0.1);
+    tl.to("#draw-c3", { x: -150, rotation: -10, duration: 0.25, ease: "power2.out" }, 0.65);
+    tl.to("#draw-c2", { x: 150, rotation: 10, duration: 0.25, ease: "power2.out" }, 0.65);
+    tl.to(["#draw-c3", "#draw-c2"], { x: 0, rotation: 0, duration: 0.25, ease: "power2.in" }, 0.95);
+    tl.to("#draw-c3", { x: -40, rotation: -4, duration: 0.2, ease: "power2.out" }, 1.25);
+    tl.to("#draw-c2", { x: 40, rotation: 4, duration: 0.2, ease: "power2.out" }, 1.25);
+    tl.fromTo("#draw-flip", { rotationY: 0 }, { rotationY: 180, duration: 0.55, ease: "power3.inOut" }, 1.2);
+    tl.fromTo("#draw-flip", { scale: 1 }, { scale: 1.04, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 1.65);
+    tl.to(["#draw-l1", "#draw-e1"], { yPercent: -115, duration: 0.22, ease: "power3.in" }, 3.25);
+    tl.to("#draw-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 3.25);
+    tl.to("#draw-deck", { y: -1500, duration: 0.3, ease: "power3.in" }, 3.2);
+    window.__timelines["draw"] = tl;
+  </script>
+</template>

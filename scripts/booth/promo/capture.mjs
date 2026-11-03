@@ -2,8 +2,7 @@
 /*
  * Captures the source frames for the booth promo (#216) into scripts/booth/promo/assets/capture/:
  * the booth flow at 1080x1920 in the fixture world of stub.mjs (stubbed booth API with the real case file, empty
- * attract loop), and the Landing page's fixture-built screenshots (physician-ui/public/img/landing). No network,
- * no prod, no AI, no staff loop file.
+ * attract loop), and the fonts. No network, no prod, no AI, no staff loop file.
  *
  * Run: node scripts/booth/promo/capture.mjs   then render with scripts/booth/promo/render.sh
  */
@@ -83,11 +82,6 @@ try {
 }
 await writeFile(SERVED, `${JSON.stringify([...served].sort(), null, 2)}\n`);
 
-for (const name of ['ple-chat-desktop-light', 'pis7-radar-mobile-light', 'ple-result-mobile-light']) {
-  await copyFile(join(ROOT, 'img', 'landing', `${name}.webp`), join(OUT, `${name}.webp`));
-  console.log(`copied ${name}.webp`);
-}
-await copyFile(join(ROOT, 'favicon.svg'), join(OUT, 'favicon.svg'));
 for (const font of ['inter-latin-wght-normal', 'noto-sans-thai-thai-wght-normal', 'cormorant-garamond-latin-wght-normal']) {
   await copyFile(join(ROOT, 'fonts', `${font}.woff2`), join(OUT, `${font}.woff2`));
 }

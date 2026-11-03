@@ -1,0 +1,47 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #keep-tile { position: absolute; left: 230px; top: 640px; width: 620px; height: 620px; border-radius: 40px; overflow: hidden; background: #fff; }
+    #keep-tile img { position: absolute; left: -1270px; top: -210px; width: 2160px; height: auto; display: block; }
+    #keep-frame { position: absolute; left: 190px; top: 600px; width: 700px; height: 700px; }
+    #keep-scan { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: var(--accent); box-shadow: 0 0 0 4px rgba(169, 88, 62, 0.25); }
+    #keep-fact { position: absolute; left: 108px; right: 108px; top: 1400px; text-align: center; }
+    #keep-fact .th { font-size: 60px; line-height: 1.45; font-weight: 700; color: var(--on-ink); }
+    #keep-fact .en { font-size: 42px; line-height: 1.3; font-weight: 500; color: var(--on-ink-soft); }
+  </style>
+  <div id="root" class="on-ink" data-composition-id="keep" data-width="1080" data-height="1920">
+    <div class="ground ink"></div>
+    <div id="keep-head" class="step clip" data-start="0" data-duration="2.5" data-track-index="2">
+      <span class="num" id="keep-num">4</span>
+      <div>
+        <p class="th" lang="th"><span class="ln"><span id="keep-l1">สแกน QR</span></span></p>
+        <p class="en" lang="en"><span class="ln"><span id="keep-e1">Scan to keep your result</span></span></p>
+      </div>
+    </div>
+    <!-- The result card's own QR, blurred at capture (capture.mjs) so a visitor scanning the loop opens nothing. -->
+    <div id="keep-qr" class="clip" data-start="0" data-duration="2.5" data-track-index="3">
+      <div id="keep-tile"><img src="assets/capture/result.png" alt="" /><div id="keep-scan"></div></div>
+      <svg id="keep-frame" viewBox="0 0 700 700" fill="none" data-layout-ignore>
+        <path d="M8 120 V40 Q8 8 40 8 H120 M580 8 H660 Q692 8 692 40 V120 M692 580 V660 Q692 692 660 692 H580 M120 692 H40 Q8 692 8 660 V580" stroke="#a9583e" stroke-width="16" stroke-linecap="round" />
+      </svg>
+    </div>
+    <div id="keep-fact" class="clip" data-start="0" data-duration="2.5" data-track-index="4">
+      <p class="th" lang="th"><span class="ln"><span id="keep-l2">ไม่เก็บข้อมูลส่วนตัว</span></span></p>
+      <p class="en" lang="en"><span class="ln"><span id="keep-e2">No personal data kept</span></span></p>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#keep-num", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 0.0);
+    tl.fromTo("#keep-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out" }, 0.08);
+    tl.fromTo("#keep-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.18);
+    tl.fromTo("#keep-tile", { scale: 0.3, rotation: 12, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.1);
+    tl.fromTo("#keep-frame", { scale: 1.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "expo.out" }, 0.35);
+    tl.fromTo("#keep-scan", { y: 0 }, { y: 608, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.5);
+    tl.fromTo(["#keep-l2", "#keep-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 0.7);
+    tl.to(["#keep-l1", "#keep-e1", "#keep-l2", "#keep-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 2.25);
+    tl.to("#keep-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 2.25);
+    tl.to("#keep-qr", { scale: 0.5, opacity: 0, duration: 0.22, ease: "power3.in" }, 2.25);
+    window.__timelines["keep"] = tl;
+  </script>
+</template>

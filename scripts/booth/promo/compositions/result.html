@@ -1,0 +1,48 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #result-card { position: absolute; left: 60px; top: 600px; width: 960px; height: 560px; border-radius: 36px; overflow: hidden; background: #fff; border: 2px solid var(--hairline); box-shadow: 0 30px 70px rgba(20, 20, 19, 0.22); }
+    #result-zoom { position: absolute; inset: 0; transform-origin: 34% 42%; }
+    #result-zoom img { position: absolute; left: -60px; top: -40px; width: 1080px; height: auto; display: block; }
+    #result-next { position: absolute; left: 108px; right: 108px; top: 1240px; text-align: center; }
+    #result-next .th { font-size: 60px; line-height: 1.45; font-weight: 700; color: var(--ink); }
+    #result-next .en { font-size: 42px; line-height: 1.3; font-weight: 500; color: var(--body); }
+  </style>
+  <div id="root" data-composition-id="result" data-width="1080" data-height="1920">
+    <div class="ground"></div>
+    <div id="result-head" class="step clip" data-start="0" data-duration="4" data-track-index="2">
+      <span class="num" id="result-num">3</span>
+      <div>
+        <p class="th" lang="th"><span class="ln"><span id="result-l1">ดูผลของคุณ</span></span></p>
+        <p class="en" lang="en"><span class="ln"><span id="result-e1">See your result</span></span></p>
+      </div>
+    </div>
+    <!-- The booth's own result card, captured by capture.mjs: Booth #042, the stub's one score, its QR blurred. -->
+    <div id="result-cardclip" class="clip" data-start="0" data-duration="4" data-track-index="3">
+      <div id="result-card"><div id="result-zoom"><img src="assets/capture/result.png" alt="" /></div></div>
+    </div>
+    <div id="result-next" class="clip" data-start="0" data-duration="4" data-track-index="4">
+      <p class="th" lang="th"><span class="ln"><span id="result-l2">พร้อมด้านที่ควรฝึกเพิ่ม</span></span></p>
+      <p class="en" lang="en"><span class="ln"><span id="result-e2">and what to practise next</span></span></p>
+    </div>
+    <div id="result-demo" class="demo clip" data-start="0" data-duration="4" data-track-index="5">
+      <p class="th" lang="th">คะแนนสาธิต: ไม่ใช่หน่วยกิต CME<br />และยังไม่ผ่านการตรวจสอบความแม่นยำ</p>
+      <p class="en" lang="en">Demo score: not CME credit, not validated</p>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#result-num", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 0.0);
+    tl.fromTo("#result-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out" }, 0.08);
+    tl.fromTo("#result-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.18);
+    // The demo label is on screen from the first frame the score can be seen.
+    tl.fromTo("#result-card", { scale: 0.5, rotation: -8, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.0);
+    tl.fromTo("#result-zoom", { scale: 1 }, { scale: 1.45, duration: 0.5, ease: "power3.inOut" }, 1.0);
+    tl.to("#result-zoom", { scale: 1, duration: 0.5, ease: "power3.inOut" }, 2.2);
+    tl.fromTo(["#result-l2", "#result-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 2.4);
+    tl.to(["#result-l1", "#result-e1", "#result-l2", "#result-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 3.75);
+    tl.to("#result-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 3.75);
+    tl.to("#result-card", { scale: 0.6, opacity: 0, duration: 0.25, ease: "power3.in" }, 3.72);
+    window.__timelines["result"] = tl;
+  </script>
+</template>

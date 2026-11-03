@@ -14,7 +14,7 @@ export const DOMAINS = Object.freeze([
 ]);
 
 export const COPY = Object.freeze({
-  tapToTry: { th: 'แตะเพื่อลอง CLICS', en: 'Tap to try CLICS' },
+  tapToStart: { th: 'แตะเพื่อเริ่ม', en: 'Tap to start' },
   intro: { th: 'อ่านเคสสั้น ๆ ตอบสามขั้น แล้วดูคะแนนสาธิต', en: 'Read a short case, answer three steps, then see a demo score' },
   checking: { th: 'กำลังเชื่อมต่อ', en: 'Connecting' },
   closed: { th: 'ขณะนี้บูทปิดอยู่', en: 'The booth is closed right now' },

@@ -88,9 +88,10 @@ export function mountLoop(container) {
       life.signal.addEventListener('abort', () => { clearTimeout(timer); resolve(false); }, { once: true });
       return;
     }
-    const node = item.type === 'image'
+    const replay = item.type === 'video' && layer.dataset.loopSrc === item.src ? layer.querySelector('video') : null;
+    const node = replay ?? (item.type === 'image'
       ? el('img', { alt: '', decoding: 'async' })
-      : el('video', { muted: '', playsinline: '', autoplay: '', preload: 'auto' });
+      : el('video', { muted: '', playsinline: '', autoplay: '', preload: 'auto' }));
     const end = (ok) => {
       clearTimeout(timer);
       life.signal.removeEventListener('abort', abort);
@@ -99,6 +100,14 @@ export function mountLoop(container) {
     const abort = () => end(false);
     life.signal.addEventListener('abort', abort);
     node.addEventListener('error', () => end(false), { once: true });
+    if (replay) {
+      // The same video again (the promo is listed twice): rewind the element on screen instead of loading a new
+      // one, so the cut from its last frame back to its first has no gap and the attract loop reads as seamless.
+      replay.addEventListener('ended', () => end(true), { once: true });
+      replay.currentTime = 0;
+      replay.play().catch(() => end(false));
+      return;
+    }
     if (item.type === 'image') {
       node.addEventListener('load', () => { put(node, item); timer = setTimeout(() => end(true), item.seconds * 1000); }, { once: true });
     } else {

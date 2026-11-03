@@ -84,12 +84,20 @@ async function cached(k) {
 
 export default [
   {
-    name: 'loop: image, video, image under the Tap-to-try bar; a tap on the media starts one play',
+    name: 'loop: image, video, image under the Tap-to-start bar; a tap on the media starts one play',
     async run(h) {
       const k = await h.kiosk({ files: FILES, label: 'loop' });
       const { page, stub } = k;
       await k.shell('start');
-      h.check(hasBoth(await barText(page), h.COPY.tapToTry), 'loop: the bar reads "แตะเพื่อลอง CLICS / Tap to try CLICS"');
+      h.check(hasBoth(await barText(page), h.COPY.tapToStart), 'loop: the bar reads "แตะเพื่อเริ่ม / Tap to start"');
+      const cue = await page.evaluate(() => {
+        const c = document.querySelector('.shell-tap .loop-bar .tap-cue');
+        const r = c?.getBoundingClientRect();
+        return { inButton: !!c?.closest('[data-action="start"]'), hidden: c?.getAttribute('aria-hidden'), w: Math.round(r?.width ?? 0),
+          pulse: c ? getComputedStyle(c, '::after').animationName : null };
+      });
+      h.check(cue.inButton && cue.hidden === 'true' && cue.w > 0 && cue.pulse === 'tap-ring',
+        `attract: the open bar draws its own pulsing tap cue, in the start button and hidden from screen readers (${JSON.stringify(cue)})`);
       await waitSrc(page, SLIDE_A);
       h.check(await page.locator('.loop-media[data-loop-kind="image"] img[alt=""]').count() === 1, 'loop: the first item is the image, with alt=""');
       await h.screenCheck(page, 'loop, open');
@@ -138,8 +146,9 @@ export default [
         await withClock(k);
         await k.shell(mode);
         h.check(hasBoth(await barText(page), mode === 'closed' ? h.COPY.closed : h.COPY.offline), `${mode}: the bar says so, TH and EN`);
-        h.check(await page.locator('button:not([data-action="leaderboard"])').count() === 0 && await page.locator('.loop-bar[role="status"]').count() === 1,
-          `${mode}: no button but the leaderboard's, the bar is a status line`);
+        h.check(await page.locator('button:not([data-action="leaderboard"])').count() === 0 && await page.locator('.loop-bar[role="status"]').count() === 1
+          && await page.locator('.tap-cue').count() === 0,
+          `${mode}: no button but the leaderboard's, the bar is a status line with no tap cue`);
         await recordLoop(page);
         await page.waitForFunction(() => window.boothSrcs.length >= 3, null, WAIT);
         h.check(true, `${mode}: the loop keeps advancing items`);
@@ -151,7 +160,7 @@ export default [
         await page.clock.fastForward(31_000);
         await k.shell('start');
         h.check(stub.of(STATUS).length === before + 1, `${mode}: the status is checked again after 30 s (${before} -> ${stub.of(STATUS).length} calls)`);
-        h.check(hasBoth(await barText(page), h.COPY.tapToTry), `${mode} -> open: the Tap-to-try bar appears`);
+        h.check(hasBoth(await barText(page), h.COPY.tapToStart), `${mode} -> open: the Tap-to-start bar appears`);
         const log = await loopLog(page);
         h.check(log.same && inOrder(log.srcs), `${mode} -> open: the loop did not restart (same media layer, items in order: ${log.srcs.map((s) => s.split('/').pop()).join(' ')})`);
         await k.toVignette();

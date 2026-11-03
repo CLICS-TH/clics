@@ -12,7 +12,9 @@ const PROMO_SRC = '/booth-loop/promo.mp4';
 const MAX_BYTES = 25 * 1024 * 1024;
 const BANNED = [/on[-\s]?premise/i, /validated/i, /ติดตั้งภายในองค์กร/];
 // The scenes built on screens that show a score: each must carry the booth's demo label.
-const SCORED_SCENES = ['score.html', 'audit.html', 'boothB.html'];
+const SCORED_SCENES = ['result.html'];
+// The owner's headline (#244 promo redesign): the reel opens on it, word for word.
+const HEADLINE = 'การเรียนรู้ที่แท้จริง วัดจากกระบวนการคิด ไม่ใช่เวลา';
 // H.264 profiles the kiosk's Chrome decodes in hardware and software alike, all 8-bit 4:2:0 when 66 or 77.
 const PROFILES = { 66: 'Baseline', 77: 'Main', 100: 'High' };
 
@@ -68,6 +70,25 @@ async function authoredFontSizes() {
   return sizes;
 }
 
+/** A page that serves the promo's sources at http://promo.test/, the capture fonts from the Portal's own copies. */
+async function promoPage(h) {
+  const k = await h.kiosk();
+  const browser = k.ctx.browser();
+  await k.close();
+  const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
+  await ctx.route('**/*', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin !== 'http://promo.test') return route.abort();
+    const font = /^\/assets\/capture\/([\w-]+\.woff2)$/.exec(url.pathname);
+    const file = font ? join(PUBLIC, 'fonts', font[1]) : join(PROMO_DIR, decodeURIComponent(url.pathname));
+    const body = await readFile(file).catch(() => null);
+    if (!body) return route.fulfill({ status: 404, body: '' });
+    const type = { '.html': 'text/html', '.woff2': 'font/woff2', '.mp4': 'video/mp4' }[extname(file)] ?? 'application/octet-stream';
+    return route.fulfill({ status: 200, contentType: type, body });
+  });
+  return { ctx, page: await ctx.newPage() };
+}
+
 /** The shipped promo playing on the loop at 1080x1920, with the loop board fed `board`. */
 async function promoOnLoop(h, board) {
   const stub = h.makeStub({ routes: { 'GET /booth/board': () => ({ status: 200, body: { board } }) } });
@@ -82,7 +103,7 @@ async function promoOnLoop(h, board) {
 
 export default [
   {
-    name: 'promo: the loop manifest\'s video is an H.264 1080x1920 silent MP4 of 45-60 s that the kiosk\'s Chrome decodes and caches',
+    name: 'promo: the loop manifest\'s video is an H.264 1080x1920 MP4 of 20-30 s that the kiosk\'s Chrome decodes and caches',
     async run(h) {
       const manifest = JSON.parse(await readFile(join(PUBLIC, 'booth-loop', 'manifest.json'), 'utf8'));
       const promo = manifest.items.find((i) => i.type === 'video' && i.src === PROMO_SRC);
@@ -92,13 +113,14 @@ export default [
       h.check(buf.length <= MAX_BYTES, `promo: ${(buf.length / 1048576).toFixed(1)} MB <= 25 MB`);
       const { seconds, tracks, moovFirst } = readMp4(buf);
       const video = tracks.filter((t) => t.handler === 'vide');
-      h.check(seconds >= 45 && seconds <= 60, `promo: ${seconds.toFixed(1)} s, within 45-60 s`);
+      h.check(seconds >= 20 && seconds <= 30, `promo: ${seconds.toFixed(1)} s, within 20-30 s, a reel that loops as a screen saver`);
       h.check(video.length === 1 && video[0].format === 'avc1' && video[0].width === 1080 && video[0].height === 1920,
         `promo: one H.264 (avc1) video track at 1080x1920 (${JSON.stringify(video)})`);
       h.check(video.length === 1 && (video[0].profile === 66 || video[0].profile === 77),
         `promo: H.264 ${PROFILES[video[0]?.profile] ?? `profile ${video[0]?.profile}`}, a Baseline or Main 8-bit 4:2:0 stream`);
       h.check(moovFirst, 'promo: the moov box comes before mdat, so playback starts before the whole file arrives');
-      h.check(!tracks.some((t) => t.handler === 'soun'), 'promo: no audio track, so it plays silently');
+      const sound = tracks.filter((t) => t.handler === 'soun');
+      h.check(sound.length <= 1 && sound.every((t) => t.format === 'mp4a'), `promo: at most one AAC music track, which the loop plays muted (${JSON.stringify(sound)})`);
     },
   },
   {
@@ -106,7 +128,7 @@ export default [
     async run(h) {
       const lock = JSON.parse(await readFile(LOCK, 'utf8').catch(() => '{}'));
       h.check(lock.sources === await sourcesDigest(),
-        'promo: scenes, capture stub, Landing shots, fonts and the case vignette and step 1 match the render (else run scripts/booth/promo/render.sh)');
+        'promo: scenes, capture stub, music, fonts and the case teaser, vignette and step 1 match the render (else run scripts/booth/promo/render.sh)');
       h.check(lock.promo === await promoDigest(), 'promo: promo.mp4 is the file render.sh wrote');
     },
   },
@@ -145,8 +167,98 @@ export default [
       const hits = files.flatMap((f) => BANNED.map((re) => re.exec(text[f].split(h.DEMO_LABEL.th).join('').split(h.DEMO_LABEL.en).join('')))
         .filter(Boolean).map((m) => `${f}: "${m[0]}"`));
       h.check(files.length > 0 && hits.length === 0, `promo: copy rule in ${files.length} scenes${hits.length ? `: ${hits.join('; ')}` : ''}`);
+      const opening = (await readFile(join(SCENES, 'hook.html'), 'utf8').catch(() => '')).replace(/<(style|script)>[\s\S]*?<\/\1>/g, '')
+        .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      h.check(opening.startsWith(HEADLINE), `promo: the reel opens on the owner's headline "${HEADLINE}" (hook.html reads "${opening.slice(0, 60)}")`);
       const unlabelled = SCORED_SCENES.filter((f) => !text[f]?.includes(h.DEMO_LABEL.th) || !text[f].includes(h.DEMO_LABEL.en));
       h.check(unlabelled.length === 0, `promo: the demo label, TH and EN, in ${SCORED_SCENES.join(', ')}${unlabelled.length ? ` (missing in ${unlabelled.join(', ')})` : ''}`);
+    },
+  },
+  {
+    name: 'promo: every line of text fits its box with the real fonts, and no Thai word can break across lines',
+    async run(h) {
+      const { ctx, page } = await promoPage(h);
+      const style = (await readFile(join(PROMO_DIR, 'index.html'), 'utf8')).match(/<style>([\s\S]*?)<\/style>/)[1];
+      const problems = [];
+      let lines = 0;
+      for (const f of (await readdir(SCENES)).filter((x) => x.endsWith('.html')).sort()) {
+        // A scene's markup at rest: the template without its script, so every line sits where the timeline lands it.
+        const body = (await readFile(join(SCENES, f), 'utf8')).match(/<template>([\s\S]*)<\/template>/)[1].replace(/<script>[\s\S]*?<\/script>/g, '');
+        await page.route('http://promo.test/__scene.html', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8"><style>${style}</style></head><body>${body}</body></html>` }));
+        await page.goto('http://promo.test/__scene.html');
+        await page.evaluate(() => document.fonts.ready);
+        const r = await page.evaluate(() => {
+          const out = { lines: 0, bad: [] };
+          // Kinetic lines are nowrap; a step header's title shares its row with the 168 px disc and a 40 px gap.
+          for (const s of document.querySelectorAll('.ln > span')) {
+            out.lines++;
+            const step = s.closest('.step');
+            const room = step ? step.getBoundingClientRect().width - 208 : s.closest('p').parentElement.getBoundingClientRect().width;
+            const w = s.getBoundingClientRect().width;
+            if (w > room + 0.5) out.bad.push(`"${s.textContent}" ${Math.round(w)} px in ${Math.round(room)} px`);
+          }
+          // Every other Thai paragraph is broken by hand at word boundaries and must not wrap on its own.
+          for (const p of document.querySelectorAll('p[lang="th"]')) {
+            if (p.querySelector('.ln')) continue;
+            out.lines++;
+            if (getComputedStyle(p).whiteSpace !== 'nowrap') out.bad.push(`"${p.textContent.slice(0, 24)}" can wrap mid-word (white-space ${getComputedStyle(p).whiteSpace})`);
+            if (p.scrollWidth > p.clientWidth + 0.5) out.bad.push(`"${p.textContent.slice(0, 24)}" ${p.scrollWidth} px in ${p.clientWidth} px`);
+          }
+          return out;
+        });
+        lines += r.lines;
+        problems.push(...r.bad.map((b) => `${f}: ${b}`));
+      }
+      h.check(lines > 20 && problems.length === 0, `promo: ${lines} lines fit their boxes${problems.length ? ` (${problems.join('; ')})` : ''}`);
+      await ctx.close();
+    },
+  },
+  {
+    name: 'promo: the last frame is the first frame, so the reel loops as a screen saver without a seam',
+    async run(h) {
+      const { ctx, page } = await promoPage(h);
+      // Byte ranges, or Chrome cannot seek and every frame read is frame 0.
+      const mp4 = await readFile(PROMO);
+      await page.route('http://promo.test/__promo.mp4', (route) => {
+        const m = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range ?? '');
+        const from = m ? Number(m[1]) : 0;
+        const to = m?.[2] ? Number(m[2]) : mp4.length - 1;
+        return route.fulfill({ status: m ? 206 : 200, body: mp4.subarray(from, to + 1),
+          headers: { 'content-type': 'video/mp4', 'accept-ranges': 'bytes', ...(m ? { 'content-range': `bytes ${from}-${to}/${mp4.length}` } : {}) } });
+      });
+      // Same origin as the video, or the canvas is tainted and cannot be read.
+      await page.route('http://promo.test/__seam.html', (route) => route.fulfill({ status: 200, contentType: 'text/html',
+        body: '<!doctype html><video muted playsinline preload="auto"></video><canvas width="270" height="480"></canvas>' }));
+      await page.goto('http://promo.test/__seam.html');
+      const diff = await page.evaluate(async () => {
+        const v = document.querySelector('video');
+        const c = document.querySelector('canvas').getContext('2d', { willReadFrequently: true });
+        v.src = 'http://promo.test/__promo.mp4';
+        await new Promise((r) => { v.onloadeddata = r; });
+        const frameAt = async (t) => {
+          await new Promise((r) => { v.onseeked = r; v.currentTime = t; });
+          c.drawImage(v, 0, 0, 270, 480);
+          return c.getImageData(0, 0, 270, 480).data;
+        };
+        const compare = (a, b) => {
+          let sum = 0;
+          let worst = 0;
+          for (let i = 0; i < a.length; i += 4) {
+            const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2]));
+            sum += d;
+            worst = Math.max(worst, d);
+          }
+          return { mean: sum / (a.length / 4), worst };
+        };
+        const first = await frameAt(0);
+        const last = await frameAt(v.duration - 0.02);
+        // A frame on the dark draw scene must differ, or the seeks did not land and the comparison proves nothing.
+        const middle = compare(first, await frameAt(8));
+        return { ...compare(first, last), middle: middle.mean };
+      }).catch((e) => ({ error: String(e) }));
+      h.check(diff.mean !== undefined && diff.mean < 1 && diff.worst < 48 && diff.middle > 10,
+        `promo: first and last frame match at 270x480 (mean ${diff.mean?.toFixed(3)}, worst ${diff.worst} of 255; a mid-reel frame differs by ${diff.middle?.toFixed(1)}${diff.error ? `, ${diff.error}` : ''})`);
+      await ctx.close();
     },
   },
   {
@@ -193,11 +305,14 @@ export default [
       // Every animation frame from the first paint: is the board shown, and what is the loop showing under it?
       await k.page.addInitScript(() => {
         window.__samples = [];
+        window.__videos = 0;
         const tick = () => {
           const b = document.querySelector('.loop-board');
           const m = document.querySelector('.loop-media');
           const shown = !!b && getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0;
-          window.__samples.push({ shown, kind: m?.dataset.loopKind ?? null, src: m?.dataset.loopSrc ?? null });
+          const v = m?.querySelector('video');
+          if (v && !v.dataset.sampleId) v.dataset.sampleId = String(++window.__videos);
+          window.__samples.push({ shown, kind: m?.dataset.loopKind ?? null, src: m?.dataset.loopSrc ?? null, video: v?.dataset.sampleId ?? null, t: v?.currentTime ?? null });
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -208,8 +323,13 @@ export default [
         const s = window.__samples;
         const first = s.findIndex((x) => x.kind === 'board');
         const before = first === -1 ? s : s.slice(0, first);
-        return { shown: before.filter((x) => x.shown).length, promo: before.filter((x) => x.src === src).length };
+        const promo = before.filter((x) => x.src === src);
+        const rewinds = promo.filter((x, i) => i > 0 && x.t < promo[i - 1].t - 0.2).length;
+        return { shown: before.filter((x) => x.shown).length, promo: promo.length, videos: new Set(promo.map((x) => x.video)).size, rewinds };
       }, PROMO_SRC);
+      const listed = manifest.items.filter((i) => i.type === 'video' && i.src === PROMO_SRC).length;
+      h.check(listed === 2 && early.videos === 1 && early.rewinds === 1,
+        `attract: the promo plays ${listed} times back to back on one <video>, rewound in place so the replay has no gap (${early.videos} elements, ${early.rewinds} rewinds)`);
       h.check(early.promo > 0 && early.shown === 0, `shipped loop: the board stays hidden from page load through the promo (${early.shown} frames shown in ${early.promo} promo frames)`);
       await h.sleep(500);
       const onBoard = await k.page.evaluate(() => {
