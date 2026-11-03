@@ -1,118 +1,122 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { verdicts, summaryMarkdown } from './sandbox-verdict.mjs';
+import { verdicts, summaryMarkdown, bandFor, gapFor, normalQuantile, SIGMA } from './sandbox-verdict.mjs';
 
 const GROUPS = ['best', 'mixed', 'weakest', 'strong', 'average', 'weak'];
-/** A case whose every group scores as given; one number per group is one play. */
-const scored = (best, mixed, weakest, strong, average, weak) =>
-  ({ best: [best], mixed: [mixed], weakest: [weakest], strong: [strong], average: [average], weak: [weak] });
-const matched = (shift = 0) => scored(80 + shift, 65 + shift, 50 + shift, 75 + shift, 62 + shift, 50 + shift);
+const RUNS = Object.fromEntries(GROUPS.map((g) => [g, 3]));
+const BASE = { best: 48, mixed: 45, weakest: 35, strong: 47, average: 47, weak: 44 };
+/** A case whose every group scores BASE + shift on each of its 3 runs, with any group overridden by a list. */
+const kase = (shift = 0, over = {}) => ({
+  ...Object.fromEntries(GROUPS.map((g) => [g, [BASE[g] + shift, BASE[g] + shift, BASE[g] + shift]])),
+  ...over,
+});
+const pool = (n, extra = {}) => ({ ...Object.fromEntries(Array.from({ length: n }, (_, i) => [`k${i}`, kase(i % 3 - 1)])), ...extra });
+const judge = (table, opts = {}) => verdicts(table, GROUPS, { runs: RUNS, ...opts });
 
-test('a pool of matched cases that separate good from bad all pass', () => {
-  const v = verdicts({ a: matched(), b: matched(4), c: matched(-4) }, GROUPS);
-  assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [true, true, true]);
-  assert.equal(v.medians.best, 80);
-  assert.equal(v.cases.b.separation, 30);
+test('the normal quantile is the textbook one', () => {
+  assert.equal(normalQuantile(0.975).toFixed(3), '1.960');
+  assert.equal(normalQuantile(0.95).toFixed(3), '1.645');
 });
 
-test('each group is held to its own pool median, so a case easy on one group fails on that group alone', () => {
-  const easy = { ...matched(), weak: [61] };
-  const v = verdicts({ a: matched(), b: matched(), c: easy }, GROUPS);
-  assert.equal(v.cases.c.pass, false);
-  assert.deepEqual(v.cases.c.reasons, ['weak mean 61 is 11 from the pool median 50']);
-  assert.equal(v.cases.a.pass, true);
+test('the band and the gap come from the measured noise: 3 runs over 11 cases give 8.0 for a path, 11.3 for a persona and a 6.6 gap', () => {
+  assert.equal(bandFor('best', 3, 11, 6).toFixed(1), '8.0');
+  assert.equal(bandFor('weak', 3, 11, 6).toFixed(1), '11.3');
+  assert.equal(gapFor(3, 3).toFixed(1), '6.6');
+  // One play per path, the old design, has a noise band of 13.85: wider than the ±10 that was asked of it.
+  assert.equal(bandFor('best', 1, 11, 6).toFixed(2), '13.85');
+  assert.ok(Math.abs(bandFor('best', 12, 11, 6) * 2 - bandFor('best', 3, 11, 6)) < 1e-9, 'four times the runs halves the band');
+  assert.ok(bandFor('best', 3, 3, 6) > bandFor('best', 3, 11, 6), 'a smaller pool has a less certain median');
+  assert.equal(SIGMA.path, 4.91);
+  assert.equal(SIGMA.persona, 6.92);
 });
 
-test('a mean exactly 10 from the median passes and 10.01 fails, either side', () => {
-  const at = (best) => verdicts({ a: matched(), b: matched(), c: { ...matched(), best: [best] } }, GROUPS).cases.c.pass;
-  assert.equal(at(90), true);
-  assert.equal(at(70), true);
-  assert.equal(at(90.01), false);
-  assert.equal(at(69.99), false);
+test('a pool of matched cases whose paths separate all pass', () => {
+  const v = judge(pool(11));
+  assert.ok(Object.values(v.cases).every((c) => c.pass));
+  assert.equal(v.medians.best, 48);
+  assert.equal(v.bands.best, 8);
+  assert.equal(v.gap_min, 6.59);
 });
 
-test('best must beat weakest by at least 15: 15 passes, 14.99 fails even inside the band', () => {
-  const pool = (best, weakest) => verdicts({
-    a: matched(), b: matched(), c: { ...matched(), best: [best], weakest: [weakest] },
-  }, GROUPS).cases.c;
-  assert.equal(pool(72, 57).pass, true);
-  const flat = pool(71.99, 57);
+test('a group mean exactly at its band passes and just beyond it fails, either side', () => {
+  const at = (delta) => judge(pool(11, { x: kase(0, { strong: [47 + delta, 47 + delta, 47 + delta] }) })).cases.x.pass;
+  const band = bandFor('strong', 3, 12, 6);
+  assert.equal(at(Math.floor(band * 100) / 100), true);
+  assert.equal(at(-Math.floor(band * 100) / 100), true);
+  assert.equal(at(band + 0.01), false);
+  assert.equal(at(-band - 0.01), false);
+});
+
+test('each group is held to its own median, and the reason names the band', () => {
+  const v = judge(pool(11, { x: kase(0, { best: [62, 62, 62] }) }));
+  assert.equal(v.cases.x.pass, false);
+  assert.deepEqual(v.cases.x.reasons, ['best mean 62 is 14 from the pool median 48, beyond ±7.95']);
+});
+
+test('best must beat weakest by more than the noise: just under the gap fails, at it passes', () => {
+  const gap = gapFor(3, 3);
+  const withGap = (g) => judge(pool(11, { x: kase(0, { best: [46, 46, 46], weakest: [46 - g, 46 - g, 46 - g] }) })).cases.x;
+  assert.equal(withGap(Math.ceil(gap * 100) / 100).pass, true);
+  const flat = withGap(gap - 0.01);
   assert.equal(flat.pass, false);
-  assert.deepEqual(flat.reasons, ['best is only 14.99 above weakest']);
+  assert.match(flat.reasons.at(-1), /^best is only 6\.58 above weakest, under 6\.59$/);
 });
 
-test('a group mean is the mean of its runs and its spread is their sample SD', () => {
-  const v = verdicts({ a: { ...matched(), strong: [70, 75, 80] } }, GROUPS);
-  assert.equal(v.cases.a.means.strong, 75);
-  assert.equal(v.cases.a.sd.strong, 5);
-  assert.equal(v.cases.a.sd.best, null);
+test('an unscored play fails its own case only, and its group stays out of the pool', () => {
+  const v = judge(pool(4, { x: kase(0, { strong: [47, 47] }) }));
+  assert.equal(v.cases.x.pass, false);
+  assert.deepEqual(v.cases.x.reasons, ['strong: 2 of 3 plays scored']);
+  assert.deepEqual(Object.entries(v.cases).filter(([id]) => id !== 'x').map(([, c]) => c.pass), [true, true, true, true]);
+  assert.equal(v.pool_n.strong, 4);
+  assert.equal(v.pool_n.best, 5);
 });
 
-test('a group with no scored play fails the case and stays out of the pool median', () => {
-  const v = verdicts({ a: matched(), b: matched(2), d: matched(4), c: { ...matched(), mixed: [] } }, GROUPS);
-  assert.equal(v.cases.c.pass, false);
-  assert.deepEqual(v.cases.c.reasons, ['mixed: no scored play']);
-  assert.equal(v.medians.mixed, 67);
-  assert.equal(v.pool_n.mixed, 3);
-});
-
-test('the summary has one row per case, the pool medians, and why a failing case failed', () => {
-  const table = { a: matched(), b: matched(), c: { ...matched(), weak: [80] } };
-  const md = summaryMarkdown({
-    run_id: 'sbx-1', date: '2026-11-03', scored: 18, planned: 18, spent_usd: 2.5, cap_usd: 30, stopped: false,
-    providers: ['anthropic'], persona_model: 'claude-x', persona_runs: 1,
-    cases: { a: { version: '1', unscored: 0, fallbacks: 0 }, b: { version: '1', unscored: 1, fallbacks: 4 }, c: { version: '2', unscored: 0, fallbacks: 0 } }, verdict: verdicts(table, GROUPS),
-  }, GROUPS);
-  assert.match(md, /^# Booth physician sandbox, run sbx-1$/m);
-  assert.match(md, /\| a \| 1 \| 80 \| 65 \| 50 \| 75 \| 62 \| 50 \| 30 \| 0 \| 0 \| pass \|/);
-  assert.match(md, /\| b \| 1 \| .* \| 1 \| 4 \| pass \|/);
-  assert.match(md, /\| c \| 2 \| .* \| FAIL \|/);
-  assert.match(md, /\| pool median \(cases\) \| \| 80 \(3\) \| 65 \(3\) \| 50 \(3\) \| 75 \(3\) \| 62 \(3\) \| 50 \(3\) \| \| \| \| \|/);
-  assert.match(md, /- c: weak mean 80 is 30 from the pool median 50/);
-  assert.match(md, /2 of 3 cases pass/);
-});
-
-test('a run of under 3 cases has no pool of its own: it fails unless judged against an earlier run\'s medians', () => {
-  const alone = verdicts({ a: matched(30) }, GROUPS);
-  assert.equal(alone.cases.a.pass, false);
-  assert.match(alone.cases.a.reasons[0], /^no pool: best pooled from 1 case\(s\), .*fewer than 3$/);
-  const pool = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS);
-  assert.equal(verdicts({ a: matched(4) }, GROUPS, { pool }).cases.a.pass, true);
-  const far = verdicts({ a: matched(30) }, GROUPS, { pool });
-  assert.equal(far.cases.a.pass, false);
-  assert.equal(far.pool_from, 'earlier run');
-  assert.match(far.cases.a.reasons[0], /best mean 110 is 30 from the pool median 80/);
-  const thinPool = verdicts({ a: matched() }, GROUPS);
-  assert.equal(verdicts({ a: matched() }, GROUPS, { pool: thinPool }).cases.a.pass, false);
-});
-
-test('the pool counts only cases scored in that group: a scored with b and c empty does not pass on its own median', () => {
+test('the pool counts only complete cases: a scored with b and c empty does not pass on its own median', () => {
   const empty = Object.fromEntries(GROUPS.map((g) => [g, []]));
-  const v = verdicts({ a: matched(), b: empty, c: empty }, GROUPS);
+  const v = judge({ a: kase(), b: empty, c: empty });
   assert.equal(v.cases.a.pass, false);
   assert.equal(v.pool_n.best, 1);
+  assert.equal(v.bands.best, null);
   assert.match(v.cases.a.reasons[0], /^no pool: best pooled from 1 case/);
 });
 
-test('a group needs every planned run scored: 2 of 3 persona runs do not pass', () => {
-  const runs = { strong: 3, average: 3, weak: 3 };
-  const three = (s) => ({ ...matched(s), strong: [75, 75, 75], average: [62, 62, 62], weak: [50, 50, 50] });
-  const short = { ...three(0), average: [62, 62] };
-  const v = verdicts({ a: three(0), b: three(2), c: short }, GROUPS, { runs });
-  assert.equal(v.cases.a.pass, true);
-  assert.equal(v.cases.c.pass, false);
-  assert.deepEqual(v.cases.c.reasons, ['average: 2 of 3 plays scored']);
+test('a run cut short by the cap passes no case, even a matched pool', () => {
+  const v = judge(pool(11), { incomplete: '120 of 198 plays scored, stopped at the cap' });
+  assert.ok(Object.values(v.cases).every((c) => !c.pass));
+  assert.equal(v.cases.k0.reasons[0], 'incomplete run: 120 of 198 plays scored, stopped at the cap');
 });
 
-test('an incomplete run passes no case, even a matched pool', () => {
-  const v = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS, { incomplete: '35 of 36 plays scored' });
-  assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [false, false, false]);
-  assert.equal(v.cases.a.reasons[0], 'incomplete run: 35 of 36 plays scored');
+test('a rerun of a few cases is judged against an earlier pool and sized by that pool\'s case count', () => {
+  const earlier = judge(pool(11));
+  assert.equal(judge({ x: kase(2) }, { pool: earlier }).cases.x.pass, true);
+  const far = judge({ x: kase(20) }, { pool: earlier });
+  assert.equal(far.cases.x.pass, false);
+  assert.equal(far.pool_from, 'earlier run');
+  assert.equal(far.bands.best, earlier.bands.best);
+  assert.equal(judge({ x: kase() }, { pool: judge({ x: kase() }) }).cases.x.pass, false);
 });
 
 test('a scripted-only run is judged on the scripted groups alone', () => {
   const scripted = ['best', 'mixed', 'weakest'];
-  const only = (s) => ({ best: [80 + s], mixed: [65 + s], weakest: [50 + s] });
-  const v = verdicts({ a: only(0), b: only(3), c: only(-3) }, scripted);
+  const only = (s) => ({ best: [48 + s, 48 + s, 48 + s], mixed: [45 + s, 45 + s, 45 + s], weakest: [35 + s, 35 + s, 35 + s] });
+  const v = verdicts({ a: only(0), b: only(2), c: only(-2) }, scripted, { runs: { best: 3, mixed: 3, weakest: 3 } });
   assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [true, true, true]);
+});
+
+test('the summary shows each case, the pool medians, the bands and why a failing case failed', () => {
+  const table = pool(3, { x: kase(0, { best: [70, 70, 70] }) });
+  const verdict = judge(table);
+  const md = summaryMarkdown({
+    run_id: 'sbx-1', date: '2026-11-03', scored: 72, planned: 72, spent_usd: 2.5, cap_usd: 30, stopped: false,
+    providers: ['anthropic'], persona_model: 'claude-x', path_runs: 3, persona_runs: 3,
+    cases: Object.fromEntries(Object.keys(table).map((id) => [id, { version: '1', unscored: 0, fallbacks: id === 'x' ? 2 : 0 }])),
+    verdict,
+  }, GROUPS);
+  assert.match(md, /^# Booth physician sandbox, run sbx-1$/m);
+  assert.match(md, /Each scripted path plays 3 times and each persona 3 times/);
+  assert.match(md, /\| k1 \| 1 \| 48 ± 0 \| 45 ± 0 \| 35 ± 0 \| 47 ± 0 \| 47 ± 0 \| 44 ± 0 \| 13 \| 0 \| 0 \| pass \|/);
+  assert.match(md, /\| x \| 1 \| 70 ± 0 \| .* \| 0 \| 2 \| FAIL \|/);
+  assert.match(md, /\| pool median \(cases\) \| \| 48\.5 \(4\) \|/);
+  assert.match(md, new RegExp(`\\| band \\(±\\) \\| \\| ${verdict.bands.best} \\| .* \\| ${verdict.gap_min} \\| \\| \\| \\|`));
+  assert.match(md, /- x: best mean 70 is 21\.5 from the pool median 48\.5, beyond ±/);
 });

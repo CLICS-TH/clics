@@ -24,6 +24,8 @@ const PERSONAS = Object.freeze({
 const GROUPS = Object.freeze([...Object.keys(PATHS), ...Object.keys(PERSONAS)]);
 const TYPE_RATE = 0.25;
 const MAX_FALLBACKS = 1;
+// Enough of an unusable persona answer to see why it failed, without carrying a runaway reply into the report.
+const RAW_MAX_CHARS = 2000;
 const ANSWER_MAX_CHARS = 500;
 
 // The most tokens one call is held to use, priced at the configured rates (lib/pricing.js reads CLAUDE_*_PER_M), so
@@ -31,8 +33,10 @@ const ANSWER_MAX_CHARS = 500;
 // evaluate covers rimpl's three-pass consistency layer; a persona turn is about 4k tokens in and 300 out at most.
 const WORST_TOKENS = Object.freeze({ chat: [10_000, 1_300], evaluate: [65_000, 9_000], persona: [4_000, 300] });
 const worstCall = (kind) => costUsd(...WORST_TOKENS[kind], 'anthropic');
-// Token counts a typical call uses, for the estimate printed before a run.
-const TYPICAL_TOKENS = Object.freeze({ chat: [3500, 350], evaluate: [22000, 2500], persona: [1500, 120] });
+// Token counts a typical call uses, for the estimate printed before a run, sized so a call costs what it cost on
+// average in #264's two full runs at the default rates: chat $0.0089, evaluate $0.0181, persona $0.0044 (788, 261
+// and 593 calls).
+const TYPICAL_TOKENS = Object.freeze({ chat: [2000, 190], evaluate: [4000, 405], persona: [1000, 96] });
 // Longer than the booth's 30 s and 60 s: a slow call here costs a data point, not a visitor's wait.
 const TIMEOUT_MS = Object.freeze({ chat: 100_000, evaluate: 180_000, persona: 60_000 });
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -84,14 +88,17 @@ function personaAnswer(content, ask, typing) {
 
 /** A persona types at a step with chance `typeRate`, and taps otherwise. One unusable persona answer per play taps
  *  the first offered option (asks are shuffled, so that is a random tier) and is counted; a second, or a persona
- *  call that failed, abandons the play: a play of random taps would pass as that persona's score. */
+ *  call that failed, abandons the play: a play of random taps would pass as that persona's score. Every unusable
+ *  answer is kept, as the model wrote it, for the report. */
 const personaChooser = (persona, { typeRate = TYPE_RATE, random = Math.random } = {}) => async (turn) => {
   const typing = random() < typeRate;
   const res = await turn.call('persona', personaRequest({ persona, ...turn, typing }));
   if (!res) return { abandon: 'persona call failed' };
   const answer = personaAnswer(res.content, turn.ask, typing);
   if (answer) return answer;
-  if (turn.fallbacks >= MAX_FALLBACKS) return { abandon: `more than ${MAX_FALLBACKS} unusable persona answer` };
+  if (turn.unusable({ typing, content: String(res.content ?? '').slice(0, RAW_MAX_CHARS) }) > MAX_FALLBACKS) {
+    return { abandon: `more than ${MAX_FALLBACKS} unusable persona answer` };
+  }
   turn.fallback();
   return { choice: turn.ask.options[0] };
 };
@@ -107,6 +114,7 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
   const ple_id = crypto.randomUUID();
   const calls = [];
   let fallbacks = 0;
+  const unusable = [];
   const call = async (kind, body) => {
     const t0 = Date.now();
     try {
@@ -125,6 +133,7 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
     composite: domains ? compositeScore(domains) : null,
     domains,
     ...(abandoned ? { error: abandoned } : {}),
+    ...(unusable.length ? { unusable_answers: unusable } : {}),
     calls,
     usd: Math.round(calls.reduce((acc, c) => acc + c.usd, 0) * 1e6) / 1e6,
   });
@@ -132,7 +141,11 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
   for (let step = 0; step < STEPS; step += 1) {
     const bank = bankAt(kase, d.tierPath);
     const ask = d.asks[step];
-    const answer = await choose({ kase, bank, ask, step, d, call, fallbacks, fallback: () => { fallbacks += 1; } });
+    const answer = await choose({
+      kase, bank, ask, step, d, call,
+      fallback: () => { fallbacks += 1; },
+      unusable: (entry) => unusable.push({ step: step + 1, ...entry }),
+    });
     if ('abandon' in answer) return played(d, null, answer.abandon);
     if ('choice' in answer && !ask.options.includes(answer.choice)) throw new Error(`answer ${answer.choice} was not offered`);
     const walked = 'choice' in answer
@@ -145,10 +158,10 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
   return played(d, domains.success ? domains.data : null);
 }
 
-/** Every play a run makes: each scripted path once and each persona `personaRuns` times, per case. */
-function jobsFor(cases, { personaRuns = 3 } = {}) {
+/** Every play a run makes: each scripted path `pathRuns` times and each persona `personaRuns` times, per case. */
+function jobsFor(cases, { pathRuns = 3, personaRuns = 3 } = {}) {
   return cases.flatMap((kase) => [
-    ...Object.keys(PATHS).map((group) => ({ kase, group, run: 1, persona: false })),
+    ...Object.keys(PATHS).flatMap((group) => Array.from({ length: pathRuns }, (_, i) => ({ kase, group, run: i + 1, persona: false }))),
     ...Object.keys(PERSONAS).flatMap((group) => Array.from({ length: personaRuns }, (_, i) => ({ kase, group, run: i + 1, persona: true }))),
   ]);
 }
