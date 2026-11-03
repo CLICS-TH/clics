@@ -131,6 +131,22 @@ describe('sandbox.mjs', () => {
     expect(out.stdout).toMatch(/Nothing spent/);
   });
 
+  test.each([
+    ['stopped at the cap', { stopped: true, scored: 20, planned: 36 }, /20 of 36 plays scored, stopped at the cap/],
+    ['with a play unscored', { scored: 35, planned: 36 }, /35 of 36 plays scored\)/],
+    ['over the cap', { over_cap: true, scored: 36, planned: 36 }, /over the cap/],
+  ])('refuses a --pool report from a run %s', (_, run, message) => {
+    const groups = ['best', 'mixed', 'weakest'];
+    const pool = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-pool-')), 'partial.json');
+    fs.writeFileSync(pool, JSON.stringify({ stopped: false, over_cap: false, ...run, verdict: {
+      medians: Object.fromEntries(groups.map((g) => [g, 60])), pool_n: Object.fromEntries(groups.map((g) => [g, 11])),
+    } }));
+    const out = sandbox(['--cases', fixtureDir(), '--persona-runs', '0', '--pool', pool]);
+    expect(out.status).toBe(2);
+    expect(out.stderr).toMatch(/is from an incomplete run/);
+    expect(out.stderr).toMatch(message);
+  });
+
   test('the worst-case reservation follows the configured token rates', () => {
     const worst = (env) => Number(sandbox(['--cases', fixtureDir()], { env }).stdout.match(/\$([\d.]+) if every call/)[1]);
     expect(worst({ CLAUDE_INPUT_PER_M: '6', CLAUDE_OUTPUT_PER_M: '30' })).toBeCloseTo(2 * worst({}), 1);
@@ -145,7 +161,7 @@ describe('sandbox.mjs', () => {
   test('refuses a --pool report whose medians come from fewer than 3 cases', () => {
     const groups = ['best', 'mixed', 'weakest'];
     const pool = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-pool-')), 'thin.json');
-    fs.writeFileSync(pool, JSON.stringify({ verdict: {
+    fs.writeFileSync(pool, JSON.stringify({ stopped: false, over_cap: false, scored: 36, planned: 36, verdict: {
       medians: Object.fromEntries(groups.map((g) => [g, 60])), pool_n: { best: 3, mixed: 3, weakest: 1 },
     } }));
     const out = sandbox(['--cases', fixtureDir(), '--persona-runs', '0', '--pool', pool]);

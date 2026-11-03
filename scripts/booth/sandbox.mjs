@@ -84,10 +84,15 @@ const opts = parseArgs(process.argv.slice(2));
 const groups = opts.personaRuns > 0 ? GROUPS : Object.keys(PATHS);
 let pool;
 if (opts.pool) {
+  let earlier;
   try {
-    const { medians, pool_n } = JSON.parse(readFileSync(opts.pool, 'utf8')).verdict;
-    pool = { medians, pool_n };
+    earlier = JSON.parse(readFileSync(opts.pool, 'utf8'));
+    pool = { medians: earlier.verdict.medians, pool_n: earlier.verdict.pool_n };
   } catch { fail(`--pool ${opts.pool} is not a sandbox report`); }
+  if (earlier.stopped || earlier.over_cap || !(earlier.scored >= earlier.planned)) {
+    fail(`--pool ${opts.pool} is from an incomplete run (${earlier.scored} of ${earlier.planned} plays scored`
+      + `${earlier.stopped ? ', stopped at the cap' : ''}${earlier.over_cap ? ', over the cap' : ''}); use a complete run's report`);
+  }
   const thin = groups.filter((g) => typeof pool.medians?.[g] !== 'number' || !(pool.pool_n?.[g] >= MIN_POOL));
   if (thin.length) fail(`--pool ${opts.pool} has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}`);
 }
