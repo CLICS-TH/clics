@@ -91,9 +91,9 @@ async function promoPage(h) {
 }
 
 /** The shipped promo playing on the loop at 1080x1920, with the loop board fed `board`. */
-async function promoOnLoop(h, board) {
+async function promoOnLoop(h, board, { width = 1080, height = 1920 } = {}) {
   const stub = h.makeStub({ routes: { 'GET /booth/board': () => ({ status: 200, body: { board } }) } });
-  const k = await h.kiosk({ stub });
+  const k = await h.kiosk({ stub, width, height, label: `${width}x${height}` });
   await k.page.waitForFunction((src) => {
     const media = document.querySelector('.loop-media');
     const v = media?.querySelector('video');
@@ -181,20 +181,33 @@ export default [
     },
   },
   {
-    name: 'promo: every line of text fits its box with the real fonts, and no Thai word can break across lines',
+    name: 'promo: every line of text fits its box with the real fonts, no Thai word can break across lines, and all of it sits in the safe box',
     async run(h) {
       const { ctx, page } = await promoPage(h);
       const style = (await readFile(join(PROMO_DIR, 'index.html'), 'utf8')).match(/<style>([\s\S]*?)<\/style>/)[1];
       const problems = [];
+      const outside = [];
       let lines = 0;
+      // The safe box the loop keeps whole when it cover-fills the stage (manifest "safe").
+      const manifest = JSON.parse(await readFile(join(PUBLIC, 'booth-loop', 'manifest.json'), 'utf8'));
+      const safe = manifest.items.find((i) => i.src === PROMO_SRC)?.safe;
       for (const f of (await readdir(SCENES)).filter((x) => x.endsWith('.html')).sort()) {
         // A scene's markup at rest: the template without its script, so every line sits where the timeline lands it.
         const body = (await readFile(join(SCENES, f), 'utf8')).match(/<template>([\s\S]*)<\/template>/)[1].replace(/<script>[\s\S]*?<\/script>/g, '');
         await page.route('http://promo.test/__scene.html', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8"><style>${style}</style></head><body>${body}</body></html>` }));
         await page.goto('http://promo.test/__scene.html');
         await page.evaluate(() => document.fonts.ready);
-        const r = await page.evaluate(() => {
-          const out = { lines: 0, bad: [] };
+        const r = await page.evaluate((box) => {
+          const out = { lines: 0, bad: [], outside: [] };
+          // Everything the scene draws at rest, but the ground and what a card or tile crops, inside the safe box.
+          for (const e of document.querySelectorAll('#root *')) {
+            if (e.matches('.ground') || e.closest('#result-zoom, #keep-tile') && e.matches('img')) continue;
+            const b = e.getBoundingClientRect();
+            if (!b.width || !b.height || !box) continue;
+            if (b.left < box[0] - 0.5 || b.top < box[1] - 0.5 || b.right > box[2] + 0.5 || b.bottom > box[3] + 0.5) {
+              out.outside.push(`${e.id ? `#${e.id}` : e.className?.baseVal ?? e.className ?? e.tagName} ${[b.left, b.top, b.right, b.bottom].map(Math.round).join(',')}`);
+            }
+          }
           // Kinetic lines are nowrap; a step header's title shares its row with the 168 px disc and a 40 px gap.
           for (const s of document.querySelectorAll('.ln > span')) {
             out.lines++;
@@ -211,11 +224,13 @@ export default [
             if (p.scrollWidth > p.clientWidth + 0.5) out.bad.push(`"${p.textContent.slice(0, 24)}" ${p.scrollWidth} px in ${p.clientWidth} px`);
           }
           return out;
-        });
+        }, safe);
         lines += r.lines;
         problems.push(...r.bad.map((b) => `${f}: ${b}`));
+        outside.push(...r.outside.map((b) => `${f}: ${b}`));
       }
       h.check(lines > 20 && problems.length === 0, `promo: ${lines} lines fit their boxes${problems.length ? ` (${problems.join('; ')})` : ''}`);
+      h.check(!!safe && outside.length === 0, `promo: every scene keeps its content inside the manifest's safe box ${JSON.stringify(safe)}, so cover never crops it${outside.length ? ` (outside: ${outside.slice(0, 8).join('; ')})` : ''}`);
       await ctx.close();
     },
   },
@@ -283,13 +298,49 @@ export default [
     async run(h) {
       const k = await promoOnLoop(h, { today: [], event: [] });
       const stage = await k.page.locator('.loop-stage').evaluate((e) => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height }; });
-      const scale = Math.min(stage.w / 1080, stage.h / 1920);
+      const cover = await k.page.locator('.loop-media').evaluate((m) => m.dataset.loopFit === 'cover');
+      const scale = (cover ? Math.max : Math.min)(stage.w / 1080, stage.h / 1920);
       const small = (await authoredFontSizes()).filter((s) => s.px * scale < h.FLOOR.textPx - 0.01);
       h.check(small.length === 0, `promo: shown at ${scale.toFixed(4)} on a ${Math.round(stage.w)}x${Math.round(stage.h)} stage, every caption >= ${h.FLOOR.textPx}px`
         + `${small.length ? ` (below: ${small.map((s) => `${s.where} ${s.px}px -> ${(s.px * scale).toFixed(2)}px`).join('; ')})` : ''}`);
       await k.close();
     },
   },
+  ...[[608, 1048], [1080, 1920], [2160, 3840]].map(([width, height]) => ({
+    name: `promo at ${width}x${height}: the reel fills the stage with no side bands, and the leaderboard button stays off its safe box`,
+    async run(h) {
+      const manifest = JSON.parse(await readFile(join(PUBLIC, 'booth-loop', 'manifest.json'), 'utf8'));
+      const safe = manifest.items.find((i) => i.src === PROMO_SRC)?.safe;
+      const k = await promoOnLoop(h, BOARD, { width, height });
+      const r = await k.page.evaluate((box) => {
+        const v = document.querySelector('.loop-media video');
+        const st = document.querySelector('.loop-stage').getBoundingClientRect();
+        const vr = v.getBoundingClientRect();
+        const fit = getComputedStyle(v).objectFit;
+        const s = (fit === 'cover' ? Math.max : Math.min)(vr.width / v.videoWidth, vr.height / v.videoHeight);
+        const pic = { left: vr.left + (vr.width - v.videoWidth * s) / 2, top: vr.top + (vr.height - v.videoHeight * s) / 2 };
+        pic.right = pic.left + v.videoWidth * s;
+        pic.bottom = pic.top + v.videoHeight * s;
+        const bands = Math.max(0, pic.left - st.left) + Math.max(0, st.right - pic.right) + Math.max(0, pic.top - st.top) + Math.max(0, st.bottom - pic.bottom);
+        // The safe box as it lands on screen, and the leaderboard button against it and the stage.
+        const sb = { left: pic.left + box[0] * s, top: pic.top + box[1] * s, right: pic.left + box[2] * s, bottom: pic.top + box[3] * s };
+        const b = document.querySelector('.shell-loop [data-action="leaderboard"]').getBoundingClientRect();
+        const hits = b.left < sb.right && b.right > sb.left && b.top < sb.bottom && b.bottom > sb.top && b.top < st.bottom;
+        const seen = st.left <= sb.left + 0.5 && st.right >= sb.right - 0.5 && st.top <= sb.top + 0.5 && st.bottom >= sb.bottom - 0.5;
+        const label = document.querySelector('.shell-loop [data-action="leaderboard"]');
+        return { fit, bands: Math.round(bands * 10) / 10, seen, hits, button: { w: Math.round(b.width), h: Math.round(b.height), top: Math.round(b.top), stageBottom: Math.round(st.bottom) },
+          text: label.innerText.replace(/\s+/g, ' ').trim() };
+      }, safe);
+      h.check(r.fit === 'cover' && r.bands < 1, `${width}x${height}: the reel covers the stage, no side or top bands (${r.fit}, ${r.bands} px of band)`);
+      h.check(r.seen, `${width}x${height}: cover keeps the reel's whole safe box ${JSON.stringify(safe)} on screen`);
+      h.check(!r.hits && r.button.top >= r.button.stageBottom - 1 && r.button.h >= 48,
+        `${width}x${height}: the leaderboard button (${r.button.w}x${r.button.h} at y ${r.button.top}) sits in the bar under the stage (ends y ${r.button.stageBottom}), off the reel, at least 48 px tall`);
+      h.check(r.text.includes('กระดานคะแนน') && r.text.includes('Leaderboard'), `${width}x${height}: the button reads กระดานคะแนน / Leaderboard ("${r.text}")`);
+      await h.screenCheck(k.page, `loop with reel ${width}x${height}`);
+      await h.shot(k.page, `loop-reel-${width}x${height}`);
+      await k.close();
+    },
+  })),
   ...[['an empty board', { today: [], event: [] }], ['a full board', BOARD]].map(([label, board]) => ({
     name: `promo: while it plays, nothing on the loop covers the video, with ${label}`,
     async run(h) {
@@ -297,7 +348,7 @@ export default [
       const hit = await k.page.evaluate(() => {
         const v = document.querySelector('.loop-media video');
         const r = v.getBoundingClientRect();
-        const s = Math.min(r.width / v.videoWidth, r.height / v.videoHeight);
+        const s = (getComputedStyle(v).objectFit === 'cover' ? Math.max : Math.min)(r.width / v.videoWidth, r.height / v.videoHeight);
         const pic = { left: r.left + (r.width - v.videoWidth * s) / 2, top: r.top + (r.height - v.videoHeight * s) / 2 };
         pic.right = pic.left + v.videoWidth * s;
         pic.bottom = pic.top + v.videoHeight * s;

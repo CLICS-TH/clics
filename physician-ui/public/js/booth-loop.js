@@ -10,8 +10,10 @@ const RETRY_MS = 60_000;
  * The loop board shows only over an item whose `board` is true. A file says `"board": false` when its own text
  * reaches the bottom of the frame (the promo's demo labels and end card, #216); a `board` item shows the board
  * alone over the stage's wordmark for `seconds`.
+ * A file with `"fit": "cover"` and a `safe` box [left, top, right, bottom] in its own pixels fills the stage with no
+ * side bands whenever cover-cropping keeps that box whole; on a stage too far from its aspect it is letterboxed.
  * @typedef {({ type: 'image', src: string, seconds: number } | { type: 'video', src: string }
- *   | { type: 'board', seconds: number }) & { board: boolean }} LoopItem
+ *   | { type: 'board', seconds: number }) & { board: boolean, safe?: number[] }} LoopItem
  */
 
 /** The item's path, percent-encoded as the browser sends it (staff file names have spaces and Thai), or null. */
@@ -28,15 +30,28 @@ const loopPath = (src) => {
 };
 
 const validSeconds = (n) => Number.isInteger(n) && n >= 1 && n <= 120;
+const validSafe = (b) => Array.isArray(b) && b.length === 4 && b.every((n) => Number.isInteger(n) && n >= 0) && b[0] < b[2] && b[1] < b[3];
+/** The item's safe box when it asked for cover, else nothing (contain). */
+const coverSafe = (item) => (item.fit === 'cover' && validSafe(item.safe) ? { safe: item.safe } : {});
+
+/** Cover when the stage crops none of `safe` out of a `w` x `h` picture, else contain. */
+export function loopFit(stageW, stageH, w, h, safe) {
+  if (!safe || !stageW || !stageH || !w || !h) return 'contain';
+  const s = Math.max(stageW / w, stageH / h);
+  const seenW = stageW / s;
+  const seenH = stageH / s;
+  const [l, t, r, b] = safe;
+  return l >= (w - seenW) / 2 && r <= (w + seenW) / 2 && t >= (h - seenH) / 2 && b <= (h + seenH) / 2 ? 'cover' : 'contain';
+}
 
 /** @returns {LoopItem | null} */
 function parseItem(item) {
   if (item?.type === 'board' && validSeconds(item.seconds)) return { type: 'board', seconds: item.seconds, board: true };
   const src = loopPath(item?.src);
   if (src && item.type === 'image' && validSeconds(item.seconds)) {
-    return { type: 'image', src, seconds: item.seconds, board: item.board !== false };
+    return { type: 'image', src, seconds: item.seconds, board: item.board !== false, ...coverSafe(item) };
   }
-  if (src && item.type === 'video' && src.endsWith('.mp4')) return { type: 'video', src, board: item.board !== false };
+  if (src && item.type === 'video' && src.endsWith('.mp4')) return { type: 'video', src, board: item.board !== false, ...coverSafe(item) };
   console.warn('booth loop: skipped manifest item', item);
   return null;
 }
@@ -65,15 +80,28 @@ export function mountLoop(container) {
   container.append(layer);
   const life = new AbortController();
 
+  let safe = null;
+  /** data-loop-fit picks object-fit for the media on screen; the stage's size decides, so it is redone on resize. */
+  const fit = () => {
+    const m = layer.firstElementChild;
+    const w = m?.videoWidth || m?.naturalWidth;
+    const h = m?.videoHeight || m?.naturalHeight;
+    layer.dataset.loopFit = loopFit(layer.clientWidth, layer.clientHeight, w, h, safe);
+  };
+  const sized = new ResizeObserver(fit);
+  sized.observe(layer);
   const put = (node, item) => {
     layer.replaceChildren(...(node ? [node] : []));
     layer.dataset.loopKind = item.type;
     if (item.src) layer.dataset.loopSrc = item.src;
     else delete layer.dataset.loopSrc;
     layer.dataset.loopBoard = item.board ? 'on' : 'off';
+    safe = item.safe ?? null;
+    fit();
   };
   const clear = () => {
     layer.replaceChildren();
+    delete layer.dataset.loopFit;
     delete layer.dataset.loopKind;
     delete layer.dataset.loopSrc;
     delete layer.dataset.loopBoard;
@@ -142,6 +170,7 @@ export function mountLoop(container) {
   return {
     stop() {
       life.abort();
+      sized.disconnect();
       layer.querySelector('video')?.pause();
     },
   };

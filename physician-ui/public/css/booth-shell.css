@@ -16,12 +16,26 @@
 .loop-media { position: absolute; inset: 0; background: var(--canvas); }
 .loop-media:empty { display: none; }
 .loop-media > img, .loop-media > video { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* booth-loop.js sets cover only when cropping keeps the file's safe box whole: no side bands on the reel. */
+.loop-media[data-loop-fit="cover"] > img, .loop-media[data-loop-fit="cover"] > video { object-fit: cover; }
 
 .loop-board { position: absolute; left: var(--gutter); right: var(--gutter); bottom: var(--gutter); max-height: 50%; overflow: hidden; }
 .loop-board:empty, .loop-media:not([data-loop-board="on"]) ~ .loop-board { display: none; }
 
-/* Above .shell-tap (z-index 1), so a tap on it opens the board and does not start a play. */
-.loop-board-button { grid-area: 1 / 1 / 2 / 2; z-index: 2; align-self: start; justify-self: end; margin: var(--gutter); box-shadow: var(--shadow-card); }
+/* A compact pill at the bar's end, off the reel: above .shell-tap (z-index 1), so a tap on it opens the board and
+   does not start a play. Every bar keeps its end clear of it. */
+.shell-loop { --board-room: calc(390 * var(--u)); }
+.loop-board-button {
+  grid-area: 2 / 1 / 3 / 2; z-index: 2; align-self: center; justify-self: end;
+  margin-inline-end: calc(32 * var(--u));
+  min-height: max(48px, var(--tap)); padding: calc(12 * var(--u)) calc(28 * var(--u)); gap: calc(16 * var(--u));
+  border-radius: 999px;
+}
+.loop-board-button .booth-icon svg { width: calc(40 * var(--u)); height: calc(40 * var(--u)); }
+.loop-board-button .bi { white-space: nowrap; }
+.loop-board-button .bi-th { font-size: calc(34 * var(--u)); line-height: 1.4; }
+.loop-board-button .bi-en { font-size: calc(30 * var(--u)); line-height: 1.3; }
+.shell-loop .loop-bar { padding-inline-end: var(--board-room); }
 
 .loop-bar {
   grid-area: 2 / 1 / 3 / 2; box-sizing: border-box; min-height: calc(200 * var(--u));
