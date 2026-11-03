@@ -21,23 +21,30 @@ function median(xs) {
 const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
 
 /**
- * Each case against the pool. A group's pool median is the median of that group's case means, so like is
+ * Each case against the pool. A group's pool median is the median of that group's scored case means, so like is
  * compared with like: a case's best path against the pool's best paths. A case passes when every group has a
  * scored play, every group mean is within BAND of its pool median, and its best path mean is at least SEPARATION
- * above its weakest. A run of fewer than MIN_POOL cases has no pool of its own: it passes only against `pool`,
- * the medians of an earlier full run.
+ * above its weakest. A pool counts only cases scored in that group, and a group pooled from fewer than MIN_POOL
+ * cases judges nothing, so no case passes. A run that left any play unplayed or unscored (`incomplete`) passes no
+ * case either: rerun the failed cases against `pool`, an earlier complete run's medians.
  * @param {Record<string, Record<string, number[]>>} table composites per case id, then per group
  * @param {string[]} groups the groups every case must have, in report order; must include 'best' and 'weakest'
- * @param {Record<string, number | null>} [pool] pool medians per group to judge against instead of this run's
+ * @param {{ pool?: { medians: Record<string, number | null>, pool_n: Record<string, number> }, incomplete?: string }} [opts]
  */
-export function verdicts(table, groups, pool) {
+export function verdicts(table, groups, { pool, incomplete } = {}) {
   const ids = Object.keys(table);
   const means = Object.fromEntries(ids.map((id) => [id, Object.fromEntries(groups.map((g) => [g, mean(table[id][g] ?? [])]))]));
-  const medians = pool ?? Object.fromEntries(groups.map((g) => [g, median(ids.map((id) => means[id][g]).filter((m) => m != null))]));
-  const pooled = Boolean(pool) || ids.length >= MIN_POOL;
+  const scoredIn = (g) => ids.map((id) => means[id][g]).filter((m) => m != null);
+  const medians = pool?.medians ?? Object.fromEntries(groups.map((g) => [g, median(scoredIn(g))]));
+  const poolN = pool?.pool_n ?? Object.fromEntries(groups.map((g) => [g, scoredIn(g).length]));
+  const thin = groups.filter((g) => !(poolN[g] >= MIN_POOL));
+  const runReasons = [
+    ...(incomplete ? [`incomplete run: ${incomplete}`] : []),
+    ...(thin.length ? [`no pool: ${thin.map((g) => `${g} pooled from ${poolN[g] ?? 0} case(s)`).join(', ')}, fewer than ${MIN_POOL}`] : []),
+  ];
   const cases = Object.fromEntries(ids.map((id) => {
     const m = means[id];
-    const reasons = pooled ? [] : [`no pool: ${ids.length} case(s) in this run, fewer than ${MIN_POOL}; judge it with --pool`];
+    const reasons = [...runReasons];
     for (const g of groups) {
       if (m[g] == null) reasons.push(`${g}: no scored play`);
       else if (medians[g] == null) reasons.push(`${g}: the pool has no median`);
@@ -53,7 +60,12 @@ export function verdicts(table, groups, pool) {
       reasons,
     }];
   }));
-  return { medians: Object.fromEntries(groups.map((g) => [g, r2(medians[g])])), pool_from: pool ? 'earlier run' : 'this run', cases };
+  return {
+    medians: Object.fromEntries(groups.map((g) => [g, r2(medians[g])])),
+    pool_n: Object.fromEntries(groups.map((g) => [g, poolN[g] ?? 0])),
+    pool_from: pool ? 'earlier run' : 'this run',
+    cases,
+  };
 }
 
 const cell = (m, s) => (m == null ? 'none' : s == null ? `${m}` : `${m} ± ${s}`);
@@ -73,13 +85,13 @@ export function summaryMarkdown(report, groups) {
     `Pool medians from ${verdict.pool_from}. Rule: every group mean within ±${BAND} of that group's pool median, and best at least ${SEPARATION} above weakest. `
       + `Scripted paths play once; each persona plays ${report.persona_runs} times (mean ± SD). ${passed.length} of ${ids.length} cases pass.`,
     '',
-    `| Case | Version | ${groups.join(' | ')} | Best − weakest | Verdict |`,
-    `|---|---|${groups.map(() => '---').join('|')}|---|---|`,
+    `| Case | Version | ${groups.join(' | ')} | Best − weakest | Unscored | Persona fallbacks | Verdict |`,
+    `|---|---|${groups.map(() => '---').join('|')}|---|---|---|---|`,
     ...ids.map((id) => {
       const c = verdict.cases[id];
-      return `| ${id} | ${report.cases[id].version} | ${groups.map((g) => cell(c.means[g], c.sd[g])).join(' | ')} | ${c.separation ?? 'none'} | ${c.pass ? 'pass' : 'FAIL'} |`;
+      return `| ${id} | ${report.cases[id].version} | ${groups.map((g) => cell(c.means[g], c.sd[g])).join(' | ')} | ${c.separation ?? 'none'} | ${report.cases[id].unscored} | ${report.cases[id].fallbacks} | ${c.pass ? 'pass' : 'FAIL'} |`;
     }),
-    `| pool median | | ${groups.map((g) => verdict.medians[g] ?? 'none').join(' | ')} | | |`,
+    `| pool median (cases) | | ${groups.map((g) => `${verdict.medians[g] ?? 'none'} (${verdict.pool_n[g]})`).join(' | ')} | | | | |`,
   ];
   const failing = ids.filter((id) => !verdict.cases[id].pass);
   if (failing.length) lines.push('', '## Why cases failed', '', ...failing.map((id) => `- ${id}: ${verdict.cases[id].reasons.join('; ')}`));

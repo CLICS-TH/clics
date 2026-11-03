@@ -49,10 +49,11 @@ test('a group mean is the mean of its runs and its spread is their sample SD', (
 });
 
 test('a group with no scored play fails the case and stays out of the pool median', () => {
-  const v = verdicts({ a: matched(), b: matched(2), c: { ...matched(), mixed: [] } }, GROUPS);
+  const v = verdicts({ a: matched(), b: matched(2), d: matched(4), c: { ...matched(), mixed: [] } }, GROUPS);
   assert.equal(v.cases.c.pass, false);
   assert.deepEqual(v.cases.c.reasons, ['mixed: no scored play']);
-  assert.equal(v.medians.mixed, 66);
+  assert.equal(v.medians.mixed, 67);
+  assert.equal(v.pool_n.mixed, 3);
 });
 
 test('the summary has one row per case, the pool medians, and why a failing case failed', () => {
@@ -60,12 +61,13 @@ test('the summary has one row per case, the pool medians, and why a failing case
   const md = summaryMarkdown({
     run_id: 'sbx-1', date: '2026-11-03', scored: 18, planned: 18, spent_usd: 2.5, cap_usd: 30, stopped: false,
     providers: ['anthropic'], persona_model: 'claude-x', persona_runs: 1,
-    cases: { a: { version: '1' }, b: { version: '1' }, c: { version: '2' } }, verdict: verdicts(table, GROUPS),
+    cases: { a: { version: '1', unscored: 0, fallbacks: 0 }, b: { version: '1', unscored: 1, fallbacks: 4 }, c: { version: '2', unscored: 0, fallbacks: 0 } }, verdict: verdicts(table, GROUPS),
   }, GROUPS);
   assert.match(md, /^# Booth physician sandbox, run sbx-1$/m);
-  assert.match(md, /\| a \| 1 \| 80 \| 65 \| 50 \| 75 \| 62 \| 50 \| 30 \| pass \|/);
+  assert.match(md, /\| a \| 1 \| 80 \| 65 \| 50 \| 75 \| 62 \| 50 \| 30 \| 0 \| 0 \| pass \|/);
+  assert.match(md, /\| b \| 1 \| .* \| 1 \| 4 \| pass \|/);
   assert.match(md, /\| c \| 2 \| .* \| FAIL \|/);
-  assert.match(md, /\| pool median \| \| 80 \| 65 \| 50 \| 75 \| 62 \| 50 \| \| \|/);
+  assert.match(md, /\| pool median \(cases\) \| \| 80 \(3\) \| 65 \(3\) \| 50 \(3\) \| 75 \(3\) \| 62 \(3\) \| 50 \(3\) \| \| \| \| \|/);
   assert.match(md, /- c: weak mean 80 is 30 from the pool median 50/);
   assert.match(md, /2 of 3 cases pass/);
 });
@@ -73,13 +75,29 @@ test('the summary has one row per case, the pool medians, and why a failing case
 test('a run of under 3 cases has no pool of its own: it fails unless judged against an earlier run\'s medians', () => {
   const alone = verdicts({ a: matched(30) }, GROUPS);
   assert.equal(alone.cases.a.pass, false);
-  assert.match(alone.cases.a.reasons[0], /no pool: 1 case\(s\) in this run, fewer than 3/);
-  const pool = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS).medians;
-  assert.equal(verdicts({ a: matched(4) }, GROUPS, pool).cases.a.pass, true);
-  const far = verdicts({ a: matched(30) }, GROUPS, pool);
+  assert.match(alone.cases.a.reasons[0], /^no pool: best pooled from 1 case\(s\), .*fewer than 3$/);
+  const pool = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS);
+  assert.equal(verdicts({ a: matched(4) }, GROUPS, { pool }).cases.a.pass, true);
+  const far = verdicts({ a: matched(30) }, GROUPS, { pool });
   assert.equal(far.cases.a.pass, false);
   assert.equal(far.pool_from, 'earlier run');
   assert.match(far.cases.a.reasons[0], /best mean 110 is 30 from the pool median 80/);
+  const thinPool = verdicts({ a: matched() }, GROUPS);
+  assert.equal(verdicts({ a: matched() }, GROUPS, { pool: thinPool }).cases.a.pass, false);
+});
+
+test('the pool counts only cases scored in that group: a scored with b and c empty does not pass on its own median', () => {
+  const empty = Object.fromEntries(GROUPS.map((g) => [g, []]));
+  const v = verdicts({ a: matched(), b: empty, c: empty }, GROUPS);
+  assert.equal(v.cases.a.pass, false);
+  assert.equal(v.pool_n.best, 1);
+  assert.match(v.cases.a.reasons[0], /^no pool: best pooled from 1 case/);
+});
+
+test('an incomplete run passes no case, even a matched pool', () => {
+  const v = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS, { incomplete: '35 of 36 plays scored' });
+  assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [false, false, false]);
+  assert.equal(v.cases.a.reasons[0], 'incomplete run: 35 of 36 plays scored');
 });
 
 test('a scripted-only run is judged on the scripted groups alone', () => {

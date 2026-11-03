@@ -13,7 +13,8 @@
  *   --persona-runs n  runs per persona (default 3; 0 plays the scripted paths only)
  *   --concurrency n   plays at once (default 3)
  *   --out <dir>       where the JSON report and summary go (default scripts/booth/sandbox-runs)
- *   --pool <json>     judge against the pool medians of an earlier full report (needed for a run of under 3 cases)
+ *   --pool <json>     judge against an earlier complete report's pool medians (each pooled from 3 or more cases),
+ *                     to rerun a few cases; a run that leaves any play unscored passes no case
  *   --go              spend: without it the script stops after the estimate
  *
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
@@ -26,7 +27,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { verdicts, summaryMarkdown } from './sandbox-verdict.mjs';
+import { MIN_POOL, verdicts, summaryMarkdown } from './sandbox-verdict.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -82,9 +83,12 @@ const opts = parseArgs(process.argv.slice(2));
 const groups = opts.personaRuns > 0 ? GROUPS : Object.keys(PATHS);
 let pool;
 if (opts.pool) {
-  try { pool = JSON.parse(readFileSync(opts.pool, 'utf8')).verdict.medians; } catch { fail(`--pool ${opts.pool} is not a sandbox report`); }
-  const missing = groups.filter((g) => typeof pool?.[g] !== 'number');
-  if (missing.length) fail(`--pool ${opts.pool} has no median for ${missing.join(', ')}`);
+  try {
+    const { medians, pool_n } = JSON.parse(readFileSync(opts.pool, 'utf8')).verdict;
+    pool = { medians, pool_n };
+  } catch { fail(`--pool ${opts.pool} is not a sandbox report`); }
+  const thin = groups.filter((g) => typeof pool.medians?.[g] !== 'number' || !(pool.pool_n?.[g] >= MIN_POOL));
+  if (thin.length) fail(`--pool ${opts.pool} has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}`);
 }
 const cases = loadCases(opts.cases, opts.only);
 const jobs = jobsFor(cases, { personaRuns: opts.personaRuns });
@@ -113,11 +117,12 @@ const { results, spent_usd, stopped } = await runPlays(jobs, {
   onDone: (job, r) => {
     done += 1;
     console.log(`[${done}/${jobs.length}] ${job.kase.case_id} ${job.group}#${job.run} ${r.tier_path ?? ''} `
-      + `${r.composite ?? `unscored${r.error ? ` (${r.error})` : ''}`} $${r.usd}`);
+      + `${r.composite ?? `unscored${r.error ? ` (${r.error})` : ''}`} $${r.usd ?? 0}`);
   },
 });
 
 const plays = jobs.map(({ kase, group, run }, i) => ({ case_id: kase.case_id, group, run, ...results[i] }));
+const scoredCount = plays.filter((p) => p.composite != null).length;
 const table = Object.fromEntries(cases.map((k) => [k.case_id, Object.fromEntries(groups.map((g) => [g,
   plays.filter((p) => p.case_id === k.case_id && p.group === g && p.composite != null).map((p) => p.composite)]))]));
 const report = {
@@ -130,10 +135,20 @@ const report = {
   spent_usd,
   stopped,
   planned: jobs.length,
-  scored: plays.filter((p) => p.composite != null).length,
+  scored: scoredCount,
   providers: [...new Set(plays.flatMap((p) => (p.calls ?? []).filter((c) => c.kind === 'evaluate' && c.provider).map((c) => c.provider)))],
-  cases: Object.fromEntries(cases.map((k) => [k.case_id, { version: k.version }])),
-  verdict: verdicts(table, groups, pool),
+  cases: Object.fromEntries(cases.map((k) => {
+    const own = plays.filter((p) => p.case_id === k.case_id);
+    return [k.case_id, {
+      version: k.version,
+      unscored: own.filter((p) => p.composite == null).length,
+      fallbacks: own.reduce((acc, p) => acc + (p.fallbacks ?? 0), 0),
+    }];
+  })),
+  verdict: verdicts(table, groups, {
+    pool,
+    incomplete: stopped || scoredCount < jobs.length ? `${scoredCount} of ${jobs.length} plays scored${stopped ? ', stopped at the cap' : ''}` : undefined,
+  }),
   plays,
 };
 mkdirSync(opts.out, { recursive: true });
@@ -143,4 +158,4 @@ writeFileSync(jsonPath, `${JSON.stringify(report, null, 2)}\n`);
 const summary = summaryMarkdown(report, groups);
 writeFileSync(mdPath, summary);
 console.log(`\n${summary}\nReport ${jsonPath}\nSummary ${mdPath}`);
-process.exit(!stopped && Object.values(report.verdict.cases).every((c) => c.pass) ? 0 : 1);
+process.exit(Object.values(report.verdict.cases).every((c) => c.pass) ? 0 : 1);

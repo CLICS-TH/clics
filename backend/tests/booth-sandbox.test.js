@@ -61,21 +61,43 @@ describe('playOnce', () => {
     expect(play.composite).toBe(59);
   });
 
-  test('a persona that types sends its text as a typed answer, and one that answers badly taps and is counted', async () => {
-    const replies = ['{"text": "ให้สารน้ำทางหลอดเลือด"}', 'no idea', '{"choice": "not-offered"}'];
-    const ai = {
-      persona: jest.fn(async () => ({ content: replies.shift(), input_tokens: 1500, output_tokens: 100, provider: 'anthropic' })),
-      chat: jest.fn(async () => ({ ...CHAT_OK, tier: 'reasonable' })),
-      evaluate: async () => EVAL_OK,
-    };
-    const typesFirst = [0, 0.9, 0.9];
-    const play = await playOnce({ kase: KASE, choose: personaChooser('weak', { random: () => typesFirst.shift() }), ai });
+  const personaAi = (replies) => ({
+    persona: jest.fn(async () => {
+      const r = replies.shift();
+      if (r instanceof Error) throw r;
+      return { content: r, input_tokens: 1500, output_tokens: 100, provider: 'anthropic' };
+    }),
+    chat: jest.fn(async () => ({ ...CHAT_OK, tier: 'reasonable' })),
+    evaluate: jest.fn(async () => EVAL_OK),
+  });
+
+  test('a persona that types sends its text as a typed answer; one unusable answer taps and is counted', async () => {
+    const ai = personaAi(['{"text": "ให้สารน้ำทางหลอดเลือด"}', 'no idea', '{"text": "ส่งต่อโรงพยาบาลจังหวัด"}']);
+    const typing = [0, 0.9, 0];
+    const play = await playOnce({ kase: KASE, choose: personaChooser('weak', { random: () => typing.shift() }), ai });
     expect(ai.persona.mock.calls[0][0].messages[0].content).toMatch(/Type your own answer/);
     expect(ai.persona.mock.calls[1][0].messages[0].content).toMatch(/Pick the option/);
     expect(ai.chat.mock.calls[0][0].booth_typed).toBeDefined();
     expect(ai.chat.mock.calls[0][0].message).toContain('ให้สารน้ำทางหลอดเลือด');
-    expect(play).toMatchObject({ typed: 1, fallbacks: 2 });
+    expect(play).toMatchObject({ typed: 2, fallbacks: 1, composite: 59 });
     expect(play.tier_path[0]).toBe('R');
+  });
+
+  test('a persona call that fails (a bad key answers 401) abandons the play unscored, before any rimpl call', async () => {
+    const ai = personaAi([Object.assign(new Error('persona model answered 401'), { status: 401 })]);
+    const play = await playOnce({ kase: KASE, choose: personaChooser('strong'), ai });
+    expect(play).toMatchObject({ composite: null, error: 'persona call failed' });
+    expect(ai.chat).not.toHaveBeenCalled();
+    expect(ai.evaluate).not.toHaveBeenCalled();
+    expect(play.calls).toEqual([expect.objectContaining({ kind: 'persona', error: '401', usd: 0.02 })]);
+  });
+
+  test('a second unusable persona answer abandons the play rather than score random taps', async () => {
+    const ai = personaAi(['no idea', '{"choice": "not-offered"}']);
+    const play = await playOnce({ kase: KASE, choose: personaChooser('average', { random: () => 0.9 }), ai });
+    expect(play).toMatchObject({ composite: null, fallbacks: 1, error: 'more than 1 unusable persona answer' });
+    expect(ai.chat).toHaveBeenCalledTimes(1);
+    expect(ai.evaluate).not.toHaveBeenCalled();
   });
 });
 
@@ -108,6 +130,17 @@ describe('sandbox.mjs', () => {
     const out = sandbox(['--cases', fixtureDir()], { node: ['-r', require.resolve('@supabase/supabase-js')] });
     expect(out.status).toBe(2);
     expect(out.stderr).toMatch(/refuses to run with a database client loaded/);
+  });
+
+  test('refuses a --pool report whose medians come from fewer than 3 cases', () => {
+    const groups = ['best', 'mixed', 'weakest'];
+    const pool = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-pool-')), 'thin.json');
+    fs.writeFileSync(pool, JSON.stringify({ verdict: {
+      medians: Object.fromEntries(groups.map((g) => [g, 60])), pool_n: { best: 3, mixed: 3, weakest: 1 },
+    } }));
+    const out = sandbox(['--cases', fixtureDir(), '--persona-runs', '0', '--pool', pool]);
+    expect(out.status).toBe(2);
+    expect(out.stderr).toMatch(/no median from 3 or more cases for weakest/);
   });
 
   test('a cap below one play stops before any call and still writes the report', () => {

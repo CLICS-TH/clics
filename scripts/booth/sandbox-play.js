@@ -23,6 +23,7 @@ const PERSONAS = Object.freeze({
 });
 const GROUPS = Object.freeze([...Object.keys(PATHS), ...Object.keys(PERSONAS)]);
 const TYPE_RATE = 0.25;
+const MAX_FALLBACKS = 1;
 const ANSWER_MAX_CHARS = 500;
 
 // A failed call may still have been billed, so it counts at its worst case. chat and evaluate are the booth's own
@@ -79,13 +80,16 @@ function personaAnswer(content, ask, typing) {
   return ask.options.includes(parsed?.choice) ? { choice: parsed.choice } : null;
 }
 
-/** A persona types at a step with chance `typeRate`, and taps otherwise. A persona answer that cannot be used taps the
- *  first offered option (asks are shuffled, so that is a random tier) and is counted in the play's fallbacks. */
+/** A persona types at a step with chance `typeRate`, and taps otherwise. One unusable persona answer per play taps
+ *  the first offered option (asks are shuffled, so that is a random tier) and is counted; a second, or a persona
+ *  call that failed, abandons the play: a play of random taps would pass as that persona's score. */
 const personaChooser = (persona, { typeRate = TYPE_RATE, random = Math.random } = {}) => async (turn) => {
   const typing = random() < typeRate;
   const res = await turn.call('persona', personaRequest({ persona, ...turn, typing }));
-  const answer = personaAnswer(res?.content, turn.ask, typing);
+  if (!res) return { abandon: 'persona call failed' };
+  const answer = personaAnswer(res.content, turn.ask, typing);
   if (answer) return answer;
+  if (turn.fallbacks >= MAX_FALLBACKS) return { abandon: `more than ${MAX_FALLBACKS} unusable persona answer` };
   turn.fallback();
   return { choice: turn.ask.options[0] };
 };
@@ -93,7 +97,7 @@ const personaChooser = (persona, { typeRate = TYPE_RATE, random = Math.random } 
 /**
  * One booth grill play of `kase`. `ai` holds the calls: `chat` and `evaluate` reach rimpl, `persona` the persona model.
  * Each call's cost is read from the tokens it reports. A failed chat takes the booth's own fallback (reply '' and the
- * bank's default trio); a failed evaluate leaves the play unscored.
+ * bank's default trio); a failed evaluate leaves the play unscored, and so does a `choose` that answers `{ abandon }`.
  * @param {{ kase: object, choose: Function, ai: Record<string, Function>, start?: object }} play
  *   `start` is step 1's ask (default: drawn the way the booth draws it).
  */
@@ -112,11 +116,22 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
       return null;
     }
   };
+  const played = (d, domains, abandoned) => ({
+    tier_path: d.tierPath,
+    typed: d.answers.filter((a) => 'text' in a).length,
+    fallbacks,
+    composite: domains ? compositeScore(domains) : null,
+    domains,
+    ...(abandoned ? { error: abandoned } : {}),
+    calls,
+    usd: Math.round(calls.reduce((acc, c) => acc + c.usd, 0) * 1e6) / 1e6,
+  });
   let d = { answers: [], replies: [], asks: [start], tierPath: '' };
   for (let step = 0; step < STEPS; step += 1) {
     const bank = bankAt(kase, d.tierPath);
     const ask = d.asks[step];
-    const answer = await choose({ kase, bank, ask, step, d, call, fallback: () => { fallbacks += 1; } });
+    const answer = await choose({ kase, bank, ask, step, d, call, fallbacks, fallback: () => { fallbacks += 1; } });
+    if ('abandon' in answer) return played(d, null, answer.abandon);
     if ('choice' in answer && !ask.options.includes(answer.choice)) throw new Error(`answer ${answer.choice} was not offered`);
     const walked = 'choice' in answer
       ? { ...d, answers: [...d.answers, answer], tierPath: d.tierPath + tierOf(bank, answer.choice) }
@@ -125,15 +140,7 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
     d = { answers: out.answers, replies: out.replies, asks: out.asks, tierPath: out.tierPath };
   }
   const domains = DomainsSchema.safeParse(await call('evaluate', { ple_id, ...evaluateRequest(kase, d) }));
-  return {
-    tier_path: d.tierPath,
-    typed: d.answers.filter((a) => 'text' in a).length,
-    fallbacks,
-    composite: domains.success ? compositeScore(domains.data) : null,
-    domains: domains.success ? domains.data : null,
-    calls,
-    usd: Math.round(calls.reduce((acc, c) => acc + c.usd, 0) * 1e6) / 1e6,
-  };
+  return played(d, domains.success ? domains.data : null);
 }
 
 /** Every play a run makes: each scripted path once and each persona `personaRuns` times, per case. */
