@@ -445,9 +445,10 @@ describe('POST /booth/draw (#248)', () => {
     expect(res.body.teaser).toEqual(kase.teaser);
   });
 
-  test('the body holds exactly the case id and the teaser: no vignette, no option text, no version, no bank', async () => {
+  test('the body holds exactly the case id, the teaser and the live count: no vignette, no option text, no version, no bank', async () => {
     const res = await post('/booth/draw', { seen: [] });
-    expect(Object.keys(res.body).sort()).toEqual(['case_id', 'teaser']);
+    expect(Object.keys(res.body).sort()).toEqual(['case_id', 'live', 'teaser']);
+    expect(res.body.live).toBe(POOL.length);
     expect(Object.keys(res.body.teaser).sort()).toEqual(['en', 'th']);
     const text = JSON.stringify(res.body);
     const kase = POOL.find((k) => k.case_id === res.body.case_id);
@@ -622,6 +623,16 @@ describe('a case switched off during the event (#249)', () => {
     expect(await drawnSet(80, [])).toEqual(new Set(['case-1', 'case-3', 'case-4']));
     expect(await drawnSet(60, ['case-1'])).toEqual(new Set(['case-3', 'case-4']));
     expect(await drawnSet(10, ['case-1', 'case-3', 'case-4'])).not.toContain('case-2');
+  });
+
+  test('the live count counts only the cases still on, so the kiosk drops its reroll at one', async () => {
+    switched('case-2', 1);
+    newIp();
+    expect((await post('/booth/draw', { seen: [] })).body.live).toBe(3);
+    for (const id of ['case-3', 'case-4']) switched(id, 1);
+    newIp();
+    const one = await post('/booth/draw', { seen: [] });
+    expect(one.body).toEqual({ case_id: 'case-1', teaser: expect.any(Object), live: 1 });
   });
 
   test('the least-played draw counts only the cases still on', async () => {

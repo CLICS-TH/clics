@@ -183,9 +183,12 @@ function parseNext(n) {
   return { ask: { variant: ask.variant, bridge: ask.bridge, options: [...ask.options] }, question: n.question, options: n.options };
 }
 
-/** @returns {{ caseId: string, teaser: Bi } | null} */
+/** `live` is how many cases can be dealt now; null when the server does not say (a backend older than the count).
+ *  @returns {{ caseId: string, teaser: Bi, live: number | null } | null} */
 function parseDraw(body) {
-  return isId(body?.case_id) && isBi(body.teaser) ? { caseId: body.case_id, teaser: { th: body.teaser.th, en: body.teaser.en } } : null;
+  if (!isId(body?.case_id) || !isBi(body.teaser)) return null;
+  const live = Number.isInteger(body.live) && body.live >= 1 ? body.live : null;
+  return { caseId: body.case_id, teaser: { th: body.teaser.th, en: body.teaser.en }, live };
 }
 
 function parseStart(body, teaser) {
@@ -247,15 +250,17 @@ function render(root, s, dispatch, api) {
   draw(root, s.screen.at, VIEWS[s.screen.at](s, buttonsFor(dispatch), root, api));
 }
 
-/** The dealt case's teaser and the two ways on. Resolves 'start' or 'reroll' on the first tap that counts.
+/** The dealt case's teaser and the ways on. Resolves 'start' or 'reroll' on the first tap that counts. With one live
+ *  case a reroll could only deal it again, so it is not offered; it comes back by itself once a second case is live.
  *  @returns {Promise<'start' | 'reroll'>} */
 function offerCase(root, dealt) {
   return new Promise((resolve) => {
     const button = buttonsFor(resolve);
+    const reroll = dealt.live === null || dealt.live >= 2;
     draw(root, 'teaser', frame(
       [el('section', { class: 'case-card case-card--full' }, bi(dealt.teaser, 'teaser'))],
       [button(labelled(COPY.startCase, null, 'arrowRight'), 'primary wide', () => 'start', { 'data-action': 'start-case' }),
-        button(labelled(COPY.reroll, 'refresh'), 'secondary wide', () => 'reroll', { 'data-action': 'reroll' })],
+        ...(reroll ? [button(labelled(COPY.reroll, 'refresh'), 'secondary wide', () => 'reroll', { 'data-action': 'reroll' })] : [])],
       { stack: true }));
   });
 }
