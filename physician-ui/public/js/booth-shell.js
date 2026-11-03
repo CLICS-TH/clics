@@ -51,13 +51,16 @@ function guardGhostTaps() {
   }, true);
 }
 
-/** Hands the case each started play returns to the offline cache (booth-sw.js), so the last case served is kept. */
+/** Hands the case each started play returns to the offline cache (booth-sw.js), under the id the kiosk started it
+ *  with, so every case played is kept. */
 function keepingCase(base) {
   return {
     ...base,
     async post(path, body, opts) {
       const res = await base.post(path, body, opts);
-      if (path === '/booth/plays' && res?.case) navigator.serviceWorker?.controller?.postMessage({ type: 'case', kase: res.case });
+      if (path === '/booth/plays' && res?.case) {
+        navigator.serviceWorker?.controller?.postMessage({ type: 'case', id: body?.case_id, kase: res.case });
+      }
       return res;
     },
   };
@@ -90,7 +93,9 @@ function showLoop() {
   stage.append(boardSlot);
   const stopBoard = board.mountLoopBoard?.(boardSlot, { api });
   let bar = el('div');
-  root.replaceChildren(el('div', { class: 'shell-loop' }, stage, bar));
+  const boardButton = board.leaderboardButton({ host: root, api, cls: 'secondary loop-board-button' });
+  root.replaceChildren(el('div', { class: 'shell-loop' }, stage, boardButton, bar));
+  window.hydrateIcons?.(boardButton);
 
   let status = null;
   let poll = 0;

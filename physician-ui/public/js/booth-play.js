@@ -4,9 +4,10 @@
 //     'scoring' and to start its result timer; the harness waits on it.
 //   - runPlay resolves once a terminal screen is showing. The screen stays up until the shell resets the page.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
-// mountResultBoard(slot, { tag, scoreBody }).
+// mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
 import { COPY, DEMO_LABEL, DOMAINS, scoreText, fill } from './booth-copy.js';
-import { renderTag, mountResultBoard } from './booth-board.js';
+import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
+import { BAND_LINES, bandOf, weakestFirst } from './booth-bands.js';
 import { BoothApiError } from './booth-api.js';
 import { el, phrases, bi } from './booth-dom.js';
 
@@ -39,10 +40,34 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
  */
 
-/** root.dataset.screen values: the Screen tags plus 'starting' (before the play exists). */
-export const SCREEN = Object.freeze(['starting', 'vignette', 'step', 'typing', 'replying', 'reply', 'scoring',
-  'scored', 'unavailable', 'stopped']);
+/** root.dataset.screen values: the Screen tags plus the three before the play exists: 'drawing' (a case is being
+ *  dealt), 'teaser' (the dealt case is offered) and 'starting'. */
+export const SCREEN = Object.freeze(['drawing', 'teaser', 'starting', 'vignette', 'step', 'typing', 'replying', 'reply',
+  'scoring', 'scored', 'unavailable', 'stopped']);
 const TERMINAL = new Set(['scored', 'unavailable', 'stopped']);
+
+/**
+ * Deal cases until the visitor starts one. The cases seen so far live in this call only; the server restarts the
+ * list (the id it returns is already in it) when it has dealt them all.
+ * @returns {Promise<ReturnType<typeof parseStart>>} null when a call failed or answered unreadably
+ */
+async function startOnADealtCase(root, api) {
+  let seen = [];
+  for (;;) {
+    draw(root, 'drawing', frame([waitView(COPY.drawing)]));
+    const dealt = parseDraw(await api.post('/booth/draw', { seen }, { timeoutMs: START_TIMEOUT_MS }));
+    if (!dealt) return null;
+    seen = seen.includes(dealt.caseId) ? [dealt.caseId] : [...seen, dealt.caseId];
+    if (await offerCase(root, dealt) === 'reroll') continue;
+    draw(root, 'starting', frame([waitView(COPY.starting)]));
+    try {
+      return parseStart(await api.post('/booth/plays', { case_id: dealt.caseId }, { timeoutMs: START_TIMEOUT_MS }));
+    } catch (e) {
+      // The case was switched off after it was dealt: deal another, with no word to the visitor.
+      if (!(e instanceof BoothApiError && e.kind === 'http' && e.reason === 'case_off')) throw e;
+    }
+  }
+}
 
 /**
  * Run one booth play to a terminal screen.
@@ -50,11 +75,10 @@ const TERMINAL = new Set(['scored', 'unavailable', 'stopped']);
  * @returns {Promise<PlayOutcome>}
  */
 export async function runPlay({ root, api }) {
-  draw(root, 'starting', frame([waitView(COPY.starting)]));
   let start = null;
   let offline = false;
   try {
-    start = parseStart(await api.post('/booth/plays', {}, { timeoutMs: START_TIMEOUT_MS }));
+    start = await startOnADealtCase(root, api);
   } catch (e) {
     offline = isOffline(e);
   }
@@ -68,12 +92,12 @@ export async function runPlay({ root, api }) {
       const next = transition(state, ev);
       if (next === state) return;
       state = next;
-      render(root, state, dispatch);
+      render(root, state, dispatch, api);
       if (state.screen.at === 'replying') requestReply(api, state).then(dispatch);
       else if (state.screen.at === 'scoring') requestScore(api, state).then(dispatch);
       else if (TERMINAL.has(state.screen.at)) resolve({ kind: state.screen.at });
     };
-    render(root, state, dispatch);
+    render(root, state, dispatch, api);
   });
 }
 
@@ -158,6 +182,11 @@ function parseNext(n) {
   return { ask: { variant: ask.variant, bridge: ask.bridge, options: [...ask.options] }, question: n.question, options: n.options };
 }
 
+/** @returns {{ caseId: string, teaser: Bi } | null} */
+function parseDraw(body) {
+  return isId(body?.case_id) && isBi(body.teaser) ? { caseId: body.case_id, teaser: { th: body.teaser.th, en: body.teaser.en } } : null;
+}
+
 function parseStart(body) {
   const next = parseNext(body?.next);
   if (!isId(body?.play_id) || !Number.isInteger(body.tag) || body.tag < 1
@@ -186,10 +215,10 @@ const icon = (name) => el('span', { class: 'booth-icon', dataset: { icon: name }
 
 const labelled = (pair, lead = null, trail = null) => [lead && icon(lead), bi(pair, 'btn-label'), trail && icon(trail)];
 
-function frame(body, actions = [], { foot = true } = {}) {
+function frame(body, actions = [], { foot = true, stack = false } = {}) {
   return el('div', { class: 'play-frame' },
     el('div', { class: 'play-body' }, ...body),
-    actions.length ? el('div', { class: 'play-actions' }, ...actions) : null,
+    actions.length ? el('div', { class: stack ? 'play-actions play-actions--stack' : 'play-actions' }, ...actions) : null,
     foot ? demoLabel('play-foot') : null);
 }
 
@@ -201,15 +230,33 @@ function draw(root, at, node) {
   window.hydrateIcons?.(root);
 }
 
-/** @param {HTMLElement} root @param {PlayState} s @param {(ev: PlayEvent) => void} dispatch */
-function render(root, s, dispatch) {
+/** The button maker of one screen: a tap within GHOST_TAP_MS of the screen being drawn is the tail of the tap that drew
+ *  it. `ev` is called at the tap and its result goes to `act`. */
+function buttonsFor(act) {
   const drawnAt = performance.now();
-  const button = (kids, cls, ev, attrs = {}) => {
+  return (kids, cls, ev, attrs = {}) => {
     const b = el('button', { type: 'button', class: `booth-btn ${cls}`, ...attrs }, ...kids);
-    b.addEventListener('click', () => { if (performance.now() - drawnAt >= GHOST_TAP_MS) dispatch(ev()); });
+    b.addEventListener('click', () => { if (performance.now() - drawnAt >= GHOST_TAP_MS) act(ev()); });
     return b;
   };
-  draw(root, s.screen.at, VIEWS[s.screen.at](s, button));
+}
+
+/** @param {HTMLElement} root @param {PlayState} s @param {(ev: PlayEvent) => void} dispatch */
+function render(root, s, dispatch, api) {
+  draw(root, s.screen.at, VIEWS[s.screen.at](s, buttonsFor(dispatch), root, api));
+}
+
+/** The dealt case's teaser and the two ways on. Resolves 'start' or 'reroll' on the first tap that counts.
+ *  @returns {Promise<'start' | 'reroll'>} */
+function offerCase(root, dealt) {
+  return new Promise((resolve) => {
+    const button = buttonsFor(resolve);
+    draw(root, 'teaser', frame(
+      [el('section', { class: 'case-card case-card--full' }, bi(dealt.teaser, 'teaser'))],
+      [button(labelled(COPY.startCase, null, 'arrowRight'), 'primary wide', () => 'start', { 'data-action': 'start-case' }),
+        button(labelled(COPY.reroll, 'refresh'), 'secondary wide', () => 'reroll', { 'data-action': 'reroll' })],
+      { stack: true }));
+  });
 }
 
 const VIEWS = {
@@ -262,7 +309,7 @@ const VIEWS = {
 
   scoring: () => frame([waitView(COPY.scoring, COPY.scoringWait)]),
 
-  scored: (s) => {
+  scored: (s, button, root, api) => {
     const { score } = s.screen;
     const slot = el('div', { class: 'board-slot', dataset: { boothSlot: 'board' } });
     const card = el('article', { class: 'result-card' },
@@ -273,10 +320,9 @@ const VIEWS = {
           el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
           el('span', { class: 'result-outof' }, '/ 100'))),
       slot,
-      el('ol', { class: 'domains' }, ...DOMAINS.map((d) => domainRow(d, score.domains[d.key]))),
-      demoLabel('card-label'));
+      ...domainSections(score.domains, leaderboardButton({ host: root.closest('#booth') ?? root, api, board: score.body.board, tag: s.play.tag })));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
-    return frame([card], [], { foot: false });
+    return frame([card]);
   },
 
   unavailable: () => frame([el('article', { class: 'end-card' }, bi(COPY.unavailable, 'end-title'), bi(COPY.thanks))]),
@@ -336,10 +382,21 @@ function stoppedView(offline) {
     bi(COPY.stopped, 'end-title'), offline ? bi(COPY.stoppedOffline) : null, bi(COPY.restarting));
 }
 
+/** The two weakest domains under "Practise next", `between` them and the other five, which sit below the fold. */
+function domainSections(scores, between) {
+  const order = weakestFirst(scores);
+  const section = (title, keys, cls) => el('section', { class: `domain-section ${cls}`, 'aria-label': title.en },
+    bi(title, 'section-title'),
+    el('ol', { class: 'domains' }, ...keys.map((key) => domainRow(DOMAINS.find((d) => d.key === key), scores[key]))));
+  return [section(COPY.practiseNext, order.slice(0, 2), 'practise-next'), between, section(COPY.otherDomains, order.slice(2), 'other-domains')];
+}
+
 function domainRow(d, value) {
-  return el('li', { class: 'domain', dataset: { key: d.key, value: String(value) } },
+  const band = bandOf(value);
+  return el('li', { class: 'domain', dataset: { key: d.key, value: String(value), band } },
     el('div', { class: 'domain-head' },
       bi(d, 'domain-name'),
       el('span', { class: 'domain-value' }, `${value} / 5`)),
-    el('div', { class: 'domain-bar', 'aria-hidden': 'true' }, el('span', { style: `width: ${value * 20}%` })));
+    el('div', { class: 'domain-bar', 'aria-hidden': 'true' }, el('span', { style: `width: ${value * 20}%` })),
+    bi(BAND_LINES[d.key][band], 'domain-band'));
 }

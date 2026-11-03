@@ -1,14 +1,17 @@
 // Booth Mode board (#212). booth-play.js and booth-shell.js call three seams and never reach inside:
 //   renderTag(tag)                              the result card's tag, "Booth #NNN" with its icon
-//   mountResultBoard(slot, { tag, scoreBody })  the result card's ranks, board and Landing QR, from the score
-//                                               response (rank_today, rank_event, board)
+//   mountResultBoard(slot, { tag, scoreBody })  the result card's ranks and Landing QR, from the score response
+//                                               (rank_today, rank_event)
 //   mountLoopBoard(slot, { api }) -> stop()     the loop's board, fetched from GET /booth/board every minute
-// The board has no controls: on the loop a tap anywhere, the panel included, starts a play.
+//   leaderboardButton({ host, api, board, tag })  the button on the result card and the loop (#250): opens the board
+//                                               over `host`, from `board` when the score carried one, else GET /booth/board
+// The panel has no controls: on the loop a tap anywhere, the panel included, starts a play. The overlay has one, Close.
 import { tagText, DEMO_LABEL } from './booth-copy.js';
 import { el, bi } from './booth-dom.js';
 
 const BOARD_TIMEOUT_MS = 8_000;
 const LOOP_REFRESH_MS = 60_000;
+const OVERLAY_IDLE_MS = 30_000;
 const LANDING_QR_SRC = '/img/booth-landing-qr.svg';
 
 // Icons from the Portal set (js/icons.js) that read as a badge, not as a button's action or a warning.
@@ -23,6 +26,10 @@ const COPY = Object.freeze({
   event: { th: '10 อันดับตลอดงาน', en: 'Top 10 of the event' },
   empty: { th: 'ยังไม่มีคะแนน', en: 'No scores yet' },
   scan: { th: 'สแกนเพื่อรู้จัก CLICS', en: 'Scan to learn about CLICS' },
+  open: { th: 'ดูกระดานคะแนน', en: 'See the leaderboard' },
+  close: { th: 'ปิดกระดานคะแนน', en: 'Close the leaderboard' },
+  loading: { th: 'กำลังโหลดกระดานคะแนน', en: 'Loading the leaderboard' },
+  unavailable: { th: 'ตอนนี้ดูกระดานคะแนนไม่ได้', en: 'The leaderboard is unavailable right now' },
 });
 
 /** Deterministic: 7 is coprime to the 12 icons, so 12 tags in a row never repeat one. */
@@ -69,17 +76,14 @@ function landingQr() {
     el('img', { src: LANDING_QR_SRC, alt: COPY.scan.en, width: '240', height: '240' }), bi(COPY.scan, 'landing-qr-caption'));
 }
 
-export function mountResultBoard(slot, { tag, scoreBody }) {
+export function mountResultBoard(slot, { scoreBody }) {
   const ranks = [
     isRank(scoreBody?.rank_today) ? rankLine(COPY.rankToday, scoreBody.rank_today) : null,
     isRank(scoreBody?.rank_event) ? rankLine(COPY.rankEvent, scoreBody.rank_event) : null,
   ].filter(Boolean);
   const qr = landingQr();
-  const board = parseBoard(scoreBody?.board);
-  slot.replaceChildren(...[
-    ranks.length || qr ? el('div', { class: 'result-ranks' }, el('div', { class: 'rank-lines' }, ...ranks), qr) : null,
-    board ? boardPanel(board, tag) : null,
-  ].filter(Boolean));
+  slot.replaceChildren(...(ranks.length || qr
+    ? [el('div', { class: 'result-ranks' }, el('div', { class: 'rank-lines' }, ...ranks), qr)] : []));
   window.hydrateIcons?.(slot);
 }
 
@@ -97,4 +101,40 @@ export function mountLoopBoard(slot, { api }) {
   };
   refresh();
   return () => { stopped = true; clearTimeout(timer); };
+}
+
+/** The leaderboard over the whole screen, with one Close. Shows `board` at once when it has one, then the fresh GET. */
+function openBoard({ host, api, board, tag }) {
+  const body = el('div', { class: 'board-body' });
+  const close = el('button', { type: 'button', class: 'booth-btn primary wide', dataset: { action: 'close-board' } },
+    icon('x'), bi(COPY.close, 'btn-label'));
+  const overlay = el('div', { class: 'board-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': COPY.board.en, dataset: { boardOverlay: '' } },
+    el('div', { class: 'board-card' }, body, close));
+  const show = (b) => {
+    body.replaceChildren(b ? boardPanel(b, tag) : el('p', { class: 'board-unavailable', role: 'status' }, bi(b === undefined ? COPY.loading : COPY.unavailable)));
+    window.hydrateIcons?.(body);
+  };
+  let open = true;
+  let idle = 0;
+  const shut = () => { open = false; clearTimeout(idle); overlay.remove(); };
+  const restart = () => { clearTimeout(idle); idle = setTimeout(shut, OVERLAY_IDLE_MS); };
+  const first = parseBoard(board);
+  show(first ?? undefined);
+  restart();
+  overlay.addEventListener('pointerdown', restart);
+  close.addEventListener('click', shut);
+  host.append(overlay);
+  window.hydrateIcons?.(overlay);
+  close.focus({ preventScroll: true });
+  api.get('/booth/board', { timeoutMs: BOARD_TIMEOUT_MS }).then(
+    (res) => { const fresh = parseBoard(res?.board); if (open && (fresh || !first)) show(fresh); },
+    () => { if (open && !first) show(null); });
+}
+
+/** @returns {HTMLButtonElement} */
+export function leaderboardButton({ host, api, board = null, tag = null, cls = 'secondary wide' }) {
+  const b = el('button', { type: 'button', class: `booth-btn ${cls}`, dataset: { action: 'leaderboard' } },
+    icon('flag'), bi(COPY.open, 'btn-label'));
+  b.addEventListener('click', () => { if (!host.querySelector('[data-board-overlay]')) openBoard({ host, api, board, tag }); });
+  return b;
 }

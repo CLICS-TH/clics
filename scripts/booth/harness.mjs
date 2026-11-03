@@ -131,6 +131,9 @@ function longestNext(tree, bridge = LONG_BRIDGE) {
 const REPLY = (n) => `AI reply ${n}: <b>not markup</b>\nsecond line\nคำตอบนี้ครอบคลุมประเด็นสำคัญแล้ว ลองพิจารณาผลน้ำตาลสะสมร่วมกับประวัติครอบครัว และนัดติดตามอาการภายใน 3 เดือน`;
 const SIG = (n) => `sig-${n}`;
 const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, next: nextFor(TREE, ''), sig: SIG(0) };
+/** What a draw answers: the case id and its teaser, nothing else of the case. */
+const drawOf = (tree) => ({ case_id: tree.case_id, teaser: tree.teaser });
+const DRAW = drawOf(TREE);
 /** The default reply to answer n: reply n, its sig, and (after answers 1 and 2) the Next for the path walked. */
 function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length) } = {}) {
   const n = answers.length;
@@ -141,7 +144,9 @@ const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3:
 /**
  * A fresh stub per kiosk. Default routes:
  *   'GET /booth/status'            { open: true, event_code }
- *   'POST /booth/plays'            START: { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig }
+ *   'POST /booth/draw'             DRAW: { case_id, teaser } of the fixture case
+ *   'POST /booth/plays'            START: { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig };
+ *                                  400 bad_request unless the body names a case_id
  *   'POST /booth/plays/:id/reply'  replyBody(answers): reply n, SIG(n), next for the tier path walked (n < 3)
  * The case is backend/tests/fixtures/booth-case-tree.json.
  *   'GET /booth/board'             { board: { today: [], event: [] } }
@@ -155,7 +160,9 @@ function makeStub({ routes = {} } = {}) {
   const holds = new Map();
   const table = {
     'GET /booth/status': () => ({ status: 200, body: { open: true, event_code: TREE.event_code } }),
-    'POST /booth/plays': () => ({ status: 201, body: START }),
+    'POST /booth/draw': () => ({ status: 200, body: DRAW }),
+    'POST /booth/plays': (call) => (typeof call.body?.case_id === 'string'
+      ? { status: 201, body: START } : { status: 400, body: { error: 'That answer could not be read.', reason: 'bad_request' } }),
     'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: replyBody(call.body?.answers ?? []) }),
     'GET /booth/board': () => ({ status: 200, body: { board: { today: [], event: [] } } }),
     'POST /booth/plays/:id/score': () => ({ status: 200, body: SCORED }),
@@ -263,6 +270,13 @@ async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = m
       await page.waitForFunction(() => document.getAnimations().every((a) => a.effect?.getComputedTiming().iterations === Infinity || a.playState !== 'running'), null, { timeout: WAIT_MS });
     },
     screenNow: () => page.evaluate(() => document.querySelector('#booth [data-screen]')?.dataset.screen ?? null),
+    /** From the Tap-to-try bar to the vignette: tap it, take the dealt case's teaser, tap "Start this case". */
+    async toVignette() {
+      await k.tap('[data-action="start"]');
+      await k.screen('teaser');
+      await k.tap('[data-action="start-case"]');
+      await k.screen('vignette');
+    },
     /** Wait for the shell's own state (#booth[data-shell]). */
     async shell(name, timeout = WAIT_MS) {
       await page.waitForSelector(`#booth[data-shell="${name}"]`, { timeout });
@@ -473,7 +487,7 @@ const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
 const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, REPLY, SIG, SCORED,
-  START, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
+  START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
 
 try {
   await scanSources();
