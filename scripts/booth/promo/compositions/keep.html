@@ -2,7 +2,7 @@
   <style>
     #root { position: absolute; inset: 0; }
     #keep-tile { position: absolute; left: 230px; top: 640px; width: 620px; height: 620px; border-radius: 40px; overflow: hidden; background: #fff; }
-    #keep-tile img { position: absolute; left: -1270px; top: -210px; width: 2160px; height: auto; display: block; }
+    #keep-tile img { position: absolute; left: -1179px; top: -199px; width: 1998px; height: auto; display: block; }
     #keep-frame { position: absolute; left: 190px; top: 600px; width: 700px; height: 700px; }
     #keep-scan { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: var(--accent); box-shadow: 0 0 0 4px rgba(169, 88, 62, 0.25); }
     #keep-fact { position: absolute; left: 108px; right: 108px; top: 1400px; text-align: center; }
@@ -18,7 +18,8 @@
         <p class="en" lang="en"><span class="ln"><span id="keep-e1">Scan to keep your result</span></span></p>
       </div>
     </div>
-    <!-- The result card's own QR, blurred at capture (capture.mjs) so a visitor scanning the loop opens nothing. -->
+    <!-- The result card's QR, redrawn at capture (capture.mjs) to hold the Portal, shown at 1.85x with its full quiet
+         zone (capture x 640-970, y 110-440) and nothing else of the card. -->
     <div id="keep-qr" class="clip" data-start="0" data-duration="2.5" data-track-index="3">
       <div id="keep-tile"><img src="assets/capture/result.png" alt="" /><div id="keep-scan"></div></div>
       <svg id="keep-frame" viewBox="0 0 700 700" fill="none" data-layout-ignore>
@@ -37,7 +38,9 @@
     tl.fromTo("#keep-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.18);
     tl.fromTo("#keep-tile", { scale: 0.3, rotation: 12, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.1);
     tl.fromTo("#keep-frame", { scale: 1.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "expo.out" }, 0.35);
-    tl.fromTo("#keep-scan", { y: 0 }, { y: 608, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.5);
+    // One quick pass, then the code stands clear for a phone to read.
+    tl.fromTo("#keep-scan", { y: 0, opacity: 1 }, { y: 608, duration: 0.5, ease: "sine.inOut" }, 0.45);
+    tl.to("#keep-scan", { opacity: 0, duration: 0.1 }, 0.95);
     tl.fromTo(["#keep-l2", "#keep-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 0.7);
     tl.to(["#keep-l1", "#keep-e1", "#keep-l2", "#keep-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 2.25);
     tl.to("#keep-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 2.25);

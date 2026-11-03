@@ -1,7 +1,8 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sourcesDigest, promoDigest, LOCK, PROMO, SERVED, REPO } from '../promo/lock.mjs';
+import { sourcesDigest, promoDigest, LOCK, PROMO, SERVED, REPO, PORTAL_URL } from '../promo/lock.mjs';
+import { decodeFrames, QR_TIMES } from '../promo/qr-check.mjs';
 import { installStub, SCORE, BOARD, TAG, KASE } from '../promo/stub.mjs';
 
 const PUBLIC = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
@@ -216,6 +217,17 @@ export default [
       }
       h.check(lines > 20 && problems.length === 0, `promo: ${lines} lines fit their boxes${problems.length ? ` (${problems.join('; ')})` : ''}`);
       await ctx.close();
+    },
+  },
+  {
+    name: 'promo: every QR in the reel decodes, off the shipped frames, to exactly the Portal',
+    async run(h) {
+      const k = await h.kiosk();
+      const browser = k.ctx.browser();
+      await k.close();
+      const reads = await decodeFrames(browser, PROMO).catch((e) => [{ t: '-', text: String(e.message) }]);
+      h.check(reads.length === QR_TIMES.length && reads.every((r) => r.text === PORTAL_URL),
+        `promo: jsQR reads ${PORTAL_URL} at ${reads.map((r) => `${r.t} s${r.text === PORTAL_URL ? '' : ` (${r.text})`}`).join(', ')}`);
     },
   },
   {

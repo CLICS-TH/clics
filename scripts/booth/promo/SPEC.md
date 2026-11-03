@@ -15,7 +15,7 @@ AUDIO:   one music bed, assets/music/bgm.m4a: HeyGen music library track 8abf064
 LOOK:    reel energy in the booth's tokens. Full-bleed floods cut on the beat: canvas #faf9f5, ink #141413, accent
          #a9583e. Kinetic type: every line slides up out of its own mask (expo.out 0.4-0.5 s), exits up
          (power3.in 0.22-0.25 s). Thai is Noto Sans Thai 700-800; English Inter 500-700; the wordmark Cormorant.
-         Mostly motion graphic; the booth's real captured result card and its blurred QR are the real screens.
+         Mostly motion graphic; the booth's real captured result card and its QR (redrawn to hold the Portal) are the real screens.
 FLOOR:   the loop shows the video at 0.8958 (1080 x 1720 stage), so nothing is authored under 32 px; the smallest
          are the demo label (Thai 38 px, English 36 px). Every Thai line is one nowrap phrase or a paragraph broken
          by hand at a word boundary, so no word can break across lines; the harness measures each with the real
@@ -37,11 +37,15 @@ SHOTS:
   14.5-18.5 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
           "and what to practise next";
           the demo label throughout.
-  18.5-21 4 QR (ink). The card's own QR (blurred at capture) in scan brackets, a scan line sweeps;
+  18.5-21 4 QR (ink). The card's QR, redrawn at capture to hold https://physician-ui.vercel.app/ (EC level M,
+          4-module quiet zone), at 1.85x in scan brackets; one scan-line pass, then it stands clear;
           "ไม่เก็บข้อมูลส่วนตัว / No personal data kept".
   21-24   CTA (canvas). Logo + wordmark, "แตะเพื่อเริ่ม / Tap to start", a pulsing tap; everything clears to
           the flat line of frame 0.
-BANNED:  any real transcript or real person's data; a scannable QR; a mockup of a screen the booth does not draw;
+QR:      every QR in the reel opens the Portal, https://physician-ui.vercel.app/ (lock.mjs PORTAL_URL), never a
+         result page or the capture server. qr-check.mjs decodes it with jsQR off the rendered frames; the harness
+         runs it on the 1080 file, and it is run by hand on renders/promo-4k.mp4.
+BANNED:  any real transcript or real person's data; a QR to anywhere but the Portal; a mockup of a screen the booth does not draw;
          text moving while it is read; a loop that cuts from a busy frame to a different busy frame.
 RENDER:  bash scripts/booth/promo/render.sh: capture, HyperFrames render, H.264 Main 4:2:0 + AAC moov-first
          encode, then promo.lock.json. scripts/booth/scenarios/promo.mjs checks the file, the lock, the headline,

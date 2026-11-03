@@ -12,7 +12,7 @@ import { join, extname, normalize, sep, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { installStub } from './stub.mjs';
-import { SERVED, REPO } from './lock.mjs';
+import { SERVED, REPO, PORTAL_URL } from './lock.mjs';
 
 const ROOT = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
 const OUT = fileURLToPath(new URL('./assets/capture/', import.meta.url));
@@ -70,8 +70,19 @@ try {
   await screen('scoring');
   await shot('scoring');
   await screen('scored');
-  // The result QR would open this capture server's 127.0.0.1 address; blurred, a visitor scanning the loop gets nothing.
-  await page.addStyleTag({ content: '[data-keep-qr] svg { filter: blur(10px); }' });
+  // The card's own QR would open this capture server's 127.0.0.1 address. Redrawn by the page's own encoder, the
+  // way booth-play.js draws it (4-module quiet zone), but at EC level M and holding the Portal, so a visitor who
+  // scans the reel lands on PORTAL_URL (qr-check.mjs proves it decodes off the rendered frames).
+  await page.locator('[data-keep-qr] svg').evaluate((svg, url) => {
+    const qr = window.qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    const n = qr.getModuleCount();
+    let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
+    svg.setAttribute('viewBox', `0 0 ${n + 8} ${n + 8}`);
+    svg.innerHTML = `<rect width="${n + 8}" height="${n + 8}" fill="#fff"/><path fill="#000" d="${d}"/>`;
+  }, PORTAL_URL);
   await shot('result');
   await page.evaluate(() => document.querySelector('[data-board]')?.scrollIntoView({ block: 'center' }));
   await shot('result-board');

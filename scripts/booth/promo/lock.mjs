@@ -16,6 +16,8 @@ const PUBLIC = fileURLToPath(new URL('../../../physician-ui/public', import.meta
 export const PROMO = join(PUBLIC, 'booth-loop', 'promo.mp4');
 export const LOCK = join(HERE, 'promo.lock.json');
 export const SERVED = join(HERE, 'capture-files.json');
+/** Where the reel's QR lands (the owner's call, PR #351): the Portal, not a result page. */
+export const PORTAL_URL = 'https://physician-ui.vercel.app/';
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 
@@ -26,7 +28,7 @@ const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 export async function sourcesDigest({ read = readFile } = {}) {
   const scenes = (await readdir(join(HERE, 'compositions'))).filter((f) => f.endsWith('.html')).sort();
   const files = [
-    ...['index.html', 'hyperframes.json', 'capture.mjs', 'stub.mjs', 'render.sh', 'capture-files.json'].map((f) => join(HERE, f)),
+    ...['index.html', 'hyperframes.json', 'capture.mjs', 'stub.mjs', 'render.sh', 'capture-files.json', 'lock.mjs'].map((f) => join(HERE, f)),
     ...JSON.parse(await read(SERVED, 'utf8').catch(() => '[]')).map((f) => join(REPO, f)),
     ...scenes.map((f) => join(HERE, 'compositions', f)),
     join(HERE, 'assets', 'music', 'bgm.m4a'),
