@@ -47,7 +47,7 @@ tapped, but opens-at, closes-at and the per-play ceiling are saved only by the c
 time typed and not saved changes nothing, and the backend refuses to switch on a booth with no saved window.
 
 - [ ] Set opens-at to now (or earlier) and closes-at to tonight, press **Save**, then tap the switch **on**. Within
-      30 s the kiosk bar reads แตะเพื่อลอง CLICS / Tap to try CLICS.
+      30 s the kiosk bar reads แตะเพื่อเริ่ม / Tap to start.
 - [ ] Tap the switch **off**. Within 30 s the bar reads ขณะนี้บูทปิดอยู่ / The booth is closed right now, and a tap
       does not start a play.
 - [ ] With the switch on, set opens-at in the future and press **Save**. The bar reads closed again. Set opens-at
@@ -77,7 +77,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 ## 4. Hotspot failover
 
 - [ ] With a play on screen, turn the venue Wi-Fi off on the mini-PC. It joins the hotspot by itself, or after one
-      tap on the Wi-Fi icon. The bar returns to Tap to try within 30 s of the hotspot joining.
+      tap on the Wi-Fi icon. The bar returns to Tap to start within 30 s of the hotspot joining.
 - [ ] Play once on the hotspot to the result card.
 
 ## 5. Network unplugged
@@ -86,7 +86,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
       ขณะนี้เชื่อมต่อ CLICS ไม่ได้ / CLICS is offline right now. A tap starts nothing.
 - [ ] Start a play, then cut the network mid-step. The play ends on a plain "connection lost" message and returns
       to the loop by itself.
-- [ ] Reconnect. The bar returns to Tap to try within 30 s.
+- [ ] Reconnect. The bar returns to Tap to start within 30 s.
 - [ ] Reboot with no network. The page still loads from the booth's offline cache and shows the offline bar.
 
 ## 6. Clean up after rehearsal

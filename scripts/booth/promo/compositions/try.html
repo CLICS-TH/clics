@@ -1,0 +1,49 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #try-head { position: absolute; left: 108px; right: 108px; top: 300px; text-align: center; color: #fff; }
+    #try-head .th { font-size: 136px; line-height: 1.4; font-weight: 800; }
+    #try-head .en { margin-top: 24px; font-size: 56px; line-height: 1.3; font-weight: 600; }
+    #try-clock { position: absolute; left: 290px; top: 860px; width: 500px; height: 500px; }
+    #try-five { position: absolute; left: 290px; top: 860px; width: 500px; height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
+    #try-five .n { font-size: 260px; font-weight: 800; line-height: 1; }
+    #try-five .u { margin-top: 4px; font-size: 56px; font-weight: 700; line-height: 1.4; }
+    #try-five .ue { font-size: 44px; font-weight: 600; line-height: 1.2; }
+    #try-note { position: absolute; left: 108px; right: 108px; top: 1450px; text-align: center; color: #fff; }
+    #try-note .th { font-size: 60px; line-height: 1.45; font-weight: 700; }
+    #try-note .en { font-size: 44px; line-height: 1.3; font-weight: 500; }
+  </style>
+  <div id="root" data-composition-id="try" data-width="1080" data-height="1920">
+    <div class="ground accent"></div>
+    <div id="try-head" class="clip" data-start="0" data-duration="2.5" data-track-index="2">
+      <p class="th" lang="th"><span class="ln"><span id="try-l1">ลองเล่นได้เลย</span></span></p>
+      <p class="en" lang="en"><span class="ln"><span id="try-e1">Try it right here</span></span></p>
+    </div>
+    <svg id="try-clock" class="clip" data-start="0" data-duration="2.5" data-track-index="3" viewBox="0 0 500 500" fill="none" data-layout-ignore>
+      <circle cx="250" cy="250" r="226" stroke="rgba(255,255,255,0.28)" stroke-width="16" />
+      <circle id="try-ring" opacity="0" cx="250" cy="250" r="226" pathLength="100" stroke="#fff" stroke-width="16" stroke-linecap="round" transform="rotate(-90 250 250)" />
+    </svg>
+    <div id="try-five" class="clip" data-start="0" data-duration="2.5" data-track-index="4">
+      <span class="n" id="try-n">5</span>
+      <span class="u" lang="th">นาที</span>
+      <span class="ue" lang="en">minutes</span>
+    </div>
+    <div id="try-note" class="clip" data-start="0" data-duration="2.5" data-track-index="5">
+      <p class="th" lang="th"><span class="ln"><span id="try-l2">ไม่ต้องลงชื่อเข้าใช้</span></span></p>
+      <p class="en" lang="en"><span class="ln"><span id="try-e2">No sign-in needed</span></span></p>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#try-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out" }, 0.05);
+    tl.fromTo("#try-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.2);
+    tl.fromTo("#try-five", { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "expo.out" }, 0.3);
+    tl.set("#try-ring", { opacity: 1 }, 0.35);
+    tl.fromTo("#try-ring", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 1.6, ease: "power2.inOut" }, 0.35);
+    tl.fromTo(["#try-l2", "#try-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 0.7);
+    tl.to(["#try-l1", "#try-e1", "#try-l2", "#try-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 2.2);
+    tl.to("#try-five", { scale: 0.4, opacity: 0, duration: 0.22, ease: "power3.in" }, 2.2);
+    tl.to("#try-clock", { scale: 0.4, opacity: 0, duration: 0.22, ease: "power3.in", transformOrigin: "50% 50%" }, 2.2);
+    window.__timelines["try"] = tl;
+  </script>
+</template>

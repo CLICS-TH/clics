@@ -1,50 +1,54 @@
-# CLICS booth promo (#216)
+# CLICS booth reel (#216, redesigned for the NFCME-2026 attract loop)
 
-GOAL:    a passer-by at the NFCME-2026 booth understands, with no sound, what CLICS does and that they can
-         try it on this screen in about 5 minutes, then taps.
-OUTPUT:  HyperFrames, 1080 x 1920 portrait, 30 fps, silent (the loop plays muted in a noisy hall).
-TIME:    57 s x 30 = 1710 frames. No music.
-LOOK:    the Portal's own booth look, not a new one. Ground #faf9f5 (booth --canvas), ink #141413, body #3d3d3a,
-         one accent #a9583e (booth --accent) on the section flood and the tap mark only. Display face Cormorant
-         Garamond 500 (the CLICS wordmark only); every caption Noto Sans Thai / Inter.
-         Captions: Thai 64 px / 1.45 weight 600 ink, English 40 px / 1.3 weight 500 body beneath it.
-         The booth's floor is 28 px at 1080 wide, measured as displayed: the loop shows the video at 0.8958
-         (1080 x 1720 stage, under the 200 px bar), so no font in the promo is authored under 32 px (32 x
-         0.8958 = 28.7). The smallest are the demo label's lines, Thai 34 px and English 32 px.
-         Contrast: ink on ground 18:1, body on ground 10:1, white on accent 5.0:1.
-         Medium: real product screens in one card, 960 x 1240 at x 60 y 620, radius 36, 2 px #e6dfd8 edge,
-         shadow 0 24 60 rgba(20,20,19,.18). Captions live in the band above it (y 150-580).
-OBJECTS: the Landing page's fixture-built screenshots (PLE chat, PIS-7 radar, domain scores) and the booth
-         flow captured in the fixture world of scripts/booth/promo/stub.mjs: a stubbed booth API with the real
-         NFCME-2026 case (NFCME-2026/leptospirosis.json) and an empty attract loop, so no staff loop file can reach a frame. The result card and
-         both boards show Booth #042 with one score. Nothing invented: every screen is the product's own render.
-CASE:    the video shows the case's vignette and step 1 (question, options, the visitor's pick). The owner kept
-         the NFCME-2026 case for the promo (2026-10-29): if a clinical review changes the vignette or step 1,
-         re-run render.sh. promo.lock.json digests those parts (step 1 as the stub asks it), so the booth harness
-         fails until the promo is re-rendered; changes to steps 2-3 leave it alone. The lock also digests every
-         file the capture served the booth page (capture-files.json), so a kiosk copy or CSS edit needs a
-         re-render too.
-LOOP:    the manifest item carries "board": false, so the loop board hides while the promo plays and nothing
-         covers its demo labels or end card. A { "type": "board", "seconds": 15 } item follows it, so every loop
-         cycle shows the board alone over the stage's wordmark. The board shows over every other loop item.
-MOTION:  arrive expo.out 0.6-0.7 s; camera pans power2.inOut 1.2-1.6 s; exits power3.in 0.3-0.35 s;
-         captions blur 8 px -> 0 in 0.18 s, Thai first then English 0.1 s later, dead still while read,
-         blur out 0.18 s.
+GOAL:    the kiosk's screen saver. A passer-by sees, with no sound, what they will do at this screen (draw a case,
+         answer 3 steps, see a result card, keep the QR) and taps. Any tap on the loop starts a play; the tap
+         prompt is the kiosk's own bar, not only the video's.
+OUTPUT:  HyperFrames, 1080 x 1920 portrait, 30 fps; also renders at 2160 x 3840 (PROMO_4K=1 render.sh). The kiosk
+         ships the 1080 file.
+TIME:    24 s x 30 = 720 frames. Loops: the last frame is the first frame (the flat ECG line alone on the canvas),
+         so the cut back to frame 0 has no seam. The manifest lists the reel twice; the loop rewinds the same
+         <video> for the second play.
+AUDIO:   one music bed, assets/music/bgm.m4a: HeyGen music library track 8abf0643b6b9430080e05ba84685f1dd ("clean
+         modern upbeat electronic pluck, 120 BPM"), fetched 2026-11-03 through `hyperframes media-use resolve` (provider
+         heygen.audio.sounds) on the owner's HeyGen account (OAuth). Licence: HeyGen's terms for its music library;
+         they were not reviewed for this PR, so read them before the file is used anywhere but the kiosk. First 24 s, 0.15 s fade in, 0.8 s fade out. The kiosk plays it muted (booth-loop.js).
+LOOK:    reel energy in the booth's tokens. Full-bleed floods cut on the beat: canvas #faf9f5, ink #141413, accent
+         #a9583e. Kinetic type: every line slides up out of its own mask (expo.out 0.4-0.5 s), exits up
+         (power3.in 0.22-0.25 s). Thai is Noto Sans Thai 700-800; English Inter 500-700; the wordmark Cormorant.
+         Mostly motion graphic; the booth's real captured result card and its QR (redrawn to hold the Portal) are the real screens.
+FLOOR:   the loop shows the video at 0.8958 (1080 x 1720 stage), so nothing is authored under 32 px; the smallest
+         are the demo label (Thai 38 px, English 36 px). Every Thai line is one nowrap phrase or a paragraph broken
+         by hand at a word boundary, so no word can break across lines; the harness measures each with the real
+         fonts. Contrast: ink on canvas 17.5:1, white on accent 5.1:1, accent on canvas 4.8:1 (display sizes only),
+         soft cream on ink 12.5:1.
+COPY:    only what is true now. The reel's demo label, "คะแนนสาธิต: ไม่ใช่หน่วยกิต CME / Demo score: not CME credit" (the
+         owner's wording for the reel; the kiosk keeps its own label), sits on every frame where a score can be seen
+         (result.html). No
+         "validated" and no "On-premise" anywhere in the reel.
+CASE:    leptospirosis, the only admitted case. The reel shows only its teaser (draw.html, by hand; lock.mjs digests
+         it), never its options or its diagnosis. The answer scene is a made-up headache example, labelled so.
 SHOTS:
-  0-5     hook. CLICS wordmark and the Landing hero line already on frame 0. ECG pulse draws under the mark.
-  5-12    chat. Card rises with the PLE conversation; pan from the question to the AI answer. "Talk a made-up case through".
-  12-19   score. Whip up into the PIS-7 radar (sample 75/100) with the demo label on the card.
-  19-26   audit. Blur swap to the domain scores; the pilot will compare AI with blind expert auditors.
-  26-38   booth A. Accent flood: "Try it at this booth, about 5 minutes". Ground floods back; card rises with
-          the vignette, iris to step 1, a fingertip presses option B, iris from the tap into the AI reply.
-  38-51   booth B. AI reply, blur swap to scoring, blur swap to the result card (demo score, tag, board).
-  51-57   end. Card carries away; mark + wordmark; "Tap the screen to try CLICS"; no sign-in, no personal
-          data; pilot not started, results are not CME credit. Holds 3 s.
-COPY:    only what is true now. No "On-premise", no "validated" outside the booth's own demo label, which
-         sits on every shot that shows a score (12-26, 47-51).
-BANNED:  dark void, glow, gradients, glass cards; everything fading up; text moving while read; corner logos;
-         click rings; a mockup of any screen; any real transcript or real person's data.
-RENDER:  bash scripts/booth/promo/render.sh: capture, HyperFrames render, H.264 Main 4:2:0 moov-first encode,
-         then promo.lock.json. scripts/booth/scenarios/promo.mjs checks the file, the lock and the layout.
-QA:      frames 0, 8, 15, 22, 27, 31, 36, 38.5, 41, 45, 49, 55 - captions inside 80% title-safe,
-         demo label on screen wherever a score is.
+  0-4     hook. Frame 0: the flat ECG line. The accent beat fires, then the owner's headline slams in, line by
+          line: "การเรียนรู้ที่แท้จริง / วัดจากกระบวนการคิด / ไม่ใช่เวลา", English under it.
+  4-6.5   try (accent flood). "ลองเล่นได้เลย / Try it right here"; a ring draws round "5 นาที / minutes";
+          "ไม่ต้องลงชื่อเข้าใช้ / No sign-in needed".
+  6.5-10  1 draw (ink). Three card backs shuffle, the top one flips to the case teaser.
+  10-14.5 2 "ฝึกวินิจฉัยผ่าน AI / Practise diagnosis with AI" (canvas). A made-up example step ("ตัวอย่างสมมติ / Made-up example", headache options) rises
+          tilted; a fingertip picks B; three step pills fill 1-2-3.
+          "แตะตัวเลือก หรือพิมพ์เอง / Tap a choice, or type your own".
+  14.5-18.5 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
+          "and what to practise next";
+          the demo label throughout.
+  18.5-21 4 QR (ink). The card's QR, redrawn at capture to hold https://physician-ui.vercel.app/ (EC level M,
+          4-module quiet zone), at 1.85x in scan brackets; one scan-line pass, then it stands clear;
+          "ไม่เก็บข้อมูลส่วนตัว / No personal data kept".
+  21-24   CTA (canvas). Logo + wordmark, "แตะเพื่อเริ่ม / Tap to start", a pulsing tap; everything clears to
+          the flat line of frame 0.
+QR:      every QR in the reel opens the Portal, https://physician-ui.vercel.app/ (lock.mjs PORTAL_URL), never a
+         result page or the capture server. qr-check.mjs decodes it with jsQR off the rendered frames; the harness
+         runs it on the 1080 file, and it is run by hand on renders/promo-4k.mp4.
+BANNED:  any real transcript or real person's data; a QR to anywhere but the Portal; a mockup of a screen the booth does not draw;
+         text moving while it is read; a loop that cuts from a busy frame to a different busy frame.
+RENDER:  bash scripts/booth/promo/render.sh: capture, HyperFrames render, H.264 Main 4:2:0 + AAC moov-first
+         encode, then promo.lock.json. scripts/booth/scenarios/promo.mjs checks the file, the lock, the headline,
+         the line fit, the seam and the layout on the loop.

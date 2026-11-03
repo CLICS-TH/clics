@@ -1,30 +1,37 @@
 <template>
   <style>
     #root { position: absolute; inset: 0; }
-    #hook-mark { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-family: var(--font-serif); font-size: 260px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
-    #hook-ecg { position: absolute; left: 160px; top: 640px; width: 760px; height: 138px; }
-    #hook-title { position: absolute; left: 108px; right: 108px; top: 900px; text-align: center; }
-    #hook-title .th { font-size: 96px; line-height: 1.4; font-weight: 700; color: var(--ink); }
-    #hook-title .en { margin-top: 36px; font-size: 48px; line-height: 1.3; font-weight: 500; color: var(--body); }
+    #hook-ecg { position: absolute; left: 108px; top: 1380px; width: 864px; height: 120px; }
+    #hook-title { position: absolute; left: 108px; right: 108px; top: 380px; }
+    #hook-title .th { font-size: 90px; line-height: 1.42; font-weight: 800; color: var(--ink); }
+    #hook-title .th.hi { color: var(--accent); }
+    #hook-title .en { margin-top: 56px; font-size: 52px; line-height: 1.3; font-weight: 600; color: var(--body); }
   </style>
   <div id="root" data-composition-id="hook" data-width="1080" data-height="1920">
     <div class="ground"></div>
-    <div id="hook-mark" class="clip" data-start="0" data-duration="5" data-track-index="2"><span id="hook-mark-text">CLICS</span></div>
-    <svg id="hook-ecg" class="clip" data-start="0" data-duration="5" data-track-index="3" viewBox="0 0 220 40" fill="none">
-      <path id="hook-ecg-line" pathLength="100" stroke="#141413" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 28 H58 C62 28 63 23.5 66 23.5 C69 23.5 70 28 74 28 H84 L89 34 L96 6 L102 33 L106 28 H118 C122 28 124 20.5 128 20.5 C132 20.5 134 28 138 28 H218" />
-      <path id="hook-ecg-beat" pathLength="100" stroke="#a9583e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M84 28 L89 34 L96 6 L102 33 L106 28" />
+    <!-- Frame 0 is this flat line alone, the same line cta.html ends on, so the loop cuts back here without a seam. -->
+    <svg id="hook-ecg" class="clip" data-start="0" data-duration="4" data-track-index="2" viewBox="0 0 864 120" fill="none" data-layout-ignore>
+      <path id="hook-ecg-line" stroke="#141413" stroke-width="5" stroke-linecap="round" d="M0 60 H864" />
+      <path id="hook-ecg-beat" opacity="0" pathLength="100" stroke="#a9583e" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="M300 60 H352 L374 82 L408 8 L444 112 L470 60 H560" />
     </svg>
-    <div id="hook-title" data-hold class="clip" data-start="0" data-duration="5" data-track-index="4">
-      <p class="th" lang="th">การเรียนรู้ที่แท้จริง<br />วัดจากกระบวนการคิด<br />ไม่ใช่เวลา</p>
-      <p class="en" lang="en">Real learning is measured<br />by how you think, not by time</p>
+    <div id="hook-title" class="clip" data-start="0" data-duration="4" data-track-index="3">
+      <p class="th" lang="th"><span class="ln"><span id="hook-l1">การเรียนรู้ที่แท้จริง</span></span></p>
+      <p class="th hi" lang="th"><span class="ln"><span id="hook-l2">วัดจากกระบวนการคิด</span></span></p>
+      <p class="th" lang="th"><span class="ln"><span id="hook-l3">ไม่ใช่เวลา</span></span></p>
+      <p class="en" lang="en"><span class="ln"><span id="hook-e1">Real learning is measured</span></span><span class="ln"><span id="hook-e2">by how you think, not by time</span></span></p>
     </div>
   </div>
   <script>
     const tl = gsap.timeline({ paused: true });
-    tl.fromTo("#hook-ecg-line", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 1.2, ease: "power2.inOut" }, 0);
-    tl.fromTo("#hook-ecg-beat", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.35, ease: "power3.out" }, 0.55);
-    tl.fromTo("#hook-title .en", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0.5);
-    tl.to(["#hook-mark-text", "#hook-ecg-line", "#hook-ecg-beat", "#hook-title .th", "#hook-title .en"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in", stagger: 0.04 }, 4.6);
+    tl.set("#hook-ecg-beat", { opacity: 1 }, 0.1);
+    tl.fromTo("#hook-ecg-beat", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.4, ease: "power3.out" }, 0.1);
+    tl.fromTo("#hook-ecg", { scaleY: 1 }, { scaleY: 1.25, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "50% 50%" }, 0.25);
+    ["#hook-l1", "#hook-l2", "#hook-l3"].forEach((sel, i) => {
+      tl.fromTo(sel, { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 0.3 + i * 0.3);
+    });
+    tl.fromTo("#hook-l2", { scale: 1 }, { scale: 1.05, duration: 0.15, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "0% 50%" }, 1.5);
+    tl.fromTo(["#hook-e1", "#hook-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out", stagger: 0.08 }, 1.4);
+    tl.to(["#hook-l1", "#hook-l2", "#hook-l3", "#hook-e1", "#hook-e2"], { yPercent: -115, duration: 0.25, ease: "power3.in", stagger: 0.03 }, 3.62);
     window.__timelines["hook"] = tl;
   </script>
 </template>

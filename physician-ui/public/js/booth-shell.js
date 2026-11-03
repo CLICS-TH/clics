@@ -15,7 +15,7 @@ const GHOST_TAP_MS = 350;
 /** What the bar under the loop says for each status, and #booth[data-shell]. Only 'open' can start a play. */
 const BAR = {
   checking: { shell: 'checking', copy: COPY.checking, tap: false },
-  open: { shell: 'start', copy: COPY.tapToTry, tap: true },
+  open: { shell: 'start', copy: COPY.tapToStart, tap: true },
   closed: { shell: 'closed', copy: COPY.closed, tap: false },
   offline: { shell: 'offline', copy: COPY.offline, tap: false },
 };
@@ -109,7 +109,9 @@ function showLoop() {
     if (next === status || !root.contains(bar)) return;
     status = next;
     const view = BAR[next];
-    const line = el('div', { class: 'loop-bar', ...(view.tap ? {} : { role: 'status' }) }, bi(view.copy, 'bar-label'));
+    // Attract mode: the open bar carries a pulsing tap cue, so the prompt is the kiosk's own and not only the video's.
+    const line = el('div', { class: 'loop-bar', ...(view.tap ? {} : { role: 'status' }) },
+      ...(view.tap ? [el('span', { class: 'tap-cue', 'aria-hidden': 'true' })] : []), bi(view.copy, 'bar-label'));
     let node = line;
     if (view.tap) {
       node = el('button', { type: 'button', class: 'shell-tap', dataset: { action: 'start' } }, line);
