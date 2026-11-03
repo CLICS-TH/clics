@@ -21,8 +21,10 @@ FLOOR:   the loop shows the video at 0.8958 (1080 x 1720 stage), so nothing is a
          by hand at a word boundary, so no word can break across lines; the harness measures each with the real
          fonts. Contrast: ink on canvas 17.5:1, white on accent 5.1:1, accent on canvas 4.8:1 (display sizes only),
          soft cream on ink 12.5:1.
-COPY:    only what is true now. The demo label sits on every frame where a score can be seen (result.html). No
-         "validated" outside it, no "On-premise".
+COPY:    only what is true now. The reel's demo label, "คะแนนสาธิต: ไม่ใช่หน่วยกิต CME / Demo score: not CME credit" (the
+         owner's wording for the reel; the kiosk keeps its own label), sits on every frame where a score can be seen
+         (result.html). No
+         "validated" and no "On-premise" anywhere in the reel.
 CASE:    leptospirosis, the only admitted case. The reel shows only its teaser (draw.html, by hand; lock.mjs digests
          it), never its options or its diagnosis. The answer scene is a made-up headache example, labelled so.
 SHOTS:
