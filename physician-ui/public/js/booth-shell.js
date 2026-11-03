@@ -93,7 +93,9 @@ function showLoop() {
   stage.append(boardSlot);
   const stopBoard = board.mountLoopBoard?.(boardSlot, { api });
   let bar = el('div');
-  root.replaceChildren(el('div', { class: 'shell-loop' }, stage, bar));
+  const boardButton = board.leaderboardButton({ host: root, api, cls: 'secondary loop-board-button' });
+  root.replaceChildren(el('div', { class: 'shell-loop' }, stage, boardButton, bar));
+  window.hydrateIcons?.(boardButton);
 
   let status = null;
   let poll = 0;

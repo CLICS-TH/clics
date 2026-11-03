@@ -8,6 +8,7 @@
   "physician-ui/public/fonts/inter-latin-wght-normal.woff2",
   "physician-ui/public/fonts/noto-sans-thai-thai-wght-normal.woff2",
   "physician-ui/public/js/booth-api.js",
+  "physician-ui/public/js/booth-bands.js",
   "physician-ui/public/js/booth-board.js",
   "physician-ui/public/js/booth-copy.js",
   "physician-ui/public/js/booth-dom.js",
