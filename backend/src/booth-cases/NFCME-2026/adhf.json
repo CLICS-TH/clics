@@ -1,6 +1,6 @@
 {
   "case_id": "adhf",
-  "version": "2",
+  "version": "3",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี มาโรงพยาบาลชุมชน หอบเหนื่อยและนอนราบไม่ได้มา 5 วัน",
@@ -624,7 +624,7 @@
         "options": [
           {
             "id": "o2_iv",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "ออกซิเจนและฟูโรซีไมด์ IV",
               "en": "Oxygen and IV furosemide"
@@ -684,7 +684,7 @@
           }
         ],
         "default_trio": [
-          "o2_iv",
+          "nitrate",
           "refer",
           "dual_abx"
         ]
@@ -716,7 +716,7 @@
         "options": [
           {
             "id": "o2_iv",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "ออกซิเจนและฟูโรซีไมด์ IV",
               "en": "Oxygen and IV furosemide"
@@ -776,7 +776,7 @@
           }
         ],
         "default_trio": [
-          "o2_iv",
+          "nitrate",
           "refer",
           "dual_abx"
         ]
@@ -801,7 +801,7 @@
         "options": [
           {
             "id": "o2_iv",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "ออกซิเจนและฟูโรซีไมด์ IV",
               "en": "Oxygen and IV furosemide"
@@ -861,7 +861,7 @@
           }
         ],
         "default_trio": [
-          "o2_iv",
+          "nitrate",
           "refer",
           "dual_abx"
         ]
@@ -905,7 +905,7 @@
           },
           {
             "id": "o2_iv",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "ออกซิเจนและฟูโรซีไมด์ IV",
               "en": "Oxygen and IV furosemide"
@@ -990,7 +990,7 @@
           },
           {
             "id": "o2_iv",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "ออกซิเจนและฟูโรซีไมด์ IV",
               "en": "Oxygen and IV furosemide"
@@ -1082,7 +1082,7 @@
           },
           {
             "id": "o2_iv",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "ออกซิเจนและฟูโรซีไมด์ IV",
               "en": "Oxygen and IV furosemide"
@@ -1140,8 +1140,8 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-02",
-      "findings": "Fresh reviewer, final text (version 2), checked all 13 banks against ESC 2021 HF and its 2023 update, AHA/ACC/HFSA 2022 and WHO oxygen guidance; no option was unsafe, and every step-3 option gives oxygen or CPAP with IV furosemide. Six should-fix issues were fixed: kidney results revealed on paths where only NT-proBNP may have been ordered, a referral line implying CPAP is unavailable, overclaims in the chest X-ray, sputum and dual-antibiotic lines, and a nebuliser label that named no drug. Two notes were applied: the CPAP line now says the criteria are met for considering it, and the empirical antibiotic is weaker on every path."
+      "date": "2026-11-03",
+      "findings": "Fresh reviewer, version 3: checked the vignette, teaser and all 13 banks against ESC 2021 HF and its 2023 update, AHA/ACC/HFSA 2022 and WHO oxygen guidance. The revision moved oxygen plus IV furosemide to reasonable in RB, RR, RW, WB, WR and WW, where it had ranked above the same treatment plus a transfer; it is correct, and every default trio still has one option per tier. No option is unsafe: every step-3 choice gives oxygen or CPAP with IV furosemide. No fact, dose or threshold is wrong, Thai and English agree, and results shown in questions match their paths. No must-fix finding."
     }
   }
 }
