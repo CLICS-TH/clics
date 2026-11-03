@@ -6,6 +6,8 @@
     touch floors are the Portal's 44px, not the kiosk's 80px;
   - js/ui.js for AI_LABEL, the one blinding label every AI bubble carries. At load it only defines globals: no
     storage, no DOM, no other script;
+  - js/vendor/qrcode-generator-1.4.4.js (MIT, Kazuhiko Arase, unmodified from npm) draws the result QR (#251) on the
+    kiosk, so the result never leaves it. At load it only defines the global qrcode;
   - the CSP meta makes "no third-party scripts" a browser rule: only same-origin script files run (no inline
     script, no CDN).
 -->
@@ -24,6 +26,7 @@
   <script src="/js/config.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/js/ui.js"></script>
+  <script src="/js/vendor/qrcode-generator-1.4.4.js"></script>
   <script type="module" src="/js/booth-shell.js"></script>
 </head>
 <body class="booth">
