@@ -26,9 +26,11 @@ const TYPE_RATE = 0.25;
 const MAX_FALLBACKS = 1;
 const ANSWER_MAX_CHARS = 500;
 
-// A failed call may still have been billed, so it counts at its worst case. chat and evaluate are the booth's own
-// per-call reservations (services/booth.js); a persona turn is at most about 4k tokens in and 300 out.
-const WORST_USD = Object.freeze({ chat: 0.05, evaluate: 0.30, persona: 0.02 });
+// The most tokens one call is held to use, priced at the configured rates (lib/pricing.js reads CLAUDE_*_PER_M), so
+// the cap's reservations follow the rates. A failed call may still have been billed, so it counts at its worst case.
+// evaluate covers rimpl's three-pass consistency layer; a persona turn is about 4k tokens in and 300 out at most.
+const WORST_TOKENS = Object.freeze({ chat: [10_000, 1_300], evaluate: [65_000, 9_000], persona: [4_000, 300] });
+const worstCall = (kind) => costUsd(...WORST_TOKENS[kind], 'anthropic');
 // Token counts a typical call uses, for the estimate printed before a run.
 const TYPICAL_TOKENS = Object.freeze({ chat: [3500, 350], evaluate: [22000, 2500], persona: [1500, 120] });
 // Longer than the booth's 30 s and 60 s: a slow call here costs a data point, not a visitor's wait.
@@ -112,7 +114,7 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
       calls.push({ kind, ms: Date.now() - t0, usd: costUsd(res?.input_tokens, res?.output_tokens, res?.provider), provider: res?.provider ?? null });
       return res;
     } catch (err) {
-      calls.push({ kind, ms: Date.now() - t0, usd: WORST_USD[kind], error: String(err.status || err.name || err.message) });
+      calls.push({ kind, ms: Date.now() - t0, usd: worstCall(kind), error: String(err.status || err.name || err.message) });
       return null;
     }
   };
@@ -151,7 +153,7 @@ function jobsFor(cases, { personaRuns = 3 } = {}) {
   ]);
 }
 
-const worstPlay = (job) => STEPS * WORST_USD.chat + WORST_USD.evaluate + (job.persona ? STEPS * WORST_USD.persona : 0);
+const worstPlay = (job) => STEPS * worstCall('chat') + worstCall('evaluate') + (job.persona ? STEPS * worstCall('persona') : 0);
 const typicalCall = (kind) => costUsd(...TYPICAL_TOKENS[kind], 'anthropic');
 const typicalPlay = (job) => STEPS * typicalCall('chat') + typicalCall('evaluate') + (job.persona ? STEPS * typicalCall('persona') : 0);
 const sum = (jobs, f) => Math.round(jobs.reduce((acc, j) => acc + f(j), 0) * 100) / 100;
@@ -190,7 +192,9 @@ async function runPlays(jobs, { capUsd, concurrency = 3, play, onDone = () => {}
     }
   };
   await Promise.all(Array.from({ length: concurrency }, worker));
-  return { results, spent_usd: Math.round(committed * 1e6) / 1e6, stopped };
+  const spent = Math.round(committed * 1e6) / 1e6;
+  // A call that used more than its worst case can still take the spend past the cap after the fact.
+  return { results, spent_usd: spent, stopped, over_cap: spent > capUsd };
 }
 
 /** rimpl's two booth calls, and nothing else: only /chat and /evaluate, under a base URL with no path of its own. */
@@ -229,6 +233,6 @@ function personaCall({ apiKey, model = ANTHROPIC_MODEL, fetchImpl = fetch }) {
 }
 
 module.exports = {
-  PATHS, PERSONAS, GROUPS, ANTHROPIC_MODEL, tapping, personaRequest, personaAnswer, personaChooser, playOnce,
+  PATHS, PERSONAS, GROUPS, ANTHROPIC_MODEL, worstCall, tapping, personaRequest, personaAnswer, personaChooser, playOnce,
   jobsFor, estimate, runPlays, rimplCalls, personaCall,
 };

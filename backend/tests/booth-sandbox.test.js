@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { tapping, personaChooser, playOnce, jobsFor, runPlays, rimplCalls, PATHS } = require('../../scripts/booth/sandbox-play');
+const { tapping, personaChooser, playOnce, jobsFor, runPlays, rimplCalls, worstCall, PATHS } = require('../../scripts/booth/sandbox-play');
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'booth', 'sandbox.mjs');
@@ -50,7 +50,7 @@ describe('playOnce', () => {
     expect(play.tier_path).toBe('BBB');
     expect(play.composite).toBeNull();
     expect(play.calls.map((c) => c.error ?? 'ok')).toEqual(['TimeoutError', 'ok', 'ok', '502']);
-    expect(play.usd).toBeCloseTo(0.05 + 2 * 0.012 + 0.30, 6);
+    expect(play.usd).toBeCloseTo(worstCall('chat') + 2 * 0.012 + worstCall('evaluate'), 6);
   });
 
   test('every evaluate call has shadow off, so rimpl writes no shadow row', async () => {
@@ -89,7 +89,7 @@ describe('playOnce', () => {
     expect(play).toMatchObject({ composite: null, error: 'persona call failed' });
     expect(ai.chat).not.toHaveBeenCalled();
     expect(ai.evaluate).not.toHaveBeenCalled();
-    expect(play.calls).toEqual([expect.objectContaining({ kind: 'persona', error: '401', usd: 0.02 })]);
+    expect(play.calls).toEqual([expect.objectContaining({ kind: 'persona', error: '401', usd: worstCall('persona') })]);
   });
 
   test('a second unusable persona answer abandons the play rather than score random taps', async () => {
@@ -114,7 +114,12 @@ describe('runPlays', () => {
     const run = await runPlays([...jobs, ...jobs], { capUsd: 1, concurrency: 1, play });
     expect(play).toHaveBeenCalledTimes(3);
     expect(run.results.map((r) => r.skipped ?? 'played')).toEqual(['played', 'played', 'played', 'cap', 'cap', 'cap']);
-    expect(run).toMatchObject({ spent_usd: 0.6, stopped: true });
+    expect(run).toMatchObject({ spent_usd: 0.6, stopped: true, over_cap: false });
+  });
+
+  test('a play that costs more than its worst case marks the run over the cap', async () => {
+    const run = await runPlays(jobs.slice(0, 1), { capUsd: 1, play: async () => ({ usd: 1.5 }) });
+    expect(run).toMatchObject({ spent_usd: 1.5, stopped: false, over_cap: true });
   });
 });
 
@@ -124,6 +129,11 @@ describe('sandbox.mjs', () => {
     expect(out.status).toBe(0);
     expect(out.stdout).toMatch(/12 plays\. Estimated spend \$\d+\.\d+ typical, \$\d+\.\d+ if every call bills its worst case\. Cap \$30\./);
     expect(out.stdout).toMatch(/Nothing spent/);
+  });
+
+  test('the worst-case reservation follows the configured token rates', () => {
+    const worst = (env) => Number(sandbox(['--cases', fixtureDir()], { env }).stdout.match(/\$([\d.]+) if every call/)[1]);
+    expect(worst({ CLAUDE_INPUT_PER_M: '6', CLAUDE_OUTPUT_PER_M: '30' })).toBeCloseTo(2 * worst({}), 1);
   });
 
   test('refuses to run with a database client loaded', () => {

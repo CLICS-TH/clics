@@ -29,9 +29,12 @@ const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
  * case either: rerun the failed cases against `pool`, an earlier complete run's medians.
  * @param {Record<string, Record<string, number[]>>} table composites per case id, then per group
  * @param {string[]} groups the groups every case must have, in report order; must include 'best' and 'weakest'
- * @param {{ pool?: { medians: Record<string, number | null>, pool_n: Record<string, number> }, incomplete?: string }} [opts]
+ * A case also needs every play `runs` planned for a group scored: a group mean over the survivors of failed plays
+ * is not the group's mean.
+ * @param {{ pool?: { medians: Record<string, number | null>, pool_n: Record<string, number> }, incomplete?: string,
+ *   runs?: Record<string, number> }} [opts] runs: plays planned per group, per case (default 1)
  */
-export function verdicts(table, groups, { pool, incomplete } = {}) {
+export function verdicts(table, groups, { pool, incomplete, runs = {} } = {}) {
   const ids = Object.keys(table);
   const means = Object.fromEntries(ids.map((id) => [id, Object.fromEntries(groups.map((g) => [g, mean(table[id][g] ?? [])]))]));
   const scoredIn = (g) => ids.map((id) => means[id][g]).filter((m) => m != null);
@@ -46,7 +49,10 @@ export function verdicts(table, groups, { pool, incomplete } = {}) {
     const m = means[id];
     const reasons = [...runReasons];
     for (const g of groups) {
+      const planned = runs[g] ?? 1;
+      const scored = (table[id][g] ?? []).length;
       if (m[g] == null) reasons.push(`${g}: no scored play`);
+      else if (scored < planned) reasons.push(`${g}: ${scored} of ${planned} plays scored`);
       else if (medians[g] == null) reasons.push(`${g}: the pool has no median`);
       else if (Math.abs(m[g] - medians[g]) > BAND) reasons.push(`${g} mean ${r2(m[g])} is ${r2(m[g] - medians[g])} from the pool median ${r2(medians[g])}`);
     }
@@ -79,7 +85,7 @@ export function summaryMarkdown(report, groups) {
     `# Booth physician sandbox, run ${report.run_id}`,
     '',
     `${report.date}. ${report.scored} of ${report.planned} plays scored, $${report.spent_usd.toFixed(2)} spent of a `
-      + `$${report.cap_usd} cap${report.stopped ? ', stopped at the cap' : ''}. Evaluator via rimpl (${report.providers.join(', ') || 'none'}); `
+      + `$${report.cap_usd} cap${report.stopped ? ', stopped at the cap' : ''}${report.over_cap ? ', OVER the cap' : ''}. Evaluator via rimpl (${report.providers.join(', ') || 'none'}); `
       + `personas on ${report.persona_model}.`,
     '',
     `Pool medians from ${verdict.pool_from}. Rule: every group mean within ±${BAND} of that group's pool median, and best at least ${SEPARATION} above weakest. `

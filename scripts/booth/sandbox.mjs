@@ -20,7 +20,8 @@
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
  * It writes no database row and never calls the booth API: its only calls are rimpl's /chat and /evaluate (with
  * shadow off) and the persona model, and it refuses to run with a database client loaded.
- * Exit 0 when every case passes, 1 when one fails or the cap stopped the run, 2 on a bad argument or setup.
+ * Exit 0 when every case passes, 1 when one fails or the run is incomplete (a play unscored, stopped at the cap or
+ * spent over it), 2 on a bad argument or setup.
  */
 import { createRequire } from 'node:module';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -110,7 +111,7 @@ const ai = { ...rimpl, ...(apiKey ? { persona: personaCall({ apiKey }) } : {}) }
 
 const runId = `sbx-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
 let done = 0;
-const { results, spent_usd, stopped } = await runPlays(jobs, {
+const { results, spent_usd, stopped, over_cap } = await runPlays(jobs, {
   capUsd: opts.cap,
   concurrency: opts.concurrency,
   play: (job) => playOnce({ kase: job.kase, ai, choose: job.persona ? personaChooser(job.group) : tapping(PATHS[job.group]) }),
@@ -134,6 +135,7 @@ const report = {
   cap_usd: opts.cap,
   spent_usd,
   stopped,
+  over_cap,
   planned: jobs.length,
   scored: scoredCount,
   providers: [...new Set(plays.flatMap((p) => (p.calls ?? []).filter((c) => c.kind === 'evaluate' && c.provider).map((c) => c.provider)))],
@@ -147,7 +149,10 @@ const report = {
   })),
   verdict: verdicts(table, groups, {
     pool,
-    incomplete: stopped || scoredCount < jobs.length ? `${scoredCount} of ${jobs.length} plays scored${stopped ? ', stopped at the cap' : ''}` : undefined,
+    runs: Object.fromEntries(groups.map((g) => [g, g in PATHS ? 1 : opts.personaRuns])),
+    incomplete: stopped || over_cap || scoredCount < jobs.length
+      ? `${scoredCount} of ${jobs.length} plays scored${stopped ? ', stopped at the cap' : ''}${over_cap ? `, spent over the $${opts.cap} cap` : ''}`
+      : undefined,
   }),
   plays,
 };

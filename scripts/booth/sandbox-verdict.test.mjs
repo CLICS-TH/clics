@@ -94,6 +94,16 @@ test('the pool counts only cases scored in that group: a scored with b and c emp
   assert.match(v.cases.a.reasons[0], /^no pool: best pooled from 1 case/);
 });
 
+test('a group needs every planned run scored: 2 of 3 persona runs do not pass', () => {
+  const runs = { strong: 3, average: 3, weak: 3 };
+  const three = (s) => ({ ...matched(s), strong: [75, 75, 75], average: [62, 62, 62], weak: [50, 50, 50] });
+  const short = { ...three(0), average: [62, 62] };
+  const v = verdicts({ a: three(0), b: three(2), c: short }, GROUPS, { runs });
+  assert.equal(v.cases.a.pass, true);
+  assert.equal(v.cases.c.pass, false);
+  assert.deepEqual(v.cases.c.reasons, ['average: 2 of 3 plays scored']);
+});
+
 test('an incomplete run passes no case, even a matched pool', () => {
   const v = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS, { incomplete: '35 of 36 plays scored' });
   assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [false, false, false]);
