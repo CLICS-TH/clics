@@ -84,7 +84,7 @@ A case is reviewed before it can be drawn.
 3. Fix every finding in the case PR.
 4. Record the review under `admission.safety_review` with the reviewer `model`, the `date` as `YYYY-MM-DD`, and a short `findings` summary.
 
-The physician sandbox run records `admission.sandbox` later, with its `run_id` and `date`. You do not write that part. A case without both parts is valid but never drawn.
+`admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id` and `date`. The script itself writes no case file. You do not write that part. A case without both parts is valid but never drawn.
 
 ## Checking your case
 

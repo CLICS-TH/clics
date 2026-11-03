@@ -69,3 +69,6 @@ audit-dashboard/docs/
 # Deployment-specific (live PLE ids, the SANDBOX physician/council ids) and, for a rollback export,
 # human auditor scores — local working files, never committed.
 scripts/calibration/anchors/imports/
+
+# Physician sandbox reports (scripts/booth/sandbox.mjs): the JSON stays local, the .md summary may be committed.
+scripts/booth/sandbox-runs/*.json

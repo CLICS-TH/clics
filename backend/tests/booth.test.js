@@ -1614,3 +1614,34 @@ describe('rate limits', () => {
     expect((await post('/guest/start', {})).status).toBe(201);
   });
 });
+
+describe('physician sandbox (scripts/booth/sandbox-play.js)', () => {
+  const { playOnce } = require('../../scripts/booth/sandbox-play');
+  const withoutId = ({ ple_id: _, ...rest }) => rest;
+
+  test.each([
+    ['tapped', ['best', 'reasonable', 'weaker']],
+    ['typed', ['reasonable', { text: 'ตรวจ CURB-65' }, 'best']],
+  ])('a %s path sends rimpl the same chat calls and the same transcript as a kiosk play through the booth API', async (_, given) => {
+    sorting('reasonable');
+    const p = await begin();
+    for (const g of given) expect((await answer(p, g)).body.status).toBe('replied');
+    expect((await score(p)).body.status).toBe('scored');
+    const viaApi = { chat: rimplChat.mock.calls.map(([body]) => withoutId(body)), evaluate: withoutId(rimplEvaluate.mock.calls[0][0]) };
+
+    const rimpl = rimplChat.getMockImplementation();
+    const sent = { chat: [], evaluate: null };
+    const play = await playOnce({
+      kase: KASE,
+      start: p.d.asks[0],
+      choose: ({ step }) => p.d.answers[step],
+      ai: {
+        chat: async (body) => { sent.chat.push(withoutId(body)); return rimpl(body); },
+        evaluate: async (body) => { sent.evaluate = withoutId(body); return { ...EVAL_OK }; },
+      },
+    });
+    expect(sent).toEqual(viaApi);
+    expect(play.tier_path).toBe(p.path);
+    expect(play.composite).toBe(59);
+  });
+});
