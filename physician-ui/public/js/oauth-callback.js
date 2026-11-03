@@ -1,12 +1,15 @@
 // Google OAuth callback. Supabase redirected back here with the session in the URL hash. The
 // page head lifts that hash into window.CLICS_OAUTH_HASH and strips it from history (#183), so
 // we hand the tokens to supabase-js with setSession() and read the session back with getSession().
-// Then one of two flows runs, distinguished by localStorage('clics_oauth_flow')
-// (sessionStorage is read as a legacy fallback):
+// Then one of three flows runs, distinguished by the marker this TAB's sign-in start left in
+// sessionStorage('clics_oauth_flow') (google-signin.js). A page-made session carries `flow=<id>` in the hash
+// and needs a marker with that id; the redirect carries none, so it falls back to the shared localStorage key
+// when the tab's own copy is gone. No marker of its own → the page stops at an error, never at signup:
 //   - invite  → POST /auth/invite/:token/accept { method:'google', access_token }
 //   - signup  → POST /auth/oauth/google/complete { access_token } first; the council
 //               picker shows ONLY if the backend answers 400 {code:'council_required'}
 //               (i.e. a brand-new user) — existing users sign straight in.
+//   - link    → POST /auth/link-google with the stored clics_token
 // On success we store clics_token/clics_user and route by role.
 
 const loadingCard = document.getElementById('loadingCard');
@@ -44,30 +47,52 @@ function withClient(cb) {
 
 let accessToken = null;
 let flow = { kind: 'signup' };
+const FLOW_KEY = 'clics_oauth_flow';
+
+// This tab's marker, consumed, or null when it has none. With a hash id the marker must carry that id and
+// only sessionStorage is read: the shared key belongs to whichever tab pressed last. Without one (the
+// Supabase redirect) the tab's own copy comes first and the shared key is the fallback; that key is removed
+// only if it still holds the marker we used, never another tab's newer one.
+function takeFlow(id) {
+  let found = null;
+  let raw = null;
+  try { raw = sessionStorage.getItem(FLOW_KEY); } catch {}
+  try { sessionStorage.removeItem(FLOW_KEY); } catch {}
+  if (!raw && !id) { try { raw = localStorage.getItem(FLOW_KEY); } catch {} }
+  if (raw) {
+    try { found = JSON.parse(raw); } catch {}
+    try { if (localStorage.getItem(FLOW_KEY) === raw) localStorage.removeItem(FLOW_KEY); } catch {}
+  }
+  if (!found || !['signup', 'invite', 'link'].includes(found.kind)) return null;
+  if (id && found.id !== id) return null;
+  return found;
+}
 
 withClient(async () => {
   if (!window.sbClient) {
     showError('Google ยังไม่ถูกตั้งค่าในระบบนี้ / Google sign-in is not configured for this deployment.');
     return;
   }
-  // Read the flow marker FIRST. The LINK flow must KEEP the existing clics_token (the link endpoint
-  // authenticates with it); only a fresh sign-in/invite supersedes the stored session. Prefer
-  // localStorage (survives the OAuth round-trip); sessionStorage is the legacy fallback.
-  try {
-    const raw = localStorage.getItem('clics_oauth_flow') || sessionStorage.getItem('clics_oauth_flow');
-    flow = JSON.parse(raw || '{}');
-  } catch { flow = {}; }
-  try { localStorage.removeItem('clics_oauth_flow'); } catch {}
-  try { sessionStorage.removeItem('clics_oauth_flow'); } catch {}
-  if (!flow.kind) flow.kind = 'signup';
+  // Lift the hash and read this tab's flow marker FIRST. The LINK flow must KEEP the existing clics_token
+  // (the link endpoint authenticates with it); only a fresh sign-in/invite supersedes the stored session.
+  const lifted = new URLSearchParams(window.CLICS_OAUTH_HASH || '');
+  window.CLICS_OAUTH_HASH = null;
+  const mine = takeFlow(lifted.get('flow'));
+  if (!mine) {
+    // Not this tab's sign-in (a reload, another tab's press, or cleared storage). Leave clics_token/clics_user:
+    // they may belong to the tab that did start a flow. Drop the Supabase copy (sb-*, no signOut: see
+    // routeActive): it is a live, self-refreshing session, and no Callback page re-reads it.
+    try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
+    showError('ไม่พบการเริ่มเข้าสู่ระบบด้วย Google ของแท็บนี้ กรุณาเริ่มใหม่จากหน้าเข้าสู่ระบบหรือลิงก์คำเชิญ / No Google sign-in was started in this tab. Please start again from the login page or your invite link.');
+    return;
+  }
+  flow = mine;
   if (flow.kind !== 'link') {
     // A fresh sign-in supersedes any stored CLICS session — and a stale token here is actively
     // harmful (the login page auto-forwards on it, ping-ponging against the role guard).
     try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
   }
 
-  const lifted = new URLSearchParams(window.CLICS_OAUTH_HASH || '');
-  window.CLICS_OAUTH_HASH = null;
   // Trust only the session these tokens yield. getSession() would fall back to a stale sb-*
   // session left by an earlier, abandoned callback — possibly another person's — so a cancelled
   // or rejected sign-in clears it (no signOut: see routeActive) and stops at the error card.
