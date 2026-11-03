@@ -30,6 +30,7 @@ export const resultUrl = (origin, r) => `${origin}${RESULT_PATH}#${resultFragmen
 
 const isScore = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
 const isText = (v) => typeof v === 'string' && v.trim() !== '' && v.length <= TEASER_MAX;
+const isDate = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 
 /** @param {string} hash location.hash, with or without the '#' @returns {KeptResult | null} null for anything malformed */
 export function parseResultFragment(hash) {
@@ -42,9 +43,8 @@ export function parseResultFragment(hash) {
   } catch {
     return null;
   }
-  if (!isScore(o?.s, 100) || !Array.isArray(o.d) || o.d.length !== KEYS.length || !o.d.every((v) => isScore(v, 5))
-    || !Number.isInteger(o.t) || o.t < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(o.at) || Number.isNaN(Date.parse(o.at))
-    || !isText(o.th) || !isText(o.en)) {
+  if (typeof o !== 'object' || o === null || !isScore(o.s, 100) || !Array.isArray(o.d) || o.d.length !== KEYS.length
+    || !o.d.every((v) => isScore(v, 5)) || !Number.isInteger(o.t) || o.t < 1 || !isDate(o.at) || !isText(o.th) || !isText(o.en)) {
     return null;
   }
   return { score: o.s, domains: Object.fromEntries(KEYS.map((k, i) => [k, o.d[i]])), tag: o.t, date: o.at, teaser: { th: o.th, en: o.en } };

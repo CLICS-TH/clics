@@ -42,6 +42,11 @@ const MALFORMED = [
   [`#r1.${b64({ ...GOOD, t: 0 })}`, 'tag 0'],
   [`#r1.${b64({ ...GOOD, at: '3 Nov' })}`, 'a date not YYYY-MM-DD'],
   [`#r1.${b64({ ...GOOD, th: '' })}`, 'no Thai teaser'],
+  [`#r1.${b64({ ...GOOD, at: { toString: null } })}`, 'a date that is an object with no toString'],
+  [`#r1.${b64({ ...GOOD, th: { length: 3 } })}`, 'a teaser that is an object'],
+  [`#r1.${b64({ ...GOOD, d: { length: 7, every: 1 } })}`, 'domains that are an object shaped like an array'],
+  [`#r1.${b64([GOOD])}`, 'an array instead of an object'],
+  [`#r1.${b64(42)}`, 'a number instead of an object'],
   [`#r1.${Buffer.from([0xff, 0xfe, 0x7b]).toString('base64url')}`, 'bytes that are not UTF-8'],
 ];
 
