@@ -109,6 +109,14 @@ body.booth {
   background: linear-gradient(to bottom, var(--card-clear), var(--card)); pointer-events: none;
 }
 .case-card--full { flex: 1 1 auto; justify-content: center; padding: calc(48 * var(--u)); }
+/* On a phone the teaser is two short lines: a card stretched to the body's height is mostly empty white, so it
+   hugs its text and sits in the middle of the body. The kiosk (1080 px and up) keeps the full-height card. */
+@media (max-width: 600px) {
+  .case-card--full:has(> .teaser) { flex: none; margin-block: auto; }
+  /* The kiosk's 1080-wide scale leaves the teaser at 16 / 12 px on a phone: hold it at a phone's body sizes. */
+  .case-card--full:has(> .teaser) .teaser .bi-th { font-size: max(18px, calc(42 * var(--u))); }
+  .case-card--full:has(> .teaser) .teaser .bi-en { font-size: max(15px, calc(32 * var(--u))); }
+}
 .case-card--full :is(.vignette, .teaser) .bi-th { font-size: calc(42 * var(--u)); line-height: 1.65; }
 .case-card--full :is(.vignette, .teaser) .bi-en { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 .vignette .bi-en { margin-top: calc(12 * var(--u)); }

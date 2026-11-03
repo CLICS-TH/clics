@@ -87,7 +87,87 @@ const LONGEST = (() => {
   return deal('case-long', th, en);
 })();
 
+/** The teaser card's empty height: the card's inner box less its text. */
+const cardSlack = (page) => page.evaluate(() => {
+  const card = document.querySelector('[data-screen="teaser"] .case-card');
+  const body = document.querySelector('[data-screen="teaser"] .play-body');
+  const cs = getComputedStyle(card);
+  const inner = card.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  return { slack: Math.round(inner - card.querySelector('.teaser').getBoundingClientRect().height), card: Math.round(card.getBoundingClientRect().height),
+    body: Math.round(body.clientHeight), lineHeight: parseFloat(getComputedStyle(card.querySelector('.teaser .bi-th')).lineHeight) };
+});
+
 export default [
+  {
+    name: 'one live case: the teaser offers only "Start this case", and a reroll comes back with a second live case',
+    async run(h) {
+      let live = 1;
+      const stub = dealing(h, [h.DRAW, B], { [DRAW]: (_call, calls) => {
+        const n = calls.filter((c) => c.key === DRAW).length;
+        return { status: 200, body: { ...(n === 1 ? h.DRAW : B), live } };
+      } });
+      const k = await h.kiosk({ stub });
+      const { page } = k;
+      await k.shell('start');
+      await k.tap('[data-action="start"]');
+      await shows(k, h.DRAW);
+      const one = await readTeaserScreen(page);
+      h.check(h.same(one.buttons.map((b) => b.action), ['start-case']) && await page.locator('[data-action="reroll"]').count() === 0,
+        `one live case: no reroll on screen, only "${h.COPY.startCase.en}" (${one.buttons.map((b) => b.action).join(', ')})`);
+      await h.screenCheck(page, 'teaser, one live case');
+      await h.shot(page, 'teaser-one-live-case');
+      await k.close();
+
+      live = 2;
+      const k2 = await h.kiosk({ stub });
+      await k2.shell('start');
+      await k2.tap('[data-action="start"]');
+      await shows(k2, B);
+      h.check(await k2.page.locator('[data-action="reroll"]').count() === 1, 'two live cases: the reroll is back with no other change');
+      await k2.close();
+    },
+  },
+  {
+    name: 'two live cases: a reroll draws the other one',
+    async run(h) {
+      const stub = dealing(h, [{ ...h.DRAW, live: 2 }, { ...B, live: 2 }]);
+      const k = await h.kiosk({ stub });
+      await k.shell('start');
+      await k.tap('[data-action="start"]');
+      await shows(k, h.DRAW);
+      await k.tap('[data-action="reroll"]');
+      await shows(k, B);
+      h.check(h.same(dealtCalls(stub).map((c) => c.body), [{ seen: [] }, { seen: [h.DRAW.case_id] }]),
+        `two live cases: the reroll asks past the shown case and shows ${B.case_id}`);
+      await k.close();
+    },
+  },
+  ...[[375, 812], [412, 915]].map(([width, height]) => ({
+    name: `teaser at ${width}x${height}: the card hugs its text, no large empty band above or below it`,
+    async run(h) {
+      const k = await h.kiosk({ width, height, label: `${width}x${height}` });
+      await k.shell('start');
+      await k.tap('[data-action="start"]');
+      await k.screen('teaser');
+      const r = await cardSlack(k.page);
+      h.check(r.slack <= r.lineHeight, `${width}x${height}: the teaser card has ${r.slack} px of empty height (at most one line, ${r.lineHeight} px); card ${r.card} px in a ${r.body} px body`);
+      await h.screenCheck(k.page, `teaser ${width}x${height}`);
+      await h.shot(k.page, `teaser-${width}x${height}`);
+      await k.close();
+    },
+  })),
+  {
+    name: 'teaser at 1080x1920: the kiosk keeps its full-height card',
+    async run(h) {
+      const k = await h.kiosk();
+      await k.shell('start');
+      await k.tap('[data-action="start"]');
+      await k.screen('teaser');
+      const r = await cardSlack(k.page);
+      h.check(r.card >= r.body * 0.5, `1080x1920: the teaser card fills the play body (${r.card} of ${r.body} px)`);
+      await k.close();
+    },
+  },
   ...SIZES.map((size) => ({
     name: `teaser at ${label(size)}, coarse pointer: the case's teaser word for word and two buttons`,
     async run(h) {

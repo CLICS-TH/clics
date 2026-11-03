@@ -385,7 +385,9 @@ async function leastPlayed(code, live) {
 /** Writes nothing. A first draw (empty `seen`) is the least-played live case; a reroll is a random live case not in
  *  `seen`. With every live case seen, any but the last one seen (the kiosk then restarts its list from the one
  *  returned); ids in `seen` that are no longer live are ignored.
- *  @returns {Promise<Result>} body: { case_id, teaser: { th, en } } and nothing else of the case */
+ *  `live` is how many cases can be dealt right now (a count, no ids), so the kiosk offers a reroll only when there
+ *  is another case to draw.
+ *  @returns {Promise<Result>} body: { case_id, teaser: { th, en }, live } and nothing else of the case */
 async function drawCase(input, now = new Date()) {
   const opened = await openEvent(now, dealState);
   if (opened.refused) return opened;
@@ -405,7 +407,7 @@ async function drawCase(input, now = new Date()) {
     }
   }
   const { case_id, teaser } = randomOf(pool);
-  return { body: { case_id, teaser } };
+  return { body: { case_id, teaser, live: live.length } };
 }
 
 /** @returns {Promise<Result>} body: { play_id, tag, answer_max_chars, case: { vignette }, next, sig } */
