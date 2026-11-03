@@ -23,6 +23,9 @@ process.env.BOOTH_CASES_DIR = CASES_DIR;
 afterAll(() => { delete process.env.BOOTH_CASES_DIR; });
 
 const OPENS = '2026-11-03T08:00:00+07:00';
+const OFF_KEY = `booth_case_off:NFCME-2026:${kase.case_id}`;
+const listed = (over = {}) => ({ case_id: kase.case_id, teaser: kase.teaser, version: kase.version,
+  admitted_on: '2026-10-29', plays: 3, on: true, ...over });
 const CLOSES = '2026-11-04T18:00:00+07:00';
 
 let settings;
@@ -38,11 +41,11 @@ function seed() {
     ['booth_play_ceiling_usd', { value: 3, value_text: null }],
   ]);
   plays = [
-    { event_code: 'NFCME-2026', status: 'scored', spend_usd: 0.31 },
-    { event_code: 'NFCME-2026', status: 'scored', spend_usd: 0.29 },
-    { event_code: 'NFCME-2026', status: 'unavailable', spend_usd: 0.35 },
-    { event_code: 'NFCME-2026', status: 'started', spend_usd: 0.05 },
-    { event_code: 'OTHER-2026', status: 'scored', spend_usd: 9 },
+    { event_code: 'NFCME-2026', case_id: kase.case_id, status: 'scored', spend_usd: 0.31 },
+    { event_code: 'NFCME-2026', case_id: kase.case_id, status: 'scored', spend_usd: 0.29 },
+    { event_code: 'NFCME-2026', case_id: kase.case_id, status: 'unavailable', spend_usd: 0.35 },
+    { event_code: 'NFCME-2026', case_id: 'retired-case', status: 'started', spend_usd: 0.05 },
+    { event_code: 'OTHER-2026', case_id: kase.case_id, status: 'scored', spend_usd: 9 },
   ];
   playsError = null;
 }
@@ -85,15 +88,27 @@ describe('GET /admin/booth', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       event_code: 'NFCME-2026', enabled: false, opens_at: null, closes_at: null, ceiling_usd: 3, state: 'off',
-      plays: 4, scored: 2, spend_usd: 1,
+      plays: 4, scored: 2, spend_usd: 1, cases: [listed()],
     });
+  });
+
+  it('lists a case switched off as off, and admits it on the later of its two admission dates', async () => {
+    settings.set(OFF_KEY, { value: 1, value_text: null });
+    const res = await as(SUPERADMIN).get();
+    expect(res.body.cases).toEqual([listed({ on: false })]);
+  });
+
+  it('lists no case when no event code is set', async () => {
+    settings.set('booth_event_code', { value: 0, value_text: null });
+    const res = await as(SUPERADMIN).get();
+    expect(res.body).toMatchObject({ event_code: null, plays: 0, cases: [] });
   });
 
   it('reports a failed plays read as unknown, not as zero', async () => {
     playsError = { message: 'boom' };
     const res = await as(SUPERADMIN).get();
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ plays: null, scored: null, spend_usd: null });
+    expect(res.body).toMatchObject({ plays: null, scored: null, spend_usd: null, cases: [listed({ plays: null })] });
   });
 });
 
@@ -194,6 +209,46 @@ describe('PATCH /admin/booth', () => {
       .toBeLessThan(Date.parse(settings.get('booth_closes_at').value_text));
   });
 
+  it('switches a case off as its own setting row, echoes it off, and audits the change', async () => {
+    const res = await as(SUPERADMIN).patch({ cases: { [kase.case_id]: false } });
+    expect(res.status).toBe(200);
+    expect(m.find('app_settings', 'upsert').payload.map((r) => [r.key, r.value, r.value_text])).toEqual([[OFF_KEY, 1, null]]);
+    expect(res.body.cases).toEqual([listed({ on: false })]);
+    expect(logEvent).toHaveBeenCalledWith(expect.objectContaining({ action: 'booth_settings',
+      metadata: { cases: { [kase.case_id]: false } } }));
+  });
+
+  it('switches a case back on by storing 0', async () => {
+    settings.set(OFF_KEY, { value: 1, value_text: null });
+    const res = await as(SUPERADMIN).patch({ cases: { [kase.case_id]: true } });
+    expect(res.status).toBe(200);
+    expect(settings.get(OFF_KEY).value).toBe(0);
+    expect(res.body.cases).toEqual([listed()]);
+  });
+
+  it('writes a case switch after the event settings in the same upsert', async () => {
+    await as(SUPERADMIN).patch({ ceiling_usd: 2, cases: { [kase.case_id]: false } });
+    expect(m.find('app_settings', 'upsert').payload.map((r) => r.key)).toEqual(['booth_play_ceiling_usd', OFF_KEY]);
+  });
+
+  it.each([
+    ['a case that is not admitted to the event', { cases: { 'retired-case': false } }],
+    ['a case id that is not a case id', { cases: { 'Not A Case': false } }],
+    ['a switch that is not true or false', { cases: { [kase.case_id]: 0 } }],
+    ['no case at all', { cases: {} }],
+  ])('refuses %s and writes nothing', async (_name, body) => {
+    const res = await as(SUPERADMIN).patch(body);
+    expect(res.status).toBe(400);
+    expect(m.find('app_settings', 'upsert')).toBeUndefined();
+  });
+
+  it('refuses a case switch when no event code is set', async () => {
+    settings.set('booth_event_code', { value: 0, value_text: null });
+    const res = await as(SUPERADMIN).patch({ cases: { [kase.case_id]: false } });
+    expect(res.status).toBe(400);
+    expect(m.find('app_settings', 'upsert')).toBeUndefined();
+  });
+
   it('clears the window with null', async () => {
     settings.set('booth_opens_at', { value: 0, value_text: OPENS });
     const res = await as(SUPERADMIN).patch({ opens_at: null });
@@ -211,6 +266,12 @@ describe.each([['admin', ADMIN], ['auditor', AUDITOR], ['physician', PHYSICIAN]]
 
   it('cannot change the booth settings', async () => {
     const res = await as(caller).patch({ enabled: true });
+    expect(res.status).toBe(403);
+    expect(m.find('app_settings', 'upsert')).toBeUndefined();
+  });
+
+  it('cannot switch a case off', async () => {
+    const res = await as(caller).patch({ cases: { [kase.case_id]: false } });
     expect(res.status).toBe(403);
     expect(m.find('app_settings', 'upsert')).toBeUndefined();
   });

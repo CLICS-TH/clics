@@ -1,7 +1,7 @@
 'use client';
-// Superadmin card for the Booth Mode event (#214): the switch, the window, the per-play ceiling, and the
-// event's plays, scored plays and spend. It reads and writes GET/PATCH /admin/booth, and after every write
-// it shows the server's echo, not the draft.
+// Superadmin card for the Booth Mode event (#214): the switch, the window, the per-play ceiling, the
+// event's plays, scored plays and spend, and a switch per admitted case (#249). It reads and writes
+// GET/PATCH /admin/booth, and after every write it shows the server's echo, not the draft.
 //
 // Times are Bangkok wall-clock in the inputs and travel with an explicit +07:00 offset. The backend refuses
 // a bare local time because the server runs in UTC, which would put the window seven hours off.
@@ -59,7 +59,7 @@ export function BoothCard() {
     });
   }, []);
 
-  async function patch(body: Partial<Record<'enabled' | 'opens_at' | 'closes_at' | 'ceiling_usd', unknown>>) {
+  async function patch(body: Partial<Record<'enabled' | 'opens_at' | 'closes_at' | 'ceiling_usd' | 'cases', unknown>>) {
     const r = await apiFetch<ApiResult<BoothSettings>>('/admin/booth', { method: 'PATCH', body: JSON.stringify(body) });
     if (!r || r.error || typeof r.enabled !== 'boolean') {
       return formatApiError(r?.error, 'บันทึกไม่สำเร็จ การตั้งค่าไม่เปลี่ยนแปลง / Could not save. The setting was not changed.');
@@ -73,11 +73,11 @@ export function BoothCard() {
   // for the state the booth is already in.
   const busy = switching || saving;
 
-  async function toggle(enabled: boolean) {
+  async function toggle(body: { enabled: boolean } | { cases: Record<string, boolean> }) {
     if (!booth || busy) return;
     setSwitching(true);
     try {
-      const err = await patch({ enabled });
+      const err = await patch(body);
       if (err) toast(err, 'error');
     } finally {
       setSwitching(false);
@@ -147,7 +147,7 @@ export function BoothCard() {
               </div>
               <button
                 type="button"
-                onClick={() => toggle(!booth.enabled)}
+                onClick={() => toggle({ enabled: !booth.enabled })}
                 aria-disabled={busy || undefined}
                 aria-pressed={booth.enabled}
                 aria-label="Booth event switch"
@@ -199,6 +199,44 @@ export function BoothCard() {
                     </div>
                   ))}
               </dl>
+            </div>
+
+            <div role="group" aria-label="Case pool" className="space-y-2">
+              <h3 className="text-sm font-medium"><BiLabel th="ชุดเคสที่ผ่านการรับรอง" en="Case pool" /></h3>
+              <p className="text-sm text-muted-foreground">
+                ปิดเคสแล้วจะไม่ถูกสุ่มหรือเริ่มเล่นใหม่ ส่วนเกมที่กำลังเล่นอยู่จะเล่นต่อจนจบ •
+                Switching a case off stops new draws only; a play already running finishes.
+              </p>
+              {booth.cases.length === 0 ? (
+                <p className="text-sm text-muted-foreground">ยังไม่มีเคสที่ผ่านการรับรอง • No admitted case.</p>
+              ) : (
+                <ul className="grid grid-cols-1 gap-2">
+                  {booth.cases.map((c) => (
+                    <li key={c.case_id} className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{c.teaser.th}</p>
+                        <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{c.teaser.en}</p>
+                        <p className="flex flex-wrap gap-x-3 text-sm text-muted-foreground tabular-nums">
+                          <span className="[overflow-wrap:anywhere]">{c.case_id} · {c.version}</span>
+                          <span><BiLabel th="รับรองเมื่อ" en="Admitted" /> {c.admitted_on}</span>
+                          <span><BiLabel th="เล่นแล้ว" en="Plays" /> {count(c.plays)}</span>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggle({ cases: { [c.case_id]: !c.on } })}
+                        aria-disabled={busy || undefined}
+                        aria-pressed={c.on}
+                        aria-label={`Case ${c.case_id} switch`}
+                        className={`relative mt-0.5 inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors aria-disabled:cursor-wait aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100 ${c.on ? 'bg-primary' : 'bg-muted'}`}
+                        title={c.on ? `Case ${c.case_id} is ON` : `Case ${c.case_id} is OFF`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${c.on ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </>
         )}

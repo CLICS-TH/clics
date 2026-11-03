@@ -71,6 +71,8 @@ try {
   await screen('scoring');
   await shot('scoring');
   await screen('scored');
+  // The result QR would open this capture server's 127.0.0.1 address; blurred, a visitor scanning the loop gets nothing.
+  await page.addStyleTag({ content: '[data-keep-qr] svg { filter: blur(10px); }' });
   await shot('result');
   await page.evaluate(() => document.querySelector('[data-board]')?.scrollIntoView({ block: 'center' }));
   await shot('result-board');
