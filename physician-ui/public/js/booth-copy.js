@@ -48,6 +48,11 @@ export const COPY = Object.freeze({
   stoppedOffline: { th: 'การเชื่อมต่อขาดหาย', en: 'The connection was lost' },
   restarting: { th: 'กำลังกลับไปหน้าแรก', en: 'Going back to the start' },
   done: { th: 'เสร็จแล้ว', en: 'Done' },
+  keepResult: { th: 'สแกนเพื่อเก็บผลของคุณ', en: 'Scan to keep your result' },
+  resultTitle: { th: 'ผลการเล่นที่บูท CLICS', en: 'Your CLICS booth result' },
+  resultCase: { th: 'เคสที่คุณเล่น', en: 'The case you played' },
+  resultMissing: { th: 'ลิงก์นี้ ไม่มีผลการเล่นที่อ่านได้', en: 'This link does not hold a readable booth result' },
+  resultMissingHint: { th: 'สแกน QR บนหน้าจอบูทอีกครั้ง หรือเปิดลิงก์เดิม ให้ครบทั้งลิงก์', en: 'Scan the QR on the booth screen again, or open the whole saved link' },
 });
 
 export const tagText = (tag) => `Booth #${String(tag).padStart(3, '0')}`;

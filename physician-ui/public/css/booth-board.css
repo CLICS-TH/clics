@@ -10,6 +10,13 @@
 .rank-label .bi-en { font-size: var(--text-en); line-height: 1.35; }
 .rank-value { font-size: calc(56 * var(--u)); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
 
+.result-top { display: flex; align-items: flex-start; gap: var(--gap); }
+.result-summary { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: calc(28 * var(--u)); }
+.result-summary .result-score { flex: none; white-space: nowrap; }
+.keep-qr { margin: 0; flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(8 * var(--u)); max-width: calc(340 * var(--u)); text-align: center; }
+.keep-qr svg { width: calc(320 * var(--u)); height: calc(320 * var(--u)); display: block; }
+.keep-qr-caption .bi-th { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
+.keep-qr-caption .bi-en { font-size: var(--text-en); line-height: 1.3; }
 .landing-qr { margin: 0; flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(8 * var(--u)); max-width: calc(300 * var(--u)); text-align: center; }
 .landing-qr img { width: calc(220 * var(--u)); height: calc(220 * var(--u)); display: block; }
 .landing-qr-caption .bi-th { font-size: var(--text-en); line-height: 1.45; }

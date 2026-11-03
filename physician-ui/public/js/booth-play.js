@@ -7,7 +7,8 @@
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
 import { COPY, DEMO_LABEL, DOMAINS, scoreText, fill } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
-import { BAND_LINES, bandOf, weakestFirst } from './booth-bands.js';
+import { domainSections } from './booth-domains.js';
+import { resultUrl, boothDate } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
 import { el, phrases, bi } from './booth-dom.js';
 
@@ -22,7 +23,7 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ id: string, label: Bi, line: Bi }} Option
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask   ids only, posted back as the server sent it
  * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
- * @typedef {{ id: string, tag: number, vignette: Bi, answerMax: number }} Play
+ * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, answerMax: number }} Play
  * @typedef {{ choice: string } | { text: string }} Answer
  * @typedef {{ composite: number, domains: Record<string, number>, body: object }} Score
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
@@ -61,7 +62,7 @@ async function startOnADealtCase(root, api) {
     if (await offerCase(root, dealt) === 'reroll') continue;
     draw(root, 'starting', frame([waitView(COPY.starting)]));
     try {
-      return parseStart(await api.post('/booth/plays', { case_id: dealt.caseId }, { timeoutMs: START_TIMEOUT_MS }));
+      return parseStart(await api.post('/booth/plays', { case_id: dealt.caseId }, { timeoutMs: START_TIMEOUT_MS }), dealt.teaser);
     } catch (e) {
       // The case was switched off after it was dealt: deal another, with no word to the visitor.
       if (!(e instanceof BoothApiError && e.kind === 'http' && e.reason === 'case_off')) throw e;
@@ -187,14 +188,14 @@ function parseDraw(body) {
   return isId(body?.case_id) && isBi(body.teaser) ? { caseId: body.case_id, teaser: { th: body.teaser.th, en: body.teaser.en } } : null;
 }
 
-function parseStart(body) {
+function parseStart(body, teaser) {
   const next = parseNext(body?.next);
   if (!isId(body?.play_id) || !Number.isInteger(body.tag) || body.tag < 1
     || !Number.isInteger(body.answer_max_chars) || body.answer_max_chars < 1
     || !isBi(body.case?.vignette) || !next || !isId(body.sig)) {
     return null;
   }
-  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette }, next, sig: body.sig };
+  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette, teaser }, next, sig: body.sig };
 }
 
 function parseScore(body) {
@@ -313,13 +314,16 @@ const VIEWS = {
     const { score } = s.screen;
     const slot = el('div', { class: 'board-slot', dataset: { boothSlot: 'board' } });
     const card = el('article', { class: 'result-card' },
-      renderTag(s.play.tag),
-      el('div', { class: 'result-total' },
-        bi(COPY.overall, 'result-overall'),
-        el('p', { class: 'result-score' },
-          el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
-          el('span', { class: 'result-outof' }, '/ 100'))),
-      slot,
+      el('div', { class: 'result-top' },
+        el('div', { class: 'result-summary' },
+          renderTag(s.play.tag),
+          el('div', { class: 'result-total' },
+            bi(COPY.overall, 'result-overall'),
+            el('p', { class: 'result-score' },
+              el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
+              el('span', { class: 'result-outof' }, '/ 100'))),
+          slot),
+        keepQr(s.play, score)),
       ...domainSections(score.domains, leaderboardButton({ host: root.closest('#booth') ?? root, api, board: score.body.board, tag: s.play.tag })));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
@@ -382,21 +386,23 @@ function stoppedView(offline) {
     bi(COPY.stopped, 'end-title'), offline ? bi(COPY.stoppedOffline) : null, bi(COPY.restarting));
 }
 
-/** The two weakest domains under "Practise next", `between` them and the other five, which sit below the fold. */
-function domainSections(scores, between) {
-  const order = weakestFirst(scores);
-  const section = (title, keys, cls) => el('section', { class: `domain-section ${cls}`, 'aria-label': title.en },
-    bi(title, 'section-title'),
-    el('ol', { class: 'domains' }, ...keys.map((key) => domainRow(DOMAINS.find((d) => d.key === key), scores[key]))));
-  return [section(COPY.practiseNext, order.slice(0, 2), 'practise-next'), between, section(COPY.otherDomains, order.slice(2), 'other-domains')];
+function svgEl(tag, attrs, ...kids) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  e.append(...kids);
+  return e;
 }
 
-function domainRow(d, value) {
-  const band = bandOf(value);
-  return el('li', { class: 'domain', dataset: { key: d.key, value: String(value), band } },
-    el('div', { class: 'domain-head' },
-      bi(d, 'domain-name'),
-      el('span', { class: 'domain-value' }, `${value} / 5`)),
-    el('div', { class: 'domain-bar', 'aria-hidden': 'true' }, el('span', { style: `width: ${value * 20}%` })),
-    bi(BAND_LINES[d.key][band], 'domain-band'));
+// The QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.
+function keepQr(play, score) {
+  const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser });
+  const qr = window.qrcode(0, 'L');
+  qr.addData(url);
+  qr.make();
+  const n = qr.getModuleCount();
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
+  const svg = svgEl('svg', { viewBox: `0 0 ${n + 8} ${n + 8}`, 'shape-rendering': 'crispEdges', role: 'img', 'aria-label': COPY.keepResult.en },
+    svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', { fill: '#000', d }));
+  return el('figure', { class: 'keep-qr', dataset: { keepQr: '', resultUrl: url } }, svg, bi(COPY.keepResult, 'keep-qr-caption'));
 }
