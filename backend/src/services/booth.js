@@ -117,9 +117,12 @@ function eventCases(code) {
   return caseCache.get(key);
 }
 
-// The one place that decides which cases a visitor can be dealt or start: the event's admitted cases. #249's
-// per-case switch filters here, so the draw and the start can never disagree.
-const liveCases = (code) => eventCases(code);
+// One app_settings row per case, so two superadmins switching different cases never overwrite each other.
+const caseKey = (code, id) => `booth_case_off:${code}:${id}`;
+
+// The one place that decides which cases a visitor can be dealt or start: the event's admitted cases that are
+// switched on, so the draw and the start can never disagree. A running play reads eventCases (playCase) instead.
+const liveCases = (event) => eventCases(event.code).filter((k) => !event.off.has(k.case_id));
 
 const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
 // The bank for step n is keyed by the tier letters of the n answers before it.
@@ -185,19 +188,31 @@ function nextOf(bank, ask) {
 
 const instant = (text) => (BoothTimeSchema.safeParse(text).success ? new Date(text) : null);
 
+async function readSettingRows(keys) {
+  if (keys.length === 0) return [];
+  const { data, error } = await supabase.from('app_settings').select('key, value, value_text').in('key', keys);
+  return error || !Array.isArray(data) ? null : data;
+}
+
+/** The booth settings and the event's per-case switches, by key. */
 async function readBoothRows() {
-  const { data, error } = await supabase.from('app_settings').select('key, value, value_text')
-    .in('key', Object.values(BOOTH_SETTINGS));
-  if (error || !Array.isArray(data)) return null;
-  return Object.fromEntries(data.map((r) => [r.key, r]));
+  const settings = await readSettingRows(Object.values(BOOTH_SETTINGS));
+  if (!settings) return null;
+  const rows = Object.fromEntries(settings.map((r) => [r.key, r]));
+  const code = rowText(rows, BOOTH_SETTINGS.code);
+  const switches = await readSettingRows(eventCases(code).map((k) => caseKey(code, k.case_id)));
+  if (!switches) return null;
+  return { ...rows, ...Object.fromEntries(switches.map((r) => [r.key, r])) };
 }
 
 const rowText = (rows, key) => (typeof rows[key]?.value_text === 'string' && rows[key].value_text.trim()) || null;
 
 function boothEvent(rows) {
   const ceiling = Number(rows[BOOTH_SETTINGS.ceilingUsd]?.value);
+  const code = rowText(rows, BOOTH_SETTINGS.code);
   return {
-    code: rowText(rows, BOOTH_SETTINGS.code),
+    code,
+    off: new Set(eventCases(code).filter((k) => Number(rows[caseKey(code, k.case_id)]?.value) === 1).map((k) => k.case_id)),
     enabled: Number(rows[BOOTH_SETTINGS.enabled]?.value) === 1,
     opensAt: instant(rowText(rows, BOOTH_SETTINGS.opensAt)),
     closesAt: instant(rowText(rows, BOOTH_SETTINGS.closesAt)),
@@ -212,7 +227,7 @@ async function readBoothEvent() {
 
 function eventState(event, now) {
   if (!event.enabled) return { open: false, reason: 'off' };
-  if (liveCases(event.code).length === 0 || !event.opensAt || !event.closesAt || event.ceilingUsd == null || event.opensAt >= event.closesAt) {
+  if (eventCases(event.code).length === 0 || !event.opensAt || !event.closesAt || event.ceilingUsd == null || event.opensAt >= event.closesAt) {
     return { open: false, reason: 'misconfigured' };
   }
   if (now < event.opensAt) return { open: false, reason: 'not_yet' };
@@ -220,10 +235,17 @@ function eventState(event, now) {
   return { open: true };
 }
 
-async function openEvent(now) {
+// A running play needs only its own case (playCase), so a pool switched all off stops new plays and lets the
+// running ones reply and score.
+function dealState(event, now) {
+  const state = eventState(event, now);
+  return state.open && liveCases(event).length === 0 ? { open: false, reason: 'misconfigured' } : state;
+}
+
+async function openEvent(now, stateOf = eventState) {
   const event = await readBoothEvent();
   if (!event) return { refused: 'unavailable' };
-  const state = eventState(event, now);
+  const state = stateOf(event, now);
   return state.open ? { event } : { refused: 'closed' };
 }
 
@@ -436,7 +458,7 @@ async function finish(playId, event, domains, tierPath) {
 async function boothStatus(now = new Date()) {
   const event = await readBoothEvent();
   if (!event) return { refused: 'unavailable' };
-  const state = eventState(event, now);
+  const state = dealState(event, now);
   return { body: { open: state.open, ...(state.open ? {} : { reason: state.reason }), event_code: event.code } };
 }
 
@@ -458,12 +480,12 @@ async function leastPlayed(code, live) {
  *  returned); ids in `seen` that are no longer live are ignored.
  *  @returns {Promise<Result>} body: { case_id, teaser: { th, en } } and nothing else of the case */
 async function drawCase(input, now = new Date()) {
-  const opened = await openEvent(now);
+  const opened = await openEvent(now, dealState);
   if (opened.refused) return opened;
   const parsed = DrawSchema.safeParse(input);
   if (!parsed.success) return { refused: 'bad_request' };
   const { seen } = parsed.data;
-  const live = liveCases(opened.event.code);
+  const live = liveCases(opened.event);
   let pool;
   if (seen.length === 0) {
     pool = await leastPlayed(opened.event.code, live);
@@ -481,12 +503,12 @@ async function drawCase(input, now = new Date()) {
 
 /** @returns {Promise<Result>} body: { play_id, tag, answer_max_chars, case: { vignette }, next, sig } */
 async function startPlay(input, now = new Date()) {
-  const opened = await openEvent(now);
+  const opened = await openEvent(now, dealState);
   if (opened.refused) return opened;
   const parsed = StartSchema.safeParse(input);
   if (!parsed.success) return { refused: 'bad_request' };
   const { event } = opened;
-  const kase = liveCases(event.code).find((k) => k.case_id === parsed.data.case_id);
+  const kase = liveCases(event).find((k) => k.case_id === parsed.data.case_id);
   if (!kase) return { refused: 'case_off' };
   // PostgREST answers a table function with an array of rows.
   const { data, error } = await supabase.rpc('booth_start_play',
@@ -659,17 +681,39 @@ const BoothSettingsPatch = z.object({
   opens_at: BoothTimeSchema.nullable().optional(),
   closes_at: BoothTimeSchema.nullable().optional(),
   ceiling_usd: z.number().positive().max(20).optional(),
+  // true switches the case on.
+  cases: z.record(CASE_ID, z.boolean())
+    .refine((c) => { const n = Object.keys(c).length; return n > 0 && n <= SEEN_MAX; }, { message: `Send 1 to ${SEEN_MAX} cases` })
+    .optional(),
 }).strict().refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
 
-async function playTotals(code) {
-  if (!code) return { plays: 0, scored: 0, spend_usd: 0 };
-  const { data, error } = await supabase.from('booth_plays').select('status, spend_usd').eq('event_code', code);
-  if (error || !Array.isArray(data)) return { plays: null, scored: null, spend_usd: null };
+/** @returns {Promise<object[] | null>} the event's plays, null when they cannot be read */
+async function eventPlays(code) {
+  if (!code) return [];
+  const { data, error } = await supabase.from('booth_plays').select('case_id, status, spend_usd').eq('event_code', code);
+  return error || !Array.isArray(data) ? null : data;
+}
+
+function playTotals(played) {
+  if (!played) return { plays: null, scored: null, spend_usd: null };
   return {
-    plays: data.length,
-    scored: data.filter((r) => r.status === 'scored').length,
-    spend_usd: usd(data.reduce((acc, r) => acc + Number(r.spend_usd ?? 0), 0)),
+    plays: played.length,
+    scored: played.filter((r) => r.status === 'scored').length,
+    spend_usd: usd(played.reduce((acc, r) => acc + Number(r.spend_usd ?? 0), 0)),
   };
+}
+
+/** The event's admitted pool as the card lists it. Admitted on the later of its two admission dates. */
+function casePool(event, played) {
+  return eventCases(event.code).map((k) => {
+    const { safety_review: review, sandbox } = k.admission;
+    return {
+      case_id: k.case_id, teaser: k.teaser, version: k.version,
+      admitted_on: review.date > sandbox.date ? review.date : sandbox.date,
+      plays: played ? played.filter((r) => r.case_id === k.case_id).length : null,
+      on: !event.off.has(k.case_id),
+    };
+  });
 }
 
 /** @returns {Promise<object | null>} null when the settings cannot be read */
@@ -677,7 +721,8 @@ async function boothSettings(now = new Date()) {
   const rows = await readBoothRows();
   if (!rows) return null;
   const event = boothEvent(rows);
-  const state = eventState(event, now);
+  const state = dealState(event, now);
+  const played = await eventPlays(event.code);
   return {
     event_code: event.code,
     enabled: event.enabled,
@@ -685,7 +730,8 @@ async function boothSettings(now = new Date()) {
     closes_at: rowText(rows, BOOTH_SETTINGS.closesAt),
     ceiling_usd: event.ceilingUsd,
     state: state.open ? 'open' : state.reason,
-    ...(await playTotals(event.code)),
+    ...playTotals(played),
+    cases: casePool(event, played),
   };
 }
 
@@ -705,6 +751,12 @@ async function updateBoothSettings(input) {
   if (enabled && !(opens && closes)) {
     return { refused: 'bad_request', error: 'A booth that is switched on needs both opens_at and closes_at' };
   }
+  const code = rowText(rows, BOOTH_SETTINGS.code);
+  const admitted = new Set(eventCases(code).map((k) => k.case_id));
+  const switched = Object.entries(patch.cases ?? {}).sort(([a], [b]) => (a < b ? -1 : 1));
+  if (switched.some(([id]) => !admitted.has(id))) {
+    return { refused: 'bad_request', error: 'cases may name only admitted cases of the event' };
+  }
   const updated_at = new Date().toISOString();
   const row = (key, value, value_text = null) => ({ key, value, value_text, updated_at });
   // The switch and both bounds are checked together above, so they are written together from the merged values:
@@ -717,6 +769,7 @@ async function updateBoothSettings(input) {
     touchesWindow && row(BOOTH_SETTINGS.opensAt, 0, opens),
     touchesWindow && row(BOOTH_SETTINGS.closesAt, 0, closes),
     patch.ceiling_usd !== undefined && row(BOOTH_SETTINGS.ceilingUsd, patch.ceiling_usd),
+    ...switched.map(([id, on]) => row(caseKey(code, id), on ? 0 : 1)),
   ].filter(Boolean);
   const { error } = await supabase.from('app_settings').upsert(upserts);
   return error ? { refused: 'unavailable' } : { changed: patch };

@@ -601,6 +601,78 @@ describe('POST /booth/draw (#248)', () => {
   });
 });
 
+describe('a case switched off during the event (#249)', () => {
+  const switched = (id, value) => settings.rows.push({ key: `booth_case_off:${EVENT}:${id}`, value, value_text: null });
+  const drawnSet = async (n, seen) => {
+    const out = new Set();
+    for (let i = 0; i < n; i += 1) {
+      newIp();
+      const res = await post('/booth/draw', { seen });
+      expect(res.status).toBe(200);
+      out.add(res.body.case_id);
+    }
+    return out;
+  };
+
+  beforeEach(() => { process.env.BOOTH_CASES_DIR = casesDir(...[1, 2, 3, 4].map(caseNo)); });
+
+  test('is never drawn, on a first draw nor on a reroll; a case switched back on is drawn again', async () => {
+    switched('case-2', 1);
+    switched('case-3', 0);
+    expect(await drawnSet(80, [])).toEqual(new Set(['case-1', 'case-3', 'case-4']));
+    expect(await drawnSet(60, ['case-1'])).toEqual(new Set(['case-3', 'case-4']));
+    expect(await drawnSet(10, ['case-1', 'case-3', 'case-4'])).not.toContain('case-2');
+  });
+
+  test('the least-played draw counts only the cases still on', async () => {
+    for (const id of ['case-1', 'case-3', 'case-4']) seedPlay({ case_id: id });
+    switched('case-2', 1);
+    expect(await drawnSet(40, [])).toEqual(new Set(['case-1', 'case-3', 'case-4']));
+  });
+
+  test('is refused at start with 409 case_off, with no database function called', async () => {
+    switched('case-2', 1);
+    const res = await post('/booth/plays', { case_id: 'case-2' });
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ error: expect.any(String), reason: 'case_off' });
+    expect(rpcCalls).toEqual([]);
+    expect((await post('/booth/plays', { case_id: 'case-1' })).status).toBe(201);
+  });
+
+  test('a play started before the switch still replies and scores on its own case', async () => {
+    process.env.BOOTH_CASES_DIR = casesDir(KASE, caseNo(1));
+    const p = await begin();
+    expect((await answer(p, 'best')).body.status).toBe('replied');
+    switched(KASE.case_id, 1);
+    expect((await post('/booth/plays', { case_id: KASE.case_id })).status).toBe(409);
+    expect((await answer(p, 'reasonable')).body.status).toBe('replied');
+    expect((await answer(p, 'best')).body.status).toBe('replied');
+    const res = await score(p);
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('scored');
+    expect(plays.get(p.id)).toMatchObject({ case_id: KASE.case_id, status: 'scored', tier_path: 'BRB' });
+  });
+
+  test('with every case switched off the booth reads misconfigured and draws nothing', async () => {
+    for (const n of [1, 2, 3, 4]) switched(`case-${n}`, 1);
+    const status = await get('/booth/status');
+    expect(status.body).toMatchObject({ open: false, reason: 'misconfigured' });
+    expect((await post('/booth/draw', { seen: [] })).status).toBe(403);
+  });
+
+  test('switching off the last case still on lets a running play on it reply and score', async () => {
+    process.env.BOOTH_CASES_DIR = casesDir(KASE);
+    const p = await begin();
+    expect((await answer(p, 'best')).body.status).toBe('replied');
+    switched(KASE.case_id, 1);
+    expect((await get('/booth/status')).body).toMatchObject({ open: false, reason: 'misconfigured' });
+    expect((await post('/booth/plays', { case_id: KASE.case_id })).status).toBe(403);
+    expect((await answer(p, 'reasonable')).body.status).toBe('replied');
+    expect((await answer(p, 'best')).body.status).toBe('replied');
+    expect((await score(p)).body.status).toBe('scored');
+  });
+});
+
 describe('POST /booth/plays/:id/reply', () => {
   test('step 1 sends the vignette, the asked variant and the tapped option, plus the next bank in exactly rimpl\'s shape', async () => {
     const p = await begin();

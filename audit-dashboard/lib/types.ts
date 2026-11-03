@@ -372,6 +372,16 @@ export interface RaterSpread {
 // opens_at / closes_at are the stored text, always with an explicit offset. A null count is a failed read,
 // not zero. `state` is why the kiosk is or is not taking plays right now.
 export type BoothState = 'open' | 'off' | 'not_yet' | 'ended' | 'misconfigured';
+/** One admitted case of the booth event, as GET /admin/booth lists it. `on` false = no longer drawn or started. */
+export interface BoothCase {
+  case_id: string;
+  teaser: { th: string; en: string };
+  version: string;
+  admitted_on: string;
+  plays: number | null;
+  on: boolean;
+}
+
 export interface BoothSettings {
   event_code: string | null;
   enabled: boolean;
@@ -382,6 +392,7 @@ export interface BoothSettings {
   plays: number | null;
   scored: number | null;
   spend_usd: number | null;
+  cases: BoothCase[];
 }
 
 // GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the overview page, the users
