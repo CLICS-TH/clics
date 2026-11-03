@@ -2,7 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sourcesDigest, promoDigest, LOCK, PROMO, SERVED, REPO } from '../promo/lock.mjs';
-import { installStub, SCORE, BOARD, TAG } from '../promo/stub.mjs';
+import { installStub, SCORE, BOARD, TAG, KASE } from '../promo/stub.mjs';
 
 const PUBLIC = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
 const PROMO_DIR = fileURLToPath(new URL('../promo', import.meta.url));
@@ -170,6 +170,11 @@ export default [
       const opening = (await readFile(join(SCENES, 'hook.html'), 'utf8').catch(() => '')).replace(/<(style|script)>[\s\S]*?<\/\1>/g, '')
         .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       h.check(opening.startsWith(HEADLINE), `promo: the reel opens on the owner's headline "${HEADLINE}" (hook.html reads "${opening.slice(0, 60)}")`);
+      // The admitted case is the one a visitor will play: no option of any of its steps (its diagnosis among them).
+      const options = Object.values(KASE.banks).flatMap((b) => (Array.isArray(b.options) ? [b] : Object.values(b)))
+        .flatMap((b) => b.options).flatMap((o) => [o.label?.th, o.label?.en, o.label]).filter((t) => typeof t === 'string' && t.length > 2);
+      const leaks = files.flatMap((f) => options.filter((o) => text[f].includes(o)).map((o) => `${f}: "${o}"`));
+      h.check(options.length > 9 && leaks.length === 0, `promo: no scene shows an option of the admitted case (${options.length} checked)${leaks.length ? `: ${leaks.join('; ')}` : ''}`);
       const unlabelled = SCORED_SCENES.filter((f) => !text[f]?.includes(h.DEMO_LABEL.th) || !text[f].includes(h.DEMO_LABEL.en));
       h.check(unlabelled.length === 0, `promo: the demo label, TH and EN, in ${SCORED_SCENES.join(', ')}${unlabelled.length ? ` (missing in ${unlabelled.join(', ')})` : ''}`);
     },

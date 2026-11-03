@@ -2,13 +2,13 @@
 // Ties the shipped promo.mp4 to the sources it was rendered from (#216). render.sh writes promo.lock.json after
 // a render; the booth harness (scenarios/promo.mjs) recomputes both digests and fails when either moved, so an
 // edited scene, stub or case step without a re-render, or a hand-swapped MP4, cannot ship unnoticed.
-// The booth page enters through capture-files.json, every file the capture served it; the case through the parts
-// the video shows: the teaser, the vignette and step 1 as the stub asks it (SPEC.md).
+// The booth page enters through capture-files.json, every file the capture served it; the case through the one part
+// the video shows: its teaser (SPEC.md). The reel never shows the case's options or diagnosis.
 import { createHash } from 'node:crypto';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CASE_FILE, nextFor } from './stub.mjs';
+import { CASE_FILE } from './stub.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 export const REPO = fileURLToPath(new URL('../../../', import.meta.url));
@@ -35,7 +35,7 @@ export async function sourcesDigest({ read = readFile } = {}) {
   const hash = createHash('sha256');
   for (const f of [...new Set(files)]) hash.update(`${relative(REPO, f)}\0${sha(await read(f))}\n`);
   const kase = JSON.parse(await read(CASE_FILE, 'utf8'));
-  hash.update(`case\0${sha(JSON.stringify({ teaser: kase.teaser, vignette: kase.vignette, step1: nextFor('', kase) }))}\n`);
+  hash.update(`case\0${sha(JSON.stringify({ teaser: kase.teaser }))}\n`);
   return hash.digest('hex');
 }
 

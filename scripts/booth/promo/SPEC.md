@@ -8,13 +8,14 @@ OUTPUT:  HyperFrames, 1080 x 1920 portrait, 30 fps; also renders at 2160 x 3840 
 TIME:    24 s x 30 = 720 frames. Loops: the last frame is the first frame (the flat ECG line alone on the canvas),
          so the cut back to frame 0 has no seam. The manifest lists the reel twice; the loop rewinds the same
          <video> for the second play.
-AUDIO:   one music bed, assets/music/bgm.m4a: HeyGen catalog track 8abf0643b6b9430080e05ba84685f1dd ("clean modern
-         upbeat electronic pluck, 120 BPM"), first 24 s, 0.15 s fade in, 0.8 s fade out. The kiosk plays it muted
-         (booth-loop.js); it is there for reuse off the kiosk.
+AUDIO:   one music bed, assets/music/bgm.m4a: HeyGen music library track 8abf0643b6b9430080e05ba84685f1dd ("clean
+         modern upbeat electronic pluck, 120 BPM"), fetched 2026-11-03 through `hyperframes media-use resolve` (provider
+         heygen.audio.sounds) on the owner's HeyGen account (OAuth). Licence: HeyGen's terms for its music library;
+         they were not reviewed for this PR, so read them before the file is used anywhere but the kiosk. First 24 s, 0.15 s fade in, 0.8 s fade out. The kiosk plays it muted (booth-loop.js).
 LOOK:    reel energy in the booth's tokens. Full-bleed floods cut on the beat: canvas #faf9f5, ink #141413, accent
          #a9583e. Kinetic type: every line slides up out of its own mask (expo.out 0.4-0.5 s), exits up
          (power3.in 0.22-0.25 s). Thai is Noto Sans Thai 700-800; English Inter 500-700; the wordmark Cormorant.
-         80 % motion graphic, 20 % the booth's real captured screens (step 1, the result card, its blurred QR).
+         Mostly motion graphic; the booth's real captured result card and its blurred QR are the real screens.
 FLOOR:   the loop shows the video at 0.8958 (1080 x 1720 stage), so nothing is authored under 32 px; the smallest
          are the demo label (Thai 38 px, English 36 px). Every Thai line is one nowrap phrase or a paragraph broken
          by hand at a word boundary, so no word can break across lines; the harness measures each with the real
@@ -22,17 +23,19 @@ FLOOR:   the loop shows the video at 0.8958 (1080 x 1720 stage), so nothing is a
          soft cream on ink 12.5:1.
 COPY:    only what is true now. The demo label sits on every frame where a score can be seen (result.html). No
          "validated" outside it, no "On-premise".
-CASE:    leptospirosis, the only admitted case. draw.html carries the case teaser by hand; lock.mjs digests the
-         teaser, the vignette and step 1, so a change to any of them fails the harness until render.sh runs again.
+CASE:    leptospirosis, the only admitted case. The reel shows only its teaser (draw.html, by hand; lock.mjs digests
+         it), never its options or its diagnosis. The answer scene is a made-up headache example, labelled so.
 SHOTS:
   0-4     hook. Frame 0: the flat ECG line. The accent beat fires, then the owner's headline slams in, line by
           line: "การเรียนรู้ที่แท้จริง / วัดจากกระบวนการคิด / ไม่ใช่เวลา", English under it.
   4-6.5   try (accent flood). "ลองเล่นได้เลย / Try it right here"; a ring draws round "5 นาที / minutes";
           "ไม่ต้องลงชื่อเข้าใช้ / No sign-in needed".
   6.5-10  1 draw (ink). Three card backs shuffle, the top one flips to the case teaser.
-  10-14.5 2 answer (canvas). The real step 1 rises tilted; a fingertip picks B; three step pills fill 1-2-3.
+  10-14.5 2 answer (canvas). A made-up example step ("ตัวอย่างสมมติ / Made-up example", headache options) rises
+          tilted; a fingertip picks B; three step pills fill 1-2-3.
           "แตะตัวเลือก หรือพิมพ์เอง / Tap a choice, or type your own".
-  14.5-18.5 3 result (canvas). The real result card punches in on the score; "and what to practise next";
+  14.5-18.5 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
+          "and what to practise next";
           the demo label throughout.
   18.5-21 4 QR (ink). The card's own QR (blurred at capture) in scan brackets, a scan line sweeps;
           "ไม่เก็บข้อมูลส่วนตัว / No personal data kept".

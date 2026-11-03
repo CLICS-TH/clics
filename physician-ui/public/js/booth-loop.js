@@ -88,7 +88,9 @@ export function mountLoop(container) {
       life.signal.addEventListener('abort', () => { clearTimeout(timer); resolve(false); }, { once: true });
       return;
     }
-    const replay = item.type === 'video' && layer.dataset.loopSrc === item.src ? layer.querySelector('video') : null;
+    // A video that failed is never rewound: the next item loads afresh instead.
+    const shown = layer.querySelector('video');
+    const replay = item.type === 'video' && layer.dataset.loopSrc === item.src && shown && !shown.error ? shown : null;
     const node = replay ?? (item.type === 'image'
       ? el('img', { alt: '', decoding: 'async' })
       : el('video', { muted: '', playsinline: '', autoplay: '', preload: 'auto' }));

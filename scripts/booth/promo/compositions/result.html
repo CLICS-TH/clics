@@ -2,7 +2,7 @@
   <style>
     #root { position: absolute; inset: 0; }
     #result-card { position: absolute; left: 60px; top: 600px; width: 960px; height: 560px; border-radius: 36px; overflow: hidden; background: #fff; border: 2px solid var(--hairline); box-shadow: 0 30px 70px rgba(20, 20, 19, 0.22); }
-    #result-zoom { position: absolute; inset: 0; transform-origin: 34% 42%; }
+    #result-zoom { position: absolute; inset: 0; }
     #result-zoom img { position: absolute; left: -60px; top: -40px; width: 1080px; height: auto; display: block; }
     #result-next { position: absolute; left: 108px; right: 108px; top: 1240px; text-align: center; }
     #result-next .th { font-size: 60px; line-height: 1.45; font-weight: 700; color: var(--ink); }
@@ -17,7 +17,8 @@
         <p class="en" lang="en"><span class="ln"><span id="result-e1">See your result</span></span></p>
       </div>
     </div>
-    <!-- The booth's own result card, captured by capture.mjs: Booth #042, the stub's one score, its QR blurred. -->
+    <!-- The booth's own result card, captured by capture.mjs: Booth #042, the stub's one score, its QR blurred. The
+         window shows the card's full width (x 64-1016 of the capture) and ends in the gap above "Practise next". -->
     <div id="result-cardclip" class="clip" data-start="0" data-duration="4" data-track-index="3">
       <div id="result-card"><div id="result-zoom"><img src="assets/capture/result.png" alt="" /></div></div>
     </div>
@@ -37,8 +38,8 @@
     tl.fromTo("#result-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.18);
     // The demo label is on screen from the first frame the score can be seen.
     tl.fromTo("#result-card", { scale: 0.5, rotation: -8, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.0);
-    tl.fromTo("#result-zoom", { scale: 1 }, { scale: 1.45, duration: 0.5, ease: "power3.inOut" }, 1.0);
-    tl.to("#result-zoom", { scale: 1, duration: 0.5, ease: "power3.inOut" }, 2.2);
+    // The punch moves the whole card, never a crop inside it, so no word on the card is ever cut.
+    tl.to("#result-card", { scale: 1.06, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, 1.0);
     tl.fromTo(["#result-l2", "#result-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 2.4);
     tl.to(["#result-l1", "#result-e1", "#result-l2", "#result-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 3.75);
     tl.to("#result-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 3.75);
