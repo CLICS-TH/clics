@@ -1,6 +1,6 @@
 {
   "case_id": "sjs-ten-allopurinol",
-  "version": "1",
+  "version": "2",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 58 ปี มาโรงพยาบาลชุมชน มีไข้ แผลในปาก และผื่นลามมา 2 วัน",
@@ -58,18 +58,6 @@
           "line": {
             "th": "ไข้และผื่นหลังเริ่มอัลโลพูรินอล 3 สัปดาห์เข้าได้",
             "en": "Fever and rash 3 weeks after starting allopurinol fit it."
-          }
-        },
-        {
-          "id": "c",
-          "tier": "reasonable",
-          "label": {
-            "th": "อีริทีมามัลติฟอร์มชนิดรุนแรง",
-            "en": "Erythema multiforme major"
-          },
-          "line": {
-            "th": "ผื่นตุ่มน้ำร่วมกับแผลในปากชี้ไปทางนี้ได้",
-            "en": "A blistering rash with mouth sores can point here."
           }
         },
         {
@@ -548,8 +536,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลเลือดแรกรับ BUN สูง ผิวหลุดร้อยละ 12 ดูแลอย่างไร",
-              "en": "Admission bloods show a high BUN and 12% skin detachment. Your plan?"
+              "th": "ผิวหลุดร้อยละ 12 และตาแดงสองข้าง ดูแลอย่างไร",
+              "en": "12% of his skin is detached and both eyes are red. Your plan?"
             }
           },
           {
@@ -621,8 +609,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ผลเลือดแรกรับ BUN สูง ผิวหลุดร้อยละ 12 ดูแลอย่างไร",
-              "en": "Admission bloods show a high BUN and 12% skin detachment. Your plan?"
+              "th": "ผิวหลุดร้อยละ 12 และตาแดงสองข้าง ดูแลอย่างไร",
+              "en": "12% of his skin is detached and both eyes are red. Your plan?"
             }
           },
           {
@@ -1071,8 +1059,8 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-02",
-      "findings": "Fresh reviewer, re-run on the final text, checked against BAD 2016 SJS/TEN guidance, SCORTEN, and Thai HLA-B*5801 and SJS/TEN practice. The vignette fits SJS-TEN overlap from allopurinol: 12% detachment, 3-week latency, SCORTEN 2 from the vignette and 3 with the admission BUN of 32 mg/dL. Every step-3 option stops allopurinol and transfers him out of the community hospital, no option is unsafe, and every step-3 question is true on every path that reaches it. Fixed from this review: the antibiotic line no longer claims a prophylactic benefit; IV labels say IV in Thai too; the SCORTEN line no longer lists CBC; the BB question gives the BUN value; the Thai vignette separates its two time spans. Open nits: EM major as a reasonable step-1 diagnosis is generous, and the burn-unit option leaves eye care to the fluids option."
+      "date": "2026-11-03",
+      "findings": "Fresh reviewer, version 2: checked the vignette, teaser and all 13 banks against BAD 2016 SJS/TEN guidance, Bastuji-Garin, SCORTEN and Thai allopurinol/HLA-B*5801 practice. Erythema multiforme major was removed from step 1, since 12% detachment with dusky truncal macules and a drug trigger excludes it. The BW and RB question that gave a BUN those paths never ordered now repeats only vignette facts. Every step-3 option stops allopurinol and transfers him out, no option is unsafe, and Thai and English agree. No must-fix finding."
     }
   }
 }
