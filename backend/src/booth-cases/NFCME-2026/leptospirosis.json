@@ -1185,6 +1185,10 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
       "findings": "Three fresh reviews on 2026-11-02 against WHO/ILS 2003, WHO dengue 2009, Phimda 2007 and Suputtamongkol 2004 (the Thai DDC guideline could not be retrieved). Doxycycline-first is correct where leptospirosis and scrub typhus are co-endemic. Fixed before recording: amoxicillin and single-drug IV plans that left scrub typhus untreated (every step-3 plan now covers both); step-2 options without kidney tests, which also made two reasonable options worse than weaker ones; step-3 reveals of results their path never ordered; influenza routing into the dengue bank; warning-sign advice on the dengue paths; Thai/English parity in route words, drug names, test names and evidence verbs."
+    },
+    "sandbox": {
+      "run_id": "sbx-202611030715-1573",
+      "date": "2026-11-03"
     }
   }
 }
