@@ -96,17 +96,22 @@ describe('playOnce', () => {
     const ai = personaAi(['no idea', '{"choice": "not-offered"}']);
     const play = await playOnce({ kase: KASE, choose: personaChooser('average', { random: () => 0.9 }), ai });
     expect(play).toMatchObject({ composite: null, fallbacks: 1, error: 'more than 1 unusable persona answer' });
+    expect(play.unusable_answers).toEqual([
+      { step: 1, typing: false, content: 'no idea' }, { step: 2, typing: false, content: '{"choice": "not-offered"}' },
+    ]);
     expect(ai.chat).toHaveBeenCalledTimes(1);
     expect(ai.evaluate).not.toHaveBeenCalled();
   });
 });
 
 describe('runPlays', () => {
-  const jobs = jobsFor([KASE], { personaRuns: 0 });
+  const jobs = jobsFor([KASE], { pathRuns: 1, personaRuns: 0 });
 
-  test('plays each scripted path once and each persona per run', () => {
-    expect(jobsFor([KASE], { personaRuns: 3 }).map((j) => j.group))
-      .toEqual(['best', 'mixed', 'weakest', 'strong', 'strong', 'strong', 'average', 'average', 'average', 'weak', 'weak', 'weak']);
+  test('plays each scripted path and each persona 3 times by default, and each as often as asked', () => {
+    const three = ['best', 'mixed', 'weakest', 'strong', 'average', 'weak'].flatMap((g) => [g, g, g]);
+    expect(jobsFor([KASE]).map((j) => j.group)).toEqual(three);
+    expect(jobsFor([KASE], { pathRuns: 2, personaRuns: 1 }).map((j) => `${j.group}#${j.run}`))
+      .toEqual(['best#1', 'best#2', 'mixed#1', 'mixed#2', 'weakest#1', 'weakest#2', 'strong#1', 'average#1', 'weak#1']);
   });
 
   test('stops at the cap: a play starts only if its worst case still fits, and every later play is left unplayed', async () => {
@@ -127,13 +132,13 @@ describe('sandbox.mjs', () => {
   test('without --go it prints the estimated spend and spends nothing', () => {
     const out = sandbox(['--cases', fixtureDir()]);
     expect(out.status).toBe(0);
-    expect(out.stdout).toMatch(/12 plays\. Estimated spend \$\d+\.\d+ typical, \$\d+\.\d+ if every call bills its worst case\. Cap \$30\./);
+    expect(out.stdout).toMatch(/18 plays\. Estimated spend \$\d+\.\d+ typical, \$\d+\.\d+ if every call bills its worst case\. Cap \$30\./);
     expect(out.stdout).toMatch(/Nothing spent/);
   });
 
   test.each([
     ['stopped at the cap', { stopped: true, scored: 20, planned: 36 }, /20 of 36 plays scored, stopped at the cap/],
-    ['with a play unscored', { scored: 35, planned: 36 }, /35 of 36 plays scored\)/],
+    ['with a play unscored, from before #344 pooled only complete groups', { scored: 35, planned: 36 }, /35 of 36 plays scored\)/],
     ['over the cap', { over_cap: true, scored: 36, planned: 36 }, /over the cap/],
   ])('refuses a --pool report from a run %s', (_, run, message) => {
     const groups = ['best', 'mixed', 'weakest'];
@@ -145,6 +150,17 @@ describe('sandbox.mjs', () => {
     expect(out.status).toBe(2);
     expect(out.stderr).toMatch(/is from an incomplete run/);
     expect(out.stderr).toMatch(message);
+  });
+
+  test('accepts a --pool report with an unscored play once its medians pool only complete groups', () => {
+    const groups = ['best', 'mixed', 'weakest'];
+    const pool = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-pool-')), 'partial.json');
+    fs.writeFileSync(pool, JSON.stringify({ stopped: false, over_cap: false, scored: 197, planned: 198, verdict: {
+      medians: Object.fromEntries(groups.map((g) => [g, 60])), pool_n: Object.fromEntries(groups.map((g) => [g, 11])), gap_min: 6.59,
+    } }));
+    const out = sandbox(['--cases', fixtureDir(), '--persona-runs', '0', '--pool', pool]);
+    expect(out.status).toBe(0);
+    expect(out.stdout).toMatch(/Nothing spent/);
   });
 
   test('the worst-case reservation follows the configured token rates', () => {
@@ -176,7 +192,7 @@ describe('sandbox.mjs', () => {
     expect(out.status).toBe(1);
     const [json] = fs.readdirSync(outDir).filter((f) => f.endsWith('.json'));
     const report = JSON.parse(fs.readFileSync(path.join(outDir, json), 'utf8'));
-    expect(report).toMatchObject({ stopped: true, scored: 0, planned: 3, spent_usd: 0 });
+    expect(report).toMatchObject({ stopped: true, scored: 0, planned: 9, path_runs: 3, spent_usd: 0 });
     expect(report.plays.every((p) => p.skipped === 'cap' && !p.calls)).toBe(true);
     expect(fs.readFileSync(path.join(outDir, json.replace(/\.json$/, '.md')), 'utf8')).toMatch(/stopped at the cap/);
   });

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
  * Physician sandbox (#252, ADR 0005): plays every candidate booth case through rimpl, booth chat then the unchanged
- * evaluator, and reports whether the cases score alike. Per case: the scripted best, mixed and weakest paths once,
- * and the strong, average and weak GP personas 3 times each; personas tap, and type at about one step in four.
+ * evaluator, and reports whether the cases score alike. Per case: the scripted best, mixed and weakest paths and the
+ * strong, average and weak GP personas, 3 times each by default; personas tap, and type at about one step in four.
  *
  *   node scripts/booth/sandbox.mjs                       # prints the plan and its estimated spend, spends nothing
  *   node --env-file=backend/.env --env-file=rimpl/.env scripts/booth/sandbox.mjs --go --cap 30
@@ -10,18 +10,19 @@
  *   --cases <dir>     case folder (default backend/src/booth-cases/NFCME-2026); admission is not required
  *   --case <id>       only this case (repeatable)
  *   --cap <usd>       stop before a play could take the spend past this (default 30)
+ *   --path-runs n     runs per scripted path (default 3; the band and the gap shrink as it grows)
  *   --persona-runs n  runs per persona (default 3; 0 plays the scripted paths only)
  *   --concurrency n   plays at once (default 3)
  *   --out <dir>       where the JSON report and summary go (default scripts/booth/sandbox-runs)
- *   --pool <json>     judge against an earlier complete report's pool medians (each pooled from 3 or more cases),
- *                     to rerun a few cases; a run that leaves any play unscored passes no case
+ *   --pool <json>     judge against an earlier report's pool medians (each pooled from 3 or more complete cases),
+ *                     to rerun a few cases; the report must not have stopped at or spent over its cap
  *   --go              spend: without it the script stops after the estimate
  *
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
  * It writes no database row and never calls the booth API: its only calls are rimpl's /chat and /evaluate (with
  * shadow off) and the persona model, and it refuses to run with a database client loaded.
- * Exit 0 when every case passes, 1 when one fails or the run is incomplete (a play unscored, stopped at the cap or
- * spent over it), 2 on a bad argument or setup.
+ * An unscored play fails its own case only; a run stopped at the cap or spent over it passes no case.
+ * Exit 0 when every case passes, 1 when one fails, 2 on a bad argument or setup.
  */
 import { createRequire } from 'node:module';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -43,7 +44,7 @@ const dbModules = Object.keys(require.cache).filter((m) => DB_CLIENT.test(m));
 if (dbModules.length) fail(`sandbox refuses to run with a database client loaded: ${dbModules[0]} and ${dbModules.length - 1} more`);
 
 function parseArgs(argv) {
-  const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: 30, personaRuns: 3,
+  const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: 30, pathRuns: 3, personaRuns: 3,
     concurrency: 3, out: path.join(HERE, 'sandbox-runs'), pool: null, go: false };
   const number = (flag, v, min) => { const n = Number(v); if (!Number.isFinite(n) || n < min) fail(`${flag} needs a number >= ${min}`); return n; };
   for (let i = 0; i < argv.length; i += 1) {
@@ -54,6 +55,7 @@ function parseArgs(argv) {
     if (flag === '--cases') opts.cases = path.resolve(v);
     else if (flag === '--case') opts.only.push(v);
     else if (flag === '--cap') opts.cap = number(flag, v, 0.01);
+    else if (flag === '--path-runs') opts.pathRuns = Math.floor(number(flag, v, 1));
     else if (flag === '--persona-runs') opts.personaRuns = Math.floor(number(flag, v, 0));
     else if (flag === '--concurrency') opts.concurrency = Math.floor(number(flag, v, 1));
     else if (flag === '--out') opts.out = path.resolve(v);
@@ -89,7 +91,9 @@ if (opts.pool) {
     earlier = JSON.parse(readFileSync(opts.pool, 'utf8'));
     pool = { medians: earlier.verdict.medians, pool_n: earlier.verdict.pool_n };
   } catch { fail(`--pool ${opts.pool} is not a sandbox report`); }
-  if (earlier.stopped || earlier.over_cap || !(earlier.scored >= earlier.planned)) {
+  // A report from before #344 pooled partly scored groups; since then only complete ones enter its medians.
+  const partial = !(earlier.scored >= earlier.planned) && earlier.verdict?.gap_min === undefined;
+  if (earlier.stopped || earlier.over_cap || partial) {
     fail(`--pool ${opts.pool} is from an incomplete run (${earlier.scored} of ${earlier.planned} plays scored`
       + `${earlier.stopped ? ', stopped at the cap' : ''}${earlier.over_cap ? ', over the cap' : ''}); use a complete run's report`);
   }
@@ -97,7 +101,7 @@ if (opts.pool) {
   if (thin.length) fail(`--pool ${opts.pool} has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}`);
 }
 const cases = loadCases(opts.cases, opts.only);
-const jobs = jobsFor(cases, { personaRuns: opts.personaRuns });
+const jobs = jobsFor(cases, { pathRuns: opts.pathRuns, personaRuns: opts.personaRuns });
 const est = estimate(jobs);
 console.log(`${cases.length} case(s): ${cases.map((k) => `${k.case_id}@${k.version}`).join(', ')}`);
 console.log(`${est.plays} plays. Estimated spend $${est.typical_usd} typical, $${est.worst_usd} if every call bills its worst case. Cap $${opts.cap}.`);
@@ -136,6 +140,7 @@ const report = {
   date: new Date().toISOString().slice(0, 10),
   rimpl_url: process.env.RIMPL_URL || 'http://localhost:3003',
   persona_model: ANTHROPIC_MODEL,
+  path_runs: opts.pathRuns,
   persona_runs: opts.personaRuns,
   cap_usd: opts.cap,
   spent_usd,
@@ -154,8 +159,8 @@ const report = {
   })),
   verdict: verdicts(table, groups, {
     pool,
-    runs: Object.fromEntries(groups.map((g) => [g, g in PATHS ? 1 : opts.personaRuns])),
-    incomplete: stopped || over_cap || scoredCount < jobs.length
+    runs: Object.fromEntries(groups.map((g) => [g, g in PATHS ? opts.pathRuns : opts.personaRuns])),
+    incomplete: stopped || over_cap
       ? `${scoredCount} of ${jobs.length} plays scored${stopped ? ', stopped at the cap' : ''}${over_cap ? `, spent over the $${opts.cap} cap` : ''}`
       : undefined,
   }),
