@@ -4,11 +4,11 @@
 // this one three-tap play showed (answers, choices, replies), never a free chat or what the physician is: the rubric forbids
 // reading a score as overall competence. Thai and English make the same strength of claim.
 
-/** Recorded like a case's admission.safety_review (ADR 0005): a fresh AI reviewer read all 21 pairs. */
+/** Recorded like a case's admission.safety_review (ADR 0005): fresh AI reviewers read all 21 pairs; this record covers the text that ships. */
 export const SAFETY_REVIEW = Object.freeze({
   model: 'claude-opus-5-5',
   date: '2026-11-03',
-  findings: 'Two fresh reviews of the 21 pairs. No clinical claims, no judgment of the physician, nothing demeaning. Fixed across both: lines the 3-tap play cannot show (d5 option-weighing, d6 answer coherence where the scorer wants a case summing-up, d1/d3 counting details), Thai stronger than English, English low bands harsher than Thai, d4 wrong for the first answer, Thai that read as translated. Open, outside the lines: domain names above them and the Practise next heading (issue 334).',
+  findings: 'Three fresh reviews of the 21 pairs. No clinical claims, no judgment of the physician, nothing demeaning. Fixed: d2 drifted from depth of reasoning, d4 wrong for the first answer, d6 described answer coherence where the scorer reads a summing-up, d3 high counted details, Thai stronger than English (d1 mid), d7 low English harsher than the Thai, and the low-band English lines lacked the Thai yet (d2, d4, d5, d6, d7). Open, not changed here (issue 334): d3 low and mid still count details; d5, d6 and d7 mid and high describe engagement with the AI a tap-only play may not show; the domain names above the lines and the Practise next heading.',
 });
 
 /** 0-2 is the low band, 3 the middle, 4-5 the high. */
@@ -21,8 +21,8 @@ export const BAND_LINES = Object.freeze({
     high: { th: 'คำตอบทั้งสามขั้นตรงประเด็นหลักของเคสอย่างเจาะจง', en: 'Your three answers were specific to the case\'s main issue.' },
   },
   d2: {
-    low: { th: 'คำตอบรอบนี้ยังไม่ค่อยแสดงเหตุผลเบื้องหลังคำตอบ', en: 'Your answers did not show much of the reasoning behind them.' },
-    mid: { th: 'คำตอบรอบนี้มีเหตุผลที่เข้าใจได้ แต่ยังไม่ลงลึก', en: 'Your answers gave sensible reasons but did not go into depth.' },
+    low: { th: 'คำตอบรอบนี้ยังไม่ค่อยแสดงเหตุผลเบื้องหลังคำตอบ', en: 'Your answers did not yet show much of the reasoning behind them.' },
+    mid: { th: 'คำตอบรอบนี้มีเหตุผลที่เข้าใจได้ แต่ยังไม่ลงลึก', en: 'Your answers gave sensible reasons but did not yet go into depth.' },
     high: { th: 'คำตอบรอบนี้ให้เหตุผลได้ชัดเจนและลงลึก', en: 'Your answers gave clear reasons that went into depth.' },
   },
   d3: {
@@ -31,22 +31,22 @@ export const BAND_LINES = Object.freeze({
     high: { th: 'คำตอบรอบนี้นำรายละเอียดผู้ป่วยรายนี้มาใช้ตัดสินใจหลายจุด', en: 'Your answers let this patient\'s details shape several decisions.' },
   },
   d4: {
-    low: { th: 'คำตอบขั้นถัดมายังต่อยอดจากขั้นก่อนหน้าไม่มากนัก', en: 'Your later answers did not build much on the step before.' },
+    low: { th: 'คำตอบขั้นถัดมายังต่อยอดจากขั้นก่อนหน้าไม่มากนัก', en: 'Your later answers did not yet build much on the step before.' },
     mid: { th: 'คำตอบขั้นถัดมาต่อยอดจากขั้นก่อนหน้าได้บางส่วน', en: 'Your later answers partly built on the step before.' },
     high: { th: 'คำตอบขั้นถัดมาต่อยอดจากขั้นก่อนหน้าอย่างชัดเจน', en: 'Your later answers clearly built on the step before.' },
   },
   d5: {
-    low: { th: 'รอบนี้ยังเห็นการชั่งน้ำหนักคำตอบจาก AI ไม่มากนัก', en: 'This play did not show much weighing of the AI\'s replies.' },
+    low: { th: 'รอบนี้ยังเห็นการชั่งน้ำหนักคำตอบจาก AI ไม่มากนัก', en: 'This play did not yet show much weighing of the AI\'s replies.' },
     mid: { th: 'รอบนี้เห็นการชั่งน้ำหนักคำตอบจาก AI อยู่บ้าง', en: 'This play showed some weighing of the AI\'s replies.' },
     high: { th: 'รอบนี้เห็นการชั่งน้ำหนักคำตอบจาก AI อย่างรอบคอบ', en: 'This play showed careful weighing of the AI\'s replies.' },
   },
   d6: {
-    low: { th: 'รอบนี้ยังเห็นการสรุปภาพรวมของเคสไม่มากนัก', en: 'This play did not show much summing-up of the case.' },
+    low: { th: 'รอบนี้ยังเห็นการสรุปภาพรวมของเคสไม่มากนัก', en: 'This play did not yet show much summing-up of the case.' },
     mid: { th: 'รอบนี้เห็นการสรุปภาพรวมของเคสอยู่บ้าง', en: 'This play showed some summing-up of the case.' },
     high: { th: 'รอบนี้เห็นการสรุปภาพรวมของเคสได้ชัดเจน', en: 'This play showed a clear summing-up of the case.' },
   },
   d7: {
-    low: { th: 'รอบนี้ยังเห็นการใช้คำตอบจาก AI เป็นเครื่องมือไม่มากนัก', en: 'This time the play showed little use of the AI\'s replies as a tool.' },
+    low: { th: 'รอบนี้ยังเห็นการใช้คำตอบจาก AI เป็นเครื่องมือไม่มากนัก', en: 'This play did not yet show much use of the AI\'s replies as a tool.' },
     mid: { th: 'รอบนี้เห็นการใช้คำตอบจาก AI เป็นเครื่องมืออยู่บ้าง', en: 'This play showed some use of the AI\'s replies as a tool.' },
     high: { th: 'รอบนี้เห็นการใช้คำตอบจาก AI เป็นเครื่องมืออย่างเหมาะสม', en: 'This play showed appropriate use of the AI\'s replies as a tool.' },
   },
