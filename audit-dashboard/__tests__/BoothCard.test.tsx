@@ -11,11 +11,15 @@ jest.mock('@/lib/api', () => ({ apiFetch: (...a: unknown[]) => apiFetch(...a) })
 jest.mock('@/components/Overlays', () => ({ toast: (...a: unknown[]) => toast(...a) }));
 
 import { BoothCard, toBangkokInput, fromBangkokInput } from '@/components/BoothCard';
-import type { BoothSettings } from '@/lib/types';
+import type { BoothCase, BoothSettings } from '@/lib/types';
 
+const CASE: BoothCase = {
+  case_id: 'cap-adult', teaser: { th: 'ชายวัย 52 ปี มีไข้และไอมา 3 วัน', en: 'A 52-year-old man with fever and cough for 3 days' },
+  version: 'v3', admitted_on: '2026-10-29', plays: 7, on: true,
+};
 const BOOTH: BoothSettings = {
   event_code: 'NFCME-2026', enabled: false, opens_at: '2026-11-03T08:00:00+07:00', closes_at: '2026-11-04T18:00:00+07:00',
-  ceiling_usd: 3, state: 'off', plays: 12, scored: 9, spend_usd: 4.2,
+  ceiling_usd: 3, state: 'off', plays: 12, scored: 9, spend_usd: 4.2, cases: [CASE],
 };
 
 function wire(get: unknown = BOOTH, patch: (body: Record<string, unknown>) => unknown = (b) => ({ ...BOOTH, ...b })) {
@@ -147,6 +151,43 @@ describe('BoothCard', () => {
     render(<BoothCard />);
     await loaded();
     expect(screen.getAllByText('—')).toHaveLength(3);
+  });
+
+  it('lists each admitted case with its teaser, version, admission date, plays and switch', async () => {
+    render(<BoothCard />);
+    await loaded();
+    const pool = within(screen.getByRole('group', { name: 'Case pool' }));
+    expect(pool.getByText(CASE.teaser.th)).toBeInTheDocument();
+    expect(pool.getByText(CASE.teaser.en)).toBeInTheDocument();
+    expect(pool.getByText(/cap-adult · v3/)).toBeInTheDocument();
+    expect(pool.getByText(/2026-10-29/)).toBeInTheDocument();
+    expect(pool.getByText(/Plays/).parentElement?.parentElement).toHaveTextContent(/Plays\s*7$/);
+    expect(pool.getByRole('button', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('switches a case off with its own PATCH and shows the server\'s echo', async () => {
+    wire(BOOTH, (b) => ({ ...BOOTH, cases: [{ ...CASE, on: (b.cases as Record<string, boolean>)['cap-adult'] }] }));
+    render(<BoothCard />);
+    await loaded();
+    fireEvent.click(screen.getByRole('button', { name: 'Case cap-adult switch' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-pressed', 'false'));
+    expect(patches()).toEqual([{ cases: { 'cap-adult': false } }]);
+  });
+
+  it('keeps a case switch where it was and toasts when the write fails', async () => {
+    wire(BOOTH, () => ({ error: 'boom' }));
+    render(<BoothCard />);
+    await loaded();
+    fireEvent.click(screen.getByRole('button', { name: 'Case cap-adult switch' }));
+    await waitFor(() => expect(toast).toHaveBeenCalledWith('boom', 'error'));
+    expect(screen.getByRole('button', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('says so when the event has no admitted case', async () => {
+    wire({ ...BOOTH, cases: [] });
+    render(<BoothCard />);
+    await loaded();
+    expect(screen.getByText(/No admitted case/)).toBeInTheDocument();
   });
 
   it('says so when the settings cannot be loaded', async () => {
