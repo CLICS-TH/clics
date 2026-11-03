@@ -14,8 +14,6 @@ const MAX_BYTES = 25 * 1024 * 1024;
 const BANNED = [/on[-\s]?premise/i, /validated/i, /ติดตั้งภายในองค์กร/];
 // The scenes built on screens that show a score: each must carry the booth's demo label.
 const SCORED_SCENES = ['result.html'];
-// The reel's own demo label (the owner's wording for the reel only, PR #351); the kiosk keeps DEMO_LABEL.
-const REEL_DEMO_LABEL = { th: 'คะแนนสาธิต: ไม่ใช่หน่วยกิต CME', en: 'Demo score: not CME credit' };
 // The owner's headline (#244 promo redesign): the reel opens on it, word for word.
 const HEADLINE = 'การเรียนรู้ที่แท้จริง วัดจากกระบวนการคิด ไม่ใช่เวลา';
 // H.264 profiles the kiosk's Chrome decodes in hardware and software alike, all 8-bit 4:2:0 when 66 or 77.
@@ -167,7 +165,7 @@ export default [
       const files = (await readdir(SCENES)).filter((f) => f.endsWith('.html')).sort();
       const text = Object.fromEntries(await Promise.all(files.map(async (f) => [f,
         (await readFile(join(SCENES, f), 'utf8')).replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, '')])));
-      const hits = files.flatMap((f) => BANNED.map((re) => re.exec(text[f].split(REEL_DEMO_LABEL.th).join('').split(REEL_DEMO_LABEL.en).join('')))
+      const hits = files.flatMap((f) => BANNED.map((re) => re.exec(text[f].split(h.DEMO_LABEL.th).join('').split(h.DEMO_LABEL.en).join('')))
         .filter(Boolean).map((m) => `${f}: "${m[0]}"`));
       h.check(files.length > 0 && hits.length === 0, `promo: copy rule in ${files.length} scenes${hits.length ? `: ${hits.join('; ')}` : ''}`);
       const opening = (await readFile(join(SCENES, 'hook.html'), 'utf8').catch(() => '')).replace(/<(style|script)>[\s\S]*?<\/\1>/g, '')
@@ -178,7 +176,7 @@ export default [
         .flatMap((b) => b.options).flatMap((o) => [o.label?.th, o.label?.en, o.label]).filter((t) => typeof t === 'string' && t.length > 2);
       const leaks = files.flatMap((f) => options.filter((o) => text[f].includes(o)).map((o) => `${f}: "${o}"`));
       h.check(options.length > 9 && leaks.length === 0, `promo: no scene shows an option of the admitted case (${options.length} checked)${leaks.length ? `: ${leaks.join('; ')}` : ''}`);
-      const unlabelled = SCORED_SCENES.filter((f) => !text[f]?.includes(REEL_DEMO_LABEL.th) || !text[f].includes(REEL_DEMO_LABEL.en));
+      const unlabelled = SCORED_SCENES.filter((f) => !text[f]?.includes(h.DEMO_LABEL.th) || !text[f].includes(h.DEMO_LABEL.en));
       h.check(unlabelled.length === 0, `promo: the demo label, TH and EN, in ${SCORED_SCENES.join(', ')}${unlabelled.length ? ` (missing in ${unlabelled.join(', ')})` : ''}`);
     },
   },

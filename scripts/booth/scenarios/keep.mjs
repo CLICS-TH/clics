@@ -114,7 +114,7 @@ export default [
       }));
       h.check(seen.score === '64' && seen.tag === 'Booth #007' && seen.date === '2026-11-03', `${width}: score 64, Booth #007 and the date shown (${seen.score}, ${seen.tag}, ${seen.date})`);
       h.check(seen.teaser?.includes(h.TREE.teaser.th.split(' ')[0]) && seen.teaser.includes(h.TREE.teaser.en), `${width}: the case teaser in Thai and English`);
-      h.check(seen.labels >= 1 && seen.label.includes('Demo score: not CME credit, not validated'), `${width}: the demo label is on the page`);
+      h.check(seen.labels >= 1 && seen.label.includes(h.DEMO_LABEL.th) && seen.label.includes(h.DEMO_LABEL.en), `${width}: the demo label is on the page`);
       h.check(seen.rows.length === 7 && seen.rows.every((row) => Number(row.value) === domains[row.key]
         && Math.abs(row.bar - domains[row.key] / 5) < 0.02
         && row.th === BAND_LINES[row.key][bandOf(domains[row.key])].th && row.en === BAND_LINES[row.key][bandOf(domains[row.key])].en),

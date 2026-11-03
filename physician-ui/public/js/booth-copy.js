@@ -1,6 +1,6 @@
 export const DEMO_LABEL = Object.freeze({
-  th: 'คะแนนสาธิต: ไม่ใช่หน่วยกิต CME และยังไม่ผ่านการตรวจสอบความแม่นยำ',
-  en: 'Demo score: not CME credit, not validated',
+  th: 'คะแนนสาธิต: ไม่ใช่หน่วยกิต CME',
+  en: 'Demo score: not CME credit',
 });
 
 export const DOMAINS = Object.freeze([
