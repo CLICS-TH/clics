@@ -5,6 +5,12 @@
 //              Callback page in the URL hash, the shape the Supabase redirect lands.
 //   redirect → today's signInWithOAuth redirect through Supabase.
 // The Callback page finishes both modes, so signup/invite/link branches and the token rule live there.
+//
+// The flow marker (signup | invite | link) is per tab. localStorage is shared by every tab of the origin, so a
+// second tab's press would overwrite and consume this tab's marker. gis therefore keeps the marker in this tab's
+// sessionStorage, tagged with a per-press id that also rides the Callback hash (`flow=`). The redirect cannot
+// carry anything through Google, so it writes the same marker to sessionStorage (this tab's copy, which survives
+// the round trip) and, as the fallback for a browser that drops it, to the shared localStorage key.
 (function () {
   var GSI_SRC = 'https://accounts.google.com/gsi/client';
   var scriptPromise = null;
@@ -13,7 +19,12 @@
     var modes = window.CLICS_GOOGLE_SIGNIN || {};
     var origins = window.CLICS_GOOGLE_ORIGINS || [];
     return modes[flow] === 'gis' && !!window.CLICS_GOOGLE_CLIENT_ID && origins.indexOf(location.origin) !== -1
-      && !!(window.crypto && crypto.subtle);
+      && !!(window.crypto && crypto.subtle) && canKeepFlowInTab();
+  }
+
+  // gis keeps the flow marker in this tab's sessionStorage; where that is blocked, the redirect still has its fallback.
+  function canKeepFlowInTab() {
+    try { sessionStorage.setItem('clics_flow_probe', '1'); sessionStorage.removeItem('clics_flow_probe'); return true; } catch (e) { return false; }
   }
 
   function loadGsi() {
@@ -39,6 +50,8 @@
     });
   }
 
+  function newFlowId() { return hex(crypto.getRandomValues(new Uint8Array(16))); }
+
   function dropSupabaseKeys() {
     try { for (var k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch (e) {}
   }
@@ -56,7 +69,9 @@
     }
 
     function startRedirect() {
-      localStorage.setItem('clics_oauth_flow', JSON.stringify(opts.marker));
+      var raw = JSON.stringify(opts.marker);
+      try { sessionStorage.setItem('clics_oauth_flow', raw); } catch (e) {}
+      localStorage.setItem('clics_oauth_flow', raw);
       var redirectTo = location.origin + '/auth/callback';
       window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo } }).then(function (r) {
         if (r.error) opts.onError(r.error.message || 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.');
@@ -75,10 +90,19 @@
             : 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองใหม่ / Google sign-in failed. Please try again.');
           return renderGoogleButton();
         }
-        localStorage.setItem('clics_oauth_flow', JSON.stringify(opts.marker));
+        var flowId = newFlowId();
+        try {
+          sessionStorage.setItem('clics_oauth_flow', JSON.stringify(Object.assign({}, opts.marker, { id: flowId })));
+        } catch (e) {
+          // No marker the Callback page can trust means no hand-off: it would otherwise run the wrong flow.
+          fail(linking ? 'เชื่อมบัญชี Google ไม่สำเร็จ กรุณาลองใหม่ / Could not link your Google account. Please try again.'
+            : 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองใหม่ / Google sign-in failed. Please try again.');
+          return renderGoogleButton();
+        }
         var hash = new URLSearchParams({
           access_token: session.access_token, refresh_token: session.refresh_token,
           expires_in: String(session.expires_in || 3600), token_type: session.token_type || 'bearer',
+          flow: flowId,
         });
         location.replace('/auth/callback#' + hash.toString());
       });

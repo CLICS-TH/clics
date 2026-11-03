@@ -24,7 +24,7 @@ The Portal asks Google itself through Google Identity Services (GIS), so Google'
 | `CLICS_GOOGLE_ORIGINS` | Allow-list of page origins where `gis` runs: `https://physician-ui.vercel.app`, `http://localhost:3000`. Any other origin (Vercel previews) uses the redirect. Must match the OAuth client's **Authorized JavaScript origins** exactly (no wildcards). |
 | `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect.** Set to the client ID listed in Supabase's Google provider (#282). |
 
-How it runs: pressing "Continue with Google" loads Google's script (never on page load), swaps in Google's own button (popup, no One Tap), trades the credential with `signInWithIdToken` and a fresh hashed nonce, writes the same flow marker the redirect writes, and goes to `/auth/callback#access_token=…`. The Callback page finishes both modes. **Rollback:** set the flow to `'redirect'` and redeploy.
+How it runs: pressing "Continue with Google" loads Google's script (never on page load), swaps in Google's own button (popup, no One Tap), trades the credential with `signInWithIdToken` and a fresh hashed nonce, writes the flow marker for this tab (`sessionStorage`, tagged with a per-press id the hash carries as `flow=`), and goes to `/auth/callback#access_token=…&flow=…`. A Callback page that finds no marker of its own shows an error instead of running signup. The Callback page finishes both modes. **Rollback:** set the flow to `'redirect'` and redeploy.
 
 ## 2. Env vars
 

@@ -465,6 +465,20 @@ async function pressThroughGis(page, ctx, path = '/login') {
   return g;
 }
 
+// Two tabs of one browser, each at a Google button; `button` is the page's own ('#googleBtn' or '#linkGoogleBtn').
+// Pressing ours swaps in Google's, which hands over the credential on the next click.
+async function pressOwnGoogleButton(page, button = '#googleBtn') {
+  await page.locator(button).waitFor({ state: 'visible', timeout: 10000 });
+  await page.click(button);
+  await page.locator('#fakeGoogleBtn').waitFor({ state: 'visible', timeout: 10000 });
+}
+async function sendGoogleCredential(page) {
+  await page.evaluate(() => { window.__gisNext = { credential: 'ci-google-id-token' }; });
+  await page.click('#fakeGoogleBtn');
+}
+// Holds this tab's Callback page for `ms`, so the other tab's whole sign-in runs while this one is in flight.
+const holdCallback = (page, ms = 1500) => page.route((u) => u.pathname === '/auth/callback', async (route) => { await sleep(ms); await route.continue(); });
+
 // What the Callback page must leave behind after any Google sign-in that ends signed in.
 async function checkSignedInClean(t, ctx, where) {
   const stored = await storedTokens(ctx);
@@ -718,6 +732,7 @@ const SCENARIOS = [
     name: 'Google sign-in, then Back from /dashboard skips /auth/callback',
     async run(t, page) {
       await page.goto(`${PORTAL}/forgot`);
+      await page.evaluate(() => sessionStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' })));
       await page.goto(`${PORTAL}/auth/callback#access_token=${fakeJwt(USERS.physician)}&refresh_token=ci-refresh&expires_in=3600&token_type=bearer`);
       await page.waitForURL(`${PORTAL}/dashboard`);
       await settle(page);
@@ -902,6 +917,105 @@ const SCENARIOS = [
     },
   },
   {
+    name: 'Two tabs, Google in-page: an invite press and a login press keep their own markers, the invite tab accepts the invite (#324)',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      inviteGoogle = () => [201, USERS.physician];
+      const A = page;
+      const B = await ctx.newPage();
+      await holdCallback(A);
+      await A.goto(`${PORTAL}/invite?token=CI-INVITE`);
+      await pressOwnGoogleButton(A);
+      await B.goto(`${PORTAL}/login`);
+      await pressOwnGoogleButton(B);
+      await sendGoogleCredential(A);
+      await sendGoogleCredential(B);
+      await until(() => inviteCalls.length + completeCalls.length >= 2, 'both tabs reaching the backend').catch(() => {});
+      await settle(A); await settle(B);
+      console.log('invite+login inviteCalls=' + inviteCalls.length + ' completeCalls=' + completeCalls.length + ' A=' + A.url() + ' B=' + B.url());
+      t.check(inviteCalls.every((c) => c.method === 'google' && c.access_token), `an accept call was ${JSON.stringify(inviteCalls)}`);
+      t.check(inviteCalls.length === 1 && completeCalls.length === 1, `inviteCalls=${inviteCalls.length} completeCalls=${completeCalls.length}: the invite tab was not processed as an invite and the login tab as a login`);
+      t.check(new URL(A.url()).pathname === '/dashboard' && new URL(B.url()).pathname === '/dashboard', `A ended on ${A.url()}, B on ${B.url()}`);
+      t.check(gotrueLogouts === 0, 'a tab called GoTrue /logout');
+    },
+  },
+  {
+    name: 'Two tabs, Google in-page: a link press and a login press keep their own markers, the link tab links (#324)',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const A = page;
+      const B = await ctx.newPage();
+      await B.goto(`${PORTAL}/login`);
+      await pressOwnGoogleButton(B);
+      await signedInDashboard(A);
+      await holdCallback(A);
+      await pressOwnGoogleButton(A, '#linkGoogleBtn');
+      await sendGoogleCredential(A);
+      await sendGoogleCredential(B);
+      await until(() => linkCalls.length + completeCalls.length >= 2, 'both tabs reaching the backend').catch(() => {});
+      await settle(A); await settle(B);
+      console.log('link+login linkCalls=' + linkCalls.length + ' completeCalls=' + completeCalls.length + ' A=' + A.url() + ' B=' + B.url());
+      t.check(linkCalls.length === 1 && completeCalls.length === 1, `linkCalls=${linkCalls.length} completeCalls=${completeCalls.length}: the link tab was not processed as a link and the login tab as a login`);
+      t.check(gotrueLogouts === 0, 'a tab called GoTrue /logout');
+    },
+  },
+  {
+    name: 'Two tabs, Google redirect: an invite press and a login press keep their own markers, the invite tab accepts the invite (#324)',
+    config: "window.CLICS_GOOGLE_SIGNIN.invite = 'redirect'; window.CLICS_GOOGLE_SIGNIN.login = 'redirect';",
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      inviteGoogle = () => [201, USERS.physician];
+      const A = page;
+      const B = await ctx.newPage();
+      await A.goto(`${PORTAL}/invite?token=CI-INVITE`);
+      await A.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      await B.goto(`${PORTAL}/login`);
+      await B.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
+      await A.click('#googleBtn');
+      await until(() => authorizeRequests.length >= 1, 'the invite tab reaching the authorize endpoint');
+      await B.click('#googleBtn');
+      await until(() => authorizeRequests.length >= 2, 'the login tab reaching the authorize endpoint');
+      // Each tab comes back from Google where it left: the session in the hash, nothing else.
+      const back = `${PORTAL}/auth/callback#access_token=${fakeJwt(USERS.physician)}&refresh_token=ci-refresh&expires_in=3600&token_type=bearer`;
+      await B.goto(back);
+      await B.waitForURL(`${PORTAL}/dashboard`);
+      await A.goto(back);
+      await settle(A);
+      console.log('redirect invite+login inviteCalls=' + inviteCalls.length + ' completeCalls=' + completeCalls.length + ' A=' + A.url());
+      t.check(inviteCalls.length === 1 && completeCalls.length === 1, `inviteCalls=${inviteCalls.length} completeCalls=${completeCalls.length}: the invite tab was not processed as an invite and the login tab as a login`);
+    },
+  },
+  {
+    name: 'Callback page with no marker of its own stops at the error card: no signup, no invite, no link, the stored session untouched (#324)',
+    async run(t, page, ctx) {
+      resetGoogleStubs();
+      const hash = `access_token=${fakeJwt(USERS.physician)}&refresh_token=ci-refresh&expires_in=3600&token_type=bearer`;
+      await page.goto(`${PORTAL}/forgot`);
+      await page.evaluate(() => { localStorage.setItem('clics_token', 'KEEP-ME'); localStorage.setItem('clics_user', '{"role":"physician"}'); });
+      const cases = [
+        ['in-page press, no marker', '&flow=aaaa', null, null],
+        ['in-page press, marker of another press', '&flow=aaaa', { kind: 'invite', token: 'CI-INVITE', id: 'bbbb' }, null],
+        ['in-page press, only the shared key set', '&flow=aaaa', null, { kind: 'invite', token: 'CI-INVITE' }],
+        ['redirect return, no marker anywhere', '', null, null],
+      ];
+      for (const [label, extra, own, shared] of cases) {
+        await page.goto(`${PORTAL}/forgot`);
+        await page.evaluate(([o, sh]) => {
+          sessionStorage.removeItem('clics_oauth_flow'); localStorage.removeItem('clics_oauth_flow');
+          if (o) sessionStorage.setItem('clics_oauth_flow', JSON.stringify(o));
+          if (sh) localStorage.setItem('clics_oauth_flow', JSON.stringify(sh));
+          localStorage.setItem('sb-ci-auth-token', '{"access_token":"x"}');
+        }, [own, shared]);
+        await page.goto(`${PORTAL}/auth/callback#${hash}${extra}`);
+        await page.locator('#errorCard').waitFor({ state: 'visible', timeout: 8000 }).catch(() => t.check(false, `${label}: no error card, on ${page.url()}`));
+        await settle(page);
+        t.check(inviteCalls.length === 0 && completeCalls.length === 0 && linkCalls.length === 0, `${label}: a backend call ran (invite ${inviteCalls.length}, complete ${completeCalls.length}, link ${linkCalls.length})`);
+        t.check(await page.evaluate(() => localStorage.getItem('clics_token')) === 'KEEP-ME', `${label}: the stored CLICS session was touched`);
+        t.check(await page.evaluate(() => !Object.keys(localStorage).some((k) => k.startsWith('sb-'))), `${label}: a Supabase session was left behind`);
+      }
+    },
+  },
+  {
     name: 'Link Google in-page: a mismatch (backend 409) shows the backend\'s error on the Callback page and keeps the CLICS token',
     config: "window.CLICS_GOOGLE_SIGNIN.link = 'gis';",
     async run(t, page, ctx) {
@@ -1081,6 +1195,7 @@ const SCENARIOS = [
     name: 'Google callback, Sign out, Back',
     async run(t, page, ctx) {
       await page.goto(`${PORTAL}/login`);
+      await page.evaluate(() => sessionStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' })));
       const at = fakeJwt(USERS.physician);
       await page.goto(`${PORTAL}/auth/callback#access_token=${at}&refresh_token=ci-refresh&expires_in=3600&token_type=bearer&provider_token=g`);
       await page.waitForURL(`${PORTAL}/dashboard`);
