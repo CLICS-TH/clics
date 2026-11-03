@@ -305,6 +305,43 @@ async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = m
   return k;
 }
 
+/**
+ * A phone on a Portal page (#251's result page): `path` may carry a fragment. Every request is recorded in k.requests.
+ * close() fails the run on any page error or CSP refusal, any request off the page's origin, and any request
+ * that is not a plain file load (fetch, XHR, beacon, socket).
+ */
+async function phone(path, { width = 375, height = 812 } = {}) {
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const requests = [];
+  const errors = [];
+  await ctx.route('**/*', (route) => {
+    const req = route.request();
+    requests.push({ url: req.url(), type: req.resourceType(), method: req.method() });
+    return req.url().startsWith(base + '/') ? route.continue() : route.abort();
+  });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+  await page.goto(base + path, { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+  const label = `phone ${width}x${height}`;
+  const k = {
+    page, requests, errors,
+    async close() {
+      if (!open.has(k)) return;
+      open.delete(k);
+      const off = requests.filter((r) => !r.url.startsWith(base + '/'));
+      const calls = requests.filter((r) => r.method !== 'GET' || !['document', 'stylesheet', 'script', 'font', 'image'].includes(r.type));
+      check(off.length === 0, `${label}: no request left the Portal${off.length ? ` (${off.slice(0, 3).map((r) => r.url).join(', ')})` : ''}`);
+      check(calls.length === 0, `${label}: file loads only, no fetch, XHR or beacon${calls.length ? ` (${calls.slice(0, 3).map((r) => `${r.type} ${r.url}`).join(', ')})` : ''}`);
+      check(errors.length === 0, `${label}: no page error or CSP refusal${errors.length ? ` (${errors.slice(0, 2).join(' | ')})` : ''}`);
+      await ctx.close();
+    },
+  };
+  open.add(k);
+  return k;
+}
+
 function measure({ floor, banned, demo, demoLabel }) {
   const scale = innerWidth / 1080;
   const out = [];
@@ -463,7 +500,7 @@ async function screenCheck(page, label, opts = {}) {
 
 async function scanSources() {
   const groups = [
-    ['physician-ui/public/booth.html', ROOT, (f) => f === 'booth.html'],
+    ['physician-ui/public/booth*.html', ROOT, (f) => /^booth.*\.html$/.test(f)],
     ['physician-ui/public/css/booth*.css', join(ROOT, 'css'), (f) => /^booth.*\.css$/.test(f)],
     ['physician-ui/public/js/booth-*.js', join(ROOT, 'js'), (f) => /^booth-.*\.js$/.test(f)],
     ['backend/src/booth-cases/*/*.json', CASES, (f) => /^[^/]+\/[^/]+\.json$/.test(f)],
@@ -490,7 +527,7 @@ async function shot(page, name) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
+const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
 
 try {

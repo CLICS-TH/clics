@@ -1,0 +1,24 @@
+<!doctype html>
+<!--
+  Booth result page (#251): the kiosk's result QR opens it with the play's result in the URL fragment, which the
+  browser never sends. Its own head, like booth.html: no js/boot.js and no storage. The CSP's connect-src 'none'
+  makes "no request carries the result" a browser rule; the page loads only same-origin files and fonts.
+-->
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>CLICS booth result</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/booth.css">
+  <link rel="stylesheet" href="/css/booth-result.css">
+  <script type="module" src="/js/booth-result.js"></script>
+</head>
+<body class="booth-result">
+  <main id="result" class="result-page" aria-live="polite"></main>
+</body>
+</html>
