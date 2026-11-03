@@ -123,6 +123,7 @@ const CHAT_PROMPT_VARIANTS = Object.freeze([
   { name: 'rescue', opts: { rescue: true } },
   { name: 'booth', opts: { booth: true } },
   { name: 'booth+grill', opts: { booth: true, grill: true } },
+  { name: 'booth+typed', opts: { booth: true, typed: true } },
 ]);
 
 const evaluators = () => POLICY.PROVIDER_NAMES.filter((n) => POLICY.servesPurpose(n, 'evaluate'));

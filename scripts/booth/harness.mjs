@@ -66,12 +66,16 @@ function startServer() {
 const TIER_LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const bankFor = (tree, path) => (path.length === 0 ? tree.banks.step1 : tree.banks[`step${path.length + 1}`][path]);
 
-/** The tier path the visitor's answers walked: a tapped answer takes its option's tier, a typed one is W. */
+/** The tier the stub sorts a typed answer into; best, so a typed answer steers away from the weaker branch. */
+const TYPED_TIER = 'B';
+
+/** The tier path the visitor's answers walked: a tapped answer takes its option's tier, a typed one the tier the
+ *  stub sorted it into (the kiosk never sees it). */
 function pathOf(tree, answers) {
   let path = '';
   for (const a of answers) {
-    const tier = 'choice' in a ? bankFor(tree, path).options.find((o) => o.id === a.choice)?.tier : 'weaker';
-    path += TIER_LETTER[tier] ?? 'W';
+    const tier = 'choice' in a ? bankFor(tree, path).options.find((o) => o.id === a.choice)?.tier : null;
+    path += 'choice' in a ? TIER_LETTER[tier] ?? 'W' : TYPED_TIER;
   }
   return path;
 }
@@ -486,7 +490,7 @@ async function shot(page, name) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, REPLY, SIG, SCORED,
+const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
 
 try {

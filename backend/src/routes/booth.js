@@ -21,6 +21,7 @@ const REFUSAL = {
   closed: [403, 'The booth is closed.'],
   not_found: [404, 'No such booth play.'],
   not_started: [409, 'This booth play has already ended.'],
+  replayed: [409, 'That step has already been answered.'],
   unavailable: [503, 'The booth is unavailable right now.'],
 };
 
