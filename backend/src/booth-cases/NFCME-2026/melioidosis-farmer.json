@@ -1013,6 +1013,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
       "findings": "Opus 5.5 re-review 2026-11-02 of version 2, from memory of MERTH (Lancet 2014), Darwin 2020 and SSC 2021 (no online fetch). Facts sound; no unsafe option incl. by omission; tiers fit each path; no must-fix. Fixed: step2.W v1 draws blood before the first dose; R v1 and B b English matched to Thai; step-3 Thai question made natural; wording-parity and Thai-phrasing nits applied."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
     }
   }
 }

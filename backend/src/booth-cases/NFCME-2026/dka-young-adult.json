@@ -989,6 +989,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-03",
       "findings": "Fresh reviewer, version 4: checked all 13 banks against the 2024 ADA/EASD/JBDS hyperglycaemic crisis consensus, WHO and Thai practice. The revision replaced a reasonable option in BW, RW and WW that repeated the best plan with only a social reason; option c (saline, check K, then a 0.1 units/kg bolus and drip once K is safe) now matches BR, RR and WR, is a safe consensus-accepted regimen at the right tier, and default_trio [a,c,d] is valid. Doses, K thresholds, the moderate grade, tiers, results shown on each path and Thai/English parity check out. No must-fix finding."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030849-b13f"
     }
   }
 }

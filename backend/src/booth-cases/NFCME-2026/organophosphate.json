@@ -1138,6 +1138,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
       "findings": "Fresh reviewer, re-run on version 2 against WHO, the Eddleston atropine-doubling protocol, Ramathibodi Poison Center teaching and Thai MOPH community-hospital practice. Step-3 best tier: oxygen with IV atropine doubled to a dry chest plus pralidoxime (Ramathibodi keeps the oxime for organophosphates despite uncertain trial evidence), or IV atropine with intubation when secretions flood the lungs, or IV atropine with a gloved team stripping and washing him. Reasonable tier: atropine titration alone, or stabilise on atropine then refer to ICU; each lacks the oxime, airway or decontamination, so no best option is contained in a lower-tier one. Weaker tier: IV atropine with salbutamol or with IV fluids, safe but without titration endpoints or decontamination. Fixed from this review: oxygen added to the oxime option; the label is revealed on carbamate paths before the oxime is rewarded; questions name only findings the visitor's path produced; the step-2 question after a weaker diagnosis states the team gave atropine; Thai and English aligned word for word, including route and dose doubling. No option omits atropine or adds harm."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
     }
   }
 }

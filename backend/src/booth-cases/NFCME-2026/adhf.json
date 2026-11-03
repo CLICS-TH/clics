@@ -1142,6 +1142,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-03",
       "findings": "Fresh reviewer, version 3: checked the vignette, teaser and all 13 banks against ESC 2021 HF and its 2023 update, AHA/ACC/HFSA 2022 and WHO oxygen guidance. The revision moved oxygen plus IV furosemide to reasonable in RB, RR, RW, WB, WR and WW, where it had ranked above the same treatment plus a transfer; it is correct, and every default trio still has one option per tier. No option is unsafe: every step-3 choice gives oxygen or CPAP with IV furosemide. No fact, dose or threshold is wrong, Thai and English agree, and results shown in questions match their paths. No must-fix finding."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030849-b13f"
     }
   }
 }

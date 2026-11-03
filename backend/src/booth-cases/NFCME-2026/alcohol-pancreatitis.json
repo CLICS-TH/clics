@@ -1289,6 +1289,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
       "findings": "Three review rounds by fresh claude-opus-5-5 agents against ACG 2024, revised Atlanta 2012, WATERFALL (NEJM 2022), AGA 2018, IAP/APA 2013, CIWA-Ar and the Thai MoPH / Department of Mental Health AUDIT-based alcohol screening and brief intervention programme; no Thai pancreatitis-specific national guideline was found to cite. The final round found no wrong fact, no unsafe option and no tier mislabel, and every step-3 reveal is ordered on its path. All findings from every round are fixed in this version, the last being four wording changes: a neutral stomach-upset question, an upright film in the full_r label, a hedged brief-intervention line and the at-least-3-times-normal threshold."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
     }
   }
 }

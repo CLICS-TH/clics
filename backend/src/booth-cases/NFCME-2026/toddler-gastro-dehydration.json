@@ -1078,6 +1078,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
       "findings": "Three rounds by fresh reviewers (claude-opus-5-5, none wrote the case) against the WHO diarrhoea manual and IMCI (Plan B 75 mL/kg ORS over 4 h = 750 mL at 10 kg; zinc 20 mg/day for 10-14 days), ESPGHAN 2014 and Thai acute-diarrhoea and rational-drug-use practice, all cited from recall; the #244 gate added its own review between rounds 2 and 3. Final text: no option gives an antidiarrhoeal agent (diosmectite, unsuitable under age 2, was removed); ondansetron is a single oral dose at reasonable tier; IV Ringer's lactate is reasonable and conditional on a failed ORS trial; every weaker option is safe and includes ORS where it is a management choice. Both best step-3 options give the full Plan B (750 mL ORS by mouth over 4 h, zinc, ORS after each stool, reassessment at 4 h), with no breastfeeding claim. Step-3 questions reveal only what the chosen step-2 checks can show, with a dehydration grade only on paths that graded it. Thai and English were aligned on the IV fluid name and trigger, 'WHO', the 4 h recheck, ปริมาณปัสสาวะ, creatinine and 'first'."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
     }
   }
 }

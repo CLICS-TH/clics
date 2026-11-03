@@ -85,7 +85,7 @@ The admitted booth cases of one booth event, from which each booth play draws it
 _Avoid_: case bank, case list
 
 **Admission**:
-A booth case passing both the AI safety review and the physician sandbox, which is what puts it in the case pool.
+A booth case passing the AI safety review and either the physician sandbox or an owner waiver of the sandbox (ADR 0005), which is what puts it in the case pool.
 _Avoid_: approval, sign-off, physician read
 
 **Physician sandbox**:

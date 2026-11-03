@@ -84,7 +84,7 @@ A case is reviewed before it can be drawn.
 3. Fix every finding in the case PR.
 4. Record the review under `admission.safety_review` with the reviewer `model`, the `date` as `YYYY-MM-DD`, and a short `findings` summary.
 
-`admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id` and `date`. The script itself writes no case file. You do not write that part. A case without both parts is valid but never drawn.
+`admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id` and `date`. The script itself writes no case file. You do not write that part. Instead of `admission.sandbox`, the owner may add `admission.owner_waiver` (ADR 0005): its `date`, `adr` (`"0005"`), `reason` and the `sandbox_run_id` the case failed. A case needs `admission.safety_review` and one of the other two to be drawn. Without them it is valid but never drawn.
 
 ## Checking your case
 

@@ -19,6 +19,12 @@ const CASES_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
 const kase = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), event_code: 'NFCME-2026' };
 fs.mkdirSync(path.join(CASES_DIR, 'NFCME-2026'));
 fs.writeFileSync(path.join(CASES_DIR, 'NFCME-2026', `${kase.case_id}.json`), JSON.stringify(kase));
+// A case the owner waived from the sandbox (ADR 0005), filed under its own event.
+const { sandbox: _sandbox, ...noSandbox } = kase.admission;
+const waived = { ...kase, event_code: 'WAIVE-2026', admission: { ...noSandbox,
+  owner_waiver: { date: '2026-11-03', adr: '0005', reason: 'Owner waiver', sandbox_run_id: 'sbx-fixture' } } };
+fs.mkdirSync(path.join(CASES_DIR, 'WAIVE-2026'));
+fs.writeFileSync(path.join(CASES_DIR, 'WAIVE-2026', `${kase.case_id}.json`), JSON.stringify(waived));
 process.env.BOOTH_CASES_DIR = CASES_DIR;
 afterAll(() => { delete process.env.BOOTH_CASES_DIR; });
 
@@ -96,6 +102,13 @@ describe('GET /admin/booth', () => {
     settings.set(OFF_KEY, { value: 1, value_text: null });
     const res = await as(SUPERADMIN).get();
     expect(res.body.cases).toEqual([listed({ on: false })]);
+  });
+
+  it('lists a case the owner waived from the sandbox, admitted on the later of its review and its waiver', async () => {
+    settings.set('booth_event_code', { value: 0, value_text: 'WAIVE-2026' });
+    const res = await as(SUPERADMIN).get();
+    expect(res.status).toBe(200);
+    expect(res.body.cases).toEqual([listed({ admitted_on: '2026-11-03', plays: 0 })]);
   });
 
   it('lists no case when no event code is set', async () => {

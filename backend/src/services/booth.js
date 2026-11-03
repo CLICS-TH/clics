@@ -580,13 +580,14 @@ function playTotals(played) {
   };
 }
 
-/** The event's admitted pool as the card lists it. Admitted on the later of its two admission dates. */
+/** The event's admitted pool as the card lists it. Admitted on the later of the safety review and the sandbox pass or owner waiver. */
 function casePool(event, played) {
   return eventCases(event.code).map((k) => {
-    const { safety_review: review, sandbox } = k.admission;
+    const { safety_review: review, sandbox, owner_waiver: waiver } = k.admission;
+    const second = (sandbox ?? waiver).date;
     return {
       case_id: k.case_id, teaser: k.teaser, version: k.version,
-      admitted_on: review.date > sandbox.date ? review.date : sandbox.date,
+      admitted_on: review.date > second ? review.date : second,
       plays: played ? played.filter((r) => r.case_id === k.case_id).length : null,
       on: !event.off.has(k.case_id),
     };
