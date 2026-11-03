@@ -3,7 +3,7 @@
 //   mountResultBoard(slot, { tag, scoreBody })  the result card's ranks and Landing QR, from the score response
 //                                               (rank_today, rank_event)
 //   mountLoopBoard(slot, { api }) -> stop()     the loop's board, fetched from GET /booth/board every minute
-//   leaderboardButton({ host, api, board, tag })  the button on the result card and the loop (#250): opens the board
+//   leaderboardButton({ host, api, board, tag, short })  the button on the result card and the loop (#250): opens the board
 //                                               over `host`, from `board` when the score carried one, else GET /booth/board
 // The panel has no controls: on the loop a tap anywhere, the panel included, starts a play. The overlay has one, Close.
 import { tagText, DEMO_LABEL } from './booth-copy.js';
@@ -132,9 +132,9 @@ function openBoard({ host, api, board, tag }) {
 }
 
 /** @returns {HTMLButtonElement} */
-export function leaderboardButton({ host, api, board = null, tag = null, cls = 'secondary wide' }) {
+export function leaderboardButton({ host, api, board = null, tag = null, cls = 'secondary wide', short = false }) {
   const b = el('button', { type: 'button', class: `booth-btn ${cls}`, dataset: { action: 'leaderboard' } },
-    icon('flag'), bi(COPY.open, 'btn-label'));
+    icon('flag'), bi(short ? COPY.board : COPY.open, 'btn-label'));
   b.addEventListener('click', () => { if (!host.querySelector('[data-board-overlay]')) openBoard({ host, api, board, tag }); });
   return b;
 }

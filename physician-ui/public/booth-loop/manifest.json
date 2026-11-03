@@ -1,5 +1,5 @@
 { "items": [
-  { "type": "video", "src": "/booth-loop/promo.mp4", "board": false },
-  { "type": "video", "src": "/booth-loop/promo.mp4", "board": false },
+  { "type": "video", "src": "/booth-loop/promo.mp4", "board": false, "fit": "cover", "safe": [60, 160, 1020, 1760] },
+  { "type": "video", "src": "/booth-loop/promo.mp4", "board": false, "fit": "cover", "safe": [60, 160, 1020, 1760] },
   { "type": "board", "seconds": 15 }
 ] }
