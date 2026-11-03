@@ -36,7 +36,7 @@ A council has **specialties** (`specialties` table, `council_id` FK; the 15 Roya
 
 ## Post-login routing (which app + landing)
 
-Everyone signs in at the physician portal's `/login` (Google or email+password). Google sign-in (Login, and accepting an invite) runs in the Portal's own page (Google Identity Services) on the allow-listed origins and falls back to the Supabase redirect elsewhere; both end at `/auth/callback`, so role routing is the same (see [AUTH-SETUP.md §1b](AUTH-SETUP.md) and ADR 0008). The portal routes non-physicians to the dashboard with a token hand-off (`/login?token=`); the dashboard's `/login` only consumes that token, and a bare visit redirects to the portal's `/login`. The dashboard then routes every staff role to a shared role-aware `/home` landing.
+Everyone signs in at the physician portal's `/login` (Google or email+password). Google sign-in (Login, accepting an invite, and Link Google on the dashboard) runs in the Portal's own page (Google Identity Services) on the allow-listed origins and falls back to the Supabase redirect elsewhere; both end at `/auth/callback`, so role routing is the same (see [AUTH-SETUP.md §1b](AUTH-SETUP.md) and ADR 0008). The portal routes non-physicians to the dashboard with a token hand-off (`/login?token=`); the dashboard's `/login` only consumes that token, and a bare visit redirects to the portal's `/login`. The dashboard then routes every staff role to a shared role-aware `/home` landing.
 
 | Role | Entry | Lands on |
 |------|-------|----------|
