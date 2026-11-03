@@ -1,7 +1,7 @@
 <template>
   <style>
     #root { position: absolute; inset: 0; }
-    #steps-card { position: absolute; left: 60px; top: 590px; width: 960px; height: 800px; border-radius: 36px; overflow: hidden; background: #fff; border: 2px solid var(--hairline); box-shadow: 0 30px 70px rgba(20, 20, 19, 0.22); padding: 44px 44px 0; }
+    #steps-card { position: absolute; left: 60px; top: 625px; width: 960px; height: 800px; border-radius: 36px; overflow: hidden; background: #fff; border: 2px solid var(--hairline); box-shadow: 0 30px 70px rgba(20, 20, 19, 0.22); padding: 44px 44px 0; }
     #steps-card .tag { display: inline-block; padding: 6px 26px 10px; border-radius: 999px; background: var(--band); color: var(--ink); font-size: 36px; line-height: 1.4; font-weight: 700; }
     #steps-card .tag .e { font-weight: 500; color: var(--body); }
     #steps-card .q { margin-top: 24px; white-space: nowrap; font-size: 50px; line-height: 1.45; font-weight: 700; color: var(--ink); }
@@ -25,8 +25,9 @@
     <div id="steps-head" class="step clip" data-start="0" data-duration="4.5" data-track-index="2">
       <span class="num" id="steps-num">2</span>
       <div>
-        <p class="th" lang="th"><span class="ln"><span id="steps-l1">ตอบ 3 ขั้น</span></span></p>
-        <p class="en" lang="en"><span class="ln"><span id="steps-e1">Answer 3 steps</span></span></p>
+        <!-- The owner's line is 828 px at 112 px beside the disc's 656: two lines, broken between words. -->
+        <p class="th" lang="th"><span class="ln"><span id="steps-l1">ฝึกวินิจฉัย</span></span><span class="ln"><span id="steps-l1b">ผ่าน AI</span></span></p>
+        <p class="en" lang="en"><span class="ln"><span id="steps-e1">Practise diagnosis with AI</span></span></p>
       </div>
     </div>
     <!-- A made-up example question, drawn in the booth's step style and labelled as such: the reel must never show
@@ -56,8 +57,8 @@
   <script>
     const tl = gsap.timeline({ paused: true });
     tl.fromTo("#steps-num", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 0.0);
-    tl.fromTo("#steps-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out" }, 0.08);
-    tl.fromTo("#steps-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.18);
+    tl.fromTo(["#steps-l1", "#steps-l1b"], { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: "expo.out", stagger: 0.06 }, 0.08);
+    tl.fromTo("#steps-e1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 0.24);
     tl.fromTo("#steps-card", { y: 1300, rotation: 7 }, { y: 0, rotation: -1.5, duration: 0.6, ease: "expo.out" }, 0.1);
     tl.fromTo(["#steps-l2", "#steps-e2"], { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 0.5);
     tl.fromTo("#steps-finger", { opacity: 0, scale: 1.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out" }, 1.0);
@@ -71,7 +72,7 @@
     });
     tl.to("#steps-card", { scale: 1.03, duration: 0.15, ease: "power2.out", yoyo: true, repeat: 1 }, 2.25);
     tl.to("#steps-card", { scale: 1.03, duration: 0.15, ease: "power2.out", yoyo: true, repeat: 1 }, 2.85);
-    tl.to(["#steps-l1", "#steps-e1", "#steps-l2", "#steps-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 4.22);
+    tl.to(["#steps-l1", "#steps-l1b", "#steps-e1", "#steps-l2", "#steps-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 4.22);
     tl.to("#steps-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 4.22);
     tl.to(["#steps-card", "#steps-bar"], { y: -1500, duration: 0.3, ease: "power3.in" }, 4.18);
     window.__timelines["steps"] = tl;

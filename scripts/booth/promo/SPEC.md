@@ -31,7 +31,7 @@ SHOTS:
   4-6.5   try (accent flood). "ลองเล่นได้เลย / Try it right here"; a ring draws round "5 นาที / minutes";
           "ไม่ต้องลงชื่อเข้าใช้ / No sign-in needed".
   6.5-10  1 draw (ink). Three card backs shuffle, the top one flips to the case teaser.
-  10-14.5 2 answer (canvas). A made-up example step ("ตัวอย่างสมมติ / Made-up example", headache options) rises
+  10-14.5 2 "ฝึกวินิจฉัยผ่าน AI / Practise diagnosis with AI" (canvas). A made-up example step ("ตัวอย่างสมมติ / Made-up example", headache options) rises
           tilted; a fingertip picks B; three step pills fill 1-2-3.
           "แตะตัวเลือก หรือพิมพ์เอง / Tap a choice, or type your own".
   14.5-18.5 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
