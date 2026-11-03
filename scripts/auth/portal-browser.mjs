@@ -917,6 +917,34 @@ const SCENARIOS = [
     },
   },
   {
+    name: 'Callback page: every Thai sentence, the no-marker error included, is at or above the Thai body size at 320 and 1280 px, light and dark (#324)',
+    async run(t, page) {
+      const FLOOR = 15.36; // --fs-body-th, 0.96rem
+      for (const [width, scheme] of [[320, 'light'], [1280, 'light'], [320, 'dark'], [1280, 'dark']]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ colorScheme: scheme });
+        // No hash and no marker: the page ends on its error card, the Thai message this PR adds.
+        await page.goto(`${PORTAL}/auth/callback`);
+        await page.locator('#errorCard').waitFor({ state: 'visible', timeout: 8000 });
+        const thai = await page.evaluate(() => {
+          // Show every card so each Thai line the page can reach is measured, not only the visible one.
+          for (const id of ['loadingCard', 'councilCard', 'errorCard', 'doneCard']) document.getElementById(id).style.display = 'block';
+          const out = [];
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            const el = n.parentElement;
+            // Sentences only: button labels follow .btn, and the theme toggle is shared page chrome.
+            if (!/[\u0E00-\u0E7F]/.test(n.textContent) || ['SCRIPT', 'STYLE', 'OPTION', 'H1', 'BUTTON'].includes(el.tagName) || el.closest('.btn, .toggle-label')) continue;
+            out.push({ id: el.id || el.className || el.tagName, size: parseFloat(getComputedStyle(el).fontSize), text: n.textContent.trim().slice(0, 40) });
+          }
+          return out;
+        });
+        t.check(thai.length > 0, `${width}px ${scheme}: no Thai text found on the Callback page`);
+        for (const x of thai) t.check(x.size >= FLOOR - 0.01, `${width}px ${scheme}: "${x.text}" (${x.id}) is ${x.size}px, below ${FLOOR}px`);
+      }
+    },
+  },
+  {
     name: 'Two tabs, Google in-page: an invite press and a login press keep their own markers, the invite tab accepts the invite (#324)',
     async run(t, page, ctx) {
       resetGoogleStubs();

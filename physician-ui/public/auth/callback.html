@@ -19,7 +19,7 @@
     .login-box { width:100%; max-width:440px; padding:24px 0; }
     .logo { text-align:center; margin-bottom:24px; }
     .logo h1 { font-size:30px; font-weight:600; color:var(--coral); font-family:var(--font-display); letter-spacing:-0.02em; }
-    .logo p { color:var(--muted); font-size:13px; margin-top:4px; }
+    .logo p { color:var(--muted); font-size:var(--fs-body-th); margin-top:4px; }
     @media (prefers-reduced-motion: no-preference) { .logo { animation: clics-rise .6s ease both; } }
   </style>
 </head>
@@ -36,12 +36,12 @@
 
     <!-- Working -->
     <div class="card" id="loadingCard">
-      <p style="font-size:14px; color:var(--muted); text-align:center" id="loadingMsg">กำลังเข้าสู่ระบบ... / Completing sign-in...</p>
+      <p style="font-size:var(--fs-body-th); color:var(--muted); text-align:center" id="loadingMsg">กำลังเข้าสู่ระบบ... / Completing sign-in...</p>
     </div>
 
     <!-- First-time council pick -->
     <div class="card" id="councilCard" style="display:none">
-      <p style="font-size:14px; color:var(--muted); margin-bottom:16px; line-height:1.55">
+      <p style="font-size:var(--fs-body-th); color:var(--muted); margin-bottom:16px; line-height:1.55">
         เลือกสภาวิชาชีพของคุณเพื่อสร้างบัญชี<br/>Pick your professional council to finish creating your account.
       </p>
       <div class="form-group">
@@ -70,7 +70,7 @@
 
     <!-- Error -->
     <div class="card" id="errorCard" style="display:none">
-      <div class="error-msg" id="errorMsg" role="alert" aria-live="assertive" style="display:block; font-size:14px; line-height:1.55"></div>
+      <div class="error-msg" id="errorMsg" role="alert" aria-live="assertive" style="display:block; line-height:1.55"></div>
       <a href="/login" class="btn btn-primary" style="width:100%;margin-top:16px">ไปหน้าเข้าสู่ระบบ / Go to login →</a>
     </div>
 
