@@ -1064,6 +1064,10 @@ describe('POST /booth/plays/:id/score', () => {
     expect(physician[2].content).not.toContain('Untrusted');
   });
 
+  test('the fence drops control, zero-width and bidi characters but keeps newlines', () => {
+    expect(fenced('a\u200bb\u202ec\u0007d\ufeffe\nf')).toContain('\u27e6abcde\nf\u27e7');
+  });
+
   test('the AI-written bridge is never in a physician turn the evaluator scores, only at the end of the AI turn that wrote it', async () => {
     picking({ bridge: 'ลองคิดต่อ' });
     const p = await begin();
