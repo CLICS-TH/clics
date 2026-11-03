@@ -38,8 +38,7 @@ const DAY_MS = 86_400_000;
 
 /**
  * @typedef {{ choice: string } | { text: string, tier?: 'B' | 'R' | 'W' }} Answer
- *   A typed answer carries the tier letter the AI sorted it into, from the reply to it. The kiosk echoes it back
- *   on every later call; the last answer of a reply call has none yet (the AI sorts it in that call).
+ *   The kiosk sends a typed answer as text only. `tier` is set server-side from the turn sigs (recoverTiers).
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask  the ids the server issued for one step
  * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], sigs: string[] }} Dialogue
  *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
