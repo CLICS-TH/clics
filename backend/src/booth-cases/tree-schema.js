@@ -55,10 +55,12 @@ const CaseTreeSchema = z.object({
   admission: z.object({
     safety_review: z.object({ model: Text, date: CalendarDate, findings: Text }).strict().optional(),
     sandbox: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
+    // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
+    owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
   }).strict().optional(),
 }).strict();
 
-const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && kase?.admission?.sandbox);
+const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && (kase.admission.sandbox || kase.admission.owner_waiver));
 
 // Thai combining marks take no width at the kiosk. Budgets are the line counts measured at the
 // kiosk's font sizes (PR #233); the teaser budget is measured by scripts/booth/scenarios/draw.mjs.

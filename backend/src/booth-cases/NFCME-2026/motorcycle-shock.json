@@ -1018,6 +1018,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
       "findings": "Checked every variant and option against ATLS 11th ed. as taught by the Royal College of Surgeons of Thailand, the MOPH community-hospital referral system, Thai Red Cross National Blood Centre emergency group O guidance, WHO Basic Emergency Care and CRASH-2; no option is unsafe and every step-3 plan reaches surgery; fixed two lines implying delayed blood/TXA, a TH/EN hedge mismatch, six wordings and three step-3 questions missing a step-2 path."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
     }
   }
 }

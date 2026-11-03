@@ -108,6 +108,36 @@ describe('admission', () => {
     expect(isAdmitted(without(part))).toBe(false);
   });
 
+  const waived = (k) => ({ ...k, admission: { ...k.admission,
+    owner_waiver: { date: '2026-11-03', adr: '0005', reason: 'Owner waiver', sandbox_run_id: 'sbx-fixture' } } });
+
+  test('an owner waiver stands in for the sandbox run, never for the safety review', () => {
+    expect(caseTreeProblems(waived(without('sandbox')))).toEqual([]);
+    expect(isAdmitted(waived(without('sandbox')))).toBe(true);
+    expect(isAdmitted(waived(without('safety_review')))).toBe(false);
+  });
+
+  test.each([
+    ['another ADR', (w) => { w.adr = '0006'; }, 'admission.owner_waiver.adr'],
+    ['no run id', (w) => { delete w.sandbox_run_id; }, 'admission.owner_waiver.sandbox_run_id'],
+    ['an empty reason', (w) => { w.reason = ''; }, 'admission.owner_waiver.reason'],
+    ['a date that is not a calendar date', (w) => { w.date = '2026-02-30'; }, 'admission.owner_waiver.date'],
+    ['an extra field', (w) => { w.by = 'owner'; }, 'admission.owner_waiver'],
+  ])('a waiver with %s is a problem', (_, change, field) => {
+    const k = waived(without('sandbox'));
+    change(k.admission.owner_waiver);
+    expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
+  });
+
+  test('every NFCME-2026 case is admitted: leptospirosis by the sandbox, the other ten by the owner waiver', () => {
+    const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
+    const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
+    expect(cases).toHaveLength(11);
+    expect(cases.filter(isAdmitted)).toHaveLength(11);
+    expect(cases.filter((k) => k.admission.sandbox).map((k) => k.case_id)).toEqual(['leptospirosis']);
+    expect(cases.filter((k) => k.admission.owner_waiver)).toHaveLength(10);
+  });
+
   test('a case with no admission marker is valid but not admitted', () => {
     const k = structuredClone(good);
     delete k.admission;

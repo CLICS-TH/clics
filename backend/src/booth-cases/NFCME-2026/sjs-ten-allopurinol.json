@@ -1061,6 +1061,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-03",
       "findings": "Fresh reviewer, version 2: checked the vignette, teaser and all 13 banks against BAD 2016 SJS/TEN guidance, Bastuji-Garin, SCORTEN and Thai allopurinol/HLA-B*5801 practice. Erythema multiforme major was removed from step 1, since 12% detachment with dusky truncal macules and a drug trigger excludes it. The BW and RB question that gave a BUN those paths never ordered now repeats only vignette facts. Every step-3 option stops allopurinol and transfers him out, no option is unsafe, and Thai and English agree. No must-fix finding."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030849-b13f"
     }
   }
 }

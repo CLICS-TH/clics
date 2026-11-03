@@ -1013,6 +1013,12 @@
       "model": "claude-opus-5-5",
       "date": "2026-11-03",
       "findings": "Fresh reviewers, version 3, whole case checked against RCOG GTG 21, NICE NG126, ACOG PB 193 and ATLS. The revision relabels the best step-3 options 'operate' (all nine banks) and 'mtp' (BB, BR, BW, WB, WR, WW) from unspecified surgery to laparotomy, since in shock the quickest route, usually laparotomy, is best and laparoscopic salpingectomy is reasonable; a first re-check found 'mtp' still unspecified, and it was fixed. Questions reveal only what each path ordered, every weaker option includes blood and surgery, Thai and English match, and labels fit their budgets. No must-fix finding."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030849-b13f"
     }
   }
 }
