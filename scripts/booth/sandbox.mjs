@@ -13,6 +13,7 @@
  *   --persona-runs n  runs per persona (default 3; 0 plays the scripted paths only)
  *   --concurrency n   plays at once (default 3)
  *   --out <dir>       where the JSON report and summary go (default scripts/booth/sandbox-runs)
+ *   --pool <json>     judge against the pool medians of an earlier full report (needed for a run of under 3 cases)
  *   --go              spend: without it the script stops after the estimate
  *
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
@@ -41,7 +42,7 @@ if (dbModules.length) fail(`sandbox refuses to run with a database client loaded
 
 function parseArgs(argv) {
   const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: 30, personaRuns: 3,
-    concurrency: 3, out: path.join(HERE, 'sandbox-runs'), go: false };
+    concurrency: 3, out: path.join(HERE, 'sandbox-runs'), pool: null, go: false };
   const number = (flag, v, min) => { const n = Number(v); if (!Number.isFinite(n) || n < min) fail(`${flag} needs a number >= ${min}`); return n; };
   for (let i = 0; i < argv.length; i += 1) {
     const [flag, v] = [argv[i], argv[i + 1]];
@@ -54,6 +55,7 @@ function parseArgs(argv) {
     else if (flag === '--persona-runs') opts.personaRuns = Math.floor(number(flag, v, 0));
     else if (flag === '--concurrency') opts.concurrency = Math.floor(number(flag, v, 1));
     else if (flag === '--out') opts.out = path.resolve(v);
+    else if (flag === '--pool') opts.pool = path.resolve(v);
     else fail(`unknown argument ${flag}`);
   }
   return opts;
@@ -76,6 +78,14 @@ function loadCases(dir, only) {
 }
 
 const opts = parseArgs(process.argv.slice(2));
+// Scripted-only runs (--persona-runs 0) are judged on the scripted groups alone.
+const groups = opts.personaRuns > 0 ? GROUPS : Object.keys(PATHS);
+let pool;
+if (opts.pool) {
+  try { pool = JSON.parse(readFileSync(opts.pool, 'utf8')).verdict.medians; } catch { fail(`--pool ${opts.pool} is not a sandbox report`); }
+  const missing = groups.filter((g) => typeof pool?.[g] !== 'number');
+  if (missing.length) fail(`--pool ${opts.pool} has no median for ${missing.join(', ')}`);
+}
 const cases = loadCases(opts.cases, opts.only);
 const jobs = jobsFor(cases, { personaRuns: opts.personaRuns });
 const est = estimate(jobs);
@@ -108,7 +118,7 @@ const { results, spent_usd, stopped } = await runPlays(jobs, {
 });
 
 const plays = jobs.map(({ kase, group, run }, i) => ({ case_id: kase.case_id, group, run, ...results[i] }));
-const table = Object.fromEntries(cases.map((k) => [k.case_id, Object.fromEntries(GROUPS.map((g) => [g,
+const table = Object.fromEntries(cases.map((k) => [k.case_id, Object.fromEntries(groups.map((g) => [g,
   plays.filter((p) => p.case_id === k.case_id && p.group === g && p.composite != null).map((p) => p.composite)]))]));
 const report = {
   run_id: runId,
@@ -123,14 +133,14 @@ const report = {
   scored: plays.filter((p) => p.composite != null).length,
   providers: [...new Set(plays.flatMap((p) => (p.calls ?? []).filter((c) => c.kind === 'evaluate' && c.provider).map((c) => c.provider)))],
   cases: Object.fromEntries(cases.map((k) => [k.case_id, { version: k.version }])),
-  verdict: verdicts(table, GROUPS),
+  verdict: verdicts(table, groups, pool),
   plays,
 };
 mkdirSync(opts.out, { recursive: true });
 const jsonPath = path.join(opts.out, `${runId}.json`);
 const mdPath = path.join(opts.out, `${runId}.md`);
 writeFileSync(jsonPath, `${JSON.stringify(report, null, 2)}\n`);
-const summary = summaryMarkdown(report, GROUPS);
+const summary = summaryMarkdown(report, groups);
 writeFileSync(mdPath, summary);
 console.log(`\n${summary}\nReport ${jsonPath}\nSummary ${mdPath}`);
 process.exit(!stopped && Object.values(report.verdict.cases).every((c) => c.pass) ? 0 : 1);

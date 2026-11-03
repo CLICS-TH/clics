@@ -3,6 +3,8 @@
 
 export const BAND = 10;
 export const SEPARATION = 15;
+// Fewer cases than this make a median that is mostly the case itself: a band check against it proves nothing.
+export const MIN_POOL = 3;
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 function sd(xs) {
@@ -22,19 +24,23 @@ const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
  * Each case against the pool. A group's pool median is the median of that group's case means, so like is
  * compared with like: a case's best path against the pool's best paths. A case passes when every group has a
  * scored play, every group mean is within BAND of its pool median, and its best path mean is at least SEPARATION
- * above its weakest.
+ * above its weakest. A run of fewer than MIN_POOL cases has no pool of its own: it passes only against `pool`,
+ * the medians of an earlier full run.
  * @param {Record<string, Record<string, number[]>>} table composites per case id, then per group
  * @param {string[]} groups the groups every case must have, in report order; must include 'best' and 'weakest'
+ * @param {Record<string, number | null>} [pool] pool medians per group to judge against instead of this run's
  */
-export function verdicts(table, groups) {
+export function verdicts(table, groups, pool) {
   const ids = Object.keys(table);
   const means = Object.fromEntries(ids.map((id) => [id, Object.fromEntries(groups.map((g) => [g, mean(table[id][g] ?? [])]))]));
-  const medians = Object.fromEntries(groups.map((g) => [g, median(ids.map((id) => means[id][g]).filter((m) => m != null))]));
+  const medians = pool ?? Object.fromEntries(groups.map((g) => [g, median(ids.map((id) => means[id][g]).filter((m) => m != null))]));
+  const pooled = Boolean(pool) || ids.length >= MIN_POOL;
   const cases = Object.fromEntries(ids.map((id) => {
     const m = means[id];
-    const reasons = [];
+    const reasons = pooled ? [] : [`no pool: ${ids.length} case(s) in this run, fewer than ${MIN_POOL}; judge it with --pool`];
     for (const g of groups) {
       if (m[g] == null) reasons.push(`${g}: no scored play`);
+      else if (medians[g] == null) reasons.push(`${g}: the pool has no median`);
       else if (Math.abs(m[g] - medians[g]) > BAND) reasons.push(`${g} mean ${r2(m[g])} is ${r2(m[g] - medians[g])} from the pool median ${r2(medians[g])}`);
     }
     const separation = m.best != null && m.weakest != null ? m.best - m.weakest : null;
@@ -47,7 +53,7 @@ export function verdicts(table, groups) {
       reasons,
     }];
   }));
-  return { medians: Object.fromEntries(groups.map((g) => [g, r2(medians[g])])), cases };
+  return { medians: Object.fromEntries(groups.map((g) => [g, r2(medians[g])])), pool_from: pool ? 'earlier run' : 'this run', cases };
 }
 
 const cell = (m, s) => (m == null ? 'none' : s == null ? `${m}` : `${m} ± ${s}`);
@@ -64,7 +70,7 @@ export function summaryMarkdown(report, groups) {
       + `$${report.cap_usd} cap${report.stopped ? ', stopped at the cap' : ''}. Evaluator via rimpl (${report.providers.join(', ') || 'none'}); `
       + `personas on ${report.persona_model}.`,
     '',
-    `Rule: every group mean within ±${BAND} of that group's pool median, and best at least ${SEPARATION} above weakest. `
+    `Pool medians from ${verdict.pool_from}. Rule: every group mean within ±${BAND} of that group's pool median, and best at least ${SEPARATION} above weakest. `
       + `Scripted paths play once; each persona plays ${report.persona_runs} times (mean ± SD). ${passed.length} of ${ids.length} cases pass.`,
     '',
     `| Case | Version | ${groups.join(' | ')} | Best − weakest | Verdict |`,

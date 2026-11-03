@@ -69,3 +69,22 @@ test('the summary has one row per case, the pool medians, and why a failing case
   assert.match(md, /- c: weak mean 80 is 30 from the pool median 50/);
   assert.match(md, /2 of 3 cases pass/);
 });
+
+test('a run of under 3 cases has no pool of its own: it fails unless judged against an earlier run\'s medians', () => {
+  const alone = verdicts({ a: matched(30) }, GROUPS);
+  assert.equal(alone.cases.a.pass, false);
+  assert.match(alone.cases.a.reasons[0], /no pool: 1 case\(s\) in this run, fewer than 3/);
+  const pool = verdicts({ a: matched(), b: matched(), c: matched() }, GROUPS).medians;
+  assert.equal(verdicts({ a: matched(4) }, GROUPS, pool).cases.a.pass, true);
+  const far = verdicts({ a: matched(30) }, GROUPS, pool);
+  assert.equal(far.cases.a.pass, false);
+  assert.equal(far.pool_from, 'earlier run');
+  assert.match(far.cases.a.reasons[0], /best mean 110 is 30 from the pool median 80/);
+});
+
+test('a scripted-only run is judged on the scripted groups alone', () => {
+  const scripted = ['best', 'mixed', 'weakest'];
+  const only = (s) => ({ best: [80 + s], mixed: [65 + s], weakest: [50 + s] });
+  const v = verdicts({ a: only(0), b: only(3), c: only(-3) }, scripted);
+  assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [true, true, true]);
+});
