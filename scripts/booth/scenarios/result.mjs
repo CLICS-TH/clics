@@ -81,6 +81,9 @@ async function playByTier(h, k, plan, release) {
       const offered = await page.$$eval('.options > [data-option]', (els) => els.map((e) => e.dataset.option));
       const id = offered.find((o) => bank.options.find((b) => b.id === o)?.tier === how);
       await k.tap(`[data-option="${id}"]`);
+      await page.waitForSelector(`[data-option="${id}"][aria-pressed="true"]`);
+      await look(`chosen ${n}`);
+      await k.tap('[data-action="send"]');
       answers.push({ choice: id });
     }
     await k.screen('reply');
