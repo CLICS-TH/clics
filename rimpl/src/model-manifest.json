@@ -48,6 +48,9 @@
           "booth": {
             "max_tokens": 600
           },
+          "booth_typed": {
+            "temperature": 0
+          },
           "deep": {
             "max_tokens": {
               "default": 8000,
@@ -334,5 +337,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "ed2584d519e332fa0074f434a482bc0145b3801631e9375376eae3803fd6ee5e"
+  "sha256": "58c2e4c05b739c5098981cd081b5c7566a07fad3847184fdad6bc375b714f173"
 }

@@ -10,7 +10,7 @@ const { rimplChat, rimplEvaluate } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, chatRequest, chatOutcome, evaluateRequest, stepTiers,
+  nextOf, fenced, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -201,11 +201,13 @@ async function playCase(playId, event) {
   return kase && kase.version === row.case_version ? { kase } : UNAVAILABLE;
 }
 
-function turnKey() {
+// One server secret, one key per use: a label of its own keeps a sort memo key from ever standing for a turn sig.
+function hmacKey(label) {
   const secret = process.env.GUEST_TOKEN_SECRET;
   if (!secret && process.env.NODE_ENV === 'production') throw new Error('GUEST_TOKEN_SECRET is required in production');
-  return crypto.createHmac('sha256', secret || 'clics-dev-guest-secret-do-not-use-in-prod').update('booth-turn-v1').digest();
+  return crypto.createHmac('sha256', secret || 'clics-dev-guest-secret-do-not-use-in-prod').update(label).digest();
 }
+const turnKey = () => hmacKey('booth-turn-v1');
 
 // A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
 // canonical forms are keyed by position, not by object key order. The kiosk holds no tier before the score reveals
@@ -458,6 +460,25 @@ async function claimStep(playId, event, n) {
   return Array.isArray(data) && data.length === 1 ? 'claimed' : 'replayed';
 }
 
+/** A typed answer as the sort memo compares it: NFC, whitespace runs as one space, trimmed, Latin letters lowercased.
+ *  Punctuation, spelling, word order and every other letter are kept. */
+const normalisedAnswer = (text) => text.normalize('NFC').replace(/\s+/gu, ' ').trim()
+  .replace(/\p{Script=Latin}+/gu, (s) => s.toLowerCase());
+
+/** The sort memo key of `d`'s last (typed) answer at its point of the case version: an HMAC, never the text. */
+const sortKey = (kase, d) => crypto.createHmac('sha256', hmacKey('booth-sort-memo-v1'))
+  .update(JSON.stringify([kase.case_id, kase.version, d.tierPath, normalisedAnswer(d.answers.at(-1).text)]))
+  .digest('hex');
+
+/** The tier kept under `key`, or null on a miss. With `letter`, keeps it unless a tier is already kept, and returns
+ *  whichever is kept. A database fault never refuses the reply: it answers `letter` (a miss, on a lookup). */
+async function memoTier(key, letter = null) {
+  const { data, error } = await supabase.rpc('booth_sort_memo', { p_key: key, p_tier: letter });
+  if (!error && (data === null || LETTERS.includes(data))) return data;
+  console.warn(`[booth] sort memo ${letter ? 'keep' : 'lookup'} failed: ${error ? error.code ?? 'error' : 'not a tier'}`);
+  return letter;
+}
+
 /** @returns {Promise<Result>} body: { status: 'replied', reply: Reply, reply_sig, next? } | { status: 'unavailable' }.
  *    An AI call that fails or gives no reply still answers 'replied', with every reply field '' and the fallback ask. */
 async function replyToStep(playId, input, now = new Date()) {
@@ -481,9 +502,12 @@ async function replyToStep(playId, input, now = new Date()) {
     await settle(playId, null, REPLY_RESERVE_USD);
     return { refused: claimed === 'replayed' ? 'replayed' : 'unavailable' };
   }
+  const key = dialogue.unsorted ? sortKey(kase, dialogue) : null;
+  const recalled = key ? await memoTier(key) : null;
+  const asked = recalled ? { ...dialogue, memo: recalled } : dialogue;
   let res = null;
   try {
-    res = await rimplChat({ ple_id: playId, ...chatRequest(kase, dialogue) }, { timeoutMs: REPLY_TIMEOUT_MS });
+    res = await rimplChat({ ple_id: playId, ...chatRequest(kase, asked) }, { timeoutMs: REPLY_TIMEOUT_MS });
   } catch (err) {
     // The reservation stays: a call that failed or timed out may still have been billed.
     console.warn(`[booth] reply failed for ${playId}: ${err.status || err.name}`);
@@ -491,7 +515,9 @@ async function replyToStep(playId, input, now = new Date()) {
   if (res) await settle(playId, res, REPLY_RESERVE_USD);
   // A rimpl older than the reply fields (#376) answers `content`: every step would show no reply, billed and unseen.
   if (res && (typeof res.reply !== 'object' || res.reply === null)) console.warn(`[booth] rimpl reply for ${playId} has no fields`);
-  const issued = chatOutcome(kase, dialogue, res);
+  // Only a tier the model gave is kept: a failed or unreadable call must not pin a text to weaker for good.
+  const kept = key && !recalled && typeof res?.tier === 'string' ? await memoTier(key, sortedTier(res.tier)) : null;
+  const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, res);
   const { bank, ask } = issued;
   return {
     body: {
