@@ -450,45 +450,70 @@ async function claimStep(playId, event, n) {
   return Array.isArray(data) && data.length === 1 ? 'claimed' : 'replayed';
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig, next? } | { status: 'unavailable' }.
- *    An AI call that fails or gives no reply still answers 'replied', with reply '' and the fallback ask. */
-async function replyToStep(playId, input, now = new Date()) {
-  const opened = await openEvent(now);
-  if (opened.refused) return opened;
-  const { event } = opened;
-  const played = await playCase(playId, event);
-  if (!played.kase) return played;
-  const { kase } = played;
-  const dialogue = parseDialogue(kase, playId, input, 'reply');
-  if (!dialogue) return { refused: 'bad_request' };
-
+/** The reply call's outcome once the dialogue is read, and what its latency line needs: `reason` for an
+ *  unavailable one or a failed AI call, `provider` when the AI answered. */
+async function replyOutcome(playId, event, kase, dialogue) {
   const reserved = await reserve(playId, event, REPLY_RESERVE_USD);
-  if (reserved === 'ceiling') return UNAVAILABLE;
-  if (PAST_STARTED.has(reserved)) return { refused: reserved };
-  if (reserved !== 'reserved') return { refused: 'unavailable' };
+  if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
+  if (PAST_STARTED.has(reserved)) return { result: { refused: reserved } };
+  if (reserved !== 'reserved') return { result: { refused: 'unavailable' }, reason: 'reserve' };
 
   const n = dialogue.answers.length;
   const claimed = await claimStep(playId, event, n);
   if (claimed !== 'claimed') {
     await settle(playId, null, REPLY_RESERVE_USD);
-    return { refused: claimed === 'replayed' ? 'replayed' : 'unavailable' };
+    return claimed === 'replayed' ? { result: { refused: 'replayed' } } : { result: { refused: 'unavailable' }, reason: 'claim' };
   }
   let res = null;
+  let reason = '';
   try {
     res = await rimplChat({ ple_id: playId, ...chatRequest(kase, dialogue) }, { timeoutMs: REPLY_TIMEOUT_MS });
   } catch (err) {
     // The reservation stays: a call that failed or timed out may still have been billed.
-    console.warn(`[booth] reply failed for ${playId}: ${err.status || err.name}`);
+    reason = err.status || err.name;
   }
   if (res) await settle(playId, res, REPLY_RESERVE_USD);
   const issued = chatOutcome(kase, dialogue, res);
   const { bank, ask } = issued;
-  return {
-    body: {
-      status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
-      ...(ask ? { next: nextOf(bank, ask) } : {}),
-    },
+  const body = {
+    status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
+    ...(ask ? { next: nextOf(bank, ask) } : {}),
   };
+  return { result: { body }, provider: res?.provider, reason };
+}
+
+// One line per reply call that reached the spend check, timing the whole call: score-latency.mjs reads them for the
+// rehearsal's reply p95. An empty reply is what the visitor waited for too, so it counts in the p95 with its own line.
+function logReply(playId, step, ms, { result, reason, provider }) {
+  if (result.body?.status === 'replied') {
+    if (result.body.reply) console.info(`[booth] reply replied play=${playId} step=${step} ms=${ms} provider=${provider}`);
+    else console.warn(`[booth] reply empty play=${playId} step=${step} ms=${ms} provider=${provider ?? 'none'} reason=${reason || 'empty'}`);
+  } else if (reason) {
+    console.warn(`[booth] reply unavailable play=${playId} step=${step} ms=${ms} reason=${reason}`);
+  }
+}
+
+/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig, next? } | { status: 'unavailable' }.
+ *    An AI call that fails or gives no reply still answers 'replied', with reply '' and the fallback ask. */
+async function replyToStep(playId, input, now = new Date()) {
+  const startedAt = Date.now();
+  let step = '-';
+  let outcome;
+  try {
+    const opened = await openEvent(now);
+    if (opened.refused) return opened;
+    const played = await playCase(playId, opened.event);
+    if (!played.kase) return played;
+    const dialogue = parseDialogue(played.kase, playId, input, 'reply');
+    if (!dialogue) return { refused: 'bad_request' };
+    step = dialogue.answers.length;
+    outcome = await replyOutcome(playId, opened.event, played.kase, dialogue);
+  } catch (err) {
+    logReply(playId, step, Date.now() - startedAt, { result: { refused: 'unavailable' }, reason: 'error' });
+    throw err;
+  }
+  logReply(playId, step, Date.now() - startedAt, outcome);
+  return outcome.result;
 }
 
 /** The score call's outcome, and what its latency line needs: `reason` for an unavailable one, `provider` for a
