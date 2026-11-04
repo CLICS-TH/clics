@@ -338,6 +338,20 @@ describe('the typed answer: a booth turn that also sorts the answer into a tier 
     expect(res.body).toMatchObject({ content: '', pick: null, tier: null });
   });
 
+  test.each([['with the next banks', TYPED], ['at the last step', { current: BANK }]])('the sort call %s sends temperature 0', async (_label, typed) => {
+    callAI.mockResolvedValue(r(typedJson()));
+    await send({ booth_mode: true, booth_typed: typed });
+    expect(call(0).temperature).toBe(0);
+  });
+
+  test('a tapped booth turn and a plain booth turn send no temperature', async () => {
+    callAI.mockResolvedValue(r(grillJson()));
+    await send({ booth_mode: true, booth_bank: BANK });
+    await send({ booth_mode: true });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    for (const n of [0, 1]) expect(call(n)).not.toHaveProperty('temperature');
+  });
+
   test('a tapped booth turn returns no tier key', async () => {
     callAI.mockResolvedValue(r(grillJson()));
     expect((await send({ booth_mode: true, booth_bank: BANK })).body).not.toHaveProperty('tier');
