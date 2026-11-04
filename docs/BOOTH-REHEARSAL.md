@@ -17,6 +17,8 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
       From #246 on, `migration-booth-plays.sql` drops the one-argument `booth_start_play` for the
       `(event, case, version)` one, so re-apply it only together with a backend deploy that has #246, and
       deploy the kiosk (Vercel), the backend and rimpl as one release: an older backend or kiosk ends every play.
+      The reply fields of #376 need the same: an older kiosk or backend ends every play, and an older rimpl blanks
+      every reply (the backend logs `rimpl reply ... has no fields`). Roll back all three together.
 - [ ] **Check, read-only:** `cd backend && node ../scripts/booth/purge-event.mjs --event FREEZE-CHECK` prints
       `dry run: nothing deleted` and `plays 0`. A `Next step:` line that says to apply
       `db/migration-booth-purge.sql` means the purge migration is not applied.

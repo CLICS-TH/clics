@@ -169,7 +169,10 @@ const newIp = () => { ip = `10.${Math.floor(ipSeq / 250)}.${ipSeq % 250}.7`; ipS
 const get = (p) => request(app).get(p).set('X-Forwarded-For', ip);
 const post = (p, body) => request(app).post(p).set('X-Forwarded-For', ip).send(body);
 
-const CHAT_OK = { content: 'AI reply', pick: null, refs: [], token_count: 0, input_tokens: 3000, output_tokens: 200,
+const AI_REPLY = { strength: 'AI reply', weigh: 'worth weighing', safety: '' };
+const AI_TEXT = 'AI reply worth weighing';
+const NO_REPLY = { strength: '', weigh: '', safety: '' };
+const CHAT_OK = { reply: AI_REPLY, pick: null, refs: [], token_count: 0, input_tokens: 3000, output_tokens: 200,
   provider: 'anthropic', model: 'claude-x', prompt_version: 'chat-prompt-abcd1234', failed_over_from: null };
 const EVAL_OK = { ple_id: 'x', d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3, composite_score: 99,
   input_tokens: 20000, output_tokens: 2000, provider: 'anthropic' };
@@ -249,7 +252,7 @@ const physicianTurn = (i, tierPath, ask, s) => ({
   role: 'physician',
   content: `${i === 0 ? `${KASE.vignette.th}\n\n` : ''}${question(bank(tierPath), ask)}\n${s}`,
 });
-/** An assistant turn: the reply, closed by the bridge into the next question that the same AI call wrote. */
+/** An assistant turn: the reply's text, closed by the bridge into the next question that the same AI call wrote. */
 const aiTurn = (reply, nextAsk) => ({ role: 'assistant', content: [reply, nextAsk?.bridge].filter(Boolean).join(' ') });
 /** What the kiosk must show for an ask: the bank's own text. */
 const shown = (b, ask) => ({
@@ -703,7 +706,7 @@ describe('POST /booth/plays/:id/reply', () => {
 
   test('the play follows the tier path: best then best walks step2.B then step3.BB', async () => {
     const p = await begin();
-    expect((await answer(p, 'best')).body).toEqual({ status: 'replied', reply: 'AI reply', reply_sig: expect.any(String),
+    expect((await answer(p, 'best')).body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String),
       next: expect.anything() });
     expectFallback(bank('B'), p.next);
     await answer(p, 'best');
@@ -763,7 +766,7 @@ describe('POST /booth/plays/:id/reply', () => {
     rimplChat.mockRejectedValueOnce(new Error('down'));
     const p = await begin();
     const res = await answer(p, { text: 'my own words' });
-    expect(res.body).toMatchObject({ status: 'replied', reply: '' });
+    expect(res.body).toMatchObject({ status: 'replied', reply: NO_REPLY });
     expect(p.path).toBe('W');
     expectFallback(bank('W'), p.next);
   });
@@ -805,7 +808,7 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, 'best');
     const res = await answer(p, { text: 'my own words' });
-    expect(res.body).toEqual({ status: 'replied', reply: 'AI reply', reply_sig: expect.any(String) });
+    expect(res.body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String) });
     const [args] = rimplChat.mock.calls[2];
     expect(args.booth_typed).toEqual({ current: { variants: bank('BB').variants, options: bank('BB').options } });
     expect(p.path).toBe('BBR');
@@ -817,15 +820,15 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, { text: 'ตรวจ CURB-65' });
     const res = await answer(p, 'weaker');
-    expect(res.body).toEqual({ status: 'replied', reply: 'AI reply', reply_sig: expect.any(String) });
+    expect(res.body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String) });
     const [args] = rimplChat.mock.calls[2];
     expect(args).not.toHaveProperty('booth_bank');
     const [a1, a2, a3] = p.d.answers;
     const [k1, k2, k3] = p.d.asks;
     expect(k2.bridge).toBe('ดีครับ');
-    expect(args.history).toEqual([physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn('AI reply', k2),
-      physicianTurn(1, 'B', k2, 'ตรวจ CURB-65'), aiTurn('AI reply', k3)]);
-    expect(args.history[1].content).toBe('AI reply ดีครับ');
+    expect(args.history).toEqual([physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn(AI_TEXT, k2),
+      physicianTurn(1, 'B', k2, 'ตรวจ CURB-65'), aiTurn(AI_TEXT, k3)]);
+    expect(args.history[1].content).toBe('AI reply worth weighing ดีครับ');
     expect(args.message).toBe(physicianTurn(2, 'BW', k3, said(bank('BW'), a3.choice)).content);
     expect(a2).toEqual({ text: 'ตรวจ CURB-65' });
   });
@@ -895,13 +898,6 @@ describe('POST /booth/plays/:id/reply', () => {
     expect(rpcCalls.filter(([n]) => n !== 'booth_start_play')).toEqual([]);
   });
 
-  test('a reply over 1200 characters is clipped to 1200, and the next step still verifies', async () => {
-    rimplChat.mockImplementation(async () => ({ ...CHAT_OK, content: 'ก'.repeat(5000) }));
-    const p = await begin();
-    expect((await answer(p, 'best')).body.reply).toBe('ก'.repeat(1200));
-    expect((await answer(p, 'best')).status).toBe(200);
-  });
-
   test('the call reserves 0.05 against the ceiling, then settles to the tokens rimpl reports, priced by provider', async () => {
     const p = await begin();
     await answer(p, 'best');
@@ -956,7 +952,7 @@ describe('POST /booth/plays/:id/reply', () => {
     const p = await begin();
     await answer(p, 'best');
     const changedAnswer = { ...p.d, answers: [{ text: 'changed' }, { text: 'b' }] };
-    const forgedReply = { ...p.d, replies: ['forged'], answers: [...p.d.answers, { text: 'b' }] };
+    const forgedReply = { ...p.d, replies: [{ ...AI_REPLY, strength: 'forged' }], answers: [...p.d.answers, { text: 'b' }] };
     rimplChat.mockClear();
     expect((await post(`/booth/plays/${p.id}/reply`, changedAnswer)).status).toBe(400);
     expect((await post(`/booth/plays/${p.id}/reply`, forgedReply)).status).toBe(400);
@@ -994,7 +990,7 @@ describe('POST /booth/plays/:id/reply', () => {
     const p = await begin();
     const res = await answer(p, 'best');
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ status: 'replied', reply: '' });
+    expect(res.body).toMatchObject({ status: 'replied', reply: NO_REPLY });
     expectFallback(bank('B'), p.next);
     expect(rpcNamed('booth_settle_spend')).toEqual([]);
     expect(plays.get(p.id)).toMatchObject({ status: 'started', spend_usd: 0.05 });
@@ -1003,13 +999,138 @@ describe('POST /booth/plays/:id/reply', () => {
     expect((await score(p)).body.status).toBe('scored');
   });
 
-  test('an empty AI reply answers the fallback ask even beside a valid pick, after the call is priced', async () => {
-    rimplChat.mockImplementation(async ({ booth_bank }) => ({ ...CHAT_OK, content: '  ', pick: pickFor(booth_bank) }));
+  test.each([
+    ['every field empty', NO_REPLY],
+    ['fields of spaces and stray markers only', { strength: '  ', weigh: '** **', safety: '*' }],
+    ['no reply at all', undefined],
+  ])('%s answers the fallback ask even beside a valid pick, after the call is priced', async (_name, reply) => {
+    rimplChat.mockImplementation(async ({ booth_bank }) => ({ ...CHAT_OK, reply, pick: pickFor(booth_bank) }));
     const p = await begin();
     const res = await answer(p, 'best');
-    expect(res.body).toMatchObject({ status: 'replied', reply: '' });
+    expect(res.body).toMatchObject({ status: 'replied', reply: NO_REPLY });
     expectFallback(bank('B'), p.next);
     expect(plays.get(p.id).spend_usd).toBeCloseTo(0.012, 9);
+  });
+});
+
+describe('the reply fields (#376): what the server lets reach the kiosk', () => {
+  const replying = (fields) => rimplChat.mockImplementation(async () => ({ ...CHAT_OK, reply: { ...NO_REPLY, ...fields } }));
+  /** The reply the kiosk is sent for step 1, answered with a best option. */
+  async function firstReply(fields) {
+    replying(fields);
+    const p = await begin();
+    const res = await answer(p, 'best');
+    expect(res.body.status).toBe('replied');
+    return { p, reply: res.body.reply };
+  }
+
+  test('a field longer than 115 characters is cut to 115, and the next step still verifies', async () => {
+    const { p, reply } = await firstReply({ strength: 'ก'.repeat(5000), weigh: 'w '.repeat(200) });
+    expect(reply).toEqual({ strength: 'ก'.repeat(115), weigh: 'w '.repeat(58).trimEnd(), safety: '' });
+    expect((await answer(p, 'best')).status).toBe(200);
+  });
+
+  test('a long field of spaced Thai phrases ends at the last space within 115 characters: whole phrases only', async () => {
+    const phrases = ['สิ่งที่ควรชั่งน้ำหนักคือ', 'ผลเลือดวันแรกอาจปกติ', 'จึงควรนัดตรวจซ้ำ', 'และเฝ้าดูค่าครีเอตินินในเลือด',
+      'กับปริมาณปัสสาวะอย่างใกล้ชิด', 'ในสองสามวันถัดไป', 'ก่อนสรุปว่าโรคไม่รุนแรง'];
+    expect(phrases.slice(0, 4).join(' ').length).toBeLessThanOrEqual(115);
+    expect(phrases.slice(0, 5).join(' ').length).toBeGreaterThan(115);
+    const { reply } = await firstReply({ weigh: phrases.join(' ') });
+    expect(reply.weigh).toBe(phrases.slice(0, 4).join(' '));
+  });
+
+  test.each([
+    ['a letter and its tone mark', `กก${'ก่อน'.repeat(30)}`, `กก${'ก่อน'.repeat(28)}`],
+    ['the vowel mark and the tone mark stacked on one letter', `กก${'ปู่'.repeat(40)}`, `กก${'ปู่'.repeat(37)}`],
+  ])('a long unspaced Thai field whose limit falls between %s is cut before that letter', async (_name, field, cut) => {
+    expect(field[115]).toMatch(/\p{M}/u);
+    const { reply } = await firstReply({ strength: field });
+    expect(reply.strength).toBe(cut);
+  });
+
+  test('newlines and runs of whitespace in a field collapse to one space', async () => {
+    const { reply } = await firstReply({ weigh: '  one\n\n two\t three  ' });
+    expect(reply.weigh).toBe('one two three');
+  });
+
+  test('a field missing or not text is empty, and the others are kept', async () => {
+    rimplChat.mockImplementation(async () => ({ ...CHAT_OK, reply: { strength: 7, safety: 'ok' } }));
+    const p = await begin();
+    expect((await answer(p, 'best')).body.reply).toEqual({ strength: '', weigh: '', safety: 'ok' });
+  });
+
+  test('a rimpl that answers `content`, not the fields, gives no reply and logs it; a fielded reply logs nothing', async () => {
+    const { reply: _fields, ...older } = CHAT_OK;
+    rimplChat.mockImplementation(async () => ({ ...older, content: 'old-style reply' }));
+    const p = await begin();
+    expect((await answer(p, 'best')).body.reply).toEqual(NO_REPLY);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(`rimpl reply for ${p.id} has no fields`));
+    console.warn.mockClear();
+    rimplChat.mockImplementation(async () => ({ ...CHAT_OK }));
+    await answer(p, 'best');
+    expect(console.warn).not.toHaveBeenCalledWith(expect.stringContaining('has no fields'));
+  });
+
+  test('a third bold run quoting the case loses its markers: at most two are kept', async () => {
+    const { reply } = await firstReply({ strength: '**ไข้** และ **ไอ** กับ **เสมหะ**' });
+    expect(reply.strength).toBe('**ไข้** และ **ไอ** กับ เสมหะ');
+  });
+
+  test('a bold run over 20 characters loses its markers and keeps its text', async () => {
+    const long = 'ไอมีเสมหะสีเหลือง และเจ็บหน้าอกขวา';
+    expect(KASE.vignette.th).toContain(long);
+    const { reply } = await firstReply({ weigh: `ดูที่ **${long}** ก่อน` });
+    expect(reply.weigh).toBe(`ดูที่ ${long} ก่อน`);
+  });
+
+  test('bold runs quoting the visitor\'s tapped answer, the question asked and the vignette are kept', async () => {
+    const p = await begin();
+    const { label } = bank('').options.find((o) => o.id === offered(p, 'best'));
+    const asked = { v1: 'การวินิจฉัย', v2: 'เข้าได้กับโรค' }[p.d.asks[0].variant];
+    const elsewhere = [KASE.vignette.th, ...bank('').options.flatMap((o) => [o.label.th, o.line.th])].join('\n');
+    expect(elsewhere).not.toContain(asked);
+    const fields = { strength: `เลือก **${label.th}** ดี`, weigh: `ตอบ **${asked}** ตรง`, safety: 'ผู้ป่วย **พนักงานออฟฟิศ**' };
+    replying(fields);
+    expect((await answer(p, 'best')).body.reply).toEqual(fields);
+  });
+
+  test('a bold run quoting a typed answer is kept whatever its Latin case', async () => {
+    const p = await begin();
+    replying({ strength: 'Starting with **chest X-RAY** is a strength.' });
+    expect((await answer(p, { text: 'Order a Chest X-ray now' })).body.reply.strength).toBe('Starting with **chest X-RAY** is a strength.');
+  });
+
+  test('a bold run naming an option the visitor saw but did not choose loses its markers', async () => {
+    const p = await begin();
+    const { label } = bank('').options.find((o) => o.id === offered(p, 'weaker'));
+    replying({ weigh: `ลองเทียบกับ **${label.th}**` });
+    expect((await answer(p, 'best')).body.reply.weigh).toBe(`ลองเทียบกับ ${label.th}`);
+  });
+
+  test('an unpaired ** and a stray * never reach the kiosk, even beside a kept run', async () => {
+    const { reply } = await firstReply({ strength: '***ไข้*** แล้ว *ไอ* และ **เสมหะ', weigh: '**', safety: '* ** *' });
+    expect(reply).toEqual({ strength: '**ไข้** แล้ว ไอ และ เสมหะ', weigh: '', safety: '' });
+  });
+
+  test('a reply posted back changed, extended or as plain text answers 400; with its keys reordered it still verifies', async () => {
+    const p = await begin();
+    await answer(p, 'best');
+    const [issued] = p.d.replies;
+    const next = (reply) => post(`/booth/plays/${p.id}/reply`, { ...p.d, replies: [reply], answers: [...p.d.answers, { choice: offered(p, 'best') }] });
+    for (const forged of [{ ...issued, safety: 'added' }, { ...issued, extra: '' }, AI_TEXT]) expect((await next(forged)).status).toBe(400);
+    const reordered = { safety: issued.safety, weigh: issued.weigh, strength: issued.strength };
+    expect(JSON.stringify(reordered)).not.toBe(JSON.stringify(issued));
+    expect((await next(reordered)).status).toBe(200);
+  });
+
+  test('the next call\'s history and the evaluator read each reply as plain text: its fields in order, markers removed', async () => {
+    replying({ strength: 'นึกถึง **ไข้** ก่อน', safety: 'ระวังภาวะขาดน้ำ' });
+    const p = await walked();
+    expect(p.d.replies[0]).toEqual({ strength: 'นึกถึง **ไข้** ก่อน', weigh: '', safety: 'ระวังภาวะขาดน้ำ' });
+    expect(rimplChat.mock.calls[1][0].history[1].content).toBe('นึกถึง ไข้ ก่อน ระวังภาวะขาดน้ำ');
+    await score(p);
+    expect(rimplEvaluate.mock.calls[0][0].transcript.filter((t) => t.role === 'assistant').map((t) => t.content))
+      .toEqual(Array(3).fill('นึกถึง ไข้ ก่อน ระวังภาวะขาดน้ำ'));
   });
 });
 
@@ -1123,9 +1244,9 @@ describe('POST /booth/plays/:id/score', () => {
     const [k1, k2, k3] = p2.d.asks;
     expect(rimplEvaluate.mock.calls).toEqual([[{
       ple_id: p2.id,
-      transcript: [physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn('AI reply', k2),
-        physicianTurn(1, 'B', k2, said(bank('B'), a2.choice)), aiTurn('AI reply', k3),
-        physicianTurn(2, 'BR', k3, fenced('ตรวจ CURB-65')), aiTurn('AI reply')],
+      transcript: [physicianTurn(0, '', k1, said(bank(''), a1.choice)), aiTurn(AI_TEXT, k2),
+        physicianTurn(1, 'B', k2, said(bank('B'), a2.choice)), aiTurn(AI_TEXT, k3),
+        physicianTurn(2, 'BR', k3, fenced('ตรวจ CURB-65')), aiTurn(AI_TEXT)],
       patient_ref: null, chief_complaint: KASE.vignette.th, shadow: false,
     }, { timeoutMs: 60000 }]]);
   });
@@ -1162,7 +1283,7 @@ describe('POST /booth/plays/:id/score', () => {
     expect(p.d.asks.slice(1).map((k) => k.bridge)).toEqual(['ลองคิดต่อ', 'ลองคิดต่อ']);
     expect(transcript.filter((t) => t.role === 'physician').some((t) => t.content.includes('ลองคิดต่อ'))).toBe(false);
     expect(transcript.filter((t) => t.role === 'assistant').map((t) => t.content))
-      .toEqual(['AI reply ลองคิดต่อ', 'AI reply ลองคิดต่อ', 'AI reply']);
+      .toEqual(['AI reply worth weighing ลองคิดต่อ', 'AI reply worth weighing ลองคิดต่อ', 'AI reply worth weighing']);
   });
 
   test('success answers the composite recomputed with the pilot weights and the seven domains, ignoring rimpl\'s composite', async () => {
@@ -1393,13 +1514,14 @@ describe('turn binding (#222, #246: the score reads only what the server issued)
   });
 
   test.each([
-    ['a reply the AI never gave', (d) => ({ ...d, replies: ['AI reply', 'invented', 'AI reply'] })],
+    ['a reply the AI never gave', (d) => ({ ...d, replies: [AI_REPLY, { ...AI_REPLY, weigh: 'invented' }, AI_REPLY] })],
     ['an answer changed after its reply', (d) => ({ ...d, answers: [{ text: 'changed' }, ...d.answers.slice(1)] })],
     ['a later ask swapped for another valid trio', (d) => ({ ...d, asks: [d.asks[0], d.asks[1], { ...d.asks[2], variant: 'v2' === d.asks[2].variant ? 'v1' : 'v2' }] })],
     ['one sig short', (d) => ({ ...d, sigs: d.sigs.slice(0, 3) })],
     ['the last sig missing its last turn', (d) => ({ ...d, sigs: [...d.sigs.slice(0, 3), d.sigs[2]] })],
-    ['every reply empty', (d) => ({ ...d, replies: ['', '', ''] })],
-    ['an empty reply carrying the sig of the reply it dropped', (d) => ({ ...d, replies: ['AI reply', '', 'AI reply'] })],
+    ['every reply empty', (d) => ({ ...d, replies: [NO_REPLY, NO_REPLY, NO_REPLY] })],
+    ['an empty reply carrying the sig of the reply it dropped', (d) => ({ ...d, replies: [AI_REPLY, NO_REPLY, AI_REPLY] })],
+    ['a reply in the old plain-text shape', (d) => ({ ...d, replies: [AI_TEXT, AI_REPLY, AI_REPLY] })],
   ])('a score with %s answers 400 and never reaches the evaluator or the spend', async (_name, tamper) => {
     const p = await ready();
     const res = await score(p, tamper(p.d));
@@ -1417,10 +1539,10 @@ describe('turn binding (#222, #246: the score reads only what the server issued)
 
   test('an empty reply after a failed AI call is scored with the sig that call answered', async () => {
     rimplChat
-      .mockImplementationOnce(async () => ({ ...CHAT_OK, content: 'r1' }))
+      .mockImplementationOnce(async () => ({ ...CHAT_OK, reply: { ...NO_REPLY, strength: 'r1' } }))
       .mockRejectedValueOnce(Object.assign(new Error('RIMPL /chat error: 503'), { status: 503 }));
     const p = await walked();
-    expect(p.d.replies).toEqual(['r1', '', 'AI reply']);
+    expect(p.d.replies).toEqual([{ ...NO_REPLY, strength: 'r1' }, NO_REPLY, AI_REPLY]);
     expect((await score(p)).body.status).toBe('scored');
   });
 });
@@ -1546,7 +1668,7 @@ describe('write surface (ADR 0004)', () => {
 
   async function wholePlay() {
     rimplChat.mockImplementation(async ({ booth_bank }) => ({
-      ...CHAT_OK, content: REPLY, pick: booth_bank ? pickFor(booth_bank, { bridge: BRIDGE }) : null,
+      ...CHAT_OK, reply: { strength: REPLY, weigh: REPLY, safety: REPLY }, pick: booth_bank ? pickFor(booth_bank, { bridge: BRIDGE }) : null,
     }));
     const p = await begin();
     const statuses = [];

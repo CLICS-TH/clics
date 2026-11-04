@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
-const { STEPS, LETTER, bankAt, firstAsk, chatRequest, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { STEPS, LETTER, bankAt, firstAsk, replyText, chatRequest, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
 const { ScoreSchema } = require(path.join(SRC, 'lib', 'schemas'));
 const { compositeScore, WEIGHTS } = require(path.join(SRC, 'services', 'ple-gate'));
 const { costUsd } = require(path.join(SRC, 'lib', 'pricing'));
@@ -54,7 +54,7 @@ function personaRequest({ persona, kase, bank, ask, d, typing }) {
   const options = ask.options.map((id) => bank.options.find((o) => o.id === id));
   const asked = (v, i) => bankAt(kase, d.tierPath.slice(0, i)).variants.find((x) => x.id === v.variant).question.th;
   const said = (a, i) => ('text' in a ? a.text : optionText(bankAt(kase, d.tierPath.slice(0, i)).options.find((o) => o.id === a.choice)));
-  const soFar = d.answers.map((a, i) => `Q: ${asked(d.asks[i], i)}\nYou: ${said(a, i)}\nTutor: ${d.replies[i] || '(no reply)'}`);
+  const soFar = d.answers.map((a, i) => `Q: ${asked(d.asks[i], i)}\nYou: ${said(a, i)}\nTutor: ${replyText(d.replies[i]) || '(no reply)'}`);
   const question = bank.variants.find((v) => v.id === ask.variant).question;
   return {
     system: `You are ${PERSONAS[persona]}, playing a 3-question clinical case at a medical forum booth. Answer as that `
@@ -105,7 +105,7 @@ const personaChooser = (persona, { typeRate = TYPE_RATE, random = Math.random } 
 
 /**
  * One booth grill play of `kase`. `ai` holds the calls: `chat` and `evaluate` reach rimpl, `persona` the persona model.
- * Each call's cost is read from the tokens it reports. A failed chat takes the booth's own fallback (reply '' and the
+ * Each call's cost is read from the tokens it reports. A failed chat takes the booth's own fallback (no reply and the
  * bank's default trio); a failed evaluate leaves the play unscored, and so does a `choose` that answers `{ abandon }`.
  * @param {{ kase: object, choose: Function, ai: Record<string, Function>, start?: object }} play
  *   `start` is step 1's ask (default: drawn the way the booth draws it).
