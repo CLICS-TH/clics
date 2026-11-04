@@ -490,8 +490,11 @@ export default [
         await k.tap('[data-action="send"]');
         await k.screen('reply');
         const t = await measure(k.page);
-        console.log(`     report only: a ${typed.trim().length}-character typed answer under the fit reply at ${width}x${height}: `
-          + `${t.spare >= 0 ? `${t.spare}px to spare` : `${-t.spare}px over, the body scrolls`}; button on screen ${t.button}`);
+        h.check(t.overflow <= 1 && t.spare >= 0 && t.button && t.still,
+          `${width}x${height}: a ${typed.trim().length}-character typed answer under three fields of ${h.FIELD_MAX_CHARS} characters fits `
+          + `with no scroll, Next fully on screen (${t.spare >= 0 ? `${t.spare}px to spare` : `${-t.spare}px over`})`);
+        h.check(await text(k.page, '.answer-text') === typed.trim(),
+          `${width}x${height}: the long typed answer is held to its first lines on screen, its whole text kept in the page`);
         await h.shot(k.page, `reply-fit-typed-${width}`);
         await k.close();
       }));

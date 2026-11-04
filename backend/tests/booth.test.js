@@ -1110,6 +1110,15 @@ describe('the reply fields (#376): what the server lets reach the kiosk', () => 
     expect(reply.weigh).toBe(`ดูที่ ${long} ก่อน`);
   });
 
+  test('a kept run\'s padding goes outside its markers, so no run between markers is over 20 characters', async () => {
+    const quote = KASE.vignette.th.slice(0, 20);
+    expect([quote.length, quote.trim()]).toEqual([20, quote]);
+    const { reply } = await firstReply({ strength: `** ${quote} ** ก่อน`, weigh: `ดูที่ ** ${quote} **ก่อน`, safety: `ดูที่** ${quote} **` });
+    expect(reply).toEqual({ strength: `**${quote}** ก่อน`, weigh: `ดูที่ **${quote}** ก่อน`, safety: `ดูที่ **${quote}**` });
+    const runs = Object.values(reply).flatMap((f) => f.split('**').filter((_, i) => i % 2));
+    expect(runs.every((r) => r.length <= 20)).toBe(true);
+  });
+
   test('bold runs quoting the visitor\'s tapped answer, the question asked and the vignette are kept', async () => {
     const p = await begin();
     const { label } = bank('').options.find((o) => o.id === offered(p, 'best'));
