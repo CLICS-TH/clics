@@ -130,16 +130,25 @@ function checkedField(raw, quotes) {
   if (typeof raw !== 'string') return '';
   const parts = raw.replace(/\s+/g, ' ').trim().split('**');
   let kept = 0;
-  const segments = parts.map((part, i) => {
+  const segments = parts.flatMap((part, i) => {
     // A stray `*` beside a kept run would serialise as `***`, so none survives anywhere.
     const text = part.replaceAll('*', '');
     const run = text.trim();
     // An odd part is a run only when a closing marker follows it.
     const bold = i % 2 === 1 && i < parts.length - 1 && kept < BOLD_MAX_RUNS && run !== ''
       && run.length <= BOLD_MAX_CHARS && quotes(run);
-    if (bold) kept += 1;
-    return { text, bold };
+    if (!bold) return [{ text, bold }];
+    kept += 1;
+    // A kept run's padding goes outside its markers, so no run between them is over BOLD_MAX_CHARS.
+    const at = text.indexOf(run);
+    return [{ text: text.slice(0, at), bold: false }, { text: run, bold }, { text: text.slice(at + run.length), bold: false }];
   });
+  // Moved padding can meet a space, or start the field: keep one space, never two, and none in front.
+  let shown = '';
+  for (const s of segments) {
+    if ((shown === '' || shown.endsWith(' ')) && s.text.startsWith(' ')) s.text = s.text.slice(1);
+    shown += s.text;
+  }
   // A long field ends at the last space that fits, so on a whole Thai phrase. With none, the cut steps back off any
   // combining mark (tone mark, vowel), which would otherwise leave its letter changed on screen.
   const plain = segments.map((s) => s.text).join('');
@@ -241,5 +250,5 @@ const stepTiers = (kase, { asks, tierPath }) => asks.map((ask, i) => {
 
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, replyText, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
+  nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
 };

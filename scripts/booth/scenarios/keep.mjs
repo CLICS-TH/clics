@@ -16,7 +16,7 @@ async function toResult(k) {
   await k.tap('[data-action="begin"]');
   for (let n = 1; n <= 3; n++) {
     await k.screen('step');
-    await k.tap('.options > [data-option]:nth-child(1)');
+    await k.answer(1);
     await k.screen('reply');
     await k.tap(`[data-action="${n === 3 ? 'see-score' : 'next'}"]`);
   }

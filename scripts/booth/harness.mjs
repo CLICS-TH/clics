@@ -291,6 +291,17 @@ async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = m
       await page.waitForFunction(() => document.getAnimations().every((a) => a.effect?.getComputedTiming().iterations === Infinity || a.playState !== 'running'), null, { timeout: WAIT_MS });
     },
     screenNow: () => page.evaluate(() => document.querySelector('#booth [data-screen]')?.dataset.screen ?? null),
+    /** Tap option n (1-3) of the step and wait until it shows chosen. */
+    async choose(n) {
+      const option = `.options > [data-option]:nth-child(${n})`;
+      await k.tap(option);
+      await page.waitForSelector(`${option}[aria-pressed="true"]`, { timeout: WAIT_MS });
+    },
+    /** Answer the step with option n (1-3) the way a visitor does: choose it, then Send. */
+    async answer(n) {
+      await k.choose(n);
+      await k.tap('[data-action="send"]');
+    },
     /** From the Tap-to-try bar to the vignette: tap it, take the dealt case's teaser, tap "Start this case". */
     async toVignette() {
       await k.tap('[data-action="start"]');
