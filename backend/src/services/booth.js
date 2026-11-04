@@ -452,19 +452,19 @@ async function claimStep(playId, event, n) {
   return Array.isArray(data) && data.length === 1 ? 'claimed' : 'replayed';
 }
 
-/** The reply call's outcome once the dialogue is read, and what its latency line needs: `reason` for an
- *  unavailable one or a failed AI call, `provider` when the AI answered. */
+/** The reply call's outcome once the dialogue is read, and what its latency line needs: `reason` unless the AI
+ *  replied, `provider` when the AI answered. */
 async function replyOutcome(playId, event, kase, dialogue) {
   const reserved = await reserve(playId, event, REPLY_RESERVE_USD);
   if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
-  if (PAST_STARTED.has(reserved)) return { result: { refused: reserved } };
+  if (PAST_STARTED.has(reserved)) return { result: { refused: reserved }, reason: reserved };
   if (reserved !== 'reserved') return { result: { refused: 'unavailable' }, reason: 'reserve' };
 
   const n = dialogue.answers.length;
   const claimed = await claimStep(playId, event, n);
   if (claimed !== 'claimed') {
     await settle(playId, null, REPLY_RESERVE_USD);
-    return claimed === 'replayed' ? { result: { refused: 'replayed' } } : { result: { refused: 'unavailable' }, reason: 'claim' };
+    return claimed === 'replayed' ? { result: { refused: 'replayed' }, reason: 'replayed' } : { result: { refused: 'unavailable' }, reason: 'claim' };
   }
   let res = null;
   let reason = '';
@@ -484,15 +484,29 @@ async function replyOutcome(playId, event, kase, dialogue) {
   return { result: { body }, provider: res?.provider, reason };
 }
 
-// One line per reply call that reached the spend check, timing the whole call: score-latency.mjs reads them for the
-// rehearsal's reply p95. An empty reply is what the visitor waited for too, so it counts in the p95 with its own line.
+// One line per reply call, timing the whole call: score-latency.mjs reads the replied and empty ones for the
+// rehearsal's reply p95 and counts the unavailable ones. An empty reply is what the visitor waited for too, so it counts in the p95 with its own
+// line. A refused call (closed booth, unknown play, bad request, replayed or finished step) never reached the AI.
 function logReply(playId, step, ms, { result, reason, provider }) {
+  const at = `play=${playId} step=${step} ms=${ms}`;
   if (result.body?.status === 'replied') {
-    if (result.body.reply) console.info(`[booth] reply replied play=${playId} step=${step} ms=${ms} provider=${provider}`);
-    else console.warn(`[booth] reply empty play=${playId} step=${step} ms=${ms} provider=${provider ?? 'none'} reason=${reason || 'empty'}`);
-  } else if (reason) {
-    console.warn(`[booth] reply unavailable play=${playId} step=${step} ms=${ms} reason=${reason}`);
+    if (result.body.reply) console.info(`[booth] reply replied ${at} provider=${provider}`);
+    else console.warn(`[booth] reply empty ${at} provider=${provider ?? 'none'} reason=${reason || 'empty'}`);
+  } else {
+    const kind = result.body?.status === 'unavailable' || result.refused === 'unavailable' ? 'unavailable' : 'refused';
+    console.warn(`[booth] reply ${kind} ${at} reason=${reason}`);
   }
+}
+
+/** What a reply call stops on before the spend check, with the reason its line gives, else what it goes on with. */
+async function readReplyCall(playId, input, now) {
+  const opened = await openEvent(now);
+  if (opened.refused) return { stopped: { result: opened, reason: 'event' } };
+  const played = await playCase(playId, opened.event);
+  if (!played.kase) return { stopped: { result: played, reason: 'case' } };
+  const dialogue = parseDialogue(played.kase, playId, input, 'reply');
+  if (!dialogue) return { stopped: { result: { refused: 'bad_request' }, reason: 'bad_request' } };
+  return { event: opened.event, kase: played.kase, dialogue };
 }
 
 /** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig, next? } | { status: 'unavailable' }.
@@ -502,14 +516,9 @@ async function replyToStep(playId, input, now = new Date()) {
   let step = '-';
   let outcome;
   try {
-    const opened = await openEvent(now);
-    if (opened.refused) return opened;
-    const played = await playCase(playId, opened.event);
-    if (!played.kase) return played;
-    const dialogue = parseDialogue(played.kase, playId, input, 'reply');
-    if (!dialogue) return { refused: 'bad_request' };
-    step = dialogue.answers.length;
-    outcome = await replyOutcome(playId, opened.event, played.kase, dialogue);
+    const call = await readReplyCall(playId, input, now);
+    if (call.dialogue) step = call.dialogue.answers.length;
+    outcome = call.stopped ?? await replyOutcome(playId, call.event, call.kase, call.dialogue);
   } catch (err) {
     logReply(playId, step, Date.now() - startedAt, { result: { refused: 'unavailable' }, reason: 'error' });
     throw err;

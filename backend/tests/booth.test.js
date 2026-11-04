@@ -1093,21 +1093,23 @@ describe('POST /booth/plays/:id/reply', () => {
       errors.mockRestore();
     });
 
+    const UUID = '[0-9a-f-]{36}';
     test.each([
-      ['a bad request', async (p) => post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [{ text: 'x'.repeat(501) }] })],
-      ['a replayed step', async (p) => {
+      ['a bad request', 'refused', '-', 'bad_request', async (p) => post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [{ text: 'x'.repeat(501) }] })],
+      ['a replayed step', 'refused', 1, 'replayed', async (p) => {
         const body = { ...p.d, answers: [{ choice: offered(p, 'best') }] };
         await post(`/booth/plays/${p.id}/reply`, body);
         console.info.mockClear();
         return post(`/booth/plays/${p.id}/reply`, body);
       }],
-      ['a closed booth', async (p) => { settings = { rows: eventSettings({ enabled: 0 }) }; return answer(p, 'best'); }],
-      ['a play on a case at another version', async (p) => { plays.get(p.id).case_version = 'old'; return answer(p, 'best'); }],
-      ['an unknown play', async (p) => answer({ ...p, id: crypto.randomUUID() }, 'best')],
-    ])('%s logs no reply line', async (_name, act) => {
+      ['a closed booth', 'refused', '-', 'event', async (p) => { settings = { rows: eventSettings({ enabled: 0 }) }; return answer(p, 'best'); }],
+      ['a play on a case at another version', 'unavailable', '-', 'case', async (p) => { plays.get(p.id).case_version = 'old'; return answer(p, 'best'); }],
+      ['an unknown play', 'refused', '-', 'case', async (p) => answer({ ...p, id: crypto.randomUUID() }, 'best')],
+    ])('%s logs one %s line at step %s with reason %s', async (name, kind, step, reason, act) => {
       const p = await begin();
       await act(p);
-      expect(logged()).toEqual([]);
+      expect(logged()).toEqual([line(kind, name === 'an unknown play' ? UUID : p.id, step, `reason=${reason}`)]);
+      expect(rimplChat).toHaveBeenCalledTimes(name === 'a replayed step' ? 1 : 0);
     });
   });
 });
