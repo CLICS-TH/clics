@@ -102,7 +102,7 @@ describe('the path score table (ADR 0009)', () => {
   test.each([
     ['a missing path', (t) => { delete t.paths.WRB; }, ['path_score_table.paths.WRB: ', 'Required']],
     ['an extra path', (t) => { t.paths.BBBB = t.paths.BBB; }, ['path_score_table.paths: ', "'BBBB'"]],
-    ['a domain of 0', (t) => { t.paths.RBW.d3 = 0; }, ['path_score_table.paths.RBW.d3: ', '1']],
+    ['a domain of -1', (t) => { t.paths.RBW.d3 = -1; }, ['path_score_table.paths.RBW.d3: ', '0']],
     ['a domain of 6', (t) => { t.paths.RBW.d3 = 6; }, ['path_score_table.paths.RBW.d3: ', '5']],
     ['a fractional domain', (t) => { t.paths.BRW.d4 = 2.5; }, ['path_score_table.paths.BRW.d4: ', 'integer']],
     ['a missing domain', (t) => { delete t.paths.WWB.d7; }, ['path_score_table.paths.WWB.d7: ', 'Required']],

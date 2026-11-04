@@ -49,8 +49,9 @@ const Bank = z.object({
 const keyedBanks = (keys) => z.object(Object.fromEntries(keys.map((k) => [k, Bank]))).strict();
 
 const Sha256 = z.string().regex(/^[0-9a-f]{64}$/, 'must be 64 lowercase hex characters');
-// A wave-1 domain is the median of three whole evaluator samples, and booth_plays.d1..d7 are smallint.
-const PathDomains = z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, z.number().int().min(1).max(5)]))).strict();
+// A wave-1 domain is the median of three whole evaluator samples, on the evaluator's own 0-5 scale, and
+// booth_plays.d1..d7 are smallint between 0 and 5.
+const PathDomains = z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, z.number().int().min(0).max(5)]))).strict();
 // Field names follow rimpl's model manifest.
 const PathScoreTable = z.object({
   provenance: z.object({
