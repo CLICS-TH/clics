@@ -7,12 +7,12 @@
 //   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
-import { COPY, DEMO_LABEL, DOMAINS, scoreText, fill } from './booth-copy.js';
+import { COPY, DEMO_LABEL, DOMAINS, REPLY_FIELDS, scoreText, fill } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
 import { resultUrl, boothDate } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
-import { el, phrases, bi } from './booth-dom.js';
+import { el, phrases, markedPhrases, bi } from './booth-dom.js';
 
 const START_TIMEOUT_MS = 15_000;
 const REPLY_TIMEOUT_MS = 45_000;
@@ -29,6 +29,8 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
  * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, answerMax: number }} Play
  * @typedef {{ choice: string } | { text: string }} Answer
+ * @typedef {{ strength: string, weigh: string, safety: string }} Reply   the object as received, posted back as is.
+ *   '' is an absent field, and all three '' is no reply. Inside a field `**…**` marks a bold run the server checked.
  * @typedef {{ composite: number, domains: Record<string, number>, body: object }} Score
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
  *
@@ -37,12 +39,12 @@ const GHOST_TAP_MS = 350;
  *         | { at: 'stopped', offline: boolean }} Screen
  *   step.chosen is the option the visitor tapped (an id of the step's ask), sent only by Send. scoring.shown is false
  *   for the score's first SCORING_SHOWN_MS, while the reply screen stays up.
- * @typedef {{ play: Play, steps: Next[], answers: Answer[], replies: string[], sigs: string[], screen: Screen }} PlayState
+ * @typedef {{ play: Play, steps: Next[], answers: Answer[], replies: Reply[], sigs: string[], screen: Screen }} PlayState
  *   steps[i] is the Next the server issued for step i (start, then each reply); the asks posted back are its
  *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
  * @typedef {{ type: 'begin' } | { type: 'choose', choice: string } | { type: 'sendChoice' } | { type: 'openTyping' } | { type: 'closeTyping' }
- *         | { type: 'sendText', text: string } | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' }
+ *         | { type: 'sendText', text: string } | { type: 'replied', reply: Reply, sig: string, next: Next | null } | { type: 'next' }
  *         | { type: 'slow' } | { type: 'scored', score: Score } | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  *   sendChoice is the step's Send: it sends step.chosen.
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
@@ -136,7 +138,7 @@ function transition(s, ev) {
       return at === 'typing' && text.length > 0 && text.length <= s.play.answerMax ? answered(s, { text }) : s;
     }
     case 'replied': return at === 'replying'
-      ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
+      ? { ...s, replies: [...s.replies, ev.reply], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
       return { ...s, screen: s.answers.length < STEPS ? { at: 'step', chosen: null } : { at: 'scoring', shown: false } };
@@ -159,9 +161,9 @@ async function requestReply(api, s) {
     const body = await api.post(`/booth/plays/${encodeURIComponent(s.play.id)}/reply`, dialogue(s), { timeoutMs: REPLY_TIMEOUT_MS });
     if (body?.status === 'unavailable') return { type: 'unavailable' };
     const next = s.answers.length < STEPS ? parseNext(body?.next) : null;
-    if (body?.status === 'replied' && typeof body.reply === 'string' && typeof body.reply_sig === 'string'
-      && (next || s.answers.length === STEPS)) {
-      return { type: 'replied', text: body.reply, sig: body.reply_sig, next };
+    const reply = parseReply(body?.reply);
+    if (body?.status === 'replied' && reply && typeof body.reply_sig === 'string' && (next || s.answers.length === STEPS)) {
+      return { type: 'replied', reply, sig: body.reply_sig, next };
     }
     return { type: 'stop', offline: false };
   } catch (e) {
@@ -194,6 +196,12 @@ function parseNext(n) {
     return null;
   }
   return { ask: { variant: ask.variant, bridge: ask.bridge, options: [...ask.options] }, question: n.question, options: n.options };
+}
+
+/** @returns {Reply | null} `r` itself, so the reply goes back to the server exactly as it came */
+function parseReply(r) {
+  return r !== null && typeof r === 'object' && Object.keys(r).length === REPLY_FIELDS.length
+    && REPLY_FIELDS.every(({ key }) => typeof r[key] === 'string') ? r : null;
 }
 
 /** `live` is how many cases can be dealt now; null when the server does not say (a backend older than the count).
@@ -357,8 +365,11 @@ const VIEWS = {
   replying: (s) => frame([exchange(s, aiBubble(withStillWorking(el('span', { class: 'ai-wait', role: 'status' }, bi(COPY.replying), dots()))))]),
 
   reply: (s, { button }) => {
-    const text = s.replies[s.replies.length - 1];
-    const said = text === '' ? bi(COPY.noReply, 'reply-note') : aiBubble(el('p', { class: 'ai-text', lang: 'th' }, ...plainText(text)));
+    const reply = s.replies[s.replies.length - 1];
+    const fields = REPLY_FIELDS.filter(({ key }) => reply[key].trim() !== '');
+    const said = fields.length === 0 ? bi(COPY.noReply, 'reply-note') : aiBubble(...fields.map((f) => el('section',
+      { class: 'reply-field', dataset: { field: f.key }, 'aria-label': f.en },
+      bi(f, 'reply-head'), el('p', { class: 'ai-text', lang: 'th' }, ...markedPhrases(reply[f.key])))));
     const [copy, action] = s.answers.length === STEPS ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
       [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);
@@ -427,9 +438,9 @@ function exchange(s, aiPart) {
     aiPart);
 }
 
-function aiBubble(content) {
+function aiBubble(...content) {
   const label = window.AI_LABEL.th;
-  return el('section', { class: 'ai-bubble', 'aria-label': label }, el('p', { class: 'ai-label' }, label), content);
+  return el('section', { class: 'ai-bubble', 'aria-label': label }, el('p', { class: 'ai-label' }, label), ...content);
 }
 
 const dots = () => el('span', { class: 'waiting-dots', 'aria-hidden': 'true' }, el('i'), el('i'), el('i'));
