@@ -248,5 +248,5 @@ const stepTiers = (kase, { asks, tierPath }) => asks.map((ask, i) => {
 
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, replyText, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
+  nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
 };

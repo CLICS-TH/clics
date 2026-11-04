@@ -46,7 +46,7 @@ async function toLastReply(k) {
   await k.tap('[data-action="begin"]');
   for (let i = 0; i < 3; i++) {
     await k.screen('step');
-    await k.tap('.options > [data-option]:nth-child(1)');
+    await k.answer(1);
     await k.screen('reply');
     if (i < 2) await k.tap('[data-action="next"]');
   }
@@ -234,10 +234,12 @@ export default [
       const release = stub.hold(SCORE_KEY);
       await k.tap('[data-action="see-score"]');
       await k.screen('scoring');
-      // booth-play's own 75 s score deadline runs on the same fake clock (Playwright fakes AbortSignal.timeout).
-      await page.clock.fastForward(74_000);
+      // booth-play's own 75 s score deadline runs on the same fake clock (Playwright fakes AbortSignal.timeout), from the
+      // tap, and real time keeps running: 'scoring' shows a second later and the settle waits add more on a loaded host.
+      await page.clock.fastForward(70_000);
       await h.sleep(300);
-      h.check(await overlays(page) === 0 && await k.screenNow() === 'scoring', 'scoring + 74 s (under the play\'s 75 s deadline): no "Still there?", still scoring');
+      const at = await k.screenNow();
+      h.check(await overlays(page) === 0 && at === 'scoring', `scoring + 70 s (under the play's 75 s deadline): no "Still there?", still scoring (on '${at}')`);
       release();
       await k.screen('scored');
       await page.clock.fastForward(44_000);
@@ -388,7 +390,7 @@ export default [
       await k.tap('[data-action="begin"]');
       await k.screen('step');
       await k.offline(true);
-      await k.tap('.options > [data-option]:nth-child(1)');
+      await k.answer(1);
       await k.screen('stopped');
       h.check(hasBoth(await page.locator('#booth').innerText(), h.COPY.stoppedOffline), 'mid-play: "The connection was lost", TH and EN');
       await k.shell('offline', 15_000);

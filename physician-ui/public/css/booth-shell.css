@@ -72,24 +72,25 @@
 .shell-bar { flex: none; padding: 0 var(--gutter) var(--gutter); }
 .shell-bar:empty { display: none; }
 
-/* "Still there?" sits inside #booth, so the shell's ghost-tap guard covers it; the whole scrim is the tap target. */
-.still-there {
+/* "Still there?" and the Start over confirm sit inside #booth, so the shell's ghost-tap guard covers them. On "Still
+   there?" the whole scrim is the tap target; on the confirm, the scrim outside the card. */
+.still-there, .leave-confirm {
   position: fixed; inset: 0; z-index: 10; box-sizing: border-box;
   display: flex; align-items: center; justify-content: center; padding: var(--gutter);
   background: color-mix(in srgb, var(--ink) 60%, transparent);
 }
-.still-card {
+.still-card, .leave-card {
   box-sizing: border-box; width: 100%; max-width: calc(860 * var(--u));
   display: flex; flex-direction: column; gap: var(--gap); text-align: center;
   padding: var(--gutter); background: var(--card); color: var(--ink); --bi-en: var(--body);
   border-radius: var(--radius); box-shadow: var(--shadow-card);
 }
-.still-title .bi-th { font-size: var(--text-title-th); font-weight: 600; line-height: 1.45; }
-.still-title .bi-en { font-size: var(--text-title-en); line-height: 1.35; }
+.still-title .bi-th, .leave-title .bi-th { font-size: var(--text-title-th); font-weight: 600; line-height: 1.45; }
+.still-title .bi-en, .leave-title .bi-en { font-size: var(--text-title-en); line-height: 1.35; }
 /* Redrawn every second: let taps fall through to the card, or the ghost-tap guard would swallow them. */
 .still-count { pointer-events: none; }
 .still-count .bi-th { line-height: 1.55; font-variant-numeric: tabular-nums; }
 .still-count .bi-en { font-variant-numeric: tabular-nums; }
-.still-card .booth-btn { justify-content: center; text-align: center; }
+.still-card .booth-btn, .leave-card .booth-btn { justify-content: center; text-align: center; }
 
 @media (prefers-reduced-motion: reduce) { .shell-tap .loop-bar { transition: none; } .tap-cue::after { animation: none; opacity: 0; } }

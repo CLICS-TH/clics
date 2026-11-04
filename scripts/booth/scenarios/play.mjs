@@ -11,7 +11,6 @@ const FIT_TEXT = {
 
 const text = (page, sel) => page.locator(sel).first().textContent({ timeout: 5000 });
 const count = (page, sel) => page.locator(sel).count();
-const opt = (n) => `.options > [data-option]:nth-child(${n})`;
 
 /** The step on screen, read from the DOM: the option ids, letters and texts, the question and the bridge. */
 const readStep = (page) => page.evaluate(() => {
@@ -125,7 +124,7 @@ async function toStep(k) {
 
 async function answerAll(k, n = 1) {
   for (;;) {
-    await k.tap(opt(n));
+    await k.answer(n);
     await k.page.waitForSelector('#booth [data-screen="reply"], #booth [data-screen="unavailable"], #booth [data-screen="stopped"]', { timeout: 10_000 });
     const at = await k.screenNow();
     if (at !== 'reply') return at;
@@ -159,9 +158,10 @@ export default [
       h.check((await text(page, '.step-of')).includes('1'), 'step 1: "Step 1 of 3"');
       const pick1 = ask1.options[1];
 
-      await k.doubleTap(opt(2));
+      await k.choose(2);
+      await k.doubleTap('[data-action="send"]');
       await k.screen('reply');
-      h.check(stub.of(REPLY_KEY).length === 1, `a double tap on an option sends one reply request (${stub.of(REPLY_KEY).length})`);
+      h.check(stub.of(REPLY_KEY).length === 1, `a double tap on Send sends one reply request (${stub.of(REPLY_KEY).length})`);
       const r1 = stub.of(REPLY_KEY)[0];
       h.check(r1.path === `/booth/plays/${h.PLAY_ID}/reply`, 'step 1: the reply goes to the play\'s own id');
       h.check(h.same(r1.body, { answers: [{ choice: pick1 }], replies: [], asks: [ask1], sigs: [h.SIG(0)] }),
@@ -190,7 +190,7 @@ export default [
       await h.screenCheck(page, 'step 2 with a bridge');
       await h.shot(page, 'step-bridge');
       const pick2 = ask2.options[0];
-      await k.tap(opt(1));
+      await k.answer(1);
       await k.screen('reply');
       h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: pick1 }, { choice: pick2 }], replies: [h.REPLY(1)], asks: [ask1, ask2], sigs: [h.SIG(0), h.SIG(1)] }),
         'step 2: reply body carries both answers, reply 1 verbatim, both asks and two sigs');
@@ -232,7 +232,8 @@ export default [
       await k.tap('[data-action="see-score"]');
       await k.screen('scoring');
       await h.screenCheck(page, 'scoring screen', { demo: true });
-      h.check((await page.locator('#booth').innerText()).includes(h.COPY.scoringWait.en), 'scoring: says it takes about 30 seconds');
+      const scoring = await page.locator('#booth').innerText();
+      h.check(!scoring.includes('about 30 seconds') && !scoring.includes('ประมาณ 30 วินาที'), 'scoring: no longer says it takes about 30 seconds');
       release();
 
       await k.screen('scored');
@@ -254,7 +255,7 @@ export default [
         'result: seven bars d1..d7, each named with the rubric\'s TH and EN domain name');
       h.check(bars.every((b) => b.value === `${h.SCORED.domains[b.key]} / 5` && Math.abs(b.fill - h.SCORED.domains[b.key] / 5) < 0.01),
         `result: each bar reads "n / 5" and fills n/5 of its track (${bars.map((b) => `${b.key} ${b.fill.toFixed(2)}`).join(', ')})`);
-      const label = await page.locator('.play-foot[data-demo-label]').innerText().catch(() => '');
+      const label = await page.locator('.play-foot [data-demo-label]').innerText().catch(() => '');
       h.check(label.includes(h.DEMO_LABEL.th) && label.includes(h.DEMO_LABEL.en), 'result: the demo label is pinned under the card, TH and EN');
       const page3p = await page.evaluate(() => ({
         scripts: [...document.scripts].map((s) => s.src),
@@ -299,7 +300,7 @@ export default [
       } });
       const k = await h.kiosk({ stub });
       await toStep(k);
-      await k.tap(opt(3));
+      await k.answer(3);
       await k.page.waitForSelector('#booth [data-screen="reply"], #booth [data-screen="stopped"]', { timeout: 10_000 });
       if (!h.check(await k.screenNow() === 'reply', `an empty reply does not stop the play (on '${await k.screenNow()}')`)) return;
       await k.screen('reply');
@@ -333,7 +334,7 @@ export default [
       } } });
       const k = await h.kiosk({ stub });
       await toStep(k);
-      await k.tap(opt(2));
+      await k.answer(2);
       await k.screen('stopped');
       h.check(stub.of(REPLY_KEY).length === 1, 'reply 1 without next: the play stops rather than guess step 2');
       await k.close();
@@ -352,7 +353,7 @@ export default [
         reply = r;
         await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
         await toStep(k);
-        await k.tap(opt(1));
+        await k.answer(1);
         await k.page.waitForSelector('#booth [data-screen="reply"], #booth [data-screen="stopped"]', { timeout: 10_000 });
         if (await k.screenNow() !== 'stopped') shown.push(name);
       }
@@ -369,7 +370,7 @@ export default [
         const k = await h.kiosk({ stub, width, height, label: `reply fields at ${width}x${height}` });
         await toStep(k);
         for (const [i, reply] of sent.entries()) {
-          await k.tap(opt(1));
+          await k.answer(1);
           await k.screen('reply');
           await checkReply(h, k.page, reply, `${width}x${height} reply ${i + 1}`);
           if (i < 2) {
@@ -411,7 +412,7 @@ export default [
           const { over } = await k.page.evaluate(() => {
             const body = document.querySelector('.play-body').getBoundingClientRect();
             const below = (s) => Math.max(...[...document.querySelectorAll(s)].map((e) => e.getBoundingClientRect().bottom - body.bottom));
-            return { over: Math.max(below('.options > [data-option]'), below('[data-action="type-own"]')) };
+            return { over: Math.max(below('.options > [data-option]'), below('[data-action="type-own"]'), below('[data-action="send"]')) };
           });
           const words = shown.bridge === h.LONG_BRIDGE && h.same(shown.question, next.question)
             && h.same(shown.options.map(({ id, label, line }) => ({ id, label, line })), next.options);
@@ -419,7 +420,7 @@ export default [
           if (!words || over > 1) misfits.push(`${name} (${words ? `${Math.round(over)}px below` : 'text differs'})`);
         }
         h.check(misfits.length === 0, `${width}x${height}: all ${banks.length} distinct banks show their text word for word, `
-          + `with all three options and "type my own" on screen without scrolling (tallest ${tallest.name}, `
+          + `with all three options, "type my own" and Send on screen without scrolling (tallest ${tallest.name}, `
           + `${Math.round(-tallest.over)}px to spare)${misfits.length ? `; misfits: ${misfits.join(', ')}` : ''}`);
         await show(tallest.next);
         await h.screenCheck(k.page, `step, the tallest bank (${tallest.name}), ${width}x${height}`);
@@ -466,7 +467,7 @@ export default [
         await toStep(k);
         const fits = [];
         for (let n = 1; n <= 3; n++) {
-          await k.tap(opt(1));
+          await k.answer(1);
           await k.screen('reply');
           fits.push(await measure(k.page));
           if (n === 1) {
@@ -521,7 +522,7 @@ export default [
       const refused = h.makeStub({ routes: { [REPLY_KEY]: () => ({ status: 409, body: { error: 'The play is not started.', reason: 'not_started' } }) } });
       const k = await h.kiosk({ stub: refused, label: '409 refusal' });
       await toStep(k);
-      await k.tap(opt(1));
+      await k.answer(1);
       await k.screen('stopped');
       await h.screenCheck(k.page, 'stopped (refusal)');
       const shown = await k.page.locator('#booth').innerText();
@@ -534,7 +535,7 @@ export default [
       const lost = h.makeStub({ routes: { [REPLY_KEY]: () => 'abort' } });
       const k2 = await h.kiosk({ stub: lost, label: 'lost connection' });
       await toStep(k2);
-      await k2.tap(opt(1));
+      await k2.answer(1);
       await k2.screen('stopped');
       const shown2 = await k2.page.locator('#booth').innerText();
       h.check(shown2.includes(h.COPY.stoppedOffline.th) && shown2.includes(h.COPY.stoppedOffline.en), 'lost connection: "The connection was lost", TH and EN');
