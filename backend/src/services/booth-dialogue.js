@@ -156,7 +156,18 @@ const evaluateRequest = (kase, d) => ({
   transcript: dialogueTurns(kase, d, true), patient_ref: null, chief_complaint: kase.vignette.th, shadow: false,
 });
 
+/** Per step of a walked play, the tier name of the visitor's answer (a typed one's sorted tier) and of each option
+ *  offered, in the order offered.
+ *  @returns {{ tier: string, options: { id: string, tier: string }[] }[]} */
+const stepTiers = (kase, { asks, tierPath }) => asks.map((ask, i) => {
+  const { options } = bankAt(kase, tierPath.slice(0, i));
+  return {
+    tier: TIERS.find((t) => t.letter === tierPath[i]).name,
+    options: ask.options.map((id) => ({ id, tier: options.find((o) => o.id === id).tier })),
+  };
+});
+
 module.exports = {
   STEPS, REPLY_MAX_CHARS, BRIDGE_MAX_CHARS, LETTER, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced,
-  chatRequest, chatOutcome, evaluateRequest,
+  chatRequest, chatOutcome, evaluateRequest, stepTiers,
 };
