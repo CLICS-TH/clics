@@ -132,6 +132,12 @@ jobs:
       - name: booth-purge — booth_event_summary against a throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/booth-purge-test.sh
+      # Booth sort memo (db/migration-booth-sort-memo.sql, #374): applies it twice to a throwaway PostgreSQL and
+      # asserts lookup-only inserts nothing, the first tier kept wins (two sessions interleaved), the CHECKs, and
+      # that only service_role reaches the table, through the function.
+      - name: booth-sort-memo — booth_sort_memo against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/booth-sort-memo-test.sh
       # PostgREST closed (db/migration-postgrest-closed.sql, ADR 0007): applies it twice over the real RLS policies
       # and asserts anon, an assigned auditor and the owning physician are refused every read, write and app
       # function while service_role is not, and that postgrest_exposure() lists a re-grant and schema.sql matches.
