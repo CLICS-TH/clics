@@ -1040,6 +1040,86 @@ describe('POST /booth/plays/:id/reply', () => {
     expectFallback(bank('B'), p.next);
     expect(plays.get(p.id).spend_usd).toBeCloseTo(0.012, 9);
   });
+
+  describe('the reply-latency log (#378: the rehearsal reads the reply p95 from it)', () => {
+    const lines = (spy) => spy.mock.calls.map(([line]) => line).filter((l) => String(l).startsWith('[booth] reply '));
+    const logged = () => [...lines(console.info), ...lines(console.warn)];
+    const line = (kind, id, step, rest) =>
+      expect.stringMatching(new RegExp(`^\\[booth\\] reply ${kind} play=${id} step=${step} ms=\\d+ ${rest}$`));
+
+    test('each step the AI answers logs one info line with its id, step, a whole-number ms and the provider', async () => {
+      const p = await begin();
+      await answer(p, 'best');
+      rimplChat.mockImplementation(async () => ({ ...CHAT_OK, provider: 'local' }));
+      await answer(p, { text: 'my own words' });
+      expect(lines(console.info)).toEqual([line('replied', p.id, 1, 'provider=anthropic'), line('replied', p.id, 2, 'provider=local')]);
+      expect(lines(console.warn)).toEqual([]);
+    });
+
+    test.each([
+      ['a timeout', 'provider=none reason=TimeoutError', () => Promise.reject(Object.assign(new Error('aborted'), { name: 'TimeoutError' }))],
+      ['rimpl 503', 'provider=none reason=503', () => Promise.reject(Object.assign(new Error('RIMPL /chat error: 503'), { status: 503 }))],
+      ['an empty reply', 'provider=anthropic reason=empty', async () => ({ ...CHAT_OK, content: '  ' })],
+    ])('%s logs one empty warn line and no info line', async (_name, rest, impl) => {
+      const p = await begin();
+      rimplChat.mockImplementation(impl);
+      expect((await answer(p, 'best')).body).toMatchObject({ status: 'replied', reply: '' });
+      expect(lines(console.warn)).toEqual([line('empty', p.id, 1, rest)]);
+      expect(lines(console.info)).toEqual([]);
+    });
+
+    test.each([
+      ['a play over the spend ceiling', 'ceiling', (p) => { plays.get(p.id).spend_usd = 2.97; }],
+      ['a reservation the database refuses', 'reserve', () => {
+        rpcOverride.booth_reserve_spend = () => ({ data: null, error: { message: 'down' } });
+      }],
+      ['a step claim the database refuses', 'claim', () => {
+        m.state.resolve = (table, kind, ctx) => (table === 'booth_plays' && kind === 'update' && 'replied_step' in ctx.payload
+          ? { data: null, error: { message: 'down' } } : resolve(table, kind, ctx));
+      }],
+    ])('%s logs one unavailable warn line with reason %s before any AI call', async (_name, reason, arrange) => {
+      const p = await begin();
+      arrange(p);
+      const res = await answer(p, 'best');
+      expect(res.status === 200 ? res.body : res.body.reason).toEqual(reason === 'ceiling' ? { status: 'unavailable' } : 'unavailable');
+      expect(lines(console.warn)).toEqual([line('unavailable', p.id, 1, `reason=${reason}`)]);
+      expect(lines(console.info)).toEqual([]);
+      expect(rimplChat).not.toHaveBeenCalled();
+    });
+
+    test('a throw after the dialogue is read logs reason error at its step, and one before it logs step=-', async () => {
+      const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const p = await begin();
+      rpcOverride.booth_reserve_spend = () => { throw new Error('boom'); };
+      expect((await answer(p, 'best')).status).toBe(503);
+      m.state.resolve = (table, kind, ctx) => {
+        if (table === 'booth_plays' && kind === 'maybeSingle') throw new Error('boom');
+        return resolve(table, kind, ctx);
+      };
+      expect((await answer(p, 'best')).status).toBe(503);
+      expect(lines(console.warn)).toEqual([line('unavailable', p.id, 1, 'reason=error'), line('unavailable', p.id, '-', 'reason=error')]);
+      errors.mockRestore();
+    });
+
+    const UUID = '[0-9a-f-]{36}';
+    test.each([
+      ['a bad request', 'refused', '-', 'bad_request', async (p) => post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [{ text: 'x'.repeat(501) }] })],
+      ['a replayed step', 'refused', 1, 'replayed', async (p) => {
+        const body = { ...p.d, answers: [{ choice: offered(p, 'best') }] };
+        await post(`/booth/plays/${p.id}/reply`, body);
+        console.info.mockClear();
+        return post(`/booth/plays/${p.id}/reply`, body);
+      }],
+      ['a closed booth', 'refused', '-', 'event', async (p) => { settings = { rows: eventSettings({ enabled: 0 }) }; return answer(p, 'best'); }],
+      ['a play on a case at another version', 'unavailable', '-', 'case', async (p) => { plays.get(p.id).case_version = 'old'; return answer(p, 'best'); }],
+      ['an unknown play', 'refused', '-', 'case', async (p) => answer({ ...p, id: crypto.randomUUID() }, 'best')],
+    ])('%s logs one %s line at step %s with reason %s', async (name, kind, step, reason, act) => {
+      const p = await begin();
+      await act(p);
+      expect(logged()).toEqual([line(kind, name === 'an unknown play' ? UUID : p.id, step, `reason=${reason}`)]);
+      expect(rimplChat).toHaveBeenCalledTimes(name === 'a replayed step' ? 1 : 0);
+    });
+  });
 });
 
 describe('the play\'s own case', () => {

@@ -62,7 +62,11 @@ try {
   for (let n = 0; n < 3; n++) {
     await screen('step');
     await shot(`step${n + 1}`);
-    await page.locator(`.options > [data-option]:nth-child(${picks[n]})`).tap();
+    const option = `.options > [data-option]:nth-child(${picks[n]})`;
+    await page.locator(option).tap();
+    await page.waitForSelector(`${option}[aria-pressed="true"]`, { timeout: 10_000 });
+    await settle();
+    await page.locator('[data-action="send"]').tap();
     await screen('reply');
     await shot(`reply${n + 1}`);
     await page.locator(`[data-action="${n === 2 ? 'see-score' : 'next'}"]`).tap();
