@@ -10,6 +10,7 @@ const { BOOTH_MAX_TOKENS, BOOTH_GRILL_MAX_TOKENS } = require('../lib/turn-limits
 const { stripArtifactDelimiters } = require('../lib/transcript');
 const { promptLabel } = require('../lib/versions');
 const { parseJsonObject } = require('../lib/parse');
+const { BOOTH_TYPED_DECODING } = require('../lib/decoding');
 
 // The bank goes after the (already de-identified) last user turn only, so it is never part of the history
 // the backend replays. Thai text only: the reply's language rule decides the bridge's language.
@@ -65,6 +66,7 @@ async function boothReply({ messages, bank, typed, answerDeidentified, signal })
     purpose: 'chat', systemPrompt, signal,
     messages: typed ? withSort(messages, typed) : bank ? withBank(messages, bank) : messages,
     maxTokens: bank || typed ? BOOTH_GRILL_MAX_TOKENS : BOOTH_MAX_TOKENS,
+    ...(typed ? { temperature: BOOTH_TYPED_DECODING.temperature } : {}),
   });
   // The prompt forbids artifacts; the strip makes sure no side panel opens if the model writes one anyway.
   const { content, pick, tier } = bank || typed ? readGrill(text, { typed: Boolean(typed) })

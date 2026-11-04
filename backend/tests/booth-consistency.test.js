@@ -70,6 +70,19 @@ test('booth_start_play is defined only in the plays migration, and starts a play
   expect(access.map(([, args]) => args)).toEqual(['text, text, text', 'text, text, text']);
 });
 
+test('booth_sort_memos holds a key, a tier letter and a time: no text column, RLS on, reached only through its function', () => {
+  expect([...(schemaFromSql().booth_sort_memos ?? [])].sort()).toEqual(['created_at', 'key', 'tier']);
+  const memo = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-sort-memo.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  expect(memo).toContain("check (key ~ '^[0-9a-f]{64}$')");
+  expect(memo).toContain("check (tier in ('B', 'R', 'W'))");
+  expect(memo).toContain('alter table public.booth_sort_memos enable row level security;');
+  expect(memo).toContain('revoke all on table public.booth_sort_memos from public, anon, authenticated;');
+  expect(memo).not.toMatch(/create policy/i);
+  expect(memo).toContain('revoke all on function public.booth_sort_memo(text, text) from public, anon, authenticated;');
+  expect(memo).toContain('grant execute on function public.booth_sort_memo(text, text) to service_role;');
+  expect(memo).not.toMatch(/grant [^;]* on (table )?public\.booth_sort_memos/i);
+});
+
 test('booth_event_purges holds aggregates only, under the booth_plays event-code CHECK', () => {
   expect([...(schemaFromSql().booth_event_purges ?? [])].sort()).toEqual(['attempt_id', 'event_code', 'id', 'purged_at', 'summary']);
   const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
