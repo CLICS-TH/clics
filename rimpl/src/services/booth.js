@@ -2,11 +2,11 @@
 // right after de-identification, so the PII handling and the provider routing (purpose 'chat') are the
 // PLE path's. It deliberately skips everything else a PLE turn does: no RAG, no rescue classifier, no
 // router, no corrective retry and no streaming. Each exists to make a scored reply right, and a booth
-// reply is three sentences nobody scores, read on a screen that needs it fast.
+// reply is three short fields nobody scores, read on a screen that needs it fast.
 
 const { callAI } = require('./ai');
 const { chatSystemPrompt } = require('../lib/prompts');
-const { BOOTH_MAX_TOKENS, BOOTH_GRILL_MAX_TOKENS } = require('../lib/turn-limits');
+const { BOOTH_MAX_TOKENS } = require('../lib/turn-limits');
 const { stripArtifactDelimiters } = require('../lib/transcript');
 const { promptLabel } = require('../lib/versions');
 const { parseJsonObject } = require('../lib/parse');
@@ -37,25 +37,27 @@ function withSort(messages, typed) {
   return [...messages.slice(0, -1), { ...last, content: `${last.content}\n\nSORT: ${block}` }];
 }
 
-// rimpl only reads the pick; the backend judges whether it is valid (ids in the bank, one per tier, bridge).
-function readGrill(text, { typed = false } = {}) {
+// The kiosk draws a reply's fields in this order, each under its own heading.
+const REPLY_FIELDS = ['strength', 'weigh', 'safety'];
+
+// rimpl only reads: the backend judges the fields (length, bold) and the pick (ids in the bank, one per tier,
+// bridge). The prompt forbids artifacts; the strip makes sure no side panel opens if the model writes one anyway.
+function readReply(text, { grill, typed }) {
   let obj = null;
   try { obj = parseJsonObject(text); } catch { obj = null; }
-  if (obj && typeof obj.reply === 'string') {
-    const { variant_id, option_ids } = obj;
+  const readable = obj && REPLY_FIELDS.some((k) => typeof obj[k] === 'string');
+  // Half-written JSON or bare prose on the kiosk screen is worse than no reply: the backend shows its no-reply state.
+  if (!readable) console.warn('[booth] output was not a readable JSON reply; reply and pick dropped');
+  const o = readable ? obj : {};
+  const reply = Object.fromEntries(REPLY_FIELDS.map((k) => [k, typeof o[k] === 'string' ? stripArtifactDelimiters(o[k]).trim() : '']));
+  const { variant_id, option_ids, bridge, tier } = o;
+  const picked = (grill || typed) && typeof variant_id === 'string'
+    && Array.isArray(option_ids) && option_ids.every((id) => typeof id === 'string');
+  return {
     // A missing bridge costs only the bridge, never the pick.
-    const bridge = typeof obj.bridge === 'string' ? obj.bridge : '';
-    const picked = typeof variant_id === 'string'
-      && Array.isArray(option_ids) && option_ids.every((id) => typeof id === 'string');
-    const tier = typeof obj.tier === 'string' ? obj.tier : null;
-    return {
-      content: stripArtifactDelimiters(obj.reply), pick: picked ? { variant_id, bridge, option_ids } : null,
-      ...(typed ? { tier } : {}),
-    };
-  }
-  console.warn('[booth] grill output was not a readable JSON reply; pick dropped');
-  // Half-written JSON on the kiosk screen is worse than no reply: the backend shows its no-reply state.
-  return { content: /[{}]/.test(text) ? '' : stripArtifactDelimiters(text), pick: null, ...(typed ? { tier: null } : {}) };
+    reply, pick: picked ? { variant_id, bridge: typeof bridge === 'string' ? bridge : '', option_ids } : null,
+    tier: typeof tier === 'string' ? tier : null,
+  };
 }
 
 // `messages` must already be de-identified (routes/chat.js buildMessages of deidentifyTurn's output).
@@ -64,14 +66,12 @@ async function boothReply({ messages, bank, typed, signal }) {
   const { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } = await callAI({
     purpose: 'chat', systemPrompt, signal,
     messages: typed ? withSort(messages, typed) : bank ? withBank(messages, bank) : messages,
-    maxTokens: bank || typed ? BOOTH_GRILL_MAX_TOKENS : BOOTH_MAX_TOKENS,
+    maxTokens: BOOTH_MAX_TOKENS,
     ...(typed ? { temperature: BOOTH_TYPED_DECODING.temperature } : {}),
   });
-  // The prompt forbids artifacts; the strip makes sure no side panel opens if the model writes one anyway.
-  const { content, pick, tier } = bank || typed ? readGrill(text, { typed: Boolean(typed) })
-    : { content: stripArtifactDelimiters(text), pick: null };
+  const { reply, pick, tier } = readReply(text, { grill: Boolean(bank), typed: Boolean(typed) });
   return {
-    content,
+    reply,
     pick,
     ...(typed ? { tier } : {}),
     refs: [],

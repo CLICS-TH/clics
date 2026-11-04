@@ -176,7 +176,6 @@ function expectedCode() {
         } },
         evidence_line: { max_tokens: T.CHAT_LIMIT_DEFAULTS.evidenceLine.maxTokens },
         booth: { max_tokens: T.CHAT_LIMIT_DEFAULTS.booth.maxTokens },
-        booth_grill: { max_tokens: T.CHAT_LIMIT_DEFAULTS.boothGrill.maxTokens },
         booth_typed: { temperature: D.BOOTH_TYPED_DECODING.temperature },
       },
       num_ctx: Object.fromEntries(localInstances.map(([name, { envPrefix }]) => [name, {

@@ -9,7 +9,8 @@ const { tapping, personaChooser, playOnce, jobsFor, runPlays, rimplCalls, worstC
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'booth', 'sandbox.mjs');
 const EVAL_OK = { d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3, input_tokens: 20000, output_tokens: 2000, provider: 'anthropic' };
-const CHAT_OK = { content: 'AI reply', pick: null, input_tokens: 3000, output_tokens: 200, provider: 'anthropic' };
+const CHAT_OK = { reply: { strength: 'นึกถึง **ไข้** ก่อน', weigh: 'worth weighing', safety: '' }, pick: null,
+  input_tokens: 3000, output_tokens: 200, provider: 'anthropic' };
 
 function fixtureDir() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-cases-'));
@@ -77,6 +78,7 @@ describe('playOnce', () => {
     const play = await playOnce({ kase: KASE, choose: personaChooser('weak', { random: () => typing.shift() }), ai });
     expect(ai.persona.mock.calls[0][0].messages[0].content).toMatch(/Type your own answer/);
     expect(ai.persona.mock.calls[1][0].messages[0].content).toMatch(/Pick the option/);
+    expect(ai.persona.mock.calls[1][0].messages[0].content).toContain('Tutor: นึกถึง ไข้ ก่อน worth weighing\n');
     expect(ai.chat.mock.calls[0][0].booth_typed).toBeDefined();
     expect(ai.chat.mock.calls[0][0].message).toContain('ให้สารน้ำทางหลอดเลือด');
     expect(play).toMatchObject({ typed: 2, fallbacks: 1, composite: 59 });
