@@ -17,7 +17,10 @@
  *   --concurrency n   calls at once (default 3)
  *   --out <dir>       where the JSON report and summary go (default scripts/booth/path-table-runs)
  *   --go              spend: without it the script stops after the estimate
+ *   --from <jsonl>    build the tables from an earlier run's saved samples, spending nothing
  *
+ * Every scored sample is appended to <out>/<run_id>.samples.jsonl as it lands, before anything is checked or written,
+ * so a run that stops for any reason keeps what it paid for; --from finishes it.
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl. Its only call is rimpl's /evaluate
  * (shadow off), and it refuses to run with a database client loaded. One probe call runs first: a provider other than
  * anthropic, or a prompt other than this checkout's, stops the build before the rest is spent.
@@ -26,7 +29,7 @@
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewedTree, medianDomains, recheck, summaryMarkdown } from './path-table.mjs';
@@ -54,7 +57,7 @@ if (dbModules.length) fail(`the build refuses to run with a database client load
 
 function parseArgs(argv) {
   const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: CAP_MAX, samples: 3,
-    concurrency: 3, out: path.join(HERE, 'path-table-runs'), go: false };
+    concurrency: 3, out: path.join(HERE, 'path-table-runs'), go: false, from: null };
   const number = (flag, v, min, max = Infinity) => {
     const n = Number(v);
     if (!Number.isFinite(n) || n < min || n > max) fail(`${flag} needs a number from ${min} to ${max}`);
@@ -71,6 +74,7 @@ function parseArgs(argv) {
     else if (flag === '--samples') opts.samples = Math.floor(number(flag, v, 1));
     else if (flag === '--concurrency') opts.concurrency = Math.floor(number(flag, v, 1));
     else if (flag === '--out') opts.out = path.resolve(v);
+    else if (flag === '--from') opts.from = path.resolve(v);
     else fail(`unknown argument ${flag}`);
   }
   if (opts.samples % 2 === 0) fail('--samples must be odd, so each median is a whole score');
@@ -124,93 +128,124 @@ const worst = worstCall('evaluate');
 const typical = costUsd(...TYPICAL_EVALUATE, 'anthropic');
 console.log(`${building.length} case(s) to build, ${jobs.length} evaluator calls. Estimated spend $${(jobs.length * typical).toFixed(2)} `
   + `typical, $${(jobs.length * worst).toFixed(2)} if every call bills its worst case. Cap $${opts.cap}.`);
-if (!opts.go) {
-  console.log('Nothing spent. Add --go to run.');
-  process.exit(0);
-}
-if (!jobs.length) fail('no case can be built');
-
-const token = process.env.INTERNAL_TOKEN;
-if (!token) fail('INTERNAL_TOKEN is not set (rimpl refuses calls without it)');
-let rimpl;
-try { rimpl = rimplCalls({ url: process.env.RIMPL_URL || 'http://localhost:3003', token }); } catch (err) { fail(err.message); }
-
-const runId = `ptb-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
 const expected = { provider: 'anthropic', prompt_version: promptVersionFor('anthropic') };
 const promptSha = createHash('sha256').update(pis7PromptFor('anthropic')).digest('hex');
-let done = 0;
-const run = (batch, capUsd) => runPlays(batch, {
-  capUsd,
-  concurrency: opts.concurrency,
-  worst: () => worst,
-  play: (job) => scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate }),
-  onDone: (job, r) => {
-    done += 1;
-    console.log(`[${done}] ${job.kase.case_id} ${job.tierPath}#${job.sample} ${r.composite ?? `unscored (${r.error ?? r.skipped})`} $${r.usd ?? 0}`);
-  },
-});
+const keyOf = (caseId, tierPath, sample) => `${caseId} ${tierPath} ${sample}`;
 
-// The probe: one call on its own, so a wrong provider or prompt costs one call, not the build.
-const probe = await run(jobs.slice(0, 1), opts.cap);
-const first = probe.results[0];
-if (first.provider !== expected.provider || first.prompt_version !== expected.prompt_version) {
-  fail(`probe scored by ${first.provider ?? 'nothing'} with ${first.prompt_version ?? 'no prompt'} (${first.error ?? 'ok'}), `
-    + `expected ${expected.provider} with ${expected.prompt_version}; $${probe.spent_usd} spent`);
+/** A run's header and samples from its .samples.jsonl: the first line is the header, each other line one sample. */
+function readSaved(file) {
+  let lines;
+  try { lines = readFileSync(file, 'utf8').trim().split('\n').map((l) => JSON.parse(l)); } catch { fail(`--from ${file} is not a samples file`); }
+  const [header, ...samples] = lines;
+  if (!header?.run_id) fail(`--from ${file} has no header line`);
+  return { header, samples };
 }
-const rest = await run(jobs.slice(1), opts.cap - probe.spent_usd);
-let results = [first, ...rest.results];
-let spent = probe.spent_usd + rest.spent_usd;
-let { stopped } = rest;
-// One retry of each sample a call failed, while the cap allows.
-const failed = results.map((r, i) => (r.domains || r.skipped ? null : i)).filter((i) => i != null);
-if (failed.length && !stopped) {
-  const retry = await run(failed.map((i) => jobs[i]), opts.cap - spent);
-  failed.forEach((i, k) => { if (retry.results[k].domains || !retry.results[k].skipped) results[i] = retry.results[k]; });
-  spent += retry.spent_usd;
-  stopped = retry.stopped;
-}
-spent = Math.round(spent * 1e6) / 1e6;
-const overCap = spent > opts.cap;
 
-// Every table must come from one evaluator configuration: the one the probe checked.
+let run;
+if (opts.from) {
+  const { header, samples } = readSaved(opts.from);
+  if (header.samples !== opts.samples) fail(`--from ${opts.from} has ${header.samples} samples per path, not ${opts.samples}`);
+  const byKey = new Map(samples.map((r) => [keyOf(r.case_id, r.tier_path_planned, r.sample), r]));
+  run = {
+    ...header,
+    spent_usd: Math.round(samples.reduce((acc, r) => acc + (r.usd ?? 0), 0) * 1e6) / 1e6,
+    results: jobs.map((j) => byKey.get(keyOf(j.kase.case_id, j.tierPath, j.sample)) ?? { domains: null, error: 'not in the saved run' }),
+  };
+} else {
+  if (!opts.go) {
+    console.log('Nothing spent. Add --go to run, or --from <samples.jsonl> to finish a saved run.');
+    process.exit(0);
+  }
+  if (!jobs.length) fail('no case can be built');
+  const token = process.env.INTERNAL_TOKEN;
+  if (!token) fail('INTERNAL_TOKEN is not set (rimpl refuses calls without it)');
+  let rimpl;
+  try { rimpl = rimplCalls({ url: process.env.RIMPL_URL || 'http://localhost:3003', token }); } catch (err) { fail(err.message); }
+
+  const runId = `ptb-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
+  const header = { run_id: runId, date: new Date().toISOString().slice(0, 10), rimpl_url: process.env.RIMPL_URL || 'http://localhost:3003',
+    cap_usd: opts.cap, samples: opts.samples };
+  mkdirSync(opts.out, { recursive: true });
+  const savedPath = path.join(opts.out, `${runId}.samples.jsonl`);
+  writeFileSync(savedPath, `${JSON.stringify(header)}\n`);
+  console.log(`Samples are saved as they land to ${savedPath}`);
+  let done = 0;
+  const go = (batch, capUsd) => runPlays(batch, {
+    capUsd,
+    concurrency: opts.concurrency,
+    worst: () => worst,
+    play: (job) => scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate }),
+    onDone: (job, r) => {
+      done += 1;
+      appendFileSync(savedPath, `${JSON.stringify({ case_id: job.kase.case_id, tier_path_planned: job.tierPath, sample: job.sample, ...r })}\n`);
+      console.log(`[${done}] ${job.kase.case_id} ${job.tierPath}#${job.sample} ${r.composite ?? `unscored (${r.error ?? r.skipped})`} $${r.usd ?? 0}`);
+    },
+  });
+
+  // The probe: one call on its own, so a wrong provider or prompt costs one call, not the build.
+  const probe = await go(jobs.slice(0, 1), opts.cap);
+  const first = probe.results[0];
+  if (first.provider !== expected.provider || first.prompt_version !== expected.prompt_version) {
+    fail(`probe scored by ${first.provider ?? 'nothing'} with ${first.prompt_version ?? 'no prompt'} (${first.error ?? 'ok'}), `
+      + `expected ${expected.provider} with ${expected.prompt_version}; $${probe.spent_usd} spent`);
+  }
+  const rest = await go(jobs.slice(1), opts.cap - probe.spent_usd);
+  const results = [first, ...rest.results];
+  let spent = probe.spent_usd + rest.spent_usd;
+  let { stopped } = rest;
+  // One retry of each sample a call failed, while the cap allows.
+  const failed = results.map((r, i) => (r.domains || r.skipped ? null : i)).filter((i) => i != null);
+  if (failed.length && !stopped) {
+    const retry = await go(failed.map((i) => jobs[i]), opts.cap - spent);
+    failed.forEach((i, k) => { if (!retry.results[k].skipped) results[i] = retry.results[k]; });
+    spent += retry.spent_usd;
+    stopped = retry.stopped;
+  }
+  run = { ...header, spent_usd: Math.round(spent * 1e6) / 1e6, stopped, results };
+}
+
+const { results, run_id: runId, date } = run;
+const overCap = run.spent_usd > run.cap_usd;
 const scored = results.filter((r) => r.domains);
+// Every table must come from one evaluator configuration, this checkout's prompt on anthropic.
 const configs = new Set(scored.map((r) => JSON.stringify([r.provider, r.model, r.prompt_version, r.config_fingerprint])));
-const oneConfig = configs.size === 1;
-if (!oneConfig) console.error(`samples came from ${configs.size} evaluator configurations: no table is written`);
+const first = scored[0] ?? {};
+const oneConfig = configs.size === 1 && first.provider === expected.provider && first.prompt_version === expected.prompt_version;
+if (!oneConfig) console.error(`samples came from ${configs.size} evaluator configuration(s), first ${first.provider}/${first.prompt_version}: no table is written`);
 
-const date = new Date().toISOString().slice(0, 10);
 const samplesOf = (id, p) => results.filter((r, i) => r.domains && jobs[i].kase.case_id === id && jobs[i].tierPath === p);
 const report = {
-  run_id: runId, date, rimpl_url: process.env.RIMPL_URL || 'http://localhost:3003', cap_usd: opts.cap, spent_usd: spent,
-  stopped, over_cap: overCap, samples: opts.samples, planned: jobs.length, scored: scored.length,
+  run_id: runId, date, rimpl_url: run.rimpl_url, cap_usd: run.cap_usd, spent_usd: run.spent_usd,
+  stopped: Boolean(run.stopped), over_cap: overCap, samples: opts.samples, planned: jobs.length, scored: scored.length,
+  ...(opts.from ? { finished_from: path.relative(ROOT, opts.from) } : {}),
   evaluator: { provider: first.provider, model: first.model, prompt_version: first.prompt_version, prompt_sha256: promptSha, decoding: first.decoding },
   cases: {},
   recheck: null,
-  samples_scored: results.map((r, i) => ({ case_id: jobs[i].kase.case_id, tier_path: jobs[i].tierPath, sample: jobs[i].sample, ...r })),
 };
 for (const c of cases) {
   const id = c.kase.case_id;
   if (c.tree.why) { report.cases[id] = { version: c.kase.version, why: c.tree.why, table: false }; continue; }
   const complete = TIER_PATHS.every((p) => samplesOf(id, p).length === opts.samples);
   const paths = complete ? Object.fromEntries(TIER_PATHS.map((p) => [p, medianDomains(samplesOf(id, p).map((r) => r.domains))])) : null;
-  const write = paths && oneConfig && !overCap && /^\d+$/.test(c.kase.version);
-  const version = write ? String(Number(c.kase.version) + 1) : c.kase.version;
-  if (write) {
-    const table = {
+  let why = !paths ? 'not every path is fully scored' : !oneConfig ? 'mixed evaluator configurations' : overCap ? 'the run went over its cap'
+    : !/^\d+$/.test(c.kase.version) ? `version ${c.kase.version} is not a whole number` : null;
+  const version = why ? c.kase.version : String(Number(c.kase.version) + 1);
+  if (!why) {
+    const next = { ...c.raw, version, path_score_table: {
       provenance: {
         evaluator_model: first.model, prompt_sha256: promptSha,
         decoding: { temperature: first.decoding.temperature, max_tokens: first.decoding.max_tokens },
         samples_per_path: opts.samples, method: 'median', run_id: runId, date, tree_sha256: c.tree.tree_sha256,
       },
       paths,
-    };
-    const next = { ...c.raw, version, path_score_table: table };
+    } };
     const problems = caseTreeProblems(next);
-    if (problems.length) fail(`${id}: the built table is invalid, first ${problems[0]}`);
-    writeFileSync(c.file, `${JSON.stringify(next, null, 2)}\n`);
+    if (problems.length) why = `the built table is invalid: ${problems[0]}`;
+    else writeFileSync(c.file, `${JSON.stringify(next, null, 2)}\n`);
   }
   report.cases[id] = {
-    version, tree_sha256: c.tree.tree_sha256, reviewed_commit: c.tree.reviewed_commit, table: Boolean(write),
+    version: why ? c.kase.version : version, tree_sha256: c.tree.tree_sha256, reviewed_commit: c.tree.reviewed_commit, table: !why,
+    ...(why ? { why } : {}),
     composites: paths ? Object.fromEntries(TIER_PATHS.map((p) => [p, compositeScore(paths[p])])) : null,
   };
 }
@@ -218,7 +253,7 @@ const composites = Object.fromEntries(building.map((c) => [c.kase.case_id,
   Object.fromEntries(TIER_PATHS.map((p) => [p, samplesOf(c.kase.case_id, p).map((r) => r.composite)]))]));
 report.recheck = recheck(composites, PATHS, {
   samples: opts.samples,
-  incomplete: stopped || overCap ? `${scored.length} of ${jobs.length} samples scored${stopped ? ', stopped at the cap' : ''}${overCap ? ', over the cap' : ''}` : undefined,
+  incomplete: run.stopped || overCap ? `${scored.length} of ${jobs.length} samples scored${run.stopped ? ', stopped at the cap' : ''}${overCap ? ', over the cap' : ''}` : undefined,
 });
 mkdirSync(opts.out, { recursive: true });
 const jsonPath = path.join(opts.out, `${runId}.json`);

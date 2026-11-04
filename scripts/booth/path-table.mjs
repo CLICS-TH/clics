@@ -66,7 +66,7 @@ export function summaryMarkdown(report) {
       const c = report.cases[id];
       const v = report.recheck.cases[id];
       return `| ${id} | ${c.version} | ${c.tree_sha256 ? `${c.tree_sha256.slice(0, 12)} (review ${c.reviewed_commit.slice(0, 8)})` : `refused: ${c.why}`} `
-        + `| ${c.table ? 'built' : c.tree_sha256 ? 'incomplete' : 'none'} | ${v ? (v.pass ? 'pass' : 'FAIL') : 'not run'} |`;
+        + `| ${c.table ? 'built' : c.tree_sha256 ? `none: ${c.why}` : 'none'} | ${v ? (v.pass ? 'pass' : 'FAIL') : 'not run'} |`;
     }),
     '',
     '## Difficulty re-check (ADR 0005)',
