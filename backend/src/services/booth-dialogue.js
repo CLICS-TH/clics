@@ -1,23 +1,30 @@
-// The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask, what
-// rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js) and the
-// physician sandbox (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what
+// The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask and a
+// reply, what rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js) and
+// the physician sandbox (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what
 // a live-scored kiosk play would. Nothing here reads or writes the database.
 const crypto = require('crypto');
 const { TIERS } = require('../booth-cases/tree-schema');
 
 const STEPS = 3;
-const REPLY_MAX_CHARS = 1200;
 const BRIDGE_MAX_CHARS = 120;
 const ANSWER_MAX_CHARS = 500;
 // rimpl's tokens can run longer than the words they replace ("นายก" -> "นาย[NAME-1]").
 const DEIDENTIFIED_MAX_CHARS = 2 * ANSWER_MAX_CHARS;
+// The kiosk draws a reply's fields in this order, each under its own heading (#376).
+const REPLY_FIELDS = ['strength', 'weigh', 'safety'];
+// Three fields this long fit one kiosk reply screen with a line to spare (the scripts/booth harness fit check).
+const FIELD_MAX_CHARS = 115;
+const BOLD_MAX_RUNS = 2;
+const BOLD_MAX_CHARS = 20;
 
 /**
  * A typed answer's `deidentified` is rimpl's de-identified copy of `text` (null when rimpl gave none): the only form
  * of it ever stored (ADR 0010).
  * @typedef {{ choice: string } | { text: string, tier?: 'B' | 'R' | 'W', deidentified?: string | null }} Answer
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask  the ids the server issued for one step
- * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], tierPath: string, unsorted?: boolean, memo?: 'B' | 'R' | 'W' }} Walked
+ * @typedef {{ strength: string, weigh: string, safety: string }} Reply  '' is a field the AI did not give; every
+ *   field '' is no reply. A field's only markup is up to BOLD_MAX_RUNS `**bold**` runs, each a quote (checkedReply).
+ * @typedef {{ answers: Answer[], replies: Reply[], asks: Ask[], tierPath: string, unsorted?: boolean, memo?: 'B' | 'R' | 'W' }} Walked
  *   A dialogue walked along its tier path. In a reply call the last answer, if typed, is `unsorted`: the path
  *   stops before it. `memo` is the sort memo's tier for that answer, when the same text was sorted at this point
  *   before: the next banks sent and the tier taken are both that tier's.
@@ -103,6 +110,75 @@ function saidFor(bank, answer, fence = false) {
   return `${label.th}: ${line.th}`;
 }
 
+// Bold may stress what the visitor read or wrote, never point at an option they did not choose. Compared after NFC,
+// whitespace collapsed and case folded.
+const comparable = (s) => s.normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/** Whether a bold run in the reply to the last answer of `d` quotes what it may: the vignette, the question asked, or
+ *  the visitor's answer (a tapped option's label and line, or the typed text), in either language. */
+function quotesFor(kase, d) {
+  const n = d.answers.length;
+  const bank = bankAt(kase, d.tierPath.slice(0, n - 1));
+  const answer = d.answers[n - 1];
+  const option = 'choice' in answer ? bank.options.find((o) => o.id === answer.choice) : null;
+  const { question } = bank.variants.find((v) => v.id === d.asks[n - 1].variant);
+  const said = option ? [option.label.th, option.label.en, option.line.th, option.line.en] : [answer.text];
+  const sources = [...said, question.th, question.en, kase.vignette.th, kase.vignette.en].map(comparable);
+  return (run) => { const quote = comparable(run); return sources.some((s) => s.includes(quote)); };
+}
+
+/** One field as it may reach the screen: whitespace collapsed, at most BOLD_MAX_RUNS `**` runs kept, each a short
+ *  run `quotes` accepts (a failed run keeps its text), no other `*`, and at most FIELD_MAX_CHARS of visible text. */
+function checkedField(raw, quotes) {
+  if (typeof raw !== 'string') return '';
+  const parts = raw.replace(/\s+/g, ' ').trim().split('**');
+  let kept = 0;
+  const segments = parts.flatMap((part, i) => {
+    // A stray `*` beside a kept run would serialise as `***`, so none survives anywhere.
+    const text = part.replaceAll('*', '');
+    const run = text.trim();
+    // An odd part is a run only when a closing marker follows it.
+    const bold = i % 2 === 1 && i < parts.length - 1 && kept < BOLD_MAX_RUNS && run !== ''
+      && run.length <= BOLD_MAX_CHARS && quotes(run);
+    if (!bold) return [{ text, bold }];
+    kept += 1;
+    // A kept run's padding goes outside its markers, so no run between them is over BOLD_MAX_CHARS.
+    const at = text.indexOf(run);
+    return [{ text: text.slice(0, at), bold: false }, { text: run, bold }, { text: text.slice(at + run.length), bold: false }];
+  });
+  // Moved padding can meet a space, or start the field: keep one space, never two, and none in front.
+  let shown = '';
+  for (const s of segments) {
+    if ((shown === '' || shown.endsWith(' ')) && s.text.startsWith(' ')) s.text = s.text.slice(1);
+    shown += s.text;
+  }
+  // A long field ends at the last space that fits, so on a whole Thai phrase. With none, the cut steps back off any
+  // combining mark (tone mark, vowel), which would otherwise leave its letter changed on screen.
+  const plain = segments.map((s) => s.text).join('');
+  let end = plain.length;
+  if (end > FIELD_MAX_CHARS) {
+    end = plain.lastIndexOf(' ', FIELD_MAX_CHARS);
+    if (end <= 0) {
+      end = FIELD_MAX_CHARS;
+      while (end > 0 && /\p{M}/u.test(plain[end])) end -= 1;
+    }
+  }
+  // A run cut through stays bold: a prefix of a quote still quotes.
+  let room = plain.slice(0, end).trimEnd().length;
+  return segments.map(({ text, bold }) => {
+    const cut = text.slice(0, room);
+    room -= cut.length;
+    return cut && bold ? `**${cut}**` : cut;
+  }).join('');
+}
+
+/** rimpl's reply as the Reply the kiosk may show: each field checked, anything but a string field ''. */
+const checkedReply = (raw, quotes) => Object.fromEntries(REPLY_FIELDS.map((k) => [k, checkedField(raw?.[k], quotes)]));
+const hasReply = (reply) => REPLY_FIELDS.some((k) => reply[k] !== '');
+
+/** A Reply as plain text, for the AI's history and the evaluator: its fields in order, markers removed. */
+const replyText = (reply) => REPLY_FIELDS.map((k) => reply[k].replaceAll('**', '')).filter(Boolean).join(' ');
+
 // Turn 1 carries the vignette because the evaluator reads the transcript alone (chief_complaint only seeds
 // rimpl's de-identification registry). The bridge into question i+1 came from the same AI call as reply i, so it
 // closes that assistant turn: the evaluator scores the physician turns, and an AI sentence never sits in one.
@@ -111,7 +187,7 @@ function dialogueTurns(kase, { answers, replies, asks, tierPath }, fence = false
     const bank = bankAt(kase, tierPath.slice(0, i));
     const question = bank.variants.find((v) => v.id === asks[i].variant).question.th;
     const physician = { role: 'physician', content: `${i === 0 ? `${kase.vignette.th}\n\n` : ''}${question}\n${saidFor(bank, answer, fence)}` };
-    const assistant = [replies[i], asks[i + 1]?.bridge].filter(Boolean).join(' ');
+    const assistant = [replies[i] && replyText(replies[i]), asks[i + 1]?.bridge].filter(Boolean).join(' ');
     return assistant ? [physician, { role: 'assistant', content: assistant }] : [physician];
   });
 }
@@ -149,16 +225,16 @@ const deidentifiedOf = (res) => {
   return typeof kept === 'string' && kept.length > 0 && kept.length <= DEIDENTIFIED_MAX_CHARS ? kept : null;
 };
 
-/** The dialogue once rimpl answered `d`'s last answer with `res` (null when the call failed): the reply, the typed
- *  answer's tier (the memo's when there is one, else the AI's) and de-identified text, and the next ask with its
- *  bank (none after the last step). An empty reply takes the fallback ask. */
+/** The dialogue once rimpl answered `d`'s last answer with `res` (null when the call failed): the checked reply, the
+ *  typed answer's tier (the memo's when there is one, else the AI's) and de-identified text, and the next ask with its
+ *  bank (none after the last step). No reply takes the fallback ask. */
 function chatOutcome(kase, d, res) {
   const n = d.answers.length;
-  const reply = typeof res?.content === 'string' ? res.content.trim().slice(0, REPLY_MAX_CHARS) : '';
+  const reply = checkedReply(res?.reply, quotesFor(kase, d));
   const typed = d.unsorted ? (d.memo ?? sortedTier(res?.tier)) : null;
   const tierPath = typed ? d.tierPath + typed : d.tierPath;
   const bank = n < STEPS ? bankAt(kase, tierPath) : null;
-  const ask = bank && (reply ? askFromPick(bank, res.pick) : fallbackAsk(bank));
+  const ask = bank && (hasReply(reply) ? askFromPick(bank, res.pick) : fallbackAsk(bank));
   const answers = typed
     ? [...d.answers.slice(0, -1), { ...d.answers[n - 1], tier: typed, deidentified: deidentifiedOf(res) }] : d.answers;
   return { tierPath, bank, ask, answers, replies: [...d.replies, reply], asks: ask ? [...d.asks, ask] : d.asks };
@@ -194,6 +270,7 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
 }));
 
 module.exports = {
-  STEPS, REPLY_MAX_CHARS, BRIDGE_MAX_CHARS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER, bankAt, randomOf,
-  isValidAsk, firstAsk, nextOf, fenced, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers, stepRecords,
+  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
+  evaluateRequest, stepTiers, stepRecords,
 };

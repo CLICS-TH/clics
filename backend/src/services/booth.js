@@ -9,8 +9,9 @@ const { compositeScore, WEIGHTS } = require('./ple-gate');
 const { rimplChat, rimplEvaluate } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
-  STEPS, REPLY_MAX_CHARS, BRIDGE_MAX_CHARS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER, bankAt, randomOf, isValidAsk,
-  firstAsk, nextOf, fenced, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers, stepRecords,
+  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, evaluateRequest,
+  stepTiers, stepRecords,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -38,11 +39,11 @@ const BANGKOK_OFFSET_MS = 7 * 3_600_000;
 const DAY_MS = 86_400_000;
 
 /**
- * Answer and Ask are typed in ./booth-dialogue. The kiosk sends a typed answer as its text and, once replied, the
- * `deidentified` copy the reply gave it: its `tier` is set server-side from the turn sigs (recoverTiers).
- * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], sigs: string[] }} Dialogue
+ * Answer, Ask and Reply are typed in ./booth-dialogue. The kiosk sends a typed answer as its text and, once replied,
+ * the `deidentified` copy the reply gave it: its `tier` is set server-side from the turn sigs (recoverTiers).
+ * @typedef {{ answers: Answer[], replies: Reply[], asks: Ask[], sigs: string[] }} Dialogue
  *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
- *   A reply may be '' when the AI gave none for that step; its sig still binds the ''.
+ *   A reply has every field '' when the AI gave none for that step; its sig still binds the ''s.
  * @typedef {{ tag: number, score: number, at: string }} BoardEntry
  * @typedef {{ today: BoardEntry[], event: BoardEntry[] }} Board
  * @typedef {'bad_request' | 'case_off' | 'closed' | 'not_found' | 'not_started' | 'replayed' | 'unavailable'} Refusal
@@ -55,6 +56,10 @@ const AskSchema = z.object({
   options: z.array(z.string().max(16)).length(3),
 }).strict();
 
+// A field the server issued is at most FIELD_MAX_CHARS of visible text plus the markers of its bold runs.
+const ReplySchema = z.object(Object.fromEntries(REPLY_FIELDS.map((k) => [k, z.string().max(FIELD_MAX_CHARS + 4 * BOLD_MAX_RUNS)])))
+  .strict();
+
 const DialogueSchema = z.object({
   answers: z.array(z.union([
     z.object({ choice: z.string().max(16) }).strict(),
@@ -63,7 +68,7 @@ const DialogueSchema = z.object({
       deidentified: z.string().max(DEIDENTIFIED_MAX_CHARS).nullable().optional(),
     }).strict(),
   ])).min(1).max(STEPS),
-  replies: z.array(z.string().max(REPLY_MAX_CHARS)).max(STEPS),
+  replies: z.array(ReplySchema).max(STEPS),
   asks: z.array(AskSchema).min(1).max(STEPS),
   sigs: z.array(z.string().max(64)).min(1).max(STEPS + 1),
 }).strict();
@@ -208,17 +213,19 @@ function hmacKey(label) {
 const turnKey = () => hmacKey('booth-turn-v1');
 
 // A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
-// canonical form is keyed by position, not by object key order. The kiosk holds no tier before the score reveals
+// canonical forms are keyed by position, not by object key order. The kiosk holds no tier before the score reveals
 // them (spec #244, #372): the server recovers it from the sigs (recoverTiers). It binds rimpl's de-identified text
 // as well, the only form of the answer stored, so the kiosk cannot alter what is kept (#375).
 const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null, a.deidentified ?? null]);
+const canonicalReply = (r) => REPLY_FIELDS.map((k) => r[k]);
 
 /** Turn k (0..3) binds everything the server had issued after k answers: the answers (typed ones with their sorted
  *  tier) and replies before it and the asks through the next one, so a client can neither invent a reply nor
  *  answer an option it was not offered. */
 function turnSig(playId, k, { answers, replies, asks }) {
   return crypto.createHmac('sha256', turnKey())
-    .update(JSON.stringify([playId, k, answers.slice(0, k).map(canonicalAnswer), replies.slice(0, k), asks.slice(0, k + 1)]))
+    .update(JSON.stringify([playId, k, answers.slice(0, k).map(canonicalAnswer), replies.slice(0, k).map(canonicalReply),
+      asks.slice(0, k + 1)]))
     .digest('base64url');
 }
 
@@ -506,6 +513,8 @@ async function replyOutcome(playId, event, kase, dialogue) {
     reason = err.status || err.name;
   }
   if (res) await settle(playId, res, REPLY_RESERVE_USD);
+  // A rimpl older than the reply fields (#376) answers `content`: every step would show no reply, billed and unseen.
+  if (res && (typeof res.reply !== 'object' || res.reply === null)) reason = 'no_fields';
   // Only a tier the model gave is kept: a failed or unreadable call must not pin a text to weaker for good.
   const kept = key && !recalled && typeof res?.tier === 'string' ? await memoTier(key, sortedTier(res.tier)) : null;
   const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, res);
@@ -525,7 +534,7 @@ async function replyOutcome(playId, event, kase, dialogue) {
 function logReply(playId, step, ms, { result, reason, provider }) {
   const at = `play=${playId} step=${step} ms=${ms}`;
   if (result.body?.status === 'replied') {
-    if (result.body.reply) console.info(`[booth] reply replied ${at} provider=${provider}`);
+    if (hasReply(result.body.reply)) console.info(`[booth] reply replied ${at} provider=${provider}`);
     else console.warn(`[booth] reply empty ${at} provider=${provider ?? 'none'} reason=${reason || 'empty'}`);
   } else {
     const kind = result.body?.status === 'unavailable' || result.refused === 'unavailable' ? 'unavailable' : 'refused';
@@ -544,9 +553,9 @@ async function readReplyCall(playId, input, now) {
   return { event: opened.event, kase: played.kase, dialogue };
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig, deidentified?, next? } | { status: 'unavailable' }.
- *    An AI call that fails or gives no reply still answers 'replied', with reply '' and the fallback ask. A typed
- *    answer's reply carries `deidentified` (null when rimpl gave none) for the kiosk to send back with the answer. */
+/** @returns {Promise<Result>} body: { status: 'replied', reply: Reply, reply_sig, deidentified?, next? } | { status: 'unavailable' }.
+ *    An AI call that fails or gives no reply still answers 'replied', with every reply field '' and the fallback ask. A
+ *    typed answer's reply carries `deidentified` (null when rimpl gave none) for the kiosk to send back with the answer. */
 async function replyToStep(playId, input, now = new Date()) {
   const startedAt = Date.now();
   let step = '-';

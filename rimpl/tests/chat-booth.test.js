@@ -16,10 +16,15 @@ const { callAI, providerSupportsThinking, supportsThinking } = require('../src/s
 const { ragLookup } = require('../src/services/rag');
 const { QueueFullError } = require('../src/services/providers/runtime');
 const P = require('../src/lib/prompts');
-const { BOOTH_MAX_TOKENS, BOOTH_GRILL_MAX_TOKENS, CHAT_MAX_TOKENS } = require('../src/lib/turn-limits');
+const { BOOTH_MAX_TOKENS, CHAT_MAX_TOKENS } = require('../src/lib/turn-limits');
 
 const BOOTH_PROMPT = P.chatSystemPrompt({ booth: true });
 const r = (text, extra = {}) => ({ text, tokenCount: 20, inputTokens: 12, outputTokens: 8, provider: 'local-tutor', model: 'qwen-tutor', ...extra });
+const FIELDS = { strength: 'An ECG first is a strength.', weigh: 'Weigh the timing.', safety: '' };
+const NO_REPLY = { strength: '', weigh: '', safety: '' };
+const boothJson = (extra = {}) => JSON.stringify({ ...FIELDS, ...extra });
+// Every rule line of the plain booth prompt, so a prompt built on it can be shown to keep them all.
+const ruleLines = (prompt) => prompt.split('\n').filter((l) => l.startsWith('- '));
 const send = (body = {}) => request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'I would order an ECG first.', language: 'en', ...body });
 const call = (n) => callAI.mock.calls[n][0];
 const chatCalls = () => callAI.mock.calls.map(([c]) => c).filter((c) => c.purpose === 'chat');
@@ -56,7 +61,7 @@ afterEach(() => { warn.mockRestore(); error.mockRestore(); });
 
 describe('the request a booth turn sends', () => {
   test('one call, purpose chat, the booth prompt at the booth ceiling, with no provider pin and no thinking', async () => {
-    callAI.mockResolvedValue(r('An ECG first is reasonable: it can show STEMI within minutes.'));
+    callAI.mockResolvedValue(r(boothJson()));
     const res = await send({ booth_mode: true });
     expect(res.status).toBe(200);
     expect(callAI).toHaveBeenCalledTimes(1);
@@ -65,15 +70,20 @@ describe('the request a booth turn sends', () => {
     expect(call(0)).not.toHaveProperty('thinking');
   });
 
-  test('the prompt sent carries the three-sentence rule and the never-name-the-best-option rule', async () => {
-    callAI.mockResolvedValue(r('Reasonable.'));
+  test('the prompt sent asks for the three fields under their length and bold rules, and keeps the never-name-the-best-option rule', async () => {
+    callAI.mockResolvedValue(r(boothJson()));
     await send({ booth_mode: true });
-    expect(call(0).systemPrompt).toMatch(/At most THREE short sentences/);
-    expect(call(0).systemPrompt).toMatch(/Never say or hint which option is best, correct or preferred, for this step or any other step/);
+    const sys = call(0).systemPrompt;
+    expect(sys).toContain('{"strength": "...", "weigh": "...", "safety": "..."}');
+    expect(sys).toMatch(/each at most 80 Thai characters or 20 English words/);
+    expect(sys).toMatch(/at most TWO short phrases in \*\*double asterisks\*\*.*only words copied exactly from the physician's own answer/);
+    expect(sys).toMatch(/safety: "" unless the chosen or typed action could seriously harm the patient/);
+    expect(sys).toMatch(/Never say or hint which option is best, correct or preferred, for this step or any other step/);
+    expect(sys).not.toMatch(/THREE short sentences|Plain text only/);
   });
 
   test('every PLE flag is ignored: no rescue classifier, no router, no retry, even for an uncited English reply to Thai', async () => {
-    callAI.mockResolvedValue(r('An ECG first is reasonable.'));
+    callAI.mockResolvedValue(r(boothJson()));
     const res = await send({
       booth_mode: true, language: 'th', message: 'ขั้นที่ 6: เลือกให้ aspirin ทันที', history: FIVE_EXCHANGES,
       socratic: true, artifacts: true, evidence_marker: true, router_enabled: true, deep_mode: true,
@@ -83,7 +93,7 @@ describe('the request a booth turn sends', () => {
     expect(callAI).toHaveBeenCalledTimes(1);
     expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: BOOTH_PROMPT, maxTokens: BOOTH_MAX_TOKENS });
     expect(call(0)).not.toHaveProperty('thinking');
-    expect(res.body.content).toBe('An ECG first is reasonable.');
+    expect(res.body.reply).toEqual(FIELDS);
   });
 
   test('artifact and evidence guidance switched on for the session never reach the booth prompt', async () => {
@@ -111,10 +121,11 @@ describe('the request a booth turn sends', () => {
 
 describe('the reply a booth turn returns', () => {
   test('an artifact the model writes anyway opens no side panel: no fence line survives', async () => {
-    callAI.mockResolvedValue(r('ECG first.\n:::artifact{type="differential" title="x"}\n| STEMI | NSTEMI |\n:::\nGood reasoning.'));
+    callAI.mockResolvedValue(r(boothJson({ weigh: 'ECG first.\n:::artifact{type="differential" title="x"}\n| STEMI | NSTEMI |\n:::\nGood reasoning.' })));
     const res = await send({ booth_mode: true, artifacts: true });
-    expect(res.body.content).not.toContain(':::artifact');
-    expect(res.body.content).not.toMatch(/^:::[ \t]*$/m);
+    expect(res.body.reply.weigh).toMatch(/^ECG first\./);
+    expect(res.body.reply.weigh).not.toContain(':::artifact');
+    expect(res.body.reply.weigh).not.toMatch(/^:::[ \t]*$/m);
   });
 
   test('no reference chips, even for a cited reply (a PLE turn extracts them)', async () => {
@@ -126,12 +137,12 @@ describe('the reply a booth turn returns', () => {
   });
 
   test('always plain JSON with exactly the documented keys, even when the caller asks for a stream', async () => {
-    callAI.mockResolvedValue(r('Reasonable.', { failed_over_from: 'anthropic' }));
+    callAI.mockResolvedValue(r(boothJson(), { failed_over_from: 'anthropic' }));
     const res = await send({ booth_mode: true, stream: true });
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/^application\/json/);
     expect(res.body).toEqual({
-      content: 'Reasonable.', refs: [], token_count: 20, input_tokens: 12, output_tokens: 8,
+      reply: FIELDS, refs: [], token_count: 20, input_tokens: 12, output_tokens: 8,
       provider: 'local-tutor', model: 'qwen-tutor', prompt_version: expect.stringMatching(/^chat-prompt-[0-9a-f]{8}$/),
       failed_over_from: 'anthropic', pick: null,
     });
@@ -195,17 +206,17 @@ const BANK = {
 };
 const GRILL_PROMPT = P.chatSystemPrompt({ booth: true, grill: true });
 const PICK = { variant_id: 'q_alt', bridge: 'Fever after floodwater narrows the next question.', option_ids: ['pcr', 'cbc', 'wait'] };
-const grillJson = (extra = {}) => JSON.stringify({ reply: 'Thinking of exposure is a strength; weigh the timing.', ...PICK, ...extra });
+const grillJson = (extra = {}) => JSON.stringify({ ...FIELDS, ...PICK, ...extra });
 
 describe('the grill play: a booth turn with the next step\'s bank', () => {
-  test('one call at the grill ceiling with the fixed grill prompt, which keeps every booth rule', async () => {
+  test('one call at the booth ceiling with the fixed grill prompt, which keeps every booth rule', async () => {
     callAI.mockResolvedValue(r(grillJson()));
     const res = await send({ booth_mode: true, booth_bank: BANK });
     expect(res.status).toBe(200);
     expect(callAI).toHaveBeenCalledTimes(1);
-    expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: GRILL_PROMPT, maxTokens: BOOTH_GRILL_MAX_TOKENS });
-    expect(call(0).systemPrompt.startsWith(BOOTH_PROMPT)).toBe(true);
-    expect(call(0).systemPrompt).toMatch(/Return ONLY one JSON object/);
+    expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: GRILL_PROMPT, maxTokens: BOOTH_MAX_TOKENS });
+    for (const line of ruleLines(BOOTH_PROMPT)) expect(call(0).systemPrompt).toContain(line);
+    expect(call(0).systemPrompt).toContain('{"strength": "...", "weigh": "...", "safety": "...", "variant_id": "...", "bridge": "...", "option_ids": ["...", "...", "..."]}');
     expect(call(0).systemPrompt).toMatch(/Never write a question, an option label or an option line yourself/);
     expect(call(0).systemPrompt).not.toContain('q_first');
     expect(res.body.prompt_version).not.toBe((await send({ booth_mode: true })).body.prompt_version);
@@ -227,51 +238,33 @@ describe('the grill play: a booth turn with the next step\'s bank', () => {
     for (const leak of LEAKS) expect(wire).not.toContain(leak);
   });
 
-  test('a JSON reply returns its reply as content and the pick as sent, unjudged', async () => {
+  test('a JSON reply returns its fields as the reply and the pick as sent, unjudged', async () => {
     callAI.mockResolvedValue(r(grillJson({ option_ids: ['pcr', 'mat', 'nope'] })));
     const res = await send({ booth_mode: true, booth_bank: BANK });
-    expect(res.body.content).toBe('Thinking of exposure is a strength; weigh the timing.');
+    expect(res.body.reply).toEqual(FIELDS);
     expect(res.body.pick).toEqual({ ...PICK, option_ids: ['pcr', 'mat', 'nope'] });
   });
 
-  test('a fenced JSON reply is still read, and an artifact inside the reply is stripped', async () => {
-    callAI.mockResolvedValue(r('```json\n' + grillJson({ reply: 'Good.\n:::artifact{type="x" title="y"}\nbody\n:::' }) + '\n```'));
+  test('a fenced JSON reply is still read, and an artifact inside a field is stripped', async () => {
+    callAI.mockResolvedValue(r('```json\n' + grillJson({ strength: 'Good.\n:::artifact{type="x" title="y"}\nbody\n:::' }) + '\n```'));
     const res = await send({ booth_mode: true, booth_bank: BANK });
     expect(res.body.pick).toEqual(PICK);
-    expect(res.body.content).not.toContain(':::');
+    expect(res.body.reply.strength).toMatch(/^Good\./);
+    expect(res.body.reply.strength).not.toContain(':::');
   });
 
   test('a reply whose pick fields have the wrong types keeps the reply and drops the pick', async () => {
     callAI.mockResolvedValue(r(grillJson({ option_ids: 'pcr,cbc,wait' })));
     const res = await send({ booth_mode: true, booth_bank: BANK });
-    expect(res.body.content).toBe('Thinking of exposure is a strength; weigh the timing.');
+    expect(res.body.reply).toEqual(FIELDS);
     expect(res.body.pick).toBeNull();
   });
 
-  test.each([
-    ['truncated JSON', '{"reply": "Thinking of exposure is a strength", "variant_id": "q_a'],
-    ['JSON with no reply', JSON.stringify(PICK)],
-    ['a repeated key', '{"reply": "a", "reply": "b", "variant_id": "q_alt", "bridge": "", "option_ids": []}'],
-  ])('%s: pick null and no JSON on the screen', async (_label, text) => {
-    callAI.mockResolvedValue(r(text));
-    const res = await send({ booth_mode: true, booth_bank: BANK });
-    expect(res.status).toBe(200);
-    expect(res.body.pick).toBeNull();
-    expect(res.body.content).toBe('');
-  });
-
-  test('plain prose instead of JSON: pick null, the prose is the reply', async () => {
-    callAI.mockResolvedValue(r('Thinking of exposure is a strength.'));
-    const res = await send({ booth_mode: true, booth_bank: BANK });
-    expect(res.body).toMatchObject({ content: 'Thinking of exposure is a strength.', pick: null });
-  });
-
-  test('no bank: today\'s plain booth turn, and JSON-looking text passes through untouched', async () => {
+  test('no bank: the plain booth prompt, and a pick the model writes anyway is not read', async () => {
     callAI.mockResolvedValue(r(grillJson()));
     const res = await send({ booth_mode: true });
     expect(call(0)).toMatchObject({ systemPrompt: BOOTH_PROMPT, maxTokens: BOOTH_MAX_TOKENS });
-    expect(res.body.pick).toBeNull();
-    expect(res.body.content).toBe(grillJson());
+    expect(res.body).toMatchObject({ reply: FIELDS, pick: null });
   });
 
   test.each([
@@ -290,17 +283,18 @@ describe('the grill play: a booth turn with the next step\'s bank', () => {
 
 const TYPED_PROMPT = P.chatSystemPrompt({ booth: true, typed: true });
 const TYPED = { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } };
-const typedJson = (extra = {}) => JSON.stringify({ reply: 'Exposure history is a strength; weigh the timing.', tier: 'reasonable', ...PICK, ...extra });
+const typedJson = (extra = {}) => JSON.stringify({ ...FIELDS, tier: 'reasonable', ...PICK, ...extra });
 
 describe('the typed answer: a booth turn that also sorts the answer into a tier (#247)', () => {
-  test('one call at the grill ceiling with the typed prompt, which keeps every booth rule and the unsafe-idea rule', async () => {
+  test('one call at the booth ceiling with the typed prompt, which keeps every booth rule and puts the unsafe idea in safety', async () => {
     callAI.mockResolvedValue(r(typedJson()));
     const res = await send({ booth_mode: true, booth_typed: TYPED });
     expect(res.status).toBe(200);
     expect(callAI).toHaveBeenCalledTimes(1);
-    expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: TYPED_PROMPT, maxTokens: BOOTH_GRILL_MAX_TOKENS });
-    expect(call(0).systemPrompt.startsWith(BOOTH_PROMPT)).toBe(true);
-    expect(call(0).systemPrompt).toMatch(/could seriously harm the patient, say so gently/);
+    expect(call(0)).toMatchObject({ purpose: 'chat', systemPrompt: TYPED_PROMPT, maxTokens: BOOTH_MAX_TOKENS });
+    for (const line of ruleLines(BOOTH_PROMPT)) expect(call(0).systemPrompt).toContain(line);
+    expect(call(0).systemPrompt).toContain('{"strength": "...", "weigh": "...", "safety": "...", "tier": "...",');
+    expect(call(0).systemPrompt).toMatch(/If the typed idea could seriously harm the patient, say so gently in safety/);
     expect(call(0).systemPrompt).toMatch(/Never reveal or hint the tier/);
   });
 
@@ -320,22 +314,17 @@ describe('the typed answer: a booth turn that also sorts the answer into a tier 
     for (const leak of LEAKS) expect(wire).not.toContain(leak);
   });
 
-  test('the reply, the tier and the pick come back as the model wrote them, unjudged', async () => {
-    callAI.mockResolvedValue(r(typedJson({ tier: 'unsafe' })));
+  test('the fields, the tier and the pick come back as the model wrote them, unjudged', async () => {
+    const safety = 'Stopping **all fluids** could seriously harm him.';
+    callAI.mockResolvedValue(r(typedJson({ tier: 'unsafe', safety })));
     const res = await send({ booth_mode: true, booth_typed: TYPED });
-    expect(res.body).toMatchObject({ content: expect.stringContaining('Exposure'), tier: 'unsafe', pick: PICK });
+    expect(res.body).toMatchObject({ reply: { ...FIELDS, safety }, tier: 'unsafe', pick: PICK });
   });
 
-  test('without a next bank only the reply and the tier are asked for, and an empty pick is none', async () => {
-    callAI.mockResolvedValue(r(JSON.stringify({ reply: 'Good.', tier: 'best', variant_id: '', bridge: '', option_ids: [] })));
+  test('without a next bank only the fields and the tier are asked for', async () => {
+    callAI.mockResolvedValue(r(JSON.stringify({ ...FIELDS, tier: 'best', variant_id: '', bridge: '', option_ids: [] })));
     const res = await send({ booth_mode: true, booth_typed: { current: BANK } });
-    expect(res.body).toMatchObject({ content: 'Good.', tier: 'best' });
-  });
-
-  test('unreadable output gives no reply, no pick and no tier', async () => {
-    callAI.mockResolvedValue(r('{"reply": "half'));
-    const res = await send({ booth_mode: true, booth_typed: TYPED });
-    expect(res.body).toMatchObject({ content: '', pick: null, tier: null });
+    expect(res.body).toMatchObject({ reply: FIELDS, tier: 'best' });
   });
 
   test.each([['with the next banks', TYPED], ['at the last step', { current: BANK }]])('the sort call %s sends temperature 0', async (_label, typed) => {
@@ -401,4 +390,42 @@ describe('the typed answer comes back de-identified for the backend to keep (#37
     expect(res.status).toBe(400);
     expect(callAI).not.toHaveBeenCalled();
   });
+});
+
+const KINDS = [
+  ['the last step', {}],
+  ['a grill step', { booth_bank: BANK }],
+  ['a typed answer', { booth_typed: TYPED }],
+];
+
+describe('the reply fields (#376): rimpl reads them, the backend judges them', () => {
+  test.each(KINDS)('%s: each field is trimmed, and its bold markers are left raw', async (_kind, body) => {
+    const fields = { strength: '  Choosing **ECG** first is a strength.\n', weigh: 'Weigh **the timing**.', safety: '*Never* wait.' };
+    callAI.mockResolvedValue(r(typedJson(fields)));
+    const res = await send({ booth_mode: true, ...body });
+    expect(res.body.reply).toEqual({ strength: 'Choosing **ECG** first is a strength.', weigh: 'Weigh **the timing**.', safety: '*Never* wait.' });
+  });
+
+  test.each(KINDS)('%s: a missing or non-string field is empty and the others are kept', async (_kind, body) => {
+    callAI.mockResolvedValue(r(JSON.stringify({ strength: 'Good.', safety: 7, tier: 'best', ...PICK })));
+    const res = await send({ booth_mode: true, ...body });
+    expect(res.body.reply).toEqual({ strength: 'Good.', weigh: '', safety: '' });
+  });
+
+  const MALFORMED = [
+    ['truncated JSON', '{"strength": "Thinking of exposure is a strength", "weigh": "half'],
+    ['prose with braces', 'Thinking of {exposure} is a strength.'],
+    ['prose with no JSON', 'Thinking of exposure is a strength.'],
+    ['JSON with none of the fields', JSON.stringify({ reply: 'Thinking of exposure is a strength.', ...PICK })],
+    ['a repeated key', '{"strength": "a", "strength": "b", "weigh": "", "safety": "", "variant_id": "q_alt", "bridge": "", "option_ids": []}'],
+  ];
+  test.each(KINDS.flatMap(([kind, body]) => MALFORMED.map(([label, text]) => [kind, label, body, text])))(
+    '%s, %s: every field empty, no pick, no tier, and no JSON text on the screen', async (_kind, _label, body, text) => {
+      callAI.mockResolvedValue(r(text));
+      const res = await send({ booth_mode: true, ...body });
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ reply: NO_REPLY, pick: null });
+      if (body.booth_typed) expect(res.body.tier).toBeNull();
+    },
+  );
 });

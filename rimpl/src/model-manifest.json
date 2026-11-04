@@ -46,9 +46,6 @@
       "decoding": {
         "chat": {
           "booth": {
-            "max_tokens": 400
-          },
-          "booth_grill": {
             "max_tokens": 600
           },
           "booth_typed": {
@@ -137,16 +134,16 @@
       "prompts": {
         "chat": {
           "booth": {
-            "label": "chat-prompt-9836fc3d",
-            "sha256": "9836fc3d621c03270c8ace45b3071dc556525e82df2b4453540a904637c87e7e"
+            "label": "chat-prompt-580f6441",
+            "sha256": "580f64411591173a3a89bc2ea3dd63a1a7128f572a2f9cf46e0686501c3843ac"
           },
           "booth+grill": {
-            "label": "chat-prompt-0fe824e9",
-            "sha256": "0fe824e9a2db468cc9be9661f166b72a3f9a08bcd27e050abedc2130009b85d0"
+            "label": "chat-prompt-19efed7e",
+            "sha256": "19efed7ea7246c31c7252b3a22b167f4c9dc3bc09aee4c62c4ca8da36cae100e"
           },
           "booth+typed": {
-            "label": "chat-prompt-92711c17",
-            "sha256": "92711c172b4dc67b973f1a3fa9357fab70d14a599ceb440dfaa50876546f559d"
+            "label": "chat-prompt-5419dd1f",
+            "sha256": "5419dd1ff639ca3666b12f6dd195b078853c144056b61bf017ee42241d77848b"
           },
           "examiner": {
             "label": "chat-prompt-c6efcfc6",
@@ -340,5 +337,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "cc4944fea6199aa9cf02515c173a3494624980932f663a77cc44b488c27e3ff0"
+  "sha256": "58c2e4c05b739c5098981cd081b5c7566a07fad3847184fdad6bc375b714f173"
 }
