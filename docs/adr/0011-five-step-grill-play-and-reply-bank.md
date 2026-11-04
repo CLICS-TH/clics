@@ -2,6 +2,8 @@
 
 Status: accepted 2026-11-04 for booth round 2's second wave; not live until every ready case switches to five steps in one deploy. Amends ADR 0006: the option text rule holds, the bank keying and who picks the next question change.
 
+The reply bank part is deferred past the second wave (owner, 2026-11-04, #382) so that the wave fits one week. Until it lands, five-step plays keep a live AI reply for tapped answers, and the AI keeps picking the next question from the bank as ADR 0006 describes. The tree keying applies from the five-step cutover.
+
 A booth case has five steps: diagnosis, first tests, management, reassessment (the case moves on: a response to treatment or a complication), and disposition. Each step's option bank is keyed on the tier of the step before it only, 1 + 3 + 3 + 3 + 3 = 13 banks per case, where keying on the full path would need 121. For a tapped answer, the reply comes from the case's reply bank: replies written offline per (bank, variant, chosen option, language), each passing the AI safety review, shown at once; the server picks the next question variant and a one-per-tier trio from the bank at random. The live AI runs only for typed answers, sorted under the sort memo, with an optional semantic reply cache (embeddings made locally in rimpl from the de-identified text; reuse only at cosine ≥ 0.95 on the same case version, bank and path; never across a negation or stop word, never for an answer sorted "weaker" or a reply with a safety line; switched on only after a labelled pair set shows zero unsafe reuses). We chose this because the owner asked for five steps (#357) and faster replies (#356): a live reply took p50 5.4 s, p95 7.8 s in the sandbox, before the network hops.
 
 ## Considered options
