@@ -23,7 +23,7 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
-const { DEMO_LABEL, DOMAINS, COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
+const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
 const TREE = JSON.parse(await readFile(fileURLToPath(new URL('../../backend/tests/fixtures/booth-case-tree.json', import.meta.url)), 'utf8'));
 /** The `case` a started play carries: the vignette only; each step's text arrives in a Next. */
 const KASE = { vignette: TREE.vignette };
@@ -144,6 +144,18 @@ function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(ans
   return { status: 'replied', reply, reply_sig: SIG(n), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
+const TIER_NAME = Object.fromEntries(Object.entries(TIER_LETTER).map(([name, letter]) => [letter, name]));
+/** The score response's `steps`, as the server builds them (booth-dialogue stepTiers): per posted ask, the tier the
+ *  answer took and each offered option's tier from its bank. */
+function stepsFor(tree, { answers = [], asks = [] } = {}) {
+  const path = pathOf(tree, answers);
+  return asks.map((ask, i) => {
+    const bank = bankFor(tree, path.slice(0, i));
+    return { tier: TIER_NAME[path[i]], options: ask.options.map((id) => ({ id, tier: bank.options.find((o) => o.id === id)?.tier ?? 'weaker' })) };
+  });
+}
+/** The default score answer to a score call: SCORED with the call's steps, `over` merged on top. */
+const scoredFor = (call, over = {}) => ({ status: 200, body: { ...SCORED, steps: stepsFor(TREE, call.body ?? {}), ...over } });
 
 /**
  * A fresh stub per kiosk. Default routes:
@@ -154,7 +166,7 @@ const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3:
  *   'POST /booth/plays/:id/reply'  replyBody(answers): reply n, SIG(n), next for the tier path walked (n < 3)
  * The case is backend/tests/fixtures/booth-case-tree.json.
  *   'GET /booth/board'             { board: { today: [], event: [] } }
- *   'POST /booth/plays/:id/score'  SCORED
+ *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted
  * opts.routes merges over these: key -> (call, calls) => ({ status, body }) | 'abort'. Unknown keys answer 404.
  * stub.hold(key) returns release(): matching requests wait until released. stub.calls records every request as
  * { key, path, body, headers }; stub.of(key) filters it.
@@ -169,7 +181,7 @@ function makeStub({ routes = {} } = {}) {
       ? { status: 201, body: START } : { status: 400, body: { error: 'That answer could not be read.', reason: 'bad_request' } }),
     'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: replyBody(call.body?.answers ?? []) }),
     'GET /booth/board': () => ({ status: 200, body: { board: { today: [], event: [] } } }),
-    'POST /booth/plays/:id/score': () => ({ status: 200, body: SCORED }),
+    'POST /booth/plays/:id/score': (call) => scoredFor(call),
     ...routes,
   };
   return {
@@ -527,18 +539,18 @@ async function scanSources() {
   }
 }
 
-async function shot(page, name) {
+async function shot(page, name, { fullPage = false } = {}) {
   if (!SHOTS) return;
   await mkdir(SHOTS, { recursive: true });
   const path = join(SHOTS, `${name}.png`);
-  await page.screenshot({ path });
+  await page.screenshot({ path, fullPage });
   console.log(`     screenshot ${path}`);
 }
 
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
+const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
 
 try {
