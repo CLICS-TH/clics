@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /*
  * Rehearsal gate for booth scoring: reads the `[booth] score ...` lines scorePlay logs (backend/src/services/booth.js)
- * and says whether prod scored on Claude inside the 60 s cap.
+ * and says whether prod scored every play from its case's path score table (ADR 0009) inside the 60 s cap.
  *
  *   railway logs --service backend --since 2h --filter '"[booth] score"' | node scripts/booth/score-latency.mjs
  *   node scripts/booth/score-latency.mjs backend.log [--min 5]
  *
  * Counts distinct plays, not lines. PASS needs at least --min scored plays (default 5), no unavailable play, p95
- * under 60 s and every scored play on provider anthropic. Exit 0 on PASS, 1 on FAIL, 2 on a bad argument.
+ * under 60 s and every scored play on provider table. Exit 0 on PASS, 1 on FAIL, 2 on a bad argument.
  */
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -60,7 +60,7 @@ export function summarize(log, { min = 5 } = {}) {
     ms.length < min && `only ${ms.length} scored plays, need ${min}`,
     unavailable > 0 && `${unavailable} unavailable`,
     p95 != null && p95 >= P95_LIMIT_MS && `p95 ${(p95 / 1000).toFixed(1)} s is not under 60 s`,
-    scored.some((s) => s.provider !== 'anthropic') && 'a scored play did not run on anthropic',
+    scored.some((s) => s.provider !== 'table') && 'a scored play was not read from a path score table',
   ].filter(Boolean);
   return {
     n: ms.length,

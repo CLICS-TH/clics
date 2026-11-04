@@ -64,7 +64,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
       one tap each. The on-screen keyboard leaves the typing box visible.
 - [ ] Alt+F4 exits kiosk mode.
 
-## 3. Prod scores on Claude, p95 under 60 s over 5 real plays
+## 3. Prod scores from the path score tables, p95 under 60 s over 5 real plays
 
 - [ ] Play 5 times on the kiosk. Mix tapped choices with at least one "type my own". Every play ends on a result
       card, none on the score-unavailable card.
@@ -72,9 +72,9 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
       `railway logs --service backend --since 2h --filter '"[booth] score"' > booth.log` (`--since` stops it
       streaming). Then
       `node scripts/booth/score-latency.mjs booth.log` prints `PASS`. It fails on fewer than 5 scored plays, any
-      unavailable play, p95 at or over 60 s, or any provider other than `anthropic`.
-- [ ] On FAIL with a `local` provider: rimpl is routing the evaluator to the local model, whose p95 (about 90 s) is
-      past the 60 s cap. Fix the rimpl env before opening, not the cap.
+      unavailable play, p95 at or over 60 s, or any provider other than `table`.
+- [ ] On FAIL with another provider: the backend is older than #373 and still scores live. Deploy the backend
+      before opening.
 
 ## 4. Hotspot failover
 
