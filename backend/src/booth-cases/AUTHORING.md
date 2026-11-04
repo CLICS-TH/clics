@@ -86,6 +86,17 @@ A case is reviewed before it can be drawn.
 
 `admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id` and `date`. The script itself writes no case file. You do not write that part. Instead of `admission.sandbox`, the owner may add `admission.owner_waiver` (ADR 0005): its `date`, `adr` (`"0005"`), `reason` and the `sandbox_run_id` the case failed. A case needs `admission.safety_review` and one of the other two to be drawn. Without them it is valid but never drawn.
 
+## The path score table
+
+A play's demo score is read from the case's path score table (ADR 0009). The same tier path then scores the same every time, at once, with no evaluator call.
+
+The table build script writes the table (ticket #373). Never write or edit it by hand. It sits under `path_score_table` in two parts.
+
+- `provenance` records how the table was built: the `evaluator_model`, the `prompt_sha256` of the evaluator prompt, the `decoding` (`temperature` and `max_tokens`), the `samples_per_path`, the `method` (`"median"`), the build `run_id`, the `date` as `YYYY-MM-DD`, and the `tree_sha256` of the case tree it was built from.
+- `paths` holds one entry for each of the 27 tier paths, `BBB` through `WWW`. Each entry gives `d1` to `d7`, each a whole number from 1 to 5.
+
+A case with a table scores from it. A case without one still scores live through the evaluator until #373.
+
 ## Checking your case
 
 Run the contract test from the repo root.
