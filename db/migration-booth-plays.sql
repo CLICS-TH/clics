@@ -5,9 +5,11 @@
 -- filter only on is_test, the Participants sheet lists every professional, PLE/P- codes are global sequences, and
 -- the held-out calibration anchors live in SANDBOX. So a booth play creates no professional, no ples/messages/
 -- ai_evaluations/lpdp_snapshots row and no code, and its AI spend never touches professionals.usage_cost_usd
--- (the $0.50 cap and api_budget_pool_usd both read that column). The dialogue lives only in the kiosk's memory:
--- this table has NO transcript, answer-text, IP or device column, and none may be added
--- (backend/tests/booth-consistency.test.js holds the column list).
+-- (the $0.50 cap and api_budget_pool_usd both read that column). Since #375 (ADR 0010) a scored play keeps its
+-- dialogue as open research data: per step the ids it was asked and chose, the AI reply and, for a typed answer,
+-- rimpl's de-identified text of it. Never the raw typed text, an IP or device data
+-- (backend/tests/booth-consistency.test.js holds the column list). Rows are kept, with no 30-day delete;
+-- migration-booth-purge.sql removes an event's plays only for a test event or an owner-ordered removal.
 --
 -- Idempotent. #246 adds case_id, case_version and tier_path and replaces booth_start_play(text) with
 -- booth_start_play(text, text, text). The running backend calls only one of the two, so apply this file right
@@ -62,13 +64,23 @@ alter table public.booth_plays add column if not exists tier_path text
 alter table public.booth_plays add column if not exists replied_step smallint not null default 0
   constraint booth_plays_replied_step_check check (replied_step between 0 and 3);
 
+-- #375 (ADR 0010): the play's dialogue (backend services/booth-dialogue.js stepRecords), per step { variant,
+-- bridge, options, choice | typed, reply, tier }, typed being rimpl's de-identified text, and whether the score came
+-- from the live evaluator or the case's path score table. Written with the score. Older rows, the 3-4 Nov 2026
+-- NFCME-2026 plays among them, keep nulls: no backfill.
+alter table public.booth_plays add column if not exists steps jsonb
+  constraint booth_plays_steps_check check (jsonb_typeof(steps) = 'array');
+alter table public.booth_plays add column if not exists score_source text
+  constraint booth_plays_score_source_check check (score_source in ('table', 'live'));
+
 -- DENY-ALL (RLS on, no policy): only the backend's service role reads or writes booth plays.
 alter table public.booth_plays enable row level security;
 
 comment on table public.booth_plays is
-  'Booth Mode plays (ADR 0004): tag, demo score, d1-d7, spend, status, case id and version and tier path only. '
-  'No transcript, answer text, option text, IP or '
-  'device data, and no link to professionals or ples. Deleted 30 days after the event (#217).';
+  'Booth Mode plays (ADR 0004, 0010): tag, demo score, d1-d7, spend, status, case id and version, tier path, '
+  'score source and the de-identified dialogue (option ids, AI replies, rimpl''s de-identified typed answers). '
+  'Never raw typed text, IP or device data, and no link to professionals or ples. Kept as open research data with '
+  'no 30-day delete; purged only for a test event or an owner-ordered removal.';
 
 drop function if exists public.booth_start_play(text);
 

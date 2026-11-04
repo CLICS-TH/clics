@@ -228,7 +228,7 @@ test('purge-event: a dry run beside an earlier purge labels that record as earli
   set({ booth_plays: [...state().booth_plays, { id: 'n1', event_code: 'NFCME-2026', status: 'scored' }] });
   const dry = run(['--event', 'NFCME-2026']);
   assert.match(dry.out, /Earlier purge at 2026-12-06T10:04:05\+07:00 \(not the CCME summary of this run\):\nBooth event NFCME-2026\nplays 21 /);
-  assert.match(dry.out, /CCME summary: none yet \(the 1 live plays are not purged\)\nNext step: With the booth switched off, run `node \.\.\/scripts\/booth\/purge-event\.mjs --event NFCME-2026 --delete`\./);
+  assert.match(dry.out, /CCME summary: none \(the 1 live plays are kept\)\nNext step: Nothing to run: booth plays are kept \(ADR 0010\)\. Only for a test event or an owner-ordered removal, with the booth switched off, run `node \.\.\/scripts\/booth\/purge-event\.mjs --event NFCME-2026 --delete`\./);
 });
 
 test('purge-event: a missing migration names the owner step, then the read', (t) => {

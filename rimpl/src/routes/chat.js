@@ -84,6 +84,10 @@ const ChatSchema = z.object({
     current: BoothBankSchema,
     next: z.object({ best: BoothBankSchema, reasonable: BoothBankSchema, weaker: BoothBankSchema }).strict().optional(),
   }).strict().optional(),
+  // Booth play kept as research data (#375, ADR 0010): the visitor's typed answer alone, already inside `message`.
+  // Returned de-identified as answer_deidentified so the backend never stores the raw text; never sent to the AI.
+  // Headroom over the backend's ANSWER_MAX_CHARS (500).
+  booth_answer: z.string().min(1).max(600).optional(),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -100,14 +104,18 @@ const ChatSchema = z.object({
 //
 // Returns the pieces still separate: the caller embeds `cleanMessage` for RAG and sends the very same
 // string to the model (the RAG lookup and the AI call must see identical de-identified text).
-function deidentifyTurn({ chiefComplaint, history, message, hints }) {
+//
+// A booth typed answer is a substring of `message`, so it is stripped last under the same registry: the priming
+// already covers it, and its tokens are the ones the message got.
+function deidentifyTurn({ chiefComplaint, history, message, hints, boothAnswer }) {
   const registry = makeRegistry();
   // Every surname found anywhere in the turn masks every other mention, in the same order as below (#238).
   primeRegistry([chiefComplaint || '', ...history.map((m) => m.content), message], registry, hints);
   const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
   const cleanHistory = stripHistoryPii(history, hints, registry);
   const cleanMessage = stripPii(message, registry, hints);
-  return { cleanChiefComplaint, cleanHistory, cleanMessage };
+  const cleanBoothAnswer = boothAnswer ? stripPii(boothAnswer, registry, hints) : undefined;
+  return { cleanChiefComplaint, cleanHistory, cleanMessage, cleanBoothAnswer };
 }
 
 // Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only
@@ -150,7 +158,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed, booth_answer } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -171,11 +179,16 @@ router.post('/', async (req, res) => {
     // De-identify ONCE, up front, under one shared registry (deidentifyTurn): PII must never leave
     // the on-prem boundary — not to Claude and not to the OpenAI embeddings API behind RAG.
     // ragLookup previously received the raw message.
-    const { cleanChiefComplaint, cleanHistory, cleanMessage } =
-      deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
+    const { cleanChiefComplaint, cleanHistory, cleanMessage, cleanBoothAnswer } =
+      deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints, boothAnswer: booth_mode ? booth_answer : undefined });
     // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
     // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
-    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed, signal }));
+    if (booth_mode) {
+      return res.json(await boothReply({
+        messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed,
+        answerDeidentified: cleanBoothAnswer, signal,
+      }));
+    }
     const ragDocs = await ragLookup(cleanMessage);
     const messages = buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint);
 

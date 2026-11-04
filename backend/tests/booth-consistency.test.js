@@ -12,7 +12,14 @@ const SQL = MIGRATION.replace(/--[^\n]*/g, '');
 test('booth_plays has exactly the allowed columns', () => {
   expect([...(schemaFromSql().booth_plays ?? [])].sort()).toEqual(['id', 'event_code', 'tag', 'status', 'spend_usd',
     'composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'created_at', 'scored_at', 'ranked', 'case_id', 'case_version',
-    'tier_path', 'replied_step'].sort());
+    'tier_path', 'replied_step', 'steps', 'score_source'].sort());
+});
+
+test('score_source holds exactly the two sources the score writes, and steps only an array (#375)', () => {
+  const source = /check \(score_source in \(([^)]*)\)\)/.exec(SQL);
+  expect(source).not.toBeNull();
+  expect([...source[1].matchAll(/'([a-z]+)'/g)].map(([, s]) => s).sort()).toEqual(['live', 'table']);
+  expect(SQL).toContain("check (jsonb_typeof(steps) = 'array')");
 });
 
 test('the case-file name guard is the booth_plays.event_code CHECK', () => {

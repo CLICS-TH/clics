@@ -83,10 +83,14 @@ export function plan(code, outcome) {
           ? { ccme, next: `The delete committed. Send the CCME summary block above to CCME. The ${live} live plays were started after it and are not in it: with the booth switched off, run ${deleteCmd} to purge them, and send the CCME summary it prints too.` }
           : { ccme, next: 'The delete committed. Send the CCME summary block above to CCME. Nothing else to run.' };
       }
+      if (live > 0 && attempt) {
+        return { ccme: null, none: 'none yet (that delete did not commit: nothing was deleted)',
+          next: `Nothing was deleted. With the booth switched off, run ${deleteCmd} once more. It prints the CCME summary of what it deletes.` };
+      }
+      // ADR 0010: an event's plays are kept, so a plain read never advises the delete.
       if (live > 0) {
-        return { ccme: null,
-          none: attempt ? 'none yet (that delete did not commit: nothing was deleted)' : `none yet (the ${live} live plays are not purged)`,
-          next: `${attempt ? 'Nothing was deleted. ' : ''}With the booth switched off, run ${deleteCmd}${attempt ? ' once more' : ''}. It prints the CCME summary of what it deletes.` };
+        return { ccme: null, none: `none (the ${live} live plays are kept)`,
+          next: `Nothing to run: booth plays are kept (ADR 0010). Only for a test event or an owner-ordered removal, with the booth switched off, run ${deleteCmd}. It prints the CCME summary of what it deletes.` };
       }
       if (summary.recorded) {
         return { ccme: { title: `recorded when ${code} was purged at ${at(summary.recorded)}`, summary: summary.recorded.summary },

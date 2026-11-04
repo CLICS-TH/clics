@@ -30,7 +30,7 @@ const app = require('../src/index');
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const EVENT = KASE.event_code;
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const SCORE_WRITE_COLUMNS = ['status', 'composite', ...DOMAINS, 'scored_at', 'ranked', 'tier_path'];
+const SCORE_WRITE_COLUMNS = ['status', 'composite', ...DOMAINS, 'scored_at', 'ranked', 'tier_path', 'steps', 'score_source'];
 const RPC_ARG_KEYS = ['p_event', 'p_case', 'p_version', 'p_play', 'p_amount', 'p_ceiling', 'p_delta'];
 const BOOTH_RPCS = ['booth_start_play', 'booth_reserve_spend', 'booth_settle_spend'];
 const PILOT_TABLES = ['professionals', 'ples', 'messages', 'ai_evaluations', 'lpdp_snapshots', 'shadow_evaluations', 'councils'];
@@ -213,13 +213,15 @@ async function sortedLetter() {
   return LETTER[Object.keys(LETTER).includes(sorted) ? sorted : 'weaker'];
 }
 
+/** Like the kiosk, keeps a typed answer's de-identified text from its reply, to send back with it. */
 async function answer(p, given) {
   const a = typeof given === 'string' ? { choice: offered(p, given) } : given;
   const body = { ...p.d, answers: [...p.d.answers, a] };
   const res = await post(`/booth/plays/${p.id}/reply`, body);
   if (res.status === 200 && res.body.status === 'replied') {
     p.path += 'choice' in a ? LETTER[bank(p.path).options.find((o) => o.id === a.choice).tier] : await sortedLetter();
-    p.d = { answers: [...p.d.answers, a], replies: [...p.d.replies, res.body.reply],
+    const kept = typeof res.body.deidentified === 'string' ? { ...a, deidentified: res.body.deidentified } : a;
+    p.d = { answers: [...p.d.answers, kept], replies: [...p.d.replies, res.body.reply],
       asks: res.body.next ? [...p.d.asks, res.body.next.ask] : p.d.asks, sigs: [...p.d.sigs, res.body.reply_sig] };
     p.next = res.body.next;
   }
@@ -826,7 +828,7 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, 'best');
     const res = await answer(p, { text: 'my own words' });
-    expect(res.body).toEqual({ status: 'replied', reply: 'AI reply', reply_sig: expect.any(String) });
+    expect(res.body).toEqual({ status: 'replied', reply: 'AI reply', reply_sig: expect.any(String), deidentified: null });
     const [args] = rimplChat.mock.calls[2];
     expect(args.booth_typed).toEqual({ current: { variants: bank('BB').variants, options: bank('BB').options } });
     expect(p.path).toBe('BBR');
@@ -1569,6 +1571,94 @@ describe('turn binding (#222, #246: the score reads only what the server issued)
   });
 });
 
+describe('the kept dialogue (#375, ADR 0010: de-identified, bound by the turn sigs, with its score source)', () => {
+  const RAW = 'นายสมชาย ใจดี โทร 081-234-5678 ส่งตรวจ PCR';
+  const RAW_PARTS = ['สมชาย', 'ใจดี', '081-234-5678'];
+  const DEID = 'นาย[NAME-1] [NAME-1] โทร [PHONE-1] ส่งตรวจ PCR';
+  const scoreUpdates = () => m.all('booth_plays', 'update').filter((u) => u.payload.status === 'scored');
+
+  /** rimpl de-identifying the typed answer it is handed as booth_answer, and sorting it best. */
+  function deidentifying() {
+    sorting('best');
+    const sort = rimplChat.getMockImplementation();
+    rimplChat.mockImplementation(async (body) => ({ ...(await sort(body)), ...(body.booth_answer ? { answer_deidentified: DEID } : {}) }));
+  }
+
+  async function typedPlay() {
+    deidentifying();
+    const p = await begin();
+    await answer(p, 'best');
+    const typed = await answer(p, { text: RAW });
+    await answer(p, 'reasonable');
+    return { p, typed };
+  }
+
+  test('a typed answer goes to rimpl as booth_answer, its reply carries the de-identified text, and only that is stored', async () => {
+    const { p, typed } = await typedPlay();
+    expect(rimplChat.mock.calls[1][0].booth_answer).toBe(RAW);
+    expect(rimplChat.mock.calls[0][0]).not.toHaveProperty('booth_answer');
+    expect(rimplChat.mock.calls[2][0]).not.toHaveProperty('booth_answer');
+    expect(typed.body.deidentified).toBe(DEID);
+    expect((await score(p)).body.status).toBe('scored');
+    const row = plays.get(p.id);
+    expect(row.steps[1]).toEqual({ variant: p.d.asks[1].variant, bridge: p.d.asks[1].bridge, options: p.d.asks[1].options,
+      typed: DEID, reply: 'AI reply', tier: 'best' });
+    const written = JSON.stringify([writes().map((w) => w.payload), rpcCalls, row]);
+    for (const part of RAW_PARTS) expect(written).not.toContain(part);
+  });
+
+  test('a typed answer rimpl gave no de-identified text for is stored as null, never as the raw text', async () => {
+    sorting('best');
+    const p = await walked(['best', { text: RAW }, 'reasonable']);
+    await score(p);
+    expect(plays.get(p.id).steps[1].typed).toBeNull();
+    const written = JSON.stringify(writes().map((w) => w.payload));
+    for (const part of RAW_PARTS) expect(written).not.toContain(part);
+  });
+
+  test.each([
+    ['altered', (a) => ({ ...a, deidentified: 'นาย[NAME-1] ส่งตรวจ PCR' })],
+    ['swapped back to the raw text', (a) => ({ ...a, deidentified: RAW })],
+    ['dropped', ({ deidentified: _, ...a }) => a],
+  ])('a score whose de-identified text is %s is refused by the turn sigs, and nothing is written', async (_name, tamper) => {
+    const { p } = await typedPlay();
+    const answers = p.d.answers.map((a, i) => (i === 1 ? tamper(a) : a));
+    const res = await score(p, { ...p.d, answers });
+    expect(res.status).toBe(400);
+    expect(scoreUpdates()).toEqual([]);
+    expect(rimplEvaluate).not.toHaveBeenCalled();
+    expect(plays.get(p.id).status).toBe('started');
+    expect((await score(p)).body.status).toBe('scored');
+  });
+
+  test('a tapped play stores per step the variant, bridge, offered ids, choice, reply and tier, from the live evaluator', async () => {
+    picking();
+    const p = await walked(['weaker', 'reasonable', 'best']);
+    await score(p);
+    expect(plays.get(p.id).score_source).toBe('live');
+    expect(plays.get(p.id).steps).toEqual(p.d.asks.map((ask, i) => ({
+      variant: ask.variant, bridge: ask.bridge, options: ask.options, choice: p.d.answers[i].choice,
+      reply: p.d.replies[i], tier: ['weaker', 'reasonable', 'best'][i],
+    })));
+  });
+
+  test('a case with a path score table stores score_source table', async () => {
+    process.env.BOOTH_CASES_DIR = casesDir(edited((k) => { k.path_score_table = TABLE; }));
+    const p = await walked();
+    await score(p);
+    expect(plays.get(p.id)).toMatchObject({ status: 'scored', score_source: 'table' });
+    expect(rimplEvaluate).not.toHaveBeenCalled();
+  });
+
+  test('a play scored before #375 keeps no source and no steps: a repeated score writes nothing', async () => {
+    const p = await ready(SCORED);
+    expect((await score(p)).body.status).toBe('scored');
+    expect(scoreUpdates()).toEqual([]);
+    expect(plays.get(p.id).score_source ?? null).toBeNull();
+    expect(plays.get(p.id).steps ?? null).toBeNull();
+  });
+});
+
 describe('the board (#212)', () => {
   const { standings } = require('../src/services/booth');
   const BKK = 7 * HOUR;
@@ -1683,14 +1773,16 @@ describe('the board (#212)', () => {
   });
 });
 
-describe('write surface (ADR 0004)', () => {
+describe('write surface (ADR 0004, 0010)', () => {
   const ANSWER = 'SENTINEL-ANSWER-7f3a ตอบเอง';
-  const REPLY = 'SENTINEL-REPLY-91c2';
-  const BRIDGE = 'SENTINEL-BRIDGE-c04e';
+  const KEPT = 'KEPT-DEIDENTIFIED-5b1d';
+  const REPLY = 'KEPT-REPLY-91c2';
+  const BRIDGE = 'KEPT-BRIDGE-c04e';
 
   async function wholePlay() {
-    rimplChat.mockImplementation(async ({ booth_bank }) => ({
+    rimplChat.mockImplementation(async ({ booth_bank, booth_answer }) => ({
       ...CHAT_OK, content: REPLY, pick: booth_bank ? pickFor(booth_bank, { bridge: BRIDGE }) : null,
+      ...(booth_answer ? { tier: 'weaker', answer_deidentified: KEPT } : {}),
     }));
     const p = await begin();
     const statuses = [];
@@ -1718,11 +1810,12 @@ describe('write surface (ADR 0004)', () => {
     expect(plays.get(p.id).tier_path).toBe('WBR');
   });
 
-  test('no answer, reply, bridge or option text reaches any write or function call', async () => {
+  test('no raw typed text or option text reaches any write or function call; the de-identified text, reply and bridge are kept', async () => {
     await wholePlay();
     const written = JSON.stringify([writes().map((w) => w.payload), rpcCalls]);
     expect(written).not.toContain('SENTINEL');
     for (const o of bank('').options) expect(written).not.toContain(o.label.th);
+    for (const kept of [KEPT, REPLY, BRIDGE]) expect(written).toContain(kept);
     expect(rimplChat.mock.calls.at(-1)[0].history.map((t) => t.content).join('\n')).toContain(ANSWER);
   });
 

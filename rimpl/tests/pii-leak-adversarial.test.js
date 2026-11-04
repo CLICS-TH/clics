@@ -1011,3 +1011,47 @@ describe('adversarial — one registry per outbound call (coreference across the
     expect(systemPrompt).toContain('Physician: [NAME-1] มาด้วยไข้');
   });
 });
+
+// ===========================================================================
+// #375 (ADR 0010): a booth play keeps the visitor's typed answer as research data, so rimpl hands the backend
+// a de-identified copy (answer_deidentified). Neither the AI call nor that copy may carry the identifiers.
+// No patient_ref and no chief_complaint: only the in-text rules stand between the answer and the model.
+// ===========================================================================
+describe('adversarial — a booth typed answer carrying a name and a phone', () => {
+  const text = (th) => ({ th, en: 'x' });
+  const BANK = {
+    variants: [{ id: 'q1', question: text('คุณจะส่งตรวจอะไรต่อ') }],
+    options: [
+      { id: 'a', tier: 'best', label: text('ส่ง PCR'), line: text('ผลเร็ว') },
+      { id: 'b', tier: 'reasonable', label: text('ตรวจ CBC'), line: text('ดูเกล็ดเลือด') },
+      { id: 'c', tier: 'weaker', label: text('รอดูอาการ'), line: text('นัดสองวัน') },
+    ],
+  };
+  const ANSWER = 'ให้นายสมชาย ใจดี โทร 081-234-5678 มาตรวจ PCR ซ้ำ';
+  const LEAKED = ['สมชาย', 'ใจดี', '081-234-5678', '0812345678', '5678'];
+
+  let warnSpy;
+  beforeEach(() => {
+    callAI.mockReset().mockResolvedValue({
+      text: JSON.stringify({ reply: 'ดี', tier: 'best', variant_id: 'q1', bridge: '', option_ids: ['a', 'b', 'c'] }),
+      inputTokens: 1, outputTokens: 1, provider: 'anthropic',
+    });
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => warnSpy.mockRestore());
+
+  test('neither reaches the AI call, and the returned answer_deidentified carries neither', async () => {
+    const res = await request(app).post('/chat').send({
+      ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${ANSWER}`,
+      booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: ANSWER,
+    });
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    const wire = JSON.stringify(callAI.mock.calls);
+    for (const frag of LEAKED) {
+      expect(wire).not.toContain(frag);
+      expect(res.body.answer_deidentified).not.toContain(frag);
+    }
+    expect(res.body.answer_deidentified).toMatch(/^ให้นาย\[NAME-\d+\] .*\[PHONE-\d+\] มาตรวจ PCR ซ้ำ$/);
+  });
+});
