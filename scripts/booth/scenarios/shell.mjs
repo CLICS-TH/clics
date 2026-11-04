@@ -235,11 +235,11 @@ export default [
       await k.tap('[data-action="see-score"]');
       await k.screen('scoring');
       // booth-play's own 75 s score deadline runs on the same fake clock (Playwright fakes AbortSignal.timeout), from the
-      // tap: 'scoring' shows a second later.
-      await page.clock.fastForward(73_000);
+      // tap, and real time keeps running: 'scoring' shows a second later and the settle waits add more on a loaded host.
+      await page.clock.fastForward(70_000);
       await h.sleep(300);
       const at = await k.screenNow();
-      h.check(await overlays(page) === 0 && at === 'scoring', `scoring + 73 s (under the play's 75 s deadline): no "Still there?", still scoring (on '${at}')`);
+      h.check(await overlays(page) === 0 && at === 'scoring', `scoring + 70 s (under the play's 75 s deadline): no "Still there?", still scoring (on '${at}')`);
       release();
       await k.screen('scored');
       await page.clock.fastForward(44_000);

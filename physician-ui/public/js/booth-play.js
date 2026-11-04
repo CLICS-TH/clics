@@ -41,9 +41,10 @@ const GHOST_TAP_MS = 350;
  *   steps[i] is the Next the server issued for step i (start, then each reply); the asks posted back are its
  *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
- * @typedef {{ type: 'begin' } | { type: 'choose', choice: string } | { type: 'openTyping' } | { type: 'closeTyping' }
- *         | { type: 'answer', answer: Answer } | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' }
+ * @typedef {{ type: 'begin' } | { type: 'choose', choice: string } | { type: 'sendChoice' } | { type: 'openTyping' } | { type: 'closeTyping' }
+ *         | { type: 'sendText', text: string } | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' }
  *         | { type: 'slow' } | { type: 'scored', score: Score } | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
+ *   sendChoice is the step's Send: it sends step.chosen.
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
  */
 
@@ -52,6 +53,8 @@ const GHOST_TAP_MS = 350;
 export const SCREEN = Object.freeze(['drawing', 'teaser', 'starting', 'vignette', 'step', 'typing', 'replying', 'reply',
   'scoring', 'scored', 'unavailable', 'stopped']);
 const TERMINAL = new Set(['scored', 'unavailable', 'stopped']);
+/** The screens that offer Start over. A confirm left open outlives a redraw to one of them. */
+const START_OVER = new Set(['vignette', 'step', 'typing', 'replying', 'reply']);
 
 /**
  * Deal cases until the visitor starts one. The cases seen so far live in this call only; the server restarts the
@@ -102,7 +105,8 @@ export async function runPlay({ root, api, reset }) {
       const entered = next.screen.at !== state.screen.at;
       state = next;
       const { at } = state.screen;
-      if (at !== 'scoring' || state.screen.shown) render(state, dispatch, ctx);
+      if (at === 'step' && !entered) showChoice(root, state.screen.chosen);
+      else if (at !== 'scoring' || state.screen.shown) render(state, dispatch, ctx);
       if (!entered) return;
       if (at === 'replying') requestReply(api, state).then(dispatch);
       else if (at === 'scoring') {
@@ -124,11 +128,12 @@ function transition(s, ev) {
     case 'begin': return at === 'vignette' ? { ...s, screen: { at: 'step', chosen: null } } : s;
     case 'choose': return at === 'step' && s.screen.chosen !== ev.choice && stepOf(s).ask.options.includes(ev.choice)
       ? { ...s, screen: { at: 'step', chosen: ev.choice } } : s;
+    case 'sendChoice': return at === 'step' && s.screen.chosen ? answered(s, { choice: s.screen.chosen }) : s;
     case 'openTyping': return at === 'step' ? { ...s, screen: { at: 'typing' } } : s;
     case 'closeTyping': return at === 'typing' ? { ...s, screen: { at: 'step', chosen: null } } : s;
-    case 'answer': {
-      const answer = acceptAnswer(s, ev.answer);
-      return answer ? { ...s, answers: [...s.answers, answer], screen: { at: 'replying' } } : s;
+    case 'sendText': {
+      const text = ev.text.trim();
+      return at === 'typing' && text.length > 0 && text.length <= s.play.answerMax ? answered(s, { text }) : s;
     }
     case 'replied': return at === 'replying'
       ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
@@ -143,17 +148,7 @@ function transition(s, ev) {
   }
 }
 
-function acceptAnswer(s, answer) {
-  if (s.screen.at === 'step' && 'choice' in answer) {
-    return stepOf(s).ask.options.includes(answer.choice) ? { choice: answer.choice } : null;
-  }
-  if (s.screen.at === 'typing' && 'text' in answer) {
-    const text = answer.text.trim();
-    return text.length > 0 && text.length <= s.play.answerMax ? { text } : null;
-  }
-  return null;
-}
-
+const answered = (s, answer) => ({ ...s, answers: [...s.answers, answer], screen: { at: 'replying' } });
 const stepIndex = (s) => (s.screen.at === 'step' || s.screen.at === 'typing' ? s.answers.length : s.answers.length - 1);
 const stepOf = (s) => s.steps[stepIndex(s)];
 const dialogue = (s) => ({ answers: s.answers, replies: s.replies, asks: s.steps.slice(0, s.answers.length).map((n) => n.ask), sigs: s.sigs });
@@ -237,11 +232,11 @@ const icon = (name) => el('span', { class: 'booth-icon', dataset: { icon: name }
 
 const labelled = (pair, lead = null, trail = null) => [lead && icon(lead), bi(pair, 'btn-label'), trail && icon(trail)];
 
-function frame(body, actions = [], { stack = false, startOver = null } = {}) {
+function frame(body, actions = [], { stack = false } = {}) {
   return el('div', { class: 'play-frame' },
     el('div', { class: 'play-body' }, ...body),
     actions.length ? el('div', { class: stack ? 'play-actions play-actions--stack' : 'play-actions' }, ...actions) : null,
-    el('div', { class: 'play-foot' }, el('div', { class: 'demo-label', dataset: { demoLabel: '' } }, bi(DEMO_LABEL)), startOver));
+    el('div', { class: 'play-foot' }, el('div', { class: 'demo-label', dataset: { demoLabel: '' } }, bi(DEMO_LABEL))));
 }
 
 function draw(root, at, node) {
@@ -263,17 +258,30 @@ function buttonsFor(act) {
 
 /** @param {PlayState} s @param {(ev: PlayEvent) => void} dispatch */
 function render(s, dispatch, { root, host, api, reset }) {
-  // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone.
-  host.querySelector('[data-leave-confirm]')?.remove();
-  const startOver = () => buttonsFor(() => confirmLeave(host, reset))(
-    labelled(COPY.startOver), 'secondary start-over', () => null, { 'data-action': 'start-over' });
-  draw(root, s.screen.at, VIEWS[s.screen.at](s, { button: buttonsFor(dispatch), startOver, host, api }));
+  const { at } = s.screen;
+  const view = VIEWS[at](s, { button: buttonsFor(dispatch), host, api });
+  if (START_OVER.has(at)) {
+    view.querySelector('.play-foot').append(buttonsFor(() => confirmLeave(host, reset))(
+      labelled(COPY.startOver), 'secondary start-over', () => null, { 'data-action': 'start-over' }));
+  } else {
+    // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone.
+    host.querySelector('[data-leave-confirm]')?.remove();
+  }
+  draw(root, at, view);
+}
+
+/** A choice updates the drawn step in place: a redraw would restart both ghost-tap guards and drop a quick second tap. */
+function showChoice(root, chosen) {
+  for (const o of root.querySelectorAll('[data-option]')) o.setAttribute('aria-pressed', String(o.dataset.option === chosen));
+  const send = root.querySelector('[data-action="send"]');
+  send.disabled = !chosen;
+  // Eased out of the disabled track, Send's white label would sit on the track for a moment.
+  for (const a of send.getAnimations()) a.finish();
 }
 
 /** "Leave this play?" over the whole screen. Leave is the shell's reset; Keep playing, or a tap on the scrim outside
- *  the card, closes it and hands the focus back, and the play under it never changed. */
+ *  the card, closes it and hands the focus to Start over. The play goes on under it: a reply can land meanwhile. */
 function confirmLeave(host, reset) {
-  const back = document.activeElement;
   const leave = el('button', { type: 'button', class: 'booth-btn secondary', dataset: { action: 'leave' } }, bi(COPY.leave, 'btn-label'));
   const keep = el('button', { type: 'button', class: 'booth-btn primary', dataset: { action: 'keep-playing' } }, bi(COPY.keepPlaying, 'btn-label'));
   const overlay = el('div', { class: 'leave-confirm', role: 'alertdialog', 'aria-modal': 'true', 'aria-label': `${COPY.leaveTitle.th} ${COPY.leaveTitle.en}`, dataset: { leaveConfirm: '' } },
@@ -281,7 +289,7 @@ function confirmLeave(host, reset) {
   overlay.addEventListener('click', (e) => {
     if (e.target !== overlay && !keep.contains(e.target)) return;
     overlay.remove();
-    back?.focus({ preventScroll: true });
+    host.querySelector('[data-action="start-over"]')?.focus({ preventScroll: true });
   });
   leave.addEventListener('click', reset, { once: true });
   host.append(overlay);
@@ -304,12 +312,11 @@ function offerCase(root, dealt) {
 }
 
 const VIEWS = {
-  vignette: (s, { button, startOver }) => frame(
+  vignette: (s, { button }) => frame(
     [caseCard(s.play, 'case-card--full')],
-    [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })],
-    { startOver: startOver() }),
+    [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })]),
 
-  step: (s, { button, startOver }) => {
+  step: (s, { button }) => {
     const step = stepOf(s);
     const { chosen } = s.screen;
     return frame([
@@ -321,18 +328,18 @@ const VIEWS = {
           { 'data-option': o.id, 'aria-pressed': String(o.id === chosen) }))),
         el('div', { class: 'action-row' },
           button(labelled(COPY.typeOwn, 'pencil'), 'secondary', () => ({ type: 'openTyping' }), { 'data-action': 'type-own' }),
-          button(labelled(COPY.send), 'primary', () => ({ type: 'answer', answer: { choice: chosen } }),
+          button(labelled(COPY.send), 'primary', () => ({ type: 'sendChoice' }),
             { 'data-action': 'send', ...(chosen ? {} : { disabled: '' }) }))),
-    ], [], { startOver: startOver() });
+    ]);
   },
 
-  typing: (s, { button, startOver }) => {
+  typing: (s, { button }) => {
     const step = stepOf(s);
     const box = el('textarea', {
       class: 'typing-box', maxlength: String(s.play.answerMax), rows: '3', enterkeyhint: 'enter', lang: 'th',
       'aria-label': `${COPY.typeOwn.th} ${COPY.typeOwn.en}`, autocomplete: 'off', spellcheck: 'false',
     });
-    const send = button(labelled(COPY.send), 'primary', () => ({ type: 'answer', answer: { text: box.value } }), { 'data-action': 'send', disabled: '' });
+    const send = button(labelled(COPY.send), 'primary', () => ({ type: 'sendText', text: box.value }), { 'data-action': 'send', disabled: '' });
     box.addEventListener('input', () => { send.disabled = box.value.trim() === ''; });
     queueMicrotask(() => box.focus({ preventScroll: true }));
     return frame([
@@ -344,21 +351,21 @@ const VIEWS = {
           button(labelled(COPY.backToChoices), 'secondary', () => ({ type: 'closeTyping' }), { 'data-action': 'back' }),
           send)),
       caseCard(s.play, 'case-card--behind'),
-    ], [], { startOver: startOver() });
+    ]);
   },
 
   replying: (s) => frame([exchange(s, aiBubble(withStillWorking(el('span', { class: 'ai-wait', role: 'status' }, bi(COPY.replying), dots()))))]),
 
-  reply: (s, { button, startOver }) => {
+  reply: (s, { button }) => {
     const text = s.replies[s.replies.length - 1];
     const said = text === '' ? bi(COPY.noReply, 'reply-note') : aiBubble(el('p', { class: 'ai-text', lang: 'th' }, ...plainText(text)));
     const [copy, action] = s.answers.length === STEPS ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
-      [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })],
-      { startOver: startOver() });
+      [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);
   },
 
-  scoring: () => frame([waitView(COPY.scoring)]),
+  // Drawn by 'slow', SCORING_SHOWN_MS after the score request: the still-working line keeps its time from the request.
+  scoring: () => frame([waitView(COPY.scoring, STILL_WORKING_MS - SCORING_SHOWN_MS)]),
 
   scored: (s, { host, api }) => {
     const { score } = s.screen;
@@ -427,12 +434,12 @@ function aiBubble(content) {
 
 const dots = () => el('span', { class: 'waiting-dots', 'aria-hidden': 'true' }, el('i'), el('i'), el('i'));
 
-function waitView(title) {
-  return withStillWorking(el('div', { class: 'wait', role: 'status' }, bi(title, 'wait-title'), dots()));
+function waitView(title, stillWorkingMs) {
+  return withStillWorking(el('div', { class: 'wait', role: 'status' }, bi(title, 'wait-title'), dots()), stillWorkingMs);
 }
 
-function withStillWorking(status) {
-  setTimeout(() => { if (status.isConnected) status.append(bi(COPY.stillWorking)); }, STILL_WORKING_MS);
+function withStillWorking(status, ms = STILL_WORKING_MS) {
+  setTimeout(() => { if (status.isConnected) status.append(bi(COPY.stillWorking)); }, ms);
   return status;
 }
 

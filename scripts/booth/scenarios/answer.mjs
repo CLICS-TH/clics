@@ -8,6 +8,9 @@ const pressed = (page) => page.$$eval('.options > [data-option]', (els) => els.m
 const hasBoth = (text, pair) => text.includes(pair.th) && text.includes(pair.en);
 const startOvers = (page) => page.locator('[data-action="start-over"]').count();
 const confirms = (page) => page.locator('[data-leave-confirm]').count();
+/** Every POST the kiosk made to the booth API, whatever the route. */
+const posts = (stub) => stub.calls.filter((c) => c.key.startsWith('POST ')).length;
+const centre = async (page, selector) => { const b = await page.locator(selector).boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 
 async function toStep(k) {
   await k.shell('start');
@@ -36,6 +39,23 @@ async function openConfirm(k) {
   await k.page.waitForTimeout(400);
 }
 
+/** Records in page time each tap on a [data-action] control (the latest per action) and each time the still-working
+ *  line comes up. */
+const timeWaits = (page, line) => page.evaluate((line) => {
+  const stage = document.querySelector('#booth [data-screen]');
+  const times = window.boothWaits = { taps: {}, lines: [] };
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest?.('[data-action]');
+    if (a) times.taps[a.dataset.action] = performance.now();
+  }, true);
+  let up = false;
+  new MutationObserver(() => {
+    const now = stage.textContent.includes(line);
+    if (now && !up) times.lines.push(performance.now());
+    up = now;
+  }).observe(stage, { childList: true, subtree: true });
+}, line);
+
 /** The status the play shows while it waits: its text and whether it carries the dots. */
 const waitStatus = (page) => page.evaluate(() => {
   const s = document.querySelector('#booth [data-screen] [role="status"]');
@@ -53,43 +73,81 @@ export default [
       const send = page.locator('[data-action="send"]');
       const boxes = () => page.$$eval('.step-sheet, .options > [data-option], [data-action="type-own"], [data-action="send"]',
         (els) => els.map((e) => { const r = e.getBoundingClientRect(); return [r.x, r.y, r.width, r.height].map(Math.round); }));
-      const sheetMotion = () => page.locator('.step-sheet').evaluate((e) => getComputedStyle(e).animationName);
+      const sheetMotion = () => page.locator('.step-sheet').evaluate((e) => ({
+        name: getComputedStyle(e).animationName, running: e.getAnimations().some((a) => a.playState === 'running') }));
       const before = await boxes();
       const rise = await sheetMotion();
+      const sent0 = posts(stub);
       h.check(h.same(await pressed(page), ['false', 'false', 'false']) && await send.isDisabled(), 'step: no option is chosen and Send waits for one');
 
       await k.tap(opt(1));
       await page.waitForSelector(`${opt(1)}[aria-pressed="true"]`, { timeout: 10_000 });
-      h.check(h.same(await pressed(page), ['true', 'false', 'false']) && !(await send.isDisabled()) && stub.of(REPLY_KEY).length === 0,
-        'tap A: A is highlighted, Send is enabled, and no reply request was made');
+      h.check(h.same(await pressed(page), ['true', 'false', 'false']) && !(await send.isDisabled()) && posts(stub) === sent0,
+        'tap A: A is highlighted, Send is enabled, and no POST was made');
       h.check(h.same(await boxes(), before), 'tap A: the highlight moves nothing on the step (sheet, options, Type my own and Send keep their boxes)');
       const settled = await sheetMotion();
-      h.check(rise === 'booth-rise' && settled === 'none', `the step sheet rises when the step is drawn and not again on a choice (${rise}, then ${settled})`);
+      h.check(rise.name === 'booth-rise' && !settled.running,
+        `the step sheet rises when the step is drawn and not again on a choice (${rise.name}, then ${settled.running ? 'rising again' : 'still'})`);
       await h.screenCheck(page, `step with A chosen, ${width}x${height}`);
 
-      await h.sleep(400);
       await k.tap(opt(1));
       await h.sleep(400);
-      h.check(h.same(await pressed(page), ['true', 'false', 'false']) && stub.of(REPLY_KEY).length === 0, 'tap A again: A stays chosen (a tap is not a toggle) and nothing is sent');
+      h.check(h.same(await pressed(page), ['true', 'false', 'false']) && posts(stub) === sent0, 'tap A again: A stays chosen (a tap is not a toggle) and no POST was made');
 
       await k.tap(opt(3));
       await page.waitForSelector(`${opt(3)}[aria-pressed="true"]`, { timeout: 10_000 });
       await h.sleep(1000);
-      h.check(h.same(await pressed(page), ['false', 'false', 'true']) && await k.screenNow() === 'step' && stub.of(REPLY_KEY).length === 0,
-        'tap C: the highlight moves from A to C, and a second later the step is still up with no reply request');
+      h.check(h.same(await pressed(page), ['false', 'false', 'true']) && await k.screenNow() === 'step' && posts(stub) === sent0,
+        'tap C: the highlight moves from A to C, and a second later the step is still up with no POST made');
       await h.screenCheck(page, `step with C chosen, ${width}x${height}`);
       if (width === 1080) await h.shot(page, 'step-chosen');
 
       await k.tap('[data-action="send"]');
       await k.screen('reply');
       const sent = stub.of(REPLY_KEY);
-      h.check(sent.length === 1 && h.same(sent[0].body.answers, [{ choice: ids[2] }]),
-        `Send: exactly one reply request, and it names C (${JSON.stringify(sent.map((c) => c.body.answers))})`);
+      h.check(sent.length === 1 && posts(stub) === sent0 + 1 && h.same(sent[0].body.answers, [{ choice: ids[2] }]),
+        `Send: exactly one POST, the reply request, and it names C (${JSON.stringify(sent.map((c) => c.body.answers))})`);
       await k.close();
     },
   })),
   {
-    name: 'Start over: on the vignette, step, typing and reply; Keep playing or the scrim leaves the play as it was; Leave reloads with no request',
+    name: 'a quick second tap: B tapped under 350 ms after A takes the highlight, and Send sends B',
+    async run(h) {
+      const k = await h.kiosk();
+      const { page, stub } = k;
+      await toStep(k);
+      const ids = await page.$$eval('.options > [data-option]', (els) => els.map((e) => e.dataset.option));
+      const [a, b] = [await centre(page, opt(1)), await centre(page, opt(2))];
+      await page.evaluate(() => {
+        window.boothTaps = [];
+        document.addEventListener('click', (e) => {
+          const o = e.target.closest?.('[data-option]');
+          if (o) window.boothTaps.push({ option: o.dataset.option, t: performance.now() });
+        }, true);
+      });
+      const sent0 = posts(stub);
+      await page.touchscreen.tap(...a);
+      await h.sleep(100);
+      await page.touchscreen.tap(...b);
+      await h.sleep(500);
+      const taps = await page.evaluate(() => window.boothTaps);
+      const gap = taps.length === 2 ? Math.round(taps[1].t - taps[0].t) : null;
+      h.check(taps.length === 2 && taps[0].option === ids[0] && taps[1].option === ids[1] && gap < 350,
+        `the taps land on A, then on B ${gap} ms later, inside the 350 ms ghost-tap window (${JSON.stringify(taps.map((t) => t.option))})`);
+      const shown = await pressed(page);
+      h.check(h.same(shown, ['false', 'true', 'false']) && posts(stub) === sent0,
+        `B carries the highlight, and no POST was made before Send (${JSON.stringify(shown)}, ${posts(stub) - sent0} POSTs)`);
+      await k.tap('[data-action="send"]');
+      await k.screen('reply');
+      const sent = stub.of(REPLY_KEY);
+      h.check(sent.length === 1 && posts(stub) === sent0 + 1 && h.same(sent[0].body.answers, [{ choice: ids[1] }]),
+        `Send: exactly one POST, the reply request, and it names B (${JSON.stringify(sent.map((c) => c.body.answers))}, ids ${JSON.stringify(ids)})`);
+      await k.close();
+    },
+  },
+  {
+    name: 'Start over: on the vignette, step, typing, replying and reply; Keep playing or the scrim leaves the play as it was; '
+      + 'a reply that lands keeps the confirm open; Leave reloads with no request',
     async run(h) {
       const k = await h.kiosk();
       const { page, stub } = k;
@@ -145,8 +203,23 @@ export default [
 
       await k.tap('[data-action="back"]');
       await k.screen('step');
+      const releaseReply = stub.hold(REPLY_KEY);
       await k.answer(2);
+      await k.screen('replying');
+      h.check(await startOvers(page) === 1, 'replying: Start over is there while the AI replies');
+      const asked = posts(stub);
+      await openConfirm(k);
+      releaseReply();
       await k.screen('reply');
+      h.check(await confirms(page) === 1 && await k.screenNow() === 'reply',
+        `the reply lands while the confirm is open: the confirm stays open, over the reply screen (${await confirms(page)} open, on '${await k.screenNow()}')`);
+      await k.tap('[data-action="keep-playing"]');
+      await h.sleep(300);
+      const focused = await page.evaluate(() => document.activeElement?.dataset.action);
+      h.check(await confirms(page) === 0 && await k.screenNow() === 'reply' && stub.of(REPLY_KEY).length === 1 && posts(stub) === asked,
+        `Keep playing: the confirm closes on the reply screen, and no POST was made after Start over (${posts(stub) - asked})`);
+      h.check(focused === 'start-over', `Keep playing hands the focus to the reply screen's Start over (${focused})`);
+
       h.check(await startOvers(page) === 1, 'reply: Start over is there');
       const sentBefore = stub.calls.length;
       await openConfirm(k);
@@ -170,14 +243,36 @@ export default [
       await big.close();
     },
   },
+  {
+    name: 'Start over on the replying wait: Leave reloads to a fresh start, with no POST after the tap',
+    async run(h) {
+      const k = await h.kiosk();
+      const { page, stub } = k;
+      await toStep(k);
+      const releaseReply = stub.hold(REPLY_KEY);
+      await k.answer(1);
+      await k.screen('replying');
+      h.check(await startOvers(page) === 1 && stub.of(REPLY_KEY).length === 1, 'replying: Start over is there, with the reply request in flight');
+      const inFlight = stub.calls.length;
+      await openConfirm(k);
+      await k.tap('[data-action="leave"]');
+      await k.shell('start');
+      releaseReply();
+      const after = stub.calls.slice(inFlight).map((c) => c.key);
+      h.check(stub.of(STATUS_KEY).length === 2 && after.every((key) => !key.startsWith('POST')),
+        `Leave on the replying wait: the page reloads to a fresh start screen, and no POST was made after Start over (${after.join(', ') || 'no calls'})`);
+      await k.close();
+    },
+  },
   ...SIZES.map(([width, height]) => ({
-    name: `waiting at ${width}x${height}: the dots, then past 8 s a still-working line, while the reply and the score are slow`,
+    name: `waiting at ${width}x${height}: the dots, then 8 s after the request a still-working line, while the reply and the score are slow`,
     async run(h) {
       const k = await h.kiosk({ width, height });
       const { page, stub } = k;
       await page.clock.install();
       await page.reload({ waitUntil: 'domcontentloaded' });
       await toStep(k);
+      await timeWaits(page, h.COPY.stillWorking.en);
 
       const releaseReply = stub.hold(REPLY_KEY);
       await k.answer(1);
@@ -185,13 +280,12 @@ export default [
       let wait = await waitStatus(page);
       h.check(wait.dots && hasBoth(wait.text, h.COPY.replying) && !wait.text.includes(h.COPY.stillWorking.en),
         `replying at about 1 s: "The AI is replying" and the dots, no still-working line yet (${JSON.stringify(wait.text)})`);
-      h.check(await startOvers(page) === 0, 'replying: no Start over');
-      await page.clock.fastForward(6_000);
-      await h.sleep(100);
-      wait = await waitStatus(page);
-      h.check(!wait.text.includes(h.COPY.stillWorking.en), 'replying at about 7 s: still no still-working line');
-      await page.clock.fastForward(2_000);
-      await h.sleep(100);
+      h.check(await startOvers(page) === 1, 'replying: Start over is there');
+      await page.clock.runFor(8_000);
+      let times = await page.evaluate(() => window.boothWaits);
+      const replyLine = Math.round(times.lines[0] - times.taps.send);
+      h.check(times.lines.length === 1 && Math.abs(replyLine - 8_000) <= 300,
+        `replying: the still-working line comes up ${replyLine} ms after Send (8000 +/- 300)`);
       wait = await waitStatus(page);
       h.check(wait.dots && hasBoth(wait.text, h.COPY.stillWorking),
         `replying past 8 s: the still-working line joins the dots in the status, TH and EN (${JSON.stringify(wait.text)})`);
@@ -214,11 +308,11 @@ export default [
         `scoring when it shows: the rubric line and the dots, no still-working line yet (${JSON.stringify(wait.text)})`);
       h.check(!wait.text.includes('30'), 'scoring: no promise of how long it takes');
       h.check(await startOvers(page) === 0, 'scoring: no Start over');
-      await page.clock.fastForward(6_000);
-      await h.sleep(100);
-      h.check(!(await waitStatus(page)).text.includes(h.COPY.stillWorking.en), 'scoring about 7 s after it shows: still no still-working line');
-      await page.clock.fastForward(2_000);
-      await h.sleep(100);
+      await page.clock.runFor(8_000);
+      times = await page.evaluate(() => window.boothWaits);
+      const scoreLine = Math.round(times.lines[times.lines.length - 1] - times.taps['see-score']);
+      h.check(times.lines.length === 2 && Math.abs(scoreLine - 8_000) <= 300,
+        `scoring: the still-working line comes up ${scoreLine} ms after See my score (8000 +/- 300)`);
       wait = await waitStatus(page);
       h.check(wait.dots && hasBoth(wait.text, h.COPY.stillWorking), `scoring past 8 s: the still-working line joins the dots, TH and EN (${JSON.stringify(wait.text)})`);
       await h.screenCheck(page, `scoring with the still-working line, ${width}x${height}`, { demo: true });
