@@ -8,6 +8,7 @@ jest.mock('../src/lib/audit', () => ({ logEvent: jest.fn(async () => {}), logEve
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { stamped } = require('./helpers/booth-tree');
 const request = require('supertest');
 const { __mock: m } = require('../src/lib/supabase');
 const { logEvent } = require('../src/lib/audit');
@@ -19,13 +20,13 @@ const CASES_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
 const kase = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), event_code: 'NFCME-2026',
   path_score_table: JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table.json'), 'utf8')) };
 fs.mkdirSync(path.join(CASES_DIR, 'NFCME-2026'));
-fs.writeFileSync(path.join(CASES_DIR, 'NFCME-2026', `${kase.case_id}.json`), JSON.stringify(kase));
+fs.writeFileSync(path.join(CASES_DIR, 'NFCME-2026', `${kase.case_id}.json`), JSON.stringify(stamped(kase)));
 // A case the owner waived from the sandbox (ADR 0005), filed under its own event.
 const { sandbox: _sandbox, ...noSandbox } = kase.admission;
 const waived = { ...kase, event_code: 'WAIVE-2026', admission: { ...noSandbox,
   owner_waiver: { date: '2026-11-03', adr: '0005', reason: 'Owner waiver', sandbox_run_id: 'sbx-fixture' } } };
 fs.mkdirSync(path.join(CASES_DIR, 'WAIVE-2026'));
-fs.writeFileSync(path.join(CASES_DIR, 'WAIVE-2026', `${kase.case_id}.json`), JSON.stringify(waived));
+fs.writeFileSync(path.join(CASES_DIR, 'WAIVE-2026', `${kase.case_id}.json`), JSON.stringify(stamped(waived)));
 process.env.BOOTH_CASES_DIR = CASES_DIR;
 afterAll(() => { delete process.env.BOOTH_CASES_DIR; });
 

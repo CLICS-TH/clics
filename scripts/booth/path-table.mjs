@@ -1,19 +1,11 @@
 // The path score table build's pure half (#373, ADR 0009): the reviewed-tree check, the median per domain, the
 // difficulty re-check and the committed summary. Package-free, like the other booth scripts, so CI tests it with no
 // install.
-import { createHash } from 'node:crypto';
+import treeHash from '../../backend/src/booth-cases/tree-sha.js';
 import { PATH_GROUPS, verdicts } from './sandbox-verdict.mjs';
 
-// What a case file holds besides its tree: none of these is text a visitor reads, so none needs a safety review.
-const NOT_TREE = new Set(['version', 'admission', 'path_score_table']);
-
-const canonical = (x) => (Array.isArray(x) ? `[${x.map(canonical).join(',')}]`
-  : x && typeof x === 'object' ? `{${Object.keys(x).sort().map((k) => `${JSON.stringify(k)}:${canonical(x[k])}`).join(',')}}`
-    : JSON.stringify(x));
-
-/** sha256 of a raw case file's tree: every field but version, admission and the table, keys sorted. */
-export const treeSha = (raw) => createHash('sha256')
-  .update(canonical(Object.fromEntries(Object.entries(raw).filter(([k]) => !NOT_TREE.has(k))))).digest('hex');
+const { canonical, treeSha } = treeHash;
+export { treeSha };
 
 /**
  * Whether a case's tree is the one its safety review read. The review read the tree of the first commit that holds

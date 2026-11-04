@@ -3,6 +3,7 @@ jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSu
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { stamped } = require('./helpers/booth-tree');
 const { __mock: m } = require('../src/lib/supabase');
 const { readEventCases, boothStatus } = require('../src/services/booth');
 
@@ -16,7 +17,7 @@ function casesDir(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
   for (const [rel, content] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
-    fs.writeFileSync(path.join(dir, rel), typeof content === 'string' ? content : JSON.stringify(content));
+    fs.writeFileSync(path.join(dir, rel), typeof content === 'string' ? content : JSON.stringify(stamped(content)));
   }
   return dir;
 }

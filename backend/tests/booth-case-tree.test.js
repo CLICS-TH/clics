@@ -118,6 +118,15 @@ describe('the path score table (ADR 0009)', () => {
   ])('%s fails and names its field', (_name, fn, parts) => {
     expect(edited(fn)).toEqual(naming(...parts));
   });
+
+  test('a tree edited after its table was built fails on the table\'s tree hash; a new version or admission does not', () => {
+    const k = structuredClone(tabled);
+    k.version = '9';
+    k.admission.owner_waiver = { date: '2026-11-04', adr: '0005', reason: 'r', sandbox_run_id: 's' };
+    expect(caseTreeProblems(k)).toEqual([]);
+    k.banks.step1.options[0].line.th += ' ค่ะ';
+    expect(caseTreeProblems(k)).toEqual([expect.stringMatching(/^path_score_table\.provenance\.tree_sha256: is not this tree's hash/)]);
+  });
 });
 
 test('a Thai line may say since or each without reading as but', () => {

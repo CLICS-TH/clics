@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const { WEIGHTS } = require('../services/ple-gate');
+const { treeSha } = require('./tree-sha');
 
 const TIERS = Object.freeze([
   Object.freeze({ name: 'best', letter: 'B' }),
@@ -158,6 +159,10 @@ function caseTreeProblems(raw) {
   const parsed = CaseTreeSchema.safeParse(raw);
   if (!parsed.success) return parsed.error.issues.map((i) => `${issuePath(i.path)}: ${i.message}`);
   const kase = parsed.data;
+  // A table vouches only for the tree it was built from, which is the tree its safety review read (ADR 0009).
+  if (kase.path_score_table && kase.path_score_table.provenance.tree_sha256 !== treeSha(raw)) {
+    return ['path_score_table.provenance.tree_sha256: is not this tree\'s hash: the tree changed after its table was built, so it needs a new safety review and table'];
+  }
   const bestLabels = kase.banks.step1.options.filter((o) => o.tier === 'best').map((o) => o.label);
   const ctx = { best: Object.fromEntries(LANGS.map((lang) => [lang, new Set(bestLabels.flatMap((l) => words[lang](l[lang])))])) };
   return fields(kase).flatMap((t) => RULES.filter((r) => r.applies.has(t.kind))

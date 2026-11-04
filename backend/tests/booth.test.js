@@ -19,6 +19,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const { stamped } = require('./helpers/booth-tree');
 const request = require('supertest');
 const { supabase, __mock: m } = require('../src/lib/supabase');
 const { rimplChat, rimplEvaluate } = require('../src/services/rimpl-client');
@@ -48,7 +49,7 @@ function casesDir(...cases) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
   for (const k of cases) {
     fs.mkdirSync(path.join(dir, k.event_code), { recursive: true });
-    fs.writeFileSync(path.join(dir, k.event_code, `${k.case_id}.json`), JSON.stringify(k));
+    fs.writeFileSync(path.join(dir, k.event_code, `${k.case_id}.json`), JSON.stringify(stamped(k)));
   }
   return dir;
 }
