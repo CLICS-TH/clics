@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { WEIGHTS } = require('../services/ple-gate');
 
 const TIERS = Object.freeze([
   Object.freeze({ name: 'best', letter: 'B' }),
@@ -8,6 +9,7 @@ const TIERS = Object.freeze([
 const LETTERS = TIERS.map((t) => t.letter);
 const STEP2_KEYS = LETTERS;
 const STEP3_KEYS = LETTERS.flatMap((a) => LETTERS.map((b) => a + b));
+const TIER_PATHS = LETTERS.flatMap((a) => STEP3_KEYS.map((bc) => a + bc));
 const LANGS = ['th', 'en'];
 
 const Id = z.string().regex(/^[a-z][a-z0-9_]{0,15}$/, 'must match /^[a-z][a-z0-9_]{0,15}$/');
@@ -45,6 +47,24 @@ const Bank = z.object({
 });
 const keyedBanks = (keys) => z.object(Object.fromEntries(keys.map((k) => [k, Bank]))).strict();
 
+const Sha256 = z.string().regex(/^[0-9a-f]{64}$/, 'must be 64 lowercase hex characters');
+// A wave-1 domain is the median of three whole evaluator samples, and booth_plays.d1..d7 are smallint.
+const PathDomains = z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, z.number().int().min(1).max(5)]))).strict();
+// Field names follow rimpl's model manifest.
+const PathScoreTable = z.object({
+  provenance: z.object({
+    evaluator_model: Text,
+    prompt_sha256: Sha256,
+    decoding: z.object({ temperature: z.number().min(0), max_tokens: z.number().int().positive() }).strict(),
+    samples_per_path: z.number().int().min(1),
+    method: z.literal('median'),
+    run_id: Text,
+    date: CalendarDate,
+    tree_sha256: Sha256,
+  }).strict(),
+  paths: z.object(Object.fromEntries(TIER_PATHS.map((p) => [p, PathDomains]))).strict(),
+}).strict();
+
 const CaseTreeSchema = z.object({
   case_id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,31}$/, 'must match /^[a-z0-9][a-z0-9-]{0,31}$/'),
   version: Text,
@@ -58,6 +78,8 @@ const CaseTreeSchema = z.object({
     // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
     owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
   }).strict().optional(),
+  // The demo score of each tier path (ADR 0009), built by the table build script, never by hand.
+  path_score_table: PathScoreTable.optional(),
 }).strict();
 
 const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && (kase.admission.sandbox || kase.admission.owner_waiver));

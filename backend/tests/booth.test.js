@@ -50,6 +50,7 @@ function casesDir(...cases) {
 }
 const edited = (fn) => { const k = structuredClone(KASE); fn(k); return k; };
 const FIXTURE_DIR = casesDir(KASE);
+const TABLE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table.json'), 'utf8'));
 
 const bankFor = (kase, tierPath) => [kase.banks.step1, kase.banks.step2[tierPath], kase.banks.step3[tierPath]][tierPath.length];
 const bank = (tierPath) => bankFor(KASE, tierPath);
@@ -205,7 +206,7 @@ afterEach(() => { console.warn.mockRestore(); console.info.mockRestore(); delete
 async function begin(kase = KASE) {
   const res = await post('/booth/plays', { case_id: kase.case_id });
   expect(res.status).toBe(201);
-  return { id: res.body.play_id, next: res.body.next, path: '',
+  return { id: res.body.play_id, next: res.body.next, path: '', started: res.body,
     d: { answers: [], replies: [], asks: [res.body.next.ask], sigs: [res.body.sig] } };
 }
 
@@ -238,8 +239,8 @@ async function walked(given = ['best', 'best', 'best']) {
 }
 
 /** A whole walked play, then the row and the call log as the test needs them. */
-async function ready(over = {}) {
-  const p = await walked();
+async function ready(over = {}, given = undefined) {
+  const p = await walked(given);
   Object.assign(plays.get(p.id), over);
   rpcCalls = [];
   jest.clearAllMocks();
@@ -265,6 +266,12 @@ const shown = (b, ask) => ({
 });
 const tiersOf = (b, ids) => ids.map((id) => b.options.find((o) => o.id === id).tier).sort();
 const ONE_PER_TIER = ['best', 'reasonable', 'weaker'];
+const TIER_NAME = Object.fromEntries(Object.entries(LETTER).map(([name, letter]) => [letter, name]));
+/** What the score must show per step, read from the case file: the answer's tier, and each offered option's in order. */
+const stepsOf = (p) => p.d.asks.map((ask, i) => ({
+  tier: TIER_NAME[p.path[i]],
+  options: ask.options.map((id) => ({ id, tier: bank(p.path.slice(0, i)).options.find((o) => o.id === id).tier })),
+}));
 const expectFallback = (b, next) => {
   expect(next.ask.variant).toBe(b.variants[0].id);
   expect(next.ask.bridge).toBe('');
@@ -288,6 +295,12 @@ const sorting = (tier, over) => rimplChat.mockImplementation(async ({ booth_type
 
 const writes = () => m.state.queries.filter((q) => q.op !== 'select');
 const rpcNamed = (name) => rpcCalls.filter(([n]) => n === name).map(([, a]) => a);
+/** The score-latency lines a console spy saw (#217). */
+const lines = (spy) => spy.mock.calls.map(([line]) => line).filter((l) => String(l).startsWith('[booth] score '));
+const unavailableLine = (id, reason) =>
+  expect.stringMatching(new RegExp(`^\\[booth\\] score unavailable play=${id} ms=\\d+ reason=${reason}$`));
+const scoredLine = (id, provider) =>
+  expect.stringMatching(new RegExp(`^\\[booth\\] score scored play=${id} ms=\\d+ provider=${provider}$`));
 
 describe('GET /booth/status', () => {
   test('an open event answers 200 open with its code, and is never cached', async () => {
@@ -774,12 +787,20 @@ describe('POST /booth/plays/:id/reply', () => {
     expectFallback(bank('W'), p.next);
   });
 
-  test('no tier reaches the kiosk: not in a reply to a typed or a tapped answer, nor in the score', async () => {
+  test('no tier reaches the kiosk before the score: not the draw, the start, nor a reply to a typed or a tapped answer', async () => {
     sorting('reasonable');
+    const drawn = (await post('/booth/draw', { seen: [] })).body;
+    expect(drawn.case_id).toBe(KASE.case_id);
     const p = await begin();
-    const bodies = [(await answer(p, { text: 'my own words' })).body, (await answer(p, 'best')).body,
-      (await answer(p, { text: 'second typed' })).body, (await score(p)).body];
-    for (const body of bodies) expect(JSON.stringify(body)).not.toMatch(/tier/i);
+    const before = [drawn, p.started, (await answer(p, { text: 'my own words' })).body, (await answer(p, 'best')).body,
+      (await answer(p, { text: 'second typed' })).body];
+    for (const body of before) {
+      expect(JSON.stringify(body)).not.toMatch(/tier/i);
+      expect(body).not.toHaveProperty('steps');
+    }
+    const scored = (await score(p)).body;
+    expect(scored.steps).toEqual(stepsOf(p));
+    expect(scored.steps.map((s) => s.tier)).toEqual(['reasonable', 'best', 'reasonable']);
     expect(p.d.answers).toEqual([{ text: 'my own words' }, { choice: expect.any(String) }, { text: 'second typed' }]);
     expect(p.path).toBe('RBR');
   });
@@ -1176,7 +1197,7 @@ describe('POST /booth/plays/:id/score', () => {
     const res = await score(p);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'scored', composite: 59, domains: { d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3 },
-      rank_today: 1, rank_event: 1, board: { today: [expect.objectContaining({ tag: plays.get(p.id).tag, score: 59 })], event: [expect.objectContaining({ tag: plays.get(p.id).tag, score: 59 })] } });
+      steps: stepsOf(p), rank_today: 1, rank_event: 1, board: { today: [expect.objectContaining({ tag: plays.get(p.id).tag, score: 59 })], event: [expect.objectContaining({ tag: plays.get(p.id).tag, score: 59 })] } });
   });
 
   test('success claims the play, then stores only the score columns and the tier path', async () => {
@@ -1292,14 +1313,10 @@ describe('POST /booth/plays/:id/score', () => {
   });
 
   describe('the score-latency log (#217: the rehearsal reads p95 and the provider from it)', () => {
-    const lines = (spy) => spy.mock.calls.map(([line]) => line).filter((l) => String(l).startsWith('[booth] score '));
-    const unavailableLine = (id, reason) =>
-      expect.stringMatching(new RegExp(`^\\[booth\\] score unavailable play=${id} ms=\\d+ reason=${reason}$`));
-
     test('a scored play logs one info line with its id, a whole-number ms and the provider', async () => {
       const p = await ready();
       await score(p);
-      expect(lines(console.info)).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] score scored play=${p.id} ms=\\d+ provider=anthropic$`))]);
+      expect(lines(console.info)).toEqual([scoredLine(p.id, 'anthropic')]);
       expect(lines(console.warn)).toEqual([]);
     });
 
@@ -1357,7 +1374,7 @@ describe('POST /booth/plays/:id/score', () => {
     test('a replayed score logs a scored line with provider=replay', async () => {
       const p = await ready({ ...SCORED });
       await score(p);
-      expect(lines(console.info)).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] score scored play=${p.id} ms=\\d+ provider=replay$`))]);
+      expect(lines(console.info)).toEqual([scoredLine(p.id, 'replay')]);
       expect(lines(console.warn)).toEqual([]);
     });
 
@@ -1369,6 +1386,133 @@ describe('POST /booth/plays/:id/score', () => {
       await score(p);
       expect([...lines(console.warn), ...lines(console.info)]).toEqual([]);
     });
+  });
+});
+
+describe('the table score (#372, ADR 0009: a case\'s path score table, never a live evaluator call)', () => {
+  const { compositeScore } = require('../src/services/ple-gate');
+  const TABLED = edited((k) => { k.path_score_table = TABLE; });
+  const scoreUpdates = () => m.all('booth_plays', 'update').filter((u) => !('replied_step' in u.payload));
+
+  beforeEach(() => { process.env.BOOTH_CASES_DIR = casesDir(TABLED); });
+
+  /** Five plays along R, B, W choosing the same options, against an AI whose every reply and every score differ. */
+  async function fivePlays() {
+    let replied = 0;
+    let evaluated = 0;
+    rimplChat.mockImplementation(async ({ booth_bank }) => (
+      { ...CHAT_OK, content: `AI reply ${replied += 1}`, pick: booth_bank ? pickFor(booth_bank) : null }));
+    rimplEvaluate.mockImplementation(async () => ({ ...EVAL_OK, d2: 1 + ((evaluated += 1) % 5) }));
+    const runs = [];
+    for (let i = 0; i < 5; i += 1) {
+      newIp();
+      const p = await walked(['reasonable', 'best', 'weaker']);
+      runs.push({ p, body: (await score(p)).body });
+    }
+    expect(runs.map(({ p }) => p.d.answers)).toEqual(Array(5).fill(runs[0].p.d.answers));
+    expect(new Set(runs.map(({ p }) => p.d.replies.join('|'))).size).toBe(5);
+    return runs;
+  }
+
+  test('one case played five times with the same answers scores the same every time, from the table (#360)', async () => {
+    const runs = await fivePlays();
+    for (const { p, body } of runs) {
+      expect(p.path).toBe('RBW');
+      expect(body).toMatchObject({ status: 'scored', composite: compositeScore(TABLE.paths.RBW), domains: TABLE.paths.RBW });
+    }
+    expect(rimplEvaluate).not.toHaveBeenCalled();
+  });
+
+  test('the control: the same five plays on the case without a table score live, and the score moves', async () => {
+    process.env.BOOTH_CASES_DIR = FIXTURE_DIR;
+    const runs = await fivePlays();
+    expect(runs.every(({ body }) => body.status === 'scored')).toBe(true);
+    expect(new Set(runs.map(({ body }) => body.composite)).size).toBeGreaterThan(1);
+    expect(rimplEvaluate).toHaveBeenCalledTimes(5);
+  });
+
+  test('the composite is the table\'s domains through the PIS-7 weights: RBW is 66 by hand', async () => {
+    const p = await walked(['reasonable', 'best', 'weaker']);
+    const { body } = await score(p);
+    expect(TABLE.paths.RBW).toEqual({ d1: 3, d2: 3, d3: 5, d4: 5, d5: 1, d6: 1, d7: 5 });
+    expect(body.composite).toBe(compositeScore(TABLE.paths.RBW));
+    // 20 x (3(.15) + 3(.20) + 5(.15) + 5(.15) + 1(.15) + 1(.10) + 5(.10)) = 20 x 3.3
+    expect(body.composite).toBe(66);
+  });
+
+  test.each([['best', 'BBW'], ['reasonable', 'BRW'], ['weaker', 'BWW']])('a typed answer sorted %s scores as path %s', async (tier, tierPath) => {
+    sorting(tier);
+    const p = await walked(['best', { text: 'my own words' }, 'weaker']);
+    const { body } = await score(p);
+    expect(p.path).toBe(tierPath);
+    expect(body).toMatchObject({ composite: compositeScore(TABLE.paths[tierPath]), domains: TABLE.paths[tierPath] });
+    expect(body.steps[1].tier).toBe(tier);
+    expect(plays.get(p.id).tier_path).toBe(tierPath);
+  });
+
+  test('the score carries per step the tier of the answer and of each option offered, in the order offered, as the case file has them', async () => {
+    picking();
+    const p = await walked(['weaker', 'reasonable', 'best']);
+    const { steps } = (await score(p)).body;
+    expect(steps).toEqual(stepsOf(p));
+    expect(steps.map((s) => s.tier)).toEqual(['weaker', 'reasonable', 'best']);
+    steps.forEach((s, i) => {
+      expect(s.options.map((o) => o.id)).toEqual(p.d.asks[i].options);
+      expect(s.options.find((o) => o.id === p.d.answers[i].choice).tier).toBe(s.tier);
+    });
+  });
+
+  test('the latency line reads provider=table', async () => {
+    const p = await ready();
+    await score(p);
+    expect(lines(console.info)).toEqual([scoredLine(p.id, 'table')]);
+    expect(lines(console.warn)).toEqual([]);
+  });
+
+  test('a table score spends nothing and writes once, straight from started, with the table\'s domains and the tier path', async () => {
+    const p = await ready({ spend_usd: 0 }, ['weaker', 'best', 'reasonable']);
+    expect((await score(p)).body.status).toBe('scored');
+    expect(rpcCalls).toEqual([]);
+    expect(rimplEvaluate).not.toHaveBeenCalled();
+    const updates = scoreUpdates();
+    expect(updates).toHaveLength(1);
+    expect(updates[0].eqs).toContainEqual(['status', 'started']);
+    expect(Object.keys(updates[0].payload).sort()).toEqual([...SCORE_WRITE_COLUMNS].sort());
+    expect(plays.get(p.id)).toMatchObject({ status: 'scored', ...TABLE.paths.WBR, composite: compositeScore(TABLE.paths.WBR),
+      tier_path: 'WBR', ranked: true, spend_usd: 0 });
+  });
+
+  test('a repeated table score answers the stored score, logged as a replay, with no second write', async () => {
+    const p = await ready();
+    const first = await score(p);
+    const again = await score(p);
+    expect(again.body).toEqual(first.body);
+    expect(lines(console.info)).toEqual([scoredLine(p.id, 'table'), scoredLine(p.id, 'replay')]);
+    expect(scoreUpdates()).toHaveLength(1);
+    expect(rimplEvaluate).not.toHaveBeenCalled();
+  });
+
+  test.each(['unavailable', 'abandoned'])('a %s table play answers 200 unavailable and is left as it was', async (status) => {
+    const p = await ready({ status });
+    const res = await score(p);
+    expect([res.status, res.body]).toEqual([200, { status: 'unavailable' }]);
+    expect(plays.get(p.id)).toMatchObject({ status, composite: null, tier_path: null });
+    expect(scoreUpdates()).toEqual([]);
+    expect(rpcCalls).toEqual([]);
+    expect(rimplEvaluate).not.toHaveBeenCalled();
+  });
+
+  test('a table score whose write matches no row answers unavailable with reason finish, never a score that is not stored', async () => {
+    const p = await ready();
+    const real = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      if (kind === 'update' && ctx.payload.status === 'scored') plays.delete(p.id);
+      return real(table, kind, ctx);
+    };
+    const res = await score(p);
+    expect([res.status, res.body]).toEqual([200, { status: 'unavailable' }]);
+    expect(lines(console.warn)).toEqual([unavailableLine(p.id, 'finish')]);
+    expect(rimplEvaluate).not.toHaveBeenCalled();
   });
 });
 

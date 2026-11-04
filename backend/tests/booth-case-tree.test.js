@@ -4,7 +4,10 @@ const { TIERS, caseTreeProblems, isAdmitted } = require('../src/booth-cases/tree
 
 const DIR = path.join(__dirname, '../src/booth-cases');
 const FIXTURE = path.join(__dirname, 'fixtures/booth-case-tree.json');
+const TABLE = path.join(__dirname, 'fixtures/booth-path-score-table.json');
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+const naming = (...parts) => expect.arrayContaining([expect.stringMatching(
+  new RegExp(parts.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')))]);
 
 const CASE_FILES = fs.readdirSync(DIR, { withFileTypes: true }).filter((d) => d.isDirectory())
   .flatMap((d) => fs.readdirSync(path.join(DIR, d.name)).filter((f) => f.endsWith('.json'))
@@ -24,8 +27,6 @@ test('the tiers are best, reasonable and weaker, lettered B, R and W', () => {
 describe('a single edit to the fixture fails and names the field', () => {
   const good = read(FIXTURE);
   const edited = (fn) => { const k = structuredClone(good); fn(k); return caseTreeProblems(k); };
-  const naming = (...parts) => expect.arrayContaining([expect.stringMatching(
-    new RegExp(parts.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')))]);
 
   test('the unedited fixture has no problems, so each edit below fails on its edit alone', () => {
     expect(edited(() => {})).toEqual([]);
@@ -85,6 +86,36 @@ describe('a single edit to the fixture fails and names the field', () => {
     }, ['admission.safety_review.date: ', 'calendar date']],
     ['an unknown key on an option', (k) => { k.banks.step1.options[0].hint = 'x'; }, ['banks.step1.options[0]: ', "'hint'"]],
   ])('%s', (_name, fn, parts) => {
+    expect(edited(fn)).toEqual(naming(...parts));
+  });
+});
+
+describe('the path score table (ADR 0009)', () => {
+  const tabled = { ...read(FIXTURE), path_score_table: read(TABLE) };
+  const edited = (fn) => { const k = structuredClone(tabled); fn(k.path_score_table); return caseTreeProblems(k); };
+  const PROVENANCE = ['evaluator_model', 'prompt_sha256', 'decoding', 'samples_per_path', 'method', 'run_id', 'date', 'tree_sha256'];
+
+  test('the fixture with the table attached passes every shape and safety rule', () => {
+    expect(edited(() => {})).toEqual([]);
+  });
+
+  test.each([
+    ['a missing path', (t) => { delete t.paths.WRB; }, ['path_score_table.paths.WRB: ', 'Required']],
+    ['an extra path', (t) => { t.paths.BBBB = t.paths.BBB; }, ['path_score_table.paths: ', "'BBBB'"]],
+    ['a domain of 0', (t) => { t.paths.RBW.d3 = 0; }, ['path_score_table.paths.RBW.d3: ', '1']],
+    ['a domain of 6', (t) => { t.paths.RBW.d3 = 6; }, ['path_score_table.paths.RBW.d3: ', '5']],
+    ['a fractional domain', (t) => { t.paths.BRW.d4 = 2.5; }, ['path_score_table.paths.BRW.d4: ', 'integer']],
+    ['a missing domain', (t) => { delete t.paths.WWB.d7; }, ['path_score_table.paths.WWB.d7: ', 'Required']],
+    ['a domain sent as text', (t) => { t.paths.BBB.d1 = '5'; }, ['path_score_table.paths.BBB.d1: ', 'number']],
+    ...PROVENANCE.map((key) => [`no provenance ${key}`, (t) => { delete t.provenance[key]; }, [`path_score_table.provenance.${key}: `]]),
+    ['a method other than median', (t) => { t.provenance.method = 'mean'; }, ['path_score_table.provenance.method: ', 'median']],
+    ['a prompt_sha256 that is not 64 hex', (t) => { t.provenance.prompt_sha256 = t.provenance.prompt_sha256.slice(1); },
+      ['path_score_table.provenance.prompt_sha256: ', '64']],
+    ['a negative temperature', (t) => { t.provenance.decoding.temperature = -0.1; }, ['path_score_table.provenance.decoding.temperature: ']],
+    ['a fractional max_tokens', (t) => { t.provenance.decoding.max_tokens = 40.5; }, ['path_score_table.provenance.decoding.max_tokens: ']],
+    ['no samples per path', (t) => { t.provenance.samples_per_path = 0; }, ['path_score_table.provenance.samples_per_path: ']],
+    ['an unknown key in provenance', (t) => { t.provenance.by = 'owner'; }, ['path_score_table.provenance: ', "'by'"]],
+  ])('%s fails and names its field', (_name, fn, parts) => {
     expect(edited(fn)).toEqual(naming(...parts));
   });
 });
