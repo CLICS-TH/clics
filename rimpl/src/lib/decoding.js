@@ -45,6 +45,10 @@ const shadowMaxTokens = (env = process.env) =>
 // (both providers send `temperature` only when it is non-null), so the request is what it always was.
 const CHAT_DECODING = Object.freeze({ temperature: null });
 
+// THE BOOTH TYPED SORT (services/booth.js): the kiosk call that sorts a typed answer into a tier. temperature 0,
+// so the same words sort alike from one play to the next. Not env-tunable: fairness must not depend on a deploy's env.
+const BOOTH_TYPED_DECODING = Object.freeze({ temperature: 0 });
+
 // THE QUALIFYING CLASSIFIER (routes/evaluate-criteria.js on /end, services/rescue.js per chat turn):
 // one small JSON object. No temperature is sent (the provider default). Not env-tunable.
 const CRITERIA_DECODING = Object.freeze({ temperature: null, maxTokens: 200 });
@@ -65,6 +69,6 @@ function discussMaxTokens(env = process.env) {
 }
 
 module.exports = {
-  EVAL_DECODING, SHADOW_DECODING, CHAT_DECODING, CRITERIA_DECODING, DISCUSS_DECODING,
+  EVAL_DECODING, SHADOW_DECODING, CHAT_DECODING, BOOTH_TYPED_DECODING, CRITERIA_DECODING, DISCUSS_DECODING,
   shadowMaxTokens, discussMaxTokens, intFrom,
 };

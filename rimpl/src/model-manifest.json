@@ -51,6 +51,9 @@
           "booth_grill": {
             "max_tokens": 600
           },
+          "booth_typed": {
+            "temperature": 0
+          },
           "deep": {
             "max_tokens": {
               "default": 8000,
@@ -337,5 +340,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "f3345ead3df555878e477216014b615598ee9dee6521930db1d165cd91efa96d"
+  "sha256": "cc4944fea6199aa9cf02515c173a3494624980932f663a77cc44b488c27e3ff0"
 }
