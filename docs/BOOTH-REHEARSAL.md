@@ -23,8 +23,8 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
 - [ ] **Check, read-only,** in the Supabase SQL editor:
       `select position('booth_enabled' in prosrc) > 0 from pg_proc where proname = 'booth_start_play';` returns
       `true`. `false` means `migration-booth-plays.sql` was not re-applied.
-- [ ] **The backend deploy has #217** and is live before the freeze. Its score log lines are what section 3
-      reads: with an older backend, `score-latency.mjs` finds 0 lines and fails.
+- [ ] **The backend deploy has #217 and #378** and is live before the freeze. Its score and reply log lines are
+      what section 3 reads: with an older backend, `score-latency.mjs` finds 0 lines and fails.
 
 ## 0. Before you start
 
@@ -62,15 +62,21 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
       one tap each. The on-screen keyboard leaves the typing box visible.
 - [ ] Alt+F4 exits kiosk mode.
 
-## 3. Prod scores on Claude, p95 under 60 s over 5 real plays
+## 3. Prod scores on Claude under 60 s, and replies come under 15 s
 
-- [ ] Play 5 times on the kiosk. Mix tapped choices with at least one "type my own". Every play ends on a result
-      card, none on the score-unavailable card.
-- [ ] Save the backend's score lines to a file: Railway dashboard, backend, Logs, filter `[booth] score`, or
-      `railway logs --service backend --since 2h --filter '"[booth] score"' > booth.log` (`--since` stops it
-      streaming). Then
-      `node scripts/booth/score-latency.mjs booth.log` prints `PASS`. It fails on fewer than 5 scored plays, any
-      unavailable play, p95 at or over 60 s, or any provider other than `anthropic`.
+- [ ] Play 10 times on the kiosk, all three steps each. Mix tapped choices with at least one "type my own". Every
+      play ends on a result card, none on the score-unavailable card.
+- [ ] Save the backend's booth lines to a file: Railway dashboard, backend, Logs, filter `[booth]`, or
+      `railway logs --service backend --since 2h --filter '"[booth]"' > booth.log` (`--since` stops it
+      streaming). Then run `node scripts/booth/score-latency.mjs booth.log`. It prints two gates and a last line.
+- [ ] The score gate prints `score PASS`. It fails on fewer than 5 scored plays, any unavailable play, p95 at or
+      over 60 s, or any provider other than `anthropic`.
+- [ ] Read the reply gate: `reply PASS`, `reply FAIL` or `reply TOO FEW`. It needs at least 30 replies (10 plays
+      of 3 steps) and a reply p95 under 15 s. An empty reply (the AI failed or timed out, and the kiosk showed the
+      fallback question) counts, since the visitor waited for it. The last line says `PASS` only when both gates
+      pass.
+- [ ] A reply FAIL or TOO FEW does not block opening. Record the reply p95. A FAIL makes streaming or a faster
+      reply model the first wave-2 ticket.
 - [ ] On FAIL with a `local` provider: rimpl is routing the evaluator to the local model, whose p95 (about 90 s) is
       past the 60 s cap. Fix the rimpl env before opening, not the cap.
 
