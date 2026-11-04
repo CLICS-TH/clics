@@ -1,8 +1,10 @@
 // Contract with the shell (booth-shell.js; #213 rewrites the shell, never this file):
 //   - runPlay renders into `root`, which the shell owns and may cover with overlays.
-//   - root.dataset.screen always names the current screen (SCREEN). #213 reads it to hold its idle timer while
-//     'scoring' and to start its result timer; the harness waits on it.
+//   - root.dataset.screen always names the screen on show (SCREEN). #213 reads it to hold its idle timer while
+//     'scoring' and to start its result timer; the harness waits on it. The score's wait shows only once the score
+//     has taken SCORING_SHOWN_MS: a faster score goes from 'reply' straight to its terminal screen, never 'scoring'.
 //   - runPlay resolves once a terminal screen is showing. The screen stays up until the shell resets the page.
+//   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
 import { COPY, DEMO_LABEL, DOMAINS, scoreText, fill } from './booth-copy.js';
@@ -15,6 +17,8 @@ import { el, phrases, bi } from './booth-dom.js';
 const START_TIMEOUT_MS = 15_000;
 const REPLY_TIMEOUT_MS = 45_000;
 const SCORE_TIMEOUT_MS = 75_000;
+const SCORING_SHOWN_MS = 1_000;
+const STILL_WORKING_MS = 8_000;
 const STEPS = 3;
 const GHOST_TAP_MS = 350;
 
@@ -28,16 +32,18 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ composite: number, domains: Record<string, number>, body: object }} Score
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
  *
- * @typedef {{ at: 'vignette' } | { at: 'step' } | { at: 'typing' } | { at: 'replying' } | { at: 'reply' }
- *         | { at: 'scoring' } | { at: 'scored', score: Score } | { at: 'unavailable' }
+ * @typedef {{ at: 'vignette' } | { at: 'step', chosen: string | null } | { at: 'typing' } | { at: 'replying' } | { at: 'reply' }
+ *         | { at: 'scoring', shown: boolean } | { at: 'scored', score: Score } | { at: 'unavailable' }
  *         | { at: 'stopped', offline: boolean }} Screen
+ *   step.chosen is the option the visitor tapped (an id of the step's ask), sent only by Send. scoring.shown is false
+ *   for the score's first SCORING_SHOWN_MS, while the reply screen stays up.
  * @typedef {{ play: Play, steps: Next[], answers: Answer[], replies: string[], sigs: string[], screen: Screen }} PlayState
  *   steps[i] is the Next the server issued for step i (start, then each reply); the asks posted back are its
  *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
- * @typedef {{ type: 'begin' } | { type: 'openTyping' } | { type: 'closeTyping' } | { type: 'answer', answer: Answer }
- *         | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' } | { type: 'scored', score: Score }
- *         | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
+ * @typedef {{ type: 'begin' } | { type: 'choose', choice: string } | { type: 'openTyping' } | { type: 'closeTyping' }
+ *         | { type: 'answer', answer: Answer } | { type: 'replied', text: string, sig: string, next: Next | null } | { type: 'next' }
+ *         | { type: 'slow' } | { type: 'scored', score: Score } | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
  */
 
@@ -72,10 +78,10 @@ async function startOnADealtCase(root, api) {
 
 /**
  * Run one booth play to a terminal screen.
- * @param {{ root: HTMLElement, api: ReturnType<import('./booth-api.js').createBoothApi> }} ctx
+ * @param {{ root: HTMLElement, api: ReturnType<import('./booth-api.js').createBoothApi>, reset: () => void }} ctx
  * @returns {Promise<PlayOutcome>}
  */
-export async function runPlay({ root, api }) {
+export async function runPlay({ root, api, reset }) {
   let start = null;
   let offline = false;
   try {
@@ -87,18 +93,24 @@ export async function runPlay({ root, api }) {
     draw(root, 'stopped', frame([stoppedView(offline)]));
     return { kind: 'stopped' };
   }
+  const ctx = { root, host: root.closest('#booth') ?? root, api, reset };
   return new Promise((resolve) => {
     let state = { play: start.play, steps: [start.next], answers: [], replies: [], sigs: [start.sig], screen: { at: 'vignette' } };
     const dispatch = (ev) => {
       const next = transition(state, ev);
       if (next === state) return;
+      const entered = next.screen.at !== state.screen.at;
       state = next;
-      render(root, state, dispatch, api);
-      if (state.screen.at === 'replying') requestReply(api, state).then(dispatch);
-      else if (state.screen.at === 'scoring') requestScore(api, state).then(dispatch);
-      else if (TERMINAL.has(state.screen.at)) resolve({ kind: state.screen.at });
+      const { at } = state.screen;
+      if (at !== 'scoring' || state.screen.shown) render(state, dispatch, ctx);
+      if (!entered) return;
+      if (at === 'replying') requestReply(api, state).then(dispatch);
+      else if (at === 'scoring') {
+        requestScore(api, state).then(dispatch);
+        setTimeout(() => dispatch({ type: 'slow' }), SCORING_SHOWN_MS);
+      } else if (TERMINAL.has(at)) resolve({ kind: at });
     };
-    render(root, state, dispatch, api);
+    render(state, dispatch, ctx);
   });
 }
 
@@ -106,9 +118,11 @@ export async function runPlay({ root, api }) {
 function transition(s, ev) {
   const at = s.screen.at;
   switch (ev.type) {
-    case 'begin': return at === 'vignette' ? { ...s, screen: { at: 'step' } } : s;
+    case 'begin': return at === 'vignette' ? { ...s, screen: { at: 'step', chosen: null } } : s;
+    case 'choose': return at === 'step' && s.screen.chosen !== ev.choice && stepOf(s).ask.options.includes(ev.choice)
+      ? { ...s, screen: { at: 'step', chosen: ev.choice } } : s;
     case 'openTyping': return at === 'step' ? { ...s, screen: { at: 'typing' } } : s;
-    case 'closeTyping': return at === 'typing' ? { ...s, screen: { at: 'step' } } : s;
+    case 'closeTyping': return at === 'typing' ? { ...s, screen: { at: 'step', chosen: null } } : s;
     case 'answer': {
       const answer = acceptAnswer(s, ev.answer);
       return answer ? { ...s, answers: [...s.answers, answer], screen: { at: 'replying' } } : s;
@@ -117,7 +131,8 @@ function transition(s, ev) {
       ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
-      return { ...s, screen: { at: s.answers.length < STEPS ? 'step' : 'scoring' } };
+      return { ...s, screen: s.answers.length < STEPS ? { at: 'step', chosen: null } : { at: 'scoring', shown: false } };
+    case 'slow': return at === 'scoring' && !s.screen.shown ? { ...s, screen: { at: 'scoring', shown: true } } : s;
     case 'scored': return at === 'scoring' ? { ...s, screen: { at: 'scored', score: ev.score } } : s;
     case 'unavailable': return at === 'replying' || at === 'scoring' ? { ...s, screen: { at: 'unavailable' } } : s;
     case 'stop': return TERMINAL.has(at) ? s : { ...s, screen: { at: 'stopped', offline: ev.offline } };
@@ -219,14 +234,13 @@ const icon = (name) => el('span', { class: 'booth-icon', dataset: { icon: name }
 
 const labelled = (pair, lead = null, trail = null) => [lead && icon(lead), bi(pair, 'btn-label'), trail && icon(trail)];
 
-function frame(body, actions = [], { foot = true, stack = false } = {}) {
+/** `leave` is the Start over button, at the end of the demo label's band. */
+function frame(body, actions = [], { stack = false, leave = null } = {}) {
   return el('div', { class: 'play-frame' },
     el('div', { class: 'play-body' }, ...body),
     actions.length ? el('div', { class: stack ? 'play-actions play-actions--stack' : 'play-actions' }, ...actions) : null,
-    foot ? demoLabel('play-foot') : null);
+    el('div', { class: 'play-foot' }, el('div', { class: 'demo-label', dataset: { demoLabel: '' } }, bi(DEMO_LABEL)), leave));
 }
-
-const demoLabel = (cls) => el('div', { class: `demo-label ${cls}`, dataset: { demoLabel: '' } }, bi(DEMO_LABEL));
 
 function draw(root, at, node) {
   root.replaceChildren(node);
@@ -245,9 +259,31 @@ function buttonsFor(act) {
   };
 }
 
-/** @param {HTMLElement} root @param {PlayState} s @param {(ev: PlayEvent) => void} dispatch */
-function render(root, s, dispatch, api) {
-  draw(root, s.screen.at, VIEWS[s.screen.at](s, buttonsFor(dispatch), root, api));
+/** @param {PlayState} s @param {(ev: PlayEvent) => void} dispatch */
+function render(s, dispatch, { root, host, api, reset }) {
+  // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone.
+  host.querySelector('[data-leave-confirm]')?.remove();
+  const startOver = () => buttonsFor(() => confirmLeave(host, reset))(
+    labelled(COPY.startOver), 'secondary start-over', () => null, { 'data-action': 'start-over' });
+  draw(root, s.screen.at, VIEWS[s.screen.at](s, { button: buttonsFor(dispatch), startOver, host, api }));
+}
+
+/** "Leave this play?" over the whole screen. Leave is the shell's reset; Keep playing, or a tap on the scrim outside
+ *  the card, closes it and hands the focus back, and the play under it never changed. */
+function confirmLeave(host, reset) {
+  const back = document.activeElement;
+  const leave = el('button', { type: 'button', class: 'booth-btn secondary', dataset: { action: 'leave' } }, bi(COPY.leave, 'btn-label'));
+  const keep = el('button', { type: 'button', class: 'booth-btn primary', dataset: { action: 'keep-playing' } }, bi(COPY.keepPlaying, 'btn-label'));
+  const overlay = el('div', { class: 'leave-confirm', role: 'alertdialog', 'aria-modal': 'true', 'aria-label': `${COPY.leaveTitle.th} ${COPY.leaveTitle.en}`, dataset: { leaveConfirm: '' } },
+    el('div', { class: 'leave-card' }, bi(COPY.leaveTitle, 'leave-title'), bi(COPY.leaveLine), el('div', { class: 'action-row' }, leave, keep)));
+  overlay.addEventListener('click', (e) => {
+    if (e.target !== overlay && !keep.contains(e.target)) return;
+    overlay.remove();
+    back?.focus({ preventScroll: true });
+  });
+  leave.addEventListener('click', reset, { once: true });
+  host.append(overlay);
+  keep.focus({ preventScroll: true });
 }
 
 /** The dealt case's teaser and the ways on. Resolves 'start' or 'reroll' on the first tap that counts. With one live
@@ -266,23 +302,29 @@ function offerCase(root, dealt) {
 }
 
 const VIEWS = {
-  vignette: (s, button) => frame(
+  vignette: (s, { button, startOver }) => frame(
     [caseCard(s.play, 'case-card--full')],
-    [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })]),
+    [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })],
+    { leave: startOver() }),
 
-  step: (s, button) => {
+  step: (s, { button, startOver }) => {
     const step = stepOf(s);
+    const { chosen } = s.screen;
     return frame([
       caseCard(s.play),
       el('section', { class: 'step-sheet', 'aria-label': step.question.en },
         stepHead(s, step, { bridge: true }),
         el('div', { class: 'options' }, ...step.options.map((o, i) => button(
-          [optionBody(o, i)], 'secondary wide option', () => ({ type: 'answer', answer: { choice: o.id } }), { 'data-option': o.id }))),
-        button(labelled(COPY.typeOwn, 'pencil'), 'secondary wide', () => ({ type: 'openTyping' }), { 'data-action': 'type-own' })),
-    ]);
+          [optionBody(o, i)], 'secondary wide option', () => ({ type: 'choose', choice: o.id }),
+          { 'data-option': o.id, 'aria-pressed': String(o.id === chosen) }))),
+        el('div', { class: 'action-row' },
+          button(labelled(COPY.typeOwn, 'pencil'), 'secondary', () => ({ type: 'openTyping' }), { 'data-action': 'type-own' }),
+          button(labelled(COPY.send), 'primary', () => ({ type: 'answer', answer: { choice: chosen } }),
+            { 'data-action': 'send', ...(chosen ? {} : { disabled: '' }) }))),
+    ], [], { leave: startOver() });
   },
 
-  typing: (s, button) => {
+  typing: (s, { button, startOver }) => {
     const step = stepOf(s);
     const box = el('textarea', {
       class: 'typing-box', maxlength: String(s.play.answerMax), rows: '3', enterkeyhint: 'enter', lang: 'th',
@@ -296,26 +338,27 @@ const VIEWS = {
         stepHead(s, step),
         box,
         bi(COPY.enterHint, 'hint'),
-        el('div', { class: 'typing-actions' },
+        el('div', { class: 'action-row' },
           button(labelled(COPY.backToChoices), 'secondary', () => ({ type: 'closeTyping' }), { 'data-action': 'back' }),
           send)),
       caseCard(s.play, 'case-card--behind'),
-    ]);
+    ], [], { leave: startOver() });
   },
 
-  replying: (s) => frame([exchange(s, aiBubble(el('span', { class: 'ai-wait' }, bi(COPY.replying), dots())))]),
+  replying: (s) => frame([exchange(s, aiBubble(waiting(el('span', { class: 'ai-wait', role: 'status' }, bi(COPY.replying), dots()))))]),
 
-  reply: (s, button) => {
+  reply: (s, { button, startOver }) => {
     const text = s.replies[s.replies.length - 1];
     const said = text === '' ? bi(COPY.noReply, 'reply-note') : aiBubble(el('p', { class: 'ai-text', lang: 'th' }, ...plainText(text)));
     const [copy, action] = s.answers.length === STEPS ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
-      [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);
+      [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })],
+      { leave: startOver() });
   },
 
-  scoring: () => frame([waitView(COPY.scoring, COPY.scoringWait)]),
+  scoring: () => frame([waitView(COPY.scoring)]),
 
-  scored: (s, button, root, api) => {
+  scored: (s, { host, api }) => {
     const { score } = s.screen;
     const slot = el('div', { class: 'board-slot', dataset: { boothSlot: 'board' } });
     const card = el('article', { class: 'result-card' },
@@ -329,7 +372,7 @@ const VIEWS = {
               el('span', { class: 'result-outof' }, '/ 100'))),
           slot),
         keepQr(s.play, score)),
-      ...domainSections(score.domains, leaderboardButton({ host: root.closest('#booth') ?? root, api, board: score.body.board, tag: s.play.tag })));
+      ...domainSections(score.domains, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag })));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
   },
@@ -382,8 +425,14 @@ function aiBubble(content) {
 
 const dots = () => el('span', { class: 'waiting-dots', 'aria-hidden': 'true' }, el('i'), el('i'), el('i'));
 
-function waitView(title, sub = null) {
-  return el('div', { class: 'wait', role: 'status' }, bi(title, 'wait-title'), sub ? bi(sub) : null, dots());
+function waitView(title) {
+  return waiting(el('div', { class: 'wait', role: 'status' }, bi(title, 'wait-title'), dots()));
+}
+
+/** A wait's status line. Still on screen after STILL_WORKING_MS, it adds that the kiosk is still working. */
+function waiting(status) {
+  setTimeout(() => { if (status.isConnected) status.append(bi(COPY.stillWorking)); }, STILL_WORKING_MS);
+  return status;
 }
 
 function stoppedView(offline) {

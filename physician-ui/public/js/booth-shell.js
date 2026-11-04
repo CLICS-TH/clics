@@ -132,7 +132,7 @@ async function play() {
   const bar = el('div', { class: 'shell-bar' });
   root.replaceChildren(stage, bar);
   root.dataset.shell = 'play';
-  const outcome = runPlay({ root: stage, api });
+  const outcome = runPlay({ root: stage, api, reset });
   watchIdle({ stage, host: root, reset });
   await outcome;
   const done = el('button', { type: 'button', class: 'booth-btn primary wide', dataset: { action: 'done' } }, bi(COPY.done, 'btn-label'));
