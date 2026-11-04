@@ -155,3 +155,16 @@ describe('temperature: CHAT_DECODING says none is sent, and none is', () => {
     expect(committed.manifest.expected.code.decoding.chat.temperature).toBe(CHAT_DECODING.temperature);
   });
 });
+
+describe('temperature: a typed booth answer is sorted at 0, as the manifest records', () => {
+  test('booth_typed', async () => {
+    callAI.mockResolvedValue(r('{"reply":"Reasonable.","tier":"best"}'));
+    const bank = {
+      variants: [{ id: 'v1', question: { th: 'ขั้นนี้', en: 'This' } }],
+      options: ['best', 'reasonable', 'weaker'].map((tier, i) => ({ id: 'abc'[i], tier, label: { th: 'ก', en: 'a' }, line: { th: 'ข', en: 'b' } })),
+    };
+    await send({ booth_mode: true, booth_typed: { current: bank } });
+    expect(committed.manifest.expected.code.decoding.chat.booth_typed).toEqual({ temperature: 0 });
+    expect(call(0).temperature).toBe(committed.manifest.expected.code.decoding.chat.booth_typed.temperature);
+  });
+});
