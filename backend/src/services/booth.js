@@ -204,8 +204,8 @@ function turnKey() {
 }
 
 // A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
-// canonical form is keyed by position, not by object key order. The kiosk never holds the tier (spec #244): the
-// server recovers it from the sigs (recoverTiers).
+// canonical form is keyed by position, not by object key order. The kiosk holds no tier before the score reveals
+// them (spec #244, #372): the server recovers it from the sigs (recoverTiers).
 const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null]);
 
 /** Turn k (0..3) binds everything the server had issued after k answers: the answers (typed ones with their sorted
