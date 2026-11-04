@@ -6,6 +6,10 @@ A booth case enters the case pool only after a separate AI clinical-safety revie
 
 The owner may admit a case without a sandbox pass by an owner waiver, recorded in the case file as `admission.owner_waiver` with its date, this ADR's number, the reason, and the sandbox run the case failed. The waiver replaces the sandbox only: a case is admitted with a safety review and either a sandbox pass or a waiver, never without the safety review. On 2026-11-03 the owner chose option A and waived the sandbox for the ten NFCME-2026 cases it did not admit. Before that, a blind clinical review of the ten (#348) revised four for clinical defects, each revised case passed a fresh safety review, and one pre-registered run admitted none of them. leptospirosis keeps its sandbox admission.
 
+## Path score table (2026-11-04)
+
+From booth round 2, admission also needs the case's path score table (ADR 0009). The table's build report re-runs the difficulty check above on the table's own samples and lists any case that fails; the owner then waives it again, recorded against the table's run id, or switches it off. The case file records a hash of the tree the safety review read, so a table added to an unchanged tree keeps the review, and any edit to the tree needs a new one.
+
 ## Consequences
 
 - A clinical error that both the AI review and the "no withhold or delay" test miss reaches a national CME audience; the per-case off switch is the only remedy at the booth.

@@ -69,15 +69,23 @@ One visitor's run on the booth screen, from tap to demo score. It is not a PLE: 
 _Avoid_: booth PLE, booth session, demo PLE
 
 **Demo score**:
-The PIS-7 score a booth play earns, always shown as a demo: not CME credit and not validated.
+The PIS-7 score a booth play earns, read from its case's path score table and always shown as a demo: not CME credit and not validated. The same tier path on the same case version always gets the same demo score.
 _Avoid_: CME score, credit, PIS-7 score (alone)
+
+**Tier path**:
+The tier letters (B, R, W) of a booth play's answers, one per step, in order. It decides which option bank each step draws from and which demo score the play gets.
+_Avoid_: answer path, route, path (alone, when the tree's branches are meant)
+
+**Path score table**:
+The demo score of every tier path of one booth case version, measured by the PIS-7 evaluator before admission and frozen in the case file.
+_Avoid_: score cache, answer key, lookup table
 
 **Booth tag**:
 The auto-made label, such as "Booth #042", that names one visitor's play on the booth leaderboard. The visitor never types it.
 _Avoid_: nickname, username, player name
 
 **Booth case**:
-One fictional clinical case written for Booth Mode as a branching tree of three steps, in Thai with English beneath.
+One fictional clinical case written for Booth Mode as a branching tree of steps (three, then five from booth round 2), in Thai and English.
 _Avoid_: trigger case, scenario, CT (those are DPU curriculum terms)
 
 **Case pool**:
@@ -85,7 +93,7 @@ The admitted booth cases of one booth event, from which each booth play draws it
 _Avoid_: case bank, case list
 
 **Admission**:
-A booth case passing the AI safety review and either the physician sandbox or an owner waiver of the sandbox (ADR 0005), which is what puts it in the case pool.
+A booth case passing the AI safety review and either the physician sandbox or an owner waiver of the sandbox (ADR 0005), with its path score table built, which is what puts it in the case pool.
 _Avoid_: approval, sign-off, physician read
 
 **Physician sandbox**:
@@ -101,12 +109,28 @@ A visitor drawing a different booth case from the case pool before the play star
 _Avoid_: gacha, shuffle, skip
 
 **Grill play**:
-The booth play's dialogue: the AI asks one question per step and offers three choices from the option bank, never marking a best one.
+The booth play's dialogue: one question per step with three choices from the option bank, never marking a best one, and a reply to each answer.
 _Avoid_: Socratic mode (that is the pilot's rescue tutor), quiz
 
 **Option bank**:
 The reviewed question variants and options that a booth case holds for one point on its branching path.
 _Avoid_: choice pool, answer key
+
+**Reply bank**:
+The reviewed replies a booth case holds for each option a visitor can tap, shown instead of a live AI reply.
+_Avoid_: canned replies, reply cache
+
+**Sort memo**:
+The tier a typed booth answer was first sorted into, kept so the same text at the same point of the same case version always sorts the same.
+_Avoid_: tier cache, typed-answer cache
+
+**Booth audit**:
+An auditor's blind PIS-7 score of one booth play, compared afterwards with its demo score. It is never part of pilot data.
+_Avoid_: booth PLE audit, booth review
+
+**Open booth dataset**:
+The de-identified booth plays of one booth event, with its case files and path score tables, released as open research data after the event.
+_Avoid_: booth export, booth dump
 
 **Tier**:
 The quality grade of a booth option or answer: best, reasonable, or weaker but safe. Each question offers one option of each tier.
