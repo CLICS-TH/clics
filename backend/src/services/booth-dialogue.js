@@ -1,7 +1,7 @@
-// The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask, and what
-// rimpl is sent for a reply and a score. The booth API (services/booth.js) and the physician sandbox
-// (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what a kiosk play
-// would. Nothing here reads or writes the database.
+// The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask, what
+// rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js) and the
+// physician sandbox (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what
+// a live-scored kiosk play would. Nothing here reads or writes the database.
 const crypto = require('crypto');
 const { TIERS } = require('../booth-cases/tree-schema');
 
