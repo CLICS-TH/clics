@@ -23,8 +23,12 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
-const { DEMO_LABEL, DOMAINS, COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
+const { DEMO_LABEL, DOMAINS, COPY, REPLY_FIELDS } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
 const TREE = JSON.parse(await readFile(fileURLToPath(new URL('../../backend/tests/fixtures/booth-case-tree.json', import.meta.url)), 'utf8'));
+// The server's reply limits, read from its source: CI runs this without the backend's dependencies.
+const DIALOGUE = await readFile(fileURLToPath(new URL('../../backend/src/services/booth-dialogue.js', import.meta.url)), 'utf8');
+const serverConst = (name) => Number(new RegExp(`\\bconst ${name} = (\\d+);`).exec(DIALOGUE)?.[1]);
+const [FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS] = ['FIELD_MAX_CHARS', 'BOLD_MAX_RUNS', 'BOLD_MAX_CHARS'].map(serverConst);
 /** The `case` a started play carries: the vignette only; each step's text arrives in a Next. */
 const KASE = { vignette: TREE.vignette };
 
@@ -108,31 +112,43 @@ function bankWorstNext(bank, bridge = LONG_BRIDGE) {
     options: options.map(({ id, label, line }) => ({ id, label, line })) };
 }
 
-/** Every bank of the fixture and of every case file in backend/src/booth-cases/<EVENT>/, as its worst Next, with
- *  identical Nexts kept once. Read per run, so a case file that lands on master is checked without a harness edit. */
-async function caseBankNexts(bridge = LONG_BRIDGE) {
+let trees;
+/** [name, tree] of the fixture and of every case file in backend/src/booth-cases/<EVENT>/. Read once per run, so a
+ *  case file that lands on master is checked without a harness edit. */
+const caseTrees = () => (trees ??= (async () => {
   const files = (await readdir(CASES, { recursive: true })).filter((f) => /^[^/]+\/[^/]+\.json$/.test(f)).sort();
-  const trees = [['fixture', TREE], ...await Promise.all(files.map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8'))]))];
+  return [['fixture', TREE], ...await Promise.all(files.map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8'))]))];
+})());
+
+/** Every bank of caseTrees() as its worst Next, with identical Nexts kept once. */
+async function caseBankNexts(bridge = LONG_BRIDGE) {
   const seen = new Set();
-  return trees.flatMap(([file, tree]) => Object.entries({ step1: tree.banks.step1,
+  return (await caseTrees()).flatMap(([file, tree]) => Object.entries({ step1: tree.banks.step1,
     ...Object.fromEntries(Object.entries(tree.banks.step2).map(([p, b]) => [`step2.${p}`, b])),
     ...Object.fromEntries(Object.entries(tree.banks.step3).map(([p, b]) => [`step3.${p}`, b])) })
     .map(([at, bank]) => ({ name: `${file} ${at}`, next: bankWorstNext(bank, bridge) })))
     .filter(({ next }) => { const key = JSON.stringify(next); return !seen.has(key) && seen.add(key); });
 }
 
-/** A Next of the longest fixture texts (question and the three longest options, any bank) for the fit checks. */
-function longestNext(tree, bridge = LONG_BRIDGE) {
-  const banks = [tree.banks.step1, ...Object.values(tree.banks.step2), ...Object.values(tree.banks.step3)];
-  const thLen = (b) => b.th.length + b.en.length;
-  const question = banks.flatMap((b) => b.variants).sort((a, b) => thLen(b.question) - thLen(a.question))[0].question;
+const textLen = (b) => b.th.length + b.en.length;
+/** A Next of the longest texts of `trees` (question and the three longest options, any bank) for the fit checks.
+ *  `size` ranks the options: label and line on a step screen, the label alone where only the label shows. */
+function longestNext(trees, { bridge = LONG_BRIDGE, size = (o) => textLen(o.label) + textLen(o.line) } = {}) {
+  const banks = trees.flatMap((t) => [t.banks.step1, ...Object.values(t.banks.step2), ...Object.values(t.banks.step3)]);
+  const question = banks.flatMap((b) => b.variants).sort((a, b) => textLen(b.question) - textLen(a.question))[0].question;
   const seen = new Set();
-  const options = banks.flatMap((b) => b.options).sort((a, b) => thLen(b.label) + thLen(b.line) - thLen(a.label) - thLen(a.line))
+  const options = banks.flatMap((b) => b.options).sort((a, b) => size(b) - size(a))
     .filter((o) => !seen.has(o.id) && seen.add(o.id)).slice(0, 3).map(({ id, label, line }) => ({ id, label, line }));
   return { ask: { variant: 'v1', bridge, options: options.map((o) => o.id) }, question, options };
 }
 
-const REPLY = (n) => `AI reply ${n}: <b>not markup</b>\nsecond line\nคำตอบนี้ครอบคลุมประเด็นสำคัญแล้ว ลองพิจารณาผลน้ำตาลสะสมร่วมกับประวัติครอบครัว และนัดติดตามอาการภายใน 3 เดือน`;
+/** Reply n: markup that must show as typed, a bold run inside a Thai phrase, one that spans a space into a number
+ *  phrase, and a safety field on reply 2 only. */
+const REPLY = (n) => ({
+  strength: `AI reply ${n}: <b>not markup</b> คำตอบนี้ครอบคลุม**ประเด็นสำคัญ**แล้ว`,
+  weigh: 'ลองพิจารณา**ผลน้ำตาลสะสม**ร่วมกับประวัติครอบครัว และนัดติดตามอาการ**ภายใน 3 เดือน**',
+  safety: n === 2 ? 'หากมี**อาการหน้ามืด**หรือใจสั่น ให้กลับมาพบแพทย์ทันที' : '',
+});
 const SIG = (n) => `sig-${n}`;
 const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, next: nextFor(TREE, ''), sig: SIG(0) };
 /** What a draw answers: the case id and its teaser, nothing else of the case. */
@@ -151,7 +167,8 @@ const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3:
  *   'POST /booth/draw'             DRAW: { case_id, teaser } of the fixture case
  *   'POST /booth/plays'            START: { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig };
  *                                  400 bad_request unless the body names a case_id
- *   'POST /booth/plays/:id/reply'  replyBody(answers): reply n, SIG(n), next for the tier path walked (n < 3)
+ *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), next for the tier
+ *                                  path walked (n < 3)
  * The case is backend/tests/fixtures/booth-case-tree.json.
  *   'GET /booth/board'             { board: { today: [], event: [] } }
  *   'POST /booth/plays/:id/score'  SCORED
@@ -527,8 +544,8 @@ async function shot(page, name) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
-  START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseBankNexts, replyBody };
+const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED,
+  START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {
   await scanSources();

@@ -13,6 +13,13 @@ export const DOMAINS = Object.freeze([
   { key: 'd7', th: 'ความรู้เท่าทัน AI และทักษะการพรอมต์', en: 'AI Literacy & Prompt Skill' },
 ]);
 
+/** The AI reply's fields in the order the kiosk draws them, each under its reviewed heading. */
+export const REPLY_FIELDS = Object.freeze([
+  { key: 'strength', th: 'จุดแข็ง', en: 'Strength' },
+  { key: 'weigh', th: 'ข้อควรคิด', en: 'Worth weighing' },
+  { key: 'safety', th: 'ความปลอดภัย', en: 'Safety' },
+]);
+
 export const COPY = Object.freeze({
   tapToStart: { th: 'แตะเพื่อเริ่ม', en: 'Tap to start' },
   intro: { th: 'อ่านเคสสั้น ๆ ตอบสามขั้น แล้วดูคะแนนสาธิต', en: 'Read a short case, answer three steps, then see a demo score' },
