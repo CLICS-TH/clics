@@ -1524,6 +1524,32 @@ describe('the sort memo (#374: the same typed text at the same point sorts the s
     expect(k2).not.toBe(k1);
   });
 
+  test('the same text at the same point of another case at the same version is another answer', async () => {
+    const other = edited((k) => { k.case_id = 'aa-first'; });
+    process.env.BOOTH_CASES_DIR = casesDir(KASE, other);
+    await answer(await begin(KASE), TYPED);
+    await answer(await begin(other), TYPED);
+    expect(rpcNamed('booth_start_play').map((a) => [a.p_case, a.p_version])).toEqual([[KASE.case_id, KASE.version], ['aa-first', KASE.version]]);
+    const [k1, k2] = lookups();
+    expect(k2).not.toBe(k1);
+  });
+
+  test('the key is bound to the server secret: the same text at the same point under another secret is another answer', async () => {
+    const before = process.env.GUEST_TOKEN_SECRET;
+    try {
+      process.env.GUEST_TOKEN_SECRET = 'secret-one';
+      await answer(await begin(), TYPED);
+      process.env.GUEST_TOKEN_SECRET = 'secret-two';
+      await answer(await begin(), TYPED);
+    } finally {
+      if (before === undefined) delete process.env.GUEST_TOKEN_SECRET;
+      else process.env.GUEST_TOKEN_SECRET = before;
+    }
+    const [k1, k2] = lookups();
+    expect(k1).toMatch(/^[0-9a-f]{64}$/);
+    expect(k2).not.toBe(k1);
+  });
+
   test('a kept tier holds when the AI call fails: its branch with the fallback ask, and nothing more is kept', async () => {
     sorting('best');
     await answer(await begin(), TYPED);
