@@ -127,11 +127,17 @@ test('a Thai line may say since or each without reading as but', () => {
 });
 
 describe('admission', () => {
-  const good = read(FIXTURE);
+  const good = { ...read(FIXTURE), path_score_table: read(TABLE) };
   const without = (part) => { const k = structuredClone(good); delete k.admission[part]; return k; };
 
-  test('a case with both the safety review and the sandbox run is admitted', () => {
+  test('a case with the safety review, the sandbox run and its path score table is admitted', () => {
     expect(isAdmitted(good)).toBe(true);
+  });
+
+  test('a case without its path score table is valid but not admitted (ADR 0005, 0009)', () => {
+    const { path_score_table: _table, ...untabled } = good;
+    expect(caseTreeProblems(untabled)).toEqual([]);
+    expect(isAdmitted(untabled)).toBe(false);
   });
 
   test.each(['safety_review', 'sandbox'])('a case without its %s part is valid but not admitted', (part) => {
@@ -160,10 +166,11 @@ describe('admission', () => {
     expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
   });
 
-  test('every NFCME-2026 case is admitted: leptospirosis by the sandbox, the other ten by the owner waiver', () => {
+  test('every NFCME-2026 case is admitted with its path score table: leptospirosis by the sandbox, the other ten by the owner waiver', () => {
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
     expect(cases).toHaveLength(11);
+    expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter(isAdmitted)).toHaveLength(11);
     expect(cases.filter((k) => k.admission.sandbox).map((k) => k.case_id)).toEqual(['leptospirosis']);
     expect(cases.filter((k) => k.admission.owner_waiver)).toHaveLength(10);

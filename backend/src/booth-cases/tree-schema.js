@@ -78,11 +78,13 @@ const CaseTreeSchema = z.object({
     // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
     owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
   }).strict().optional(),
-  // The demo score of each tier path (ADR 0009), built by the table build script, never by hand.
+  // The demo score of each tier path (ADR 0009), built by scripts/booth/build-path-tables.mjs, never by hand.
+  // Optional in the file so a case can be checked before its table is built; isAdmitted requires it.
   path_score_table: PathScoreTable.optional(),
 }).strict();
 
-const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && (kase.admission.sandbox || kase.admission.owner_waiver));
+const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && (kase.admission.sandbox || kase.admission.owner_waiver)
+  && kase.path_score_table);
 
 // Thai combining marks take no width at the kiosk. Budgets are the line counts measured at the
 // kiosk's font sizes (PR #233); the teaser budget is measured by scripts/booth/scenarios/draw.mjs.

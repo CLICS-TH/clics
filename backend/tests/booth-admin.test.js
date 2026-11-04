@@ -16,7 +16,8 @@ const { SUPERADMIN, ADMIN, AUDITOR, PHYSICIAN } = require('./helpers/roles');
 
 // The real NFCME-2026 case may be unadmitted, so the event's case here is the fixture filed under that code.
 const CASES_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
-const kase = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), event_code: 'NFCME-2026' };
+const kase = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), event_code: 'NFCME-2026',
+  path_score_table: JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table.json'), 'utf8')) };
 fs.mkdirSync(path.join(CASES_DIR, 'NFCME-2026'));
 fs.writeFileSync(path.join(CASES_DIR, 'NFCME-2026', `${kase.case_id}.json`), JSON.stringify(kase));
 // A case the owner waived from the sandbox (ADR 0005), filed under its own event.
@@ -89,7 +90,7 @@ beforeEach(() => {
 });
 
 describe('GET /admin/booth', () => {
-  it('returns the settings and the event totals, counting an in-flight unavailable play as a play only', async () => {
+  it('returns the settings and the event totals, counting an unavailable play as a play only', async () => {
     const res = await as(SUPERADMIN).get();
     expect(res.status).toBe(200);
     expect(res.body).toEqual({

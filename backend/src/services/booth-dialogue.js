@@ -1,7 +1,9 @@
 // The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask and a
-// reply, what rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js) and
-// the physician sandbox (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what
-// a live-scored kiosk play would. Nothing here reads or writes the database.
+// reply, what rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js), the
+// physician sandbox (scripts/booth/sandbox-play.js) and the path score table build (scripts/booth/build-path-tables.mjs)
+// all build their rimpl calls here. The API never calls the evaluator (ADR 0009): the sandbox scores live through rimpl
+// and the table build scores each tier path, both with evaluateRequest, so a table holds the score of exactly the
+// transcript a kiosk play would make. Nothing here reads or writes the database.
 const crypto = require('crypto');
 const { TIERS } = require('../booth-cases/tree-schema');
 
