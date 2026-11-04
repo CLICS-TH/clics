@@ -10,7 +10,7 @@ const { rimplChat, rimplEvaluate } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, chatRequest, chatOutcome, evaluateRequest,
+  nextOf, fenced, chatRequest, chatOutcome, evaluateRequest, stepTiers,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -208,8 +208,8 @@ function turnKey() {
 }
 
 // A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
-// canonical forms are keyed by position, not by object key order. The kiosk never holds the tier (spec #244): the
-// server recovers it from the sigs (recoverTiers).
+// canonical forms are keyed by position, not by object key order. The kiosk holds no tier before the score reveals
+// them (spec #244, #372): the server recovers it from the sigs (recoverTiers).
 const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null]);
 const canonicalReply = (r) => REPLY_FIELDS.map((k) => r[k]);
 
@@ -325,21 +325,22 @@ async function readStandings(event, dayOf) {
   return standings(rows, dayOf);
 }
 
-/** A rank of null means none: the standings did not load, or the play is outside the top STANDINGS_MAX. */
-async function scoredBody(playId, event, composite, domains, scoredAt) {
+/** A rank of null means none: the standings did not load, or the play is outside the top STANDINGS_MAX. `steps` is
+ *  stepTiers of the play: no other body ever carries a tier. */
+async function scoredBody(playId, event, composite, domains, scoredAt, steps) {
   const s = await readStandings(event, Date.parse(scoredAt));
   const rank = (list) => {
     const i = list.findIndex((r) => r.id === playId);
     return i >= 0 ? i + 1 : null;
   };
   return {
-    status: 'scored', composite, domains,
+    status: 'scored', composite, domains, steps,
     rank_today: rank(s?.today ?? []), rank_event: rank(s?.event ?? []),
     board: s ? boardOf(s) : null,
   };
 }
 
-async function settledOutcome(playId, event) {
+async function settledOutcome(playId, event, steps) {
   const { data: row, error } = await supabase.from('booth_plays')
     .select(`id, status, composite, scored_at, ${DOMAIN_KEYS.join(', ')}`)
     .eq('id', playId).eq('event_code', event.code).maybeSingle();
@@ -348,7 +349,7 @@ async function settledOutcome(playId, event) {
   if (row.status === 'started') return null;
   if (row.status !== 'scored') return UNAVAILABLE;
   const domains = Object.fromEntries(DOMAIN_KEYS.map((k) => [k, Number(row[k])]));
-  return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at) };
+  return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at, steps) };
 }
 
 async function claimAsUnavailable(playId, event) {
@@ -357,14 +358,15 @@ async function claimAsUnavailable(playId, event) {
   return !error && Array.isArray(data) && data.length === 1;
 }
 
-async function finish(playId, event, domains, tierPath) {
+/** Scores a play still in status `from`: 'unavailable' once a live score has claimed it, 'started' for a table score. */
+async function finish(playId, event, from, domains, tierPath, steps) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
     .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked: true, tier_path: tierPath })
-    .eq('id', playId).eq('status', 'unavailable').is('scored_at', null).select('id');
+    .eq('id', playId).eq('status', from).is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
-  return { body: await scoredBody(playId, event, composite, domains, scoredAt) };
+  return { body: await scoredBody(playId, event, composite, domains, scoredAt, steps) };
 }
 
 /** @returns {Promise<Result>} body: { open, reason?, event_code } */
@@ -510,14 +512,20 @@ async function scoreOutcome(playId, input, now) {
   const { kase } = played;
   const dialogue = parseDialogue(kase, playId, input, 'score');
   if (!dialogue) return { result: { refused: 'bad_request' } };
+  const steps = stepTiers(kase, dialogue);
 
   const stored = (result) => ({ result, reason: result.refused === 'unavailable' ? 'read' : 'settled' });
-  const settled = await settledOutcome(playId, event);
+  const finished = (result, provider) => (result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider });
+  const settled = await settledOutcome(playId, event, steps);
   if (settled) return stored(settled);
+
+  // ADR 0009: a case with a path score table scores at once from it, with no spend and no evaluator call.
+  const table = kase.path_score_table;
+  if (table) return finished(await finish(playId, event, 'started', table.paths[dialogue.tierPath], dialogue.tierPath, steps), 'table');
 
   const reserved = await reserve(playId, event, SCORE_RESERVE_USD);
   if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
-  if (PAST_STARTED.has(reserved)) return stored((await settledOutcome(playId, event)) ?? UNAVAILABLE);
+  if (PAST_STARTED.has(reserved)) return stored((await settledOutcome(playId, event, steps)) ?? UNAVAILABLE);
   if (reserved !== 'reserved') return { result: { refused: 'unavailable' }, reason: 'reserve' };
 
   if (!(await claimAsUnavailable(playId, event))) return { result: UNAVAILABLE, reason: 'claim' };
@@ -531,13 +539,13 @@ async function scoreOutcome(playId, input, now) {
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
   if (!domains.success) return { result: UNAVAILABLE, reason: 'schema' };
-  const result = await finish(playId, event, domains.data, dialogue.tierPath);
-  return result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider: res.provider };
+  return finished(await finish(playId, event, 'unavailable', domains.data, dialogue.tierPath, steps), res.provider);
 }
 
 // One line per score call that ends scored or unavailable, timing the whole call (what the visitor waits):
-// scripts/booth/score-latency.mjs reads them from `railway logs` for the rehearsal's p95 and provider check. A
-// replay of a stored score logs provider=replay.
+// scripts/booth/score-latency.mjs reads them from `railway logs` for the rehearsal's p95 and provider check. A live
+// score logs the evaluator's provider, a score read from the case's path score table provider=table, and a replay
+// of a stored score provider=replay.
 function logScore(playId, ms, { result, reason, provider }) {
   if (result.body?.status === 'scored') {
     console.info(`[booth] score scored play=${playId} ms=${ms} provider=${provider ?? 'replay'}`);
@@ -546,8 +554,8 @@ function logScore(playId, ms, { result, reason, provider }) {
   }
 }
 
-/** @returns {Promise<Result>} body: { status: 'scored', composite, domains, rank_today, rank_event, board }
- *    | { status: 'unavailable' } */
+/** @returns {Promise<Result>} body: { status: 'scored', composite, domains, steps, rank_today, rank_event, board }
+ *    | { status: 'unavailable' }. steps: per step, the tier of the answer and of each option offered (stepTiers). */
 async function scorePlay(playId, input, now = new Date()) {
   const startedAt = Date.now();
   let outcome;

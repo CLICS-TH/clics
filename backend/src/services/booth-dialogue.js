@@ -1,7 +1,7 @@
 // The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask and a
-// reply, and what rimpl is sent for a reply and a score. The booth API (services/booth.js) and the physician sandbox
-// (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what a kiosk play
-// would. Nothing here reads or writes the database.
+// reply, what rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js) and
+// the physician sandbox (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what
+// a live-scored kiosk play would. Nothing here reads or writes the database.
 const crypto = require('crypto');
 const { TIERS } = require('../booth-cases/tree-schema');
 
@@ -223,7 +223,18 @@ const evaluateRequest = (kase, d) => ({
   transcript: dialogueTurns(kase, d, true), patient_ref: null, chief_complaint: kase.vignette.th, shadow: false,
 });
 
+/** Per step of a walked play, the tier name of the visitor's answer (a typed one's sorted tier) and of each option
+ *  offered, in the order offered.
+ *  @returns {{ tier: string, options: { id: string, tier: string }[] }[]} */
+const stepTiers = (kase, { asks, tierPath }) => asks.map((ask, i) => {
+  const { options } = bankAt(kase, tierPath.slice(0, i));
+  return {
+    tier: TIERS.find((t) => t.letter === tierPath[i]).name,
+    options: ask.options.map((id) => ({ id, tier: options.find((o) => o.id === id).tier })),
+  };
+});
+
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, replyText, chatRequest, chatOutcome, evaluateRequest,
+  nextOf, fenced, replyText, chatRequest, chatOutcome, evaluateRequest, stepTiers,
 };
