@@ -242,6 +242,8 @@ export default [
         `${width}: each step shows its question and the visitor's answer, the typed one as typed`);
       h.check(seen.every((r, i) => r.tier === want[i].tier && r.chip.includes(h.TIERS[want[i].tier].label.th) && r.chip.includes(h.TIERS[want[i].tier].label.en)),
         `${width}: the answers' tiers read ${seen.map((r) => r.chip).join(' | ')} (want ${want.map((w) => w.tier).join(', ')})`);
+      h.check(seen.every((r) => !/ปลอดภัย|safe/i.test(r.chip)),
+        `${width}: no tier chip claims safety, since a typed answer sorted unsafe also shows as weaker (${seen.map((r) => r.chip).join(' | ')})`);
       h.check(seen[0].best === null, `${width}: step 1 tapped the best option, so no best-option line`);
       h.check(seen[1].best === want[1].best && seen[1].best !== null, `${width}: step 2 tapped the weaker option, and the best option offered is named (${seen[1].best})`);
       h.check(seen[2].best === want[2].best && seen[2].best !== null, `${width}: step 3 was typed, and the best option offered is named (${seen[2].best})`);

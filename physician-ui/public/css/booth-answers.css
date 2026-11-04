@@ -1,5 +1,5 @@
-/* "See the answers" (js/booth-answers.js) on the kiosk, and the tier chips it shares with the result page. A weaker
-   option is still safe (ADR 0005), so no tier is drawn as a warning: best is the solid chip, the others step down. */
+/* "See the answers" (js/booth-answers.js) on the kiosk, and the tier chips it shares with the result page. No tier
+   is drawn as a warning: best is the solid chip, the others step down. */
 .tier-chip {
   align-self: flex-start; box-sizing: border-box; display: inline-flex;
   padding: calc(6 * var(--u)) calc(24 * var(--u)); border: var(--line) solid; border-radius: calc(999 * var(--u));

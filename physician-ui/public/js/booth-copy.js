@@ -25,11 +25,12 @@ export const DOMAIN_SHORT = Object.freeze({
 });
 
 /** An answer's tier, best first, with the letter the result link's tier path spells it with (backend
- *  booth-cases/tree-schema.js TIERS). Every weaker option in a case is still safe (ADR 0005), so its label says so. */
+ *  booth-cases/tree-schema.js TIERS). "Weaker" claims no safety: a typed answer the AI sorts as unsafe or unclear
+ *  also lands there, and only the bank's options were reviewed safe (ADR 0005). */
 export const TIERS = Object.freeze({
   best: Object.freeze({ letter: 'B', label: { th: 'ดีที่สุด', en: 'Best' } }),
   reasonable: Object.freeze({ letter: 'R', label: { th: 'สมเหตุสมผล', en: 'Reasonable' } }),
-  weaker: Object.freeze({ letter: 'W', label: { th: 'ด้อยกว่า แต่ปลอดภัย', en: 'Weaker but safe' } }),
+  weaker: Object.freeze({ letter: 'W', label: { th: 'ยังด้อยกว่า', en: 'Weaker' } }),
 });
 
 export const COPY = Object.freeze({
