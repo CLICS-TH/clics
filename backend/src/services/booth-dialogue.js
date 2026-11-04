@@ -12,9 +12,10 @@ const BRIDGE_MAX_CHARS = 120;
 /**
  * @typedef {{ choice: string } | { text: string, tier?: 'B' | 'R' | 'W' }} Answer
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask  the ids the server issued for one step
- * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], tierPath: string, unsorted?: boolean }} Walked
+ * @typedef {{ answers: Answer[], replies: string[], asks: Ask[], tierPath: string, unsorted?: boolean, memo?: 'B' | 'R' | 'W' }} Walked
  *   A dialogue walked along its tier path. In a reply call the last answer, if typed, is `unsorted`: the path
- *   stops before it.
+ *   stops before it. `memo` is the sort memo's tier for that answer, when the same text was sorted at this point
+ *   before: the next banks sent and the tier taken are both that tier's.
  */
 
 const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
@@ -116,11 +117,12 @@ const TIER_NAMES = TIERS.map((t) => t.name);
 /** The AI's tier for a typed answer as a letter. Anything but a tier it was given (unclear, unsafe, none) is weaker. */
 const sortedTier = (name) => LETTER[TIER_NAMES.includes(name) ? name : 'weaker'];
 
-/** What rimpl needs to sort a typed answer to step n: that step's bank, and for n < 3 the next step's bank per tier. */
-function typedBanks(kase, tierPath, n) {
+/** What rimpl needs to sort a typed answer to step n: that step's bank, and for n < 3 the next step's bank per tier.
+ *  With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step taken. */
+function typedBanks(kase, tierPath, n, memo) {
   return {
     current: bankForAi(bankAt(kase, tierPath)),
-    ...(n < STEPS ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + letter))])) } : {}),
+    ...(n < STEPS ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
   };
 }
 
@@ -132,17 +134,18 @@ function chatRequest(kase, d) {
   const n = d.answers.length;
   const history = dialogueTurns(kase, d);
   const { content: message } = history.pop();
-  const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n) }
+  const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo) }
     : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
   return { history, message, language: 'th', booth_mode: true, ...forAi };
 }
 
 /** The dialogue once rimpl answered `d`'s last answer with `res` (null when the call failed): the reply, the typed
- *  answer's tier, and the next ask with its bank (none after the last step). An empty reply takes the fallback ask. */
+ *  answer's tier (the memo's when there is one, else the AI's), and the next ask with its bank (none after the last
+ *  step). An empty reply takes the fallback ask. */
 function chatOutcome(kase, d, res) {
   const n = d.answers.length;
   const reply = typeof res?.content === 'string' ? res.content.trim().slice(0, REPLY_MAX_CHARS) : '';
-  const typed = d.unsorted ? sortedTier(res?.tier) : null;
+  const typed = d.unsorted ? (d.memo ?? sortedTier(res?.tier)) : null;
   const tierPath = typed ? d.tierPath + typed : d.tierPath;
   const bank = n < STEPS ? bankAt(kase, tierPath) : null;
   const ask = bank && (reply ? askFromPick(bank, res.pick) : fallbackAsk(bank));
@@ -169,5 +172,5 @@ const stepTiers = (kase, { asks, tierPath }) => asks.map((ask, i) => {
 
 module.exports = {
   STEPS, REPLY_MAX_CHARS, BRIDGE_MAX_CHARS, LETTER, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced,
-  chatRequest, chatOutcome, evaluateRequest, stepTiers,
+  sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
 };
