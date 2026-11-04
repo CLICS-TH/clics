@@ -106,6 +106,9 @@ export async function runPlay({ root, api, reset }) {
       if (!entered) return;
       if (at === 'replying') requestReply(api, state).then(dispatch);
       else if (at === 'scoring') {
+        // The reply screen stays up for up to a second. The score request is already sent, so Leave could no longer keep
+        // the play unscored, as its confirm says.
+        root.querySelector('[data-action="start-over"]')?.setAttribute('disabled', '');
         requestScore(api, state).then(dispatch);
         setTimeout(() => dispatch({ type: 'slow' }), SCORING_SHOWN_MS);
       } else if (TERMINAL.has(at)) resolve({ kind: at });
@@ -234,12 +237,11 @@ const icon = (name) => el('span', { class: 'booth-icon', dataset: { icon: name }
 
 const labelled = (pair, lead = null, trail = null) => [lead && icon(lead), bi(pair, 'btn-label'), trail && icon(trail)];
 
-/** `leave` is the Start over button, at the end of the demo label's band. */
-function frame(body, actions = [], { stack = false, leave = null } = {}) {
+function frame(body, actions = [], { stack = false, startOver = null } = {}) {
   return el('div', { class: 'play-frame' },
     el('div', { class: 'play-body' }, ...body),
     actions.length ? el('div', { class: stack ? 'play-actions play-actions--stack' : 'play-actions' }, ...actions) : null,
-    el('div', { class: 'play-foot' }, el('div', { class: 'demo-label', dataset: { demoLabel: '' } }, bi(DEMO_LABEL)), leave));
+    el('div', { class: 'play-foot' }, el('div', { class: 'demo-label', dataset: { demoLabel: '' } }, bi(DEMO_LABEL)), startOver));
 }
 
 function draw(root, at, node) {
@@ -305,7 +307,7 @@ const VIEWS = {
   vignette: (s, { button, startOver }) => frame(
     [caseCard(s.play, 'case-card--full')],
     [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })],
-    { leave: startOver() }),
+    { startOver: startOver() }),
 
   step: (s, { button, startOver }) => {
     const step = stepOf(s);
@@ -321,7 +323,7 @@ const VIEWS = {
           button(labelled(COPY.typeOwn, 'pencil'), 'secondary', () => ({ type: 'openTyping' }), { 'data-action': 'type-own' }),
           button(labelled(COPY.send), 'primary', () => ({ type: 'answer', answer: { choice: chosen } }),
             { 'data-action': 'send', ...(chosen ? {} : { disabled: '' }) }))),
-    ], [], { leave: startOver() });
+    ], [], { startOver: startOver() });
   },
 
   typing: (s, { button, startOver }) => {
@@ -342,10 +344,10 @@ const VIEWS = {
           button(labelled(COPY.backToChoices), 'secondary', () => ({ type: 'closeTyping' }), { 'data-action': 'back' }),
           send)),
       caseCard(s.play, 'case-card--behind'),
-    ], [], { leave: startOver() });
+    ], [], { startOver: startOver() });
   },
 
-  replying: (s) => frame([exchange(s, aiBubble(waiting(el('span', { class: 'ai-wait', role: 'status' }, bi(COPY.replying), dots()))))]),
+  replying: (s) => frame([exchange(s, aiBubble(withStillWorking(el('span', { class: 'ai-wait', role: 'status' }, bi(COPY.replying), dots()))))]),
 
   reply: (s, { button, startOver }) => {
     const text = s.replies[s.replies.length - 1];
@@ -353,7 +355,7 @@ const VIEWS = {
     const [copy, action] = s.answers.length === STEPS ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
       [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })],
-      { leave: startOver() });
+      { startOver: startOver() });
   },
 
   scoring: () => frame([waitView(COPY.scoring)]),
@@ -426,11 +428,10 @@ function aiBubble(content) {
 const dots = () => el('span', { class: 'waiting-dots', 'aria-hidden': 'true' }, el('i'), el('i'), el('i'));
 
 function waitView(title) {
-  return waiting(el('div', { class: 'wait', role: 'status' }, bi(title, 'wait-title'), dots()));
+  return withStillWorking(el('div', { class: 'wait', role: 'status' }, bi(title, 'wait-title'), dots()));
 }
 
-/** A wait's status line. Still on screen after STILL_WORKING_MS, it adds that the kiosk is still working. */
-function waiting(status) {
+function withStillWorking(status) {
   setTimeout(() => { if (status.isConnected) status.append(bi(COPY.stillWorking)); }, STILL_WORKING_MS);
   return status;
 }

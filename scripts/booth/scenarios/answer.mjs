@@ -245,6 +245,8 @@ export default [
           document.addEventListener('click', (e) => { if (e.target.closest?.('[data-action="see-score"]')) window.boothTapAt ??= performance.now(); }, true);
         });
         await k.tap('[data-action="see-score"]');
+        const locked = await page.evaluate(() => document.querySelector('[data-screen="reply"] [data-action="start-over"]')?.disabled ?? null);
+        h.check(locked === true, `score in ${delay} ms: while the reply screen stays up, its Start over is disabled, since the score is sent (${locked})`);
         await k.screen('scored');
         const { screens, tapAt } = await page.evaluate(() => ({ screens: window.boothScreens, tapAt: window.boothTapAt }));
         const seen = screens.filter((s, i) => i === 0 || s.at !== screens[i - 1].at);
