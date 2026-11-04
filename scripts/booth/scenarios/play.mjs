@@ -443,10 +443,14 @@ export default [
       const tallest = h.longestNext((await h.caseTrees()).map(([, t]) => t),
         { bridge: '', size: (o) => o.label.th.length + o.label.en.length });
       const { question, options } = tallest;
-      const words = ['ผู้ป่วยมีไข้สูง', 'ปวดน่อง', 'ตาแดง', 'หลังลุยน้ำท่วม', 'จึงควรตรวจเลือด', 'ปัสสาวะ', 'ค่าไต', 'และเริ่มยาปฏิชีวนะ'];
-      let typed = '';
-      for (let i = 0; typed.length < h.START.answer_max_chars; i++) typed += `${words[i % words.length]} `;
-      typed = typed.slice(0, h.START.answer_max_chars);
+      const upTo = (unit) => unit.repeat(Math.ceil(h.START.answer_max_chars / unit.length)).slice(0, h.START.answer_max_chars).trim();
+      const TYPED = Object.entries({
+        'Thai with spaces': upTo('ผู้ป่วยมีไข้สูง ปวดน่อง ตาแดง หลังลุยน้ำท่วม จึงควรตรวจเลือด ปัสสาวะ ค่าไต และเริ่มยาปฏิชีวนะ '),
+        'Thai without spaces': upTo('ผู้ป่วยมีไข้สูงปวดน่องตาแดง'),
+        'Thai on many lines': upTo('ตรวจเลือด\n'),
+        'English with spaces': upTo('Check CBC, creatinine and electrolytes, then start IV fluids. '),
+        'English without spaces': upTo('CBCcreatinineelectrolytesIVfluids'),
+      });
       const measure = (page) => page.evaluate(() => {
         const body = document.querySelector('.play-body');
         const button = document.querySelector('.play-actions [data-action]').getBoundingClientRect();
@@ -483,20 +487,28 @@ export default [
         h.check(fits.every((f) => f.overflow <= 1 && f.spare >= 0 && f.button && f.still),
           `${width}x${height}: three fields of ${h.FIELD_MAX_CHARS} characters, the longest the server can send, under the tallest question ("${question.en.slice(0, 32)}...") and tapped answer ("${options[0].label.en}") `
           + `fit with no scroll, Next and See my score fully on screen (${fits.map((f, i) => `reply ${i + 1}: ${f.spare}px to spare`).join(', ')})`);
-        await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
-        await toStep(k);
-        await k.tap('[data-action="type-own"]');
-        await k.screen('typing');
-        await k.page.fill('.typing-box', typed);
-        await k.tap('[data-action="send"]');
-        await k.screen('reply');
-        const t = await measure(k.page);
-        h.check(t.overflow <= 1 && t.spare >= 0 && t.button && t.still,
-          `${width}x${height}: a ${typed.trim().length}-character typed answer under three fields of ${h.FIELD_MAX_CHARS} characters fits `
-          + `with no scroll, Next fully on screen (${t.spare >= 0 ? `${t.spare}px to spare` : `${-t.spare}px over`})`);
-        h.check(await text(k.page, '.answer-text') === typed.trim(),
-          `${width}x${height}: the long typed answer is held to its first lines on screen, its whole text kept in the page`);
-        await h.shot(k.page, `reply-fit-typed-${width}`);
+        for (const [shape, typed] of TYPED) {
+          const label = `${width}x${height}, a ${typed.length}-character typed answer, ${shape}`;
+          await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
+          await toStep(k);
+          await k.tap('[data-action="type-own"]');
+          await k.screen('typing');
+          await k.page.fill('.typing-box', typed);
+          await k.tap('[data-action="send"]');
+          await k.screen('reply');
+          const t = await measure(k.page);
+          h.check(t.overflow <= 1 && t.spare >= 0 && t.button && t.still,
+            `${label}: under three fields of ${h.FIELD_MAX_CHARS} characters it fits with no scroll, Next fully on screen `
+            + `(${t.spare >= 0 ? `${t.spare}px to spare` : `${-t.spare}px over`})`);
+          const box = await k.page.evaluate(() => {
+            const p = document.querySelector('.answer-text');
+            return { lines: p.getBoundingClientRect().height / parseFloat(getComputedStyle(p).lineHeight), text: p.textContent };
+          });
+          h.check(box.lines > 0.9 && box.lines <= 2.05 && box.text === typed,
+            `${label}: the answer box shows at most two lines (${box.lines.toFixed(2)} drawn), its whole text kept in the page`);
+          await h.screenCheck(k.page, `reply under ${label}`);
+          await h.shot(k.page, `reply-fit-typed-${shape.replaceAll(' ', '-')}-${width}`);
+        }
         await k.close();
       }));
     },
