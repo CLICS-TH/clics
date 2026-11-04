@@ -31,8 +31,8 @@ const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-cas
 const EVENT = KASE.event_code;
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const SCORE_WRITE_COLUMNS = ['status', 'composite', ...DOMAINS, 'scored_at', 'ranked', 'tier_path'];
-const RPC_ARG_KEYS = ['p_event', 'p_case', 'p_version', 'p_play', 'p_amount', 'p_ceiling', 'p_delta'];
-const BOOTH_RPCS = ['booth_start_play', 'booth_reserve_spend', 'booth_settle_spend'];
+const RPC_ARG_KEYS = ['p_event', 'p_case', 'p_version', 'p_play', 'p_amount', 'p_ceiling', 'p_delta', 'p_key', 'p_tier'];
+const BOOTH_RPCS = ['booth_start_play', 'booth_reserve_spend', 'booth_settle_spend', 'booth_sort_memo'];
 const PILOT_TABLES = ['professionals', 'ples', 'messages', 'ai_evaluations', 'lpdp_snapshots', 'shadow_evaluations', 'councils'];
 const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const HOUR = 3_600_000;
@@ -77,6 +77,7 @@ const CLOSED = [
 ];
 
 let plays;
+let memos;
 let settings;
 let rpcCalls;
 let rpcOverride;
@@ -130,6 +131,10 @@ function fakeRpc(name, args) {
     if (p) p.spend_usd = usd(p.spend_usd + args.p_delta);
     return { data: null, error: null };
   }
+  if (name === 'booth_sort_memo') {
+    if (args.p_tier != null && !memos.has(args.p_key)) memos.set(args.p_key, args.p_tier);
+    return { data: memos.get(args.p_key) ?? null, error: null };
+  }
   return { data: null, error: null };
 }
 
@@ -181,6 +186,7 @@ beforeEach(() => {
   m.state.resolve = resolve;
   supabase.rpc = async (name, args) => fakeRpc(name, args);
   plays = new Map();
+  memos = new Map();
   settings = { rows: eventSettings() };
   rpcCalls = [];
   rpcOverride = {};
@@ -1425,6 +1431,174 @@ describe('turn binding (#222, #246: the score reads only what the server issued)
   });
 });
 
+describe('the sort memo (#374: the same typed text at the same point sorts the same)', () => {
+  const TYPED = { text: 'ตรวจ CBC ก่อน' };
+  /** The step-2 banks that could have shown the kiosk `p.next`, as tier letters. */
+  const shownFrom = (p) => ['B', 'R', 'W'].filter((t) => {
+    const b = bank(t);
+    return b.variants.some((v) => v.id === p.next.ask.variant) && p.next.ask.options.every((id) => b.options.some((o) => o.id === id))
+      && JSON.stringify(shown(b, p.next.ask)) === JSON.stringify(p.next);
+  });
+  const lookups = () => rpcNamed('booth_sort_memo').filter((a) => a.p_tier === null).map((a) => a.p_key);
+  const kept = () => rpcNamed('booth_sort_memo').filter((a) => a.p_tier !== null);
+  /** rimpl sorting the same text best, then weaker, then reasonable, and picking from the next bank it was given for that tier. */
+  const flipping = () => {
+    let calls = 0;
+    rimplChat.mockImplementation(async ({ booth_typed }) => {
+      const tier = ['best', 'weaker', 'reasonable'][calls++ % 3];
+      return { ...CHAT_OK, tier, pick: booth_typed?.next ? pickFor(booth_typed.next[tier]) : null };
+    });
+  };
+  async function typedTwice(first, second = first) {
+    const [p1, p2] = [await begin(), await begin()];
+    await answer(p1, first);
+    await answer(p2, second);
+    return [p1, p2];
+  }
+
+  test('control: with nothing kept, the flipping rimpl alone sends the same text at the same point down two branches', async () => {
+    flipping();
+    rpcOverride.booth_sort_memo = () => ({ data: null, error: null });
+    const [p1, p2] = await typedTwice(TYPED);
+    expect(shownFrom(p1)).toEqual(['B']);
+    expect(shownFrom(p2)).toEqual(['W']);
+  });
+
+  test('the same text at the same point takes the first play\'s branch, with the AI\'s own pick, and the reply call still runs', async () => {
+    flipping();
+    const [p1, p2] = await typedTwice(TYPED);
+    expect(shownFrom(p1)).toEqual(['B']);
+    expect(shownFrom(p2)).toEqual(['B']);
+    expect(rimplChat).toHaveBeenCalledTimes(2);
+    expect(p2.next.ask).toMatchObject({ variant: bank('B').variants[1].id, bridge: 'ดีครับ' });
+    expect([...p2.next.ask.options].sort()).toEqual([...pickFor(bank('B')).option_ids].sort());
+  });
+
+  test('on a hit every next tier sent to rimpl is the kept tier\'s bank, beside the step\'s own bank', async () => {
+    sorting('reasonable');
+    await typedTwice(TYPED);
+    const ai = (b) => ({ variants: b.variants, options: b.options });
+    expect(rimplChat.mock.calls[1][0].booth_typed).toEqual({
+      current: ai(bank('')), next: { best: ai(bank('R')), reasonable: ai(bank('R')), weaker: ai(bank('R')) },
+    });
+  });
+
+  test.each([
+    ['NFC: a decomposed letter', 'ตรวจ café ก่อน', 'ตรวจ café ก่อน'],
+    ['trim: spaces around the text', '  ตรวจ CBC ก่อน  ', 'ตรวจ CBC ก่อน'],
+    ['a run of spaces', 'ตรวจ   CBC  ก่อน', 'ตรวจ CBC ก่อน'],
+    ['a run of newlines', 'ตรวจ CBC\n\nก่อน', 'ตรวจ CBC ก่อน'],
+    ['Latin case', 'ตรวจ cbc ก่อน', 'ตรวจ CBC ก่อน'],
+  ])('%s is the same answer', async (_rule, first, second) => {
+    await typedTwice({ text: first }, { text: second });
+    const [k1, k2] = lookups();
+    expect(k1).toMatch(/^[0-9a-f]{64}$/);
+    expect(k2).toBe(k1);
+  });
+
+  test.each([
+    ['a changed comma', 'ตรวจ CBC, ก่อน', 'ตรวจ CBC ก่อน'],
+    ['a spelling change', 'ตรวจ CBD ก่อน', 'ตรวจ CBC ก่อน'],
+    ['a word-order change', 'ก่อน ตรวจ CBC', 'ตรวจ CBC ก่อน'],
+  ])('%s is another answer', async (_rule, first, second) => {
+    await typedTwice({ text: first }, { text: second });
+    const [k1, k2] = lookups();
+    expect(k2).not.toBe(k1);
+  });
+
+  test('the same text after another tier path is another answer', async () => {
+    const [p1, p2] = [await begin(), await begin()];
+    await answer(p1, 'best');
+    await answer(p2, 'reasonable');
+    await answer(p1, TYPED);
+    await answer(p2, TYPED);
+    const [k1, k2] = lookups();
+    expect(k2).not.toBe(k1);
+  });
+
+  test('the same text at the same point of another case version is another answer', async () => {
+    await answer(await begin(), TYPED);
+    process.env.BOOTH_CASES_DIR = casesDir(edited((k) => { k.version = '2'; }));
+    await answer(await begin(), TYPED);
+    const [k1, k2] = lookups();
+    expect(k2).not.toBe(k1);
+  });
+
+  test('a kept tier holds when the AI call fails: its branch with the fallback ask, and nothing more is kept', async () => {
+    sorting('best');
+    await answer(await begin(), TYPED);
+    rimplChat.mockRejectedValueOnce(new Error('down'));
+    const p = await begin();
+    rpcCalls = [];
+    expect((await answer(p, TYPED)).body).toMatchObject({ status: 'replied', reply: '' });
+    expectFallback(bank('B'), p.next);
+    expect(rpcNamed('booth_sort_memo')).toEqual([{ p_key: expect.stringMatching(/^[0-9a-f]{64}$/), p_tier: null }]);
+  });
+
+  test.each([
+    ['fails', () => rimplChat.mockRejectedValueOnce(new Error('down'))],
+    ['gives no tier', () => rimplChat.mockImplementationOnce(async () => ({ ...CHAT_OK, tier: null }))],
+  ])('an AI call that %s keeps nothing, so the same text is sorted afresh by the next play', async (_name, once) => {
+    sorting('best');
+    once();
+    const [p1, p2] = await typedTwice(TYPED);
+    expect(shownFrom(p1)).toEqual(['W']);
+    expect(shownFrom(p2)).toEqual(['B']);
+    expect(kept().map((a) => a.p_tier)).toEqual(['B']);
+  });
+
+  test('a text the AI first called unclear stays weaker when it later says best', async () => {
+    sorting('unclear');
+    const p1 = await begin();
+    await answer(p1, TYPED);
+    sorting('best');
+    const p2 = await begin();
+    await answer(p2, TYPED);
+    expect(shownFrom(p1)).toEqual(['W']);
+    expect(shownFrom(p2)).toEqual(['W']);
+  });
+
+  test('a play that loses the race to keep a tier takes the winner\'s, and its pick for another bank falls back', async () => {
+    sorting('weaker');
+    rpcOverride.booth_sort_memo = ({ p_tier }) => ({ data: p_tier ? 'B' : null, error: null });
+    const p = await begin();
+    await answer(p, TYPED);
+    expect(rpcNamed('booth_sort_memo').map((a) => a.p_tier)).toEqual([null, 'W']);
+    expectFallback(bank('B'), p.next);
+  });
+
+  test.each([
+    ['an error', { data: null, error: { code: 'PGRST202', message: 'Could not find the function' } }],
+    ['a value that is not a tier', { data: 'best', error: null }],
+  ])('a memo call answering %s never refuses the reply: the AI\'s tier is taken, and the warning names neither text nor key', async (_name, answered) => {
+    sorting('reasonable');
+    rpcOverride.booth_sort_memo = () => answered;
+    const p = await begin();
+    expect((await answer(p, TYPED)).body.status).toBe('replied');
+    expect(shownFrom(p)).toEqual(['R']);
+    expect(console.warn).toHaveBeenCalled();
+    const warned = JSON.stringify(console.warn.mock.calls);
+    for (const s of [TYPED.text, ...rpcNamed('booth_sort_memo').map((a) => a.p_key)]) expect(warned).not.toContain(s);
+  });
+
+  test('only an HMAC of the text reaches the memo: no call, query or kept value holds the text or its normalised form', async () => {
+    const text = 'SENTINEL-Memo  ตรวจ CBC';
+    sorting('best');
+    await typedTwice({ text });
+    expect(rpcNamed('booth_sort_memo').map((a) => a.p_tier)).toEqual([null, 'B', null]);
+    for (const { p_key } of rpcNamed('booth_sort_memo')) expect(p_key).toMatch(/^[0-9a-f]{64}$/);
+    const seen = JSON.stringify([rpcCalls, m.state.queries, [...memos]]);
+    for (const s of [text, 'sentinel-memo ตรวจ cbc', 'SENTINEL', 'sentinel', 'ตรวจ']) expect(seen).not.toContain(s);
+  });
+
+  test('a tapped answer makes no memo call; a typed one does', async () => {
+    const p = await walked(['best', 'best']);
+    expect(rpcNamed('booth_sort_memo')).toEqual([]);
+    await answer(p, TYPED);
+    expect(rpcNamed('booth_sort_memo')).toHaveLength(1);
+  });
+});
+
 describe('the board (#212)', () => {
   const { standings } = require('../src/services/booth');
   const BKK = 7 * HOUR;
@@ -1560,7 +1734,7 @@ describe('write surface (ADR 0004)', () => {
     expect(s.body.status).toBe('scored');
   });
 
-  test('a whole play writes booth_plays only, through the three functions and the score columns', async () => {
+  test('a whole play writes booth_plays and the sort memo only, through the four functions and the score columns', async () => {
     const { p } = await wholePlay();
     expect(new Set(m.state.queries.map((q) => q.table))).toEqual(new Set(['app_settings', 'booth_plays']));
     expect(writes().length).toBeGreaterThan(0);
