@@ -128,7 +128,8 @@ function boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints) {
 }
 
 // A booth physician turn is the vetted vignette (turn 1 only) and bank question, then the visitor's answer:
-// `[vignette \n\n] question \n answer` (backend/src/services/booth-dialogue.js dialogueTurns). Neither the
+// `[vignette \n\n] question \n answer` (backend/src/services/booth-dialogue.js dialogueTurns; a typed answer comes
+// fenced, `note \n ⟦answer⟧`). Neither the
 // vignette nor a question holds a line break inside it. The question and answer are read together, so a label
 // that ends the question masks the value that opens the answer (#375). Vetted text holds no PII, though, so a
 // question the filter masks on its own holds a false positive: a question opening with the pronoun คุณ
@@ -165,12 +166,27 @@ function deidentifyBoothTurn({ chiefComplaint, history, message, hints, boothAns
   const cleanPieces = pieces.map((p) => p.map((s, i) => (i % 2 === 0 ? stripPii(s, registry, hints) : s)));
   const cleanTurns = turns.map((m, i) => ({ ...m, content: cleanPieces[i].join('') }));
   const cleanMessage = cleanTurns.pop().content;
-  // The answer piece is exactly what the AI sees of the answer; a joined question and answer takes #401's cut.
+  // The kept answer is exactly what the AI sees of it, cut from the last piece, never from the vignette before it:
+  // the text inside the visitor fence; else the answer piece when the question was read apart; else #401's cut.
   const said = pieces[pieces.length - 1];
-  const cleanBoothAnswer = !boothAnswer ? undefined : said.length > 1 && said[said.length - 1] === boothAnswer
-    ? cleanPieces[cleanPieces.length - 1][said.length - 1].trim() || null
-    : boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints);
+  const raw = said[said.length - 1];
+  const clean = cleanPieces[cleanPieces.length - 1][said.length - 1];
+  const inFence = fencedText(raw, clean);
+  const cleanBoothAnswer = !boothAnswer ? undefined
+    : inFence !== undefined ? inFence
+      : said.length > 1 && raw === boothAnswer ? clean.trim() || null
+        : boothAnswerPart(raw, clean, boothAnswer, registry, hints);
   return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage, cleanBoothAnswer };
+}
+
+// The backend sends a typed answer fenced (#400, booth-dialogue.js `fenced`): a note line, then ⟦answer⟧, with the
+// fence marks stripped from the answer. The clean text inside the fence, or undefined when the turn has no fence.
+const FENCE_OPEN = '⟦';
+const FENCE_CLOSE = '⟧';
+function fencedText(raw, clean) {
+  if (!raw.endsWith(FENCE_CLOSE) || !clean.endsWith(FENCE_CLOSE)) return undefined;
+  const open = clean.lastIndexOf(FENCE_OPEN);
+  return open < 0 ? undefined : clean.slice(open + 1, -1).trim() || null;
 }
 
 // Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only
