@@ -175,12 +175,40 @@ describe('admission', () => {
     expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
   });
 
-  test('every NFCME-2026 case is admitted with its path score table: leptospirosis by the sandbox, the other ten by the owner waiver', () => {
+  const tableRun = good.path_score_table.provenance.run_id;
+  const judged = (k, admission) => ({ ...k, admission: { ...k.admission, ...admission } });
+  const unjudged = (k) => { const c = structuredClone(k); delete c.admission.table_check; return c; };
+  const tableWaiver = (runId) => ({ table_waiver: { date: '2026-11-09', adr: '0005', reason: 'Owner waiver', run_id: runId } });
+
+  test('a table admits its case only by a passing re-check or an owner waiver on that table\'s own run (ADR 0005)', () => {
+    expect(isAdmitted(good)).toBe(true);
+    const older = waived(unjudged(without('sandbox')));
+    expect(caseTreeProblems(older)).toEqual([]);
+    expect(isAdmitted(older)).toBe(false);
+    expect(isAdmitted(judged(older, { table_check: { run_id: 'ptb-earlier', date: '2026-11-04' } }))).toBe(false);
+    expect(isAdmitted(judged(older, tableWaiver('ptb-earlier')))).toBe(false);
+    expect(isAdmitted(judged(older, tableWaiver(tableRun)))).toBe(true);
+    expect(isAdmitted(judged(older, { table_check: { run_id: tableRun, date: '2026-11-04' } }))).toBe(true);
+  });
+
+  test.each([
+    ['another ADR', (w) => { w.adr = '0006'; }, 'admission.table_waiver.adr'],
+    ['no run id', (w) => { delete w.run_id; }, 'admission.table_waiver.run_id'],
+    ['an empty reason', (w) => { w.reason = ''; }, 'admission.table_waiver.reason'],
+  ])('a table waiver with %s is a problem', (_, change, field) => {
+    const k = judged(unjudged(good), tableWaiver(tableRun));
+    change(k.admission.table_waiver);
+    expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
+  });
+
+  test('every NFCME-2026 case has its path score table, and only a case its run passed or the owner waived against that run is admitted', () => {
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
     expect(cases).toHaveLength(11);
     expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id)).toEqual([]);
-    expect(cases.filter(isAdmitted)).toHaveLength(11);
+    // Run ptb-202611040911-a71a's re-check passed alcohol-pancreatitis only; the owner decides the ten others per case.
+    expect(cases.filter(isAdmitted).map((k) => k.case_id)).toEqual(['alcohol-pancreatitis']);
+    expect(cases.filter((k) => k.admission.table_check || k.admission.table_waiver).map((k) => k.case_id)).toEqual(['alcohol-pancreatitis']);
     expect(cases.filter((k) => k.admission.sandbox).map((k) => k.case_id)).toEqual(['leptospirosis']);
     expect(cases.filter((k) => k.admission.owner_waiver)).toHaveLength(10);
   });

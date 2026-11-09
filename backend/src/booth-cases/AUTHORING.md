@@ -97,6 +97,13 @@ The table build script (`scripts/booth/build-path-tables.mjs`) writes the table.
 
 Every play scores from the table. A case without one is never drawn, whatever its admission says.
 
+The build also re-runs ADR 0005's difficulty check on the table's own samples. A table admits its case only with a verdict on that table's run:
+
+- `admission.table_check` holds the `run_id` and `date` of a passing re-check. The build writes it, never a person.
+- `admission.table_waiver` holds the owner's waiver of a failed re-check: its `date`, `adr` (`"0005"`), `reason` and the table `run_id` it waives.
+
+Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
+
 ## Checking your case
 
 Run the contract test from the repo root.

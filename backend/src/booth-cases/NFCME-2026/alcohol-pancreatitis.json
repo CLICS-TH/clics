@@ -1295,6 +1295,10 @@
       "adr": "0005",
       "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
       "sandbox_run_id": "sbx-202611030632-80af"
+    },
+    "table_check": {
+      "run_id": "ptb-202611040911-a71a",
+      "date": "2026-11-04"
     }
   },
   "path_score_table": {

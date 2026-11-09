@@ -79,14 +79,22 @@ const CaseTreeSchema = z.object({
     sandbox: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
     // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
     owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
+    // ADR 0005's difficulty check on the path score table's own samples: a pass, written by the table build, or the
+    // owner's waiver of a fail. Each names the table run it judged, so a rebuilt table needs its own.
+    table_check: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
+    table_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, run_id: Text }).strict().optional(),
   }).strict().optional(),
   // The demo score of each tier path (ADR 0009), built by scripts/booth/build-path-tables.mjs, never by hand.
   // Optional in the file so a case can be checked before its table is built; isAdmitted requires it.
   path_score_table: PathScoreTable.optional(),
 }).strict();
 
-const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && (kase.admission.sandbox || kase.admission.owner_waiver)
-  && kase.path_score_table);
+const isAdmitted = (kase) => {
+  const a = kase?.admission;
+  const run = kase?.path_score_table?.provenance.run_id;
+  return Boolean(a?.safety_review && (a.sandbox || a.owner_waiver) && run
+    && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
+};
 
 // Thai combining marks take no width at the kiosk. Budgets are the line counts measured at the
 // kiosk's font sizes (PR #233); the teaser budget is measured by scripts/booth/scenarios/draw.mjs.

@@ -83,7 +83,8 @@ export function summaryMarkdown(report) {
   ];
   if (failing.length) {
     lines.push('', '### Why cases failed', '', ...failing.map((id) => `- ${id}: ${report.recheck.cases[id].reasons.join('; ')}`),
-      '', `Each failing case needs the owner to waive it again against run ${report.run_id}, or to switch it off.`);
+      '', `Each failing case is left out until the owner waives it again against run ${report.run_id}, or to switch it off: `
+        + `\`admission.table_waiver\` with \`run_id\` ${report.run_id} (backend/src/booth-cases/AUTHORING.md).`);
   }
   if (paths.length) {
     lines.push('', '## Demo score per tier path', '', 'The composite of each table entry: what a play on that path scores.', '',

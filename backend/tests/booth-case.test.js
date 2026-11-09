@@ -46,6 +46,15 @@ test.each([
   ['a default trio with two best options', (k) => { k.banks.step1.default_trio = ['a', 'b', 'd']; }],
   ['no path score table', (k) => { delete k.path_score_table; }],
   ['a table missing a path', (k) => { delete k.path_score_table.paths.WRB; }],
+  ['an older sandbox waiver and a table whose re-check failed, with no waiver on its run', (k) => {
+    delete k.admission.sandbox;
+    delete k.admission.table_check;
+    k.admission.owner_waiver = { date: '2026-11-03', adr: '0005', reason: 'Owner waiver', sandbox_run_id: 'sbx-fixture' };
+  }],
+  ['a table waiver on an earlier table run', (k) => {
+    delete k.admission.table_check;
+    k.admission.table_waiver = { date: '2026-11-09', adr: '0005', reason: 'Owner waiver', run_id: 'ptb-earlier' };
+  }],
 ])('a case with %s is left out', (_name, fn) => {
   const k = edited(fn);
   expect(readEventCases(casesDir({ [at(FIXTURE)]: k }), EVENT)).toEqual([]);

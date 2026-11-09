@@ -68,6 +68,6 @@ test('the summary lists each case\'s table and path scores, and names every fail
   assert.match(md, /\| gone \| 1 \| refused: has uncommitted changes \| none \| not run \|/);
   assert.match(md, /\| flat \| 2 \| ffffffffffff \(review abcdef12\) \| built \| FAIL \|/);
   assert.match(md, /- flat: .*best is only 0 above weakest/);
-  assert.match(md, /waive it again against run ptb-1, or to switch it off/);
+  assert.match(md, /left out until the owner waives it again against run ptb-1, or to switch it off: `admission.table_waiver` with `run_id` ptb-1/);
   assert.match(md, /\| WWW \| 40 \| 40 \| 40 \| 40 \| 45 \|/);
 });
