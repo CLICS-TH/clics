@@ -161,13 +161,14 @@ function deidentifyBoothTurn({ chiefComplaint, history, message, hints, boothAns
   const pieces = turns.map((m, i) => (m.role === 'physician' ? boothTurnPieces(m.content, i === firstPhysician, hints) : [m.content]));
   const texts = (p) => p.filter((_, i) => i % 2 === 0);
   primeRegistry([chiefComplaint || '', ...pieces.flatMap(texts)], registry, hints);
-  const clean = (p) => p.map((s, i) => (i % 2 === 0 ? stripPii(s, registry, hints) : s)).join('');
   const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
-  const cleanTurns = turns.map((m, i) => ({ ...m, content: clean(pieces[i]) }));
+  const cleanPieces = pieces.map((p) => p.map((s, i) => (i % 2 === 0 ? stripPii(s, registry, hints) : s)));
+  const cleanTurns = turns.map((m, i) => ({ ...m, content: cleanPieces[i].join('') }));
   const cleanMessage = cleanTurns.pop().content;
+  // The answer piece is exactly what the AI sees of the answer; a joined question and answer takes #401's cut.
   const said = pieces[pieces.length - 1];
-  const cleanBoothAnswer = !boothAnswer ? undefined : said[said.length - 1] === boothAnswer
-    ? stripPii(boothAnswer, registry, hints).trim() || null
+  const cleanBoothAnswer = !boothAnswer ? undefined : said.length > 1 && said[said.length - 1] === boothAnswer
+    ? cleanPieces[cleanPieces.length - 1][said.length - 1].trim() || null
     : boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints);
   return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage, cleanBoothAnswer };
 }
