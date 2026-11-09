@@ -614,6 +614,40 @@ describe('adversarial — a name that starts like a shield word, or follows role
 });
 
 // ===========================================================================
+// #406 — a คุณ run that opens with a function word (คุณจะ…, คุณบอก…) is a pronoun clause: it takes no
+// surname ACROSS a line break, so a booth answer typed under the question survives. A real name glued into
+// such a run, with its surname on the SAME line, must still lose both parts — in one text, and through a
+// primed registry the way routes/chat.js deidentifyTurn runs it.
+// ===========================================================================
+describe('adversarial — a name inside a คุณ pronoun clause keeps its same-line surname masked (#406)', () => {
+  const { makeRegistry, primeRegistry } = require('../src/services/pii-filter');
+  const primed = (text) => {
+    const registry = makeRegistry();
+    primeRegistry([text], registry);
+    return stripPii(text, registry);
+  };
+  const CASES = [
+    'คุณจะสมชาย ใจดี', 'คุณบอกสมชาย ใจดี', 'คุณบอกสมชาย ใจดี มาตามนัด', 'คุณจะสมชาย, ใจดี',
+    'คุณบอกปิยะพร ทองเปลว\nให้ยาแล้ว', 'ใจดี คุณบอกสมชาย', 'คุณจะสมชาย JAIDEE', 'คุณบอกสมชาย ณ อยุธยา',
+    // the surname's later bare mention on another line folds in through the alias
+    'คุณบอกสมชาย ใจดี\nใจดี โทรมาสอบถาม',
+  ];
+  test.each(CASES)('%s', (input) => {
+    const parts = ['สมชาย', 'ใจดี', 'ปิยะพร', 'ทองเปลว', 'JAIDEE', 'อยุธยา'].filter((p) => input.includes(p));
+    for (const out of [stripPii(input), primed(input)]) {
+      for (const p of parts) expect(out).not.toContain(p);
+    }
+  });
+
+  test('a real-name rule on the same token keeps the cross-the-line ruling', () => {
+    // นาย makes คิดถึง a name even after คุณคิดถึง… registered the same token as a clause
+    const input = 'คุณคิดถึง มาตามนัด\nนายคิดถึง\nใจดี';
+    for (const out of [stripPii(input), primed(input)]) expect(out).not.toContain('ใจดี');
+    for (const out of [stripPii('นายสมชาย\nใจดี'), primed('นายสมชาย\nใจดี')]) expect(out).not.toContain('ใจดี');
+  });
+});
+
+// ===========================================================================
 // PR #114 REVIEW — I1: the first shield re-scanned fragments RECURSIVELY, so a
 // 5000-char "คุณจะคุณจะ…" (the backend's max message) blew the stack, and the
 // unhandled rejection exited RIMPL. Each input runs in a FRESH child process
