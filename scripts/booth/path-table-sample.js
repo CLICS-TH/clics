@@ -99,6 +99,38 @@ function readReplies(kase, dir = path.join(REPLIES_DIR, kase.event_code)) {
 const jobsFor = (cases, samples = 3) => cases.flatMap((kase) => TIER_PATHS.flatMap((tierPath) =>
   Array.from({ length: samples }, (_, i) => ({ kase, tierPath, sample: i + 1 }))));
 
+// The locked evaluator, as rimpl's committed model manifest declares it for the API: what every table sample must have
+// been scored by.
+const MANIFEST = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'rimpl', 'src', 'model-manifest.json'), 'utf8')).expected.code;
+const LOCKED = Object.freeze({
+  provider: 'anthropic',
+  model: MANIFEST.anthropic.model,
+  prompt_version: MANIFEST.evaluator.prompt_version.anthropic,
+  prompt_sha256: MANIFEST.evaluator.prompt_sha256.anthropic,
+  temperature: MANIFEST.decoding.evaluate.temperature,
+  max_tokens: MANIFEST.decoding.evaluate.max_tokens,
+});
+
+/** Why a scored sample was not scored by the locked evaluator, or [] when it was. */
+function lockProblems(sample) {
+  const seen = { provider: sample?.provider, model: sample?.model, prompt_version: sample?.prompt_version,
+    temperature: sample?.decoding?.temperature, max_tokens: sample?.decoding?.max_tokens };
+  return Object.entries(seen).filter(([k, v]) => v !== LOCKED[k]).map(([k, v]) => `${k} ${v ?? 'none'}, locked ${LOCKED[k]}`);
+}
+
+// rimpl's provider retries (CLAUDE_MAX_RETRIES, default 5) can each be billed, and a failed call reports none of them.
+const PROVIDER_RETRIES = 5;
+
+/** What a call is charged against the cap: its reported tokens plus the worst case of each attempt rimpl retried
+ *  before it (retried_attempts). A call that reports no tokens counts at its worst case. */
+function evaluateUsd(res) {
+  if (!Number.isFinite(res?.input_tokens) || !Number.isFinite(res?.output_tokens)) return worstCall('evaluate');
+  return costUsd(res.input_tokens, res.output_tokens, res.provider) + (res.retried_attempts ?? 0) * worstCall('evaluate');
+}
+
+/** A failed call: every attempt rimpl may have made, each at its worst case. */
+const failedUsd = () => (1 + PROVIDER_RETRIES) * worstCall('evaluate');
+
 /** One sample scored: the walk, then the evaluator through rimpl. A failed or malformed call leaves it unscored and
  *  costs its worst case, since it may still have been billed. */
 async function scoreSample({ kase, replies, tierPath, evaluate }) {
@@ -108,7 +140,7 @@ async function scoreSample({ kase, replies, tierPath, evaluate }) {
   try {
     res = await evaluate(body);
   } catch (err) {
-    return { tier_path: tierPath, domains: null, error: String(err.status || err.name || err.message), usd: worstCall('evaluate') };
+    return { tier_path: tierPath, domains: null, error: String(err.status || err.name || err.message), usd: failedUsd() };
   }
   const domains = DomainsSchema.safeParse(res);
   return {
@@ -121,7 +153,7 @@ async function scoreSample({ kase, replies, tierPath, evaluate }) {
     prompt_version: res?.prompt_version ?? null,
     config_fingerprint: res?.provenance?.config_fingerprint ?? null,
     decoding: res?.provenance?.decoding ?? null,
-    usd: costUsd(res?.input_tokens, res?.output_tokens, res?.provider),
+    usd: evaluateUsd(res),
   };
 }
 
@@ -139,4 +171,4 @@ if (require.main === module) {
   process.exit(bad ? 1 : 0);
 }
 
-module.exports = { TIER_PATHS, bankKey, sampleWalk, replyProblems, readReplies, jobsFor, scoreSample };
+module.exports = { TIER_PATHS, LOCKED, bankKey, sampleWalk, replyProblems, readReplies, jobsFor, lockProblems, evaluateUsd, failedUsd, scoreSample };

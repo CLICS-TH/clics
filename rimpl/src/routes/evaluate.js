@@ -93,6 +93,7 @@ router.post('/', async (req, res) => {
     // failed to parse). services/consistency.js itself carries no model text.
     let first = null;
     let last = null;
+    let retriedAttempts = 0;
     const callOnce = async () => {
       last = await callAI({
         purpose: 'evaluate',
@@ -113,6 +114,7 @@ router.post('/', async (req, res) => {
         temperature: EVAL_DECODING.temperature,
       });
       first ??= last;
+      retriedAttempts += last.retriedAttempts ?? 0;
       return last;
     };
 
@@ -203,6 +205,8 @@ router.post('/', async (req, res) => {
       input_tokens: billed.inputTokens,
       output_tokens: billed.outputTokens,
       provider,
+      // Present only when a provider call was retried: the failed attempts before it, which may have been billed.
+      ...(retriedAttempts ? { retried_attempts: retriedAttempts } : {}),
       ...(consistency ? { consistency } : {}),
     });
 

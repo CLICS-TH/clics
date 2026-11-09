@@ -1,9 +1,14 @@
 // The path score table build's sample walk (scripts/booth/path-table-sample.js, #373) and its runner's guards.
 const fs = require('fs');
 const path = require('path');
-const { spawnSync } = require('child_process');
+const http = require('http');
+const os = require('os');
+const { spawn, spawnSync } = require('child_process');
 const { isValidAsk } = require('../src/services/booth-dialogue');
-const { TIER_PATHS, bankKey, sampleWalk, replyProblems, jobsFor, scoreSample } = require('../../scripts/booth/path-table-sample');
+const { TIER_PATHS, bankKey, sampleWalk, replyProblems, jobsFor, scoreSample, lockProblems } = require('../../scripts/booth/path-table-sample');
+const { worstCall } = require('../../scripts/booth/sandbox-play');
+const { costUsd } = require('../src/lib/pricing');
+const MANIFEST = require('../../rimpl/src/model-manifest.json').expected.code;
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
@@ -102,12 +107,97 @@ describe('sample reply checks', () => {
   });
 });
 
+const DOMAINS = { d1: 3, d2: 3, d3: 3, d4: 3, d5: 3, d6: 3, d7: 3 };
+// An evaluate response from the locked evaluator, as rimpl's model manifest declares it.
+const locked = (over = {}) => ({
+  ...DOMAINS, provider: 'anthropic', prompt_version: MANIFEST.evaluator.prompt_version.anthropic,
+  provenance: { model: MANIFEST.anthropic.model, decoding: { ...MANIFEST.decoding.evaluate }, config_fingerprint: 'f' },
+  input_tokens: 4000, output_tokens: 400, ...over,
+});
+const scored = (res) => scoreSample({ kase: KASE, replies: REPLIES, tierPath: 'BBB', evaluate: async () => res });
+
+describe('what a sample is charged against the cap', () => {
+  test('a call rimpl retried is charged its tokens plus the worst case of each retried attempt, which reported no tokens', async () => {
+    expect((await scored(locked())).usd).toBeCloseTo(costUsd(4000, 400, 'anthropic'), 9);
+    expect((await scored(locked({ retried_attempts: 2 }))).usd).toBeCloseTo(costUsd(4000, 400, 'anthropic') + 2 * worstCall('evaluate'), 9);
+  });
+
+  test('a call that reports no tokens is charged its worst case, and a failed call the worst case of every attempt rimpl may have made', async () => {
+    expect((await scored(locked({ input_tokens: undefined }))).usd).toBe(worstCall('evaluate'));
+    const failed = await scoreSample({ kase: KASE, replies: REPLIES, tierPath: 'BBB', evaluate: async () => { throw new Error('x'); } });
+    expect(failed.usd).toBeCloseTo(6 * worstCall('evaluate'), 9);
+  });
+});
+
+describe('the locked evaluator', () => {
+  test('a sample scored by the manifest\'s model, prompt and decoding passes; any other model or decoding is named', async () => {
+    expect(lockProblems(await scored(locked()))).toEqual([]);
+    expect(lockProblems(await scored(locked({ provenance: { ...locked().provenance, model: 'claude-opus-5-5' } }))))
+      .toEqual([`model claude-opus-5-5, locked ${MANIFEST.anthropic.model}`]);
+    expect(lockProblems(await scored(locked({ provenance: { ...locked().provenance, decoding: { temperature: 0.7, max_tokens: 4096 } } }))))
+      .toEqual([`temperature 0.7, locked ${MANIFEST.decoding.evaluate.temperature}`]);
+  });
+});
+
 describe('the build runner', () => {
   const run = (args) => spawnSync(process.execPath, [RUNNER, ...args], { encoding: 'utf8', env: { PATH: process.env.PATH } });
 
   test.each([['--cap', '25.01'], ['--samples', '2']])('refuses %s %s: the cap is at most $25 and a median needs an odd count', (flag, v) => {
     const res = run([flag, v]);
     expect(res.status).toBe(2);
+  });
+
+  const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'ptb-'));
+  const runAsync = (args, env = {}) => new Promise((resolve) => {
+    const child = spawn(process.execPath, [RUNNER, ...args], { env: { PATH: process.env.PATH, ...env } });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (b) => { stdout += b; });
+    child.stderr.on('data', (b) => { stderr += b; });
+    child.on('close', (status) => resolve({ status, stdout, stderr }));
+  });
+
+  test('the cap counts every earlier run of the build: with $24 already spent of $25, --go is refused before any call', () => {
+    const out = tmp();
+    fs.writeFileSync(path.join(out, 'spend.json'), JSON.stringify({ 'NFCME-2026': [{ run_id: 'ptb-a', date: '2026-11-04', usd: 15 }, { run_id: 'ptb-b', date: '2026-11-04', usd: 9 }] }));
+    const res = spawnSync(process.execPath, [RUNNER, '--go', '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH, INTERNAL_TOKEN: 't', RIMPL_URL: 'http://127.0.0.1:9' } });
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(/build NFCME-2026 has spent \$24\.00 of its \$25 cap: no room for another call/);
+  });
+
+  test('--from refuses samples that do not record the tree they were scored on', () => {
+    const out = tmp();
+    const file = path.join(out, 'old.samples.jsonl');
+    const header = { run_id: 'ptb-old', date: '2026-11-04', build: 'NFCME-2026', cap_usd: 25, samples: 3 };
+    const sample = { case_id: 'adhf', tier_path_planned: 'BBB', sample: 1, tier_path: 'BBB', domains: DOMAINS, composite: 60, usd: 0.017, ...locked() };
+    fs.writeFileSync(file, `${[header, sample].map((x) => JSON.stringify(x)).join('\n')}\n`);
+    const res = spawnSync(process.execPath, [RUNNER, '--case', 'adhf', '--from', file, '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH } });
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(/1 sample\(s\) were not scored on the current tree, first adhf BBB#1 on no recorded tree/);
+  });
+
+  test('a probe scored by any model but the locked evaluator stops the build after that one call, and writes no table', async () => {
+    const calls = [];
+    const server = http.createServer((req, res) => {
+      calls.push(req.url);
+      req.resume();
+      req.on('end', () => {
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify(locked({ provenance: { ...locked().provenance, model: 'claude-opus-5-5' } })));
+      });
+    });
+    await new Promise((r) => server.listen(0, '127.0.0.1', r));
+    const out = tmp();
+    const before = fs.readFileSync(path.join(__dirname, '../src/booth-cases/NFCME-2026/adhf.json'), 'utf8');
+    try {
+      const res = await runAsync(['--go', '--case', 'adhf', '--out', out], { INTERNAL_TOKEN: 't', RIMPL_URL: `http://127.0.0.1:${server.address().port}` });
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/the probe was not scored by the locked evaluator: model claude-opus-5-5/);
+      expect(calls).toEqual(['/evaluate']);
+    } finally {
+      server.close();
+      expect(fs.readFileSync(path.join(__dirname, '../src/booth-cases/NFCME-2026/adhf.json'), 'utf8')).toBe(before);
+    }
   });
 
   test('without --go it checks every NFCME-2026 tree and spends nothing', () => {
