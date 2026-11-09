@@ -2305,3 +2305,43 @@ describe('physician sandbox (scripts/booth/sandbox-play.js)', () => {
     expect(play.composite).toBe(59);
   });
 });
+
+// #375 gate: the suite above mocks rimplChat, so a field the real client drops on the wire never shows there. Here the
+// real rimpl-client runs and only fetch plays rimpl: it de-identifies booth_answer only if the request carries it.
+describe('a typed play through the real rimpl-client, with only fetch stubbed', () => {
+  const actual = jest.requireActual('../src/services/rimpl-client');
+  const RAW = 'นายสมชาย ใจดี ส่งตรวจ PCR';
+  const DEID = 'นาย[NAME-1] [NAME-1] ส่งตรวจ PCR';
+  const savedFetch = global.fetch;
+  let sent;
+
+  beforeEach(() => {
+    sent = [];
+    global.fetch = jest.fn(async (url, init) => {
+      const body = JSON.parse(init.body);
+      sent.push({ path: new URL(url).pathname, body });
+      const reply = new URL(url).pathname === '/evaluate' ? { ...EVAL_OK } : {
+        ...CHAT_OK,
+        ...(body.booth_typed ? { tier: 'best', pick: body.booth_typed.next ? pickFor(body.booth_typed.next.best) : null }
+          : { pick: body.booth_bank ? pickFor(body.booth_bank) : null }),
+        ...(body.booth_answer ? { answer_deidentified: DEID } : {}),
+      };
+      return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => reply };
+    });
+    rimplChat.mockImplementation(actual.rimplChat);
+    rimplEvaluate.mockImplementation(actual.rimplEvaluate);
+  });
+  afterAll(() => { global.fetch = savedFetch; });
+
+  test('the typed answer reaches rimpl as booth_answer, and the scored play stores only its de-identified text', async () => {
+    const p = await begin();
+    await answer(p, 'best');
+    const typed = await answer(p, { text: RAW });
+    await answer(p, 'reasonable');
+    expect(sent.filter((s) => s.path === '/chat').map((s) => s.body.booth_answer)).toEqual([undefined, RAW, undefined]);
+    expect(typed.body.deidentified).toBe(DEID);
+    expect((await score(p)).body.status).toBe('scored');
+    expect(plays.get(p.id).steps[1].typed).toBe(DEID);
+    expect(JSON.stringify(writes().map((w) => w.payload))).not.toContain('สมชาย');
+  });
+});
