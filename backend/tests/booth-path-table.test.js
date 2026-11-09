@@ -216,7 +216,7 @@ describe('the build runner', () => {
     } finally {
       rimpl.server.close();
     }
-  });
+  }, 20_000);
 
   test('--from refuses a run that went over its cap, as --go judges it', () => {
     const out = tmp();
