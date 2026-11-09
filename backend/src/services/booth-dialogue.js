@@ -7,6 +7,9 @@ const { TIERS } = require('../booth-cases/tree-schema');
 
 const STEPS = 3;
 const BRIDGE_MAX_CHARS = 120;
+const ANSWER_MAX_CHARS = 500;
+// rimpl's tokens can run longer than the words they replace ("นายก" -> "นาย[NAME-1]").
+const DEIDENTIFIED_MAX_CHARS = 2 * ANSWER_MAX_CHARS;
 // The kiosk draws a reply's fields in this order, each under its own heading (#376).
 const REPLY_FIELDS = ['strength', 'weigh', 'safety'];
 // Three fields this long fit one kiosk reply screen with a line to spare (the scripts/booth harness fit check).
@@ -15,7 +18,9 @@ const BOLD_MAX_RUNS = 2;
 const BOLD_MAX_CHARS = 20;
 
 /**
- * @typedef {{ choice: string } | { text: string, tier?: 'B' | 'R' | 'W' }} Answer
+ * A typed answer's `deidentified` is rimpl's de-identified copy of `text` (null when rimpl gave none): the only form
+ * of it ever stored (ADR 0010).
+ * @typedef {{ choice: string } | { text: string, tier?: 'B' | 'R' | 'W', deidentified?: string | null }} Answer
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask  the ids the server issued for one step
  * @typedef {{ strength: string, weigh: string, safety: string }} Reply  '' is a field the AI did not give; every
  *   field '' is no reply. A field's only markup is up to BOLD_MAX_RUNS `**bold**` runs, each a quote (checkedReply).
@@ -204,20 +209,25 @@ function typedBanks(kase, tierPath, n, memo) {
 
 /** rimpl's booth chat request for the last answer of `d`, less ple_id. A tapped answer already fixes the next bank.
  *  A typed one is sorted in this same call, so rimpl gets the step's own bank as the yardstick and the next step's
- *  bank for each tier it might sort the answer into. No chief_complaint: rimpl prefixes it to the last user turn,
- *  and turn 1 already carries the vignette. */
+ *  bank for each tier it might sort the answer into, plus the typed text alone (booth_answer) to de-identify for
+ *  storage. No chief_complaint: rimpl prefixes it to the last user turn, and turn 1 already carries the vignette. */
 function chatRequest(kase, d) {
   const n = d.answers.length;
   const history = dialogueTurns(kase, d);
   const { content: message } = history.pop();
-  const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo) }
+  const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
     : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
   return { history, message, language: 'th', booth_mode: true, ...forAi };
 }
 
+const deidentifiedOf = (res) => {
+  const kept = res?.answer_deidentified;
+  return typeof kept === 'string' && kept.length > 0 && kept.length <= DEIDENTIFIED_MAX_CHARS ? kept : null;
+};
+
 /** The dialogue once rimpl answered `d`'s last answer with `res` (null when the call failed): the checked reply, the
- *  typed answer's tier (the memo's when there is one, else the AI's), and the next ask with its bank (none after the
- *  last step). No reply takes the fallback ask. */
+ *  typed answer's tier (the memo's when there is one, else the AI's) and de-identified text, and the next ask with its
+ *  bank (none after the last step). No reply takes the fallback ask. */
 function chatOutcome(kase, d, res) {
   const n = d.answers.length;
   const reply = checkedReply(res?.reply, quotesFor(kase, d));
@@ -225,7 +235,8 @@ function chatOutcome(kase, d, res) {
   const tierPath = typed ? d.tierPath + typed : d.tierPath;
   const bank = n < STEPS ? bankAt(kase, tierPath) : null;
   const ask = bank && (hasReply(reply) ? askFromPick(bank, res.pick) : fallbackAsk(bank));
-  const answers = typed ? [...d.answers.slice(0, -1), { ...d.answers[n - 1], tier: typed }] : d.answers;
+  const answers = typed
+    ? [...d.answers.slice(0, -1), { ...d.answers[n - 1], tier: typed, deidentified: deidentifiedOf(res) }] : d.answers;
   return { tierPath, bank, ask, answers, replies: [...d.replies, reply], asks: ask ? [...d.asks, ask] : d.asks };
 }
 
@@ -246,7 +257,20 @@ const stepTiers = (kase, { asks, tierPath }) => asks.map((ask, i) => {
   };
 });
 
+/** What booth_plays.steps keeps of a walked play (ADR 0010): per step the ask's ids, the chosen option or the
+ *  typed answer's de-identified text (never the raw text), the reply and the answer's tier name. The bridge rides
+ *  along so the transcript can be rebuilt with dialogueTurns. */
+const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i) => ({
+  variant: asks[i].variant,
+  bridge: asks[i].bridge,
+  options: asks[i].options,
+  ...('choice' in a ? { choice: a.choice } : { typed: a.deidentified ?? null }),
+  reply: replies[i],
+  tier: TIERS.find((t) => t.letter === tierPath[i]).name,
+}));
+
 module.exports = {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
+  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
+  evaluateRequest, stepTiers, stepRecords,
 };

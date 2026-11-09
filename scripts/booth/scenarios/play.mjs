@@ -223,7 +223,7 @@ export default [
       await k.tap('[data-action="send"]');
       await k.screen('reply');
       const sent = [{ choice: pick1 }, { choice: pick2 }, { text: 'line one\nline two' }];
-      const typed = sent;
+      const typed = [...sent.slice(0, 2), { ...sent[2], deidentified: h.DEIDENTIFIED(3) }];
       h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: sent, replies: [h.REPLY(1), h.REPLY(2)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2)] }),
         'step 3: reply body carries the typed answer, newline kept, both earlier replies, three asks, three sigs');
       h.check(await text(page, '.answer-text') === 'line one\nline two', 'reply 3: the typed answer is shown as typed');
@@ -242,7 +242,7 @@ export default [
       const score = stub.of(SCORE_KEY);
       h.check(score.length === 1 && h.same(score[0].body, {
         answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)],
-      }), 'score: one request with three answers, three replies, three asks and four sigs as the stub sent them');
+      }), 'score: one request with three answers (the typed one with the de-identified text its reply gave), three replies, three asks and four sigs as the stub sent them');
       h.check(await text(page, '.result-card .booth-tag') === 'Booth #042', 'result: the booth tag "Booth #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
       const bars = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({

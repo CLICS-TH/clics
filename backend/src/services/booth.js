@@ -9,8 +9,9 @@ const { compositeScore, WEIGHTS } = require('./ple-gate');
 const { rimplChat, rimplEvaluate } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, LETTER, bankAt, randomOf, isValidAsk, firstAsk,
-  nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, evaluateRequest, stepTiers,
+  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, evaluateRequest,
+  stepTiers, stepRecords,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -27,7 +28,6 @@ const SCORE_RESERVE_USD = 0.30;
 const REPLY_TIMEOUT_MS = 30_000;
 const SCORE_TIMEOUT_MS = 60_000;
 
-const ANSWER_MAX_CHARS = 500;
 const LETTERS = TIERS.map((t) => t.letter);
 const DOMAIN_KEYS = Object.keys(WEIGHTS);
 const BOARD_SIZE = 10;
@@ -39,8 +39,8 @@ const BANGKOK_OFFSET_MS = 7 * 3_600_000;
 const DAY_MS = 86_400_000;
 
 /**
- * Answer, Ask and Reply are typed in ./booth-dialogue. The kiosk sends a typed answer as text only: its `tier` is set
- * server-side from the turn sigs (recoverTiers).
+ * Answer, Ask and Reply are typed in ./booth-dialogue. The kiosk sends a typed answer as its text and, once replied,
+ * the `deidentified` copy the reply gave it: its `tier` is set server-side from the turn sigs (recoverTiers).
  * @typedef {{ answers: Answer[], replies: Reply[], asks: Ask[], sigs: string[] }} Dialogue
  *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
  *   A reply has every field '' when the AI gave none for that step; its sig still binds the ''s.
@@ -63,7 +63,10 @@ const ReplySchema = z.object(Object.fromEntries(REPLY_FIELDS.map((k) => [k, z.st
 const DialogueSchema = z.object({
   answers: z.array(z.union([
     z.object({ choice: z.string().max(16) }).strict(),
-    z.object({ text: z.string().trim().min(1).max(ANSWER_MAX_CHARS) }).strict(),
+    z.object({
+      text: z.string().trim().min(1).max(ANSWER_MAX_CHARS),
+      deidentified: z.string().max(DEIDENTIFIED_MAX_CHARS).nullable().optional(),
+    }).strict(),
   ])).min(1).max(STEPS),
   replies: z.array(ReplySchema).max(STEPS),
   asks: z.array(AskSchema).min(1).max(STEPS),
@@ -211,8 +214,9 @@ const turnKey = () => hmacKey('booth-turn-v1');
 
 // A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
 // canonical forms are keyed by position, not by object key order. The kiosk holds no tier before the score reveals
-// them (spec #244, #372): the server recovers it from the sigs (recoverTiers).
-const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null]);
+// them (spec #244, #372): the server recovers it from the sigs (recoverTiers). It binds rimpl's de-identified text
+// as well, the only form of the answer stored, so the kiosk cannot alter what is kept (#375).
+const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null, a.deidentified ?? null]);
 const canonicalReply = (r) => REPLY_FIELDS.map((k) => r[k]);
 
 /** Turn k (0..3) binds everything the server had issued after k answers: the answers (typed ones with their sorted
@@ -360,12 +364,16 @@ async function claimAsUnavailable(playId, event) {
   return !error && Array.isArray(data) && data.length === 1;
 }
 
-/** Scores a play still in status `from`: 'unavailable' once a live score has claimed it, 'started' for a table score. */
-async function finish(playId, event, from, domains, tierPath, steps) {
+/** Scores a play still in status `from`: 'unavailable' once a live score has claimed it, 'started' for a table score.
+ *  The play's dialogue (stepRecords) and score source are kept with the score (ADR 0010). */
+async function finish(playId, event, from, domains, dialogue, source, steps) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
-    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked: true, tier_path: tierPath })
+    .update({
+      status: 'scored', composite, ...domains, scored_at: scoredAt, ranked: true, tier_path: dialogue.tierPath,
+      steps: stepRecords(dialogue), score_source: source,
+    })
     .eq('id', playId).eq('status', from).is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
   return { body: await scoredBody(playId, event, composite, domains, scoredAt, steps) };
@@ -513,6 +521,7 @@ async function replyOutcome(playId, event, kase, dialogue) {
   const { bank, ask } = issued;
   const body = {
     status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
+    ...(dialogue.unsorted ? { deidentified: issued.answers[n - 1].deidentified } : {}),
     ...(ask ? { next: nextOf(bank, ask) } : {}),
   };
   return { result: { body }, provider: res?.provider, reason };
@@ -544,8 +553,9 @@ async function readReplyCall(playId, input, now) {
   return { event: opened.event, kase: played.kase, dialogue };
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply: Reply, reply_sig, next? } | { status: 'unavailable' }.
- *    An AI call that fails or gives no reply still answers 'replied', with every reply field '' and the fallback ask. */
+/** @returns {Promise<Result>} body: { status: 'replied', reply: Reply, reply_sig, deidentified?, next? } | { status: 'unavailable' }.
+ *    An AI call that fails or gives no reply still answers 'replied', with every reply field '' and the fallback ask. A
+ *    typed answer's reply carries `deidentified` (null when rimpl gave none) for the kiosk to send back with the answer. */
 async function replyToStep(playId, input, now = new Date()) {
   const startedAt = Date.now();
   let step = '-';
@@ -582,7 +592,7 @@ async function scoreOutcome(playId, input, now) {
 
   // ADR 0009: a case with a path score table scores at once from it, with no spend and no evaluator call.
   const table = kase.path_score_table;
-  if (table) return finished(await finish(playId, event, 'started', table.paths[dialogue.tierPath], dialogue.tierPath, steps), 'table');
+  if (table) return finished(await finish(playId, event, 'started', table.paths[dialogue.tierPath], dialogue, 'table', steps), 'table');
 
   const reserved = await reserve(playId, event, SCORE_RESERVE_USD);
   if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
@@ -600,7 +610,7 @@ async function scoreOutcome(playId, input, now) {
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
   if (!domains.success) return { result: UNAVAILABLE, reason: 'schema' };
-  return finished(await finish(playId, event, 'unavailable', domains.data, dialogue.tierPath, steps), res.provider);
+  return finished(await finish(playId, event, 'unavailable', domains.data, dialogue, 'live', steps), res.provider);
 }
 
 // One line per score call that ends scored or unavailable, timing the whole call (what the visitor waits):

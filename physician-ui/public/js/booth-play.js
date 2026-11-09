@@ -30,7 +30,8 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask   ids only, posted back as the server sent it
  * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
  * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, answerMax: number }} Play
- * @typedef {{ choice: string } | { text: string }} Answer
+ * @typedef {{ choice: string } | { text: string, deidentified?: string }} Answer
+ *   deidentified: the server's de-identified copy of a typed answer, from its reply, posted back untouched (ADR 0010).
  * @typedef {{ strength: string, weigh: string, safety: string }} Reply   the object as received, posted back as is.
  *   '' is an absent field, and all three '' is no reply. Inside a field `**…**` marks a bold run the server checked.
  * @typedef {{ tier: string, options: { id: string, tier: string }[] }} StepTier   options in the posted ask's order
@@ -48,7 +49,7 @@ const GHOST_TAP_MS = 350;
  *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
  * @typedef {{ type: 'begin' } | { type: 'choose', choice: string } | { type: 'sendChoice' } | { type: 'openTyping' } | { type: 'closeTyping' }
- *         | { type: 'sendText', text: string } | { type: 'replied', reply: Reply, sig: string, next: Next | null } | { type: 'next' }
+ *         | { type: 'sendText', text: string } | { type: 'replied', reply: Reply, sig: string, next: Next | null, deidentified: string | null } | { type: 'next' }
  *         | { type: 'slow' } | { type: 'scored', score: Score } | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  *   sendChoice is the step's Send: it sends step.chosen.
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
@@ -142,7 +143,7 @@ function transition(s, ev) {
       return at === 'typing' && text.length > 0 && text.length <= s.play.answerMax ? answered(s, { text }) : s;
     }
     case 'replied': return at === 'replying'
-      ? { ...s, replies: [...s.replies, ev.reply], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
+      ? { ...s, answers: keptAnswers(s.answers, ev.deidentified), replies: [...s.replies, ev.reply], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
       return { ...s, screen: s.answers.length < STEPS ? { at: 'step', chosen: null } : { at: 'scoring', shown: false } };
@@ -155,6 +156,13 @@ function transition(s, ev) {
 }
 
 const answered = (s, answer) => ({ ...s, answers: [...s.answers, answer], screen: { at: 'replying' } });
+
+// The reply's turn sig binds a typed answer's de-identified text, so the score must post it back as given.
+function keptAnswers(answers, deidentified) {
+  const last = answers[answers.length - 1];
+  return typeof deidentified === 'string' && 'text' in last ? [...answers.slice(0, -1), { ...last, deidentified }] : answers;
+}
+
 const stepIndex = (s) => (s.screen.at === 'step' || s.screen.at === 'typing' ? s.answers.length : s.answers.length - 1);
 const stepOf = (s) => s.steps[stepIndex(s)];
 const dialogue = (s) => ({ answers: s.answers, replies: s.replies, asks: s.steps.slice(0, s.answers.length).map((n) => n.ask), sigs: s.sigs });
@@ -167,7 +175,8 @@ async function requestReply(api, s) {
     const next = s.answers.length < STEPS ? parseNext(body?.next) : null;
     const reply = parseReply(body?.reply);
     if (body?.status === 'replied' && reply && typeof body.reply_sig === 'string' && (next || s.answers.length === STEPS)) {
-      return { type: 'replied', reply, sig: body.reply_sig, next };
+      return { type: 'replied', reply, sig: body.reply_sig, next,
+        deidentified: typeof body.deidentified === 'string' ? body.deidentified : null };
     }
     return { type: 'stop', offline: false };
   } catch (e) {

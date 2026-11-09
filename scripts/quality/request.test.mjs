@@ -38,6 +38,7 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     "const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';",
     'const cleanHistory = stripHistoryPii(history, hints, registry);',
     'const cleanMessage = stripPii(message, registry, hints);',
+    // boothAnswer is undefined on every turn the audit sends (booth_mode false), so the replica's call is the same.
     'deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });',
     '${cleanChiefComplaint}',
     'const history = cleanHistory.map(m => ({',

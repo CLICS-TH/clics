@@ -353,6 +353,45 @@ describe('the typed answer: a booth turn that also sorts the answer into a tier 
   });
 });
 
+describe('the typed answer comes back de-identified for the backend to keep (#375, ADR 0010)', () => {
+  const ANSWER = `ให้นาย${RAW.name} โทร ${RAW.phone} มาตรวจ PCR`;
+  const typedTurn = { language: 'th', message: `คุณจะส่งตรวจอะไร\n${ANSWER}`, booth_mode: true, booth_typed: TYPED };
+
+  test('answer_deidentified is the typed answer under the message\'s own tokens, with no identifier left', async () => {
+    callAI.mockResolvedValue(r(typedJson()));
+    const res = await send({ ...typedTurn, booth_answer: ANSWER });
+    expect(res.status).toBe(200);
+    const kept = res.body.answer_deidentified;
+    for (const leak of LEAKS) expect(kept).not.toContain(leak);
+    expect(kept).toMatch(/\[NAME-\d+\]/);
+    expect(kept).toContain('[PHONE-1]');
+    expect(kept).toContain('มาตรวจ PCR');
+    expect(call(0).messages.at(-1).content).toContain(kept);
+  });
+
+  test('the model is sent exactly what it gets without booth_answer', async () => {
+    callAI.mockResolvedValue(r(typedJson()));
+    await send(typedTurn);
+    const without = call(0);
+    callAI.mockClear();
+    await send({ ...typedTurn, booth_answer: ANSWER });
+    expect(call(0)).toEqual(without);
+  });
+
+  test('no booth_answer, no answer_deidentified; outside booth_mode it is never returned', async () => {
+    callAI.mockResolvedValue(r(typedJson()));
+    expect((await send(typedTurn)).body).not.toHaveProperty('answer_deidentified');
+    callAI.mockResolvedValue(r('Reasonable (ESC, 2023).'));
+    expect((await send({ language: 'th', message: ANSWER, booth_answer: ANSWER })).body).not.toHaveProperty('answer_deidentified');
+  });
+
+  test('a booth_answer over the bound is refused with 400 before any call', async () => {
+    const res = await send({ ...typedTurn, booth_answer: 'ก'.repeat(601) });
+    expect(res.status).toBe(400);
+    expect(callAI).not.toHaveBeenCalled();
+  });
+});
+
 const KINDS = [
   ['the last step', {}],
   ['a grill step', { booth_bank: BANK }],

@@ -112,3 +112,24 @@ test('router_enabled and deep_mode reach the wire as booleans — a dropped deep
   await rimplChat({ ...CALL, router_enabled: 0, deep_mode: null });
   expect(sentBody()).toMatchObject({ router_enabled: false, deep_mode: false });
 });
+
+// #375: the booth builds its request in booth-dialogue.chatRequest, so every field it emits for any kind of step must
+// reach the wire. A dropped booth_answer stored every typed answer as null.
+describe('every field booth-dialogue.chatRequest emits reaches the wire', () => {
+  const TREE = require('./fixtures/booth-case-tree.json');
+  const { chatRequest } = require('../src/services/booth-dialogue');
+  const ask = (bank) => ({ variant: bank.variants[0].id, bridge: '', options: bank.default_trio });
+  const typed = { answers: [{ text: 'ตรวจ CBC ก่อน' }], replies: [], asks: [ask(TREE.banks.step1)], tierPath: '', unsorted: true };
+  const tapped = { ...typed, answers: [{ choice: TREE.banks.step1.default_trio[0] }], unsorted: false };
+
+  test.each([['a typed step', typed], ['a tapped step', tapped]])('%s', async (_kind, d) => {
+    const request = { ple_id: 'play-1', ...chatRequest(TREE, d) };
+    await rimplChat(request);
+    expect(sentBody()).toMatchObject(request);
+  });
+
+  test('the typed step carries booth_answer, the visitor\'s text alone', async () => {
+    await rimplChat({ ple_id: 'play-1', ...chatRequest(TREE, typed) });
+    expect(sentBody().booth_answer).toBe('ตรวจ CBC ก่อน');
+  });
+});

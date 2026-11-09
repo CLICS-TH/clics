@@ -150,14 +150,20 @@ const REPLY = (n) => ({
   safety: n === 2 ? 'หากมี**อาการหน้ามืด**หรือใจสั่น ให้กลับมาพบแพทย์ทันที' : '',
 });
 const SIG = (n) => `sig-${n}`;
+/** The de-identified copy of typed answer n, which its reply carries and the kiosk posts back (ADR 0010). */
+const DEIDENTIFIED = (n) => `de-identified answer ${n}`;
 const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, next: nextFor(TREE, ''), sig: SIG(0) };
 /** What a draw answers: the case id and its teaser, nothing else of the case. */
 const drawOf = (tree) => ({ case_id: tree.case_id, teaser: tree.teaser });
 const DRAW = drawOf(TREE);
-/** The default reply to answer n: reply n, its sig, and (after answers 1 and 2) the Next for the path walked. */
+/** The default reply to answer n: reply n, its sig, DEIDENTIFIED(n) for a typed answer, and (after answers 1 and 2)
+ *  the Next for the path walked. */
 function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length) } = {}) {
   const n = answers.length;
-  return { status: 'replied', reply, reply_sig: SIG(n), ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}) };
+  return {
+    status: 'replied', reply, reply_sig: SIG(n), ...(n > 0 && 'text' in answers[n - 1] ? { deidentified: DEIDENTIFIED(n) } : {}),
+    ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}),
+  };
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
 const TIER_NAME = Object.fromEntries(Object.entries(TIER_LETTER).map(([name, letter]) => [letter, name]));
@@ -179,8 +185,8 @@ const scoredFor = (call, over = {}) => ({ status: 200, body: { ...SCORED, steps:
  *   'POST /booth/draw'             DRAW: { case_id, teaser } of the fixture case
  *   'POST /booth/plays'            START: { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig };
  *                                  400 bad_request unless the body names a case_id
- *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), next for the tier
- *                                  path walked (n < 3)
+ *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), DEIDENTIFIED(n) for
+ *                                  a typed answer n, next for the tier path walked (n < 3)
  * The case is backend/tests/fixtures/booth-case-tree.json.
  *   'GET /booth/board'             { board: { today: [], event: [] } }
  *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted
@@ -589,7 +595,7 @@ async function shot(page, name, { fullPage = false } = {}) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED, scoredFor, stepsFor,
+const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {

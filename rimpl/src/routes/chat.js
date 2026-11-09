@@ -84,6 +84,10 @@ const ChatSchema = z.object({
     current: BoothBankSchema,
     next: z.object({ best: BoothBankSchema, reasonable: BoothBankSchema, weaker: BoothBankSchema }).strict().optional(),
   }).strict().optional(),
+  // Booth play kept as research data (#375, ADR 0010): the visitor's typed answer alone, already inside `message`.
+  // Returned de-identified as answer_deidentified so the backend never stores the raw text; never sent to the AI.
+  // Headroom over the backend's ANSWER_MAX_CHARS (500).
+  booth_answer: z.string().min(1).max(600).optional(),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -110,13 +114,28 @@ function deidentifyTurn({ chiefComplaint, history, message, hints }) {
   return { cleanChiefComplaint, cleanHistory, cleanMessage };
 }
 
+// The kept form of a booth typed answer (#375) when the message is not in the shape boothTurnPieces expects: the
+// clean message past the clean form of everything before the answer, so every token masked in the message is
+// masked in it. A cut inside a token moves back to the token's '['. null when the message does not end with the answer.
+function boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints) {
+  if (!message.endsWith(boothAnswer)) return null;
+  const cleanBefore = stripPii(message.slice(0, message.length - boothAnswer.length), registry, hints);
+  let cut = 0;
+  while (cut < cleanBefore.length && cleanBefore[cut] === cleanMessage[cut]) cut += 1;
+  const open = cut > 0 ? cleanMessage.lastIndexOf('[', cut - 1) : -1;
+  if (open > cleanMessage.lastIndexOf(']', cut - 1)) cut = open;
+  return cleanMessage.slice(cut).trim() || null;
+}
+
 // A booth physician turn is the vetted vignette (turn 1 only) and bank question, then the visitor's answer:
 // `[vignette \n\n] question \n answer` (backend/src/services/booth-dialogue.js dialogueTurns). Neither the
-// vignette nor a question holds a line break inside it. Masked as one text, a question opening with the
-// pronoun คุณ ("คุณจะส่งตรวจ…") becomes a name and the filter takes the answer on the next line as its
-// surname (#406). So each piece is its own text. A cut here can only fall inside vetted text or exactly at
-// the answer, never inside the answer: the answer keeps every rule, line breaks in it included.
-function boothTurnPieces(content, first) {
+// vignette nor a question holds a line break inside it. The question and answer are read together, so a label
+// that ends the question masks the value that opens the answer (#375). Vetted text holds no PII, though, so a
+// question the filter masks on its own holds a false positive: a question opening with the pronoun คุณ
+// ("คุณจะส่งตรวจ…") becomes a name, which then takes the answer on the next line as its surname (#406). Such a
+// question is its own text. A cut here can only fall inside vetted text or exactly at the answer, never inside
+// the answer: the answer keeps every rule, line breaks in it included.
+function boothTurnPieces(content, first, hints) {
   const pieces = [];
   let rest = content;
   if (first) {
@@ -124,24 +143,33 @@ function boothTurnPieces(content, first) {
     if (end >= 0) { pieces.push(rest.slice(0, end), '\n\n'); rest = rest.slice(end + 2); }
   }
   const end = rest.indexOf('\n');
-  if (end >= 0) { pieces.push(rest.slice(0, end), '\n'); rest = rest.slice(end + 1); }
+  const question = end >= 0 ? rest.slice(0, end) : null;
+  if (question !== null && stripPii(question, makeRegistry(), hints) !== question) {
+    pieces.push(question, '\n');
+    rest = rest.slice(end + 1);
+  }
   pieces.push(rest);
   return pieces; // texts at even indexes, the separators between them at odd ones
 }
 
 // deidentifyTurn for a booth turn: the same one registry and order, with each physician turn in pieces.
-function deidentifyBoothTurn({ chiefComplaint, history, message, hints }) {
+// The kept typed answer (#375) is the answer piece masked under that same registry.
+function deidentifyBoothTurn({ chiefComplaint, history, message, hints, boothAnswer }) {
   const registry = makeRegistry();
   const turns = [...history, { role: 'physician', content: message }];
   const firstPhysician = turns.findIndex((m) => m.role === 'physician');
-  const pieces = turns.map((m, i) => (m.role === 'physician' ? boothTurnPieces(m.content, i === firstPhysician) : [m.content]));
+  const pieces = turns.map((m, i) => (m.role === 'physician' ? boothTurnPieces(m.content, i === firstPhysician, hints) : [m.content]));
   const texts = (p) => p.filter((_, i) => i % 2 === 0);
   primeRegistry([chiefComplaint || '', ...pieces.flatMap(texts)], registry, hints);
   const clean = (p) => p.map((s, i) => (i % 2 === 0 ? stripPii(s, registry, hints) : s)).join('');
   const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
   const cleanTurns = turns.map((m, i) => ({ ...m, content: clean(pieces[i]) }));
   const cleanMessage = cleanTurns.pop().content;
-  return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage };
+  const said = pieces[pieces.length - 1];
+  const cleanBoothAnswer = !boothAnswer ? undefined : said[said.length - 1] === boothAnswer
+    ? stripPii(boothAnswer, registry, hints).trim() || null
+    : boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints);
+  return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage, cleanBoothAnswer };
 }
 
 // Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only
@@ -184,7 +212,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed, booth_answer } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -205,12 +233,17 @@ router.post('/', async (req, res) => {
     // De-identify ONCE, up front, under one shared registry (deidentifyTurn): PII must never leave
     // the on-prem boundary — not to Claude and not to the OpenAI embeddings API behind RAG.
     // ragLookup previously received the raw message.
-    const { cleanChiefComplaint, cleanHistory, cleanMessage } = booth_mode
-      ? deidentifyBoothTurn({ chiefComplaint: chief_complaint, history, message, hints })
+    const { cleanChiefComplaint, cleanHistory, cleanMessage, cleanBoothAnswer } = booth_mode
+      ? deidentifyBoothTurn({ chiefComplaint: chief_complaint, history, message, hints, boothAnswer: booth_answer })
       : deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
     // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
     // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
-    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed, signal }));
+    if (booth_mode) {
+      return res.json(await boothReply({
+        messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed,
+        answerDeidentified: cleanBoothAnswer, signal,
+      }));
+    }
     const ragDocs = await ragLookup(cleanMessage);
     const messages = buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint);
 

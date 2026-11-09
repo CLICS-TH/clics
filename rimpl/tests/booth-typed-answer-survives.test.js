@@ -18,6 +18,7 @@ const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
 const { chatRequest, bankAt } = require('../../backend/src/services/booth-dialogue');
+const { stripPii } = require('../src/services/pii-filter');
 
 const CASES_DIR = path.join(__dirname, '../../backend/src/booth-cases/NFCME-2026');
 const ANSWERS = [
@@ -62,4 +63,18 @@ test.each(PLAYS)('%s: each typed answer reaches the AI as typed', async (_name, 
   // The last turn carries the sort block after the answer (services/booth.js withSort).
   const turns = callAI.mock.calls[0][0].messages.filter((m) => m.role === 'user').map((m) => m.content.split('\n\nSORT: ')[0]);
   expect(turns.map((t) => t.slice(t.lastIndexOf('\n')))).toEqual(d.answers.map(({ text }) => `\n${text}`));
+});
+
+// routes/chat.js reads a bank question apart from the answer only when the question masks on its own. Such a
+// question must give the answer no label context, or splitting it off would unmask a value master masks (#375).
+test('no question read apart from its answer ends in an identifier label', () => {
+  const questions = [...new Set(PLAYS.flatMap(([, kase, d]) => [...d.tierPath].map((_, i) => d.tierPath.slice(0, i)).concat(d.tierPath)
+    .flatMap((p) => bankAt(kase, p).variants.map((v) => v.question.th))))];
+  const apart = questions.filter((q) => stripPii(q) !== q);
+  expect(apart.length).toBeGreaterThan(0);
+  for (const q of apart) {
+    for (const value of ['1234567', '0812345678', '65-012345', '1-2345-67890-12-3']) {
+      expect(stripPii(`${q}\n${value}`).endsWith(`\n${stripPii(value)}`)).toBe(true);
+    }
+  }
 });
