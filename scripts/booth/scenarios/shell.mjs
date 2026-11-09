@@ -224,7 +224,7 @@ export default [
     },
   },
   {
-    name: 'scoring holds the idle timer; the result card returns to the loop after 45 s',
+    name: 'scoring holds the idle timer; the result card waits 45 s from the last touch, overlays included, and 3 min at most',
     async run(h) {
       const k = await h.kiosk({ label: 'holds' });
       const { page, stub } = k;
@@ -244,11 +244,68 @@ export default [
       await k.screen('scored');
       await page.clock.fastForward(44_000);
       await h.sleep(300);
-      h.check(await k.screenNow() === 'scored' && stub.of(STATUS).length === loads, 'result + 44 s: still on the result card');
+      h.check(await k.screenNow() === 'scored' && stub.of(STATUS).length === loads, 'result + 44 s with no touch: still on the result card');
       await page.clock.fastForward(2_000);
       await k.shell('start');
-      h.check(stub.of(STATUS).length === loads + 1, 'result + 46 s: the page reloads to the loop');
+      h.check(stub.of(STATUS).length === loads + 1, 'result + 46 s with no touch: the page reloads to the loop');
       await k.close();
+
+      /** A touch on the card away from every button, the way a reader rests a finger on the score. */
+      const touchCard = async (p) => {
+        const b = await p.locator('.result-total').boundingBox();
+        await p.touchscreen.tap(b.x + 8, b.y + b.height / 2);
+      };
+      const atResult = async (label) => {
+        const r = await h.kiosk({ label });
+        await withClock(r);
+        await toLastReply(r);
+        await r.tap('[data-action="see-score"]');
+        await r.screen('scored');
+        return r;
+      };
+      const reloaded = async (r, before) => { await r.shell('start'); return r.stub.of(STATUS).length === before + 1; };
+
+      const t = await atResult('touch restarts');
+      let before = t.stub.of(STATUS).length;
+      await t.page.clock.fastForward(40_000);
+      await touchCard(t.page);
+      await t.page.clock.fastForward(6_000);
+      await h.sleep(300);
+      h.check(await t.screenNow() === 'scored' && t.stub.of(STATUS).length === before, 'a touch at 40 s: still on the result card at 46 s');
+      await t.page.clock.fastForward(38_000);
+      await h.sleep(300);
+      h.check(await t.screenNow() === 'scored', 'a touch at 40 s: still on the result card 44 s after it');
+      await t.page.clock.fastForward(2_000);
+      h.check(await reloaded(t, before), 'a touch at 40 s: the page reloads 46 s after it');
+      await t.close();
+
+      const o = await atResult('overlay touch');
+      before = o.stub.of(STATUS).length;
+      await o.tap('[data-action="see-answers"]');
+      await o.page.waitForSelector('[data-reveal-overlay]');
+      await o.page.clock.fastForward(25_000);
+      const title = await o.page.locator('[data-reveal-overlay] .reveal-title').boundingBox();
+      await o.page.touchscreen.tap(title.x + 8, title.y + title.height / 2);
+      await o.page.clock.fastForward(44_000);
+      await h.sleep(300);
+      h.check(await o.screenNow() === 'scored' && o.stub.of(STATUS).length === before,
+        'a touch inside the answers overlay at 25 s: still on the result card at 69 s');
+      await o.page.clock.fastForward(2_000);
+      h.check(await reloaded(o, before), 'a touch inside the answers overlay at 25 s: the page reloads 46 s after it');
+      await o.close();
+
+      const c = await atResult('cap');
+      before = c.stub.of(STATUS).length;
+      for (let at = 30; at <= 150; at += 30) {
+        await c.page.clock.fastForward(30_000);
+        await touchCard(c.page);
+      }
+      await c.page.clock.fastForward(29_000);
+      await h.sleep(300);
+      h.check(await c.screenNow() === 'scored' && c.stub.of(STATUS).length === before, 'a touch every 30 s: still on the result card at 179 s');
+      await c.page.clock.fastForward(2_000);
+      h.check(await reloaded(c, before), 'a touch every 30 s: the page reloads at 3 min from the result all the same');
+      await c.close();
     },
   },
   {

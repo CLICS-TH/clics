@@ -28,3 +28,14 @@ body.booth-result { color: var(--ink); font-family: var(--font-sans); line-heigh
 .result-page .end-card { margin: 40px 0; }
 .end-title .bi-th { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
 .end-title .bi-en { font-size: var(--text-label-en); line-height: 1.35; }
+.result-page .radar { align-self: center; }
+.result-tiers {
+  display: flex; flex-direction: column; gap: 12px; padding: 20px;
+  background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
+}
+.tier-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.tier-step { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.tier-step-n { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; }
+.tier-step-n .bi-th { font-size: var(--text-small-th); font-weight: 600; line-height: 1.5; }
+.tier-step-n .bi-en { font-size: var(--text-en); line-height: 1.35; }
+.try-clics { justify-content: center; text-align: center; text-decoration: none; }
