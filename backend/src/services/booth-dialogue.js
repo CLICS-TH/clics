@@ -89,8 +89,9 @@ function nextOf(bank, ask) {
   };
 }
 
-// The evaluator reads a visitor's own words as a physician turn, so a typed answer reaches it fenced and labelled
-// untrusted (the rule rides in the transcript: the evaluator's system prompt is calibrated and stays untouched).
+// The evaluator, and the booth chat that sorts a typed answer into the tier that alone sets a table score (ADR 0009),
+// read a visitor's own words as a physician turn, so a typed answer reaches both fenced and labelled untrusted (the
+// rule rides in the transcript: the evaluator's system prompt is calibrated and stays untouched).
 // The fence marks are stripped from the text so it cannot close its own fence.
 const FENCE_OPEN = '\u27e6';
 const FENCE_CLOSE = '\u27e7';
@@ -210,7 +211,7 @@ function typedBanks(kase, tierPath, n, memo) {
  *  and turn 1 already carries the vignette. */
 function chatRequest(kase, d) {
   const n = d.answers.length;
-  const history = dialogueTurns(kase, d);
+  const history = dialogueTurns(kase, d, true);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo) }
     : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
