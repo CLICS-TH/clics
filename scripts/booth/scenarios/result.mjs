@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { readRadar, checkRadar } from '../radar-check.mjs';
 
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const START_KEY = 'POST /booth/plays';
@@ -14,6 +15,7 @@ const SOURCE = await readFile(fileURLToPath(new URL('../../../physician-ui/publi
 const { BAND_LINES, SAFETY_REVIEW, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
 
 const size = (line) => line.th.length + line.en.length;
+const RANKS = { rank_today: 3, rank_event: 5 };
 
 /** The score sets the card is checked with: every domain at each band, and the two longest low lines made weakest. */
 function scoreSets() {
@@ -39,6 +41,89 @@ async function toResult(k) {
   await k.screen('scored');
 }
 
+const TYPED = 'ไข้ ไอ และหอบ ตรวจเอกซเรย์ปอดก่อน';
+
+/** Every tier label, Thai and English: none may be on any screen before the score response. */
+const tierWords = (h) => Object.values(h.TIERS).flatMap((t) => [t.label.th, t.label.en]);
+const tierLeak = (page, words) => page.evaluate((w) => ({
+  marks: document.querySelectorAll('[data-tier], .tier-chip, [data-reveal-overlay], [data-action="see-answers"]').length,
+  words: w.filter((x) => document.body.innerText.includes(x)),
+}), words);
+
+/**
+ * Plays the three steps by `plan`: a tier name taps the offered option of that tier, 'type' types TYPED. Checks for
+ * tier text on every screen on the way, the scoring screen included (the score is held until then).
+ * @returns {Promise<object[]>} the answers given
+ */
+async function playByTier(h, k, plan, release) {
+  const { page } = k;
+  const words = tierWords(h);
+  const leaks = [];
+  const look = async (where) => { const l = await tierLeak(page, words); if (l.marks || l.words.length) leaks.push(`${where}: ${JSON.stringify(l)}`); };
+  await k.shell('start');
+  await k.toVignette();
+  await look('vignette');
+  await k.tap('[data-action="begin"]');
+  const answers = [];
+  for (let n = 1; n <= 3; n++) {
+    await k.screen('step');
+    await look(`step ${n}`);
+    const how = plan[n - 1];
+    if (how === 'type') {
+      await k.tap('[data-action="type-own"]');
+      await k.screen('typing');
+      await page.keyboard.type(TYPED);
+      await look(`typing ${n}`);
+      await k.tap('[data-action="send"]');
+      answers.push({ text: TYPED });
+    } else {
+      const bank = h.bankFor(h.TREE, h.pathOf(h.TREE, answers));
+      const offered = await page.$$eval('.options > [data-option]', (els) => els.map((e) => e.dataset.option));
+      const id = offered.find((o) => bank.options.find((b) => b.id === o)?.tier === how);
+      await k.tap(`[data-option="${id}"]`);
+      await page.waitForSelector(`[data-option="${id}"][aria-pressed="true"]`);
+      await look(`chosen ${n}`);
+      await k.tap('[data-action="send"]');
+      answers.push({ choice: id });
+    }
+    await k.screen('reply');
+    await look(`reply ${n}`);
+    await k.tap(`[data-action="${n === 3 ? 'see-score' : 'next'}"]`);
+  }
+  await k.screen('scoring');
+  await look('scoring');
+  release();
+  await k.screen('scored');
+  h.check(leaks.length === 0, `no tier label, chip or answer button on any screen before the score response${leaks.length ? ` (${leaks.slice(0, 2).join('; ')})` : ''}`);
+  return answers;
+}
+
+/** The rows the overlay must show, from the fixture's banks and the asks the kiosk posted for scoring. */
+function expectedRows(h, answers, asks) {
+  const path = h.pathOf(h.TREE, answers);
+  return answers.map((a, i) => {
+    const bank = h.bankFor(h.TREE, path.slice(0, i));
+    const tierOf = (id) => bank.options.find((o) => o.id === id).tier;
+    const labelOf = (id) => bank.options.find((o) => o.id === id).label.th;
+    const best = asks[i].options.find((id) => tierOf(id) === 'best');
+    return {
+      question: bank.variants.find((v) => v.id === asks[i].variant).question.th,
+      given: 'choice' in a ? labelOf(a.choice) : a.text,
+      tier: 'choice' in a ? tierOf(a.choice) : 'best',
+      best: 'choice' in a && a.choice === best ? null : labelOf(best),
+    };
+  });
+}
+
+const readReveal = (page) => page.$$eval('[data-reveal-overlay] .reveal-step', (els) => els.map((li) => ({
+  step: li.querySelector('.step-of').innerText.replace(/\s+/g, ' '),
+  question: li.querySelector('.reveal-question .bi-th').textContent,
+  given: (li.querySelector('.reveal-answer .reveal-given .bi-th') ?? li.querySelector('.reveal-typed')).textContent,
+  chip: li.querySelector('.reveal-answer .tier-chip').innerText.replace(/\s+/g, ' '),
+  tier: li.querySelector('.reveal-answer .tier-chip').dataset.tier,
+  best: li.querySelector('[data-best] .reveal-given .bi-th')?.textContent ?? null,
+})));
+
 export default [
   {
     name: 'band descriptors: every domain and band has a Thai and an English line, free of the banned claims',
@@ -55,16 +140,17 @@ export default [
     },
   },
   ...SIZES.map(([width, height]) => ({
-    name: `result card at ${width}x${height}: a descriptor per domain, the two weakest first under Practise next, the leaderboard button above the fold`,
+    name: `result card at ${width}x${height}: the radar, a descriptor per domain, the two weakest first under Practise next, the leaderboard button above the fold`,
     async run(h) {
       for (const [label, domains] of scoreSets()) {
-        const stub = h.makeStub({ routes: { [SCORE_KEY]: () => ({ status: 200, body: { ...h.SCORED, domains } }) } });
+        const stub = h.makeStub({ routes: { [SCORE_KEY]: (call) => h.scoredFor(call, { domains, ...RANKS }) } });
         const k = await h.kiosk({ width, height, stub });
         const { page } = k;
         await toResult(k);
         const tag = `${width}x${height} ${label}`;
         await h.screenCheck(page, `result card ${tag}`, { demo: true });
-        await h.shot(page, `result-bands-${width}-${label.split(' ')[1]}`);
+        await h.shot(page, `result-bands-${width}-${label.split(' ').slice(0, 2).join('-')}`);
+        checkRadar(h, tag, await readRadar(page), domains);
 
         const order = weakestFirst(domains);
         const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
@@ -89,7 +175,7 @@ export default [
         });
         h.check(fit.tall === 0, `${tag}: no descriptor runs past two lines`);
         h.check(fit.nextBottom <= fit.bodyBottom && fit.buttonBottom <= fit.bodyBottom && fit.sheetBelowFold,
-          `${tag}: Practise next and the leaderboard button are visible without scrolling (button ends ${fit.buttonBottom}, card area ends ${fit.bodyBottom})`);
+          `${tag}: with both ranks, Practise next and the leaderboard button are visible without scrolling (button ends ${fit.buttonBottom}, card area ends ${fit.bodyBottom})`);
         await k.close();
       }
     },
@@ -139,6 +225,70 @@ export default [
       await k3.page.clock.fastForward(31_000);
       h.check(await k3.page.locator('[data-board-overlay]').count() === 0, 'loop: a board left open closes itself after 30 s');
       await k3.close();
+    },
+  },
+  ...SIZES.map(([width, height]) => ({
+    name: `See the answers at ${width}x${height}: each step's question, answer and tier, and the best option offered when it was not tapped`,
+    async run(h) {
+      const stub = h.makeStub({ routes: { [SCORE_KEY]: (call) => h.scoredFor(call, RANKS) } });
+      const release = stub.hold(SCORE_KEY);
+      const k = await h.kiosk({ width, height, stub });
+      const { page } = k;
+      const answers = await playByTier(h, k, ['best', 'weaker', 'type'], release);
+      const want = expectedRows(h, answers, stub.of(SCORE_KEY)[0].body.asks);
+      await k.tap('[data-action="see-answers"]');
+      await page.waitForSelector('[data-reveal-overlay] .reveal-step');
+      await page.evaluate(() => document.fonts.ready);
+      const seen = await readReveal(page);
+      h.check(seen.length === 3 && seen.every((r, i) => r.step.includes(`ขั้นที่ ${i + 1}`) && r.step.includes(`Step ${i + 1}`)), `${width}: three steps, numbered in Thai and English`);
+      h.check(seen.every((r, i) => r.question === want[i].question && r.given === want[i].given),
+        `${width}: each step shows its question and the visitor's answer, the typed one as typed`);
+      h.check(seen.every((r, i) => r.tier === want[i].tier && r.chip.includes(h.TIERS[want[i].tier].label.th) && r.chip.includes(h.TIERS[want[i].tier].label.en)),
+        `${width}: the answers' tiers read ${seen.map((r) => r.chip).join(' | ')} (want ${want.map((w) => w.tier).join(', ')})`);
+      h.check(seen.every((r) => !/ปลอดภัย|safe/i.test(r.chip)),
+        `${width}: no tier chip claims safety, since a typed answer sorted unsafe also shows as weaker (${seen.map((r) => r.chip).join(' | ')})`);
+      h.check(seen[0].best === null, `${width}: step 1 tapped the best option, so no best-option line`);
+      h.check(seen[1].best === want[1].best && seen[1].best !== null, `${width}: step 2 tapped the weaker option, and the best option offered is named (${seen[1].best})`);
+      h.check(seen[2].best === want[2].best && seen[2].best !== null, `${width}: step 3 was typed, and the best option offered is named (${seen[2].best})`);
+      const tinted = await h.aiTinted(page, '[data-reveal-overlay] :is(.tier-chip, .reveal-best)');
+      h.check(tinted.length === 0, `${width}: no tier chip or best-option panel wears an --ai-* colour${tinted.length ? ` (${[...new Set(tinted)].slice(0, 3).join('; ')})` : ''}`);
+      await h.screenCheck(page, `answers overlay ${width}x${height}`, { demo: 'auto' });
+      await h.shot(page, `answers-${width}`);
+      const fits = await page.locator('[data-reveal-overlay]').evaluate((o) => ({ scrolls: o.scrollHeight > o.clientHeight, close: !!o.querySelector('[data-action="close-answers"]') }));
+      await page.locator('[data-reveal-overlay] [data-action="close-answers"]').scrollIntoViewIfNeeded();
+      await h.sleep(400);
+      await k.tap('[data-reveal-overlay] [data-action="close-answers"]');
+      h.check(fits.close && await page.locator('[data-reveal-overlay]').count() === 0 && await k.screenNow() === 'scored',
+        `${width}: Close${fits.scrolls ? ', reached by scrolling the overlay,' : ''} returns to the result card`);
+      const kept = new URL(await page.locator('[data-keep-qr]').getAttribute('data-result-url'));
+      h.check(kept.hash.length > 4, `${width}: the result QR is still drawn`);
+      await k.close();
+    },
+  })),
+  {
+    name: 'See the answers: hidden when the score carries no tiers, or tiers that do not fit the asks posted',
+    async run(h) {
+      const cases = [
+        ['no steps (a backend older than #372)', () => ({ status: 200, body: { ...h.SCORED } })],
+        ['steps whose options are out of order', (call) => {
+          const { body } = h.scoredFor(call);
+          return { status: 200, body: { ...body, steps: body.steps.map((st) => ({ ...st, options: [...st.options].reverse() })) } };
+        }],
+        ['a tier the kiosk does not know', (call) => {
+          const { body } = h.scoredFor(call);
+          return { status: 200, body: { ...body, steps: body.steps.map((st, i) => (i === 1 ? { ...st, tier: 'great' } : st)) } };
+        }],
+      ];
+      for (const [what, route] of cases) {
+        const k = await h.kiosk({ stub: h.makeStub({ routes: { [SCORE_KEY]: route } }) });
+        await toResult(k);
+        const shown = await k.page.evaluate(() => ({
+          button: document.querySelectorAll('[data-action="see-answers"]').length, radar: document.querySelectorAll('[data-radar]').length,
+          score: document.querySelector('[data-score]')?.textContent,
+        }));
+        h.check(shown.button === 0 && shown.radar === 1 && shown.score === '72', `${what}: the card shows the score and radar, with no "See the answers" (${JSON.stringify(shown)})`);
+        await k.close();
+      }
     },
   },
 ];
