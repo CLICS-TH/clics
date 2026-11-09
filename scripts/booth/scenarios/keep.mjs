@@ -152,6 +152,8 @@ export default [
       h.check(steps.length === 3 && steps.every((st, i) => st.tier === tiers[i] && st.n.includes(`ขั้นที่ ${i + 1}`) && st.n.includes(`Step ${i + 1}`)
         && st.n.includes(h.TIERS[tiers[i]].label.th) && st.n.includes(h.TIERS[tiers[i]].label.en)),
       `${width}: the tier of each step, in order, Thai and English (${steps.map((st) => st.tier).join(', ')})`);
+      const tinted = await h.aiTinted(page, '.tier-chip');
+      h.check(tinted.length === 0, `${width}: no tier chip wears an --ai-* colour${tinted.length ? ` (${[...new Set(tinted)].slice(0, 3).join('; ')})` : ''}`);
       const origin = new URL(page.url()).origin;
       checkTry(h, `${width}`, await tryLink(page), origin);
       for (const y of [0, 1e6]) {

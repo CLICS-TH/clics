@@ -1,5 +1,6 @@
 /* "See the answers" (js/booth-answers.js) on the kiosk, and the tier chips it shares with the result page. No tier
-   is drawn as a warning: best is the solid chip, the others step down. */
+   is drawn as a warning: best is the solid chip, the others step down. Tiers and the best option come from the vetted
+   bank (ADR 0006), so none of them wears the --ai-* colours, which mark what the AI wrote. */
 .tier-chip {
   align-self: flex-start; box-sizing: border-box; display: inline-flex;
   padding: calc(6 * var(--u)) calc(24 * var(--u)); border: var(--line) solid; border-radius: calc(999 * var(--u));
@@ -7,8 +8,8 @@
 .tier-chip .bi { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: calc(14 * var(--u)); }
 .tier-chip .bi-th { font-size: var(--text-small-th); font-weight: 600; line-height: 1.45; }
 .tier-chip .bi-en { font-size: var(--text-en); font-weight: 500; line-height: 1.4; }
-.tier-chip[data-tier="best"] { background: var(--ai-text); border-color: var(--ai-text); color: var(--on-accent); --bi-en: var(--on-accent); }
-.tier-chip[data-tier="reasonable"] { background: var(--ai-bg); border-color: var(--ai-border); color: var(--ai-text); --bi-en: var(--ai-text); }
+.tier-chip[data-tier="best"] { background: var(--ink); border-color: var(--ink); color: var(--on-accent); --bi-en: var(--on-accent); }
+.tier-chip[data-tier="reasonable"] { background: var(--band); border-color: var(--edge); color: var(--ink); --bi-en: var(--ink); }
 .tier-chip[data-tier="weaker"] { background: var(--card); border-color: var(--edge); border-style: dashed; color: var(--ink); --bi-en: var(--ink); }
 
 .reveal-overlay {
@@ -34,7 +35,7 @@
   display: flex; flex-direction: column; gap: calc(10 * var(--u)); padding: calc(20 * var(--u)) calc(24 * var(--u));
   border-radius: var(--radius-s); background: var(--band); color: var(--ink); --bi-en: var(--ink);
 }
-.reveal-best { background: var(--ai-bg); color: var(--ai-text); --bi-en: var(--ai-text); }
+.reveal-best { background: var(--card); border: var(--line) solid var(--edge); }
 .reveal-given .bi-th { font-size: var(--text-th); font-weight: 600; line-height: 1.45; }
 .reveal-given .bi-en { font-size: var(--text-en); line-height: 1.35; }
 .reveal-typed { margin: 0; white-space: pre-wrap; overflow-wrap: break-word; font-size: var(--text-th); line-height: 1.6; }

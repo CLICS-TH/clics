@@ -250,6 +250,8 @@ export default [
       h.check(seen[0].best === null, `${width}: step 1 tapped the best option, so no best-option line`);
       h.check(seen[1].best === want[1].best && seen[1].best !== null, `${width}: step 2 tapped the weaker option, and the best option offered is named (${seen[1].best})`);
       h.check(seen[2].best === want[2].best && seen[2].best !== null, `${width}: step 3 was typed, and the best option offered is named (${seen[2].best})`);
+      const tinted = await h.aiTinted(page, '[data-reveal-overlay] :is(.tier-chip, .reveal-best)');
+      h.check(tinted.length === 0, `${width}: no tier chip or best-option panel wears an --ai-* colour${tinted.length ? ` (${[...new Set(tinted)].slice(0, 3).join('; ')})` : ''}`);
       await h.screenCheck(page, `answers overlay ${width}x${height}`, { demo: 'auto' });
       await h.shot(page, `answers-${width}`);
       const fits = await page.locator('[data-reveal-overlay]').evaluate((o) => ({ scrolls: o.scrollHeight > o.clientHeight, close: !!o.querySelector('[data-action="close-answers"]') }));

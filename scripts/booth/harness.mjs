@@ -556,6 +556,28 @@ async function scanSources() {
   }
 }
 
+/**
+ * The elements under `selector` that paint any colour of the --ai-* tokens, which mark AI-written text only: tiers and
+ * the best option come from the vetted bank (ADR 0006). Each token is resolved through a probe so the comparison is
+ * computed colour against computed colour.
+ * @returns {Promise<string[]>} one line per offender
+ */
+async function aiTinted(page, selector) {
+  return page.evaluate((sel) => {
+    const root = getComputedStyle(document.documentElement);
+    const names = [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules]; } catch { return []; } })
+      .flatMap((r) => (r.style ? [...r.style] : [])).filter((n) => n.startsWith('--ai-'));
+    const probe = document.body.appendChild(document.createElement('i'));
+    const ai = new Map([...new Set(names)].map((n) => { probe.style.color = root.getPropertyValue(n).trim(); return [getComputedStyle(probe).color, n]; }));
+    probe.remove();
+    const props = ['color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color'];
+    return [...document.querySelectorAll(sel)].flatMap((e) => [e, ...e.querySelectorAll('*')]).flatMap((e) => {
+      const cs = getComputedStyle(e);
+      return props.filter((p) => ai.has(cs.getPropertyValue(p))).map((p) => `${e.className || e.tagName} ${p} = ${ai.get(cs.getPropertyValue(p))}`);
+    });
+  }, selector);
+}
+
 async function shot(page, name, { fullPage = false } = {}) {
   if (!SHOTS) return;
   await mkdir(SHOTS, { recursive: true });
@@ -567,7 +589,7 @@ async function shot(page, name, { fullPage = false } = {}) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED, scoredFor, stepsFor,
+const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {
