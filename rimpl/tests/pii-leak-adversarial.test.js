@@ -645,6 +645,15 @@ describe('adversarial — a name inside a คุณ pronoun clause keeps its sam
     for (const out of [stripPii(input), primed(input)]) expect(out).not.toContain('ใจดี');
     for (const out of [stripPii('นายสมชาย\nใจดี'), primed('นายสมชาย\nใจดี')]) expect(out).not.toContain('ใจดี');
   });
+
+  // Surnames outside every gazetteer: only the cross-line rule can catch them.
+  test.each([
+    ['คุณบอกสมชาย\nทองเปลว', 'ทองเปลว'],
+    ['ทองเปลว\nคุณจะสมชาย', 'ทองเปลว'],
+    ['คุณจะสมชาย\r\nบุญเรือง', 'บุญเรือง'],
+  ])('a gazetteer given name inside the clause keeps the cross-line surname masked: %s', (input, surname) => {
+    for (const out of [stripPii(input), primed(input)]) expect(out).not.toContain(surname);
+  });
 });
 
 // ===========================================================================

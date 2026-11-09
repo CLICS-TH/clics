@@ -639,9 +639,14 @@ function nameToken(token, surface, clause = false) {
   return tok;
 }
 // A คุณ run masked whole that begins with a function word is the pronoun "you" + a clause (คุณจะ…, คุณคิด…):
-// still masked, as the shield cannot tell it from a name, but recorded as a clause (#406).
+// still masked, as the shield cannot tell it from a name, but recorded as a clause (#406). A clause that
+// holds a gazetteer given name (คุณบอกสมชาย) is a name: it keeps the cross-line surname rule.
+const GAZETTEER_GIVEN_NAMES = [...TH_GIVEN_NAMES].filter((n) => n.length >= 3);
 function isKhunClause(run) {
-  return wordAt(run, 0, TH_FUNCTION_WORDS) !== '' && !TH_GIVEN_NAMES.has(run);
+  const lead = wordAt(run, 0, TH_FUNCTION_WORDS);
+  if (!lead || TH_GIVEN_NAMES.has(run)) return false;
+  const rest = run.slice(lead.length);
+  return !GAZETTEER_GIVEN_NAMES.some((n) => rest.includes(n));
 }
 
 function registerNameAliases(token, surface, tok) {
