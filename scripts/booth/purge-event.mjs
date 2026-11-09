@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /*
- * Booth retention (#217, ADR 0004): prints the counts summary for CCME and, with --delete, removes every
- * booth_plays row of one event. Run it 30 days after the forum's last day.
+ * Booth purge (#217, ADR 0004, 0010): prints the counts summary for CCME and, with --delete, removes every
+ * booth_plays row of one event. Booth plays are kept as research data with no 30-day delete (ADR 0010): run it only
+ * for a test event or an owner-ordered removal.
  *
  * Needs db/migration-booth-purge.sql applied: one call to booth_event_summary() checks the switch, deletes and
  * summarizes in one transaction, so the printed summary describes exactly the rows deleted. That transaction also
@@ -9,9 +10,9 @@
  * committed is read back exactly, with --attempt.
  *
  * Run from backend/ (dotenv loads backend/.env and @supabase/supabase-js resolves from backend/node_modules):
- *   node ../scripts/booth/purge-event.mjs --event NFCME-2026                  # read only
- *   node ../scripts/booth/purge-event.mjs --event NFCME-2026 --delete         # delete, print what was deleted
- *   node ../scripts/booth/purge-event.mjs --event NFCME-2026 --attempt <id>   # read only: did that delete commit?
+ *   node ../scripts/booth/purge-event.mjs --event TEST-2026                  # read only
+ *   node ../scripts/booth/purge-event.mjs --event TEST-2026 --delete         # delete, print what was deleted
+ *   node ../scripts/booth/purge-event.mjs --event TEST-2026 --attempt <id>   # read only: did that delete commit?
  *
  * Every run ends with the one block to send CCME (or a line saying there is none yet) and a "Next step:" line naming
  * the exact command to run next, if any (plan() in purge-summary.mjs decides both). The operator follows that line.

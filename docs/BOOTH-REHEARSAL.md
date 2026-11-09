@@ -4,8 +4,9 @@ Run on the real mini-PC and touch panel, with the owner's phone hotspot, against
 (everything shifts one day if it opens Wed 4 Nov). Staff steps are in the Thai runbook,
 [BOOTH-RUNBOOK.th.md](BOOTH-RUNBOOK.th.md). Print it: `node scripts/docs/th-doc-pdf.mjs docs/BOOTH-RUNBOOK.th.md --out booth-runbook.pdf`.
 
-Rehearsal plays are real `NFCME-2026` plays: they take tags from #001 and appear on the public board. Section 6
-deletes them, so opening day starts at Booth #001 with an empty board.
+Rehearsal plays are real `NFCME-2026` plays: they take the next tags and appear on the public board. They are kept
+like every other play (ADR 0010). `NFCME-2026` already holds the visitor plays of 3–4 Nov, and
+`purge-event.mjs --delete` removes every play of an event, so a rehearsal never runs it on `NFCME-2026`.
 
 ## Before the freeze (by Sun 1 Nov 18:00, +07:00)
 
@@ -100,10 +101,8 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 ## 6. Clean up after rehearsal
 
 - [ ] Tap the switch **off** in the Booth Mode card (it saves itself).
-- [ ] In `backend/`, run `node ../scripts/booth/purge-event.mjs --event NFCME-2026`. Every run ends with a block
-      labelled `== CCME summary (…) ==` (or a line saying there is none yet) and a `Next step:` line. Do exactly
-      what each `Next step:` says until one starts with `Done`, which ends with `0 remain`. This is the dress
-      rehearsal of the 30-day retention step in the runbook. Rehearsal plays are not CCME data: send nothing.
+- [ ] Delete nothing. The rehearsal plays stay with the event's plays (ADR 0010). Removing them is an
+      owner-ordered removal, decided by the owner, and `purge-event.mjs` cannot do it: it deletes the whole event.
 - [ ] Set opens-at and closes-at to Tue 3 Nov's booth hours and press **Save**. Reload the page and check both
       times are still shown. Leave the switch off until the morning.
 - [ ] Write the staff names and phone numbers by hand on the printed runbook, section 7.
