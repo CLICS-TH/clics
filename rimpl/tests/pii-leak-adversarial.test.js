@@ -6,7 +6,7 @@ jest.mock('../src/lib/supabase', () => ({
   supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
 }));
 
-const { stripPii, stripHistoryPii, deriveHintTokens } = require('../src/services/pii-filter');
+const { stripPii, stripHistoryPii, deriveHintTokens, primeRegistry, makeRegistry } = require('../src/services/pii-filter');
 const request = require('supertest');
 const app = require('../src/index');
 const { callAI, resolveProviderName } = require('../src/services/ai');
@@ -614,49 +614,6 @@ describe('adversarial — a name that starts like a shield word, or follows role
 });
 
 // ===========================================================================
-// #406 — a คุณ run that opens with a function word (คุณจะ…, คุณบอก…) is a pronoun clause: it takes no
-// surname ACROSS a line break, so a booth answer typed under the question survives. A real name glued into
-// such a run, with its surname on the SAME line, must still lose both parts — in one text, and through a
-// primed registry the way routes/chat.js deidentifyTurn runs it.
-// ===========================================================================
-describe('adversarial — a name inside a คุณ pronoun clause keeps its same-line surname masked (#406)', () => {
-  const { makeRegistry, primeRegistry } = require('../src/services/pii-filter');
-  const primed = (text) => {
-    const registry = makeRegistry();
-    primeRegistry([text], registry);
-    return stripPii(text, registry);
-  };
-  const CASES = [
-    'คุณจะสมชาย ใจดี', 'คุณบอกสมชาย ใจดี', 'คุณบอกสมชาย ใจดี มาตามนัด', 'คุณจะสมชาย, ใจดี',
-    'คุณบอกปิยะพร ทองเปลว\nให้ยาแล้ว', 'ใจดี คุณบอกสมชาย', 'คุณจะสมชาย JAIDEE', 'คุณบอกสมชาย ณ อยุธยา',
-    // the surname's later bare mention on another line folds in through the alias
-    'คุณบอกสมชาย ใจดี\nใจดี โทรมาสอบถาม',
-  ];
-  test.each(CASES)('%s', (input) => {
-    const parts = ['สมชาย', 'ใจดี', 'ปิยะพร', 'ทองเปลว', 'JAIDEE', 'อยุธยา'].filter((p) => input.includes(p));
-    for (const out of [stripPii(input), primed(input)]) {
-      for (const p of parts) expect(out).not.toContain(p);
-    }
-  });
-
-  test('a real-name rule on the same token keeps the cross-the-line ruling', () => {
-    // นาย makes คิดถึง a name even after คุณคิดถึง… registered the same token as a clause
-    const input = 'คุณคิดถึง มาตามนัด\nนายคิดถึง\nใจดี';
-    for (const out of [stripPii(input), primed(input)]) expect(out).not.toContain('ใจดี');
-    for (const out of [stripPii('นายสมชาย\nใจดี'), primed('นายสมชาย\nใจดี')]) expect(out).not.toContain('ใจดี');
-  });
-
-  // Surnames outside every gazetteer: only the cross-line rule can catch them.
-  test.each([
-    ['คุณบอกสมชาย\nทองเปลว', 'ทองเปลว'],
-    ['ทองเปลว\nคุณจะสมชาย', 'ทองเปลว'],
-    ['คุณจะสมชาย\r\nบุญเรือง', 'บุญเรือง'],
-  ])('a gazetteer given name inside the clause keeps the cross-line surname masked: %s', (input, surname) => {
-    for (const out of [stripPii(input), primed(input)]) expect(out).not.toContain(surname);
-  });
-});
-
-// ===========================================================================
 // PR #114 REVIEW — I1: the first shield re-scanned fragments RECURSIVELY, so a
 // 5000-char "คุณจะคุณจะ…" (the backend's max message) blew the stack, and the
 // unhandled rejection exited RIMPL. Each input runs in a FRESH child process
@@ -1052,5 +1009,54 @@ describe('adversarial — one registry per outbound call (coreference across the
     expect(wire).not.toContain(A);                // the bare transcript mention is caught via the CC alias
     expect(wire).not.toContain('ผื่นแดงที่แขนซ้าย'); // the CC text itself does not travel
     expect(systemPrompt).toContain('Physician: [NAME-1] มาด้วยไข้');
+  });
+});
+
+// ===========================================================================
+// #406 — a booth answer under a "คุณจะ…" question survives because routes/chat.js strips the vetted question
+// and the typed answer as separate texts. The filter itself keeps the owner's ruling: a surname is taken
+// across a line break, in both directions, after any คุณ run. Names here are synthetic and outside every
+// gazetteer, so only the cross-line rule catches them (PR #407 round 1 let each of these through).
+// ===========================================================================
+describe('adversarial — a คุณ run takes its surname across a line break (#406)', () => {
+  const primed = (input) => {
+    const registry = makeRegistry();
+    primeRegistry([input], registry);
+    return stripPii(input, registry);
+  };
+  const CASES = ['\n', '\r\n', '\n\n'].flatMap((br) => [
+    [`คุณจะพรรณราย${br}ทองเปลว`, 'ทองเปลว'],
+    [`ทองเปลว${br}คุณคิดถึง`, 'ทองเปลว'],
+    [`คุณกำลังใจ${br}ทองเปลว`, 'ทองเปลว'],
+    [`คุณคิดพรรณราย${br}แก้วมณี`, 'แก้วมณี'],
+    [`บุญเรือง${br}คุณจะพรรณราย`, 'บุญเรือง'],
+  ]);
+  test.each(CASES)('%j keeps %s out, fresh and primed', (input, surname) => {
+    expect(stripPii(input)).not.toContain(surname);
+    expect(primed(input)).not.toContain(surname);
+  });
+
+  describe('through POST /chat', () => {
+    const QUESTION = 'คุณจะส่งตรวจอะไรเป็นอันดับแรก';
+    beforeEach(() => {
+      callAI.mockReset();
+      callAI.mockResolvedValue({ text: '{}', tokenCount: 1, inputTokens: 1, outputTokens: 1, provider: 'local-tutor', model: 'm' });
+    });
+    const wire = () => JSON.stringify(callAI.mock.calls[0][0].messages);
+
+    test('a scored PLE turn', async () => {
+      await request(app).post('/chat').send({ ple_id: 'x', history: [], language: 'th',
+        message: 'คุณคิดถึง\nทองเปลว ผู้ป่วยรายนี้ควรได้ EKG' });
+      expect(wire()).not.toContain('ทองเปลว');
+    });
+
+    test.each(['\n', '\r\n', '\n\n'])('a booth answer that is a name over two lines (%j), as the message and in history', async (br) => {
+      const said = `คุณจะพรรณราย${br}ทองเปลว`;
+      await request(app).post('/chat').send({ ple_id: 'x', language: 'th', booth_mode: true,
+        history: [{ role: 'physician', content: `วิญเญต\n\n${QUESTION}\n${said}` }, { role: 'assistant', content: 'ดี' }],
+        message: `${QUESTION}\n${said}` });
+      expect(wire()).not.toContain('ทองเปลว');
+      expect(wire()).not.toContain('พรรณราย');
+    });
   });
 });

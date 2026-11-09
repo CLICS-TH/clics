@@ -100,7 +100,8 @@ const ChatSchema = z.object({
 //
 // Returns the pieces still separate: the caller embeds `cleanMessage` for RAG and sends the very same
 // string to the model (the RAG lookup and the AI call must see identical de-identified text).
-function deidentifyTurn({ chiefComplaint, history, message, hints }) {
+function deidentifyTurn({ chiefComplaint, history, message, hints, booth = false }) {
+  if (booth) return deidentifyBoothTurn({ chiefComplaint, history, message, hints });
   const registry = makeRegistry();
   // Every surname found anywhere in the turn masks every other mention, in the same order as below (#238).
   primeRegistry([chiefComplaint || '', ...history.map((m) => m.content), message], registry, hints);
@@ -108,6 +109,40 @@ function deidentifyTurn({ chiefComplaint, history, message, hints }) {
   const cleanHistory = stripHistoryPii(history, hints, registry);
   const cleanMessage = stripPii(message, registry, hints);
   return { cleanChiefComplaint, cleanHistory, cleanMessage };
+}
+
+// A booth physician turn is the vetted vignette (turn 1 only) and bank question, then the visitor's answer:
+// `[vignette \n\n] question \n answer` (backend/src/services/booth-dialogue.js dialogueTurns). Neither the
+// vignette nor a question holds a line break inside it. Masked as one text, a question opening with the
+// pronoun คุณ ("คุณจะส่งตรวจ…") becomes a name and the filter takes the answer on the next line as its
+// surname (#406). So each piece is its own text. A cut here can only fall inside vetted text or exactly at
+// the answer, never inside the answer: the answer keeps every rule, line breaks in it included.
+function boothTurnPieces(content, first) {
+  const pieces = [];
+  let rest = content;
+  if (first) {
+    const end = rest.indexOf('\n\n');
+    if (end >= 0) { pieces.push(rest.slice(0, end), '\n\n'); rest = rest.slice(end + 2); }
+  }
+  const end = rest.indexOf('\n');
+  if (end >= 0) { pieces.push(rest.slice(0, end), '\n'); rest = rest.slice(end + 1); }
+  pieces.push(rest);
+  return pieces; // texts at even indexes, the separators between them at odd ones
+}
+
+// deidentifyTurn for a booth turn: the same one registry and order, with each physician turn in pieces.
+function deidentifyBoothTurn({ chiefComplaint, history, message, hints }) {
+  const registry = makeRegistry();
+  const turns = [...history, { role: 'physician', content: message }];
+  const firstPhysician = turns.findIndex((m) => m.role === 'physician');
+  const pieces = turns.map((m, i) => (m.role === 'physician' ? boothTurnPieces(m.content, i === firstPhysician) : [m.content]));
+  const texts = (p) => p.filter((_, i) => i % 2 === 0);
+  primeRegistry([chiefComplaint || '', ...pieces.flatMap(texts)], registry, hints);
+  const clean = (p) => p.map((s, i) => (i % 2 === 0 ? stripPii(s, registry, hints) : s)).join('');
+  const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
+  const cleanTurns = turns.map((m, i) => ({ ...m, content: clean(pieces[i]) }));
+  const cleanMessage = cleanTurns.pop().content;
+  return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage };
 }
 
 // Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only
@@ -172,7 +207,7 @@ router.post('/', async (req, res) => {
     // the on-prem boundary — not to Claude and not to the OpenAI embeddings API behind RAG.
     // ragLookup previously received the raw message.
     const { cleanChiefComplaint, cleanHistory, cleanMessage } =
-      deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
+      deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints, booth: booth_mode });
     // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
     // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
     if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed, signal }));

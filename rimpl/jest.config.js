@@ -6,6 +6,9 @@ module.exports = {
   // Bind supertest's host-less `listen(0)` to 127.0.0.1 so a stray process on the box cannot answer our
   // requests (see tests/helpers/loopback-listen.js for the macOS port-collision it prevents).
   setupFiles: ['<rootDir>/tests/helpers/loopback-listen.js'],
+  // A test may load the backend's booth dialogue builder (booth-typed-answer-survives); CI installs only
+  // rimpl's packages, so the backend file's one package, zod, resolves from here.
+  moduleNameMapper: { '^zod$': '<rootDir>/node_modules/zod' },
   collectCoverageFrom: ['src/**/*.js'],
   coverageThreshold: {
     global: { statements: 78, branches: 62, functions: 83, lines: 81 },

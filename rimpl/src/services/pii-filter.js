@@ -122,15 +122,6 @@ function makeRegistry() {
     return n;
   }
 
-  // #406: NAME tokens that hold a คุณ pronoun clause ("คุณจะส่งตรวจ…" masked whole by the คุณ shield), and
-  // NAME tokens any real-name rule produced. A token only ever marked as a clause is "clause-only": the
-  // bare-surname pass does not carry it across a line break (see takeSurnames).
-  const clauseTokens = new Set();
-  const nameTokens = new Set();
-  token.markClause = (tok) => { clauseTokens.add(tok); };
-  token.markName = (tok) => { nameTokens.add(tok); };
-  token.isClauseOnly = (tok) => clauseTokens.has(tok) && !nameTokens.has(tok);
-
   token.entries = entries;
   token.size = size;
   return token;
@@ -631,24 +622,6 @@ const PASSES = [
 // later bare occurrence of just the given name or surname reuses the token.
 // A Thai part glued to a particle or clinical tail ("นายอรุณครับ" takes อรุณครับ) also aliases its head
 // (nameHead: อรุณ), so a later bare "อรุณ" folds in.
-// The [NAME-n] token for `surface`, marked as a real name (the default) or as a คุณ pronoun clause.
-function nameToken(token, surface, clause = false) {
-  const tok = token('NAME', surface);
-  if (clause) token.markClause(tok);
-  else token.markName(tok);
-  return tok;
-}
-// A คุณ run masked whole that begins with a function word is the pronoun "you" + a clause (คุณจะ…, คุณคิด…):
-// still masked, as the shield cannot tell it from a name, but recorded as a clause (#406). A clause that
-// holds a gazetteer given name (คุณบอกสมชาย) is a name: it keeps the cross-line surname rule.
-const GAZETTEER_GIVEN_NAMES = [...TH_GIVEN_NAMES].filter((n) => n.length >= 3);
-function isKhunClause(run) {
-  const lead = wordAt(run, 0, TH_FUNCTION_WORDS);
-  if (!lead || TH_GIVEN_NAMES.has(run)) return false;
-  const rest = run.slice(lead.length);
-  return !GAZETTEER_GIVEN_NAMES.some((n) => rest.includes(n));
-}
-
 function registerNameAliases(token, surface, tok) {
   for (const part of surface.split(/\s+/)) {
     if (part.length >= 2 && !MED_SHIELD.has(part)) token.alias('NAME', part, tok);
@@ -711,7 +684,7 @@ function applyHintPass(text, token, hints) {
     if (!h || MED_SHIELD.has(h)) continue;
     const isThai = /[ก-ฮะ-๎]/.test(h);
     if (isThai ? h.length < 3 : h.length < 2) continue; // conservative for space-less Thai
-    const tok = nameToken(token, h);
+    const tok = token('NAME', h);
     registerNameAliases(token, h, tok);
     const escaped = h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = isThai ? new RegExp(escaped, 'g') : new RegExp(`\\b${escaped}\\b`, 'g');
@@ -746,7 +719,7 @@ function applyGazetteerPass(text, token) {
     const after = full.slice(offset + match.length);
     const standalone = !after || !TH_LETTER_RE.test(after[0]); // space / punct / non-Thai / end follows
     if (relational || standalone || startsWithClinicalLead(after)) {
-      const tok = nameToken(token, match);
+      const tok = token('NAME', match);
       registerNameAliases(token, match, tok);
       return tok;
     }
@@ -765,7 +738,7 @@ function applyClanSurnamePass(text, token) {
   const alt = names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
   const re = new RegExp(`(?:${alt})`, 'g');
   return text.replace(re, (match) => {
-    const tok = nameToken(token, match);
+    const tok = token('NAME', match);
     registerNameAliases(token, match, tok);
     return tok;
   });
@@ -908,10 +881,6 @@ function isSurnameCandidate(word, full, wordStart) {
   if (TH_ABBREVIATED_TITLES.some((t) => full.startsWith(t, wordStart))) return false;
   return !isClinicalRun(word);
 }
-// A separator that holds a line break. A clause-only token (#406: "คุณจะส่งตรวจอะไร" masked whole) takes no
-// surname across one, so a booth answer typed on the line under a คุณ question stays text; on its own line it
-// still takes one ("คุณบอกสมชาย ใจดี"). Every other given name keeps the owner's cross-the-line ruling.
-const LINE_BREAK_RE = /[\n\r\v\f\u0085\u2028\u2029]/;
 // One round: take every surname next to a given-name token in `text`. Returns [text, foundOne].
 function takeSurnames(text, token) {
   const givenTokens = givenNameTokens(token);
@@ -919,7 +888,6 @@ function takeSurnames(text, token) {
   let captured = false;
   let out = text.replace(TH_GIVEN_SURNAME_RE, (match, tok, sep, word, offset, full) => {
     if (!givenTokens.has(tok)) return match;
-    if (LINE_BREAK_RE.test(sep) && token.isClauseOnly(tok)) return match;
     if (!isSurnameCandidate(word, full, offset + tok.length + sep.length)) return match;
     aliasSurname(token, word, tok);
     captured = true;
@@ -929,7 +897,6 @@ function takeSurnames(text, token) {
   // word before a name) must not stop the real surname after the given name from being taken.
   out = out.replace(TH_SURNAME_BEFORE_RE, (match, word, sep, title, tok) => {
     if (!givenTokens.has(tok) || word.length > SURNAME_BEFORE_MAX) return match;
-    if (LINE_BREAK_RE.test(sep) && token.isClauseOnly(tok)) return match;
     if (MED_SHIELD.has(word) || isClinicalRun(word)) return match;
     aliasSurname(token, word, tok);
     captured = true;
@@ -973,7 +940,7 @@ function applyPass(text, pass, token, hints) {
         // ชื่อ prefix to the labelled-name pass. Emit just the token.
         const nick = g1;
         if (MED_SHIELD.has(nick.trim())) return match;
-        const tok = nameToken(token, nick);
+        const tok = token('NAME', nick);
         registerNameAliases(token, nick, tok);
         return tok;
       }
@@ -1003,7 +970,7 @@ function applyPass(text, pass, token, hints) {
           }
         }
         const surface = (given + ' ' + surname).trim();
-        const tok = nameToken(token, surface);
+        const tok = token('NAME', surface);
         registerNameAliases(token, surface, tok);
         return 'ชื่อ ' + tok + trailing;
       }
@@ -1012,7 +979,7 @@ function applyPass(text, pass, token, hints) {
         // is unambiguous (unlike a bare space-separated token), so no clinical-lead shield is needed.
         const surname = g1;
         if (MED_SHIELD.has(surname.trim())) return match;
-        const tok = nameToken(token, surname);
+        const tok = token('NAME', surname);
         registerNameAliases(token, surname, tok);
         return 'นามสกุล ' + tok;
       }
@@ -1035,12 +1002,12 @@ function applyPass(text, pass, token, hints) {
           }
           if (verdict.at > 0) {
             const rest = given.slice(verdict.at);
-            const restTok = nameToken(token, rest, isKhunClause(rest));
+            const restTok = token('NAME', rest);
             registerNameAliases(token, rest, restTok);
             return title + ws + given.slice(0, verdict.at) + restTok;
           }
         }
-        const tok = nameToken(token, given, title === 'คุณ' && isKhunClause(given));
+        const tok = token('NAME', given);
         registerNameAliases(token, given, tok);
         // Thai titles glue to the name (นาย+สมชาย), no separating space.
         return title + tok;
@@ -1049,7 +1016,7 @@ function applyPass(text, pass, token, hints) {
       const title = g1;
       const nameTokens = g2;
       if (MED_SHIELD.has(nameTokens.trim())) return match;
-      const tok = nameToken(token, nameTokens);
+      const tok = token('NAME', nameTokens);
       registerNameAliases(token, nameTokens, tok);
       return title + ' ' + tok;
     }
