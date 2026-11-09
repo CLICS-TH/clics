@@ -65,7 +65,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
       one tap each. The on-screen keyboard leaves the typing box visible.
 - [ ] Alt+F4 exits kiosk mode.
 
-## 3. Prod scores on Claude under 60 s, and replies come under 15 s
+## 3. Prod scores from the path score tables under 60 s, and replies come under 15 s
 
 - [ ] Play 10 times on the kiosk, all three steps each. Mix tapped choices with at least one "type my own". Every
       play ends on a result card, none on the score-unavailable card.
@@ -73,15 +73,15 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
       `railway logs --service backend --since 2h --filter '"[booth]"' > booth.log` (`--since` stops it
       streaming). Then run `node scripts/booth/score-latency.mjs booth.log`. It prints two gates and a last line.
 - [ ] The score gate prints `score PASS`. It fails on fewer than 5 scored plays, any unavailable play, p95 at or
-      over 60 s, or any provider other than `anthropic`.
+      over 60 s, or any provider other than `table`.
 - [ ] Read the reply gate: `reply PASS`, `reply FAIL` or `reply TOO FEW`. It needs at least 30 replies (10 plays
       of 3 steps) and a reply p95 under 15 s. An empty reply (the AI failed or timed out, and the kiosk showed the
       fallback question) counts, since the visitor waited for it. The last line says `PASS` only when both gates
       pass.
 - [ ] A reply FAIL or TOO FEW does not block opening. Record the reply p95. A FAIL makes streaming or a faster
       reply model the first wave-2 ticket.
-- [ ] On FAIL with a `local` provider: rimpl is routing the evaluator to the local model, whose p95 (about 90 s) is
-      past the 60 s cap. Fix the rimpl env before opening, not the cap.
+- [ ] On a score FAIL with another provider: the backend is older than #373 and still scores live. Deploy the
+      backend before opening.
 
 ## 4. Hotspot failover
 

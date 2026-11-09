@@ -1,7 +1,9 @@
 // The pure half of a booth grill play: which bank each step draws from, what the server issues for an ask and a
-// reply, what rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js) and
-// the physician sandbox (scripts/booth/sandbox.js) both build their rimpl calls here, so the sandbox scores exactly what
-// a live-scored kiosk play would. Nothing here reads or writes the database.
+// reply, what rimpl is sent for a reply and a score, and the tiers a score shows. The booth API (services/booth.js), the
+// physician sandbox (scripts/booth/sandbox-play.js) and the path score table build (scripts/booth/build-path-tables.mjs)
+// all build their rimpl calls here. The API never calls the evaluator (ADR 0009): the sandbox scores live through rimpl
+// and the table build scores each tier path, both with evaluateRequest, so a table holds the score of exactly the
+// transcript a kiosk play would make. Nothing here reads or writes the database.
 const crypto = require('crypto');
 const { TIERS } = require('../booth-cases/tree-schema');
 
@@ -92,8 +94,9 @@ function nextOf(bank, ask) {
   };
 }
 
-// The evaluator reads a visitor's own words as a physician turn, so a typed answer reaches it fenced and labelled
-// untrusted (the rule rides in the transcript: the evaluator's system prompt is calibrated and stays untouched).
+// The evaluator, and the booth chat that sorts a typed answer into the tier that alone sets a table score (ADR 0009),
+// read a visitor's own words as a physician turn, so a typed answer reaches both fenced and labelled untrusted (the
+// rule rides in the transcript: the evaluator's system prompt is calibrated and stays untouched).
 // The fence marks are stripped from the text so it cannot close its own fence.
 const FENCE_OPEN = '\u27e6';
 const FENCE_CLOSE = '\u27e7';
@@ -213,7 +216,7 @@ function typedBanks(kase, tierPath, n, memo) {
  *  storage. No chief_complaint: rimpl prefixes it to the last user turn, and turn 1 already carries the vignette. */
 function chatRequest(kase, d) {
   const n = d.answers.length;
-  const history = dialogueTurns(kase, d);
+  const history = dialogueTurns(kase, d, true);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
     : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};

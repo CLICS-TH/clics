@@ -7,7 +7,7 @@
  *   node scripts/booth/score-latency.mjs backend.log [--min 5] [--min-replies 30]
  *
  * Score gate: counts distinct plays, not lines. PASS needs at least --min scored plays (default 5), no unavailable
- * play, p95 under 60 s and every scored play on provider anthropic.
+ * play, p95 under 60 s and every scored play on provider table (ADR 0009: read from the case's path score table).
  * Reply gate: counts distinct (play, step) replies, an empty one included (the visitor waited for it too). PASS needs
  * p95 under 15 s over at least --min-replies (default 30); fewer is TOO FEW. Empty and unavailable replies and the
  * providers are reported but do not fail it.
@@ -73,7 +73,7 @@ export function summarize(log, { min = 5 } = {}) {
     ms.length < min && `only ${ms.length} scored plays, need ${min}`,
     unavailable > 0 && `${unavailable} unavailable`,
     p95 != null && p95 >= P95_LIMIT_MS && `p95 ${(p95 / 1000).toFixed(1)} s is not under 60 s`,
-    scored.some((s) => s.provider !== 'anthropic') && 'a scored play did not run on anthropic',
+    scored.some((s) => s.provider !== 'table') && 'a scored play was not read from a path score table',
   ].filter(Boolean);
   return {
     n: ms.length,

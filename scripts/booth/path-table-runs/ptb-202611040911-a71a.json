@@ -1,0 +1,625 @@
+{
+  "run_id": "ptb-202611040911-a71a",
+  "date": "2026-11-04",
+  "rimpl_url": "http://localhost:3003",
+  "cap_usd": 25,
+  "spent_usd": 15.230007,
+  "stopped": false,
+  "over_cap": false,
+  "samples": 3,
+  "planned": 891,
+  "scored": 891,
+  "evaluator": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "prompt_version": "pis7-prompt-59561c29",
+    "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
+    "decoding": {
+      "temperature": 0,
+      "max_tokens": 4096,
+      "top_p": null,
+      "seed": null,
+      "num_ctx": null
+    }
+  },
+  "cases": {
+    "adhf": {
+      "version": "4",
+      "tree_sha256": "369c1e96d44be354f2145c0ba5f22abff692c0dc4f2cf13693f145c09bca846d",
+      "reviewed_commit": "8d5812dad7e3d374a5420f467f535c8170ed449d",
+      "table": true,
+      "composites": {
+        "BBB": 45,
+        "BBR": 48,
+        "BBW": 32,
+        "BRB": 48,
+        "BRR": 45,
+        "BRW": 48,
+        "BWB": 45,
+        "BWR": 45,
+        "BWW": 48,
+        "RBB": 45,
+        "RBR": 35,
+        "RBW": 38,
+        "RRB": 48,
+        "RRR": 35,
+        "RRW": 38,
+        "RWB": 32,
+        "RWR": 38,
+        "RWW": 33,
+        "WBB": 35,
+        "WBR": 41,
+        "WBW": 35,
+        "WRB": 38,
+        "WRR": 38,
+        "WRW": 38,
+        "WWB": 35,
+        "WWR": 38,
+        "WWW": 38
+      }
+    },
+    "alcohol-pancreatitis": {
+      "version": "3",
+      "tree_sha256": "21d009b249b5820b23614616ad0a5326acf8de57aafea783fa29f4d91ebf7543",
+      "reviewed_commit": "65dc1d2bcb0ebfdb67d82447aa1a07d7754e6811",
+      "table": true,
+      "composites": {
+        "BBB": 51,
+        "BBR": 45,
+        "BBW": 45,
+        "BRB": 45,
+        "BRR": 45,
+        "BRW": 41,
+        "BWB": 56,
+        "BWR": 35,
+        "BWW": 35,
+        "RBB": 41,
+        "RBR": 44,
+        "RBW": 48,
+        "RRB": 56,
+        "RRR": 35,
+        "RRW": 38,
+        "RWB": 38,
+        "RWR": 35,
+        "RWW": 35,
+        "WBB": 38,
+        "WBR": 41,
+        "WBW": 38,
+        "WRB": 56,
+        "WRR": 44,
+        "WRW": 47,
+        "WWB": 38,
+        "WWR": 35,
+        "WWW": 35
+      }
+    },
+    "copd-exacerbation": {
+      "version": "5",
+      "tree_sha256": "c1162936585b1e454125d997b1c115748b07f708c1e20adaaf687aaa30672a25",
+      "reviewed_commit": "02195ada674df903a87ec25d8a8792ae4c921ed7",
+      "table": true,
+      "composites": {
+        "BBB": 63,
+        "BBR": 63,
+        "BBW": 60,
+        "BRB": 63,
+        "BRR": 45,
+        "BRW": 48,
+        "BWB": 60,
+        "BWR": 45,
+        "BWW": 45,
+        "RBB": 41,
+        "RBR": 35,
+        "RBW": 35,
+        "RRB": 35,
+        "RRR": 45,
+        "RRW": 35,
+        "RWB": 45,
+        "RWR": 35,
+        "RWW": 35,
+        "WBB": 53,
+        "WBR": 41,
+        "WBW": 44,
+        "WRB": 51,
+        "WRR": 53,
+        "WRW": 48,
+        "WWB": 44,
+        "WWR": 41,
+        "WWW": 44
+      }
+    },
+    "dka-young-adult": {
+      "version": "5",
+      "tree_sha256": "251b62fc244e7bfceea4fec379084f63e799199b66d0b5148cf7a7514097dfc2",
+      "reviewed_commit": "8d5812dad7e3d374a5420f467f535c8170ed449d",
+      "table": true,
+      "composites": {
+        "BBB": 45,
+        "BBR": 45,
+        "BBW": 45,
+        "BRB": 45,
+        "BRR": 48,
+        "BRW": 45,
+        "BWB": 48,
+        "BWR": 48,
+        "BWW": 45,
+        "RBB": 43,
+        "RBR": 56,
+        "RBW": 43,
+        "RRB": 38,
+        "RRR": 41,
+        "RRW": 35,
+        "RWB": 35,
+        "RWR": 35,
+        "RWW": 35,
+        "WBB": 53,
+        "WBR": 56,
+        "WBW": 46,
+        "WRB": 51,
+        "WRR": 51,
+        "WRW": 51,
+        "WWB": 51,
+        "WWR": 53,
+        "WWW": 44
+      }
+    },
+    "ectopic-rupture": {
+      "version": "4",
+      "tree_sha256": "7955a9e7a9bbc137e48c47fd667a5854938022d050cd3839c210ef13393dab85",
+      "reviewed_commit": "8d5812dad7e3d374a5420f467f535c8170ed449d",
+      "table": true,
+      "composites": {
+        "BBB": 60,
+        "BBR": 48,
+        "BBW": 62,
+        "BRB": 45,
+        "BRR": 45,
+        "BRW": 45,
+        "BWB": 51,
+        "BWR": 48,
+        "BWW": 35,
+        "RBB": 53,
+        "RBR": 35,
+        "RBW": 41,
+        "RRB": 45,
+        "RRR": 33,
+        "RRW": 38,
+        "RWB": 38,
+        "RWR": 38,
+        "RWW": 35,
+        "WBB": 41,
+        "WBR": 35,
+        "WBW": 35,
+        "WRB": 38,
+        "WRR": 35,
+        "WRW": 38,
+        "WWB": 35,
+        "WWR": 32,
+        "WWW": 28
+      }
+    },
+    "leptospirosis": {
+      "version": "3",
+      "tree_sha256": "d0f8f912a476fb9e2b38e668939c89fc42e8f04487684a65e247d6a5097e0a7b",
+      "reviewed_commit": "506f00c85863366b4238a9efac2463801d4efb82",
+      "table": true,
+      "composites": {
+        "BBB": 41,
+        "BBR": 38,
+        "BBW": 45,
+        "BRB": 49,
+        "BRR": 41,
+        "BRW": 45,
+        "BWB": 49,
+        "BWR": 45,
+        "BWW": 45,
+        "RBB": 30,
+        "RBR": 38,
+        "RBW": 38,
+        "RRB": 38,
+        "RRR": 35,
+        "RRW": 35,
+        "RWB": 38,
+        "RWR": 38,
+        "RWW": 30,
+        "WBB": 38,
+        "WBR": 38,
+        "WBW": 35,
+        "WRB": 38,
+        "WRR": 32,
+        "WRW": 32,
+        "WWB": 35,
+        "WWR": 30,
+        "WWW": 35
+      }
+    },
+    "melioidosis-farmer": {
+      "version": "3",
+      "tree_sha256": "d72ef1576d256aaa0700c1439dbc065cd1ed52bffdf1af7481dc21423dff8858",
+      "reviewed_commit": "f99e5f6a7739e40a3e47b5b72699211d092ed25f",
+      "table": true,
+      "composites": {
+        "BBB": 48,
+        "BBR": 48,
+        "BBW": 48,
+        "BRB": 48,
+        "BRR": 48,
+        "BRW": 48,
+        "BWB": 48,
+        "BWR": 48,
+        "BWW": 51,
+        "RBB": 48,
+        "RBR": 48,
+        "RBW": 51,
+        "RRB": 51,
+        "RRR": 59,
+        "RRW": 51,
+        "RWB": 48,
+        "RWR": 63,
+        "RWW": 51,
+        "WBB": 54,
+        "WBR": 54,
+        "WBW": 44,
+        "WRB": 54,
+        "WRR": 54,
+        "WRW": 48,
+        "WWB": 54,
+        "WWR": 51,
+        "WWW": 54
+      }
+    },
+    "motorcycle-shock": {
+      "version": "2",
+      "tree_sha256": "3437704e09a3038272d8f0926f3ad662ce12aea925ca72c9f7523ff78b3da5b8",
+      "reviewed_commit": "6cec21dc9fa3c66d69819a0f2a4320a1e39e8cf8",
+      "table": true,
+      "composites": {
+        "BBB": 48,
+        "BBR": 48,
+        "BBW": 38,
+        "BRB": 48,
+        "BRR": 48,
+        "BRW": 45,
+        "BWB": 45,
+        "BWR": 35,
+        "BWW": 35,
+        "RBB": 48,
+        "RBR": 48,
+        "RBW": 45,
+        "RRB": 45,
+        "RRR": 48,
+        "RRW": 45,
+        "RWB": 48,
+        "RWR": 28,
+        "RWW": 45,
+        "WBB": 48,
+        "WBR": 41,
+        "WBW": 42,
+        "WRB": 45,
+        "WRR": 48,
+        "WRW": 35,
+        "WWB": 51,
+        "WWR": 51,
+        "WWW": 48
+      }
+    },
+    "organophosphate": {
+      "version": "3",
+      "tree_sha256": "7afbe76a45e3f6dfa52dd0a99d056243c6960462a3307afe46be43b74062c066",
+      "reviewed_commit": "0acf0ba63bd4a21e0e4cc61b1194c62d422703e4",
+      "table": true,
+      "composites": {
+        "BBB": 42,
+        "BBR": 35,
+        "BBW": 35,
+        "BRB": 45,
+        "BRR": 45,
+        "BRW": 48,
+        "BWB": 45,
+        "BWR": 38,
+        "BWW": 35,
+        "RBB": 44,
+        "RBR": 48,
+        "RBW": 44,
+        "RRB": 51,
+        "RRR": 48,
+        "RRW": 38,
+        "RWB": 35,
+        "RWR": 38,
+        "RWW": 35,
+        "WBB": 51,
+        "WBR": 51,
+        "WBW": 35,
+        "WRB": 50,
+        "WRR": 44,
+        "WRW": 35,
+        "WWB": 35,
+        "WWR": 35,
+        "WWW": 35
+      }
+    },
+    "sjs-ten-allopurinol": {
+      "version": "3",
+      "tree_sha256": "e81ae7d858563939ba25b4ce198521fdcac61f316479614d6162f6716bab10e6",
+      "reviewed_commit": "8d5812dad7e3d374a5420f467f535c8170ed449d",
+      "table": true,
+      "composites": {
+        "BBB": 62,
+        "BBR": 52,
+        "BBW": 63,
+        "BRB": 60,
+        "BRR": 49,
+        "BRW": 48,
+        "BWB": 60,
+        "BWR": 45,
+        "BWW": 50,
+        "RBB": 51,
+        "RBR": 48,
+        "RBW": 48,
+        "RRB": 45,
+        "RRR": 45,
+        "RRW": 51,
+        "RWB": 35,
+        "RWR": 38,
+        "RWW": 38,
+        "WBB": 44,
+        "WBR": 38,
+        "WBW": 38,
+        "WRB": 35,
+        "WRR": 38,
+        "WRW": 35,
+        "WWB": 38,
+        "WWR": 35,
+        "WWW": 35
+      }
+    },
+    "toddler-gastro-dehydration": {
+      "version": "2",
+      "tree_sha256": "b225a279b876aca59eea4374f0fbc53473c5d85fe90efeef0108a0a894190840",
+      "reviewed_commit": "7eada6b6a302a447c0d7795bd45d088e7172fb75",
+      "table": true,
+      "composites": {
+        "BBB": 45,
+        "BBR": 48,
+        "BBW": 41,
+        "BRB": 45,
+        "BRR": 45,
+        "BRW": 38,
+        "BWB": 45,
+        "BWR": 35,
+        "BWW": 35,
+        "RBB": 45,
+        "RBR": 48,
+        "RBW": 48,
+        "RRB": 38,
+        "RRR": 38,
+        "RRW": 35,
+        "RWB": 35,
+        "RWR": 35,
+        "RWW": 30,
+        "WBB": 51,
+        "WBR": 48,
+        "WBW": 32,
+        "WRB": 44,
+        "WRR": 35,
+        "WRW": 30,
+        "WWB": 48,
+        "WWR": 38,
+        "WWW": 35
+      }
+    }
+  },
+  "recheck": {
+    "medians": {
+      "best": 49.33,
+      "mixed": 46,
+      "weakest": 36
+    },
+    "pool_n": {
+      "best": 11,
+      "mixed": 11,
+      "weakest": 11
+    },
+    "bands": {
+      "best": 7.25,
+      "mixed": 7.25,
+      "weakest": 7.25
+    },
+    "gap_min": 6.59,
+    "pool_from": "this run",
+    "cases": {
+      "adhf": {
+        "means": {
+          "best": 40.67,
+          "mixed": 43.67,
+          "weakest": 37
+        },
+        "sd": {
+          "best": 7.51,
+          "mixed": 7.51,
+          "weakest": 1.73
+        },
+        "separation": 3.67,
+        "pass": false,
+        "reasons": [
+          "best mean 40.67 is -8.67 from the pool median 49.33, beyond ±7.25",
+          "best is only 3.67 above weakest, under 6.59"
+        ]
+      },
+      "alcohol-pancreatitis": {
+        "means": {
+          "best": 55.67,
+          "mixed": 39,
+          "weakest": 35
+        },
+        "sd": {
+          "best": 13.61,
+          "mixed": 1.73,
+          "weakest": 0
+        },
+        "separation": 20.67,
+        "pass": true,
+        "reasons": []
+      },
+      "copd-exacerbation": {
+        "means": {
+          "best": 58,
+          "mixed": 48,
+          "weakest": 44
+        },
+        "sd": {
+          "best": 8.66,
+          "mixed": 0,
+          "weakest": 0
+        },
+        "separation": 14,
+        "pass": false,
+        "reasons": [
+          "best mean 58 is 8.67 from the pool median 49.33, beyond ±7.25",
+          "weakest mean 44 is 8 from the pool median 36, beyond ±7.25"
+        ]
+      },
+      "dka-young-adult": {
+        "means": {
+          "best": 50,
+          "mixed": 47.67,
+          "weakest": 45.67
+        },
+        "sd": {
+          "best": 8.66,
+          "mixed": 2.52,
+          "weakest": 2.89
+        },
+        "separation": 4.33,
+        "pass": false,
+        "reasons": [
+          "weakest mean 45.67 is 9.67 from the pool median 36, beyond ±7.25",
+          "best is only 4.33 above weakest, under 6.59"
+        ]
+      },
+      "ectopic-rupture": {
+        "means": {
+          "best": 60.33,
+          "mixed": 42,
+          "weakest": 30.33
+        },
+        "sd": {
+          "best": 2.52,
+          "mixed": 7.94,
+          "weakest": 4.04
+        },
+        "separation": 30,
+        "pass": false,
+        "reasons": [
+          "best mean 60.33 is 11 from the pool median 49.33, beyond ±7.25"
+        ]
+      },
+      "leptospirosis": {
+        "means": {
+          "best": 39.33,
+          "mixed": 46,
+          "weakest": 36
+        },
+        "sd": {
+          "best": 6.66,
+          "mixed": 1.73,
+          "weakest": 1.73
+        },
+        "separation": 3.33,
+        "pass": false,
+        "reasons": [
+          "best mean 39.33 is -10 from the pool median 49.33, beyond ±7.25",
+          "best is only 3.33 above weakest, under 6.59"
+        ]
+      },
+      "melioidosis-farmer": {
+        "means": {
+          "best": 49.33,
+          "mixed": 49.67,
+          "weakest": 53.67
+        },
+        "sd": {
+          "best": 2.31,
+          "mixed": 1.53,
+          "weakest": 2.52
+        },
+        "separation": -4.33,
+        "pass": false,
+        "reasons": [
+          "weakest mean 53.67 is 17.67 from the pool median 36, beyond ±7.25",
+          "best is only -4.33 above weakest, under 6.59"
+        ]
+      },
+      "motorcycle-shock": {
+        "means": {
+          "best": 47,
+          "mixed": 41.67,
+          "weakest": 48
+        },
+        "sd": {
+          "best": 1.73,
+          "mixed": 5.77,
+          "weakest": 3
+        },
+        "separation": -1,
+        "pass": false,
+        "reasons": [
+          "weakest mean 48 is 12 from the pool median 36, beyond ±7.25",
+          "best is only -1 above weakest, under 6.59"
+        ]
+      },
+      "organophosphate": {
+        "means": {
+          "best": 40.67,
+          "mixed": 48,
+          "weakest": 35
+        },
+        "sd": {
+          "best": 5.13,
+          "mixed": 0,
+          "weakest": 0
+        },
+        "separation": 5.67,
+        "pass": false,
+        "reasons": [
+          "best mean 40.67 is -8.67 from the pool median 49.33, beyond ±7.25",
+          "best is only 5.67 above weakest, under 6.59"
+        ]
+      },
+      "sjs-ten-allopurinol": {
+        "means": {
+          "best": 62,
+          "mixed": 48.67,
+          "weakest": 36
+        },
+        "sd": {
+          "best": 0,
+          "mixed": 1.15,
+          "weakest": 1.73
+        },
+        "separation": 26,
+        "pass": false,
+        "reasons": [
+          "best mean 62 is 12.67 from the pool median 49.33, beyond ±7.25"
+        ]
+      },
+      "toddler-gastro-dehydration": {
+        "means": {
+          "best": 45,
+          "mixed": 38,
+          "weakest": 33.33
+        },
+        "sd": {
+          "best": 0,
+          "mixed": 5.2,
+          "weakest": 2.89
+        },
+        "separation": 11.67,
+        "pass": false,
+        "reasons": [
+          "mixed mean 38 is -8 from the pool median 46, beyond ±7.25"
+        ]
+      }
+    }
+  }
+}
