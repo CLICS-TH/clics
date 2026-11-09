@@ -1,4 +1,5 @@
 // The path score table build's sample walk (scripts/booth/path-table-sample.js, #373) and its runner's guards.
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -67,7 +68,7 @@ describe('a sample walk', () => {
   });
 
   test('a failed evaluator call leaves the sample unscored at its worst-case cost', async () => {
-    const res = await scoreSample({ kase: KASE, replies: REPLIES, tierPath: 'BBB', evaluate: async () => { throw Object.assign(new Error('x'), { status: 502 }); } });
+    const res = await scoreSample({ kase: KASE, replies: REPLIES, tierPath: 'BBB', retries: 0, evaluate: async () => { throw Object.assign(new Error('x'), { status: 502 }); } });
     expect(res).toMatchObject({ domains: null, error: '502' });
     expect(res.usd).toBeGreaterThan(0.2);
   });
@@ -124,8 +125,9 @@ describe('what a sample is charged against the cap', () => {
 
   test('a call that reports no tokens is charged its worst case, and a failed call the worst case of every attempt rimpl may have made', async () => {
     expect((await scored(locked({ input_tokens: undefined }))).usd).toBe(worstCall('evaluate'));
-    const failed = await scoreSample({ kase: KASE, replies: REPLIES, tierPath: 'BBB', evaluate: async () => { throw new Error('x'); } });
-    expect(failed.usd).toBeCloseTo(6 * worstCall('evaluate'), 9);
+    const failed = (retries) => scoreSample({ kase: KASE, replies: REPLIES, tierPath: 'BBB', retries, evaluate: async () => { throw new Error('x'); } });
+    expect((await failed(2)).usd).toBeCloseTo(3 * worstCall('evaluate'), 9);
+    expect((await failed(5)).usd).toBeCloseTo(6 * worstCall('evaluate'), 9);
   });
 });
 
@@ -157,18 +159,80 @@ describe('the build runner', () => {
     child.on('close', (status) => resolve({ status, stdout, stderr }));
   });
 
-  test('the cap counts every earlier run of the build: with $24 already spent of $25, --go is refused before any call', () => {
-    const out = tmp();
-    fs.writeFileSync(path.join(out, 'spend.json'), JSON.stringify({ 'NFCME-2026': [{ run_id: 'ptb-a', date: '2026-11-04', usd: 15 }, { run_id: 'ptb-b', date: '2026-11-04', usd: 9 }] }));
-    const res = spawnSync(process.execPath, [RUNNER, '--go', '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH, INTERNAL_TOKEN: 't', RIMPL_URL: 'http://127.0.0.1:9' } });
+  const LEDGER = path.join(__dirname, '..', '..', 'scripts', 'booth', 'path-table-runs', 'spend.jsonl');
+  const ledgerBefore = fs.readFileSync(LEDGER, 'utf8');
+  afterEach(() => fs.writeFileSync(LEDGER, ledgerBefore));
+  const ledgerOf = (build) => fs.readFileSync(LEDGER, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)).filter((l) => l.build === build);
+
+  /** A throwaway build: the fixture case under a fresh event code, committed in its own git repo (its safety review
+   *  then reads the committed tree), with its sample replies. Nothing it spends touches NFCME-2026. */
+  function throwawayBuild() {
+    const build = `TST-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    const dir = path.join(tmp(), build);
+    fs.mkdirSync(dir);
+    fs.writeFileSync(path.join(dir, `${KASE.case_id}.json`), `${JSON.stringify({ ...KASE, event_code: build }, null, 2)}\n`);
+    const git = (...args) => spawnSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { cwd: dir });
+    git('init', '-q');
+    git('add', '.');
+    git('commit', '-qm', 'case');
+    const replies = tmp();
+    fs.writeFileSync(path.join(replies, `${KASE.case_id}.json`), JSON.stringify({ case_id: KASE.case_id, replies: REPLIES }));
+    return { build, args: ['--cases', dir, '--replies', replies, '--out', tmp()] };
+  }
+
+  /** A stub rimpl: GET /manifest reports `retries`; POST /evaluate answers `evaluate(res)`, or never when it is null. */
+  async function stubRimpl(retries, evaluate) {
+    const calls = [];
+    const server = http.createServer((req, res) => {
+      calls.push(`${req.method} ${req.url}`);
+      req.resume();
+      req.on('end', () => {
+        res.setHeader('content-type', 'application/json');
+        if (req.url === '/manifest') res.end(JSON.stringify({ provider_retries: { anthropic: retries } }));
+        else if (evaluate) res.end(JSON.stringify(evaluate));
+      });
+    });
+    await new Promise((r) => server.listen(0, '127.0.0.1', r));
+    return { calls, server, url: `http://127.0.0.1:${server.address().port}` };
+  }
+
+  test('the cap counts every earlier run, wherever --out points: NFCME-2026 has spent $30.49 of $25, so --go is refused before any call', () => {
+    const res = spawnSync(process.execPath, [RUNNER, '--go', '--out', tmp()], { encoding: 'utf8', env: { PATH: process.env.PATH, INTERNAL_TOKEN: 't', RIMPL_URL: 'http://127.0.0.1:9' } });
     expect(res.status).toBe(2);
-    expect(res.stderr).toMatch(/build NFCME-2026 has spent \$24\.00 of its \$25 cap: no room for another call/);
+    expect(res.stderr).toMatch(/build NFCME-2026 has spent \$30\.49 of its \$25 cap: no room for another call/);
+  });
+
+  test('a run killed mid-call leaves that call reserved at its worst case, from the retries rimpl reports', async () => {
+    const { build, args } = throwawayBuild();
+    const rimpl = await stubRimpl(2, null);
+    try {
+      const child = spawn(process.execPath, [RUNNER, '--go', ...args], { env: { PATH: process.env.PATH, INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url } });
+      const exited = new Promise((r) => child.on('close', r));
+      for (let i = 0; i < 400 && !rimpl.calls.includes('POST /evaluate'); i += 1) await new Promise((r) => setTimeout(r, 25));
+      expect(rimpl.calls).toEqual(['GET /manifest', 'POST /evaluate']);
+      child.kill('SIGKILL');
+      await exited;
+      expect(ledgerOf(build).map(({ kind, usd }) => ({ kind, usd }))).toEqual([{ kind: 'reserve', usd: expect.closeTo(3 * worstCall('evaluate'), 6) }]);
+    } finally {
+      rimpl.server.close();
+    }
+  });
+
+  test('--from refuses a run that went over its cap, as --go judges it', () => {
+    const out = tmp();
+    const file = path.join(out, 'over.samples.jsonl');
+    const header = { run_id: 'ptb-over', date: '2026-11-09', build: 'NFCME-2026', cap_usd: 25, prior_usd: 24, samples: 3 };
+    const sample = { case_id: 'adhf', tier_path_planned: 'BBB', sample: 1, tier_path: 'BBB', domains: DOMAINS, composite: 60, usd: 2, ...locked() };
+    fs.writeFileSync(file, `${[header, sample].map((x) => JSON.stringify(x)).join('\n')}\n`);
+    const res = spawnSync(process.execPath, [RUNNER, '--case', 'adhf', '--from', file, '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH } });
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(/went over its cap: \$24\.00 before it and \$2\.00 in it, over \$25/);
   });
 
   test('--from refuses samples that do not record the tree they were scored on', () => {
     const out = tmp();
     const file = path.join(out, 'old.samples.jsonl');
-    const header = { run_id: 'ptb-old', date: '2026-11-04', build: 'NFCME-2026', cap_usd: 25, samples: 3 };
+    const header = { run_id: 'ptb-old', date: '2026-11-04', build: 'NFCME-2026', cap_usd: 25, prior_usd: 0, samples: 3 };
     const sample = { case_id: 'adhf', tier_path_planned: 'BBB', sample: 1, tier_path: 'BBB', domains: DOMAINS, composite: 60, usd: 0.017, ...locked() };
     fs.writeFileSync(file, `${[header, sample].map((x) => JSON.stringify(x)).join('\n')}\n`);
     const res = spawnSync(process.execPath, [RUNNER, '--case', 'adhf', '--from', file, '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH } });
@@ -176,27 +240,20 @@ describe('the build runner', () => {
     expect(res.stderr).toMatch(/1 sample\(s\) were not scored on the current tree, first adhf BBB#1 on no recorded tree/);
   });
 
-  test('a probe scored by any model but the locked evaluator stops the build after that one call, and writes no table', async () => {
-    const calls = [];
-    const server = http.createServer((req, res) => {
-      calls.push(req.url);
-      req.resume();
-      req.on('end', () => {
-        res.setHeader('content-type', 'application/json');
-        res.end(JSON.stringify(locked({ provenance: { ...locked().provenance, model: 'claude-opus-5-5' } })));
-      });
-    });
-    await new Promise((r) => server.listen(0, '127.0.0.1', r));
-    const out = tmp();
-    const before = fs.readFileSync(path.join(__dirname, '../src/booth-cases/NFCME-2026/adhf.json'), 'utf8');
+  test('a probe scored by any model but the locked evaluator stops the build after that one call, settled, and writes no table', async () => {
+    const { build, args } = throwawayBuild();
+    const rimpl = await stubRimpl(0, locked({ provenance: { ...locked().provenance, model: 'claude-opus-5-5' } }));
+    const caseFile = path.join(args[1], `${KASE.case_id}.json`);
+    const before = fs.readFileSync(caseFile, 'utf8');
     try {
-      const res = await runAsync(['--go', '--case', 'adhf', '--out', out], { INTERNAL_TOKEN: 't', RIMPL_URL: `http://127.0.0.1:${server.address().port}` });
+      const res = await runAsync(['--go', ...args], { INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url });
       expect(res.status).toBe(2);
       expect(res.stderr).toMatch(/the probe was not scored by the locked evaluator: model claude-opus-5-5/);
-      expect(calls).toEqual(['/evaluate']);
+      expect(rimpl.calls).toEqual(['GET /manifest', 'POST /evaluate']);
+      expect(ledgerOf(build).map((l) => l.kind)).toEqual(['reserve', 'settle']);
     } finally {
-      server.close();
-      expect(fs.readFileSync(path.join(__dirname, '../src/booth-cases/NFCME-2026/adhf.json'), 'utf8')).toBe(before);
+      rimpl.server.close();
+      expect(fs.readFileSync(caseFile, 'utf8')).toBe(before);
     }
   });
 

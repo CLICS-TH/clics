@@ -118,9 +118,6 @@ function lockProblems(sample) {
   return Object.entries(seen).filter(([k, v]) => v !== LOCKED[k]).map(([k, v]) => `${k} ${v ?? 'none'}, locked ${LOCKED[k]}`);
 }
 
-// rimpl's provider retries (CLAUDE_MAX_RETRIES, default 5) can each be billed, and a failed call reports none of them.
-const PROVIDER_RETRIES = 5;
-
 /** What a call is charged against the cap: its reported tokens plus the worst case of each attempt rimpl retried
  *  before it (retried_attempts). A call that reports no tokens counts at its worst case. */
 function evaluateUsd(res) {
@@ -128,19 +125,23 @@ function evaluateUsd(res) {
   return costUsd(res.input_tokens, res.output_tokens, res.provider) + (res.retried_attempts ?? 0) * worstCall('evaluate');
 }
 
-/** A failed call: every attempt rimpl may have made, each at its worst case. */
-const failedUsd = () => (1 + PROVIDER_RETRIES) * worstCall('evaluate');
+/** A failed call: every attempt rimpl may have made, each at its worst case. `retries` is the count rimpl's provider
+ *  runs with (GET /manifest provider_retries, from CLAUDE_MAX_RETRIES), each of which may be billed. */
+const failedUsd = (retries) => {
+  if (!Number.isInteger(retries) || retries < 0) throw new Error(`rimpl's provider retries must be a whole number, got ${retries}`);
+  return (1 + retries) * worstCall('evaluate');
+};
 
 /** One sample scored: the walk, then the evaluator through rimpl. A failed or malformed call leaves it unscored and
  *  costs its worst case, since it may still have been billed. */
-async function scoreSample({ kase, replies, tierPath, evaluate }) {
+async function scoreSample({ kase, replies, tierPath, evaluate, retries }) {
   const d = sampleWalk(kase, replies, tierPath);
   const body = { ple_id: crypto.randomUUID(), ...evaluateRequest(kase, d) };
   let res;
   try {
     res = await evaluate(body);
   } catch (err) {
-    return { tier_path: tierPath, domains: null, error: String(err.status || err.name || err.message), usd: failedUsd() };
+    return { tier_path: tierPath, domains: null, error: String(err.status || err.name || err.message), usd: failedUsd(retries) };
   }
   const domains = DomainsSchema.safeParse(res);
   return {

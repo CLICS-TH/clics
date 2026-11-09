@@ -19,12 +19,15 @@
  *   --out <dir>       where the JSON report and summary go (default scripts/booth/path-table-runs)
  *   --go              spend: without it the script stops after the estimate
  *   --from <jsonl>    build the tables from an earlier run's saved samples, spending nothing
+ *   --replies <dir>   the cases' sample replies (default scripts/booth/sample-replies/<event code>)
  *
  * Every scored sample is appended to <out>/<run_id>.samples.jsonl as it lands, before anything is checked or written,
  * so a run that stops for any reason keeps what it paid for; --from finishes it, refusing a sample scored on another
- * tree. A build is the case folder: every run of it is charged in <out>/spend.json, and the cap counts all of them.
- * Each call is charged its reported tokens plus the worst case of every attempt rimpl retried, and a failed call its
- * worst case for every attempt it may have made.
+ * tree. A build is its cases' event code: every run of it is charged in scripts/booth/path-table-runs/spend.jsonl (a
+ * path no flag moves), and the cap counts all of them. Each call is reserved there at its worst case (every attempt
+ * rimpl's provider may make, from GET /manifest provider_retries) before it starts, and settled at its reported tokens
+ * plus the worst case of every attempt rimpl retried, so a run killed mid-call stays charged its worst case. --from
+ * refuses a run that went over its cap.
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl. Its only call is rimpl's /evaluate
  * (shadow off), and it refuses to run with a database client loaded. One probe call runs first: unless it was scored by
  * the locked evaluator (rimpl's model manifest: provider, model, prompt and decoding), the build stops there, and no
@@ -38,6 +41,7 @@ import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } f
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewedTree, medianDomains, recheck, summaryMarkdown } from './path-table.mjs';
+import { LEDGER, spentOn, reserve } from './spend-ledger.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -77,6 +81,7 @@ function parseArgs(argv) {
     else if (flag === '--samples') opts.samples = Math.floor(number(flag, v, 1));
     else if (flag === '--concurrency') opts.concurrency = Math.floor(number(flag, v, 1));
     else if (flag === '--out') opts.out = path.resolve(v);
+    else if (flag === '--replies') opts.replies = path.resolve(v);
     else if (flag === '--from') opts.from = path.resolve(v);
     else fail(`unknown argument ${flag}`);
   }
@@ -84,15 +89,17 @@ function parseArgs(argv) {
   return opts;
 }
 
-const git = (...args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-
-/** The case file at each commit that touched it, oldest first. A file with uncommitted changes has no history to
- *  trust, so it is refused. */
+/** The case file at each commit that touched it, oldest first, from the repository that holds it. A file with
+ *  uncommitted changes, or outside any repository, has no history to trust, so it is refused. */
 function fileHistory(file) {
-  const rel = path.relative(ROOT, file);
-  if (git('status', '--porcelain', '--', rel).trim()) return { why: 'has uncommitted changes' };
-  const commits = git('log', '--format=%H', '--reverse', '--', rel).trim().split('\n').filter(Boolean);
-  return { history: commits.map((commit) => ({ commit, raw: JSON.parse(git('show', `${commit}:${rel}`)) })) };
+  const git = (...args) => execFileSync('git', args,
+    { cwd: path.dirname(file), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+  const name = `./${path.basename(file)}`;
+  try {
+    if (git('status', '--porcelain', '--', name).trim()) return { why: 'has uncommitted changes' };
+    const commits = git('log', '--format=%H', '--reverse', '--', name).trim().split('\n').filter(Boolean);
+    return { history: commits.map((commit) => ({ commit, raw: JSON.parse(git('show', `${commit}:${name}`)) })) };
+  } catch { return { why: 'is not in a git repository' }; }
 }
 
 function loadCases(dir, only) {
@@ -122,17 +129,17 @@ for (const c of cases) {
 const building = cases.filter((c) => !c.tree.why);
 for (const c of building) {
   let problems;
-  try { c.replies = readReplies(c.kase); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
+  try { c.replies = readReplies(c.kase, opts.replies); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
   if (problems.length) fail(`${c.kase.case_id}: ${problems.length} sample reply problem(s), first ${problems[0]}`);
 }
 const jobs = jobsFor(building.map((c) => c.kase), opts.samples)
   .map((job) => ({ ...job, replies: building.find((c) => c.kase === job.kase).replies }));
 const typical = costUsd(...TYPICAL_EVALUATE, 'anthropic');
-const build = path.basename(opts.cases);
-const ledgerPath = path.join(opts.out, 'spend.json');
-let ledger = {};
-try { ledger = JSON.parse(readFileSync(ledgerPath, 'utf8')); } catch (err) { if (err.code !== 'ENOENT') fail(`${ledgerPath} is not a spend ledger`); }
-const priorUsd = Math.round((ledger[build] ?? []).reduce((acc, r) => acc + r.usd, 0) * 1e6) / 1e6;
+const events = [...new Set(cases.map((c) => c.kase.event_code))];
+if (events.length !== 1) fail(`the cases come from ${events.length} events (${events.join(', ')}); a build is one event's`);
+const [build] = events;
+let priorUsd;
+try { priorUsd = spentOn(build); } catch (err) { fail(`${LEDGER} is not a spend ledger: ${err.message}`); }
 const capLeft = Math.round((opts.cap - priorUsd) * 1e6) / 1e6;
 console.log(`${building.length} case(s) to build, ${jobs.length} evaluator calls. Estimated spend $${(jobs.length * typical).toFixed(2)} `
   + `typical. Build ${build} has spent $${priorUsd.toFixed(2)} of its $${opts.cap} cap, $${capLeft.toFixed(2)} left.`);
@@ -152,6 +159,12 @@ let run;
 if (opts.from) {
   const { header, samples } = readSaved(opts.from);
   if (header.samples !== opts.samples) fail(`--from ${opts.from} has ${header.samples} samples per path, not ${opts.samples}`);
+  // As --go judges it: the spend before the run plus the run's own, against the cap it ran under.
+  if (!Number.isFinite(header.prior_usd) || !Number.isFinite(header.cap_usd)) fail(`--from ${opts.from} records no prior spend and cap`);
+  const runUsd = Math.round(samples.reduce((acc, r) => acc + (r.usd ?? 0), 0) * 1e6) / 1e6;
+  if (header.prior_usd + runUsd > header.cap_usd) {
+    fail(`--from ${opts.from} went over its cap: $${header.prior_usd.toFixed(2)} before it and $${runUsd.toFixed(2)} in it, over $${header.cap_usd}`);
+  }
   const stale = samples.filter((r) => r.case_id in treeOf && r.tree_sha256 !== treeOf[r.case_id]);
   if (stale.length) {
     fail(`--from ${opts.from}: ${stale.length} sample(s) were not scored on the current tree, first ${stale[0].case_id} `
@@ -169,35 +182,45 @@ if (opts.from) {
     process.exit(0);
   }
   if (!jobs.length) fail('no case can be built');
-  if (capLeft < failedUsd()) fail(`build ${build} has spent $${priorUsd.toFixed(2)} of its $${opts.cap} cap: no room for another call`);
+  const noRoom = () => fail(`build ${build} has spent $${priorUsd.toFixed(2)} of its $${opts.cap} cap: no room for another call`);
+  if (capLeft <= 0) noRoom();
   const token = process.env.INTERNAL_TOKEN;
   if (!token) fail('INTERNAL_TOKEN is not set (rimpl refuses calls without it)');
   let rimpl;
   try { rimpl = rimplCalls({ url: process.env.RIMPL_URL || 'http://localhost:3003', token }); } catch (err) { fail(err.message); }
+  // The retries rimpl's provider makes after a failed attempt, each possibly billed: they set every call's worst case.
+  let retries;
+  try {
+    const res = await fetch(new URL('/manifest', process.env.RIMPL_URL || 'http://localhost:3003'),
+      { headers: { 'x-internal-token': token }, signal: AbortSignal.timeout(10_000) });
+    retries = (await res.json())?.provider_retries?.anthropic;
+  } catch (err) { fail(`rimpl's GET /manifest failed: ${err.message}`); }
+  if (!Number.isInteger(retries) || retries < 0) fail(`rimpl's GET /manifest reports no provider_retries.anthropic (got ${retries})`);
+  const worst = failedUsd(retries);
+  if (capLeft < worst) noRoom();
 
   const runId = `ptb-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
   const header = { run_id: runId, date: new Date().toISOString().slice(0, 10), rimpl_url: process.env.RIMPL_URL || 'http://localhost:3003',
-    build, cap_usd: opts.cap, prior_usd: priorUsd, samples: opts.samples };
+    build, cap_usd: opts.cap, prior_usd: priorUsd, provider_retries: retries, samples: opts.samples };
   mkdirSync(opts.out, { recursive: true });
   const savedPath = path.join(opts.out, `${runId}.samples.jsonl`);
   writeFileSync(savedPath, `${JSON.stringify(header)}\n`);
   console.log(`Samples are saved as they land to ${savedPath}`);
-  const charge = { run_id: runId, date: header.date, usd: 0 };
-  ledger[build] = [...(ledger[build] ?? []), charge];
-  const saveLedger = () => writeFileSync(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`);
-  saveLedger();
   let done = 0;
   const go = (batch, capUsd) => runPlays(batch, {
     capUsd,
     concurrency: opts.concurrency,
-    worst: () => failedUsd(),
-    play: (job) => scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate }),
+    worst: () => worst,
+    play: async (job) => {
+      const settle = reserve(build, runId, worst);
+      const r = await scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate, retries });
+      settle(r.usd);
+      return r;
+    },
     onDone: (job, r) => {
       done += 1;
       appendFileSync(savedPath, `${JSON.stringify({ case_id: job.kase.case_id, tier_path_planned: job.tierPath, sample: job.sample,
         tree_sha256: treeOf[job.kase.case_id], ...r })}\n`);
-      charge.usd = Math.round((charge.usd + (r.usd ?? 0)) * 1e6) / 1e6;
-      saveLedger();
       console.log(`[${done}] ${job.kase.case_id} ${job.tierPath}#${job.sample} ${r.composite ?? `unscored (${r.error ?? r.skipped})`} $${r.usd ?? 0}`);
     },
   });
