@@ -90,7 +90,7 @@ A case is reviewed before it can be drawn.
 
 A play's demo score is read from the case's path score table (ADR 0009). The same tier path then scores the same every time, at once, with no evaluator call.
 
-The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. It sits under `path_score_table` in two parts.
+The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. Live builds are off until #408 gives the build a spend cap that holds: the script sends no evaluator request, and builds a table only with `--from`, from a saved run's samples. A new case, or a case whose tree changed, waits for #408 to get a table. The table sits under `path_score_table` in two parts.
 
 - `provenance` records how the table was built: the `evaluator_model`, the `prompt_sha256` of the evaluator prompt, the `decoding` (`temperature` and `max_tokens`), the `samples_per_path`, the `method` (`"median"`), the build `run_id`, the `date` as `YYYY-MM-DD`, and the `tree_sha256` of the case tree it was built from.
 - `paths` holds one entry for each of the 27 tier paths, `BBB` through `WWW`. Each entry gives `d1` to `d7`, each a whole number from 0 to 5, the evaluator's own scale.

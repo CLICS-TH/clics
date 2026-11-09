@@ -1,21 +1,15 @@
 // The path score table build's sample walk (#373, ADR 0009): one transcript along a tier path, with a random question
 // variant and random same-tier options at each step and the case's sample replies as the AI's. Every step goes
-// through the booth API's own chatOutcome and the transcript through its evaluateRequest
-// (backend/src/services/booth-dialogue.js), so the evaluator scores what a kiosk play on that path would hold.
+// through the booth API's own chatOutcome (backend/src/services/booth-dialogue.js), so the transcript evaluateRequest
+// builds from it is what a kiosk play on that path would hold. Also the checks on the sample replies and on the locked
+// evaluator that the build applies to a saved run. Nothing here calls rimpl: live builds are off until #408.
 // CommonJS so the backend's jest suite can prove it.
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
-const { STEPS, LETTER, bankAt, firstAsk, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { STEPS, LETTER, bankAt, firstAsk, chatOutcome } = require(path.join(SRC, 'services', 'booth-dialogue'));
 const { TIERS } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
-const { ScoreSchema } = require(path.join(SRC, 'lib', 'schemas'));
-const { compositeScore, WEIGHTS } = require(path.join(SRC, 'services', 'ple-gate'));
-const { costUsd } = require(path.join(SRC, 'lib', 'pricing'));
-const { worstCall } = require('./sandbox-play');
-
-const DomainsSchema = ScoreSchema.pick(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, true])));
 const LETTERS = TIERS.map((t) => t.letter);
 const TIER_PATHS = LETTERS.flatMap((a) => LETTERS.flatMap((b) => LETTERS.map((c) => a + b + c)));
 const REPLIES_DIR = path.join(__dirname, 'sample-replies');
@@ -118,46 +112,6 @@ function lockProblems(sample) {
   return Object.entries(seen).filter(([k, v]) => v !== LOCKED[k]).map(([k, v]) => `${k} ${v ?? 'none'}, locked ${LOCKED[k]}`);
 }
 
-/** What a call is charged against the cap: its reported tokens plus the worst case of each attempt rimpl retried
- *  before it (retried_attempts). A call that reports no tokens counts at its worst case. */
-function evaluateUsd(res) {
-  if (!Number.isFinite(res?.input_tokens) || !Number.isFinite(res?.output_tokens)) return worstCall('evaluate');
-  return costUsd(res.input_tokens, res.output_tokens, res.provider) + (res.retried_attempts ?? 0) * worstCall('evaluate');
-}
-
-/** A failed call: every attempt rimpl may have made, each at its worst case. `retries` is the count rimpl's provider
- *  runs with (GET /manifest provider_retries, from CLAUDE_MAX_RETRIES), each of which may be billed. */
-const failedUsd = (retries) => {
-  if (!Number.isInteger(retries) || retries < 0) throw new Error(`rimpl's provider retries must be a whole number, got ${retries}`);
-  return (1 + retries) * worstCall('evaluate');
-};
-
-/** One sample scored: the walk, then the evaluator through rimpl. A failed or malformed call leaves it unscored and
- *  costs its worst case, since it may still have been billed. */
-async function scoreSample({ kase, replies, tierPath, evaluate, retries }) {
-  const d = sampleWalk(kase, replies, tierPath);
-  const body = { ple_id: crypto.randomUUID(), ...evaluateRequest(kase, d) };
-  let res;
-  try {
-    res = await evaluate(body);
-  } catch (err) {
-    return { tier_path: tierPath, domains: null, error: String(err.status || err.name || err.message), usd: failedUsd(retries) };
-  }
-  const domains = DomainsSchema.safeParse(res);
-  return {
-    tier_path: d.tierPath,
-    domains: domains.success ? domains.data : null,
-    composite: domains.success ? compositeScore(domains.data) : null,
-    ...(domains.success ? {} : { error: 'schema' }),
-    provider: res?.provider ?? null,
-    model: res?.provenance?.model ?? null,
-    prompt_version: res?.prompt_version ?? null,
-    config_fingerprint: res?.provenance?.config_fingerprint ?? null,
-    decoding: res?.provenance?.decoding ?? null,
-    usd: evaluateUsd(res),
-  };
-}
-
 // Checks the sample replies of the named cases: node scripts/booth/path-table-sample.js <case_id> [...]
 if (require.main === module) {
   const { CaseTreeSchema } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
@@ -172,4 +126,4 @@ if (require.main === module) {
   process.exit(bad ? 1 : 0);
 }
 
-module.exports = { TIER_PATHS, LOCKED, bankKey, sampleWalk, replyProblems, readReplies, jobsFor, lockProblems, evaluateUsd, failedUsd, scoreSample };
+module.exports = { TIER_PATHS, LOCKED, bankKey, sampleWalk, replyProblems, readReplies, jobsFor, lockProblems };

@@ -176,10 +176,10 @@ const estimate = (jobs) => ({ plays: jobs.length, typical_usd: sum(jobs, typical
 
 /**
  * Runs the jobs `concurrency` at a time. A play starts only while the spend so far, plus the worst case of every
- * play in flight and its own (`worst`, default a sandbox play's), stays within `capUsd`; the first play that would
- * cross it stops the run, and it and every later play are left unplayed.
+ * play in flight and its own, stays within `capUsd`; the first play that would cross it stops the run, and it and
+ * every later play are left unplayed.
  */
-async function runPlays(jobs, { capUsd, concurrency = 3, play, onDone = () => {}, worst = worstPlay }) {
+async function runPlays(jobs, { capUsd, concurrency = 3, play, onDone = () => {} }) {
   const results = new Array(jobs.length);
   let committed = 0;
   let next = 0;
@@ -188,7 +188,7 @@ async function runPlays(jobs, { capUsd, concurrency = 3, play, onDone = () => {}
     while (next < jobs.length) {
       const i = next;
       next += 1;
-      const hold = worst(jobs[i]);
+      const hold = worstPlay(jobs[i]);
       if (stopped || committed + hold > capUsd) {
         stopped = true;
         results[i] = { skipped: 'cap' };

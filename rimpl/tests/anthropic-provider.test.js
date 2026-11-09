@@ -31,10 +31,9 @@ test('retries a 429 (rate-limit) then succeeds', async () => {
   // The full result contract callers depend on: `model` is now part of it (services/ai.js stamps
   // §10.2 provenance from it) and `stopReason` distinguishes truncation from a finished non-JSON
   // reply. Exact-match so a dropped field fails here rather than downstream.
-  // `retriedAttempts` counts the two 429s, which a caller paying for the call may have been billed for.
   expect(r).toEqual({
     text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12,
-    stopReason: 'end_turn', model: 'claude-sonnet-4-6', retriedAttempts: 2,
+    stopReason: 'end_turn', model: 'claude-sonnet-4-6',
   });
   expect(mockCall).toHaveBeenCalledTimes(3);
 });

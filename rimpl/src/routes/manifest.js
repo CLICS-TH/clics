@@ -11,14 +11,11 @@
 //       file            present | missing | invalid
 //       code_match      true when its expected.code is this build's; false when not; null when missing
 //       live / drift    RAW values (model ids, server fingerprints) — /health/deep prints only their hashes
-//       provider_retries the retries each provider makes after a failed attempt (CLAUDE_MAX_RETRIES), each of
-//                       which may be billed: the booth table build reserves its spend from it
 //
 // Reads only: no provider is probed, no model is called.
 const { Router } = require('express');
 const modelManifest = require('../services/manifest');
 const { ensureFreshSettings } = require('../services/ai');
-const anthropic = require('../services/providers/anthropic');
 
 const router = Router();
 
@@ -29,7 +26,7 @@ router.get('/', async (_req, res) => {
     await ensureFreshSettings();
     const r = modelManifest.report();
     res.json({ manifest: modelManifest.loaded.manifest, sha256: r.sha256, claimed_sha256: r.claimed_sha256,
-      file: r.file, code_match: r.code_match, live: r.live, drift: r.drift, provider_retries: { anthropic: anthropic.MAX_RETRIES } });
+      file: r.file, code_match: r.code_match, live: r.live, drift: r.drift });
   } catch (e) {
     res.status(500).json({ error: e?.message || String(e) });
   }

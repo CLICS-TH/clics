@@ -473,14 +473,3 @@ describe('without `lanes` the runner is the original FIFO', () => {
     expect(r.stats()).toMatchObject({ active: 0, queued: 0 });
   });
 });
-
-describe('retried attempts', () => {
-  test('a result after failed attempts carries retriedAttempts, so a caller paying for the call can count them; a first-try result is unchanged', async () => {
-    const r = createRunner({ name: 'retry', maxConcurrency: 1, maxRetries: 3, retryBaseMs: 1, isRetryable: () => true });
-    let n = 0;
-    const out = await r.run(async () => { n += 1; if (n < 3) throw new Error('529'); return { text: 'ok' }; });
-    expect(out).toEqual({ text: 'ok', retriedAttempts: 2 });
-    const first = { text: 'ok' };
-    expect(await r.run(async () => first)).toBe(first);
-  });
-});

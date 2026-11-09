@@ -1,6 +1,6 @@
 # Sample replies
 
-The AI replies inside the sample transcripts that the path score table build scores (#373, ADR 0009). They are written in a Claude Code session, not by the API, following the booth reply rules in `rimpl/src/lib/prompts.js` (`BOOTH_RULES` and `BOOTH_FIELD_RULES`). The evaluator scores the physician turns, so a reply moves the transcript, not the score of a choice.
+The AI replies inside the sample transcripts that the path score table build scores (#373, ADR 0009). Live builds are off until #408 gives the build a spend cap that holds, so these replies were scored once, in run `ptb-202611040911-a71a`, and wait for #408 before any new run. They are written in a Claude Code session, not by the API, following the booth reply rules in `rimpl/src/lib/prompts.js` (`BOOTH_RULES` and `BOOTH_FIELD_RULES`). The evaluator scores the physician turns, so a reply moves the transcript, not the score of a choice.
 
 There is one file per case, at `<event_code>/<case_id>.json`.
 
