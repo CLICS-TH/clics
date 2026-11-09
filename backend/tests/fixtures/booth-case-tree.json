@@ -1062,6 +1062,10 @@
     "sandbox": {
       "run_id": "fixture",
       "date": "2026-10-29"
+    },
+    "table_check": {
+      "run_id": "fixture",
+      "date": "2026-11-04"
     }
   }
 }

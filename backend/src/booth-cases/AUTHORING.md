@@ -90,12 +90,19 @@ A case is reviewed before it can be drawn.
 
 A play's demo score is read from the case's path score table (ADR 0009). The same tier path then scores the same every time, at once, with no evaluator call.
 
-The table build script writes the table (ticket #373). Never write or edit it by hand. It sits under `path_score_table` in two parts.
+The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. Live builds are off until #408 gives the build a spend cap that holds: the script sends no evaluator request, and builds a table only with `--from`, from a saved run's samples. A new case, or a case whose tree changed, waits for #408 to get a table. The table sits under `path_score_table` in two parts.
 
 - `provenance` records how the table was built: the `evaluator_model`, the `prompt_sha256` of the evaluator prompt, the `decoding` (`temperature` and `max_tokens`), the `samples_per_path`, the `method` (`"median"`), the build `run_id`, the `date` as `YYYY-MM-DD`, and the `tree_sha256` of the case tree it was built from.
-- `paths` holds one entry for each of the 27 tier paths, `BBB` through `WWW`. Each entry gives `d1` to `d7`, each a whole number from 1 to 5.
+- `paths` holds one entry for each of the 27 tier paths, `BBB` through `WWW`. Each entry gives `d1` to `d7`, each a whole number from 0 to 5, the evaluator's own scale.
 
-A case with a table scores from it. A case without one still scores live through the evaluator until #373.
+Every play scores from the table. A case without one is never drawn, whatever its admission says.
+
+The build also re-runs ADR 0005's difficulty check on the table's own samples. A table admits its case only with a verdict on that table's run:
+
+- `admission.table_check` holds the `run_id` and `date` of a passing re-check. The build writes it, never a person.
+- `admission.table_waiver` holds the owner's waiver of a failed re-check: its `date`, `adr` (`"0005"`), `reason` and the table `run_id` it waives.
+
+Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
 
 ## Checking your case
 

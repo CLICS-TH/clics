@@ -3,11 +3,12 @@ jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSu
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { stamped } = require('./helpers/booth-tree');
 const { __mock: m } = require('../src/lib/supabase');
 const { readEventCases, boothStatus } = require('../src/services/booth');
 
-const FIXTURE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const TABLE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table.json'), 'utf8'));
+const FIXTURE = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), path_score_table: TABLE };
 const EVENT = FIXTURE.event_code;
 const HOUR = 3_600_000;
 
@@ -16,7 +17,7 @@ function casesDir(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
   for (const [rel, content] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
-    fs.writeFileSync(path.join(dir, rel), typeof content === 'string' ? content : JSON.stringify(content));
+    fs.writeFileSync(path.join(dir, rel), typeof content === 'string' ? content : JSON.stringify(stamped(content)));
   }
   return dir;
 }
@@ -26,13 +27,8 @@ const at = (k) => `${k.event_code}/${k.case_id}.json`;
 beforeEach(() => { m.reset(); jest.spyOn(console, 'warn').mockImplementation(() => {}); });
 afterEach(() => { jest.restoreAllMocks(); delete process.env.BOOTH_CASES_DIR; });
 
-test('an admitted case in its event folder, named after its case_id, is loaded', () => {
+test('an admitted case in its event folder, named after its case_id, is loaded with its path score table', () => {
   expect(readEventCases(casesDir({ [at(FIXTURE)]: FIXTURE }), EVENT)).toEqual([FIXTURE]);
-});
-
-test('an admitted case with a whole path score table is loaded with its table', () => {
-  const tabled = edited((k) => { k.path_score_table = TABLE; });
-  expect(readEventCases(casesDir({ [at(tabled)]: tabled }), EVENT)).toEqual([tabled]);
 });
 
 test('the event\'s cases come back ordered by case_id, whatever the folder order', () => {
@@ -48,7 +44,17 @@ test.each([
   ['a sandbox run but no safety review', (k) => { delete k.admission.safety_review; }],
   ['a missing step-3 bank', (k) => { delete k.banks.step3.WW; }],
   ['a default trio with two best options', (k) => { k.banks.step1.default_trio = ['a', 'b', 'd']; }],
-  ['a table missing a path', (k) => { k.path_score_table = structuredClone(TABLE); delete k.path_score_table.paths.WRB; }],
+  ['no path score table', (k) => { delete k.path_score_table; }],
+  ['a table missing a path', (k) => { delete k.path_score_table.paths.WRB; }],
+  ['an older sandbox waiver and a table whose re-check failed, with no waiver on its run', (k) => {
+    delete k.admission.sandbox;
+    delete k.admission.table_check;
+    k.admission.owner_waiver = { date: '2026-11-03', adr: '0005', reason: 'Owner waiver', sandbox_run_id: 'sbx-fixture' };
+  }],
+  ['a table waiver on an earlier table run', (k) => {
+    delete k.admission.table_check;
+    k.admission.table_waiver = { date: '2026-11-09', adr: '0005', reason: 'Owner waiver', run_id: 'ptb-earlier' };
+  }],
 ])('a case with %s is left out', (_name, fn) => {
   const k = edited(fn);
   expect(readEventCases(casesDir({ [at(FIXTURE)]: k }), EVENT)).toEqual([]);
@@ -80,8 +86,11 @@ describe('GET /booth/status reads the served case', () => {
     expect((await boothStatus()).body).toEqual({ open: true, event_code: EVENT });
   });
 
-  test('an event whose only case is unadmitted is misconfigured', async () => {
-    process.env.BOOTH_CASES_DIR = casesDir({ [at(FIXTURE)]: edited((k) => { delete k.admission; }) });
+  test.each([
+    ['is unadmitted', (k) => { delete k.admission; }],
+    ['has no path score table', (k) => { delete k.path_score_table; }],
+  ])('an event whose only case %s is misconfigured', async (_name, fn) => {
+    process.env.BOOTH_CASES_DIR = casesDir({ [at(FIXTURE)]: edited(fn) });
     openEvent();
     expect((await boothStatus()).body).toEqual({ open: false, reason: 'misconfigured', event_code: EVENT });
   });

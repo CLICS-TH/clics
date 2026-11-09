@@ -4,14 +4,12 @@ const path = require('path');
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { costUsd } = require('../lib/pricing');
-const { ScoreSchema } = require('../lib/schemas');
 const { compositeScore, WEIGHTS } = require('./ple-gate');
-const { rimplChat, rimplEvaluate } = require('./rimpl-client');
+const { rimplChat } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, evaluateRequest,
-  stepTiers, stepRecords,
+  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers, stepRecords,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -23,10 +21,7 @@ const BOOTH_SETTINGS = Object.freeze({
 });
 
 const REPLY_RESERVE_USD = 0.05;
-const SCORE_RESERVE_USD = 0.30;
-
 const REPLY_TIMEOUT_MS = 30_000;
-const SCORE_TIMEOUT_MS = 60_000;
 
 const LETTERS = TIERS.map((t) => t.letter);
 const DOMAIN_KEYS = Object.keys(WEIGHTS);
@@ -78,8 +73,6 @@ const CASE_ID = z.string().regex(/^[a-z0-9][a-z0-9-]{0,31}$/);
 const SEEN_MAX = 20;
 const DrawSchema = z.object({ seen: z.array(CASE_ID).max(SEEN_MAX) }).strict();
 const StartSchema = z.object({ case_id: CASE_ID }).strict();
-
-const DomainsSchema = ScoreSchema.pick(Object.fromEntries(DOMAIN_KEYS.map((k) => [k, true])));
 
 const SAFE_EVENT_CODE = /^[A-Z0-9][A-Z0-9-]{0,31}$/;
 // Tests point BOOTH_CASES_DIR at a folder holding the fixture case.
@@ -358,15 +351,9 @@ async function settledOutcome(playId, event, steps) {
   return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at, steps) };
 }
 
-async function claimAsUnavailable(playId, event) {
-  const { data, error } = await supabase.from('booth_plays').update({ status: 'unavailable' })
-    .eq('id', playId).eq('event_code', event.code).eq('status', 'started').select('id');
-  return !error && Array.isArray(data) && data.length === 1;
-}
-
-/** Scores a play still in status `from`: 'unavailable' once a live score has claimed it, 'started' for a table score.
- *  The play's dialogue (stepRecords) and score source are kept with the score (ADR 0010). */
-async function finish(playId, event, from, domains, dialogue, source, steps) {
+/** Scores a play still started, from its case's path score table (ADR 0009). The play's dialogue (stepRecords) and
+ *  score source are kept with the score (ADR 0010). */
+async function finish(playId, event, domains, dialogue, source, steps) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
@@ -374,7 +361,7 @@ async function finish(playId, event, from, domains, dialogue, source, steps) {
       status: 'scored', composite, ...domains, scored_at: scoredAt, ranked: true, tier_path: dialogue.tierPath,
       steps: stepRecords(dialogue), score_source: source,
     })
-    .eq('id', playId).eq('status', from).is('scored_at', null).select('id');
+    .eq('id', playId).eq('status', 'started').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
   return { body: await scoredBody(playId, event, composite, domains, scoredAt, steps) };
 }
@@ -585,38 +572,17 @@ async function scoreOutcome(playId, input, now) {
   if (!dialogue) return { result: { refused: 'bad_request' } };
   const steps = stepTiers(kase, dialogue);
 
-  const stored = (result) => ({ result, reason: result.refused === 'unavailable' ? 'read' : 'settled' });
-  const finished = (result, provider) => (result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider });
   const settled = await settledOutcome(playId, event, steps);
-  if (settled) return stored(settled);
+  if (settled) return { result: settled, reason: settled.refused === 'unavailable' ? 'read' : 'settled' };
 
-  // ADR 0009: a case with a path score table scores at once from it, with no spend and no evaluator call.
-  const table = kase.path_score_table;
-  if (table) return finished(await finish(playId, event, 'started', table.paths[dialogue.tierPath], dialogue, 'table', steps), 'table');
-
-  const reserved = await reserve(playId, event, SCORE_RESERVE_USD);
-  if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
-  if (PAST_STARTED.has(reserved)) return stored((await settledOutcome(playId, event, steps)) ?? UNAVAILABLE);
-  if (reserved !== 'reserved') return { result: { refused: 'unavailable' }, reason: 'reserve' };
-
-  if (!(await claimAsUnavailable(playId, event))) return { result: UNAVAILABLE, reason: 'claim' };
-
-  let res;
-  try {
-    res = await rimplEvaluate({ ple_id: playId, ...evaluateRequest(kase, dialogue) }, { timeoutMs: SCORE_TIMEOUT_MS });
-  } catch (err) {
-    return { result: UNAVAILABLE, reason: err.status || err.name };
-  }
-  await settle(playId, res, SCORE_RESERVE_USD);
-  const domains = DomainsSchema.safeParse(res);
-  if (!domains.success) return { result: UNAVAILABLE, reason: 'schema' };
-  return finished(await finish(playId, event, 'unavailable', domains.data, dialogue, 'live', steps), res.provider);
+  // ADR 0009: every admitted case has a path score table, so the score is read from it with no spend and no AI call.
+  const result = await finish(playId, event, kase.path_score_table.paths[dialogue.tierPath], dialogue, 'table', steps);
+  return result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider: 'table' };
 }
 
 // One line per score call that ends scored or unavailable, timing the whole call (what the visitor waits):
-// scripts/booth/score-latency.mjs reads them from `railway logs` for the rehearsal's p95 and provider check. A live
-// score logs the evaluator's provider, a score read from the case's path score table provider=table, and a replay
-// of a stored score provider=replay.
+// scripts/booth/score-latency.mjs reads them from `railway logs` for the rehearsal's p95 and provider check. A score
+// read from the case's path score table logs provider=table, and a replay of a stored score provider=replay.
 function logScore(playId, ms, { result, reason, provider }) {
   if (result.body?.status === 'scored') {
     console.info(`[booth] score scored play=${playId} ms=${ms} provider=${provider ?? 'replay'}`);
@@ -640,8 +606,7 @@ async function scorePlay(playId, input, now = new Date()) {
   return outcome.result;
 }
 
-// Superadmin booth card (#214). An 'unavailable' play may still be scoring (scorePlay claims it before the AI call),
-// so the card counts plays and scored plays only and never reports 'unavailable' as a final outcome.
+// Superadmin booth card (#214).
 const BoothSettingsPatch = z.object({
   enabled: z.boolean().optional(),
   opens_at: BoothTimeSchema.nullable().optional(),

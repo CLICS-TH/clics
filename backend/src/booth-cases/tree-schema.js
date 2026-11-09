@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const { WEIGHTS } = require('../services/ple-gate');
+const { treeSha } = require('./tree-sha');
 
 const TIERS = Object.freeze([
   Object.freeze({ name: 'best', letter: 'B' }),
@@ -48,8 +49,9 @@ const Bank = z.object({
 const keyedBanks = (keys) => z.object(Object.fromEntries(keys.map((k) => [k, Bank]))).strict();
 
 const Sha256 = z.string().regex(/^[0-9a-f]{64}$/, 'must be 64 lowercase hex characters');
-// A wave-1 domain is the median of three whole evaluator samples, and booth_plays.d1..d7 are smallint.
-const PathDomains = z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, z.number().int().min(1).max(5)]))).strict();
+// A wave-1 domain is the median of three whole evaluator samples, on the evaluator's own 0-5 scale, and
+// booth_plays.d1..d7 are smallint between 0 and 5.
+const PathDomains = z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, z.number().int().min(0).max(5)]))).strict();
 // Field names follow rimpl's model manifest.
 const PathScoreTable = z.object({
   provenance: z.object({
@@ -77,12 +79,22 @@ const CaseTreeSchema = z.object({
     sandbox: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
     // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
     owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
+    // ADR 0005's difficulty check on the path score table's own samples: a pass, written by the table build, or the
+    // owner's waiver of a fail. Each names the table run it judged, so a rebuilt table needs its own.
+    table_check: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
+    table_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, run_id: Text }).strict().optional(),
   }).strict().optional(),
-  // The demo score of each tier path (ADR 0009), built by the table build script, never by hand.
+  // The demo score of each tier path (ADR 0009), built by scripts/booth/build-path-tables.mjs, never by hand.
+  // Optional in the file so a case can be checked before its table is built; isAdmitted requires it.
   path_score_table: PathScoreTable.optional(),
 }).strict();
 
-const isAdmitted = (kase) => Boolean(kase?.admission?.safety_review && (kase.admission.sandbox || kase.admission.owner_waiver));
+const isAdmitted = (kase) => {
+  const a = kase?.admission;
+  const run = kase?.path_score_table?.provenance.run_id;
+  return Boolean(a?.safety_review && (a.sandbox || a.owner_waiver) && run
+    && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
+};
 
 // Thai combining marks take no width at the kiosk. Budgets are the line counts measured at the
 // kiosk's font sizes (PR #233); the teaser budget is measured by scripts/booth/scenarios/draw.mjs.
@@ -156,6 +168,10 @@ function caseTreeProblems(raw) {
   const parsed = CaseTreeSchema.safeParse(raw);
   if (!parsed.success) return parsed.error.issues.map((i) => `${issuePath(i.path)}: ${i.message}`);
   const kase = parsed.data;
+  // A table vouches only for the tree it was built from, which is the tree its safety review read (ADR 0009).
+  if (kase.path_score_table && kase.path_score_table.provenance.tree_sha256 !== treeSha(raw)) {
+    return ['path_score_table.provenance.tree_sha256: is not this tree\'s hash: the tree changed after its table was built, so it needs a new safety review and table'];
+  }
   const bestLabels = kase.banks.step1.options.filter((o) => o.tier === 'best').map((o) => o.label);
   const ctx = { best: Object.fromEntries(LANGS.map((lang) => [lang, new Set(bestLabels.flatMap((l) => words[lang](l[lang])))])) };
   return fields(kase).flatMap((t) => RULES.filter((r) => r.applies.has(t.kind))
