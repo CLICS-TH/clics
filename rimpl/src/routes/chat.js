@@ -100,8 +100,7 @@ const ChatSchema = z.object({
 //
 // Returns the pieces still separate: the caller embeds `cleanMessage` for RAG and sends the very same
 // string to the model (the RAG lookup and the AI call must see identical de-identified text).
-function deidentifyTurn({ chiefComplaint, history, message, hints, booth = false }) {
-  if (booth) return deidentifyBoothTurn({ chiefComplaint, history, message, hints });
+function deidentifyTurn({ chiefComplaint, history, message, hints }) {
   const registry = makeRegistry();
   // Every surname found anywhere in the turn masks every other mention, in the same order as below (#238).
   primeRegistry([chiefComplaint || '', ...history.map((m) => m.content), message], registry, hints);
@@ -206,8 +205,9 @@ router.post('/', async (req, res) => {
     // De-identify ONCE, up front, under one shared registry (deidentifyTurn): PII must never leave
     // the on-prem boundary — not to Claude and not to the OpenAI embeddings API behind RAG.
     // ragLookup previously received the raw message.
-    const { cleanChiefComplaint, cleanHistory, cleanMessage } =
-      deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints, booth: booth_mode });
+    const { cleanChiefComplaint, cleanHistory, cleanMessage } = booth_mode
+      ? deidentifyBoothTurn({ chiefComplaint: chief_complaint, history, message, hints })
+      : deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
     // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
     // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
     if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed, signal }));
