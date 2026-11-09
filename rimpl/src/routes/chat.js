@@ -105,8 +105,9 @@ const ChatSchema = z.object({
 // Returns the pieces still separate: the caller embeds `cleanMessage` for RAG and sends the very same
 // string to the model (the RAG lookup and the AI call must see identical de-identified text).
 //
-// A booth typed answer is a substring of `message`, so it is stripped last under the same registry: the priming
-// already covers it, and its tokens are the ones the message got.
+// A booth typed answer ends `message`, so its kept form is the answer's part of `cleanMessage` (boothAnswerPart),
+// never the answer stripped on its own: a label that ends the question masks the value that opens the answer only
+// when both are read together (#375).
 function deidentifyTurn({ chiefComplaint, history, message, hints, boothAnswer }) {
   const registry = makeRegistry();
   // Every surname found anywhere in the turn masks every other mention, in the same order as below (#238).
@@ -114,8 +115,20 @@ function deidentifyTurn({ chiefComplaint, history, message, hints, boothAnswer }
   const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
   const cleanHistory = stripHistoryPii(history, hints, registry);
   const cleanMessage = stripPii(message, registry, hints);
-  const cleanBoothAnswer = boothAnswer ? stripPii(boothAnswer, registry, hints) : undefined;
+  const cleanBoothAnswer = boothAnswer ? boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints) : undefined;
   return { cleanChiefComplaint, cleanHistory, cleanMessage, cleanBoothAnswer };
+}
+
+// The clean message past the clean form of everything before the answer, so every token masked in the message is
+// masked in it. A cut inside a token moves back to the token's '['. null when the message does not end with the answer.
+function boothAnswerPart(message, cleanMessage, boothAnswer, registry, hints) {
+  if (!message.endsWith(boothAnswer)) return null;
+  const cleanBefore = stripPii(message.slice(0, message.length - boothAnswer.length), registry, hints);
+  let cut = 0;
+  while (cut < cleanBefore.length && cleanBefore[cut] === cleanMessage[cut]) cut += 1;
+  const open = cut > 0 ? cleanMessage.lastIndexOf('[', cut - 1) : -1;
+  if (open > cleanMessage.lastIndexOf(']', cut - 1)) cut = open;
+  return cleanMessage.slice(cut).trim() || null;
 }
 
 // Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only

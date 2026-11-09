@@ -1054,4 +1054,22 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
     }
     expect(res.body.answer_deidentified).toMatch(/^ให้นาย\[NAME-\d+\] .*\[PHONE-\d+\] มาตรวจ PCR ซ้ำ$/);
   });
+
+  // The gate's case (#375): the label ends the question and the value is the whole answer. The message masks the two
+  // together, so the kept answer must be the answer's part of the masked message, never the answer stripped alone.
+  test.each([
+    ['ผู้ป่วยมี HN', '1234567'],
+    ['กรอก HN:', '65-012345'],
+  ])('a value whose label ends the question (%s / %s) is masked on the wire and in answer_deidentified', async (question, value) => {
+    const res = await request(app).post('/chat').send({
+      ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `${question}\n${value}`,
+      booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: value,
+    });
+    expect(res.status).toBe(200);
+    const digits = value.replace(/\D/g, '');
+    expect(JSON.stringify(callAI.mock.calls)).not.toContain(digits);
+    expect(typeof res.body.answer_deidentified).toBe('string');
+    expect(res.body.answer_deidentified).not.toContain(digits);
+    expect(res.body.answer_deidentified).toMatch(/\[HN-\d+\]/);
+  });
 });
