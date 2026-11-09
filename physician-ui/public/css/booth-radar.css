@@ -1,0 +1,12 @@
+/* The d1-d7 radar (js/booth-radar.js), on the kiosk's result card and the result page. Its aspect ratio is the
+   script's box (420 x 240), so the axis names land where the script places them in percent. */
+:root { --radar-fill: #c47b62; } /* 3.3:1 on the card; the accent-down outline is 6.6:1 */
+.radar { position: relative; flex: none; align-self: center; box-sizing: border-box; margin: 0; width: calc(420 * var(--u)); max-width: 100%; aspect-ratio: 420 / 240; }
+.radar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.radar-grid { fill: none; stroke: var(--edge); stroke-width: 2; opacity: .5; }
+.radar-grid--over { stroke: var(--card); opacity: .45; }
+.radar-score { fill: var(--radar-fill); stroke: var(--accent-down); stroke-width: 4; stroke-linejoin: round; }
+.radar-label {
+  position: absolute; white-space: nowrap;
+  font-size: var(--text-en); font-weight: 600; line-height: 1.45; color: var(--ink);
+}

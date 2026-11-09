@@ -23,7 +23,7 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
-const { DEMO_LABEL, DOMAINS, COPY, REPLY_FIELDS } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
+const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
 const TREE = JSON.parse(await readFile(fileURLToPath(new URL('../../backend/tests/fixtures/booth-case-tree.json', import.meta.url)), 'utf8'));
 // The server's reply limits, read from its source: CI runs this without the backend's dependencies.
 const DIALOGUE = await readFile(fileURLToPath(new URL('../../backend/src/services/booth-dialogue.js', import.meta.url)), 'utf8');
@@ -166,6 +166,18 @@ function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(ans
   };
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
+const TIER_NAME = Object.fromEntries(Object.entries(TIER_LETTER).map(([name, letter]) => [letter, name]));
+/** The score response's `steps`, as the server builds them (booth-dialogue stepTiers): per posted ask, the tier the
+ *  answer took and each offered option's tier from its bank. */
+function stepsFor(tree, { answers = [], asks = [] } = {}) {
+  const path = pathOf(tree, answers);
+  return asks.map((ask, i) => {
+    const bank = bankFor(tree, path.slice(0, i));
+    return { tier: TIER_NAME[path[i]], options: ask.options.map((id) => ({ id, tier: bank.options.find((o) => o.id === id)?.tier ?? 'weaker' })) };
+  });
+}
+/** The default score answer to a score call: SCORED with the call's steps, `over` merged on top. */
+const scoredFor = (call, over = {}) => ({ status: 200, body: { ...SCORED, steps: stepsFor(TREE, call.body ?? {}), ...over } });
 
 /**
  * A fresh stub per kiosk. Default routes:
@@ -177,7 +189,7 @@ const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3:
  *                                  a typed answer n, next for the tier path walked (n < 3)
  * The case is backend/tests/fixtures/booth-case-tree.json.
  *   'GET /booth/board'             { board: { today: [], event: [] } }
- *   'POST /booth/plays/:id/score'  SCORED
+ *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted
  * opts.routes merges over these: key -> (call, calls) => ({ status, body }) | 'abort'. Unknown keys answer 404.
  * stub.hold(key) returns release(): matching requests wait until released. stub.calls records every request as
  * { key, path, body, headers }; stub.of(key) filters it.
@@ -192,7 +204,7 @@ function makeStub({ routes = {} } = {}) {
       ? { status: 201, body: START } : { status: 400, body: { error: 'That answer could not be read.', reason: 'bad_request' } }),
     'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: replyBody(call.body?.answers ?? []) }),
     'GET /booth/board': () => ({ status: 200, body: { board: { today: [], event: [] } } }),
-    'POST /booth/plays/:id/score': () => ({ status: 200, body: SCORED }),
+    'POST /booth/plays/:id/score': (call) => scoredFor(call),
     ...routes,
   };
   return {
@@ -550,18 +562,40 @@ async function scanSources() {
   }
 }
 
-async function shot(page, name) {
+/**
+ * The elements under `selector` that paint any colour of the --ai-* tokens, which mark AI-written text only: tiers and
+ * the best option come from the vetted bank (ADR 0006). Each token is resolved through a probe so the comparison is
+ * computed colour against computed colour.
+ * @returns {Promise<string[]>} one line per offender
+ */
+async function aiTinted(page, selector) {
+  return page.evaluate((sel) => {
+    const root = getComputedStyle(document.documentElement);
+    const names = [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules]; } catch { return []; } })
+      .flatMap((r) => (r.style ? [...r.style] : [])).filter((n) => n.startsWith('--ai-'));
+    const probe = document.body.appendChild(document.createElement('i'));
+    const ai = new Map([...new Set(names)].map((n) => { probe.style.color = root.getPropertyValue(n).trim(); return [getComputedStyle(probe).color, n]; }));
+    probe.remove();
+    const props = ['color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color'];
+    return [...document.querySelectorAll(sel)].flatMap((e) => [e, ...e.querySelectorAll('*')]).flatMap((e) => {
+      const cs = getComputedStyle(e);
+      return props.filter((p) => ai.has(cs.getPropertyValue(p))).map((p) => `${e.className || e.tagName} ${p} = ${ai.get(cs.getPropertyValue(p))}`);
+    });
+  }, selector);
+}
+
+async function shot(page, name, { fullPage = false } = {}) {
   if (!SHOTS) return;
   await mkdir(SHOTS, { recursive: true });
   const path = join(SHOTS, `${name}.png`);
-  await page.screenshot({ path });
+  await page.screenshot({ path, fullPage });
   console.log(`     screenshot ${path}`);
 }
 
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED,
+const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {

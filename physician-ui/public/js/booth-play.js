@@ -7,9 +7,11 @@
 //   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
-import { COPY, DEMO_LABEL, DOMAINS, REPLY_FIELDS, scoreText, fill } from './booth-copy.js';
+import { COPY, DEMO_LABEL, DOMAINS, REPLY_FIELDS, TIERS, scoreText, fill } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
+import { radar } from './booth-radar.js';
+import { revealRows, answersButton } from './booth-answers.js';
 import { resultUrl, boothDate } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
 import { el, phrases, markedPhrases, bi } from './booth-dom.js';
@@ -32,8 +34,10 @@ const GHOST_TAP_MS = 350;
  *   deidentified: the server's de-identified copy of a typed answer, from its reply, posted back untouched (ADR 0010).
  * @typedef {{ strength: string, weigh: string, safety: string }} Reply   the object as received, posted back as is.
  *   '' is an absent field, and all three '' is no reply. Inside a field `**…**` marks a bold run the server checked.
- * @typedef {{ composite: number, domains: Record<string, number>, body: object }} Score
+ * @typedef {{ tier: string, options: { id: string, tier: string }[] }} StepTier   options in the posted ask's order
+ * @typedef {{ composite: number, domains: Record<string, number>, steps: StepTier[] | null, body: object }} Score
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
+ *   `steps` is null when the response carries no tiers that fit the asks posted (a backend older than #372).
  *
  * @typedef {{ at: 'vignette' } | { at: 'step', chosen: string | null } | { at: 'typing' } | { at: 'replying' } | { at: 'reply' }
  *         | { at: 'scoring', shown: boolean } | { at: 'scored', score: Score } | { at: 'unavailable' }
@@ -184,7 +188,7 @@ async function requestScore(api, s) {
   try {
     const body = await api.post(`/booth/plays/${encodeURIComponent(s.play.id)}/score`, dialogue(s), { timeoutMs: SCORE_TIMEOUT_MS });
     if (body?.status === 'unavailable') return { type: 'unavailable' };
-    const score = parseScore(body);
+    const score = parseScore(body, s);
     return score ? { type: 'scored', score } : { type: 'stop', offline: false };
   } catch (e) {
     return { type: 'stop', offline: isOffline(e) };
@@ -231,7 +235,7 @@ function parseStart(body, teaser) {
   return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette, teaser }, next, sig: body.sig };
 }
 
-function parseScore(body) {
+function parseScore(body, s) {
   if (body?.status !== 'scored' || !Number.isFinite(body.composite) || body.composite < 0 || body.composite > 100) return null;
   const domains = {};
   for (const { key } of DOMAINS) {
@@ -239,7 +243,17 @@ function parseScore(body) {
     if (!Number.isInteger(v) || v < 0 || v > 5) return null;
     domains[key] = v;
   }
-  return { composite: body.composite, domains, body };
+  return { composite: body.composite, domains, steps: parseSteps(body.steps, dialogue(s).asks), body };
+}
+
+const isTier = (v) => typeof v === 'string' && Object.hasOwn(TIERS, v);
+
+/** One StepTier per answer, each naming the options of the ask posted for it, in order; else null. */
+function parseSteps(steps, asks) {
+  if (!Array.isArray(steps) || steps.length !== asks.length) return null;
+  const fits = steps.every((st, i) => isTier(st?.tier) && Array.isArray(st.options) && st.options.length === asks[i].options.length
+    && st.options.every((o, j) => o?.id === asks[i].options[j] && isTier(o.tier)));
+  return fits ? steps.map((st) => ({ tier: st.tier, options: st.options.map((o) => ({ id: o.id, tier: o.tier })) })) : null;
 }
 
 // A newline inside a phrase's inline block would split that block in two, not end the line.
@@ -399,9 +413,13 @@ const VIEWS = {
             el('p', { class: 'result-score' },
               el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
               el('span', { class: 'result-outof' }, '/ 100'))),
-          slot),
-        keepQr(s.play, score)),
-      ...domainSections(score.domains, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag })));
+          radar(score.domains)),
+        el('div', { class: 'result-side' },
+          keepQr(s.play, score),
+          score.steps ? answersButton({ host, rows: revealRows(s.steps, s.answers, score.steps) }) : null)),
+      // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
+      ...domainSections(score.domains, el('div', { class: 'result-board-row' },
+        slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true }))));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
   },
@@ -477,7 +495,8 @@ function svgEl(tag, attrs, ...kids) {
 
 // The QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.
 function keepQr(play, score) {
-  const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser });
+  const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser,
+    tiers: score.steps?.map((st) => st.tier) ?? null });
   const qr = window.qrcode(0, 'L');
   qr.addData(url);
   qr.make();

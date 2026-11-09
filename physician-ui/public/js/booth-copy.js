@@ -13,6 +13,26 @@ export const DOMAINS = Object.freeze([
   { key: 'd7', th: 'ความรู้เท่าทัน AI และทักษะการพรอมต์', en: 'AI Literacy & Prompt Skill' },
 ]);
 
+/** The radar's axis names. A table of its own: the dashboard's mirror test reads DOMAINS entries as written. */
+export const DOMAIN_SHORT = Object.freeze({
+  d1: { th: 'ตั้งคำถาม', en: 'Question' },
+  d2: { th: 'เหตุผล', en: 'Reasoning' },
+  d3: { th: 'บริบท', en: 'Context' },
+  d4: { th: 'ต่อยอด', en: 'Iteration' },
+  d5: { th: 'ประเมิน', en: 'Appraisal' },
+  d6: { th: 'สังเคราะห์', en: 'Synthesis' },
+  d7: { th: 'ใช้ AI', en: 'AI use' },
+});
+
+/** An answer's tier, best first, with the letter the result link's tier path spells it with (backend
+ *  booth-cases/tree-schema.js TIERS). "Weaker" claims no safety: a typed answer the AI sorts as unsafe or unclear
+ *  also lands there, and only the bank's options were reviewed safe (ADR 0005). */
+export const TIERS = Object.freeze({
+  best: Object.freeze({ letter: 'B', label: { th: 'ดีที่สุด', en: 'Best' } }),
+  reasonable: Object.freeze({ letter: 'R', label: { th: 'สมเหตุสมผล', en: 'Reasonable' } }),
+  weaker: Object.freeze({ letter: 'W', label: { th: 'ยังด้อยกว่า', en: 'Weaker' } }),
+});
+
 /** The AI reply's fields in the order the kiosk draws them, each under its reviewed heading. */
 export const REPLY_FIELDS = Object.freeze([
   { key: 'strength', th: 'จุดแข็ง', en: 'Strength' },
@@ -65,6 +85,14 @@ export const COPY = Object.freeze({
   resultCase: { th: 'เคสที่คุณเล่น', en: 'The case you played' },
   resultMissing: { th: 'ลิงก์นี้ ไม่มีผลการเล่นที่อ่านได้', en: 'This link does not hold a readable booth result' },
   resultMissingHint: { th: 'สแกน QR บนหน้าจอบูทอีกครั้ง หรือเปิดลิงก์เดิม ให้ครบทั้งลิงก์', en: 'Scan the QR on the booth screen again, or open the whole saved link' },
+  radar: { th: 'คะแนนรายด้าน', en: 'Score by domain' },
+  seeAnswers: { th: 'ดูเฉลย', en: 'See the answers' },
+  closeAnswers: { th: 'ปิดเฉลย', en: 'Close the answers' },
+  answersTitle: { th: 'เฉลยทีละขั้น', en: 'The answers, step by step' },
+  stepN: { th: 'ขั้นที่ {n}', en: 'Step {n}' },
+  bestOffered: { th: 'ตัวเลือกที่ดีที่สุดในขั้นนี้', en: 'Best option offered' },
+  stepTiers: { th: 'คำตอบของคุณแต่ละขั้น', en: 'Your answer at each step' },
+  tryClics: { th: 'ลองใช้ CLICS', en: 'Try CLICS' },
 });
 
 export const tagText = (tag) => `Booth #${String(tag).padStart(3, '0')}`;
