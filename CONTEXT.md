@@ -139,3 +139,29 @@ _Avoid_: grade, level, difficulty
 **Band descriptor**:
 The fixed Thai and English line that says what a score band in one PIS-7 domain means and what to practise next.
 _Avoid_: AI feedback, comment, rationale (the evaluator's rationale is a different thing)
+
+## Hosting and models
+
+**Data host**:
+The private-network machine in the CME dev environment that holds the CLICS database. Only vm1 can reach it.
+_Avoid_: DB server, vm2, on-prem DB (vm1 is on-prem too)
+
+**Local-only mode**:
+The production setting in which every AI call that touches participant or booth-player data goes to an on-prem model, and any other provider is refused.
+_Avoid_: on-prem mode, Anthropic off, no-cloud mode
+
+**On-prem evaluator**:
+The PIS-7 scoring model served on CME's hardware (DeepSeek-V4.1-Flash-1017).
+_Avoid_: local model (ambiguous with the tutor), DGX
+
+**On-prem tutor**:
+The model that holds the PLE dialogue, served on CME's hardware and distinct from the on-prem evaluator (qwen3.8-flash-next).
+_Avoid_: local model, chat model
+
+**Offline authoring**:
+Work that produces booth cases and their path score tables before an event (safety review, persona sandbox, table build). It handles no participant or booth-player data and sits outside local-only mode.
+_Avoid_: dev tooling, scripts
+
+**Model identity**:
+What a lock and every score's provenance name a served model by: its versioned model id and the server's system fingerprint, plus a weights digest when CME supplies one.
+_Avoid_: model version, weights hash (when no digest exists)
