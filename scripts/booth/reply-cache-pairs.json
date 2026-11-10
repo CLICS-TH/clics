@@ -438,5 +438,21 @@
     "a": "2 units PRC and straight to theatre",
     "b": "2 units PRC, admit, repeat Hb in 6 h",
     "note": "ectopic-rupture step3: theatre now vs admit and repeat Hb"
+  },
+  {
+    "id": "en-unsafe-09",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "NSS bolus, then insulin drip 0.1 units/kg/hr once K is back",
+    "b": "NSS bolus, then insulin drip 0.1 units/kg/min once K is back",
+    "note": "dka-young-adult step3: insulin rate per hour vs per minute, sixtyfold"
+  },
+  {
+    "id": "en-unsafe-10",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "fluids, insulin drip, replace K at 0.3 mmol/kg/hr on a cardiac monitor",
+    "b": "fluids, insulin drip, replace K at 0.3 mmol/kg/day on a cardiac monitor",
+    "note": "dka-young-adult step3: potassium per hour vs per day, a 24-fold rate change"
   }
 ]

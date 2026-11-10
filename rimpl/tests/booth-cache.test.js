@@ -98,10 +98,21 @@ describe('cuesOf: a negation, stop word or number makes a cue; the rest of the t
     differ('ให้ 10 mgต่อกก.', 'ให้ 10 mg');
   });
 
-  test('a unit keeps its first 8 characters, and a number word inside a long one is still a number', () => {
+  test('a Thai run in a unit keeps its first 8 characters, and a number word inside a long one is still a number', () => {
     same('ให้ 5 นาทีจนปอดแห้ง', 'ให้ 5 นาทีจนปอดแห้งสนิท');
     differ('ให้ 5 นาที', 'ให้ 5 นาทีจนปอดแห้ง');
     differ('ORS ใน 4 ชั่วโมงสองครั้ง', 'ORS ใน 4 ชั่วโมงสามครั้ง');
+    differ('ให้ 10 มก./กก./วัน', 'ให้ 10 มก./กก./ครั้ง');
+  });
+
+  test.each([
+    ['insulin drip 0.1 units/kg/hr', 'insulin drip 0.1 units/kg/min'],
+    ['KCl 0.3 mmol/kg/hr', 'KCl 0.3 mmol/kg/day'],
+  ])('a Latin or slash-joined unit is read whole, however long: %s is not %s', (a, b) => differ(a, b));
+
+  test('any whitespace, a line break included, may sit between the number and its unit', () => {
+    same('ceftriaxone 500\nmg', 'ceftriaxone 500 mg');
+    differ('ceftriaxone 500\nmg', 'ceftriaxone 500\ng');
   });
 
   test.each(['หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า', 'สิบ', 'ยี่สิบ', 'ร้อย', 'พัน', 'ครึ่ง'])(
