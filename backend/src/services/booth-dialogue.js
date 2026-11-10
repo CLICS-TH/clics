@@ -36,6 +36,9 @@ const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
 // The bank for step n is keyed by the tier letters of the n answers before it.
 const BANK_AT = [(banks) => banks.step1, (banks, p) => banks.step2[p], (banks, p) => banks.step3[p]];
 const bankAt = (kase, tierPath) => BANK_AT[tierPath.length](kase.banks, tierPath);
+// The name of the bank each BANK_AT entry picks, in the same order, as the reply cache (#387) keeps it.
+const BANK_KEY = [() => 'step1', (p) => `step2.${p}`, (p) => `step3.${p}`];
+const bankKey = (tierPath) => BANK_KEY[tierPath.length](tierPath);
 
 const randomOf = (list) => list[crypto.randomInt(list.length)];
 function shuffled(list) {
@@ -274,6 +277,6 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
 
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
+  bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
   evaluateRequest, stepTiers, stepRecords,
 };
