@@ -15,6 +15,9 @@ const { ANTHROPIC_MODEL } = require(path.join(__dirname, '..', '..', 'rimpl', 's
 const DomainsSchema = ScoreSchema.pick(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, true])));
 
 const PATHS = Object.freeze({ best: 'BBB', mixed: 'BRW', weakest: 'WWW' });
+// The scripted paths by case length. Five steps' mixed path keeps the three-step prefix and, like BRW, sits at the
+// scale's midpoint; the path score table's five-step design is derived from it (#381).
+const PATHS_BY_STEPS = Object.freeze({ 3: PATHS, 5: Object.freeze({ best: 'BBBBB', mixed: 'BRWRR', weakest: 'WWWWW' }) });
 const PERSONAS = Object.freeze({
   strong: 'an experienced Thai general practitioner who reasons step by step and follows current Thai and WHO guidance',
   average: 'a Thai general practitioner with a few years of practice who is usually sensible but sometimes settles for a '
@@ -246,6 +249,6 @@ function personaCall({ apiKey, model = ANTHROPIC_MODEL, fetchImpl = fetch }) {
 }
 
 module.exports = {
-  PATHS, PERSONAS, GROUPS, ANTHROPIC_MODEL, worstCall, tapping, personaRequest, personaAnswer, personaChooser, playOnce,
+  PATHS, PATHS_BY_STEPS, PERSONAS, GROUPS, ANTHROPIC_MODEL, worstCall, tapping, personaRequest, personaAnswer, personaChooser, playOnce,
   jobsFor, estimate, runPlays, rimplCalls, personaCall,
 };

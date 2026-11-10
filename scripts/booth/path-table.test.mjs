@@ -1,10 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { treeSha, reviewedTree, medianDomains, recheck, summaryMarkdown } from './path-table.mjs';
+import pleGate from '../../backend/src/services/ple-gate.js';
+import { treeSha, reviewedTree, medianDomains, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
 
+const { compositeScore } = pleGate;
 const REVIEW = { model: 'claude-opus-5-5', date: '2026-11-02', findings: 'none' };
 const tree = (over = {}) => ({ case_id: 'c', version: '1', event_code: 'E', teaser: { th: 'ก', en: 'a' }, banks: { step1: { x: 1 } }, ...over });
 const PATHS = { best: 'BBB', mixed: 'BRW', weakest: 'WWW' };
+// scripts/booth/sandbox-play.js's PATHS_BY_STEPS[5], which needs the backend's packages to load (its jest suite pins
+// the two equal).
+const FIVE = { best: 'BBBBB', mixed: 'BRWRR', weakest: 'WWWWW' };
+const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+const every = (v) => Object.fromEntries(DOMAINS.map((d) => [d, v]));
 
 test('the tree hash ignores version, admission, the table and key order, and sees every other byte', () => {
   const base = treeSha(tree());
@@ -62,6 +69,7 @@ test('the summary lists each case\'s table and path scores, and names every fail
   const md = summaryMarkdown({
     run_id: 'ptb-1', date: '2026-11-04', scored: 15, planned: 15, spent_usd: 1.5, cap_usd: 25, samples: 3,
     evaluator: { model: 'claude-sonnet-4-6', provider: 'anthropic', prompt_version: 'pis7-prompt-59561c29' },
+    method: 'median', scripted: PATHS, sampled: ['BBB', 'BRW', 'WWW'],
     cases: { ...Object.fromEntries(Object.keys(composites).map((id) => [id, built(id)])), gone: { version: '1', why: 'has uncommitted changes', table: false } },
     recheck: recheck(composites, PATHS, { samples: 3 }),
   });
@@ -70,4 +78,112 @@ test('the summary lists each case\'s table and path scores, and names every fail
   assert.match(md, /- flat: .*best is only 0 above weakest/);
   assert.match(md, /left out until the owner waives it again against run ptb-1, or to switch it off: `admission.table_waiver` with `run_id` ptb-1/);
   assert.match(md, /\| WWW \| 40 \| 40 \| 40 \| 40 \| 45 \|/);
+});
+
+test('the three-step plan samples all 27 tier paths and makes each entry the median per domain, with its composite', () => {
+  const plan = tablePlan(3, PATHS);
+  assert.equal(plan.method, 'median');
+  assert.equal(new Set(plan.sampled).size, 27);
+  assert.ok(plan.sampled.every((p) => /^[BRW]{3}$/.test(p)));
+  const brw = [
+    { d1: 3, d2: 1, d3: 5, d4: 2, d5: 4, d6: 3, d7: 1 },
+    { d1: 4, d2: 5, d3: 2, d4: 2, d5: 4, d6: 1, d7: 2 },
+    { d1: 2, d2: 3, d3: 4, d4: 3, d5: 1, d6: 3, d7: 5 },
+  ];
+  const samplesOf = (p) => (p === 'BRW' ? brw : [every(1), every(4), every(2)]);
+  const { paths, composites } = plan.build(samplesOf);
+  assert.deepEqual(paths.BRW, { d1: 3, d2: 3, d3: 4, d4: 2, d5: 4, d6: 3, d7: 2 });
+  assert.equal(composites.BRW, 61, '20 × (0.15·3 + 0.2·3 + 0.15·4 + 0.15·2 + 0.15·4 + 0.1·3 + 0.1·2)');
+  for (const p of plan.sampled) {
+    assert.deepEqual(paths[p], medianDomains(samplesOf(p)), p);
+    assert.equal(composites[p], compositeScore(paths[p]), p);
+  }
+});
+
+test('a case length with no table method is refused', () => {
+  assert.throws(() => tablePlan(4, {}), /no path score table method for 4-step cases, only 3 and 5/);
+});
+
+// Every domain alike: 4, less 0.2 for R and 0.5 for W at each step, except where `step3` says how step 3 moves it.
+const fiveStepModel = (step3) => (p) => [...p].reduce((acc, t, s) => acc + (t === 'B' ? 0 : s === 2 ? step3[t] : { R: -0.2, W: -0.5 }[t]), 4);
+const around = (model, a = 0.3) => (p) => [-a, 0, a].map((x) => every(model(p) + x));
+
+test('the five-step plan fills all 243 paths from its 27, each domain within 1 to 5 at one decimal, each composite whole, extremes clamped', () => {
+  const plan = tablePlan(5, FIVE);
+  assert.equal(plan.method, 'median-regression');
+  assert.equal(plan.sampled.length, 27);
+  for (const p of Object.values(FIVE)) assert.ok(plan.sampled.includes(p), `samples ${p}`);
+  // 5.6 at B…B, 1 less per W and 0.5 less per R, 0.1 more per domain from d1 to d7: past 5 at the top, under 1 at
+  // W…W, and composites that are not whole before rounding.
+  const model = (p, i) => [...p].reduce((acc, t) => acc - { B: 0, R: 0.5, W: 1 }[t], 5.6) + 0.1 * i;
+  const samplesOf = (p) => [-0.2, 0, 0.2].map((x) => Object.fromEntries(DOMAINS.map((d, i) => [d, model(p, i) + x])));
+  const { paths, composites } = plan.build(samplesOf);
+  assert.equal(Object.keys(paths).length, 243);
+  assert.ok(Object.keys(paths).every((p) => /^[BRW]{5}$/.test(p)));
+  for (const [p, domains] of Object.entries(paths)) {
+    for (const v of Object.values(domains)) {
+      assert.ok(v >= 1 && v <= 5 && Math.round(v * 10) / 10 === v, `${p}: ${v}`);
+    }
+    assert.ok(Number.isInteger(composites[p]), `${p} composite ${composites[p]}`);
+  }
+  assert.deepEqual(paths.BBBBB, every(5));
+  assert.deepEqual(paths.WWWWW, { d1: 1, d2: 1, d3: 1, d4: 1, d5: 1, d6: 1.1, d7: 1.2 });
+  assert.ok(!plan.sampled.includes('WRBBB'));
+  assert.deepEqual(paths.WRBBB, { d1: 4.1, d2: 4.2, d3: 4.3, d4: 4.4, d5: 4.5, d6: 4.6, d7: 4.7 }, 'an unsampled path, 5.6 − 1 − 0.5');
+  // 20 × (0.15 + 0.2 + 0.15 · 3 + 0.1 · 1.1 + 0.1 · 1.2) = 20.6, and 3 · 4.1 + 4 · 4.2 + 3 · 4.3 + 3 · 4.4 + 3 · 4.5 + 2 · 4.6 + 2 · 4.7 = 87.3.
+  assert.deepEqual([composites.BBBBB, composites.WRBBB, composites.WWWWW], [100, 87, 21]);
+});
+
+const onDesign = (sampled, best, mixed, weakest) => Object.fromEntries(sampled.map((p) => [p,
+  { [FIVE.best]: best, [FIVE.mixed]: mixed, [FIVE.weakest]: weakest }[p] ?? [1, 1, 1]]));
+
+test('the re-check on a five-step run finds every scripted group measured, passes a case like its pool and fails a flat one', () => {
+  const { sampled } = tablePlan(5, FIVE);
+  const pool = Object.fromEntries(['p1', 'p2', 'p3', 'p4'].map((id) => [id, onDesign(sampled, [60, 60, 60], [50, 50, 50], [40, 40, 40])]));
+  const v = recheck({
+    ...pool, ok: onDesign(sampled, [62, 58, 61], [51, 49, 50], [41, 39, 40]), flat: onDesign(sampled, [45, 46, 44], [45, 45, 45], [45, 44, 46]),
+  }, FIVE, { samples: 3 });
+  for (const [id, c] of Object.entries(v.cases)) assert.ok(!c.reasons.some((r) => /plays scored/.test(r)), `${id}: ${c.reasons.join('; ')}`);
+  assert.equal(v.cases.ok.pass, true);
+  assert.equal(v.cases.flat.pass, false);
+  assert.ok(v.cases.flat.reasons.some((r) => /best is only 0 above weakest/.test(r)), v.cases.flat.reasons.join('; '));
+});
+
+const RUN = {
+  run_id: 'ptb-5', date: '2026-11-10', scored: 81, planned: 81, spent_usd: 1.4, cap_usd: 25, samples: 3,
+  evaluator: { model: 'claude-sonnet-4-6', provider: 'anthropic', prompt_version: 'pis7-prompt-59561c29' },
+};
+
+function fiveStepSummary(step3) {
+  const plan = tablePlan(5, FIVE);
+  const { composites, mislabels } = plan.build(around(fiveStepModel(step3)));
+  const pooled = Object.fromEntries(['p1', 'p2', 'five'].map((id) => [id, onDesign(plan.sampled, [60, 60, 60], [50, 50, 50], [40, 40, 40])]));
+  return summaryMarkdown({
+    ...RUN, method: plan.method, scripted: FIVE, sampled: plan.sampled,
+    cases: { five: { version: '2', tree_sha256: 'f'.repeat(64), reviewed_commit: 'abcdef1234', table: true, composites, mislabels } },
+    recheck: recheck(pooled, FIVE, { samples: 3 }),
+  });
+}
+
+test('a five-step summary names its method, lists its 27 sampled paths of the 243, and shows a step whose weaker answers beat its best', () => {
+  const md = fiveStepSummary({ R: 0.2, W: 0.4 });
+  assert.match(md, /3 samples per path of a balanced 27-path design, a median \(L1\) regression of each domain on step × tier filling all 243 paths, domains clamped to 1–5 at one decimal, whole-number composite\. 1 of 1 cases have a table\./);
+  assert.match(md, /3 sample composites \(best BBBBB, mixed BRWRR, weakest WWWWW\), judged/);
+  assert.match(md, /## Likely tier mislabels\n[^#]*\n- five step 3: weaker beats best by 8 points\n/);
+  assert.doesNotMatch(md, /step [1245]: weaker/);
+  assert.match(md, /These are the 27 sampled paths; the JSON report holds all 243\./);
+  assert.equal(md.match(/^\| [BRW]{5} \| \d+ \|$/gm).length, 27);
+  assert.match(md, /\| BRWRR \| 76 \|/, '20 × (4 − 0.2 + 0.4 − 0.2 − 0.2) on every domain');
+});
+
+test('a five-step summary with no reversed step says so, and a three-step summary has no mislabel section', () => {
+  assert.match(fiveStepSummary({ R: -0.2, W: -0.5 }), /## Likely tier mislabels\n\n.*\n\nNo step's weaker answers score above its best\.\n/);
+  const three = summaryMarkdown({
+    ...RUN, method: 'median', scripted: PATHS, sampled: ['BBB', 'BRW', 'WWW'],
+    cases: { c: { version: '2', tree_sha256: 'f'.repeat(64), reviewed_commit: 'abcdef1234', table: true, composites: { BBB: 60, BRW: 50, WWW: 40 } } },
+    recheck: recheck({ c: { BBB: [60, 60, 60], BRW: [50, 50, 50], WWW: [40, 40, 40] } }, PATHS, { samples: 3 }),
+  });
+  assert.match(three, /3 samples per tier path, median per domain\. 1 of 1 cases have a table\./);
+  assert.match(three, /3 sample composites \(best BBB, mixed BRW, weakest WWW\), judged/);
+  assert.doesNotMatch(three, /Likely tier mislabels|JSON report holds/);
 });

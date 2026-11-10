@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 /*
- * Builds each booth case's path score table (#373, ADR 0009) from a saved run's samples: for every one of the 27 tier
- * paths, 3 sample transcripts walked with a random question variant and random same-tier options, the case's sample
- * replies as the AI's (scripts/booth/sample-replies), scored by the locked PIS-7 evaluator. Each table entry is the
- * median per domain. A case gets a table only when its tree is byte-identical to the tree its safety review read (from
- * git history) and every path is fully scored; the table is written into the case file with its version bumped. The
- * report re-runs ADR 0005's difficulty check on the samples.
+ * Builds each booth case's path score table (#373, ADR 0009) from a saved run's samples: for every sampled tier path,
+ * 3 sample transcripts walked with a random question variant and random same-tier options, the case's sample replies
+ * as the AI's (scripts/booth/sample-replies), scored by the locked PIS-7 evaluator. A three-step case samples all 27
+ * paths and each entry is the median per domain; a five-step case samples a balanced 27 of its 243 and a median (L1)
+ * regression of each domain on step × tier fills all 243 (#381, scripts/booth/path-fit.mjs). A run builds cases of
+ * one step count. A case gets a table only when its tree is byte-identical to the tree its safety review read (from
+ * git history) and every sampled path is fully scored; the table is written into the case file with its version
+ * bumped. The report re-runs ADR 0005's difficulty check on the samples.
  *
  * LIVE BUILDS ARE OFF until #408 gives the build a spend cap that holds. This script sends no evaluator request: --go
  * is refused before anything else runs, and the only build is --from, from a saved run's samples, which spends nothing.
@@ -32,15 +34,14 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { reviewedTree, medianDomains, recheck, summaryMarkdown } from './path-table.mjs';
+import { reviewedTree, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
-const { TIER_PATHS, LOCKED, replyProblems, readReplies, jobsFor, lockProblems } = require('./path-table-sample.js');
-const { PATHS } = require('./sandbox-play.js');
+const { LOCKED, replyProblems, readReplies, jobsFor, lockProblems } = require('./path-table-sample.js');
+const { PATHS_BY_STEPS } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
-const { compositeScore } = require(path.join(ROOT, 'backend', 'src', 'services', 'ple-gate'));
 
 const fail = (msg) => { console.error(msg); process.exit(2); };
 const LIVE_OFF = 'Live table builds are off until #408 gives the build a spend cap that holds: --go is refused and no evaluator '
@@ -115,12 +116,20 @@ for (const c of cases) {
   console.log(`${c.kase.case_id}@${c.kase.version}: ${c.tree.why ? `refused, it ${c.tree.why}` : `tree ${c.tree.tree_sha256.slice(0, 12)} as reviewed in ${c.tree.reviewed_commit.slice(0, 8)}`}`);
 }
 const building = cases.filter((c) => !c.tree.why);
+const stepsOf = (c) => Object.keys(c.kase.banks).length;
+// The re-check pools the cases of a run, so like must be compared with like.
+const stepCounts = [...new Set(building.map(stepsOf))];
+if (stepCounts.length > 1) fail(`the cases to build have ${stepCounts.join(' and ')} steps: a run builds one step count, so pick its cases with --case`);
+const steps = stepCounts[0] ?? stepsOf(cases[0]);
+const scripted = PATHS_BY_STEPS[steps];
+let plan;
+try { plan = tablePlan(steps, scripted); } catch (err) { fail(err.message); }
 for (const c of building) {
   let problems;
   try { c.replies = readReplies(c.kase, opts.replies); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
   if (problems.length) fail(`${c.kase.case_id}: ${problems.length} sample reply problem(s), first ${problems[0]}`);
 }
-const jobs = jobsFor(building.map((c) => c.kase), opts.samples)
+const jobs = jobsFor(building.map((c) => c.kase), opts.samples, () => plan.sampled)
   .map((job) => ({ ...job, replies: building.find((c) => c.kase === job.kase).replies }));
 console.log(`${building.length} case(s) to build, ${jobs.length} samples to read.`);
 const treeOf = Object.fromEntries(building.map((c) => [c.kase.case_id, c.tree.tree_sha256]));
@@ -178,19 +187,21 @@ const report = {
   run_id: runId, date, rimpl_url: run.rimpl_url, cap_usd: run.cap_usd, spent_usd: run.spent_usd,
   samples: opts.samples, planned: jobs.length, scored: scored.length, finished_from: path.relative(ROOT, opts.from),
   evaluator: { provider: first.provider, model: first.model, prompt_version: first.prompt_version, prompt_sha256: LOCKED.prompt_sha256, decoding: first.decoding },
+  method: plan.method, scripted, sampled: plan.sampled,
   cases: {},
   recheck: null,
 };
 const composites = Object.fromEntries(building.map((c) => [c.kase.case_id,
-  Object.fromEntries(TIER_PATHS.map((p) => [p, samplesOf(c.kase.case_id, p).map((r) => r.composite)]))]));
-report.recheck = recheck(composites, PATHS, {
+  Object.fromEntries(plan.sampled.map((p) => [p, samplesOf(c.kase.case_id, p).map((r) => r.composite)]))]));
+report.recheck = recheck(composites, scripted, {
   samples: opts.samples,
 });
 for (const c of cases) {
   const id = c.kase.case_id;
   if (c.tree.why) { report.cases[id] = { version: c.kase.version, why: c.tree.why, table: false }; continue; }
-  const complete = TIER_PATHS.every((p) => samplesOf(id, p).length === opts.samples);
-  const paths = complete ? Object.fromEntries(TIER_PATHS.map((p) => [p, medianDomains(samplesOf(id, p).map((r) => r.domains))])) : null;
+  const complete = plan.sampled.every((p) => samplesOf(id, p).length === opts.samples);
+  const table = complete ? plan.build((p) => samplesOf(id, p).map((r) => r.domains)) : null;
+  const paths = table?.paths ?? null;
   let why = !paths ? 'not every path is fully scored' : !oneConfig ? 'not one locked evaluator configuration'
     : !/^\d+$/.test(c.kase.version) ? `version ${c.kase.version} is not a whole number` : null;
   const version = why ? c.kase.version : String(Number(c.kase.version) + 1);
@@ -202,7 +213,7 @@ for (const c of cases) {
       provenance: {
         evaluator_model: first.model, prompt_sha256: LOCKED.prompt_sha256,
         decoding: { temperature: first.decoding.temperature, max_tokens: first.decoding.max_tokens },
-        samples_per_path: opts.samples, method: 'median', run_id: runId, date, tree_sha256: c.tree.tree_sha256,
+        samples_per_path: opts.samples, method: plan.method, run_id: runId, date, tree_sha256: c.tree.tree_sha256,
       },
       paths,
     } };
@@ -213,7 +224,8 @@ for (const c of cases) {
   report.cases[id] = {
     version: why ? c.kase.version : version, tree_sha256: c.tree.tree_sha256, reviewed_commit: c.tree.reviewed_commit, table: !why,
     ...(why ? { why } : {}),
-    composites: paths ? Object.fromEntries(TIER_PATHS.map((p) => [p, compositeScore(paths[p])])) : null,
+    composites: table?.composites ?? null,
+    ...(table?.mislabels ? { mislabels: table.mislabels } : {}),
   };
 }
 mkdirSync(opts.out, { recursive: true });
