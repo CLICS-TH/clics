@@ -18,7 +18,7 @@ RULES='
 ALL               ^(\.github/|package\.json$|package-lock\.json$)
 backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
 license_verifier  ^license-verifier/
-rimpl             ^rimpl/
+rimpl             ^(rimpl/|backend/src/booth-cases/|backend/src/services/(booth-dialogue|ple-gate)\.js$)
 dashboard         ^(audit-dashboard/|physician-ui/public/|backend/src/|db/|rimpl/src/lib/)
 physician_ui      ^physician-ui/public/js/
 probe             ^(scripts/probe/|rimpl/src/|backend/src/services/)

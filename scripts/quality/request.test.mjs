@@ -38,8 +38,8 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     "const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';",
     'const cleanHistory = stripHistoryPii(history, hints, registry);',
     'const cleanMessage = stripPii(message, registry, hints);',
-    // boothAnswer is undefined on every turn the audit sends (booth_mode false), so the replica's call is the same.
-    'deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints, boothAnswer: booth_mode ? booth_answer : undefined });',
+    // The scored path's call; a booth turn (booth_mode) takes deidentifyBoothTurn instead, which the audit never sends.
+    'deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });',
     '${cleanChiefComplaint}',
     'const history = cleanHistory.map(m => ({',
   ]) assert.ok(chatSrc.includes(line), `one-registry de-identification drifted: ${line}`);

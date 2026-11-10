@@ -60,7 +60,7 @@ function readReply(text, { grill, typed }) {
   };
 }
 
-// `messages` and `answerDeidentified` must already be de-identified (routes/chat.js deidentifyTurn's output).
+// `messages` and `answerDeidentified` must already be de-identified (routes/chat.js deidentifyBoothTurn's output).
 // answerDeidentified is only echoed back for the backend to store (#375); the model never sees it apart.
 async function boothReply({ messages, bank, typed, answerDeidentified, signal }) {
   const systemPrompt = chatSystemPrompt({ booth: true, grill: Boolean(bank), typed: Boolean(typed) });
