@@ -19,7 +19,7 @@ const local = require('./providers/local');
 const localTutor = require('./providers/local-tutor');
 const openaiEmbed = require('./providers/openai-embed');
 const settings = require('./provider-settings');
-const { isQueueFull, isAborted, isTooLarge } = require('../lib/ai-errors');
+const { isQueueFull, isAborted, isTooLarge, isEmptyReply, emptyReplyError } = require('../lib/ai-errors');
 
 // `local` is the on-prem EVALUATOR (DeepSeek); `local-tutor` is the on-prem tutor model, a second
 // instance of the same transport on its own endpoint (providers/local-tutor.js, CCME R3). Each key
@@ -164,10 +164,10 @@ function errorCode(err) {
 // The DOWN class: connection refused / reset / unresolvable, our own client deadline
 // (AbortSignal.timeout → DOMException 'TimeoutError', tagged `localTimeout` by providers/local.js), or
 // an HTTP 5xx from the provider itself. Everything else propagates to the route unchanged.
-// `reasoning_only` (providers/local-factory.js, THINK_PREOPENED) is not DOWN either: the box answered,
-// with nothing but reasoning. A second vendor would not make the first one's template close its block.
+// `empty_reply` (callWith below, or an unclosed THINK_PREOPENED block) is not DOWN either, despite its
+// 503: the box answered, with no reply text. Moving a research turn to another vendor is not the fix.
 function isProviderDown(err) {
-  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err) || err.code === 'reasoning_only') return false;
+  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err) || isEmptyReply(err)) return false;
   if (err.localTimeout === true || err.name === 'TimeoutError') return true;
   if (typeof err.status === 'number') return err.status >= 500;
   const code = errorCode(err);
@@ -289,6 +289,11 @@ async function callWith(provider, { systemPrompt, messages, maxTokens, temperatu
     ...(thinking != null ? { thinking } : {}),
     ...(typeof onReasoning === 'function' ? { onReasoning } : {}),
   });
+  // No reply text is a failure for every purpose, never a result: '' parses as all-false criteria and
+  // stores as a blank chat turn. Typical cause: a reasoning model spent max_tokens before answering.
+  if (typeof result?.text !== 'string' || !result.text.trim()) {
+    throw emptyReplyError({ provider: provider.name, stopReason: result?.stopReason, outputTokens: result?.outputTokens });
+  }
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only
   // correct while exactly one model exists; under a hybrid it silently mislabels which system
   // produced a score (§10.2 provenance) and which rate to bill it at.

@@ -31,6 +31,7 @@ const settings = require('../provider-settings');
 const { stripThink, createThinkFilter, closesThink, flagOn } = require('../../lib/think-markup');
 const { THINKING_STYLES, thinkingEnabled, parseThinkingStyle, thinkingFields } = require('../../lib/thinking-control');
 const { LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES: ENGINE_NAMES } = require('../../lib/provider-policy');
+const { emptyReplyError } = require('../../lib/ai-errors');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
 // services/ai.js, and must not throw or capture stale env when the local provider is not in use.
@@ -313,7 +314,7 @@ function engineOf(fingerprint) {
  *                                    every result, provenance row and bill is stamped with
  * @param {string}   o.envPrefix      connection env: <prefix>BASE_URL / MODEL / API_KEY / TIMEOUT_MS /
  *                                    MIN_CONTEXT / NUM_CTX / MAX_PROMPT_TOKENS / THINKING_STYLE /
- *                                    EMBED_MODEL / EMBED_TIMEOUT_MS / HTTP_PROXY
+ *                                    EMBED_MODEL / EMBED_TIMEOUT_MS / HTTP_PROXY / MAX_TOKENS_FLOOR_<PURPOSE>
  * @param {string}   o.queuePrefix    runner env: <prefix>MAX_CONCURRENCY / MAX_RETRIES / RETRY_BASE_MS /
  *                                    INTERACTIVE_RESERVE / MAX_QUEUE_INTERACTIVE / MAX_QUEUE_BACKGROUND /
  *                                    QUEUE_RETRY_AFTER_S / LOG_PROMPT_RATIO
@@ -535,10 +536,14 @@ function createLocalProvider({
 
     // Anthropic takes `system` as a top-level parameter; OpenAI-compatible servers take it as the
     // first message of the conversation.
+    // A reasoning model spends its reasoning out of max_tokens, so a ceiling sized for the answer alone
+    // (criteria's 200) can end mid-thought with no answer. <prefix>MAX_TOKENS_FLOOR_<PURPOSE> raises the
+    // ceiling for this endpoint only; unset or invalid sends the caller's value unchanged.
+    const floor = purpose ? intEnv(`${envPrefix}MAX_TOKENS_FLOOR_${String(purpose).toUpperCase()}`, 0, 1) : 0;
     const body = {
       model,
       messages: systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages,
-      max_tokens: maxTokens,
+      max_tokens: Math.max(maxTokens, floor),
       stream: !!onDelta,
     };
     // Usage arrives in a final chunk only when asked for; without it a streamed turn would bill 0 tokens.
@@ -636,20 +641,11 @@ function createLocalProvider({
 
       // THINK_PREOPENED and the reply never closed its reasoning block: by the operator's own
       // declaration, every byte of it was reasoning (most often it hit max_tokens mid-thought).
-      // An ERROR, not '' and not the raw text, because the physician must see neither:
-      //   * the raw text IS the chain of thought — returning it is the leak this knob exists to stop;
-      //   * '' would be stored as a blank turn (chat) or a deterministic bad-output 502 (evaluate),
-      //     i.e. a recorded failure for something a fresh generation may well complete.
-      // A thrown error stores nothing: the route answers its generic 500, which the backend treats as
-      // retryable (eval drain) and the physician sees as "try again". noRetry: not re-generated here
-      // — four full generations on a shared box for one turn is the wrong place to retry — and
-      // services/ai.js does not count it as a DOWN provider (the box answered). Numbers only.
+      // The same error services/ai.js raises for any empty reply (503 empty_reply, retryable by the
+      // backend), thrown here because only here is it known to be reasoning-only. noRetry: not
+      // re-generated here — four full generations on a shared box for one turn is the wrong place to retry.
       if (thinkPreopened && raw && !closesThink(raw)) {
-        const err = new Error(`${label}: the reply never closed its reasoning block (${envPrefix}THINK_PREOPENED=1) — there is no answer text to return (finish_reason ${rawFinish ?? 'none'}, ${outputTokens} output tokens)`);
-        err.status = 502;
-        err.code = 'reasoning_only';
-        err.noRetry = true;
-        throw err;
+        throw Object.assign(emptyReplyError({ provider: `${label} (${envPrefix}THINK_PREOPENED=1)`, stopReason: rawFinish, outputTokens, reasoningOnly: true }), { noRetry: true });
       }
 
       return {
