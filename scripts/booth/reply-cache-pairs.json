@@ -200,6 +200,46 @@
     "note": "adhf step3: furosemide IV vs PO in pulmonary oedema"
   },
   {
+    "id": "th-unsafe-09",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ORS 75 ml/kg ใน 4 ชม. แล้วประเมินซ้ำ",
+    "b": "ORS 75 ml/kg ใน 4 วัน แล้วประเมินซ้ำ",
+    "note": "toddler-gastro-dehydration step3: plan B ORS over 4 ชม. vs 4 วัน, hours vs days"
+  },
+  {
+    "id": "th-unsafe-10",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ให้ O2 กับ furosemide 40 มก. IV แล้วดู urine output",
+    "b": "ให้ O2 กับ furosemide 40 กรัม IV แล้วดู urine output",
+    "note": "adhf step3: furosemide 40 มก. vs 40 กรัม, a thousandfold, Thai unit abbreviations"
+  },
+  {
+    "id": "th-unsafe-11",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "load NSS 1 ลิตร ใน 1 ชม.แรก แล้วเริ่ม insulin drip",
+    "b": "load NSS 1 มล. ใน 1 ชม.แรก แล้วเริ่ม insulin drip",
+    "note": "dka-young-adult step3: 1 ลิตร vs 1 มล. of saline in the first hour, litres vs millilitres"
+  },
+  {
+    "id": "th-unsafe-12",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ให้ doxy 100 mg วันละสองครั้ง เจ็ดวัน",
+    "b": "ให้ doxy 100 mg วันละสี่ครั้ง เจ็ดวัน",
+    "note": "leptospirosis step3: doxycycline twice vs four times a day, the number written as a Thai word"
+  },
+  {
+    "id": "th-unsafe-13",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "atropine .5 mg IV แล้ว double ทุก 5 นาทีจนปอดแห้ง",
+    "b": "atropine 5 mg IV แล้ว double ทุก 5 นาทีจนปอดแห้ง",
+    "note": "organophosphate step3: atropine .5 mg vs 5 mg, a leading point dropped, tenfold"
+  },
+  {
     "id": "en-same-01",
     "lang": "en",
     "kind": "same",

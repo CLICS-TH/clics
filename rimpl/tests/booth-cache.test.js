@@ -82,6 +82,51 @@ describe('cuesOf: a negation, stop word or number makes a cue; the rest of the t
     same('ให้ยา ๕๐๐ mg', 'ให้ยา 500 mg');
     differ('ให้ยา ๕๐ mg', 'ให้ยา 500 mg');
   });
+
+  test('a Thai unit is a unit: hours are not days, milligrams are not grams, millilitres are not litres', () => {
+    differ('4 ชม.', '4 วัน');
+    differ('ORS 750 ml ใน 4 ชม. + zinc', 'ORS 750 ml ใน 4 วัน + zinc');
+    differ('40 มก.', '40 กรัม');
+    differ('furosemide 40 มก. IV', 'furosemide 40 กรัม IV');
+    differ('NSS 1 ลิตร ใน 1 ชม.แรก', 'NSS 1 มล. ใน 1 ชม.แรก');
+  });
+
+  test('a unit is the Latin or Thai letters right after the number, spaces between dropped, to a space or clause mark', () => {
+    same('ORS 750 ml ใน 4 ชม. + zinc', 'ORS 750ml ใน 4ชม. + zinc');
+    same('ให้ 4 วัน แล้วนัด', 'ให้ 4 วัน, แล้วนัด');
+    differ('ให้ 10 มก./กก.', 'ให้ 10 มก.');
+    differ('ให้ 10 mgต่อกก.', 'ให้ 10 mg');
+  });
+
+  test('a unit keeps its first 8 characters, and a number word inside a long one is still a number', () => {
+    same('ให้ 5 นาทีจนปอดแห้ง', 'ให้ 5 นาทีจนปอดแห้งสนิท');
+    differ('ให้ 5 นาที', 'ให้ 5 นาทีจนปอดแห้ง');
+    differ('ORS ใน 4 ชั่วโมงสองครั้ง', 'ORS ใน 4 ชั่วโมงสามครั้ง');
+  });
+
+  test.each(['หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า', 'สิบ', 'ยี่สิบ', 'ร้อย', 'พัน', 'ครึ่ง'])(
+    'Thai %s is a number', (word) => {
+      differ(`ให้ยาวันละ${word}ครั้ง`, 'ให้ยาวันละครั้ง');
+      expect(cuesOf(`ให้ยาวันละ${word}ครั้ง`)).toHaveLength(1);
+    },
+  );
+
+  test('a changed Thai number word is another answer, read with the unit after it', () => {
+    differ('สองครั้ง', 'สี่ครั้ง');
+    differ('ให้ยาวันละสองครั้ง', 'ให้ยาวันละสามครั้ง');
+    differ('สองเม็ด', 'สองครั้ง');
+    differ('ครึ่งเม็ด', 'หนึ่งเม็ด');
+    differ('ยี่สิบนาที', 'สิบนาที');
+    differ('สองร้อยมล.', 'สามร้อยมล.');
+    same('ให้สองครั้ง', 'ให้สอง ครั้ง');
+  });
+
+  test('a bare leading point is 0., in the number and in a negated clause', () => {
+    differ('.5 mg', '5 mg');
+    differ('adrenaline .5 mg IM', 'adrenaline 5 mg IM');
+    same('adrenaline .5 mg IM', 'adrenaline 0.5 mg IM');
+    differ('no .5 mg aspirin', 'no .5 mg heparin');
+  });
 });
 
 describe('bestReusable: the most similar entry of the same model, with equal cues, at the threshold or above', () => {

@@ -15,12 +15,18 @@ const LATIN_LETTER = /\p{Script=Latin}/u;
 const THAI_LETTER = /[฀-๿]/u;
 const CLAUSE_MARK = /[,.;:!?()\n]/u;
 const DIGIT = /\d/u;
-const NUMBER = /(\d+(?:,\d{3})*(?:\.\d+)?)(?:\s*([a-zµμ%]+(?:\/[a-zµμ]+)*))?/gu;
+// ห้า before ม is ห้าม, a term above, not five.
+const THAI_NUMBER_WORDS = ['หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า(?!ม)', 'หก', 'เจ็ด', 'แปด', 'เก้า', 'ยี่สิบ', 'สิบ', 'ร้อย', 'พัน', 'ครึ่ง'];
+const UNIT_MAX_CHARS = 8;
+const UNIT_RUN = String.raw`[\p{Script=Latin}ก-๎µμ%]+\.?`;
+// The unit is read ahead, not taken, so a number word inside a long Thai unit is still read as a number.
+const NUMBER = new RegExp(String.raw`(\d+(?:,\d{3})*(?:\.\d+)?|(?:${THAI_NUMBER_WORDS.join('|')})+)(?=(?: ?(${UNIT_RUN}(?:/${UNIT_RUN})*))?)`, 'gu');
 
-/** NFC, curly apostrophes straight, Thai digits as 0-9, Latin lowercased, a whitespace run holding a line break as
- *  one line break and any other as one space. */
+/** NFC, curly apostrophes straight, Thai digits as 0-9, a bare leading point as 0., Latin lowercased, a whitespace
+ *  run holding a line break as one line break and any other as one space. */
 const normalised = (text) => text.normalize('NFC').replace(/[‘’]/gu, "'")
   .replace(/[๐-๙]/gu, (d) => String(d.charCodeAt(0) - 0x0E50))
+  .replace(/(?<!\d)\.(?=\d)/gu, '0.')
   .replace(/\p{Script=Latin}+/gu, (s) => s.toLowerCase())
   .replace(/\s*\n\s*/gu, '\n').replace(/[^\S\n]+/gu, ' ').trim();
 
@@ -50,9 +56,12 @@ function scopeAfter(s, start) {
 const digest = (parts) => crypto.createHash('sha256').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
 
 /** The guard cues of a de-identified answer, sorted: one per negation or stop term with the clause it governs, and
- *  one per number with the unit right after it. Digests only, never text. Two answers may share a reply only when
- *  their cue lists are equal, so a negation added, removed or moved to another clause, or a changed dose or unit,
- *  always bypasses the cache. */
+ *  one per number with its unit. A number is a digit run or a run of THAI_NUMBER_WORDS; its unit is the run of Latin
+ *  or Thai letters right after it (a space between dropped), '/'-joined runs and a trailing abbreviation point kept,
+ *  cut to its first UNIT_MAX_CHARS. Digests only, never text. Two answers may share a reply only when their cue lists
+ *  are equal, so a negation added, removed or moved to another clause, or a number or unit changed as read here,
+ *  always bypasses the cache. A number in other words, or units alike in their first UNIT_MAX_CHARS, are left to the
+ *  embedding and the labelled pairs. */
 function cuesOf(text) {
   const s = normalised(text);
   const cues = [];
@@ -62,7 +71,9 @@ function cuesOf(text) {
     cues.push(digest(['term', term, scopeAfter(s, i + term.length)]));
     i += term.length;
   }
-  for (const [, number, unit] of s.matchAll(NUMBER)) cues.push(digest(['number', number.replaceAll(',', ''), unit ?? '']));
+  for (const [, number, unit = ''] of s.matchAll(NUMBER)) {
+    cues.push(digest(['number', number.replaceAll(',', ''), unit.slice(0, UNIT_MAX_CHARS)]));
+  }
   return cues.sort();
 }
 
