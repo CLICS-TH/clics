@@ -258,7 +258,7 @@ router.post('/', async (req, res) => {
     if (booth_mode) {
       return res.json(await boothReply({
         messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed,
-        answerDeidentified: cleanBoothAnswer, signal,
+        answerDeidentified: cleanBoothAnswer, language, signal,
       }));
     }
     const ragDocs = await ragLookup(cleanMessage);

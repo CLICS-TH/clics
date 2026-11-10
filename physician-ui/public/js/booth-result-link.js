@@ -2,7 +2,7 @@
 // A browser never sends the fragment, so the result is in no request and nothing is stored: the link keeps working
 // after the 30-day purge. The link is unsigned, so a hand-edited one shows whatever it says (a known limit of #244).
 // One import, booth-copy.js (itself import-free), so the harness can still load this file as a data: URL.
-import { TIERS } from './booth-copy.js';
+import { TIERS, LOOKS, DEFAULT_LOOK } from './booth-copy.js';
 
 export const RESULT_PATH = '/booth-result';
 
@@ -14,9 +14,10 @@ const PATH = new RegExp(`^[${TIER_NAMES.map((n) => TIERS[n].letter).join('')}]{1
 
 /**
  * @typedef {{ score: number, domains: Record<string, number>, tag: number, date: string, teaser: { th: string, en: string },
- *   tiers: string[] | null }} KeptResult
+ *   tiers: string[] | null, look: string }} KeptResult
  *   score 0-100 (whole), domains d1-d7 at 0-5, tag the booth tag, date YYYY-MM-DD in Bangkok, tiers each step's tier
- *   name (TIERS), null on a link made before tiers were kept (3-4 Nov) or when the score carried none.
+ *   name (TIERS), null on a link made before tiers were kept (3-4 Nov) or when the score carried none. look the
+ *   kiosk's language look when the QR was drawn (LOOKS); a link made before looks (#377) reads as DEFAULT_LOOK.
  */
 
 /** Today's date in Bangkok, the booth's own day. */
@@ -25,7 +26,7 @@ export const boothDate = (now = new Date()) => new Intl.DateTimeFormat('en-CA', 
 /** @param {KeptResult} r @returns {string} the fragment, without the '#' */
 export function resultFragment(r) {
   const json = JSON.stringify({ s: Math.round(r.score), d: KEYS.map((k) => r.domains[k]), t: r.tag, at: r.date, th: r.teaser.th, en: r.teaser.en,
-    ...(r.tiers?.length ? { p: r.tiers.map((n) => TIERS[n].letter).join('') } : {}) });
+    ...(r.tiers?.length ? { p: r.tiers.map((n) => TIERS[n].letter).join('') } : {}), l: r.look });
   let bin = '';
   for (const b of new TextEncoder().encode(json)) bin += String.fromCharCode(b);
   return FORMAT + btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -51,9 +52,9 @@ export function parseResultFragment(hash) {
   }
   if (typeof o !== 'object' || o === null || !isScore(o.s, 100) || !Array.isArray(o.d) || o.d.length !== KEYS.length
     || !o.d.every((v) => isScore(v, 5)) || !Number.isInteger(o.t) || o.t < 1 || !isDate(o.at) || !isText(o.th) || !isText(o.en)
-    || ('p' in o && !(typeof o.p === 'string' && PATH.test(o.p)))) {
+    || ('p' in o && !(typeof o.p === 'string' && PATH.test(o.p))) || ('l' in o && !(typeof o.l === 'string' && Object.hasOwn(LOOKS, o.l)))) {
     return null;
   }
   return { score: o.s, domains: Object.fromEntries(KEYS.map((k, i) => [k, o.d[i]])), tag: o.t, date: o.at, teaser: { th: o.th, en: o.en },
-    tiers: 'p' in o ? [...o.p].map((c) => TIER_NAMES.find((n) => TIERS[n].letter === c)) : null };
+    tiers: 'p' in o ? [...o.p].map((c) => TIER_NAMES.find((n) => TIERS[n].letter === c)) : null, look: 'l' in o ? o.l : DEFAULT_LOOK };
 }

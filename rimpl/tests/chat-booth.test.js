@@ -25,7 +25,8 @@ const NO_REPLY = { strength: '', weigh: '', safety: '' };
 const boothJson = (extra = {}) => JSON.stringify({ ...FIELDS, ...extra });
 // Every rule line of the plain booth prompt, so a prompt built on it can be shown to keep them all.
 const ruleLines = (prompt) => prompt.split('\n').filter((l) => l.startsWith('- '));
-const send = (body = {}) => request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'I would order an ECG first.', language: 'en', ...body });
+// language th: what the backend sends for every booth play in a Thai-primary look, the default.
+const send = (body = {}) => request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'I would order an ECG first.', language: 'th', ...body });
 const call = (n) => callAI.mock.calls[n][0];
 const chatCalls = () => callAI.mock.calls.map(([c]) => c).filter((c) => c.purpose === 'chat');
 
@@ -389,6 +390,48 @@ describe('the typed answer comes back de-identified for the backend to keep (#37
     const res = await send({ ...typedTurn, booth_answer: 'ก'.repeat(601) });
     expect(res.status).toBe(400);
     expect(callAI).not.toHaveBeenCalled();
+  });
+});
+
+describe('the reply language is the request\'s language (#377): the kiosk\'s primary language', () => {
+  const EN_RULE = '- Reply in English only, whatever language the physician\'s answer is in. Never repeat the reply in another language.';
+  const TH_RULE = '- Reply in Thai only, whatever language the physician\'s answer is in. Never repeat the reply in another language.';
+  const THAI_TEXT = ['ขั้นต่อไปคุณจะส่งตรวจอะไร', 'รอดูอาการ', 'ได้ผลเร็วในสัปดาห์แรก'];
+  const ENGLISH_TEXT = ['What test next?', 'Watch and wait', 'Fast in week one'];
+  const kinds = [['plain', {}, {}], ['grill', { booth_bank: BANK }, { grill: true }], ['typed', { booth_typed: TYPED }, { typed: true }]];
+
+  test.each(kinds)('%s: language en sends the English prompt, which keeps every other booth rule', async (_kind, body, opts) => {
+    callAI.mockResolvedValue(r(typedJson()));
+    const res = await send({ booth_mode: true, language: 'en', ...body });
+    const sys = call(0).systemPrompt;
+    expect(sys).toBe(P.chatSystemPrompt({ booth: true, ...opts, language: 'en' }));
+    expect(sys).toContain(EN_RULE);
+    expect(sys).not.toContain(TH_RULE);
+    expect(sys).not.toMatch(/Thai if the physician's answer contains any Thai/);
+    const thai = P.chatSystemPrompt({ booth: true, ...opts });
+    expect(sys.split('\n').filter((l) => l !== EN_RULE)).toEqual(thai.split('\n').filter((l) => l !== TH_RULE));
+    expect(res.body.prompt_version).not.toBe((await send({ booth_mode: true, ...body })).body.prompt_version);
+  });
+
+  test.each(kinds)('%s: language th (the default) sends the Thai prompt', async (_kind, body, opts) => {
+    callAI.mockResolvedValue(r(typedJson()));
+    await send({ booth_mode: true, ...body });
+    expect(call(0).systemPrompt).toBe(P.chatSystemPrompt({ booth: true, ...opts, language: 'th' }));
+    expect(call(0).systemPrompt).toContain(TH_RULE);
+  });
+
+  test.each([['BANK', { booth_bank: BANK }], ['SORT', { booth_typed: TYPED }]])('the %s block carries the English text only under language en', async (name, body) => {
+    callAI.mockResolvedValue(r(typedJson()));
+    await send({ booth_mode: true, language: 'en', ...body });
+    const last = call(0).messages.at(-1).content;
+    expect(last).toContain(`${name}: `);
+    for (const s of ['q_alt', 'mat', '"tier":"weaker"', ...ENGLISH_TEXT]) expect(last).toContain(s);
+    for (const s of THAI_TEXT) expect(last).not.toContain(s);
+    callAI.mockClear();
+    await send({ booth_mode: true, ...body });
+    const thai = call(0).messages.at(-1).content;
+    for (const s of THAI_TEXT) expect(thai).toContain(s);
+    for (const s of ENGLISH_TEXT) expect(thai).not.toContain(s);
   });
 });
 

@@ -6,6 +6,11 @@
 .radar-grid { fill: none; stroke: var(--edge); stroke-width: 2; opacity: .5; }
 .radar-grid--over { stroke: var(--card); opacity: .45; }
 .radar-score { fill: var(--radar-fill); stroke: var(--accent-down); stroke-width: 4; stroke-linejoin: round; }
+/* An axis name in the primary language only: the slot's other language would crowd the spokes. */
+.radar-label .bi-sub { display: none; }
+.radar-label .bi-main { font-size: inherit; line-height: inherit; }
+/* English axis names run wider than the Thai ("Synthesis" reached the box's left edge): the chart takes a wider box. */
+:root:lang(en) .radar { width: calc(460 * var(--u)); }
 .radar-label {
   position: absolute; white-space: nowrap;
   font-size: var(--text-en); font-weight: 600; line-height: 1.45; color: var(--ink);

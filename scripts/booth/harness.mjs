@@ -23,12 +23,15 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
-const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
+const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
 const TREE = JSON.parse(await readFile(fileURLToPath(new URL('../../backend/tests/fixtures/booth-case-tree.json', import.meta.url)), 'utf8'));
 // The server's reply limits, read from its source: CI runs this without the backend's dependencies.
 const DIALOGUE = await readFile(fileURLToPath(new URL('../../backend/src/services/booth-dialogue.js', import.meta.url)), 'utf8');
 const serverConst = (name) => Number(new RegExp(`\\bconst ${name} = (\\d+);`).exec(DIALOGUE)?.[1]);
 const [FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS] = ['FIELD_MAX_CHARS', 'BOLD_MAX_RUNS', 'BOLD_MAX_CHARS'].map(serverConst);
+/** The keys of the server's one-line LOOK_LANGUAGE, the looks it accepts; null when the line is not there. */
+const SERVER_LOOKS = /^const LOOK_LANGUAGE = Object\.freeze\(\{(.*)\}\);$/m.exec(DIALOGUE)?.[1]
+  .split(',').map((pair) => pair.split(':')[0].trim().replace(/^'(.*)'$/, '$1')) ?? null;
 /** The `case` a started play carries: the vignette only; each step's text arrives in a Next. */
 const KASE = { vignette: TREE.vignette };
 
@@ -595,7 +598,7 @@ async function shot(page, name, { fullPage = false } = {}) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
+const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY, SERVER_LOOKS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {

@@ -10,8 +10,8 @@
 }
 .shell-wordmark { font-family: var(--font-serif); font-size: calc(200 * var(--u)); font-weight: 500; line-height: 1; letter-spacing: -0.02em; }
 .shell-intro { max-width: calc(820 * var(--u)); }
-.shell-intro .bi-th { font-size: var(--text-q-th); line-height: 1.55; }
-.shell-intro .bi-en { font-size: var(--text-q-en); line-height: 1.4; margin-top: calc(12 * var(--u)); }
+.shell-intro .bi-main { font-size: var(--text-q-th); line-height: 1.55; }
+.shell-intro .bi-sub { font-size: var(--text-q-en); line-height: 1.4; margin-top: calc(12 * var(--u)); }
 
 .loop-media { position: absolute; inset: 0; background: var(--canvas); }
 .loop-media:empty { display: none; }
@@ -33,18 +33,18 @@
 }
 .loop-board-button .booth-icon svg { width: calc(40 * var(--u)); height: calc(40 * var(--u)); }
 .loop-board-button .bi { white-space: nowrap; }
-.loop-board-button .bi-th { font-size: calc(34 * var(--u)); line-height: 1.4; }
-.loop-board-button .bi-en { font-size: calc(30 * var(--u)); line-height: 1.3; }
+.loop-board-button .bi-main { font-size: calc(34 * var(--u)); line-height: 1.4; }
+.loop-board-button .bi-sub { font-size: calc(30 * var(--u)); line-height: 1.3; }
 .shell-loop .loop-bar { padding-inline-end: var(--board-room); }
 
 .loop-bar {
   grid-area: 2 / 1 / 3 / 2; box-sizing: border-box; min-height: calc(200 * var(--u));
   display: flex; align-items: center; justify-content: center;
   padding: calc(32 * var(--u)) var(--gutter); text-align: center;
-  background: var(--band); color: var(--ink); --bi-en: var(--ink);
+  background: var(--band); color: var(--ink); --bi-sub: var(--ink);
 }
-.bar-label .bi-th { font-size: var(--text-q-th); font-weight: 600; line-height: 1.45; }
-.bar-label .bi-en { font-size: var(--text-q-en); font-weight: 500; line-height: 1.35; }
+.bar-label .bi-main { font-size: var(--text-q-th); font-weight: 600; line-height: 1.45; }
+.bar-label .bi-sub { font-size: var(--text-q-en); font-weight: 500; line-height: 1.35; }
 
 .shell-tap {
   grid-area: 1 / 1 / 3 / 2; display: grid; grid-template-rows: subgrid; grid-template-columns: minmax(0, 1fr);
@@ -52,13 +52,13 @@
   font: inherit; cursor: pointer; z-index: 1;
 }
 .shell-tap:focus-visible { outline: calc(6 * var(--u)) solid var(--ai-border); outline-offset: calc(-12 * var(--u)); }
-.shell-tap .loop-bar { background: var(--accent); color: var(--on-accent); --bi-en: var(--on-accent); transition: background-color 120ms ease-out; }
+.shell-tap .loop-bar { background: var(--accent); color: var(--on-accent); --bi-sub: var(--on-accent); transition: background-color 120ms ease-out; }
 .shell-tap:active .loop-bar { background: var(--accent-down); }
 /* Attract mode: a larger prompt beside a fingertip cue whose ring pulses out every 1.6 s. */
 .shell-tap .loop-bar { gap: calc(40 * var(--u)); }
 .shell-tap .bar-label { text-align: start; }
-.shell-tap .bar-label .bi-th { font-size: var(--text-title-th); font-weight: 700; }
-.shell-tap .bar-label .bi-en { font-size: var(--text-title-en); }
+.shell-tap .bar-label .bi-main { font-size: var(--text-title-th); font-weight: 700; }
+.shell-tap .bar-label .bi-sub { font-size: var(--text-title-en); }
 .tap-cue {
   position: relative; flex: none; width: calc(88 * var(--u)); height: calc(88 * var(--u)); border-radius: 50%;
   background: var(--on-accent); box-shadow: inset 0 0 0 calc(22 * var(--u)) var(--accent-down);
@@ -82,15 +82,49 @@
 .still-card, .leave-card {
   box-sizing: border-box; width: 100%; max-width: calc(860 * var(--u));
   display: flex; flex-direction: column; gap: var(--gap); text-align: center;
-  padding: var(--gutter); background: var(--card); color: var(--ink); --bi-en: var(--body);
+  padding: var(--gutter); background: var(--card); color: var(--ink); --bi-sub: var(--body);
   border-radius: var(--radius); box-shadow: var(--shadow-card);
 }
-.still-title .bi-th, .leave-title .bi-th { font-size: var(--text-title-th); font-weight: 600; line-height: 1.45; }
-.still-title .bi-en, .leave-title .bi-en { font-size: var(--text-title-en); line-height: 1.35; }
+.still-title .bi-main, .leave-title .bi-main { font-size: var(--text-title-th); font-weight: 600; line-height: 1.45; }
+.still-title .bi-sub, .leave-title .bi-sub { font-size: var(--text-title-en); line-height: 1.35; }
 /* Redrawn every second: let taps fall through to the card, or the ghost-tap guard would swallow them. */
 .still-count { pointer-events: none; }
-.still-count .bi-th { line-height: 1.55; font-variant-numeric: tabular-nums; }
-.still-count .bi-en { font-variant-numeric: tabular-nums; }
+.still-count .bi-main { line-height: 1.55; font-variant-numeric: tabular-nums; }
+.still-count .bi-sub { font-variant-numeric: tabular-nums; }
 .still-card .booth-btn, .leave-card .booth-btn { justify-content: center; text-align: center; }
 
-@media (prefers-reduced-motion: reduce) { .shell-tap .loop-bar { transition: none; } .tap-cue::after { animation: none; opacity: 0; } }
+/* The language look control (js/booth-look.js): above the loop's tap layer (.shell-tap 1, its leaderboard button 2),
+   so a tap on it starts no play, and under every overlay (9, 10). It floats over each screen's top padding instead of
+   a band of its own, which would cost the tallest step and the result card their fit; the harness checks it covers
+   no text on any screen. The pressed state also shows as a tick, not by colour alone. */
+.look-control {
+  --look-inset: calc(8 * var(--u));
+  position: fixed; top: var(--look-inset); right: var(--look-inset); z-index: 5; display: flex; gap: calc(8 * var(--u));
+}
+.look-segs { display: flex; border-radius: 999px; box-shadow: var(--shadow-card); }
+.look-btn {
+  appearance: none; box-sizing: border-box; margin: 0;
+  display: flex; align-items: center; gap: calc(12 * var(--u));
+  min-height: calc(84 * var(--u)); min-width: calc(84 * var(--u)); padding: calc(8 * var(--u)) calc(20 * var(--u));
+  font: inherit; font-size: var(--text-small-th); font-weight: 600; line-height: 1.45; white-space: nowrap;
+  color: var(--ink); background: var(--card); border: var(--line) solid var(--edge); cursor: pointer;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+.look-btn:focus-visible { outline: calc(6 * var(--u)) solid var(--ai-border); outline-offset: calc(4 * var(--u)); }
+.look-btn .booth-icon svg { width: calc(32 * var(--u)); height: calc(32 * var(--u)); }
+.look-seg:first-child { border-radius: 999px 0 0 999px; }
+.look-seg:last-child { border-radius: 0 999px 999px 0; margin-left: calc(-1 * var(--line)); }
+/* Its edge is the darker accent, so the pressed segment keeps its shape over the reel's accent scenes. */
+.look-seg[aria-pressed="true"] { background: var(--accent); border-color: var(--accent-down); color: var(--on-accent); }
+.look-seg:not([aria-pressed="true"]) .look-tick { visibility: hidden; }
+.look-seg:active:not([aria-pressed="true"]), .look-both:active { background: var(--pressed); }
+.look-both { border-radius: 999px; box-shadow: var(--shadow-card); }
+.look-box {
+  flex: none; box-sizing: border-box; display: grid; place-items: center; width: calc(40 * var(--u)); height: calc(40 * var(--u));
+  border: var(--line) solid var(--ink); border-radius: calc(8 * var(--u));
+}
+.look-both[aria-pressed="true"] .look-box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.look-both:not([aria-pressed="true"]) .look-tick { visibility: hidden; }
+.look-both .look-text { display: flex; align-items: baseline; column-gap: calc(12 * var(--u)); }
+
+@media (prefers-reduced-motion: reduce) { .shell-tap .loop-bar, .look-btn { transition: none; } .tap-cue::after { animation: none; opacity: 0; } }

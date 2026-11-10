@@ -2,7 +2,7 @@
 // best option offered when the visitor did not tap it. Every tier comes from the score response (booth-play.js
 // parseScore); nothing here exists before it.
 import { COPY, TIERS, fill } from './booth-copy.js';
-import { el, bi, phrases } from './booth-dom.js';
+import { el, bi, phrases, textLang } from './booth-dom.js';
 
 const OVERLAY_IDLE_MS = 30_000;
 
@@ -39,7 +39,7 @@ const icon = (name) => el('span', { class: 'booth-icon', 'aria-hidden': 'true', 
 function rowView(row, i) {
   const given = 'label' in row.given
     ? bi(row.given.label, 'reveal-given')
-    : el('p', { class: 'reveal-typed', lang: 'th' }, ...phrases(row.given.text));
+    : el('p', { class: 'reveal-typed', lang: textLang(row.given.text) }, ...phrases(row.given.text));
   return el('li', { class: 'reveal-step', dataset: { step: String(i + 1), tier: row.tier } },
     bi(fill(COPY.stepN, { n: i + 1 }), 'step-of'),
     bi(row.question, 'reveal-question'),

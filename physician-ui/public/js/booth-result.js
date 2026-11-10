@@ -1,10 +1,10 @@
 // The booth result page (#251): renders the result in the URL fragment (booth-result-link.js) and nothing else.
-import { COPY, DEMO_LABEL, scoreText, tagText, fill } from './booth-copy.js';
+import { COPY, DEFAULT_LOOK, DEMO_LABEL, scoreText, tagText, fill } from './booth-copy.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
 import { tierChip } from './booth-answers.js';
 import { parseResultFragment } from './booth-result-link.js';
-import { el, bi } from './booth-dom.js';
+import { el, bi, setLook } from './booth-dom.js';
 
 const demoLabel = () => el('div', { class: 'demo-label result-demo', dataset: { demoLabel: '' } }, bi(DEMO_LABEL));
 
@@ -51,6 +51,7 @@ function missingView() {
 
 function render() {
   const r = parseResultFragment(location.hash);
+  setLook(r?.look ?? DEFAULT_LOOK);
   document.getElementById('result').replaceChildren(...(r ? resultView(r) : missingView()));
 }
 

@@ -3,11 +3,34 @@ const SCORE_KEY = 'POST /booth/plays/:id/score';
 const EMPTY = { strength: '', weigh: '', safety: '' };
 /** Three fields longer than the server's FIELD_MAX_CHARS, each with two bold runs at their cap, in realistic Thai with
  *  spaces between phrases; the fit check hard-cuts them to the longest field the server can send. */
-const FIT_TEXT = {
+export const FIT_TEXT = {
   strength: 'คุณเชื่อมโยง**ประวัติลุยน้ำท่วมขัง**เข้ากับ**ไข้สูง ปวดน่อง ตาแดง**ได้อย่างเป็นระบบ จึงนึกถึงโรคเลปโตสไปโรซิสตั้งแต่ต้น ก่อนผลตรวจทางห้องปฏิบัติการจะกลับมา แล้วถามอาชีพ',
   weigh: 'สิ่งที่ควรชั่งน้ำหนักคือ **ผลเลือดวันแรกอาจปกติ** จึงควรนัดตรวจซ้ำ และเฝ้าดู**ค่าครีเอตินินในเลือด**กับปริมาณปัสสาวะอย่างใกล้ชิดในสองสามวันถัดไป ก่อนสรุปว่าโรคไม่รุนแรง',
   safety: 'หากผู้ป่วยเริ่ม**ไอเป็นเลือด หายใจหอบ** หรือ**ปัสสาวะออกน้อยลงมากๆ** ควรส่งต่อโรงพยาบาลที่มีหอผู้ป่วยหนักทันที เพราะอาจเป็นเลือดออกในปอดหรือไตวาย ซึ่งอันตรายถึงชีวิตได้',
 };
+/** The same in English, the reply an English-first look gets. Each field has a space at character 115, so the server's
+ *  cut at the last space that fits ends it at exactly FIELD_MAX_CHARS. */
+const FIT_TEXT_EN = {
+  strength: 'You tied **wading in floodwater** with **fever with calf pain** and red eyes, so you thought of leptospirosis early, before the lab results came back, and asked about work.',
+  weigh: 'What to weigh: **day-one labs mislead** when normal, so repeat those and watch **creatinine and urine** output closely over the next two or three days before you call it mild.',
+  safety: 'If this patient **is coughing up blood**, breathing hard or **passing little urine**, refer them at once to a hospital with an ICU, as lung bleeding or kidney failure can kill.',
+};
+/** 120 characters, the bridge ceiling, and one sentence by the backend's rule (no sentence mark before its end). */
+const LONG_BRIDGE_EN = 'You tied the fever and productive cough to the crackles at the right base, so think next about what test will confirm it';
+const SIZES = [[1080, 1920], [2160, 3840]];
+const LANGS = ['th', 'en'];
+/** The looks whose primary language is `lang`: the language the AI replies and bridges in. */
+const looksIn = (h, lang) => Object.keys(h.LOOKS).filter((look) => h.LOOKS[look].primary === lang);
+
+/** Sets the look in the page through the kiosk's own setLook (the module instance the shell runs), as a tap on the
+ *  control does, and waits for the fonts it now draws and for the control's colour transitions to end. */
+const lookIn = (page, look) => page.evaluate(async (l) => {
+  (await import('/js/booth-dom.js')).setLook(l);
+  await document.fonts.ready;
+  await new Promise((r) => requestAnimationFrame(r));
+  await Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+    .map((a) => a.finished.catch(() => {})));
+}, look);
 
 const text = (page, sel) => page.locator(sel).first().textContent({ timeout: 5000 });
 const count = (page, sel) => page.locator(sel).count();
@@ -52,15 +75,21 @@ const readReply = (page) => page.evaluate(() => {
   const bubble = document.querySelector('.ai-bubble');
   const range = document.createRange();
   const tops = [];
-  const walk = document.createTreeWalker(bubble, NodeFilter.SHOW_TEXT);
-  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
-    for (let i = 0; i < n.data.length; i++) {
-      if (/\s|\p{M}/u.test(n.data[i])) continue;
-      range.setStart(n, i);
-      range.setEnd(n, i + 1);
-      tops.push(range.getBoundingClientRect().top);
+  // In reading order: a bilingual text's main slot before its sub slot, whatever the DOM order; a hidden slot is not read.
+  const read = (n) => {
+    if (n.nodeType === Node.TEXT_NODE) {
+      for (let i = 0; i < n.data.length; i++) {
+        if (/\s|\p{M}/u.test(n.data[i])) continue;
+        range.setStart(n, i);
+        range.setEnd(n, i + 1);
+        tops.push(range.getBoundingClientRect().top);
+      }
+      return;
     }
-  }
+    if (n.nodeType !== Node.ELEMENT_NODE || getComputedStyle(n).display === 'none') return;
+    (n.matches('.bi') ? [...n.querySelectorAll(':scope > .bi-main'), ...n.querySelectorAll(':scope > .bi-sub')] : [...n.childNodes]).forEach(read);
+  };
+  read(bubble);
   return {
     topToBottom: tops.every((t, i) => i === 0 || t >= tops[i - 1] - 1),
     fields: [...bubble.querySelectorAll('[data-field]')].map((f) => {
@@ -88,7 +117,7 @@ const runsOf = (field) => field.split('**').filter((_, i) => i % 2);
 
 /** `field` hard-cut at `max` visible characters, trailing space dropped, a bold run cut through staying bold: the
  *  longest field the server can send (booth-dialogue.js checkedField ends a field at or before `max`). */
-function atCut(field, max) {
+export function atCut(field, max) {
   let room = plainOf(field).slice(0, max).trimEnd().length;
   return field.split('**').map((part, i) => {
     const cut = part.slice(0, room);
@@ -115,8 +144,10 @@ async function checkReply(h, page, reply, label) {
   return shown;
 }
 
-async function toStep(k) {
+/** From the loop to step 1, in `look` when one is given: set on the loop, so every reply the play asks for carries it. */
+async function toStep(k, look) {
   await k.shell('start');
+  if (look) await lookIn(k.page, look);
   await k.toVignette();
   await k.tap('[data-action="begin"]');
   await k.screen('step');
@@ -164,8 +195,8 @@ export default [
       h.check(stub.of(REPLY_KEY).length === 1, `a double tap on Send sends one reply request (${stub.of(REPLY_KEY).length})`);
       const r1 = stub.of(REPLY_KEY)[0];
       h.check(r1.path === `/booth/plays/${h.PLAY_ID}/reply`, 'step 1: the reply goes to the play\'s own id');
-      h.check(h.same(r1.body, { answers: [{ choice: pick1 }], replies: [], asks: [ask1], sigs: [h.SIG(0)] }),
-        `step 1: reply body is { answers: [the tapped id], replies: [], asks: [ask 1], sigs: [start sig] } (${JSON.stringify(r1.body)})`);
+      h.check(h.same(r1.body, { answers: [{ choice: pick1 }], replies: [], asks: [ask1], sigs: [h.SIG(0)], look: 'th+en' }),
+        `step 1: reply body is { answers: [the tapped id], replies: [], asks: [ask 1], sigs: [start sig], look: the default th+en } (${JSON.stringify(r1.body)})`);
       const aiLabel = await page.evaluate(() => window.AI_LABEL?.th);
       h.check(await text(page, '.ai-label') === aiLabel && aiLabel === 'AI', 'reply 1: labelled "AI" (js/ui.js AI_LABEL) and nothing else');
       const reply1 = await checkReply(h, page, h.REPLY(1), 'reply 1');
@@ -192,7 +223,7 @@ export default [
       const pick2 = ask2.options[0];
       await k.answer(1);
       await k.screen('reply');
-      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: pick1 }, { choice: pick2 }], replies: [h.REPLY(1)], asks: [ask1, ask2], sigs: [h.SIG(0), h.SIG(1)] }),
+      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: pick1 }, { choice: pick2 }], replies: [h.REPLY(1)], asks: [ask1, ask2], sigs: [h.SIG(0), h.SIG(1)], look: 'th+en' }),
         'step 2: reply body carries both answers, reply 1 verbatim, both asks and two sigs');
       await k.tap('[data-action="next"]');
 
@@ -224,7 +255,7 @@ export default [
       await k.screen('reply');
       const sent = [{ choice: pick1 }, { choice: pick2 }, { text: 'line one\nline two' }];
       const typed = [...sent.slice(0, 2), { ...sent[2], deidentified: h.DEIDENTIFIED(3) }];
-      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: sent, replies: [h.REPLY(1), h.REPLY(2)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2)] }),
+      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: sent, replies: [h.REPLY(1), h.REPLY(2)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2)], look: 'th+en' }),
         'step 3: reply body carries the typed answer, newline kept, both earlier replies, three asks, three sigs');
       h.check(await text(page, '.answer-text') === 'line one\nline two', 'reply 3: the typed answer is shown as typed');
 
@@ -241,7 +272,7 @@ export default [
       await h.shot(page, 'result');
       const score = stub.of(SCORE_KEY);
       h.check(score.length === 1 && h.same(score[0].body, {
-        answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)],
+        answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)], look: 'th+en',
       }), 'score: one request with three answers (the typed one with the de-identified text its reply gave), three replies, three asks and four sigs as the stub sent them');
       h.check(await text(page, '.result-card .booth-tag') === 'Booth #042', 'result: the booth tag "Booth #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
@@ -390,56 +421,73 @@ export default [
     },
   },
   {
-    name: 'fit: every bank of every case file, its tallest texts under a 120-character bridge, at 1080x1920 and 2160x3840',
+    name: 'fit: every bank of every case file, its tallest texts under a 120-character bridge, in each look, at 1080x1920 and 2160x3840',
     async run(h) {
-      h.check([...h.LONG_BRIDGE].length === 120, `the long bridge is 120 characters (${[...h.LONG_BRIDGE].length})`);
-      const banks = await h.caseBankNexts();
-      // Both sizes at once, each in its own kiosk: a size walks every bank on one page, a fresh play per bank.
-      await Promise.all([[1080, 1920], [2160, 3840]].map(async ([width, height]) => {
+      const bridges = { th: h.LONG_BRIDGE, en: LONG_BRIDGE_EN };
+      h.check(LANGS.every((lang) => [...bridges[lang]].length === 120) && !/[!?…]|\.(?!\d)/u.test(LONG_BRIDGE_EN),
+        `the long bridges are 120 characters, the English one a single sentence (${LANGS.map((lang) => `${lang} ${[...bridges[lang]].length}`).join(', ')})`);
+      // The bridge is in the language the AI writes in, the look's primary: a size and a language per kiosk, all at
+      // once. A kiosk walks every bank on one page, a fresh play per bank, and measures the step in each of its looks.
+      await Promise.all(SIZES.flatMap(([width, height]) => LANGS.map(async (lang) => {
+        const banks = await h.caseBankNexts(bridges[lang]);
+        const looks = looksIn(h, lang);
         let start = null;
         const stub = h.makeStub({ routes: { 'POST /booth/plays': () => ({ status: 201, body: { ...h.START, next: start } }) } });
-        const k = await h.kiosk({ stub, width, height, label: `fit at ${width}x${height}` });
+        const k = await h.kiosk({ stub, width, height, label: `fit at ${width}x${height}, ${lang} bridge` });
         const show = async (next) => {
           start = next;
           await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
           await toStep(k);
         };
-        const misfits = [];
-        let tallest = { over: -Infinity };
+        const misfits = Object.fromEntries(looks.map((look) => [look, []]));
+        const tallest = Object.fromEntries(looks.map((look) => [look, { over: -Infinity }]));
         for (const { name, next } of banks) {
           await show(next);
           const shown = await readStep(k.page);
-          const { over } = await k.page.evaluate(() => {
-            const body = document.querySelector('.play-body').getBoundingClientRect();
-            const below = (s) => Math.max(...[...document.querySelectorAll(s)].map((e) => e.getBoundingClientRect().bottom - body.bottom));
-            return { over: Math.max(below('.options > [data-option]'), below('[data-action="type-own"]'), below('[data-action="send"]')) };
-          });
-          const words = shown.bridge === h.LONG_BRIDGE && h.same(shown.question, next.question)
+          const words = shown.bridge === bridges[lang] && h.same(shown.question, next.question)
             && h.same(shown.options.map(({ id, label, line }) => ({ id, label, line })), next.options);
-          if (over > tallest.over) tallest = { name, next, over };
-          if (!words || over > 1) misfits.push(`${name} (${words ? `${Math.round(over)}px below` : 'text differs'})`);
+          for (const look of looks) {
+            await lookIn(k.page, look);
+            const over = await k.page.evaluate(() => {
+              const body = document.querySelector('.play-body').getBoundingClientRect();
+              const below = (s) => Math.max(...[...document.querySelectorAll(s)].map((e) => e.getBoundingClientRect().bottom - body.bottom));
+              return Math.max(below('.options > [data-option]'), below('[data-action="type-own"]'), below('[data-action="send"]'));
+            });
+            if (over > tallest[look].over) tallest[look] = { name, next, over };
+            if (!words || over > 1) misfits[look].push(`${name} (${words ? `${Math.round(over)}px below` : 'text differs'})`);
+          }
         }
-        h.check(misfits.length === 0, `${width}x${height}: all ${banks.length} distinct banks show their text word for word, `
-          + `with all three options, "type my own" and Send on screen without scrolling (tallest ${tallest.name}, `
-          + `${Math.round(-tallest.over)}px to spare)${misfits.length ? `; misfits: ${misfits.join(', ')}` : ''}`);
-        await show(tallest.next);
-        await h.screenCheck(k.page, `step, the tallest bank (${tallest.name}), ${width}x${height}`);
-        await h.shot(k.page, `step-tallest-${width}`);
+        for (const look of looks) {
+          const t = tallest[look];
+          h.check(misfits[look].length === 0, `${width}x${height}, ${look}: all ${banks.length} distinct banks show their text word for word, `
+            + `with all three options, "type my own" and Send on screen without scrolling (tallest ${t.name}, `
+            + `${Math.round(-t.over)}px to spare)${misfits[look].length ? `; misfits: ${misfits[look].join(', ')}` : ''}`);
+          await show(t.next);
+          await lookIn(k.page, look);
+          await h.screenCheck(k.page, `step, the tallest bank (${t.name}), ${width}x${height}, ${look}`);
+          await h.shot(k.page, `step-tallest-${width}-${look}`);
+        }
         await k.close();
-      }));
+      })));
     },
   },
   {
-    name: 'fit: three reply fields as long as the server can send, under the tallest question and tapped answer of the case files, at 1080x1920 and 2160x3840',
+    name: 'fit: three reply fields as long as the server can send, in the look\'s language, under the tallest question and tapped answer of the case files, in each look, at 1080x1920 and 2160x3840',
     async run(h) {
       const visible = (f) => plainOf(f).length;
       if (!h.check([h.FIELD_MAX_CHARS, h.BOLD_MAX_RUNS, h.BOLD_MAX_CHARS].every(Number.isInteger),
         `the server's limits read from backend/src/services/booth-dialogue.js: FIELD_MAX_CHARS ${h.FIELD_MAX_CHARS}, `
         + `BOLD_MAX_RUNS ${h.BOLD_MAX_RUNS}, BOLD_MAX_CHARS ${h.BOLD_MAX_CHARS}`)) return;
-      const FIT_REPLY = Object.fromEntries(Object.entries(FIT_TEXT).map(([k, v]) => [k, atCut(v, h.FIELD_MAX_CHARS)]));
-      h.check(h.REPLY_FIELDS.every(({ key }) => visible(FIT_REPLY[key]) === h.FIELD_MAX_CHARS
-        && h.same(runsOf(FIT_REPLY[key]).map((r) => r.length), Array(h.BOLD_MAX_RUNS).fill(h.BOLD_MAX_CHARS))),
-      `the fit reply: every field ${h.FIELD_MAX_CHARS} visible characters, the longest the server can send, with ${h.BOLD_MAX_RUNS} ${h.BOLD_MAX_CHARS}-character bold runs (${h.REPLY_FIELDS.map(({ key }) => `${key} ${visible(FIT_REPLY[key])}`).join(', ')})`);
+      const cut = (text) => Object.fromEntries(Object.entries(text).map(([k, v]) => [k, atCut(v, h.FIELD_MAX_CHARS)]));
+      const FIT_REPLIES = { th: cut(FIT_TEXT), en: cut(FIT_TEXT_EN) };
+      for (const lang of LANGS) {
+        const reply = FIT_REPLIES[lang];
+        h.check(h.REPLY_FIELDS.every(({ key }) => visible(reply[key]) === h.FIELD_MAX_CHARS
+          && h.same(runsOf(reply[key]).map((r) => r.length), Array(h.BOLD_MAX_RUNS).fill(h.BOLD_MAX_CHARS))),
+        `the ${lang} fit reply: every field ${h.FIELD_MAX_CHARS} visible characters, the longest the server can send, with ${h.BOLD_MAX_RUNS} ${h.BOLD_MAX_CHARS}-character bold runs (${h.REPLY_FIELDS.map(({ key }) => `${key} ${visible(reply[key])}`).join(', ')})`);
+      }
+      h.check(h.REPLY_FIELDS.every(({ key }) => FIT_TEXT_EN[key].split('**').join('')[h.FIELD_MAX_CHARS] === ' '),
+        `the en fit reply ends where the server cuts it, at the last space within ${h.FIELD_MAX_CHARS} characters`);
       const tallest = h.longestNext((await h.caseTrees()).map(([, t]) => t),
         { bridge: '', size: (o) => o.label.th.length + o.label.en.length });
       const { question, options } = tallest;
@@ -461,56 +509,64 @@ export default [
           still: scrollY === 0 && document.scrollingElement.scrollHeight <= innerHeight + 1,
         };
       });
-      await Promise.all([[1080, 1920], [2160, 3840]].map(async ([width, height]) => {
+      // A size and a language per kiosk, all at once. The stub replies in the primary language of the look each reply
+      // request carries, as the server does.
+      await Promise.all(SIZES.flatMap(([width, height]) => LANGS.map(async (lang) => {
         const stub = h.makeStub({ routes: {
           'POST /booth/plays': () => ({ status: 201, body: { ...h.START, next: tallest } }),
-          [REPLY_KEY]: (call) => ({ status: 200, body: { status: 'replied', reply: FIT_REPLY, reply_sig: h.SIG(call.body.answers.length),
-            ...(call.body.answers.length < 3 ? { next: tallest } : {}) } }),
+          [REPLY_KEY]: (call) => ({ status: 200, body: { status: 'replied', reply: FIT_REPLIES[h.LOOKS[call.body.look ?? h.DEFAULT_LOOK].primary],
+            reply_sig: h.SIG(call.body.answers.length), ...(call.body.answers.length < 3 ? { next: tallest } : {}) } }),
         } });
-        const k = await h.kiosk({ stub, width, height, label: `reply fit at ${width}x${height}` });
-        await toStep(k);
-        const fits = [];
-        for (let n = 1; n <= 3; n++) {
-          await k.answer(1);
-          await k.screen('reply');
-          fits.push(await measure(k.page));
-          if (n === 1) {
-            await checkReply(h, k.page, FIT_REPLY, `fit reply at ${width}x${height}`);
-            await h.screenCheck(k.page, `reply at the cut under the tallest question and answer, ${width}x${height}`);
-            await h.shot(k.page, `reply-fit-${width}`);
-          }
-          if (n < 3) {
-            await k.tap('[data-action="next"]');
-            await k.screen('step');
-          }
-        }
-        h.check(fits.every((f) => f.overflow <= 1 && f.spare >= 0 && f.button && f.still),
-          `${width}x${height}: three fields of ${h.FIELD_MAX_CHARS} characters, the longest the server can send, under the tallest question ("${question.en.slice(0, 32)}...") and tapped answer ("${options[0].label.en}") `
-          + `fit with no scroll, Next and See my score fully on screen (${fits.map((f, i) => `reply ${i + 1}: ${f.spare}px to spare`).join(', ')})`);
-        for (const [shape, typed] of TYPED) {
-          const label = `${width}x${height}, a ${typed.length}-character typed answer, ${shape}`;
+        const k = await h.kiosk({ stub, width, height, label: `reply fit at ${width}x${height}, ${lang}` });
+        for (const look of looksIn(h, lang)) {
+          const at = `${width}x${height}, ${look}`;
           await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
-          await toStep(k);
-          await k.tap('[data-action="type-own"]');
-          await k.screen('typing');
-          await k.page.fill('.typing-box', typed);
-          await k.tap('[data-action="send"]');
-          await k.screen('reply');
-          const t = await measure(k.page);
-          h.check(t.overflow <= 1 && t.spare >= 0 && t.button && t.still,
-            `${label}: under three fields of ${h.FIELD_MAX_CHARS} characters it fits with no scroll, Next fully on screen `
-            + `(${t.spare >= 0 ? `${t.spare}px to spare` : `${-t.spare}px over`})`);
-          const box = await k.page.evaluate(() => {
-            const p = document.querySelector('.answer-text');
-            return { lines: p.getBoundingClientRect().height / parseFloat(getComputedStyle(p).lineHeight), text: p.textContent };
-          });
-          h.check(box.lines > 0.9 && box.lines <= 2.05 && box.text === typed,
-            `${label}: the answer box shows at most two lines (${box.lines.toFixed(2)} drawn), its whole text kept in the page`);
-          await h.screenCheck(k.page, `reply under ${label}`);
-          await h.shot(k.page, `reply-fit-typed-${shape.replaceAll(' ', '-')}-${width}`);
+          await toStep(k, look);
+          const fits = [];
+          for (let n = 1; n <= 3; n++) {
+            await k.answer(1);
+            await k.screen('reply');
+            fits.push(await measure(k.page));
+            if (n === 1) {
+              await checkReply(h, k.page, FIT_REPLIES[lang], `fit reply at ${at}`);
+              await h.screenCheck(k.page, `reply at the cut under the tallest question and answer, ${at}`);
+              await h.shot(k.page, `reply-fit-${width}-${look}`);
+            }
+            if (n < 3) {
+              await k.tap('[data-action="next"]');
+              await k.screen('step');
+            }
+          }
+          h.check(fits.every((f) => f.overflow <= 1 && f.spare >= 0 && f.button && f.still),
+            `${at}: three ${lang} fields of ${h.FIELD_MAX_CHARS} characters, the longest the server can send, under the tallest question ("${question.en.slice(0, 32)}...") and tapped answer ("${options[0].label.en}") `
+            + `fit with no scroll, Next and See my score fully on screen (${fits.map((f, i) => `reply ${i + 1}: ${f.spare}px to spare`).join(', ')})`);
+          for (const [shape, typed] of TYPED) {
+            const label = `${at}, a ${typed.length}-character typed answer, ${shape}`;
+            await k.page.goto(k.page.url(), { waitUntil: 'domcontentloaded' });
+            await toStep(k, look);
+            await k.tap('[data-action="type-own"]');
+            await k.screen('typing');
+            await k.page.fill('.typing-box', typed);
+            await k.tap('[data-action="send"]');
+            await k.screen('reply');
+            const t = await measure(k.page);
+            h.check(t.overflow <= 1 && t.spare >= 0 && t.button && t.still,
+              `${label}: under three ${lang} fields of ${h.FIELD_MAX_CHARS} characters it fits with no scroll, Next fully on screen `
+              + `(${t.spare >= 0 ? `${t.spare}px to spare` : `${-t.spare}px over`})`);
+            const box = await k.page.evaluate(() => {
+              const p = document.querySelector('.answer-text');
+              return { lines: p.getBoundingClientRect().height / parseFloat(getComputedStyle(p).lineHeight), text: p.textContent };
+            });
+            h.check(box.lines > 0.9 && box.lines <= 2.05 && box.text === typed,
+              `${label}: the answer box shows at most two lines (${box.lines.toFixed(2)} drawn), its whole text kept in the page`);
+            await h.screenCheck(k.page, `reply under ${label}`);
+            await h.shot(k.page, `reply-fit-typed-${shape.replaceAll(' ', '-')}-${width}-${look}`);
+          }
         }
+        h.check(stub.of(REPLY_KEY).every((c) => h.LOOKS[c.body?.look]?.primary === lang),
+          `reply fit at ${width}x${height}, ${lang}: every reply request carried a look whose primary language is ${lang}, so the replies drawn were ${lang}`);
         await k.close();
-      }));
+      })));
     },
   },
   {
@@ -562,7 +618,7 @@ export default [
       await k.shell('closed');
       const t = await k.page.locator('#booth').innerText();
       h.check(t.includes(h.COPY.closed.th) && t.includes(h.COPY.closed.en), 'closed: "The booth is closed right now", TH and EN');
-      h.check(await count(k.page, 'button:not([data-action="leaderboard"])') === 0 && closed.of('POST /booth/plays').length === 0, 'closed: nothing to tap, no play started');
+      h.check(await count(k.page, '#booth button:not([data-action="leaderboard"])') === 0 && closed.of('POST /booth/plays').length === 0, 'closed: nothing to tap, no play started');
       await h.screenCheck(k.page, 'closed notice');
       await k.close();
 

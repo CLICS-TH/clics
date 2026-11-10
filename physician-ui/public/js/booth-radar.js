@@ -1,7 +1,7 @@
 // The d1-d7 radar on the kiosk's result card and the result page (#379). The axis names are HTML, not SVG text, so
 // they take the booth's type floor and the harness measures them like any other text.
 import { DOMAINS, DOMAIN_SHORT, COPY } from './booth-copy.js';
-import { el } from './booth-dom.js';
+import { el, bi } from './booth-dom.js';
 
 // The box, in its own units: booth-radar.css gives .radar this aspect ratio, so a point here is a percentage there.
 const W = 420;
@@ -37,8 +37,8 @@ export function radar(domains) {
     // Anchored on the side away from the centre: above the top axis, beside the side ones, below the bottom ones.
     const tx = -50 + 50 * Math.sin(angle(i));
     const ty = -50 - 50 * Math.cos(angle(i));
-    return el('span', { class: 'radar-label', lang: 'th', dataset: { key: d.key },
-      style: `left: ${pct(x, W)}; top: ${pct(y, H)}; transform: translate(${tx.toFixed(1)}%, ${ty.toFixed(1)}%)` }, DOMAIN_SHORT[d.key].th);
+    return el('span', { class: 'radar-label', dataset: { key: d.key },
+      style: `left: ${pct(x, W)}; top: ${pct(y, H)}; transform: translate(${tx.toFixed(1)}%, ${ty.toFixed(1)}%)` }, bi(DOMAIN_SHORT[d.key]));
   });
   return el('figure', { class: 'radar', role: 'img', 'aria-label': `${COPY.radar.th}: ${said}`, dataset: { radar: '' } },
     svg('svg', { viewBox: `0 0 ${W} ${H}`, 'aria-hidden': 'true', focusable: 'false' },

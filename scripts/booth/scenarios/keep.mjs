@@ -58,6 +58,10 @@ const MALFORMED = [
   [`#r1.${b64({ ...GOOD, p: 'BRWBRW' })}`, 'a tier path of six steps'],
   [`#r1.${b64({ ...GOOD, p: null })}`, 'a tier path that is null'],
   [`#r1.${b64({ ...GOOD, p: ['B', 'R', 'W'] })}`, 'a tier path that is an array'],
+  [`#r1.${b64({ ...GOOD, l: 'fr' })}`, 'a look the kiosk does not have'],
+  [`#r1.${b64({ ...GOOD, l: 'TH+EN' })}`, 'a look in upper case'],
+  [`#r1.${b64({ ...GOOD, l: null })}`, 'a look that is null'],
+  [`#r1.${b64({ ...GOOD, l: 'toString' })}`, 'a look named like an object key'],
 ];
 
 const TRY_KEY = '[data-action="try-clics"]';
@@ -72,13 +76,14 @@ export default [
   {
     name: 'result link: the fragment round-trips the result, and every malformed fragment parses to null',
     async run(h) {
-      const r = { score: 72.4, domains: h.SCORED.domains, tag: 42, date: '2026-11-03', teaser: h.TREE.teaser, tiers: ['best', 'weaker', 'reasonable'] };
+      const r = { score: 72.4, domains: h.SCORED.domains, tag: 42, date: '2026-11-03', teaser: h.TREE.teaser, tiers: ['best', 'weaker', 'reasonable'], look: 'en+th' };
       const back = parseResultFragment(`#${resultFragment(r)}`);
-      h.check(h.same(back, { ...r, score: 72 }), 'link: score (rounded), d1-d7, tag, date, both teasers and the three tiers come back as written');
+      h.check(h.same(back, { ...r, score: 72 }), 'link: score (rounded), d1-d7, tag, date, both teasers, the three tiers and the look come back as written');
       const untiered = parseResultFragment(`#${resultFragment({ ...r, tiers: null })}`);
       h.check(h.same(untiered, { ...r, score: 72, tiers: null }), 'link: a result with no tiers comes back with tiers null');
+      h.check(Object.keys(h.LOOKS).every((look) => parseResultFragment(`#${resultFragment({ ...r, look })}`)?.look === look), `link: each of the ${Object.keys(h.LOOKS).length} looks comes back as written`);
       h.check(h.same(parseResultFragment(`#r1.${b64(GOOD)}`), { score: 72, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 }, tag: 42, date: '2026-11-03',
-        teaser: { th: 'ชาวนา', en: 'A farmer' }, tiers: null }), 'link: a link made before tiers were kept (3-4 Nov, no p) still reads, with tiers null');
+        teaser: { th: 'ชาวนา', en: 'A farmer' }, tiers: null, look: h.DEFAULT_LOOK }), `link: a link made before tiers and looks were kept (3-4 Nov, no p, no l) still reads, with tiers null and the look ${h.DEFAULT_LOOK}`);
       h.check(/^r1\.[A-Za-z0-9_-]+$/.test(resultFragment(r)), 'link: the fragment is base64url behind its format prefix, no character a scanner or browser rewrites');
       h.check(MALFORMED.every(([f]) => parseResultFragment(f) === null), `link: ${MALFORMED.length} malformed fragments all parse to null`);
       h.check(boothDate(new Date('2026-11-03T18:30:00Z')) === '2026-11-04', 'link: the date is Bangkok\'s day, not UTC\'s');
@@ -99,8 +104,8 @@ export default [
         `${width}: the QR opens ${RESULT_PATH} on the Portal with no query (${url.origin}${url.pathname}${url.search})`);
       const kept = parseResultFragment(url.hash);
       const tiers = h.stepsFor(h.TREE, k.stub.of(SCORE_KEY)[0].body).map((st) => st.tier);
-      h.check(h.same(kept, { score: 72, domains: h.SCORED.domains, tag: 42, date: boothDate(), teaser: h.TREE.teaser, tiers }),
-        `${width}: the fragment holds the score, d1-d7, tag, today's date, the drawn case's teaser and the tier of each step (${tiers})`);
+      h.check(h.same(kept, { score: 72, domains: h.SCORED.domains, tag: 42, date: boothDate(), teaser: h.TREE.teaser, tiers, look: h.DEFAULT_LOOK }),
+        `${width}: the fragment holds the score, d1-d7, tag, today's date, the drawn case's teaser, the tier of each step (${tiers}) and the look (${kept?.look})`);
       h.check(qr.w >= 320 * (width / 1080) - 1 && qr.w === qr.h, `${width}: the QR is square and ${Math.round(qr.w)} px wide`);
       h.check(qr.caption.includes('Scan to keep your result') && qr.caption.includes('สแกน'), `${width}: the QR is captioned in Thai and English`);
       const sent = k.stub.calls.filter((c) => JSON.stringify(c).includes(url.hash.slice(4, 40)));
