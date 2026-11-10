@@ -518,7 +518,8 @@ function answerOf(res, entries) {
 /** Keeps a live reply for later answers that mean the same, only when the tier taken is the AI's own, best or
  *  reasonable, the reply shows and holds no safety field, and it repeats none of this visitor's own words beyond the
  *  case's text: a weaker or safety reply, or one carrying what a visitor typed, is never shown to another. Never the
- *  answer's text, raw or de-identified. A database fault never refuses the reply. */
+ *  answer's text, raw or de-identified, and never the pick's bridge, which the AI writes from this visitor's answer
+ *  and may quote. A database fault never refuses the reply. */
 async function keepReply(kase, d, language, res, issued) {
   const live = CacheLive.safeParse(res.cache);
   const n = d.answers.length;
@@ -529,7 +530,7 @@ async function keepReply(kase, d, language, res, issued) {
   try {
     const { error } = await supabase.from('booth_reply_cache').insert({
       case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language,
-      ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ?? null,
+      ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ? { ...res.pick, bridge: '' } : null,
     });
     if (error) console.warn(`[booth] reply cache keep failed: ${error.code ?? 'error'}`);
   } catch (err) {

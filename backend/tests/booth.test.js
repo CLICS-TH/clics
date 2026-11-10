@@ -1994,7 +1994,7 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     id: crypto.randomUUID(), case_id: KASE.case_id, case_version: KASE.version, bank: 'step1', tier_path: '', language: 'th',
     model: LIVE.model, embedding: LIVE.embedding, cues: LIVE.cues, tier: 'R',
     reply: { strength: 'เริ่มจาก **ตรวจ CBC** ก่อนเป็นจุดแข็ง', weigh: 'ชั่ง **EARLIER-WORDS** ด้วย', safety: '' },
-    pick: pickFor(bank('R'), { bridge: 'ต่อไปดูผลเลือด' }), created_at: iso(-60_000), ...over,
+    pick: pickFor(bank('R'), { bridge: '' }), created_at: iso(-60_000), ...over,
   });
   /** rimpl reusing the entry `id`: no AI call, so no reply of its own. */
   const reusing = (id) => rimplChat.mockImplementation(async () => ({
@@ -2045,7 +2045,7 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     const res = await answer(p, TYPED);
     expect(res.body).toMatchObject({ status: 'replied', deidentified: DEID });
     expect(res.body.reply).toEqual({ strength: 'เริ่มจาก **ตรวจ CBC** ก่อนเป็นจุดแข็ง', weigh: 'ชั่ง EARLIER-WORDS ด้วย', safety: '' });
-    expect(res.body.next.ask.bridge).toBe('ต่อไปดูผลเลือด');
+    expect(res.body.next.ask.bridge).toBe('');
     expect([...res.body.next.ask.options].sort()).toEqual([...kept.pick.option_ids].sort());
     expect(res.body.next).toEqual(shown(bank('R'), res.body.next.ask));
     expect(plays.get(p.id).spend_usd).toBe(0);
@@ -2104,7 +2104,7 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     expect(Object.keys(insert.payload).sort()).toEqual([...COLUMNS].sort());
     expect(insert.payload).toEqual({
       case_id: KASE.case_id, case_version: KASE.version, bank: 'step1', tier_path: '', language: 'th', ...LIVE,
-      tier: 'R', reply: AI_REPLY, pick: pickFor(bank('R')),
+      tier: 'R', reply: AI_REPLY, pick: { ...pickFor(bank('R')), bridge: '' },
     });
     const written = JSON.stringify(insert.payload);
     for (const s of [TYPED.text, DEID, 'ตรวจ']) expect(written).not.toContain(s);
@@ -2184,6 +2184,39 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
       cacheRows = [];
       m.state.queries.length = 0;
       expect(await play('ตามแผนที่วางไว้')).toEqual(['ตามแผนที่วางไว้']);
+    });
+  });
+
+  describe('a kept reply keeps no bridge: the AI may quote the visitor in it', () => {
+    const ANSWER = { text: 'ส่งต่อให้หมอสมศักดิ์ ใจกล้า ดูต่อพรุ่งนี้' };
+    const QUOTING = 'ส่งต่อให้หมอสมศักดิ์ดูต่อพรุ่งนี้ก่อน';
+    /** rimpl replying with fields that quote nothing of the answer, and a bridge that quotes it. */
+    const bridging = () => {
+      live('reasonable', { reply: { strength: 'การส่งต่อเหมาะสม', weigh: 'ชั่งน้ำหนักเรื่องเวลา', safety: '' } });
+      const l = rimplChat.getMockImplementation();
+      rimplChat.mockImplementation(async (b) => { const r = await l(b); return { ...r, pick: r.pick && { ...r.pick, bridge: QUOTING } }; });
+    };
+
+    test('a live reply whose bridge alone quotes the answer is kept with an empty bridge; its own visitor still sees it', async () => {
+      switchedOn();
+      bridging();
+      const res = await answer(await begin(), ANSWER);
+      expect(res.body.next.ask.bridge).toBe(QUOTING);
+      const [insert] = cacheQueries('insert');
+      expect(insert.payload.pick).toEqual({ ...pickFor(bank('R')), bridge: '' });
+      expect(JSON.stringify(insert.payload)).not.toContain('สมศักดิ์');
+    });
+
+    test('a reuse of that reply shows the next visitor no bridge', async () => {
+      switchedOn();
+      bridging();
+      await answer(await begin(), ANSWER);
+      const [kept] = cacheRows;
+      reusing(kept.id);
+      const res = await answer(await begin(), { text: 'ส่งต่อให้แพทย์เฉพาะทางดูต่อ' });
+      expect(res.body.next.ask.bridge).toBe('');
+      expect([...res.body.next.ask.options].sort()).toEqual([...kept.pick.option_ids].sort());
+      expect(JSON.stringify(res.body)).not.toContain('สมศักดิ์');
     });
   });
 
