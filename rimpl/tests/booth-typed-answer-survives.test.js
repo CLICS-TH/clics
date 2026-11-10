@@ -142,6 +142,58 @@ describe('accepted residual: an untitled name typed under a question that masks 
   });
 });
 
+// #412: the backend puts a note line between the question and the fenced answer (#400). A label that ends a bank
+// question must still mask the value typed under it, in the AI's text and in the kept copy, at step 1 (after the
+// vignette) and in a later step's history. Each bank question here ends in a label that masks the value when the two
+// are read together, and does not mask on its own.
+describe('a bank question that ends in an identifier label masks the value typed under it', () => {
+  const LABELLED = [
+    ['an HN', 'HN', '1234567'],
+    ['an MRN', 'MRN', '65-012345'],
+    ['a surname', 'นามสกุล', 'ทองเปลว'],
+    ['a title', 'นาย', 'พรรณราย ทองเปลว'],
+    ['a subdistrict', 'ตำบล', 'บางรัก'],
+    ['a province', 'จังหวัด', 'นครปฐม'],
+  ];
+  // adhf.json with the first variant of the bank at `tierPath` asking for `label`.
+  const labelled = (tierPath, label) => {
+    const kase = caseFile('adhf.json');
+    const { question } = bankAt(kase, tierPath).variants[0];
+    question.th = `${question.th} ระบุ${label}`;
+    expect(stripPii(question.th)).toBe(question.th);
+    return kase;
+  };
+  // A value counts as masked when the answer holds a token and no word of the value, nor any run of its digits.
+  const expectMasked = (text, value) => {
+    expect(text).toMatch(/\[[A-Z]+-\d+\]/);
+    for (const part of value.split(' ')) expect(text).not.toContain(part);
+    expect(text.replace(/\[[A-Z]+-\d+\]/g, '')).not.toMatch(/\d{3,}/);
+  };
+
+  test.each(LABELLED)('%s at step 1', async (_kind, label, value) => {
+    const kase = labelled('', label);
+    const res = await request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(kase, typedPlay(kase, '', ['v1'], [value])) });
+    for (const part of value.split(' ')) expect(JSON.stringify(callAI.mock.calls)).not.toContain(part);
+    const seen = seenAnswer(sentTurns()[0]);
+    expectMasked(seen, value);
+    expect(res.body.answer_deidentified).toBe(seen);
+  });
+
+  test.each(LABELLED)('%s at step 2, then in its history', async (_kind, label, value) => {
+    const kase = labelled('W', label);
+    const second = await request(app).post('/chat')
+      .send({ ple_id: 'x', ...chatRequest(kase, typedPlay(kase, 'W', ['v1', 'v1'], ['ให้ยาขับปัสสาวะ', value])) });
+    expectMasked(second.body.answer_deidentified, value);
+    expect(second.body.answer_deidentified).toBe(seenAnswer(sentTurns()[1]));
+    callAI.mockClear();
+    await request(app).post('/chat')
+      .send({ ple_id: 'x', ...chatRequest(kase, typedPlay(kase, 'WB', ['v1', 'v1', 'v1'], ['ให้ยาขับปัสสาวะ', value, 'ให้ออกซิเจน'])) });
+    const wire = JSON.stringify(callAI.mock.calls);
+    for (const part of value.split(' ')) expect(wire).not.toContain(part);
+    expectMasked(seenAnswer(sentTurns()[1]), value);
+  });
+});
+
 // routes/chat.js reads a bank question apart from the answer only when the question masks on its own. Such a
 // question must give the answer no label context, or splitting it off would unmask a value master masks (#375).
 test('no question read apart from its answer ends in an identifier label', () => {
