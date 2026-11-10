@@ -17,13 +17,19 @@ const REACH = path.join(ROOT, 'deploy', 'vm1', 'model-reach.cjs');
 
 // Every `${envPrefix}NAME` the transport reads, so a knob added there fails here until the example names it.
 const SUFFIXES = [...new Set([...FACTORY.matchAll(/\$\{envPrefix\}([A-Z][A-Z0-9_]*)/g)].map((m) => m[1]))];
-const INSTANCES = { LOCAL_AI_: { embeddings: true }, LOCAL_TUTOR_AI_: { embeddings: false } };
+const INSTANCES = {
+  LOCAL_AI_: { embeddings: true, purposes: ['CHAT', 'EVALUATE', 'CRITERIA', 'DISCUSS', 'SHADOW'] },
+  LOCAL_TUTOR_AI_: { embeddings: false, purposes: ['CHAT', 'DISCUSS'] },
+};
+// A read like `${envPrefix}MAX_TOKENS_FLOOR_${purpose}` captures as a stem ending in `_`: one name per purpose
+// the instance serves (rimpl/src/lib/provider-policy.js PROVIDER_PURPOSES).
+const namesFor = (suffix, purposes) => (suffix.endsWith('_') ? purposes.map((p) => `${suffix}${p}`) : [suffix]);
 
 test('rimpl.env.example names every on-prem variable rimpl reads, each [vm1] with no value', () => {
   assert.ok(SUFFIXES.includes('BASE_URL') && SUFFIXES.includes('THINKING_STYLE'), `read the factory: ${SUFFIXES}`);
   const lines = EXAMPLE.split('\n');
-  for (const [prefix, { embeddings }] of Object.entries(INSTANCES)) {
-    for (const suffix of SUFFIXES) {
+  for (const [prefix, { embeddings, purposes }] of Object.entries(INSTANCES)) {
+    for (const suffix of SUFFIXES.flatMap((s) => namesFor(s, purposes))) {
       const name = `${prefix}${suffix}`;
       if (suffix.startsWith('EMBED_') && !embeddings) continue;
       if (suffix === 'HTTP_PROXY') {

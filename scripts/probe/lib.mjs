@@ -215,7 +215,7 @@ export const FINISH_REASON = {
  * ask what a STREAMING physician would have seen (scripts/quality/checks.mjs no_reasoning_leak).
  *
  * Deliberate difference, recorded rather than hidden: with thinkPreopened and a reply that never
- * closes its block, production THROWS (code reasoning_only, no reply at all). Here that is
+ * closes its block, production THROWS (code empty_reply with reasoningOnly, no reply at all). Here that is
  * `{ ok: true, text: '', reasoningOnly: true, reasoningUnclosed: true }` — a probe reports, it does not
  * crash, and every caller already treats reasoningOnly as its own failure class.
  *

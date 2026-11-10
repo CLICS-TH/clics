@@ -30,7 +30,9 @@ const { createRunner } = require('./runtime');
 const settings = require('../provider-settings');
 const { stripThink, createThinkFilter, closesThink, flagOn } = require('../../lib/think-markup');
 const { THINKING_STYLES, thinkingEnabled, parseThinkingStyle, thinkingFields } = require('../../lib/thinking-control');
-const { LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES: ENGINE_NAMES } = require('../../lib/provider-policy');
+const { LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES: ENGINE_NAMES, PURPOSES } = require('../../lib/provider-policy');
+const FLOOR_PURPOSES = [...PURPOSES, 'shadow'];
+const { emptyReplyError } = require('../../lib/ai-errors');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
 // services/ai.js, and must not throw or capture stale env when the local provider is not in use.
@@ -313,7 +315,7 @@ function engineOf(fingerprint) {
  *                                    every result, provenance row and bill is stamped with
  * @param {string}   o.envPrefix      connection env: <prefix>BASE_URL / MODEL / API_KEY / TIMEOUT_MS /
  *                                    MIN_CONTEXT / NUM_CTX / MAX_PROMPT_TOKENS / THINKING_STYLE /
- *                                    EMBED_MODEL / EMBED_TIMEOUT_MS / HTTP_PROXY
+ *                                    EMBED_MODEL / EMBED_TIMEOUT_MS / HTTP_PROXY / MAX_TOKENS_FLOOR_<PURPOSE>
  * @param {string}   o.queuePrefix    runner env: <prefix>MAX_CONCURRENCY / MAX_RETRIES / RETRY_BASE_MS /
  *                                    INTERACTIVE_RESERVE / MAX_QUEUE_INTERACTIVE / MAX_QUEUE_BACKGROUND /
  *                                    QUEUE_RETRY_AFTER_S / LOG_PROMPT_RATIO
@@ -370,6 +372,10 @@ function createLocalProvider({
     // block is an error rather than a blank or a leak (see call()). Off (default): unchanged.
     thinkPreopened: flagOn(process.env[`${envPrefix}THINK_PREOPENED`]),
   });
+
+  // <prefix>MAX_TOKENS_FLOOR_<PURPOSE>: the least max_tokens this endpoint is sent for a purpose (a reasoning
+  // model spends its reasoning out of max_tokens). 0 = no floor.
+  const maxTokensFloor = (purpose) => intEnv(`${envPrefix}MAX_TOKENS_FLOOR_${String(purpose).toUpperCase()}`, 0, 1);
 
   const proxyUrl = () => {
     for (const k of proxyEnv) {
@@ -535,10 +541,14 @@ function createLocalProvider({
 
     // Anthropic takes `system` as a top-level parameter; OpenAI-compatible servers take it as the
     // first message of the conversation.
+    // A reasoning model spends its reasoning out of max_tokens, so a ceiling sized for the answer alone
+    // (criteria's 200) can end mid-thought with no answer. <prefix>MAX_TOKENS_FLOOR_<PURPOSE> raises the
+    // ceiling for this endpoint only; unset or invalid sends the caller's value unchanged.
+    const floor = purpose ? maxTokensFloor(purpose) : 0;
     const body = {
       model,
       messages: systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages,
-      max_tokens: maxTokens,
+      max_tokens: Math.max(maxTokens, floor),
       stream: !!onDelta,
     };
     // Usage arrives in a final chunk only when asked for; without it a streamed turn would bill 0 tokens.
@@ -636,18 +646,12 @@ function createLocalProvider({
 
       // THINK_PREOPENED and the reply never closed its reasoning block: by the operator's own
       // declaration, every byte of it was reasoning (most often it hit max_tokens mid-thought).
-      // An ERROR, not '' and not the raw text, because the physician must see neither:
-      //   * the raw text IS the chain of thought — returning it is the leak this knob exists to stop;
-      //   * '' would be stored as a blank turn (chat) or a deterministic bad-output 502 (evaluate),
-      //     i.e. a recorded failure for something a fresh generation may well complete.
-      // A thrown error stores nothing: the route answers its generic 500, which the backend treats as
-      // retryable (eval drain) and the physician sees as "try again". noRetry: not re-generated here
-      // — four full generations on a shared box for one turn is the wrong place to retry — and
-      // services/ai.js does not count it as a DOWN provider (the box answered). Numbers only.
+      // The same error services/ai.js raises for any empty reply (503 empty_reply, retryable by the
+      // backend), thrown here because only here is it known to be reasoning-only. noRetry: not
+      // re-generated here — four full generations on a shared box for one turn is the wrong place to retry.
       if (thinkPreopened && raw && !closesThink(raw)) {
-        const err = new Error(`${label}: the reply never closed its reasoning block (${envPrefix}THINK_PREOPENED=1) — there is no answer text to return (finish_reason ${rawFinish ?? 'none'}, ${outputTokens} output tokens)`);
-        err.status = 502;
-        err.code = 'reasoning_only';
+        const err = emptyReplyError({ provider: name, stopReason: rawFinish, inputTokens, outputTokens, reasoningOnly: true });
+        err.message += ` (${envPrefix}THINK_PREOPENED=1)`;
         err.noRetry = true;
         throw err;
       }
@@ -671,6 +675,10 @@ function createLocalProvider({
         // routes/evaluate.js records the decoding actually sent (§10.2 provenance.decoding.num_ctx).
         // Absent otherwise: a call without it returns exactly the shape it always did.
         ...(numCtx > 0 ? { numCtx } : {}),
+        // The max_tokens actually sent, ONLY when a floor raised it above the caller's: provenance and the
+        // config fingerprint must record what the server was asked (§10.2), and a call without a floor
+        // returns exactly the shape it always did.
+        ...(body.max_tokens !== maxTokens ? { maxTokens: body.max_tokens } : {}),
       };
     }, { lane: laneFor(purpose), signal });
   }
@@ -786,11 +794,14 @@ function createLocalProvider({
   // 'invalid' rather than the 'none' a call falls back to, so a typo shows as drift.
   function configured() {
     const { baseUrl, model, numCtx } = cfg();
+    const floors = Object.fromEntries(FLOOR_PURPOSES.map((p) => [p, maxTokensFloor(p)]).filter(([, n]) => n > 0));
     return {
       base_url: baseUrl ? 'present' : 'absent',
       model: model || null,
       num_ctx: numCtx > 0 ? numCtx : null,
       thinking_style: parseThinkingStyle(process.env[`${envPrefix}THINKING_STYLE`]) ?? 'invalid',
+      // Only when a floor is set, so a deployment without one reports exactly what it always did.
+      ...(Object.keys(floors).length ? { max_tokens_floor: floors } : {}),
     };
   }
 
