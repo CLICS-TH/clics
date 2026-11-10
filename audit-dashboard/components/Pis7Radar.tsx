@@ -32,16 +32,21 @@ function ChartTooltip({ active, payload, cmpName }: { active?: boolean; payload?
 // colour recharts sets on the wrapper.
 export const legendLabel = (value: string) => <span className="text-foreground">{value}</span>;
 
+type Comparison = { ai?: ScoreMap; peer?: ScoreMap; label?: string };
+const isPeerSeries = ({ ai, peer }: Comparison) => ai == null && peer != null;
+
+export function comparisonName(c: Comparison): string {
+  return c.label ?? (isPeerSeries(c) ? 'ค่าเฉลี่ย / Avg' : 'AI');
+}
+
 // Two-series PIS-7 radar: the auditor's own scores ("You", coral) overlaid on a comparison series —
 // either the AI (slate-blue, pass `ai`) or the auditor-cohort average (violet, pass `peer`). The same
 // component powers both the vs-AI and vs-peer cards so they read identically.
-export function Pis7Radar({ ai, peer, human, peerLabel }: { ai?: ScoreMap; peer?: ScoreMap; human: ScoreMap; peerLabel?: string }) {
+export function Pis7Radar({ ai, peer, human, label }: Comparison & { human: ScoreMap }) {
   const CHART = useChartColors();
-  const isPeer = ai == null && peer != null;
+  const isPeer = isPeerSeries({ ai, peer });
   const cmpMap = isPeer ? peer : ai;
-  // The peer series defaults to "average" but a caller can override it (e.g. a single other auditor,
-  // where "average" would mislead) — see the per-PLE peer card.
-  const cmpName = isPeer ? (peerLabel ?? 'ค่าเฉลี่ย / Avg') : 'AI';
+  const cmpName = comparisonName({ ai, peer, label });
   const cmpColor = isPeer ? CHART.peer : CHART.ai;
   const data: Row[] = PIS7_RUBRIC.map((d, i) => ({
     domain: DOMAIN_LABELS[i],

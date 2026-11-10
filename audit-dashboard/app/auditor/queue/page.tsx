@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import { getUser, canAudit } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
@@ -64,6 +65,11 @@ export default function AuditorQueue() {
         title="คิวการประเมิน"
         subtitle="Blind PIS-7 scoring — เลือก PLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้)"
       />
+      <Link href="/auditor/booth"
+        className="mb-6 block rounded-xl border border-dashed p-4 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        <p className="font-medium text-foreground">กรณีศึกษาจากบูธ / Booth case studies →</p>
+        <p className="text-sm text-muted-foreground">ฝึกให้คะแนน ไม่นับในงานวิจัยนำร่อง / Practice scoring, not counted in the pilot.</p>
+      </Link>
       {list.length > 0 && (
         <>
           <p className="text-sm text-muted-foreground mb-4">
