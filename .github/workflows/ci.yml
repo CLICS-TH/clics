@@ -327,9 +327,13 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  # Manuals + portal browser, one job: both install Chromium, build the audit-dashboard and serve it on
+  # :3002, so they share one build (it saved a whole npm ci + next build per run). Each check keeps its
+  # old job's name on its steps and runs only when the selector picked it; the build serves both.
+  #
   # Manuals — the physician + auditor guides are GENERATED from docs/manuals/content/*.md into
   # physician-ui/public/manual.html and audit-dashboard/lib/manual-content.ts, both committed. This
-  # job is the reason that can be trusted:
+  # check is the reason that can be trusted:
   #   * --check fails if a generated file (or a copied screenshot) is behind its source, so the
   #     committed copy can never drift from the markdown;
   #   * verify-labels greps every UI label the manual quotes VERBATIM against the real front-end
@@ -339,117 +343,52 @@ jobs:
   #     rendering gate can catch, and it is the likeliest defect in a bilingual document.
   # That second check is the one that matters: the three print guides this replaces went two months
   # stale with no signal at all, because prose drift breaks nothing that anyone was measuring.
-  # Needs no secrets and no live infra, but it is NOT browserless: the type-scale gate installs
-  # Chromium, BUILDS AND SERVES the dashboard, and renders BOTH manuals at 11 widths.
-  manuals:
+  # The type-scale gate renders BOTH manuals at 11 widths, the dashboard's from the build served here.
+  #
+  # Portal browser: Sign out then Back restores no session on either app, and no sign-in token stays
+  # in the address bar or Back history (#189). Hermetic: the harness serves the Portal and a stub
+  # backend, serves supabase-js from the pinned npm package, stubs GoTrue, and aborts every other
+  # external request. Chromium keeps its back/forward cache on, as real browsers do.
+  manuals-portal-browser:
+    name: manuals + portal-browser
     needs: fast-checks
-    if: ${{ !cancelled() && needs.fast-checks.outputs.manuals == 'true' }}
+    if: ${{ !cancelled() && (needs.fast-checks.outputs.manuals == 'true' || needs.fast-checks.outputs.portal_browser == 'true') }}
     runs-on: ubuntu-latest
+    env:
+      RUN_MANUALS: ${{ needs.fast-checks.outputs.manuals }}
+      RUN_PORTAL_BROWSER: ${{ needs.fast-checks.outputs.portal_browser }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          # Two `npm ci` runs (root for playwright, audit-dashboard for the build the scale gate
-          # serves), so cache ~/.npm against both lockfiles.
+          # Two `npm ci` runs (root for playwright, audit-dashboard for the build), so cache ~/.npm
+          # against both lockfiles.
           cache: npm
           cache-dependency-path: |
             package-lock.json
             audit-dashboard/package-lock.json
-      - name: Parser tests, freshness, label drift, and TH/EN prose parity
+      - name: manuals — Parser tests, freshness, label drift, and TH/EN prose parity
+        if: ${{ env.RUN_MANUALS == 'true' }}
         run: npm run test:manuals
-      # `npx playwright install` downloads the BROWSER; it does not create node_modules, and the
-      # scale gate does `import { chromium } from 'playwright'`. Without this the step dies with
-      # ERR_MODULE_NOT_FOUND before measuring anything. The sibling `responsive` job does the same.
+      # `npx playwright install` downloads the BROWSER; it does not create node_modules, and both
+      # browser checks `import { chromium } from 'playwright'`, so the root npm ci comes first.
       - run: npm ci
-      - name: Install Chromium for the type-scale gate
+      - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      # ---- the dashboard half of the gate needs the manual SERVED ------------------------------
+      # ---- both checks need the dashboard SERVED ----------------------------------------------
       # /manual builds as `○ (Static)`: a prerender of the committed lib/manual-content.ts, with no
       # auth guard (deliberate — see app/manual/page.tsx), no backend call and no request-time
       # fetch. NavBar returns null signed-out and the page carries its own back link, so it renders
       # in full with zero secrets. `next build`, not `next dev`: dev CSS is not what ships, and the
       # gate navigates with waitUntil:'networkidle', which a dev server's HMR socket never settles.
+      # The URLs are the portal-browser harness's stub backend and static portal, both loopback, so
+      # no CI build can ever point a rendered page at prod; /manual never calls either.
       - name: Install dashboard deps
         run: npm ci
         working-directory: audit-dashboard
-      - name: Build the dashboard (no secrets)
-        run: npm run build
-        working-directory: audit-dashboard
-        env:
-          NEXT_TELEMETRY_DISABLED: '1'
-          # Baked into the client bundle at build time. /manual never calls it; pin it to dead
-          # loopback so no CI build can ever point a rendered page at prod.
-          NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
-      - name: Serve the dashboard on :3002
-        working-directory: audit-dashboard
-        run: |
-          # The real binary, not `npx` — the readiness check below liveness-tests this PID, and npx
-          # would hand it the wrapper's. Both streams go to a file so the step cannot hang on the
-          # child holding the runner's stdout open.
-          ./node_modules/.bin/next start -p 3002 > "$RUNNER_TEMP/dash.log" 2>&1 &
-          echo "DASH_PID=$!" >> "$GITHUB_ENV"
-      # Readiness, not a sleep: poll the exact URL the gate will open and require the manual's own
-      # markup in the body, so a 200 error shell cannot satisfy it. Bails the moment the server
-      # dies instead of burning the whole budget, and prints the server log either way.
-      - name: Wait for /manual to serve
-        run: |
-          for i in $(seq 1 60); do
-            if curl -fsS --max-time 5 http://127.0.0.1:3002/manual | grep -q 'data-role="body"'; then
-              echo "dashboard ready after ${i}s"
-              exit 0
-            fi
-            if ! kill -0 "$DASH_PID" 2>/dev/null; then
-              echo "::error::next start exited before serving /manual"
-              cat "$RUNNER_TEMP/dash.log"
-              exit 1
-            fi
-            sleep 1
-          done
-          echo "::error::/manual did not become ready within 60s"
-          cat "$RUNNER_TEMP/dash.log"
-          exit 1
-      # The manual renders in two consoles that scale desktop type incompatibly (physician-ui
-      # scales `body`, audit-dashboard scales `html`), so any px size is frozen while the base
-      # grows. This measures every text role against the role whose scale governs it, at 11 widths,
-      # in both languages, in BOTH consoles, and fails on inversion — the defect it was written for
-      # was h3 rendering 17px inside 22px body at 1280px, which every other gate passed.
-      # REQUIRE_DASH makes a missing DASH_URL a failure: without it a typo'd variable name silently
-      # re-runs the portal-only half and reports green, which is the exact hole this closes.
-      - name: Type-scale hierarchy across viewports (portal + dashboard)
-        env:
-          DASH_URL: http://127.0.0.1:3002
-          REQUIRE_DASH: '1'
-        run: npm run test:manuals-scale
-      - name: Stop the dashboard server
-        if: always()
-        run: kill "$DASH_PID" 2>/dev/null || true
-
-  # Portal browser: Sign out then Back restores no session on either app, and no sign-in token stays
-  # in the address bar or Back history (#189). Hermetic: the harness serves the Portal and a stub
-  # backend, serves supabase-js from the pinned npm package, stubs GoTrue, and aborts every other
-  # external request. Chromium keeps its back/forward cache on, as real browsers do.
-  portal-browser:
-    needs: fast-checks
-    if: ${{ !cancelled() && needs.fast-checks.outputs.portal_browser == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            audit-dashboard/package-lock.json
-      - run: npm ci
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Install dashboard deps
-        run: npm ci
-        working-directory: audit-dashboard
-      - name: Build the dashboard against the stub backend
+      - name: Build the dashboard against the stub backend (no secrets)
         run: npm run build
         working-directory: audit-dashboard
         env:
@@ -459,17 +398,48 @@ jobs:
       - name: Serve the dashboard on :3002
         working-directory: audit-dashboard
         run: |
+          # The real binary, not `npx` — the readiness check below liveness-tests this PID, and npx
+          # would hand it the wrapper's. Both streams go to a file so the step cannot hang on the
+          # child holding the runner's stdout open.
           ./node_modules/.bin/next start -p 3002 > "$RUNNER_TEMP/dash.log" 2>&1 &
           echo "DASH_PID=$!" >> "$GITHUB_ENV"
-      - name: Wait for the dashboard
+      # Readiness, not a sleep: poll /manual and require the manual's own markup in the body, so a 200
+      # error shell cannot satisfy it, then /login, the page the portal-browser harness opens first.
+      # Bails the moment the server dies instead of burning the whole budget, and prints the server log.
+      - name: Wait for the dashboard (/manual and /login)
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS --max-time 5 -o /dev/null http://localhost:3002/login; then echo "ready after ${i}s"; exit 0; fi
-            if ! kill -0 "$DASH_PID" 2>/dev/null; then echo "::error::next start exited"; cat "$RUNNER_TEMP/dash.log"; exit 1; fi
+            if curl -fsS --max-time 5 http://127.0.0.1:3002/manual | grep -q 'data-role="body"' \
+              && curl -fsS --max-time 5 -o /dev/null http://localhost:3002/login; then
+              echo "dashboard ready after ${i}s"
+              exit 0
+            fi
+            if ! kill -0 "$DASH_PID" 2>/dev/null; then
+              echo "::error::next start exited before serving /manual and /login"
+              cat "$RUNNER_TEMP/dash.log"
+              exit 1
+            fi
             sleep 1
           done
-          echo "::error::dashboard not ready within 60s"; cat "$RUNNER_TEMP/dash.log"; exit 1
-      - name: Back after Sign out, login forward, /reset token history
+          echo "::error::the dashboard did not become ready within 60s"
+          cat "$RUNNER_TEMP/dash.log"
+          exit 1
+      # The manual renders in two consoles that scale desktop type incompatibly (physician-ui
+      # scales `body`, audit-dashboard scales `html`), so any px size is frozen while the base
+      # grows. This measures every text role against the role whose scale governs it, at 11 widths,
+      # in both languages, in BOTH consoles, and fails on inversion — the defect it was written for
+      # was h3 rendering 17px inside 22px body at 1280px, which every other gate passed.
+      # REQUIRE_DASH makes a missing DASH_URL a failure: without it a typo'd variable name silently
+      # re-runs the portal-only half and reports green, which is the exact hole this closes.
+      - name: manuals — Type-scale hierarchy across viewports (portal + dashboard)
+        if: ${{ !cancelled() && env.RUN_MANUALS == 'true' }}
+        env:
+          DASH_URL: http://127.0.0.1:3002
+          REQUIRE_DASH: '1'
+        run: npm run test:manuals-scale
+      # !cancelled(): a failing manuals check above still lets this one run, as the separate jobs did.
+      - name: portal-browser — Back after Sign out, login forward, /reset token history
+        if: ${{ !cancelled() && env.RUN_PORTAL_BROWSER == 'true' }}
         run: npm run test:portal-browser
       - name: Stop the dashboard server
         if: always()
