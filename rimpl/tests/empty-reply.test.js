@@ -160,3 +160,27 @@ describe('per-purpose max_tokens floor for a reasoning model (<prefix>MAX_TOKENS
     expect(sentBody().max_tokens).toBe(200);
   });
 });
+
+describe('the floor is what provenance, the fingerprint and the manifest record (§10.2)', () => {
+  const SCORES = JSON.stringify({ d1: 3, d2: 4, d3: 3, d4: 2, d5: 5, d6: 1, d7: 4, rationale: { d1: 'x' } });
+  const evaluate = () => request(app).post('/evaluate').send({ ple_id: 'p', transcript: [{ role: 'physician', content: 'hello' }], shadow: false });
+  const { liveSnapshot } = require('../src/services/manifest');
+
+  test('no floor: max_tokens 4096 and no floor in the manifest; a floor: the sent value, a new fingerprint, and the floor listed', async () => {
+    fetchMock.mockResolvedValue(completion(SCORES, 'stop'));
+    const plain = await evaluate();
+    expect(plain.status).toBe(200);
+    expect(plain.body.provenance.decoding.max_tokens).toBe(4096);
+    expect(liveSnapshot().decoding).not.toHaveProperty('max_tokens_floor');
+
+    process.env.LOCAL_AI_MAX_TOKENS_FLOOR_EVALUATE = '16000';
+    try {
+      const floored = await evaluate();
+      expect(floored.status).toBe(200);
+      expect(sentBody(fetchMock.mock.calls.length - 1).max_tokens).toBe(16000);
+      expect(floored.body.provenance.decoding.max_tokens).toBe(16000);
+      expect(floored.body.provenance.config_fingerprint).not.toBe(plain.body.provenance.config_fingerprint);
+      expect(liveSnapshot().decoding.max_tokens_floor).toMatchObject({ local: { evaluate: 16000 } });
+    } finally { delete process.env.LOCAL_AI_MAX_TOKENS_FLOOR_EVALUATE; }
+  });
+});

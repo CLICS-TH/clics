@@ -30,7 +30,8 @@ const { createRunner } = require('./runtime');
 const settings = require('../provider-settings');
 const { stripThink, createThinkFilter, closesThink, flagOn } = require('../../lib/think-markup');
 const { THINKING_STYLES, thinkingEnabled, parseThinkingStyle, thinkingFields } = require('../../lib/thinking-control');
-const { LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES: ENGINE_NAMES } = require('../../lib/provider-policy');
+const { LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES: ENGINE_NAMES, PURPOSES } = require('../../lib/provider-policy');
+const FLOOR_PURPOSES = [...PURPOSES, 'shadow'];
 const { emptyReplyError } = require('../../lib/ai-errors');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
@@ -372,6 +373,10 @@ function createLocalProvider({
     thinkPreopened: flagOn(process.env[`${envPrefix}THINK_PREOPENED`]),
   });
 
+  // <prefix>MAX_TOKENS_FLOOR_<PURPOSE>: the least max_tokens this endpoint is sent for a purpose (a reasoning
+  // model spends its reasoning out of max_tokens). 0 = no floor.
+  const maxTokensFloor = (purpose) => intEnv(`${envPrefix}MAX_TOKENS_FLOOR_${String(purpose).toUpperCase()}`, 0, 1);
+
   const proxyUrl = () => {
     for (const k of proxyEnv) {
       if (process.env[k] !== undefined) return String(process.env[k]).trim();
@@ -539,7 +544,7 @@ function createLocalProvider({
     // A reasoning model spends its reasoning out of max_tokens, so a ceiling sized for the answer alone
     // (criteria's 200) can end mid-thought with no answer. <prefix>MAX_TOKENS_FLOOR_<PURPOSE> raises the
     // ceiling for this endpoint only; unset or invalid sends the caller's value unchanged.
-    const floor = purpose ? intEnv(`${envPrefix}MAX_TOKENS_FLOOR_${String(purpose).toUpperCase()}`, 0, 1) : 0;
+    const floor = purpose ? maxTokensFloor(purpose) : 0;
     const body = {
       model,
       messages: systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages,
@@ -670,6 +675,10 @@ function createLocalProvider({
         // routes/evaluate.js records the decoding actually sent (§10.2 provenance.decoding.num_ctx).
         // Absent otherwise: a call without it returns exactly the shape it always did.
         ...(numCtx > 0 ? { numCtx } : {}),
+        // The max_tokens actually sent, ONLY when a floor raised it above the caller's: provenance and the
+        // config fingerprint must record what the server was asked (§10.2), and a call without a floor
+        // returns exactly the shape it always did.
+        ...(body.max_tokens !== maxTokens ? { maxTokens: body.max_tokens } : {}),
       };
     }, { lane: laneFor(purpose), signal });
   }
@@ -785,11 +794,14 @@ function createLocalProvider({
   // 'invalid' rather than the 'none' a call falls back to, so a typo shows as drift.
   function configured() {
     const { baseUrl, model, numCtx } = cfg();
+    const floors = Object.fromEntries(FLOOR_PURPOSES.map((p) => [p, maxTokensFloor(p)]).filter(([, n]) => n > 0));
     return {
       base_url: baseUrl ? 'present' : 'absent',
       model: model || null,
       num_ctx: numCtx > 0 ? numCtx : null,
       thinking_style: parseThinkingStyle(process.env[`${envPrefix}THINKING_STYLE`]) ?? 'invalid',
+      // Only when a floor is set, so a deployment without one reports exactly what it always did.
+      ...(Object.keys(floors).length ? { max_tokens_floor: floors } : {}),
     };
   }
 

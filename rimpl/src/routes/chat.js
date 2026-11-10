@@ -388,7 +388,7 @@ router.post('/', async (req, res) => {
       ? () => { if (statusSent || contentStarted) return; statusSent = true; sse.send('status', { phase: 'thinking' }); }
       : undefined;
 
-    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
+    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from, maxTokens: sentMaxTokens } =
       await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: turnMaxTokens, signal, onDelta,
         ...(tierApplied ? { thinking: deep } : {}), ...(onReasoning ? { onReasoning } : {}) });
     // Was the tier honoured by the provider that ANSWERED? Normally the one asked above — but not after
@@ -673,7 +673,7 @@ router.post('/', async (req, res) => {
         tier: route ? route.tier : null,
         reason: route ? route.reason : null,
         thinking: thinkingHonoured ? deep : null,
-        thinking_budget: thinkingHonoured && deep ? turnMaxTokens : null,
+        thinking_budget: thinkingHonoured && deep ? (sentMaxTokens ?? turnMaxTokens) : null,
         evidence_level: evidenceLevel,
         failed_over_from: failed_over_from ?? null,
       },
