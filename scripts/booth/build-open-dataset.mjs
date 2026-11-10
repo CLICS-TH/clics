@@ -1,27 +1,20 @@
 #!/usr/bin/env node
 /*
- * Builds the open booth dataset of one booth event (#388, spec #370, ADR 0010) as a local folder the owner deposits on
- * Zenodo by hand, under CC BY 4.0: plays.csv, transcripts.jsonl, the case files the plays walked, a README of the
- * data's limits and a data dictionary. The rules are in open-dataset.mjs.
+ * Builds the open booth dataset of one booth event (#388, ADR 0010) as a local folder that the owner deposits on
+ * Zenodo by hand under CC BY 4.0. It uploads nothing. The rules are in open-dataset.mjs.
  *
- * A play with typed text is screened first: a PII scan of every free-text string, then one AI read of the strings,
- * de-identified before they leave. Its transcript is released only when neither flags it, or when a person signs off
- * what they flagged (review/flagged.json lists them; the sign-offs go in review/signoff.json, which only a person
- * writes). It uploads nothing.
- *
- * Without --go it prints what it would read and write, reads no env and opens no connection. With --go it refuses
- * while the booth is switched on (booth_enabled is one global switch), then reads production read-only, from the repo
- * root:
+ * Without --go it prints its plan and reads no env and no database. With --go it refuses while the booth is switched
+ * on, then reads production read-only. Run from the repo root:
  *   node scripts/booth/build-open-dataset.mjs --event NFCME-2026
  *   node --env-file=backend/.env --env-file=rimpl/.env scripts/booth/build-open-dataset.mjs --event NFCME-2026 --go
  *
  *   --version <n>     the dataset version (default 1)
  *   --out <dir>       default scripts/booth/open-dataset/<EVENT>-v<version>; the bundle is <out>/bundle
- *   --signoff <file>  default <out>/review/signoff.json
- *   --cap <usd>       the AI reads' spend cap (default 1); a play past it is left unread, so withheld
+ *   --signoff <file>  default <out>/review/signoff.json, written only by a person
+ *   --cap <usd>       the AI reads' spend cap (default 1); a play past it stays unread, so withheld
  *
- * Exit codes: 0 = built (or the dry run) · 1 = ran but built nothing: a read failed, no plays, or a case version no
- * commit holds · 2 = bad arguments, misconfigured, or refused because the booth is switched on.
+ * Exit codes: 0 = built (or the dry run) · 1 = built nothing: a read failed, no plays, or a case version no commit
+ * holds · 2 = bad arguments, misconfigured, or refused because the booth is switched on.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -44,7 +37,6 @@ const USAGE = 'usage: node [--env-file=backend/.env --env-file=rimpl/.env] scrip
   + '--event <CODE> [--go] [--version <n>] [--out <dir>] [--signoff <file>] [--cap <usd>]   (run from the repo root)';
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const PAGE = 1000;
-// booth_plays.case_id's own check; a version names a file, so it may hold no path separator.
 const SAFE_CASE_ID = /^[a-z0-9][a-z0-9-]{0,31}$/;
 const SAFE_VERSION = /^[A-Za-z0-9][A-Za-z0-9.-]{0,31}$/;
 const BUNDLE_NAMES = new Set(['plays.csv', 'transcripts.jsonl', 'cases', 'README.md', 'DATA-DICTIONARY.md']);
@@ -92,16 +84,15 @@ function plan(opts) {
   ].join('\n');
 }
 
-// Byte-level tokens: a request of n UTF-8 bytes bills at most n input tokens, plus the API's framing of the message.
-const worstUsd = (req) => costUsd(Buffer.byteLength(JSON.stringify(req)) + 100, req.max_tokens, 'anthropic');
+// No UTF-8 byte bills as more than one input token; the API's own framing of a message adds a few.
+const FRAMING_TOKENS = 100;
+const worstUsd = (req) => costUsd(Buffer.byteLength(JSON.stringify(req)) + FRAMING_TOKENS, req.max_tokens, 'anthropic');
 const unread = (reason) => ({ kind: 'unread', reason });
 
 /**
- * The --go build. Exit code as the header says.
  * @param {{ opts: object, db: object, aiRead: (req: object) => Promise<{ content: string, input_tokens?: number, output_tokens?: number }>,
  *   caseFile: (caseId: string, version: string) => Buffer|null, currentCases: () => { case_id: string, version: string }[],
  *   now: Date, log: { out: (line: string) => void, err: (line: string) => void } }} deps
- *   opts: parseArgs' options plus `commit`, the source commit the README names.
  */
 export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }) {
   const { event, version, out, cap } = opts;
@@ -128,7 +119,6 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   } catch (e) {
     if (e.code !== 'ENOENT') { log.err(`the sign-off file ${opts.signoff} is unreadable: ${e.message}`); return 2; }
   }
-  // rmSync below takes the whole folder, so it must hold only what a build writes.
   const foreign = existsSync(bundleDir) ? readdirSync(bundleDir).filter((n) => !BUNDLE_NAMES.has(n)) : [];
   if (foreign.length) { log.err(`${bundleDir} holds ${foreign.join(', ')}: not a bundle this build wrote. Pass another --out.`); return 2; }
 
@@ -154,7 +144,6 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   }
   if (!rows.length) { log.err(`${event} has no booth plays. Nothing was written: check the event code.`); return 1; }
 
-  // Before any AI read, so a run that cannot finish spends nothing.
   let current;
   try { current = currentCases(); } catch (e) { log.err(`the case folder of ${event} is unreadable: ${e.message}`); return 2; }
   const wanted = new Map();
@@ -196,7 +185,6 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
               ? costUsd(res.input_tokens, res.output_tokens, 'anthropic') : worst;
             ai = parseAiRead(res.content);
           } catch (e) {
-            // A failed call may still have been billed.
             spent += worst;
             ai = unread(`the AI read failed: ${e.message}`);
           }
@@ -248,7 +236,6 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   return 0;
 }
 
-/** The Messages API on rimpl's pinned model, and no other URL. */
 export function anthropicRead({ apiKey, fetchImpl = fetch }) {
   return async (req) => {
     const res = await fetchImpl(ANTHROPIC_URL, {
@@ -266,10 +253,6 @@ export function anthropicRead({ apiKey, fetchImpl = fetch }) {
   };
 }
 
-/**
- * A case file's bytes at one version: the working-tree file when it is committed as it stands and holds that
- * version, else the newest commit of that path whose file holds it, else null. Uncommitted bytes are never used.
- */
 export function gitCaseFile(dir) {
   const git = (args, encoding = 'utf8') => execFileSync('git', args,
     { cwd: dir, encoding, maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
@@ -319,7 +302,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     process.exit(2);
   }
   let commit = null;
-  try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* the README says unknown */ }
+  try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch {}
   const casesDir = path.join(ROOT, 'backend', 'src', 'booth-cases', opts.event);
   process.exit(await run({
     opts: { ...opts, commit },

@@ -73,6 +73,5 @@ scripts/calibration/anchors/imports/
 # Physician sandbox reports (scripts/booth/sandbox.mjs): the JSON stays local, the .md summary may be committed.
 scripts/booth/sandbox-runs/*.json
 
-# Open booth dataset builds (scripts/booth/build-open-dataset.mjs): production-derived plays and the private review
-# file of flagged typed text. The owner deposits the bundle on Zenodo by hand; none of it is committed.
+# Open booth dataset builds: production-derived plays and the private list of flagged typed text. Never committed.
 scripts/booth/open-dataset/

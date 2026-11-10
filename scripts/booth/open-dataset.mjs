@@ -1,12 +1,6 @@
-/*
- * The open booth dataset's rules (#388, spec #370, ADR 0010): the columns plays.csv carries, how a play's typed text
- * is screened (a PII scan and an AI read) before its transcript is released, and the README and data dictionary that
- * travel with the bundle. Pure and package-free, like the other booth scripts, so CI tests it with no install. The
- * shell, scripts/booth/build-open-dataset.mjs, reads the database, makes the AI reads and writes the files.
- */
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { ascii } from '../manuals/lib/pii-gate.mjs';
+import { ascii, TH_HONORIFIC_NAME, TH_LABELLED_NAME } from '../manuals/lib/pii-gate.mjs';
 import { bangkokTime } from './purge-summary.mjs';
 
 const require = createRequire(import.meta.url);
@@ -20,17 +14,14 @@ const DOMAINS = Object.freeze([
 /** @typedef {'released'|'withheld'|'none'} TranscriptState */
 /** @typedef {{ rule: string, match: string }} Finding */
 /** @typedef {{ kind: 'clear' } | { kind: 'identifying', reason: string } | { kind: 'unread', reason: string }} AiRead */
-/** A play with any typed step is screened as one unit: every free-text string of it, because a reply or a bridge can
- *  echo the typed words. `sha256` is what a sign-off binds to.
- *  @typedef {{ ref: string, sha256: string, strings: string[], findings: Finding[], ai: AiRead }} Screen */
+/** @typedef {{ ref: string, sha256: string, strings: string[], findings: Finding[], ai: AiRead }} Screen */
 
 export const playRef = (id) => createHash('sha256').update(`clics-open-booth-dataset:${id}`).digest('hex').slice(0, 16);
 export const bangkokDate = (iso) => bangkokTime(iso).slice(0, 10);
 
 const column = (name, about, value = (row) => row[name]) => Object.freeze({ name, about, value });
 
-/** The one source of plays.csv's header, its cells and the dictionary's plays.csv table: nothing outside it reaches
- *  the CSV. @type {readonly { name: string, about: string, value: (row: object, transcript: TranscriptState) => unknown }[]} */
+/** @type {readonly { name: string, about: string, value: (row: object, transcript: TranscriptState) => unknown }[]} */
 export const PLAY_COLUMNS = Object.freeze([
   column('play_ref', 'The play\'s id in this dataset: the first 16 hex digits of a SHA-256 of its database id. The same '
     + 'play keeps it in every version of the dataset. Not the database id and not the booth tag.', (row) => playRef(row.id)),
@@ -41,7 +32,7 @@ export const PLAY_COLUMNS = Object.freeze([
   column('case_version', 'The version of that case file the play walked.'),
   column('status', 'scored; unavailable (the play reached its AI spend ceiling and was not scored); abandoned (not '
     + 'finished within 30 minutes); started (not finished when the dataset was built).'),
-  column('replied_step', 'How many of the 3 steps the AI tutor replied to (0 to 3).'),
+  column('replied_step', 'How many steps the AI tutor replied to.'),
   column('ranked', 'Whether the play was ranked on the booth\'s public board (true or false).'),
   column('tier_path', 'The tier of each answer, in step order: B best, R reasonable, W weaker but safe. A typed answer '
     + 'has the tier the AI sorted it into. Empty on a play that recorded none.'),
@@ -56,27 +47,19 @@ export const PLAY_COLUMNS = Object.freeze([
   (_row, transcript) => transcript),
 ]);
 
-/** What the shell selects: only what PLAY_COLUMNS and the transcripts read. Never tag, spend_usd or scored_at. */
 export const READ_COLUMNS = 'id, event_code, created_at, status, case_id, case_version, tier_path, replied_step, ranked, '
   + 'composite, d1, d2, d3, d4, d5, d6, d7, score_source, steps';
 
 export const hasTyped = (row) => Array.isArray(row.steps) && row.steps.some((s) => 'typed' in s);
 
-/** Every non-empty free-text string of a play, in step order: each step's bridge, typed text and reply fields. */
 export const freeText = (row) => (row.steps ?? [])
   .flatMap((s) => [s.bridge, s.typed, ...Object.values(s.reply ?? {})])
   .filter((t) => typeof t === 'string' && t !== '');
 
 export const textSha = (strings) => createHash('sha256').update(JSON.stringify(strings)).digest('hex');
 
-// The shape of a phone, hospital number or ID: six or more digits, which a separator may split (081.234.5678 is one
-// the filter misses). Bounded by non-digits so a longer number is one match.
 const LONG_NUMBER = /(?<![0-9])[0-9](?:[-.\s]?[0-9]){5,}(?![0-9])/g;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
-// The manuals gate's two name rules (scripts/manuals/lib/pii-gate.mjs): a title before a Thai name, a labelled name.
-const TH_HONORIFIC_NAME = /(?:นายแพทย์|แพทย์หญิง|ศาสตราจารย์|รองศาสตราจารย์|ผู้ช่วยศาสตราจารย์|นพ\.|พญ\.|ศ\.|รศ\.|ผศ\.|ดร\.|นางสาว|นาง|นาย)\s*([ก-ฮ][ก-ฮะ-๎]{2,})/g;
-const TH_LABELLED_NAME = /(?:ชื่อ-?นามสกุล|ชื่อจริง|นามสกุล|full[_\s]?name)\s*[:：]?\s*([^\s,;)]{2,})/gi;
-// rimpl's own mask, already in the stored text: an identifier it removed, not one left in.
 const PLACEHOLDER = /\[[A-Z]+-\d+\]/g;
 const STARTS_WITH_PLACEHOLDER = /^\[[A-Z]+-\d+\]/;
 
@@ -86,7 +69,6 @@ const excerpt = (a, b) => {
   return a.slice(Math.max(0, i - 25), i + 45).replace(/\s+/g, ' ').trim();
 };
 
-/** The masks rimpl's filter adds to `text`, beyond the ones already in it. */
 function filterFindings(text) {
   const out = stripPii(text, makeRegistry());
   const before = text.match(PLACEHOLDER) ?? [];
@@ -97,12 +79,7 @@ function filterFindings(text) {
   });
 }
 
-/**
- * Every identifier shape in `text`. Each class rimpl's filter masks is a finding here (a dataset, unlike a UI
- * screenshot, has no reason to keep a name, an age or a date in a visitor's words), on the text as typed and with
- * Thai digits made ASCII, which the filter's number rules cannot read.
- * @returns {Finding[]} empty only when nothing was found and the filter ran
- */
+/** @returns {Finding[]} empty only when nothing was found and the filter ran */
 export function scanPii(text) {
   const findings = [];
   const add = (rule, match) => {
@@ -117,7 +94,6 @@ export function scanPii(text) {
     try {
       for (const f of filterFindings(t)) add(f.rule, f.match);
     } catch (e) {
-      // A scan that passes when its filter fails is not a scan.
       add('pii-filter-error', e.message);
     }
   }
@@ -138,11 +114,7 @@ const AI_READ_SYSTEM = [
   '{"identifying": true or false, "reason": "one short sentence"}',
 ].join('\n');
 
-/**
- * The Messages API request for one AI read of a play's strings, less the model. Every string is de-identified first
- * (Thai digits made ASCII, rimpl's filter, then any long number masked), so nothing the scan can find is sent to the
- * cloud model (critical rule 1); the read is for what the scan cannot see.
- */
+// Critical rule 1: only de-identified text reaches a cloud model, so the read sees what the scan could not mask.
 export function aiReadRequest(strings) {
   const registry = makeRegistry();
   const masked = strings.map((s) => stripPii(ascii(s), registry).replace(LONG_NUMBER, '[NUMBER]'));
@@ -154,10 +126,10 @@ export function aiReadRequest(strings) {
   };
 }
 
-/** The AI's answer as an AiRead. Anything but exactly {"identifying": boolean, "reason": string} is unread. */
 export function parseAiRead(content) {
+  const text = String(content).trim().replace(/^```(?:json)?\s*\n([\s\S]*)\n```$/, '$1');
   let v;
-  try { v = JSON.parse(String(content).trim()); } catch { return { kind: 'unread', reason: 'the answer was not JSON' }; }
+  try { v = JSON.parse(text); } catch { return { kind: 'unread', reason: 'the answer was not JSON' }; }
   const keys = v && typeof v === 'object' && !Array.isArray(v) ? Object.keys(v).sort().join() : '';
   if (keys !== 'identifying,reason' || typeof v.identifying !== 'boolean' || typeof v.reason !== 'string') {
     return { kind: 'unread', reason: 'the answer was not {"identifying": boolean, "reason": string}' };
@@ -167,8 +139,7 @@ export function parseAiRead(content) {
 
 export const flagged = (screen) => screen.findings.length > 0 || screen.ai.kind !== 'clear';
 
-/** The sign-offs a person wrote in review/signoff.json (a JSON array of flagged.json's stubs): only entries with a
- *  name in `by` count. @returns {Set<string>} `${ref}:${sha256}` */
+/** @returns {Set<string>} `${ref}:${sha256}` */
 export function signedKeys(signoff) {
   if (!Array.isArray(signoff)) throw new Error('a sign-off file holds a JSON array of { ref, sha256, by, date }');
   return new Set(signoff
@@ -177,21 +148,20 @@ export function signedKeys(signoff) {
 }
 
 /**
- * @param {Screen|null} screen the play's screen; every play with a typed step has one
- * @param {Set<string>} signed signedKeys()
+ * @param {Screen|null} screen
+ * @param {Set<string>} signed
  * @returns {TranscriptState}
  */
 export function transcriptState(row, screen, signed) {
   if (!Array.isArray(row.steps)) return 'none';
   if (!hasTyped(row)) return 'released';
-  // Unread is not signable: a person signs off what the scan and the AI found, so an unread play is read again first.
+  // A person signs off what both screens found, so a play the AI never read is read again, not signed.
   if (screen.ai.kind === 'unread') return 'withheld';
   if (!flagged(screen)) return 'released';
   return signed.has(`${screen.ref}:${screen.sha256}`) ? 'released' : 'withheld';
 }
 
 const byRef = (a, b) => (a.ref < b.ref ? -1 : a.ref > b.ref ? 1 : 0);
-/** Each row with its play_ref, in play_ref order: the order of every file the bundle holds. */
 export const sortedByRef = (rows) => rows.map((row) => ({ ref: playRef(row.id), row })).sort(byRef);
 
 const cell = (v) => {
@@ -200,21 +170,18 @@ const cell = (v) => {
   return /[",\r\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 };
 
-/** plays.csv: PLAY_COLUMNS' names, then one RFC 4180 row per play sorted by play_ref; '\n' line ends, UTF-8, no BOM.
- *  @param {(ref: string) => TranscriptState} stateOf */
+/** @param {(ref: string) => TranscriptState} stateOf */
 export function playsCsv(rows, stateOf) {
   const lines = sortedByRef(rows).map(({ ref, row }) => PLAY_COLUMNS.map((c) => cell(c.value(row, stateOf(ref)))).join(','));
   return `${[PLAY_COLUMNS.map((c) => c.name).join(','), ...lines].join('\n')}\n`;
 }
 
-/** transcripts.jsonl: one line per released play, sorted by play_ref. */
 export function transcriptsJsonl(rows, stateOf) {
   return sortedByRef(rows).filter(({ ref }) => stateOf(ref) === 'released').map(({ ref, row }) => `${JSON.stringify({
     play_ref: ref, case_id: row.case_id, case_version: row.case_version, tier_path: row.tier_path, steps: row.steps,
   })}\n`).join('');
 }
 
-/** review/flagged.json: every flagged or unread play with what flagged it and, when it can be signed, the stub to copy. */
 export function flaggedReport(screens, stateOf) {
   return {
     about: 'Plays with typed text that a screen flagged. A withheld play is left out of transcripts.jsonl. To release '
@@ -240,7 +207,7 @@ export function readme({ event, version, commit, builtOn, counts }) {
 
 The CLICS booth plays of the ${event} booth event, released as open research data under the Creative Commons Attribution 4.0 International licence (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/).
 
-At the booth a visitor plays one clinical case in three steps. Each step asks a question with three options, one of each tier (best, reasonable, weaker but safe). The visitor taps an option or types an answer, and an AI tutor replies. The play ends with a demo PIS-7 score: seven domains, d1 to d7 (0 to 5 each), and a composite (0 to 100).
+At the booth a visitor plays one clinical case in steps: three, or five for a play whose tier path has five letters. Each step asks a question with three options, one of each tier (best, reasonable, weaker but safe). The visitor taps an option or types an answer, and an AI tutor replies. The play ends with a demo PIS-7 score: seven domains, d1 to d7 (0 to 5 each), and a composite (0 to 100).
 
 Built on ${builtOn} from CLICS source commit ${commit ?? 'unknown'}. ${counts.plays} plays, ${counts.scored} of them scored. Transcripts: ${counts.released} released, ${counts.withheld} withheld, ${counts.none} with no dialogue recorded.
 

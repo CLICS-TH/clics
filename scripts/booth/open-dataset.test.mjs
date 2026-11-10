@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scanPii } from './open-dataset.mjs';
+import { scanPii, parseAiRead } from './open-dataset.mjs';
 import { run, anthropicRead, gitCaseFile, currentCaseFiles } from './build-open-dataset.mjs';
 
 const { ANTHROPIC_MODEL } = createRequire(import.meta.url)('../../rimpl/src/lib/provider-policy.js');
@@ -18,7 +18,6 @@ const HEADER = 'play_ref,event_code,play_date,case_id,case_version,status,replie
 const reply = (over = {}) => ({ strength: 'เลือกได้เหมาะสม', weigh: 'ควรคำนึงถึงภาวะช็อก', safety: '', ...over });
 const tapped = (over = {}) => ({ variant: 's1v1', bridge: '', options: ['o1', 'o2', 'o3'], choice: 'o1', reply: reply(), tier: 'best', ...over });
 const typed = (text, over = {}) => ({ variant: 's1v1', bridge: '', options: ['o1', 'o2', 'o3'], typed: text, reply: reply(), tier: 'reasonable', ...over });
-// A row as booth_plays holds it, every column included, so a build that leaked one would show it.
 const play = (n, steps, over = {}) => ({
   id: `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`, event_code: EVENT, tag: n, status: 'scored', spend_usd: 0.004,
   composite: 49, d1: 2, d2: 3, d3: 2, d4: 3, d5: 2, d6: 3, d7: 2, created_at: '2026-11-05T03:00:00+00:00',
@@ -32,7 +31,6 @@ const tmp = (t) => {
   return dir;
 };
 
-/** A supabase-js stand-in that answers reads from tables in memory, whatever the select names, and throws on any write. */
 function fakeDb({ enabled, plays }) {
   const settings = enabled === 'missing' || enabled === 'error' ? [] : [{ key: 'booth_enabled', value: enabled }];
   const tables = { app_settings: settings, booth_plays: plays };
@@ -62,7 +60,6 @@ function fakeDb({ enabled, plays }) {
   return { db: { from, rpc: refuse('rpc') }, reads };
 }
 
-/** An AI read stub: answers `answer` (an object, an Error to throw, or a function of the request) and keeps each request. */
 function ai(answer = { identifying: false, reason: 'no identifier' }) {
   const calls = [];
   const read = async (req) => {
@@ -162,6 +159,19 @@ test('a typed name and phone are flagged by the scan even when the AI says clear
   }
 });
 
+test('a planted name alone and a planted phone alone are each found by the scan, with the AI saying clear', async (t) => {
+  const plays = [
+    play(1, [typed('ผู้ป่วยชื่อสมศักดิ์ รักดี'), tapped(), tapped()], { tier_path: 'WBB' }),
+    play(2, [typed('ให้ญาติโทร 081-234-5678'), tapped(), tapped()], { tier_path: 'RBB' }),
+  ];
+  const b = await build(t, { plays });
+  assert.equal(stateOf(b, 'WBB'), 'withheld');
+  assert.equal(stateOf(b, 'RBB'), 'withheld');
+  const rulesOf = (n) => b.flagged().rows.find((r) => r.strings.some((s) => s.includes(n))).findings.map((f) => f.rule);
+  assert.ok(rulesOf('สมศักดิ์').some((r) => /NAME|name/.test(r)), `a name rule fires: ${rulesOf('สมศักดิ์')}`);
+  assert.ok(rulesOf('081').some((r) => r === 'long-number' || r === 'pii-filter:PHONE'), `a phone rule fires: ${rulesOf('081')}`);
+});
+
 test('a name the scan cannot see is withheld when the AI read calls it identifying', async (t) => {
   const plays = [play(1, [typed('พรรณราย ทองเปลว'), tapped(), tapped()], { tier_path: 'RBB' })];
   const b = await build(t, { plays, aiRead: ai({ identifying: true, reason: 'a full Thai name' }).read });
@@ -230,6 +240,15 @@ test('a tapped-only play is released with no AI read; a failed read or the cap w
   assert.equal(stateOf(zero, 'WBB'), 'withheld');
   assert.equal(stateOf(zero, 'BBB'), 'released');
   assert.match(zero.lines.out.join('\n'), /raise --cap/);
+});
+
+test('the AI read is taken bare or in one code fence; any other answer is unread', () => {
+  const clear = '{"identifying": false, "reason": "none"}';
+  assert.deepEqual(parseAiRead(clear), { kind: 'clear' });
+  assert.deepEqual(parseAiRead('```json\n{"identifying": true, "reason": "a name"}\n```'), { kind: 'identifying', reason: 'a name' });
+  for (const bad of [`Sure: ${clear}`, '{"identifying": "no", "reason": "x"}', '{"identifying": false}', '{"identifying": false, "reason": "x", "extra": 1}']) {
+    assert.equal(parseAiRead(bad).kind, 'unread', bad);
+  }
 });
 
 test('the README states the data\'s licence and limits', async (t) => {
