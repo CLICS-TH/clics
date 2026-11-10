@@ -388,9 +388,10 @@ router.post('/', async (req, res) => {
       ? () => { if (statusSent || contentStarted) return; statusSent = true; sse.send('status', { phase: 'thinking' }); }
       : undefined;
 
-    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from, maxTokens: sentMaxTokens } =
+    const firstCall =
       await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: turnMaxTokens, signal, onDelta,
         ...(tierApplied ? { thinking: deep } : {}), ...(onReasoning ? { onReasoning } : {}) });
+    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } = firstCall;
     // Was the tier honoured by the provider that ANSWERED? Normally the one asked above — but not after
     // the (dormant) chat fail-over, or a superadmin toggle flipped between that question and the call.
     // A turn must never be recorded as thought on a provider that ignores `thinking`; nor is the retry
@@ -673,7 +674,7 @@ router.post('/', async (req, res) => {
         tier: route ? route.tier : null,
         reason: route ? route.reason : null,
         thinking: thinkingHonoured ? deep : null,
-        thinking_budget: thinkingHonoured && deep ? (sentMaxTokens ?? turnMaxTokens) : null,
+        thinking_budget: thinkingHonoured && deep ? (firstCall.maxTokens ?? turnMaxTokens) : null,
         evidence_level: evidenceLevel,
         failed_over_from: failed_over_from ?? null,
       },
