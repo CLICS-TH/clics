@@ -120,10 +120,11 @@ describe('bestReusable: the most similar entry of the same model, with equal cue
   });
 });
 
-describe('calibrated: reuse needs a record of zero unsafe reuses for this model, threshold and guard source', () => {
+describe('calibrated: reuse needs a record of zero unsafe reuses for this model, threshold and guard source, over pairs of every kind', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cache-cal-'));
   const file = path.join(dir, 'record.json');
-  const good = { unsafe_reuses: 0, model: 'm@1:q8', threshold: THRESHOLD, guard_sha: guardSha() };
+  const counts = { same: { pairs: 16 }, negated: { pairs: 17 }, unsafe: { pairs: 21 } };
+  const good = { unsafe_reuses: 0, model: 'm@1:q8', threshold: THRESHOLD, guard_sha: guardSha(), counts };
   const write = (record) => fs.writeFileSync(file, JSON.stringify(record));
   beforeEach(() => { process.env.BOOTH_CACHE_CALIBRATION_FILE = file; fs.rmSync(file, { force: true }); });
   afterAll(() => { delete process.env.BOOTH_CACHE_CALIBRATION_FILE; });
@@ -140,6 +141,10 @@ describe('calibrated: reuse needs a record of zero unsafe reuses for this model,
     ['no count', { ...good, unsafe_reuses: undefined }],
     ['another threshold', { ...good, threshold: 0.9 }],
     ['another guard source', { ...good, guard_sha: '0'.repeat(64) }],
+    ['no counts', { ...good, counts: undefined }],
+    ['no negated pair', { ...good, counts: { ...counts, negated: { pairs: 0 } } }],
+    ['no unsafe count', { ...good, counts: { same: counts.same, negated: counts.negated } }],
+    ['a count that is not a whole number', { ...good, counts: { ...counts, same: { pairs: '16' } } }],
   ])('%s: not calibrated', (_label, record) => {
     if (record) write(record);
     expect(calibrated('m@1:q8')).toBe(false);

@@ -57,9 +57,10 @@ Every request must carry the `x-internal-token` shared secret (matched against t
   never through an embedding API, and `src/lib/booth-cache.js` holds the guards that decide a reuse. The model is
   fetched only by `node scripts/fetch-embed-model.js` (into `models/`, gitignored; the Docker build runs it);
   at run time remote models are off. A reuse also needs `src/lib/booth-cache-calibration.json`, written by
-  `scripts/booth/reply-cache-calibration.mjs --write` only after zero unsafe reuses, and bound to the sha256 of
-  `booth-cache.js`: any edit to the guards switches reuse off until the pairs are run again. The switch-on order
-  is in `db/migration-booth-reply-cache.sql`.
+  `scripts/booth/reply-cache-calibration.mjs --write` only from the committed pair set, with pairs of every kind
+  and zero unsafe reuses, and bound to the sha256 of `booth-cache.js`: any edit to the guards switches reuse off
+  until the pairs are run again. CI fails a record whose `pairs_sha` is not the committed pair set's. The
+  switch-on order is in `db/migration-booth-reply-cache.sql`.
 
 Deploy: `railway up . --path-as-root --service rimpl --ci` (the local `rimpl/` dir is mis-linked to the
 `backend` service — **always pass `--service rimpl`**). See [../docs/deployment.md](../docs/deployment.md).

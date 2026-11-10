@@ -61,7 +61,10 @@ const unit = (i) => Array.from({ length: 16 }, (_, k) => (k === i ? 1 : 0));
 const at = (c) => unit(0).map((_, k) => (k === 0 ? c : k === 1 ? Math.sqrt(1 - c * c) : 0));
 // The model's output is float32, so a vector comes back rounded to it.
 const f32 = (v) => Array.from(Float32Array.from(v));
-const calibrate = () => fs.writeFileSync(RECORD, JSON.stringify({ unsafe_reuses: 0, model: MODEL_ID, threshold: THRESHOLD, guard_sha: guardSha() }));
+const calibrate = () => fs.writeFileSync(RECORD, JSON.stringify({
+  unsafe_reuses: 0, model: MODEL_ID, threshold: THRESHOLD, guard_sha: guardSha(),
+  counts: { same: { pairs: 16 }, negated: { pairs: 17 }, unsafe: { pairs: 21 } },
+}));
 const hitBody = (id, deidentified) => ({
   reply: { strength: '', weigh: '', safety: '' }, pick: null, tier: null, cache: { hit: id }, answer_deidentified: deidentified,
   refs: [], token_count: 0, input_tokens: 0, output_tokens: 0, provider: 'cache', model: MODEL_ID, prompt_version: null,

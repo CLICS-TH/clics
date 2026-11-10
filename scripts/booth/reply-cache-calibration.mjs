@@ -6,23 +6,37 @@
 //   node scripts/booth/reply-cache-calibration.mjs [--pairs <file>] [--write]
 //
 // Exits 1 on any unsafe reuse. --write writes the calibration record rimpl reads (rimpl/src/lib/booth-cache-
-// calibration.json), and only when there is none: committing that record, with the owner's go-ahead, is what lets
-// rimpl reuse a reply at all. Needs rimpl's packages and the fetched model (it says how when they are missing).
+// calibration.json), and only when there is none, from the committed pair set with no edits since, holding every
+// kind: committing that record, with the owner's go-ahead, is what lets rimpl reuse a reply at all. Needs rimpl's
+// packages and the fetched model (it says how when they are missing).
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pairProblems, calibrate, recordOf, exitCode, format } from './reply-cache-calibration-lib.mjs';
+import { pairProblems, calibrate, recordOf, writeRefusal, exitCode, format } from './reply-cache-calibration-lib.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..', '..');
 const require = createRequire(import.meta.url);
+const PAIRS = 'scripts/booth/reply-cache-pairs.json';
 
 const args = process.argv.slice(2);
-const pairsFile = args.includes('--pairs') ? path.resolve(args[args.indexOf('--pairs') + 1]) : path.join(here, 'reply-cache-pairs.json');
+const pairsFile = args.includes('--pairs') ? path.resolve(args[args.indexOf('--pairs') + 1]) : path.join(root, PAIRS);
 const write = args.includes('--write');
 
 const pairsText = readFileSync(pairsFile, 'utf8');
+if (write) {
+  let committed = null;
+  try {
+    committed = execFileSync('git', ['-C', root, 'show', `HEAD:${PAIRS}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch { /* no git or no commit: refused below */ }
+  const refusal = writeRefusal(path.relative(root, pairsFile), pairsText, { file: PAIRS, text: committed });
+  if (refusal) {
+    console.error(`--write refused: ${refusal}`);
+    process.exit(2);
+  }
+}
 const pairs = JSON.parse(pairsText);
 const problems = pairProblems(pairs);
 if (problems.length) {
@@ -45,12 +59,16 @@ const report = await calibrate(pairs, {
 console.log(`pairs ${path.relative(root, pairsFile)}`);
 console.log(format(report));
 if (write) {
-  if (report.unsafe_reuses === 0) {
+  let record = null;
+  try {
+    record = recordOf(report, pairsText, new Date().toISOString().slice(0, 10));
+  } catch (err) {
+    console.log(`not written: ${err.message}`);
+  }
+  if (record) {
     const out = path.join(root, 'rimpl/src/lib/booth-cache-calibration.json');
-    writeFileSync(out, `${JSON.stringify(recordOf(report, pairsText, new Date().toISOString().slice(0, 10)), null, 2)}\n`);
+    writeFileSync(out, `${JSON.stringify(record, null, 2)}\n`);
     console.log(`wrote ${path.relative(root, out)}`);
-  } else {
-    console.log('not written: a record needs zero unsafe reuses');
   }
 }
 process.exit(exitCode(report));

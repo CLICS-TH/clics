@@ -95,16 +95,20 @@ function bestReusable(query, entries) {
   return best;
 }
 
+// The kinds of labelled pair a calibration counts (scripts/booth/reply-cache-pairs.json).
+const KINDS = ['same', 'negated', 'unsafe'];
 const CALIBRATION_FILE = path.join(__dirname, 'booth-cache-calibration.json');
 const calibrationFile = () => process.env.BOOTH_CACHE_CALIBRATION_FILE || CALIBRATION_FILE;
 const guardSha = () => crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
 
-/** Whether a calibration of these guards on `modelId` at THRESHOLD found zero unsafe reuses. Without that record
- *  rimpl only embeds and the backend only stores: nothing is reused. */
+/** Whether a calibration of these guards on `modelId` at THRESHOLD, over pairs of every kind, found zero unsafe
+ *  reuses. Without that record rimpl only embeds and the backend only stores: nothing is reused. Which pair set it
+ *  ran on is checked in CI (scripts/booth/reply-cache-calibration.test.mjs): rimpl's image holds no scripts/. */
 function calibrated(modelId) {
   let record;
   try { record = JSON.parse(fs.readFileSync(calibrationFile(), 'utf8')); } catch { return false; }
-  return record?.unsafe_reuses === 0 && record.model === modelId && record.threshold === THRESHOLD && record.guard_sha === guardSha();
+  return record?.unsafe_reuses === 0 && record.model === modelId && record.threshold === THRESHOLD && record.guard_sha === guardSha()
+    && KINDS.every((kind) => Number.isInteger(record.counts?.[kind]?.pairs) && record.counts[kind].pairs > 0);
 }
 
-module.exports = { THRESHOLD, cuesOf, cosine, bestReusable, calibrated, guardSha, CALIBRATION_FILE };
+module.exports = { THRESHOLD, KINDS, cuesOf, cosine, bestReusable, calibrated, guardSha, CALIBRATION_FILE, calibrationFile };

@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const guards = require('../../rimpl/src/lib/booth-cache.js');
 
-export const KINDS = ['same', 'negated', 'unsafe'];
+export const { KINDS } = guards;
 export const LANGS = ['th', 'en'];
 const KEYS = ['id', 'lang', 'kind', 'a', 'b', 'note'];
 
@@ -66,13 +66,24 @@ export async function calibrate(pairs, { embed, deidentify = (t) => t, model }) 
 
 export const sha256 = (text) => createHash('sha256').update(text).digest('hex');
 
-/** The calibration record rimpl's calibrated() reads. Refused while any unsafe reuse remains. */
+/** The calibration record rimpl's calibrated() reads. Refused while any unsafe reuse remains, or any kind has no pair. */
 export function recordOf(report, pairsText, date) {
   if (report.unsafe_reuses !== 0) throw new Error(`${report.unsafe_reuses} unsafe reuse(s): no record is written`);
+  const missing = KINDS.find((kind) => !(report.counts[kind]?.pairs > 0));
+  if (missing) throw new Error(`no ${missing} pair: no record is written`);
   return {
     model: report.model, threshold: report.threshold, guard_sha: report.guard_sha, pairs_sha: sha256(pairsText),
     unsafe_reuses: 0, counts: report.counts, same_reuse_rate: report.same_reuse_rate, date,
   };
+}
+
+/** Why --write must not write a record from `pairsFile`, or null when it may. A record binds the committed pair set
+ *  only: `committed` is that file, repo-relative like `pairsFile`, and its text at HEAD (null when git cannot read it).
+ *  @param {string} pairsFile @param {string} pairsText @param {{ file: string, text: string | null }} committed */
+export function writeRefusal(pairsFile, pairsText, committed) {
+  if (pairsFile !== committed.file) return `a record is written only from ${committed.file}`;
+  if (pairsText !== committed.text) return `${committed.file} has changes not committed: commit the pair set first`;
+  return null;
 }
 
 export const exitCode = (report) => (report.unsafe_reuses === 0 ? 0 : 1);

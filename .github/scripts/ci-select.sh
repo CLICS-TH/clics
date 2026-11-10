@@ -30,7 +30,7 @@ calibration       ^(scripts/calibration/|rimpl/src/|backend/src/services/)
 manuals           ^(scripts/manuals/|docs/manuals/|physician-ui/public/|audit-dashboard/|rimpl/src/)
 portal_browser    ^(scripts/auth/|physician-ui/public/|audit-dashboard/)
 responsive        ^(scripts/(responsive|chat|booth)/|physician-ui/public/|backend/src/booth-cases/)
-booth_scripts     ^(scripts/booth/|rimpl/src/lib/booth-cache\.js$)
+booth_scripts     ^(scripts/booth/|rimpl/src/lib/booth-cache(\.js|-calibration\.json)$)
 '
 
 jobs=$(printf '%s\n' "$RULES" | awk 'NF == 2 && $1 != "ALL" { print $1 }')
