@@ -52,6 +52,14 @@ Every request must carry the `x-internal-token` shared secret (matched against t
   `node scripts/manifest/build.mjs` and commit the result; CI's `manifest` job fails otherwise.
   `/health/deep` reports drift against it (warn-only); `GET /manifest` (internal token) returns it with
   the live view. See [../scripts/manifest/README.md](../scripts/manifest/README.md).
+- **Booth reply cache (#387), off by default:** `src/services/embed.js` embeds a typed booth answer's
+  de-identified text in-process with a pinned local model (`Xenova/paraphrase-multilingual-MiniLM-L12-v2`, q8),
+  never through an embedding API, and `src/lib/booth-cache.js` holds the guards that decide a reuse. The model is
+  fetched only by `node scripts/fetch-embed-model.js` (into `models/`, gitignored; the Docker build runs it);
+  at run time remote models are off. A reuse also needs `src/lib/booth-cache-calibration.json`, written by
+  `scripts/booth/reply-cache-calibration.mjs --write` only after zero unsafe reuses, and bound to the sha256 of
+  `booth-cache.js`: any edit to the guards switches reuse off until the pairs are run again. The switch-on order
+  is in `db/migration-booth-reply-cache.sql`.
 
 Deploy: `railway up . --path-as-root --service rimpl --ci` (the local `rimpl/` dir is mis-linked to the
 `backend` service — **always pass `--service rimpl`**). See [../docs/deployment.md](../docs/deployment.md).
