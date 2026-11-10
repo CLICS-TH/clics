@@ -83,6 +83,33 @@ test('booth_sort_memos holds a key, a tier letter and a time: no text column, RL
   expect(memo).not.toMatch(/grant [^;]* on (table )?public\.booth_sort_memos/i);
 });
 
+test('booth_audits holds a play, an auditor, seven scores and a time: no text column (#389)', () => {
+  expect([...(schemaFromSql().booth_audits ?? [])].sort()).toEqual(['play_id', 'auditor_id', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7',
+    'created_at'].sort());
+});
+
+test('booth_audits is one audit per auditor per play, RLS on, insert-only for the service role, and purged with its play or its auditor', () => {
+  const audits = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-audits.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  expect(audits).toContain('constraint booth_audits_pkey primary key (play_id, auditor_id)');
+  expect(audits).toMatch(/play_id\s+uuid not null references public\.booth_plays\(id\) on delete cascade,/);
+  expect(audits).toMatch(/auditor_id\s+uuid not null references public\.professionals\(id\) on delete cascade,/);
+  for (const d of ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7']) expect(audits).toMatch(new RegExp(`${d}\\s+smallint not null check \\(${d} between 0 and 5\\),`));
+  expect(audits).toContain('alter table public.booth_audits enable row level security;');
+  expect(audits).toContain('revoke all on table public.booth_audits from public, anon, authenticated, service_role;');
+  expect(audits).not.toMatch(/create policy/i);
+  expect([...audits.matchAll(/grant ([^;]*) on (?:table )?public\.booth_audits to ([^;]*);/gi)].map(([, what, to]) => [what, to]))
+    .toEqual([['select, insert', 'service_role']]);
+});
+
+test('every column the booth audits service reads exists', () => {
+  const { BLIND_COLUMNS, REVEAL_COLUMNS, AUDIT_COLUMNS } = require('../src/services/booth-audits');
+  const schema = schemaFromSql();
+  const missing = (table, list) => list.split(',').map((c) => c.trim()).filter((c) => !schema[table].has(c));
+  expect(missing('booth_plays', BLIND_COLUMNS)).toEqual([]);
+  expect(missing('booth_plays', REVEAL_COLUMNS)).toEqual([]);
+  expect(missing('booth_audits', AUDIT_COLUMNS)).toEqual([]);
+});
+
 test('booth_event_purges holds aggregates only, under the booth_plays event-code CHECK', () => {
   expect([...(schemaFromSql().booth_event_purges ?? [])].sort()).toEqual(['attempt_id', 'event_code', 'id', 'purged_at', 'summary']);
   const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');

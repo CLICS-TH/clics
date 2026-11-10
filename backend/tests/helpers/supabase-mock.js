@@ -39,10 +39,14 @@ function makeSupabaseMock() {
   };
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], payload: undefined };
+    const rec = {
+      table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], orders: [], range: null, limit: null,
+      payload: undefined,
+    };
     state.queries.push(rec);
     const ctx = () => ({
       op: rec.op, eqs: rec.eqs, neqs: rec.neqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, payload: rec.payload, selectArgs: rec.selectArgs,
+      orders: rec.orders, range: rec.range, limit: rec.limit,
       id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
     });
     const self = {};
@@ -70,7 +74,10 @@ function makeSupabaseMock() {
     // a silent no-op below, which made a "this query must NOT match X" property untestable. Still
     // chainable; suites that never read neqs are unaffected.
     self.neq = (c, v) => { rec.neqs.push([c, v]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
+    self.order = (c, opts) => { rec.orders.push([c, opts]); return self; };
+    self.range = (from, to) => { rec.range = [from, to]; return self; };
+    self.limit = (n) => { rec.limit = n; return self; };
+    for (const fn of ['gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();

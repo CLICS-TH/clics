@@ -187,14 +187,18 @@ async function openEvent(now, stateOf = eventState) {
   return state.open ? { event } : { refused: 'closed' };
 }
 
-/** The case the play started on, at the version it started with: never the event's current case. */
+function caseFor(eventCode, caseId, caseVersion) {
+  const kase = eventCases(eventCode).find((k) => k.case_id === caseId);
+  return kase && kase.version === caseVersion ? kase : null;
+}
+
 async function playCase(playId, event) {
   const { data: row, error } = await supabase.from('booth_plays').select('case_id, case_version')
     .eq('id', playId).eq('event_code', event.code).maybeSingle();
   if (error) return { refused: 'unavailable' };
   if (!row) return { refused: 'not_found' };
-  const kase = eventCases(event.code).find((k) => k.case_id === row.case_id);
-  return kase && kase.version === row.case_version ? { kase } : UNAVAILABLE;
+  const kase = caseFor(event.code, row.case_id, row.case_version);
+  return kase ? { kase } : UNAVAILABLE;
 }
 
 // One server secret, one key per use: a label of its own keeps a sort memo key from ever standing for a turn sig.
@@ -708,6 +712,6 @@ async function updateBoothSettings(input) {
 }
 
 module.exports = {
-  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
-  scorePlay, boothSettings, updateBoothSettings,
+  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, caseFor, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay,
+  replyToStep, scorePlay, boothSettings, updateBoothSettings,
 };

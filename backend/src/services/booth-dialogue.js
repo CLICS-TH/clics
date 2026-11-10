@@ -5,6 +5,7 @@
 // and the table build scores each tier path, both with evaluateRequest, so a table holds the score of exactly the
 // transcript a kiosk play would make. Nothing here reads or writes the database.
 const crypto = require('crypto');
+const { z } = require('zod');
 const { TIERS } = require('../booth-cases/tree-schema');
 
 const STEPS = 3;
@@ -272,8 +273,41 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
   tier: TIERS.find((t) => t.letter === tierPath[i]).name,
 }));
 
+const StepFields = {
+  variant: z.string(),
+  bridge: z.string(),
+  options: z.array(z.string()).length(3),
+  reply: z.object(Object.fromEntries(REPLY_FIELDS.map((k) => [k, z.string()]))).strict(),
+  tier: z.enum(TIER_NAMES),
+};
+const StepRecordSchema = z.union([
+  z.object({ ...StepFields, choice: z.string() }).strict(),
+  z.object({ ...StepFields, typed: z.string().nullable() }).strict(),
+]);
+
+/**
+ * @param {object} kase
+ * @param {unknown} steps
+ * @returns {{ role: 'physician' | 'assistant', content: string }[] | null}
+ */
+function studyTranscript(kase, steps) {
+  const parsed = z.array(StepRecordSchema).length(STEPS).safeParse(steps);
+  if (!parsed.success || parsed.data.some((s) => s.typed === null)) return null;
+  const records = parsed.data;
+  const tierPath = records.map((s) => LETTER[s.tier]).join('');
+  const asks = records.map(({ variant, bridge, options }) => ({ variant, bridge, options }));
+  const fits = records.every((s, i) => {
+    const bank = bankAt(kase, tierPath.slice(0, i));
+    if (!isValidAsk(bank, asks[i])) return false;
+    return !('choice' in s) || (s.options.includes(s.choice) && bank.options.find((o) => o.id === s.choice).tier === s.tier);
+  });
+  if (!fits) return null;
+  const answers = records.map((s) => ('choice' in s ? { choice: s.choice } : { text: s.typed }));
+  return dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false);
+}
+
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
-  evaluateRequest, stepTiers, stepRecords,
+  evaluateRequest, stepTiers, stepRecords, StepRecordSchema, studyTranscript,
 };
