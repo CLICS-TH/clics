@@ -2051,7 +2051,7 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     expect(plays.get(p.id).spend_usd).toBe(0);
     expect(rpcNamed('booth_settle_spend').map((a) => a.p_delta)).toEqual([-0.05]);
     expect(JSON.stringify(console.warn.mock.calls)).not.toMatch(/unknown AI provider/);
-    expect(rpcNamed('booth_sort_memo').map((a) => a.p_tier)).toEqual([null, 'R']);
+    expect(rpcNamed('booth_sort_memo').map((a) => a.p_tier)).toEqual([null]);
     expect(replyLines()).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] reply replied play=${p.id} step=1 ms=\\d+ provider=cache$`))]);
     expect(cacheQueries('insert')).toEqual([]);
     p.path = 'R';
@@ -2061,6 +2061,22 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     const scored = await score(p);
     expect(scored.body.steps[0].tier).toBe('reasonable');
     expect(plays.get(p.id).steps[0]).toMatchObject({ typed: DEID, tier: 'reasonable', reply: res.body.reply });
+  });
+
+  test('a reuse writes no sort memo: its tier was given to another text, so the next play of this text is sorted afresh', async () => {
+    switchedOn();
+    const kept = entry();
+    cacheRows = [kept];
+    reusing(kept.id);
+    await answer(await begin(), TYPED);
+    expect(rpcNamed('booth_sort_memo').filter((a) => a.p_tier !== null)).toEqual([]);
+    expect([...memos.values()]).toEqual([]);
+    cacheRows = [];
+    live('best');
+    const p = await begin();
+    await answer(p, TYPED);
+    expect(p.next).toEqual(shown(bank('B'), p.next.ask));
+    expect(rpcNamed('booth_sort_memo').filter((a) => a.p_tier !== null).map((a) => a.p_tier)).toEqual(['B']);
   });
 
   test.each([
@@ -2108,6 +2124,38 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     const p = await begin();
     expect((await answer(p, TYPED)).body.status).toBe('replied');
     expect(cacheQueries('insert')).toEqual([]);
+  });
+
+  describe('a reply that repeats the visitor\'s own words is never kept for another visitor', () => {
+    const ANSWER = { text: 'ส่งต่อให้หมอสมศักดิ์ ใจกล้า ดูต่อพรุ่งนี้' };
+    const replying = (strength) => live('reasonable', { reply: { strength, weigh: 'ชั่งน้ำหนักเรื่องเวลา', safety: '' } });
+    const kept = async (answered) => {
+      switchedOn();
+      const p = await begin();
+      expect((await answer(p, answered)).body.status).toBe('replied');
+      return cacheQueries('insert').map((q) => q.payload.reply.strength);
+    };
+
+    test('a reply quoting a phrase of the answer that the case does not hold is not kept', async () => {
+      replying('การส่งต่อให้หมอสมศักดิ์ ใจกล้า เหมาะสม');
+      expect(await kept(ANSWER)).toEqual([]);
+    });
+
+    test('control: the same reply without the quote is kept', async () => {
+      replying('การส่งต่อเหมาะสม');
+      expect(await kept(ANSWER)).toEqual(['การส่งต่อเหมาะสม']);
+    });
+
+    test('a quote of the answer that the vignette also holds is kept', async () => {
+      expect(KASE.vignette.th).toContain('ไอมีเสมหะสีเหลือง');
+      replying('ไอมีเสมหะสีเหลือง เป็นข้อมูลสำคัญ');
+      expect(await kept({ text: 'ไอมีเสมหะสีเหลือง ให้ยาฆ่าเชื้อกิน' })).toEqual(['ไอมีเสมหะสีเหลือง เป็นข้อมูลสำคัญ']);
+    });
+
+    test('the quote is found through bold markers and spacing', async () => {
+      replying('ดีที่ **ส่งต่อให้หมอ  สมศักดิ์** ไว้');
+      expect(await kept({ text: 'ส่งต่อให้หมอ สมศักดิ์ ใจกล้า' })).toEqual([]);
+    });
   });
 
   test('a live reply whose tier is not the one the memo already took is not kept', async () => {

@@ -10,6 +10,7 @@ const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../boot
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers, stepRecords, bankKey,
+  echoesAnswer,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -515,7 +516,8 @@ function answerOf(res, entries) {
 }
 
 /** Keeps a live reply for later answers that mean the same, only when the tier taken is the AI's own, best or
- *  reasonable, and the reply shows and holds no safety field: a weaker or safety reply is never reused. Never the
+ *  reasonable, the reply shows and holds no safety field, and it repeats none of this visitor's own words beyond the
+ *  case's text: a weaker or safety reply, or one carrying what a visitor typed, is never shown to another. Never the
  *  answer's text, raw or de-identified. A database fault never refuses the reply. */
 async function keepReply(kase, d, language, res, issued) {
   const live = CacheLive.safeParse(res.cache);
@@ -523,7 +525,7 @@ async function keepReply(kase, d, language, res, issued) {
   const taken = issued.answers[n - 1].tier;
   const raw = Object.fromEntries(REPLY_FIELDS.map((k) => [k, typeof res.reply?.[k] === 'string' ? res.reply[k] : '']));
   if (!live.success || taken !== sortedTier(res.tier) || !['B', 'R'].includes(taken) || raw.safety.trim() !== ''
-    || !hasReply(issued.replies[n - 1])) return;
+    || !hasReply(issued.replies[n - 1]) || echoesAnswer(kase, d, raw)) return;
   try {
     const { error } = await supabase.from('booth_reply_cache').insert({
       case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language,
@@ -571,8 +573,9 @@ async function replyOutcome(playId, event, kase, dialogue) {
   if (answered.reason) reason = answered.reason;
   // A rimpl older than the reply fields (#376) answers `content`: every step would show no reply, billed and unseen.
   if (ai && (typeof ai.reply !== 'object' || ai.reply === null)) reason = 'no_fields';
-  // Only a tier the model gave is kept: a failed or unreadable call must not pin a text to weaker for good.
-  const kept = key && !recalled && typeof ai?.tier === 'string' ? await memoTier(key, sortedTier(ai.tier)) : null;
+  // Only a tier the model gave is kept: a failed or unreadable call must not pin a text to weaker for good, and a
+  // reuse's tier was given to another text.
+  const kept = key && !recalled && !answered.reused && typeof ai?.tier === 'string' ? await memoTier(key, sortedTier(ai.tier)) : null;
   const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, ai);
   if (entries && !answered.reused && res?.cache) await keepReply(kase, asked, request.language, res, issued);
   const { bank, ask } = issued;

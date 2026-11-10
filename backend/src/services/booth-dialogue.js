@@ -133,6 +133,28 @@ function quotesFor(kase, d) {
   return (run) => { const quote = comparable(run); return sources.some((s) => s.includes(quote)); };
 }
 
+const ECHO_MIN_CHARS = 8;
+/** Whether a reply to `d`'s last (typed) answer repeats ECHO_MIN_CHARS or more of the visitor's own words that the
+ *  case's text (the vignette, the question asked, the step's options, in either language) does not hold. Such a
+ *  reply may carry what that visitor typed, so the reply cache (#387) never keeps it for another visitor. */
+function echoesAnswer(kase, d, reply) {
+  const n = d.answers.length;
+  const bank = bankAt(kase, d.tierPath.slice(0, n - 1));
+  const { question } = bank.variants.find((v) => v.id === d.asks[n - 1].variant);
+  const own = [kase.vignette.th, kase.vignette.en, question.th, question.en,
+    ...bank.options.flatMap((o) => [o.label.th, o.label.en, o.line.th, o.line.en])].map(comparable);
+  const said = comparable(d.answers[n - 1].text);
+  const fields = REPLY_FIELDS.map((k) => comparable(reply[k].replaceAll('**', '')));
+  for (let i = 0; i + ECHO_MIN_CHARS <= said.length; i += 1) {
+    // The longest run from i that one field repeats: when it is in the case's text, so is every shorter one.
+    let end = i;
+    while (end < said.length && fields.some((f) => f.includes(said.slice(i, end + 1)))) end += 1;
+    const run = said.slice(i, end);
+    if (run.length >= ECHO_MIN_CHARS && !own.some((t) => t.includes(run))) return true;
+  }
+  return false;
+}
+
 /** One field as it may reach the screen: whitespace collapsed, at most BOLD_MAX_RUNS `**` runs kept, each a short
  *  run `quotes` accepts (a failed run keeps its text), no other `*`, and at most FIELD_MAX_CHARS of visible text. */
 function checkedField(raw, quotes) {
@@ -278,5 +300,5 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
-  evaluateRequest, stepTiers, stepRecords,
+  echoesAnswer, evaluateRequest, stepTiers, stepRecords,
 };
