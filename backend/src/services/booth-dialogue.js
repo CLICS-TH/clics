@@ -134,17 +134,13 @@ function quotesFor(kase, d) {
 }
 
 const ECHO_MIN_CHARS = 8;
-/** Whether a reply to `d`'s last (typed) answer repeats ECHO_MIN_CHARS or more of the visitor's own words that the
- *  case's text (the vignette, the question asked, the step's options, in either language) does not hold. Such a
- *  reply may carry what that visitor typed, so the reply cache (#387) never keeps it for another visitor. */
-function echoesAnswer(kase, d, reply) {
-  const n = d.answers.length;
-  const bank = bankAt(kase, d.tierPath.slice(0, n - 1));
-  const { question } = bank.variants.find((v) => v.id === d.asks[n - 1].variant);
-  const own = [kase.vignette.th, kase.vignette.en, question.th, question.en,
-    ...bank.options.flatMap((o) => [o.label.th, o.label.en, o.line.th, o.line.en])].map(comparable);
-  const said = comparable(d.answers[n - 1].text);
-  const fields = REPLY_FIELDS.map((k) => comparable(reply[k].replaceAll('**', '')));
+// Every side of the echo check alike: format and control characters dropped (zero-width, bidi, BOM; a tab or line
+// break stays a space), the fence marks and every `*` too, then `comparable`, so none of them can split a run.
+const echoForm = (s) => comparable(s.replace(/\p{Cf}|(?![\t\n\v\f\r])\p{Cc}/gu, '').replaceAll(FENCE_OPEN, '')
+  .replaceAll(FENCE_CLOSE, '').replaceAll('*', ''));
+
+/** Whether `said` and one of `fields` share a run of ECHO_MIN_CHARS or more that no text in `own` holds. */
+function repeats(said, fields, own) {
   for (let i = 0; i + ECHO_MIN_CHARS <= said.length; i += 1) {
     // The longest run from i that one field repeats: when it is in the case's text, so is every shorter one.
     let end = i;
@@ -153,6 +149,19 @@ function echoesAnswer(kase, d, reply) {
     if (run.length >= ECHO_MIN_CHARS && !own.some((t) => t.includes(run))) return true;
   }
   return false;
+}
+
+/** Whether a reply in dialogue `d` repeats ECHO_MIN_CHARS or more of any answer the visitor typed (the AI sees the
+ *  whole history) that the case's text (the vignette, and each step's question and options, in either language)
+ *  does not hold. Such a reply may carry what that visitor typed, so the reply cache (#387) never keeps it. */
+function echoesAnswer(kase, d, reply) {
+  const own = [kase.vignette.th, kase.vignette.en, ...d.answers.flatMap((_, i) => {
+    const bank = bankAt(kase, d.tierPath.slice(0, i));
+    const { question } = bank.variants.find((v) => v.id === d.asks[i].variant);
+    return [question.th, question.en, ...bank.options.flatMap((o) => [o.label.th, o.label.en, o.line.th, o.line.en])];
+  })].map(echoForm);
+  const fields = REPLY_FIELDS.map((k) => echoForm(reply[k]));
+  return d.answers.some((a) => 'text' in a && repeats(echoForm(a.text), fields, own));
 }
 
 /** One field as it may reach the screen: whitespace collapsed, at most BOLD_MAX_RUNS `**` runs kept, each a short

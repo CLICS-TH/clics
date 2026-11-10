@@ -2156,6 +2156,35 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
       replying('ดีที่ **ส่งต่อให้หมอ  สมศักดิ์** ไว้');
       expect(await kept({ text: 'ส่งต่อให้หมอ สมศักดิ์ ใจกล้า' })).toEqual([]);
     });
+
+    // Each mark splits the quote into pieces shorter than the 8-character run, so only removing it finds the quote.
+    test.each([
+      ['a zero-width space', '​'],
+      ['a zero-width no-break space', '﻿'],
+      ['a bidi mark', '‮'],
+      ['a control character', '\u0007'],
+      ['a stray *', '*'],
+    ])('the quote is found through %s inside it', async (_label, mark) => {
+      replying(['ดีที่ส่ง', 'ต่อให้', 'หมอสม', 'ศัก', 'ดิ์ ใจ', 'กล้า'].join(mark));
+      expect(await kept(ANSWER)).toEqual([]);
+    });
+
+    test('a reply at step 2 that repeats the answer typed at step 1 is not kept; without the quote it is', async () => {
+      const step2 = { text: 'ตรวจเลือดซ้ำพรุ่งนี้เช้า' };
+      const play = async (strength) => {
+        switchedOn();
+        live('reasonable');
+        const p = await begin();
+        await answer(p, ANSWER);
+        replying(strength);
+        await answer(p, step2);
+        return cacheQueries('insert').filter((q) => q.payload.tier_path === 'R').map((q) => q.payload.reply.strength);
+      };
+      expect(await play('ส่งต่อให้หมอสมศักดิ์ ใจกล้า ตามที่วางไว้')).toEqual([]);
+      cacheRows = [];
+      m.state.queries.length = 0;
+      expect(await play('ตามแผนที่วางไว้')).toEqual(['ตามแผนที่วางไว้']);
+    });
   });
 
   test('a live reply whose tier is not the one the memo already took is not kept', async () => {
