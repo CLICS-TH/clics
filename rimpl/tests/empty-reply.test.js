@@ -70,7 +70,7 @@ const chat = (body = {}) => request(app).post('/chat').send({ ple_id: 'x', histo
 const expectEmptyReply = (res) => {
   expect(res.status).toBe(503);
   expect(res.body.code).toBe('empty_reply');
-  expect(res.headers['retry-after']).toMatch(/^\d+$/);
+  expect(res.headers).not.toHaveProperty('retry-after');
   expect(JSON.stringify(res.body)).not.toContain('Somchai');
 };
 
@@ -91,6 +91,19 @@ describe('POST /evaluate-criteria — an empty classifier reply is a retryable 5
     process.env.LOCAL_AI_THINK_PREOPENED = '1';
     fetchMock.mockResolvedValue(completion(REASONING));
     expectEmptyReply(await criteria());
+  });
+
+  test.each([
+    ['prose', 'Sure.'],
+    ['JSON cut off mid-object', '{"c4": true, "c5": tr'],
+    ['an empty object', '{}'],
+    ['a criterion missing', '{"c4":true,"c5":true,"c6":true}'],
+    ['a criterion that is not a boolean', '{"c4":"false","c5":true,"c6":true,"c7":true}'],
+  ])('%s → an error, never 200 with criteria', async (_label, content) => {
+    fetchMock.mockResolvedValue(completion(content, 'stop'));
+    const res = await criteria();
+    expect(res.status).not.toBe(200);
+    for (const k of ['c4', 'c5', 'c6', 'c7']) expect(res.body).not.toHaveProperty(k);
   });
 
   test('a real classifier reply still answers 200', async () => {
