@@ -2028,6 +2028,17 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     expect(p.path).toBe('BR');
   });
 
+  test.each([
+    ['in English only', { text: 'check CBC first' }, 'en'],
+    ['holding Thai', TYPED, 'th'],
+  ])('a typed answer %s reads and keeps its entries in the language rimpl replies in', async (_label, typed, language) => {
+    switchedOn();
+    live('reasonable');
+    await answer(await begin(), typed);
+    const read = new Map(cacheQueries('select')[0].eqs).get('language');
+    expect({ read, kept: cacheQueries('insert')[0].payload.language }).toEqual({ read: language, kept: language });
+  });
+
   test('switched on, a tapped answer reads and sends nothing', async () => {
     switchedOn();
     live('reasonable');

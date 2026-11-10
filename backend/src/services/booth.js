@@ -488,13 +488,17 @@ const CacheLive = z.object({
   cues: z.array(z.string().regex(/^[0-9a-f]{16}$/)).max(64),
 });
 
-/** The newest entries at the point `d`'s typed answer was given, in `language`; with a memo, only the memo's tier
- *  (the exact sort memo wins). A database fault never refuses the reply: it reads as no entries. */
-async function cachedReplies(kase, d, language) {
+/** The language rimpl replies to `d`'s typed answer in, by its booth prompt: Thai when the answer holds any Thai,
+ *  else English. The request's `language` is always 'th', so it cannot key the cache. */
+const replyLanguage = (d) => (/\p{Script=Thai}/u.test(d.answers.at(-1).text) ? 'th' : 'en');
+
+/** The newest entries at the point `d`'s typed answer was given, in its reply language; with a memo, only the
+ *  memo's tier (the exact sort memo wins). A database fault never refuses the reply: it reads as no entries. */
+async function cachedReplies(kase, d) {
   try {
     let query = supabase.from('booth_reply_cache').select('id, model, embedding, cues, tier, reply, pick')
       .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(d.tierPath))
-      .eq('tier_path', d.tierPath).eq('language', language);
+      .eq('tier_path', d.tierPath).eq('language', replyLanguage(d));
     if (d.memo) query = query.eq('tier', d.memo);
     const { data, error } = await query.order('created_at', { ascending: false }).limit(CACHE_ENTRIES_MAX);
     if (!error && Array.isArray(data)) return data;
@@ -520,7 +524,7 @@ function answerOf(res, entries) {
  *  case's text: a weaker or safety reply, or one carrying what a visitor typed, is never shown to another. Never the
  *  answer's text, raw or de-identified, and never the pick's bridge, which the AI writes from this visitor's answer
  *  and may quote. A database fault never refuses the reply. */
-async function keepReply(kase, d, language, res, issued) {
+async function keepReply(kase, d, res, issued) {
   const live = CacheLive.safeParse(res.cache);
   const n = d.answers.length;
   const taken = issued.answers[n - 1].tier;
@@ -529,7 +533,7 @@ async function keepReply(kase, d, language, res, issued) {
     || !hasReply(issued.replies[n - 1]) || echoesAnswer(kase, d, raw)) return;
   try {
     const { error } = await supabase.from('booth_reply_cache').insert({
-      case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language,
+      case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
       ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ? { ...res.pick, bridge: '' } : null,
     });
     if (error) console.warn(`[booth] reply cache keep failed: ${error.code ?? 'error'}`);
@@ -557,7 +561,7 @@ async function replyOutcome(playId, event, kase, dialogue) {
   const asked = recalled ? { ...dialogue, memo: recalled } : dialogue;
   const request = chatRequest(kase, asked);
   // Off (the default), nothing about the cache is read, written or sent.
-  const entries = dialogue.unsorted && event.replyCache ? await cachedReplies(kase, asked, request.language) : null;
+  const entries = dialogue.unsorted && event.replyCache ? await cachedReplies(kase, asked) : null;
   const cache = entries ? { booth_cache: { entries: entries.map(({ id, model, embedding, cues }) => ({ id, model, embedding, cues })) } } : {};
   let res = null;
   let reason = '';
@@ -578,7 +582,7 @@ async function replyOutcome(playId, event, kase, dialogue) {
   // reuse's tier was given to another text.
   const kept = key && !recalled && !answered.reused && typeof ai?.tier === 'string' ? await memoTier(key, sortedTier(ai.tier)) : null;
   const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, ai);
-  if (entries && !answered.reused && res?.cache) await keepReply(kase, asked, request.language, res, issued);
+  if (entries && !answered.reused && res?.cache) await keepReply(kase, asked, res, issued);
   const { bank, ask } = issued;
   const body = {
     status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
