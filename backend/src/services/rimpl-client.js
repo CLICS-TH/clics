@@ -58,6 +58,13 @@ function errorFromBody(path, status, body) {
     if (typeof body.error === 'string') err.detail = body.error.slice(0, 200);
     const ra = Number(body.retry_after_s);
     if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
+    // A call that failed AFTER the provider spent tokens on it (rimpl's 503 empty_reply). Carried so the
+    // caller can meter it: a failure that is retried must not be invisible to the budget pool.
+    const inT = Number(body.input_tokens), outT = Number(body.output_tokens);
+    if ((Number.isFinite(inT) && inT > 0) || (Number.isFinite(outT) && outT > 0)) {
+      err.burned = { input_tokens: Number.isFinite(inT) ? inT : 0, output_tokens: Number.isFinite(outT) ? outT : 0,
+        provider: typeof body.provider === 'string' ? body.provider : undefined };
+    }
   }
   return err;
 }

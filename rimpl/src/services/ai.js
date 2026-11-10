@@ -292,7 +292,7 @@ async function callWith(provider, { systemPrompt, messages, maxTokens, temperatu
   // No reply text is a failure for every purpose, never a result: '' parses as all-false criteria and
   // stores as a blank chat turn. Typical cause: a reasoning model spent max_tokens before answering.
   if (typeof result?.text !== 'string' || !result.text.trim()) {
-    throw emptyReplyError({ provider: provider.name, stopReason: result?.stopReason, outputTokens: result?.outputTokens });
+    throw emptyReplyError({ provider: provider.name, stopReason: result?.stopReason, inputTokens: result?.inputTokens, outputTokens: result?.outputTokens });
   }
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only
   // correct while exactly one model exists; under a hybrid it silently mislabels which system

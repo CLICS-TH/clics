@@ -645,7 +645,10 @@ function createLocalProvider({
       // backend), thrown here because only here is it known to be reasoning-only. noRetry: not
       // re-generated here — four full generations on a shared box for one turn is the wrong place to retry.
       if (thinkPreopened && raw && !closesThink(raw)) {
-        throw Object.assign(emptyReplyError({ provider: `${label} (${envPrefix}THINK_PREOPENED=1)`, stopReason: rawFinish, outputTokens, reasoningOnly: true }), { noRetry: true });
+        const err = emptyReplyError({ provider: name, stopReason: rawFinish, inputTokens, outputTokens, reasoningOnly: true });
+        err.message += ` (${envPrefix}THINK_PREOPENED=1)`;
+        err.noRetry = true;
+        throw err;
       }
 
       return {

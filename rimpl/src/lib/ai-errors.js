@@ -3,7 +3,7 @@
 //   503 { code: 'queue_full', retry_after_s }  + Retry-After  — the provider's lane is full
 //   499 (no body)                                             — the client hung up; nobody to answer
 //   413 { code: 'transcript_too_large', est_tokens, limit }   — the prompt cannot fit the model
-//   503 { code: 'empty_reply', retry_after_s }  + Retry-After — the model answered with no reply text
+//   503 { code: 'empty_reply', input_tokens, output_tokens, provider } — the model answered with no reply text
 //   500 { error }                                             — the route's own generic message
 //
 // Bodies are deliberately generic. The transcript, the identifiers it carried, and the provider's
@@ -16,17 +16,20 @@ const isEmptyReply = (err) => !!err && err.code === 'empty_reply';
 
 // 503, not 502: backend/src/services/rimpl-client.js treats a 502 as deterministic (criteria go to manual
 // QA, no retry) and a 503 as transient. A reasoning model that spent max_tokens thinking may well answer
-// on the next generation.
-const EMPTY_REPLY_RETRY_AFTER_S = 5;
+// on the next generation. No retry hint: unlike queue_full the box was not busy, so the backend keeps its
+// own backoff. The burned tokens ride along so the backend meters a call that produced nothing.
 
 // The provider answered, but with no reply text: empty, whitespace, or nothing but reasoning. Raised by
 // services/ai.js for every provider and purpose, and by providers/local-factory.js for an unclosed
 // THINK_PREOPENED block (reasoningOnly). Detail is numbers and a stop-reason token, never the text.
-function emptyReplyError({ provider, stopReason, outputTokens, reasoningOnly = false } = {}) {
+function emptyReplyError({ provider, stopReason, inputTokens, outputTokens, reasoningOnly = false } = {}) {
   const stop = typeof stopReason === 'string' ? stopReason.slice(0, 32) : null;
   const tokens = Number.isFinite(outputTokens) ? outputTokens : null;
   const err = new Error(`${provider || 'AI provider'}: the reply carried no answer text (${reasoningOnly ? 'reasoning only' : 'empty'}, stop ${stop ?? 'none'}, ${tokens ?? '?'} output tokens)`);
-  return Object.assign(err, { code: 'empty_reply', status: 503, stopReason: stop, outputTokens: tokens, reasoningOnly: !!reasoningOnly });
+  return Object.assign(err, {
+    code: 'empty_reply', status: 503, provider: provider || null, stopReason: stop,
+    inputTokens: Number.isFinite(inputTokens) ? inputTokens : null, outputTokens: tokens, reasoningOnly: !!reasoningOnly,
+  });
 }
 
 // Copy ONLY the named keys, and only when they are finite numbers (else null). An error body travels
@@ -61,8 +64,11 @@ function sendAiError(res, err, fallback = 'AI service temporarily unavailable. P
     });
   }
   if (isEmptyReply(err)) {
-    res.set('Retry-After', String(EMPTY_REPLY_RETRY_AFTER_S));
-    return res.status(503).json({ error: fallback, code: 'empty_reply', retry_after_s: EMPTY_REPLY_RETRY_AFTER_S });
+    return res.status(503).json({
+      error: fallback, code: 'empty_reply',
+      ...numbersOnly({ input_tokens: err.inputTokens, output_tokens: err.outputTokens }, ['input_tokens', 'output_tokens']),
+      provider: typeof err.provider === 'string' && /^[a-z-]{1,32}$/.test(err.provider) ? err.provider : null,
+    });
   }
   return res.status(500).json({ error: fallback });
 }
