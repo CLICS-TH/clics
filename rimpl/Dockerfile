@@ -25,11 +25,15 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Dependencies first so a source-only change does not reinstall them.
-COPY package.json package-lock.json ./
+# Dependencies first so a source-only change does not reinstall them. .npmrc skips onnxruntime-node's CUDA download.
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci --omit=dev
 
 COPY src ./src
+COPY scripts ./scripts
+# The booth reply cache's embedding model (#387), pinned and offline at run time. Non-fatal like Tailscale: without
+# it the cache is unavailable and every booth reply is answered live.
+RUN node scripts/fetch-embed-model.js || echo "booth reply cache: embedding model not fetched; the cache stays unavailable"
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
