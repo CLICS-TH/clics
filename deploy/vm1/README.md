@@ -17,6 +17,10 @@ it.
 | `deploy.sh` | Run on the Mac: ship a git ref over Tailscale SSH, build, gate, start, flip `current`; `--attach` re-follows the last activation |
 | `remote/*.sh` | The steps `deploy.sh` runs on vm1: preflight, launch (starts activate detached, then follows it), activate, attach. `lib.sh` is prepended to each |
 | `health-gate.cjs` | The two health gates, run inside the backend image on the compose network |
+| `docker-compose.auth.yml` | Self-hosted sign-in, built and not switched on: `gotrue` (loopback 3102), `postgrest` and `supabase-gw` (no host port). See *Self-hosted sign-in* |
+| `gotrue.env.example`, `postgrest.env.example`, `auth-role-keys.cjs` | Their env names, and the tool that mints the anon and service-role keys from GoTrue's JWT secret |
+| `supabase-gw.conf`, `auth-templates/` | The internal gateway (`/auth/v1`, `/rest/v1`) and GoTrue's mail templates |
+| `rehearsal/` | The sign-in rehearsal: hermetic in CI, and on vm1 against a copy of production (`rehearsal/README.md`) |
 
 Rimpl is built from `rimpl/Dockerfile` unchanged.
 
@@ -287,6 +291,43 @@ error text. Exit 0 means both answered 200 with a non-empty reply. Paste its out
 `checks.rimpl.deep.manifest.sha256` as Railway (cutover step 2). The sha is the build's manifest file,
 so the same commit gives the same sha on both hosts. A declared model that differs from the manifest's
 target shows under `manifest.drift`, which is expected until the manifest names it.
+
+## Self-hosted sign-in (built, not switched on)
+
+`docker-compose.auth.yml` adds GoTrue and PostgREST to the `clics` project (#427, ADR 0012). Activation
+never loads that file, so a deploy starts the backend and rimpl exactly as before. The database move (#432)
+switches sign-in over. Until then the services run only in a rehearsal (`rehearsal/README.md`).
+
+- **GoTrue** `supabase/gotrue:v2.197.0` is published on `127.0.0.1:3102` only. nginx publishes it at
+  `/auth/v1` and refuses `/auth/v1/admin`. Its admin API is reached only by the backend, through
+  `supabase-gw`.
+- **PostgREST** `postgrest/postgrest:v14.18` has no host port and no nginx location (ADR 0007, as rimpl
+  under R4).
+- **supabase-gw** has no host port. `http://supabase-gw:8080` becomes `SUPABASE_URL` for the backend and
+  rimpl at the move, routing `/auth/v1/` to GoTrue and `/rest/v1/` to PostgREST.
+- All three merge the same `x-hardened` block as the backend (R1–R3, R7, R8), and declare no volume (R5).
+  `scripts/deploy/vm1-auth.test.mjs` guards the text, and `rehearsal/run.sh hermetic` checks the running
+  containers.
+
+**Secrets (R6).** Create `gotrue.env` and `postgrest.env` the way section 1 creates the others (empty, owner
+`clics`, mode 600), and fill them in from the examples on vm1:
+
+```bash
+openssl rand -base64 48    # once: GOTRUE_JWT_SECRET in gotrue.env AND PGRST_JWT_SECRET in postgrest.env, unquoted
+node /opt/clics/current/deploy/vm1/auth-role-keys.cjs /opt/clics/env/gotrue.env
+```
+
+The second command prints `SUPABASE_ANON_KEY=` and `SUPABASE_SERVICE_ROLE_KEY=` lines. They go into
+`backend.env` and `rimpl.env` **at the move (#432)**, not before: today those files still hold the hosted
+project's keys. The preflight (and activate again) refuses:
+
+- a GoTrue or PostgREST name in `backend.env` or `rimpl.env`;
+- one service's name in the other's file;
+- either file without the other, or at the wrong mode or owner;
+- a required name left blank;
+- a JWT secret shorter than 32 characters, quoted, or different between the two files.
+
+With neither file present it logs that sign-in is not configured, and the deploy goes on.
 
 ## 6. Operating it
 

@@ -1,0 +1,6 @@
+<!-- GoTrue "Confirm signup" mail (#427). The invite's password path sends it to an unconfirmed account, and the
+     Portal asks for the code, so it carries {{ .Token }} and no link (docs/AUTH-SETUP.md). -->
+<p>รหัสยืนยันอีเมลสำหรับ CLICS ของคุณคือ</p>
+<p style="font-size:24px;font-weight:bold;letter-spacing:4px">{{ .Token }}</p>
+<p>Your CLICS email confirmation code is {{ .Token }}.</p>
+<p>หากคุณไม่ได้ขอรหัสนี้ ไม่ต้องดำเนินการใด ๆ / If you did not ask for this code, ignore this email.</p>

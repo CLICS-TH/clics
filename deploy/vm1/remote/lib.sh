@@ -108,6 +108,47 @@ check_model_block() {
   while IFS= read -r l; do log "$l"; done <<< "$msg"
 }
 
+# Self-hosted sign-in (#427, docker-compose.auth.yml). Its secrets live only in gotrue.env and postgrest.env
+# (R6), so: a GoTrue or PostgREST name in backend.env or rimpl.env, or one service's name in the other's file,
+# is refused wherever it appears. With neither file present, sign-in is not configured on this host and
+# nothing else is checked. With either present (or `required`, from the rehearsal), both must be there at
+# mode 600 owned by clics, every required name must have a value, the JWT secret must be at least 32
+# characters, and GoTrue's and PostgREST's JWT secrets must be byte-identical (compared by sha256).
+AUTH_GOTRUE_REQUIRED="GOTRUE_JWT_SECRET GOTRUE_DB_DATABASE_URL GOTRUE_SMTP_PASS GOTRUE_EXTERNAL_GOOGLE_SECRET API_EXTERNAL_URL GOTRUE_JWT_EXP GOTRUE_SITE_URL GOTRUE_URI_ALLOW_LIST GOTRUE_SMTP_HOST GOTRUE_SMTP_PORT GOTRUE_SMTP_USER GOTRUE_SMTP_ADMIN_EMAIL GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI"
+AUTH_POSTGREST_REQUIRED="PGRST_JWT_SECRET PGRST_DB_URI"
+auth_value_sha() { grep -E "^$2=" "$1" | sed "s/^$2=//" | sha256sum; }
+check_auth_env() { # [required]
+  local f n g=$BASE/env/gotrue.env p=$BASE/env/postgrest.env
+  for f in backend.env rimpl.env; do
+    n=$(grep -oE '^[[:space:]]*(export[[:space:]]+)?(GOTRUE_[A-Z0-9_]*|PGRST_[A-Z0-9_]*|API_EXTERNAL_URL)[[:space:]]*=' "$BASE/env/$f" | head -n 1 | sed -E 's/^[[:space:]]*(export[[:space:]]+)?//; s/[[:space:]]*=$//' || true)
+    [ -z "$n" ] || die "$f sets $n, a self-hosted sign-in name: it belongs in gotrue.env or postgrest.env only (R6). Delete it from $f. Nothing was changed."
+  done
+  if [ ! -e "$g" ] && [ ! -e "$p" ] && [ "${1:-}" != required ]; then
+    log "self-hosted sign-in not configured on this host (no gotrue.env or postgrest.env); this deploy starts the backend and rimpl only"
+    return 0
+  fi
+  for f in "$g" "$p"; do
+    [ -f "$f" ] || die "$f is missing: gotrue.env and postgrest.env go together, created by a human from deploy/vm1/$(basename "$f").example. Nothing was changed."
+    [ "$(stat -c %a "$f")" = 600 ] || die "$f must be mode 600 (it is $(stat -c %a "$f")). Nothing was changed."
+    [ "$(stat -c %U "$f")" = clics ] || die "$f must be owned by clics (it is $(stat -c %U "$f")). Nothing was changed."
+  done
+  if grep -qE '^[[:space:]]*(export[[:space:]]+)?PGRST_' "$g"; then die "gotrue.env sets a PGRST_ name: it belongs in postgrest.env. Nothing was changed."; fi
+  if grep -qE '^[[:space:]]*(export[[:space:]]+)?(GOTRUE_|API_EXTERNAL_URL)' "$p"; then die "postgrest.env sets a GoTrue name: it belongs in gotrue.env. Nothing was changed."; fi
+  for n in $AUTH_GOTRUE_REQUIRED; do grep -qE "^$n=.+" "$g" || die "gotrue.env: $n has no value. Nothing was changed."; done
+  for n in $AUTH_POSTGREST_REQUIRED; do grep -qE "^$n=.+" "$p" || die "postgrest.env: $n has no value. Nothing was changed."; done
+  for n in GOTRUE_JWT_SECRET:"$g" PGRST_JWT_SECRET:"$p"; do
+    [ "$(grep -cE "^[[:space:]]*(export[[:space:]]+)?${n%%:*}[[:space:]]*=" "${n#*:}")" = 1 ] \
+      || die "$(basename "${n#*:}") must assign ${n%%:*} exactly once, as ${n%%:*}=value at the start of its line. Nothing was changed."
+  done
+  # Unquoted: compose strips quotes, and auth-role-keys.cjs, which reads the file itself, would not.
+  if grep -qE "^(GOTRUE|PGRST)_JWT_SECRET=[\"']" "$g" "$p"; then die "write GOTRUE_JWT_SECRET and PGRST_JWT_SECRET unquoted. Nothing was changed."; fi
+  [ "$(grep -E '^GOTRUE_JWT_SECRET=' "$g" | sed 's/^GOTRUE_JWT_SECRET=//' | tr -d '\n' | wc -c)" -ge 32 ] \
+    || die "gotrue.env: GOTRUE_JWT_SECRET is shorter than 32 characters; generate it with openssl rand -base64 48. Nothing was changed."
+  [ "$(auth_value_sha "$g" GOTRUE_JWT_SECRET)" = "$(auth_value_sha "$p" PGRST_JWT_SECRET)" ] \
+    || die "GOTRUE_JWT_SECRET (gotrue.env) and PGRST_JWT_SECRET (postgrest.env) differ (compared by sha256: same value, same quoting, no trailing space or CR). Nothing was changed."
+  log "self-hosted sign-in env ok (gotrue.env, postgrest.env)"
+}
+
 # /opt/clics/current, when it exists, must point at a release that is on this host: a failed activation
 # restores that release from its directory. Pruning keeps `current` and `previous` (README, Operating it).
 check_current_release() {

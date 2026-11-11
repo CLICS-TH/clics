@@ -274,6 +274,10 @@ jobs:
             cat deploy/vm1/remote/lib.sh "deploy/vm1/remote/$step.sh" | shellcheck -s bash -
           done
           node --check deploy/vm1/health-gate.cjs
+          node --check deploy/vm1/auth-role-keys.cjs
+          node --check deploy/vm1/rehearsal/auth-paths.mjs
+          bash -n deploy/vm1/rehearsal/run.sh
+          shellcheck deploy/vm1/rehearsal/run.sh
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
       - name: Guard tests (loopback-only backend, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
         run: node --test scripts/deploy/*.test.mjs
@@ -326,9 +330,17 @@ jobs:
             deploy/vm1/nginx/clics.ccme.or.th.conf > "$d/clics.conf"
           docker run --rm -v "$d/clics.conf:/etc/nginx/conf.d/clics.conf:ro" \
             -v "$d:/etc/nginx/test-cert:ro" nginx:1.18 nginx -t
+      # Self-hosted sign-in (#427): GoTrue + PostgREST + supabase-gw against a throwaway supabase/postgres, with
+      # the backend built above. Checks the running containers (GoTrue on 127.0.0.1:3102 only; PostgREST,
+      # supabase-gw, db and the backend unpublished; non-root, read-only roots), then replays every sign-in
+      # path that runs over HTTP (rehearsal/auth-paths.mjs). Its own compose project; removed when it exits.
+      - name: 'Self-hosted sign-in: hardened surface + sign-in replay (hermetic rehearsal)'
+        run: SKIP_BUILD=1 deploy/vm1/rehearsal/run.sh hermetic
       - name: Container logs
         if: failure()
-        run: docker compose logs --no-color
+        run: |
+          docker compose logs --no-color
+          docker compose -p clics-rehearsal logs --no-color || true
       - name: Tear down
         if: always()
         run: docker compose down -v
