@@ -96,17 +96,63 @@ test('a 21-point outlier sample moves the median fit less than least squares, an
   }
 });
 
-test('the same samples in another order give the same table', () => {
-  const samples = DESIGN.flatMap((path, pi) => [0, 1, 2].map((k) => ({
-    path, domains: Object.fromEntries(DOMAINS.map((d, di) => [d, (pi * 7 + di * 3 + k * 5) % 6])),
+const every = (v) => Object.fromEntries(DOMAINS.map((d) => [d, v]));
+const scored = (path, values) => values.map((v) => ({ path, domains: every(v) }));
+
+test('of equally good median fits, the table takes the one closest to least squares', () => {
+  // One step. Any B in [2, 4] fits B's {2, 4} equally well, while R {1, 2, 6} and W {1, 2, 3} must sit at their
+  // medians, 2. Least squares has B 3, R 3 and W 2; the distance 2(b − 3)² + 3(2 − 3)² + 3(2 − 2)² is least at b = 3.
+  const { paths } = fitTable([...scored('B', [2, 4]), ...scored('R', [1, 2, 6]), ...scored('W', [1, 2, 3])]);
+  assert.deepEqual(paths, { B: every(3), R: every(2), W: every(2) });
+});
+
+test('when least squares lies outside the equally good fits, the table takes their nearest edge, on every path the tied effect moves', () => {
+  // Two steps. One sample of 3 on each path without R at step 1 holds the intercept at 3 and every other effect at 0.
+  // Step 1's R effect ρ makes RB, RR and RW 3 + ρ; their medians span 4–5, 4–8 and 4–6, so any ρ in [1, 2] is
+  // optimal. Each has mean 6, so least squares has ρ = 3, and the distance 12(ρ − 3)² is least at ρ = 2. RR moves to 5
+  // although its own mean, 6, lies inside its median span.
+  const held = ['BB', 'BR', 'BW', 'WB', 'WR', 'WW'].flatMap((p) => scored(p, [3]));
+  const { paths } = fitTable([...held, ...scored('RB', [3, 4, 5, 12]), ...scored('RR', [4, 4, 8, 8]), ...scored('RW', [0, 4, 6, 14])]);
+  assert.deepEqual(paths, {
+    BB: every(3), BR: every(3), BW: every(3), RB: every(5), RR: every(5), RW: every(5), WB: every(3), WR: every(3), WW: every(3),
+  });
+});
+
+// mulberry32: a seeded uniform [0, 1).
+function seeded(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), a | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const shuffled = (xs, random) => xs.map((x) => [random(), x]).sort(([a], [b]) => a - b).map(([, x]) => x);
+
+test('the same whole-number samples in any row order, with the domains in any key order, give the same table', () => {
+  const random = seeded(381);
+  const tally = (path, t) => [...path].filter((x) => x === t).length;
+  const whole = (v) => Math.min(5, Math.max(0, Math.round(v)));
+  const samples = DESIGN.flatMap((path) => [0, 1, 2].map(() => ({
+    path,
+    domains: Object.fromEntries(DOMAINS.map((d) => [d, whole(4.2 - 0.3 * tally(path, 'R') - 0.6 * tally(path, 'W') + 3 * (random() - 0.5))])),
   })));
-  const reordered = [...samples.filter((_, i) => i % 2), ...samples.filter((_, i) => !(i % 2)).reverse()];
-  assert.deepEqual(fitTable(reordered), fitTable(samples));
+  const table = fitTable(samples);
+  for (let round = 0; round < 5; round += 1) {
+    const keys = shuffled(DOMAINS, random);
+    const reordered = shuffled(samples, random).map((x) => ({ path: x.path, domains: Object.fromEntries(keys.map((d) => [d, x.domains[d]])) }));
+    assert.deepEqual(fitTable(reordered), table, `round ${round + 1}, domains ${keys.join(' ')}`);
+  }
 });
 
 test('a tier never sampled at some step leaves its effect unfitted, and is refused', () => {
   const samples = samplesOn(plantedModel()).filter((x) => x.path[1] !== 'W');
   assert.throws(() => fitTable(samples), /no sample has W at step 2/);
+});
+
+test('paths that hold every tier at every step but tie two steps\' effects together are refused', () => {
+  assert.throws(() => fitTable([...scored('BB', [3]), ...scored('RR', [2]), ...scored('WW', [1])]), /do not separate every step × tier effect/);
 });
 
 test('a step whose weaker answers score above its best is the one likely mislabel, by its composite effect', () => {
