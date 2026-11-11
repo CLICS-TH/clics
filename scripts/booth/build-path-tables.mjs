@@ -7,7 +7,8 @@
  * regression of each domain on step × tier fills all 243 (#381, scripts/booth/path-fit.mjs). A run builds cases of
  * one step count. A case gets a table only when its tree is byte-identical to the tree its safety review read (from
  * git history) and every sampled path is fully scored; the table is written into the case file with its version
- * bumped. The report re-runs ADR 0005's difficulty check on the samples.
+ * bumped. The report re-runs ADR 0005's difficulty check: on the scripted paths' samples for three steps, on their
+ * fitted entries for five.
  *
  * LIVE BUILDS ARE OFF until #408 gives the build a spend cap that holds. This script sends no evaluator request: --go
  * is refused before anything else runs, and the only build is --from, from a saved run's samples, which spends nothing.
@@ -191,16 +192,19 @@ const report = {
   cases: {},
   recheck: null,
 };
-const composites = Object.fromEntries(building.map((c) => [c.kase.case_id,
-  Object.fromEntries(plan.sampled.map((p) => [p, samplesOf(c.kase.case_id, p).map((r) => r.composite)]))]));
-report.recheck = recheck(composites, scripted, {
-  samples: opts.samples,
-});
+const built = Object.fromEntries(building.map((c) => {
+  const id = c.kase.case_id;
+  const complete = plan.sampled.every((p) => samplesOf(id, p).length === opts.samples);
+  return [id, {
+    composites: Object.fromEntries(plan.sampled.map((p) => [p, samplesOf(id, p).map((r) => r.composite)])),
+    table: complete ? plan.build((p) => samplesOf(id, p).map((r) => r.domains)) : null,
+  }];
+}));
+report.recheck = recheck(plan, built, { samples: opts.samples });
 for (const c of cases) {
   const id = c.kase.case_id;
   if (c.tree.why) { report.cases[id] = { version: c.kase.version, why: c.tree.why, table: false }; continue; }
-  const complete = plan.sampled.every((p) => samplesOf(id, p).length === opts.samples);
-  const table = complete ? plan.build((p) => samplesOf(id, p).map((r) => r.domains)) : null;
+  const { table } = built[id];
   const paths = table?.paths ?? null;
   let why = !paths ? 'not every path is fully scored' : !oneConfig ? 'not one locked evaluator configuration'
     : !/^\d+$/.test(c.kase.version) ? `version ${c.kase.version} is not a whole number` : null;
