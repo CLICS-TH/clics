@@ -1,0 +1,4 @@
+{
+  "step": ["variant", "bridge", "options", "choice", "typed", "reply", "tier"],
+  "reply": ["strength", "weigh", "safety"]
+}

@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scanPii, parseAiRead } from './open-dataset.mjs';
+import { scanPii, parseAiRead, aiReadRequest } from './open-dataset.mjs';
 import { run, anthropicRead, gitCaseFile, currentCaseFiles } from './build-open-dataset.mjs';
 
 const { ANTHROPIC_MODEL } = createRequire(import.meta.url)('../../rimpl/src/lib/provider-policy.js');
@@ -211,13 +211,17 @@ test('the AI read is sent the text de-identified: the planted phone reaches it i
   for (const digits of ['5678', '๕๖๗๘']) assert.ok(!sent.includes(digits), `no ${digits} in the request`);
 });
 
-test('a tapped-only play is released with no AI read; a failed read or the cap withholds a typed play, signed or not', async (t) => {
+test('a tapped-only play is screened like any other; a failed read or the cap withholds a play, signed or not', async (t) => {
   const reader = ai();
   const tappedOnly = play(1, [tapped(), tapped(), tapped()], { tier_path: 'BBB' });
   const solo = await build(t, { plays: [tappedOnly], aiRead: reader.read });
   assert.equal(stateOf(solo, 'BBB'), 'released');
   assert.equal(solo.transcripts().length, 1);
-  assert.equal(reader.calls.length, 0, 'no AI read for a play with no typed text');
+  assert.equal(reader.calls.length, 1, 'a tapped-only play gets its AI read too');
+
+  const echoed = play(4, [tapped({ reply: reply({ weigh: 'โทรหา 081-234-5678' }) }), tapped(), tapped()], { tier_path: 'BRB' });
+  const echo = await build(t, { plays: [echoed] });
+  assert.equal(stateOf(echo, 'BRB'), 'withheld', 'a phone in a tapped play\'s reply flags it');
 
   const typedPlay = play(2, [typed('ให้สารน้ำก่อน'), tapped(), tapped()], { tier_path: 'RBB' });
   const out = tmp(t);
@@ -238,7 +242,7 @@ test('a tapped-only play is released with no AI read; a failed read or the cap w
   assert.equal(capped.calls.length, 0, '--cap 0 makes no AI read');
   assert.equal(stateOf(zero, 'RBB'), 'withheld');
   assert.equal(stateOf(zero, 'WBB'), 'withheld');
-  assert.equal(stateOf(zero, 'BBB'), 'released');
+  assert.equal(stateOf(zero, 'BBB'), 'withheld', 'a tapped-only play left unread is withheld too');
   assert.match(zero.lines.out.join('\n'), /raise --cap/);
 });
 
@@ -296,7 +300,7 @@ test('a full build only reads the database, sends only the AI read to the Messag
   const opts = { plays, out, aiRead: anthropicRead({ apiKey: 'test-key', fetchImpl }) };
   const first = await build(t, opts);
   assert.equal(first.code, 0, first.lines.err.join('\n'));
-  assert.equal(sent.length, 1, 'one AI read, for the one typed play');
+  assert.equal(sent.length, 2, 'one AI read per play with dialogue');
   assert.equal(sent[0].body.model, ANTHROPIC_MODEL);
   assert.equal(sent[0].headers['x-api-key'], 'test-key');
   assert.deepEqual([...new Set(first.reads.map((q) => q.table))].sort(), ['app_settings', 'booth_plays']);
@@ -374,4 +378,28 @@ test('the CLI refuses bad arguments with usage, and without --go prints its plan
   assert.equal(noEnv.code, 2);
   assert.match(noEnv.err, /SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY not set: nothing was read/);
   assert.equal(existsSync(out), false, 'nothing is written without the env');
+});
+
+test('a play whose steps hold a key or value outside the published shape refuses the build, writing nothing', async (t) => {
+  for (const [bad, why] of [
+    [tapped({ at: '2026-11-05T03:47:11Z' }), 'an unknown step key'],
+    [tapped({ reply: reply({ note: 'คุณสมชาย' }) }), 'an unknown reply key'],
+    [tapped({ choice: 'คุณสมชาย โทร 0812345678' }), 'text in an id field'],
+    [tapped({ tier: 'excellent' }), 'a tier that is not a tier name'],
+  ]) {
+    const b = await build(t, { plays: [play(1, [bad, tapped(), tapped()], { tier_path: 'BBB' })] });
+    assert.equal(b.code, 1, why);
+    assert.match(b.lines.err.join('\n'), /not the shape this build publishes/, why);
+    assert.equal(existsSync(join(b.dir, 'bundle')), false, `${why}: nothing is written`);
+  }
+});
+
+test('no span the scan flags reaches the AI read: a labelled English name and a titled Thai name are masked', () => {
+  const strings = ['full name: John Smith', 'ส่งต่อให้ รศ.สมชาย ใจดี ดูแล', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ หรือ a.b@c.co'];
+  for (const s of strings) assert.notDeepEqual(scanPii(s), [], `the scan flags ${s}`);
+  const sent = JSON.stringify(aiReadRequest(strings));
+  for (const leak of ['John', 'Smith', 'สมชาย', 'ใจดี', '081', '๐๘๑', '5678', 'a.b@c.co']) {
+    assert.ok(!sent.includes(leak), `the AI read is not sent ${leak}`);
+  }
+  assert.match(sent, /\[FLAGGED\]/);
 });

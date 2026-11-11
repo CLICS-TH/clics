@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { ascii, TH_HONORIFIC_NAME, TH_LABELLED_NAME } from '../manuals/lib/pii-gate.mjs';
 import { bangkokTime } from './purge-summary.mjs';
@@ -42,15 +43,42 @@ export const PLAY_COLUMNS = Object.freeze([
     + '0.15 d5 + 0.10 d6 + 0.10 d7). Empty unless the play was scored.'),
   column('score_source', 'table: read from the case version\'s path score table; live: one live evaluator call on the '
     + 'play\'s dialogue; empty: recorded before the booth kept the score source.'),
-  column('transcript', 'released: the play\'s dialogue is in transcripts.jsonl; withheld: the play has typed text that '
-    + 'a screen flagged and no person signed off, so its dialogue is left out; none: the play recorded no dialogue.',
+  column('transcript', 'released: the play\'s dialogue is in transcripts.jsonl; withheld: a screen flagged the play\'s '
+    + 'dialogue, or the AI could not read it, and no person signed off, so its dialogue is left out; none: the play recorded no dialogue.',
   (_row, transcript) => transcript),
 ]);
 
 export const READ_COLUMNS = 'id, event_code, created_at, status, case_id, case_version, tier_path, replied_step, ranked, '
   + 'composite, d1, d2, d3, d4, d5, d6, d7, score_source, steps';
 
-export const hasTyped = (row) => Array.isArray(row.steps) && row.steps.some((s) => 'typed' in s);
+// backend/tests/booth-open-dataset-steps.test.js holds this list to the keys stepRecords writes.
+export const STEP_KEYS = Object.freeze(JSON.parse(readFileSync(new URL('./open-dataset-step-keys.json', import.meta.url), 'utf8')));
+const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$/;
+const TIER_NAMES = new Set(['best', 'reasonable', 'weaker']);
+const isText = (v) => v == null || typeof v === 'string';
+
+/** Why a play's steps cannot be published as they are: a key outside STEP_KEYS, or a value of the wrong shape, so
+ *  nothing reaches transcripts.jsonl that freeText did not hand to the screen. @returns {string[]} */
+export function stepProblems(row) {
+  if (row.steps == null) return [];
+  if (!Array.isArray(row.steps)) return ['steps is not an array'];
+  return row.steps.flatMap((s, i) => {
+    const at = `step ${i + 1}`;
+    if (!s || typeof s !== 'object' || Array.isArray(s)) return [`${at} is not an object`];
+    const out = Object.keys(s).filter((k) => !STEP_KEYS.step.includes(k)).map((k) => `${at} has unknown key ${k}`);
+    if (s.reply != null && (typeof s.reply !== 'object' || Array.isArray(s.reply))) out.push(`${at} reply is not an object`);
+    else out.push(...Object.keys(s.reply ?? {}).filter((k) => !STEP_KEYS.reply.includes(k)).map((k) => `${at} reply has unknown key ${k}`));
+    if (!ID.test(String(s.variant))) out.push(`${at} variant is not an id`);
+    if (!Array.isArray(s.options) || !s.options.every((o) => ID.test(String(o)))) out.push(`${at} options are not ids`);
+    if ('choice' in s && !ID.test(String(s.choice))) out.push(`${at} choice is not an id`);
+    if (!TIER_NAMES.has(s.tier)) out.push(`${at} tier is not a tier name`);
+    for (const t of [s.bridge, s.typed, ...Object.values(s.reply ?? {})]) if (!isText(t)) { out.push(`${at} holds a text field that is not text`); break; }
+    return out;
+  });
+}
+
+const publishedStep = (s) => Object.fromEntries(STEP_KEYS.step.filter((k) => k in s).map((k) => [k,
+  k === 'reply' && s.reply ? Object.fromEntries(STEP_KEYS.reply.filter((r) => r in s.reply).map((r) => [r, s.reply[r]])) : s[k]]));
 
 export const freeText = (row) => (row.steps ?? [])
   .flatMap((s) => [s.bridge, s.typed, ...Object.values(s.reply ?? {})])
@@ -62,6 +90,23 @@ const LONG_NUMBER = /(?<![0-9])[0-9](?:[-.\s]?[0-9]){5,}(?![0-9])/g;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const PLACEHOLDER = /\[[A-Z]+-\d+\]/g;
 const STARTS_WITH_PLACEHOLDER = /^\[[A-Z]+-\d+\]/;
+// The manuals gate's name rules, widened to the words after the name, so a surname is part of the span.
+const HONORIFIC_SPAN = new RegExp(`${TH_HONORIFIC_NAME.source}(?:[ \\t]+[ก-ฮเ-ไ][ก-ฮะ-๎]+)?`, 'g');
+const LABELLED_SPAN = new RegExp(`${TH_LABELLED_NAME.source}(?:[ \\t]+[^\\s,;)]+){0,2}`, 'gi');
+const FLAGGED_TOKEN = '[FLAGGED]';
+
+/** The scan's own span rules, all read on Thai-digit-normalised text. aiReadRequest masks every span they match. */
+const SPAN_RULES = Object.freeze([
+  { rule: 'long-number', re: LONG_NUMBER },
+  { rule: 'email', re: EMAIL },
+  { rule: 'honorific-name', re: HONORIFIC_SPAN },
+  { rule: 'labelled-name', re: LABELLED_SPAN, keep: (m) => !STARTS_WITH_PLACEHOLDER.test(m[1]) },
+]);
+const spanMatches = (flat) => SPAN_RULES.flatMap(({ rule, re, keep = () => true }) =>
+  [...flat.matchAll(re)].filter(keep).map((m) => ({ rule, match: m[0], index: m.index })));
+
+const maskSpans = (flat) => spanMatches(flat).sort((a, b) => b.index - a.index)
+  .reduce((t, m) => `${t.slice(0, m.index)}${FLAGGED_TOKEN}${t.slice(m.index + m.match.length)}`, flat);
 
 const excerpt = (a, b) => {
   let i = 0;
@@ -86,10 +131,7 @@ export function scanPii(text) {
     if (!findings.some((f) => f.rule === rule && f.match === match)) findings.push({ rule, match });
   };
   const flat = ascii(text);
-  for (const m of flat.matchAll(LONG_NUMBER)) add('long-number', m[0]);
-  for (const m of flat.matchAll(EMAIL)) add('email', m[0]);
-  for (const m of text.matchAll(TH_HONORIFIC_NAME)) add('honorific-name', m[0]);
-  for (const m of text.matchAll(TH_LABELLED_NAME)) if (!STARTS_WITH_PLACEHOLDER.test(m[1])) add('labelled-name', m[0]);
+  for (const m of spanMatches(flat)) add(m.rule, m.match);
   for (const t of new Set([text, flat])) {
     try {
       for (const f of filterFindings(t)) add(f.rule, f.match);
@@ -114,10 +156,11 @@ const AI_READ_SYSTEM = [
   '{"identifying": true or false, "reason": "one short sentence"}',
 ].join('\n');
 
-// Critical rule 1: only de-identified text reaches a cloud model, so the read sees what the scan could not mask.
+// Critical rule 1: each span the scan's own rules flag becomes [FLAGGED] and rimpl's filter masks what it finds, so
+// the cloud model is sent only what neither found. A bare name neither sees still reaches it: that is what it reads for.
 export function aiReadRequest(strings) {
   const registry = makeRegistry();
-  const masked = strings.map((s) => stripPii(ascii(s), registry).replace(LONG_NUMBER, '[NUMBER]'));
+  const masked = strings.map((s) => stripPii(maskSpans(ascii(s)), registry));
   return {
     system: AI_READ_SYSTEM,
     messages: [{ role: 'user', content: `The strings to check, as a JSON array:\n${JSON.stringify(masked)}` }],
@@ -154,7 +197,6 @@ export function signedKeys(signoff) {
  */
 export function transcriptState(row, screen, signed) {
   if (!Array.isArray(row.steps)) return 'none';
-  if (!hasTyped(row)) return 'released';
   // A person signs off what both screens found, so a play the AI never read is read again, not signed.
   if (screen.ai.kind === 'unread') return 'withheld';
   if (!flagged(screen)) return 'released';
@@ -178,13 +220,13 @@ export function playsCsv(rows, stateOf) {
 
 export function transcriptsJsonl(rows, stateOf) {
   return sortedByRef(rows).filter(({ ref }) => stateOf(ref) === 'released').map(({ ref, row }) => `${JSON.stringify({
-    play_ref: ref, case_id: row.case_id, case_version: row.case_version, tier_path: row.tier_path, steps: row.steps,
+    play_ref: ref, case_id: row.case_id, case_version: row.case_version, tier_path: row.tier_path, steps: row.steps.map(publishedStep),
   })}\n`).join('');
 }
 
 export function flaggedReport(screens, stateOf) {
   return {
-    about: 'Plays with typed text that a screen flagged. A withheld play is left out of transcripts.jsonl. To release '
+    about: 'Plays whose dialogue a screen flagged. A withheld play is left out of transcripts.jsonl. To release '
       + 'one after reading its strings, copy its signoff into review/signoff.json (a JSON array), put your name in "by" '
       + 'and the date in "date", and run the build again. A play the AI could not read (ai.kind unread) has no signoff: '
       + 'run the build again to read it. Keep this file private: it holds the flagged text.',
@@ -229,7 +271,7 @@ Built on ${builtOn} from CLICS source commit ${commit ?? 'unknown'}. ${counts.pl
 4. **Typed answers are scored as their tier.** When a visitor typed an answer, the AI sorted it into best, reasonable or weaker, and a play scored from the table scores as that tier. The typed text itself is never scored.
 5. **d1 to d7 are a function of the path.** For a play with score_source \`table\`, d1 to d7 and the composite are a lookup on (case version, tier path) in that case version's path score table (\`path_score_table\` in cases/), built before the event by the evaluator from sample transcripts (CLICS ADR 0009). Every play of one case version on one tier path has the same score, so those plays are not independent measurements, and the dialogue a visitor saw did not move the score.
 6. **The 3 to 4 November 2026 plays.** Plays recorded before the booth kept its dialogue (the NFCME-2026 plays of 3 to 4 November 2026) hold a tier path and a score from one live evaluator call only: transcript \`none\` and an empty score_source. That evaluator read the play's own dialogue, so limits 4 and 5 do not hold for these plays.
-7. **Withheld transcripts.** A play with typed text is in transcripts.jsonl only when a PII scan and an AI read found nothing in its text, or a person read what they flagged and signed it off. Every other play with typed text is left out of transcripts.jsonl and marked \`withheld\` in plays.csv, so the released transcripts are not a random sample of the plays. Typed text is stored only as the CLICS PII filter's de-identified copy: an identifier it found reads as a token such as [NAME-1].
+7. **Withheld transcripts.** A play is in transcripts.jsonl only when a PII scan and an AI read found nothing in its dialogue (typed answers and the AI tutor's replies), or a person read what they flagged and signed it off. Every other play with dialogue is left out of transcripts.jsonl and marked \`withheld\` in plays.csv, so the released transcripts are not a random sample of the plays. Typed text is stored only as the CLICS PII filter's de-identified copy: an identifier it found reads as a token such as [NAME-1].
 8. **Left out.** The booth tag (the visitor's number on the booth's board), the time of day, the AI spend and the database id are not in this dataset. play_ref is a one-way hash of the database id, and rows are sorted by play_ref, not by time.
 `;
 }
@@ -276,8 +318,8 @@ ${table(['Field', 'Meaning'], [
 ## Transcript states
 
 ${table(['State', 'Meaning'], [
-    ['released', 'The dialogue is in transcripts.jsonl: the play has no typed text, or its text passed the PII scan and the AI read, or a person signed off what they flagged.'],
-    ['withheld', 'The play has typed text that a screen flagged, or the AI could not read, and no person signed it off. The dialogue is left out.'],
+    ['released', 'The dialogue is in transcripts.jsonl: its text passed the PII scan and the AI read, or a person signed off what they flagged.'],
+    ['withheld', 'A screen flagged the dialogue, or the AI could not read it, and no person signed it off. The dialogue is left out.'],
     ['none', 'The play recorded no dialogue.'],
   ])}
 `;

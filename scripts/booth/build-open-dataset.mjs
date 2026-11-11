@@ -23,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SAFE_EVENT_CODE } from './purge-summary.mjs';
 import {
-  READ_COLUMNS, sortedByRef, bangkokDate, hasTyped, freeText, textSha, scanPii, aiReadRequest, parseAiRead, flagged,
+  READ_COLUMNS, sortedByRef, playRef, bangkokDate, stepProblems, freeText, textSha, scanPii, aiReadRequest, parseAiRead, flagged,
   signedKeys, transcriptState, playsCsv, transcriptsJsonl, flaggedReport, readme, dictionary,
 } from './open-dataset.mjs';
 
@@ -77,7 +77,7 @@ function plan(opts) {
     '  1. refuse unless the booth is switched off (app_settings booth_enabled = 0);',
     `  2. read the event's booth_plays rows, read-only: ${READ_COLUMNS} (never tag, spend_usd or scored_at);`,
     `  3. take each case version the plays name, and each current case, from backend/src/booth-cases/${opts.event} and its git history;`,
-    `  4. screen each play with typed text: a PII scan, then one AI read on ${ANTHROPIC_MODEL} of its de-identified text, spending at most USD ${opts.cap};`,
+    `  4. refuse a play whose steps hold a key outside scripts/booth/open-dataset-step-keys.json, then screen every play's dialogue: a PII scan, then one AI read on ${ANTHROPIC_MODEL} of its masked text, spending at most USD ${opts.cap};`,
     `  5. write ${path.join(opts.out, 'bundle')} (plays.csv, transcripts.jsonl, cases/, README.md, DATA-DICTIONARY.md) and ${path.join(opts.out, 'review', 'flagged.json')}, releasing flagged plays signed off in ${opts.signoff}.`,
     'It uploads nothing: the owner deposits the bundle on Zenodo by hand.',
     `Next step: ${command(opts)}`,
@@ -143,6 +143,11 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
     return 1;
   }
   if (!rows.length) { log.err(`${event} has no booth plays. Nothing was written: check the event code.`); return 1; }
+  const malformed = rows.flatMap((r) => stepProblems(r).map((p) => `${playRef(r.id)} ${p}`));
+  if (malformed.length) {
+    log.err(`plays whose steps are not the shape this build publishes (scripts/booth/open-dataset-step-keys.json):\n  ${malformed.join('\n  ')}\nNothing was written.`);
+    return 1;
+  }
 
   let current;
   try { current = currentCases(); } catch (e) { log.err(`the case folder of ${event} is unreadable: ${e.message}`); return 2; }
@@ -166,7 +171,7 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   const screens = new Map();
   let spent = 0;
   let capped = false;
-  for (const { ref, row } of ordered.filter(({ row }) => hasTyped(row))) {
+  for (const { ref, row } of ordered.filter(({ row }) => Array.isArray(row.steps))) {
     const strings = freeText(row);
     const findings = strings.flatMap(scanPii);
     let ai = { kind: 'clear' };
@@ -226,7 +231,7 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   log.out([
     `Open booth dataset ${event} v${version}: ${counts.plays} plays, ${counts.scored} scored.`,
     `transcripts released ${counts.released}  withheld ${counts.withheld}  none ${counts.none}`,
-    `plays with typed text ${typed.length}: flagged ${typed.filter(flagged).length}, waiting on a sign-off ${toSign}, AI unread ${unreadN}`,
+    `plays screened ${typed.length}: flagged ${typed.filter(flagged).length}, waiting on a sign-off ${toSign}, AI unread ${unreadN}`,
     `AI read spend USD ${spent.toFixed(4)} of a ${cap} cap`,
     `Bundle ${bundleDir}`,
     `Review ${flaggedPath}`,
