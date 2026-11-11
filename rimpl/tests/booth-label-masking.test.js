@@ -152,12 +152,10 @@ test.each(LANGUAGES)('%s look: a tapped option reaches the AI as written', async
 });
 
 // #412: a bank question that ENDS in the label, with the value typed under it. On master the fence note sits between
-// them and keeps them apart. #414 fixes that structure; its check iterates this same table (labelRows, both
-// languages) once it lands, and these todos go with it.
+// them and keeps them apart. #414 fixes that structure; its check iterates this same table (labelRows) once it
+// lands, and these todos go with it. The English rows moved to #453 by owner ruling at the #370 gate.
 describe('#414: a question ending in the label masks the value typed under it', () => {
-  for (const lang of LANGUAGES) {
-    for (const [kind, label, value] of labelRows(lang)) test.todo(`#414 ${lang}: ${kind}, "${label}" ends the question, "${value}" typed under it`);
-  }
+  for (const [kind, label, value] of labelRows('th')) test.todo(`#414 th: ${kind}, "${label}" ends the question, "${value}" typed under it`);
 });
 
 // Vetted English case text holds no PII, and routes/chat.js reads a question that masks on its own apart from its
