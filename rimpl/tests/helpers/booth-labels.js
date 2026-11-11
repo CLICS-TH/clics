@@ -10,6 +10,7 @@ const BOOTH_LABELS = [
   { kind: 'ID number', th: 'เลขบัตรประชาชน', en: 'ID number', value: { th: '1-2345-67890-12-3', en: '1234567' } },
   { kind: 'name', th: 'ชื่อ', en: 'Name', value: { th: 'พรรณราย ทองเปลว', en: 'Dalton Prewitt' } },
   { kind: 'patient name', th: 'ชื่อผู้ป่วย', en: 'Patient name', value: { th: 'พรรณราย ทองเปลว', en: 'Dalton Prewitt' } },
+  { kind: 'name, three words', th: 'ชื่อผู้ป่วย', en: 'Patient name', value: { th: 'พรรณราย ทองเปลว', en: 'Dalton Ames Prewitt' } },
   { kind: 'surname', th: 'นามสกุล', en: 'Surname', value: { th: 'ทองเปลว', en: 'Prewitt' } },
   { kind: 'family name', th: 'นามสกุล', en: 'Family name', value: { th: 'ทองเปลว', en: 'Prewitt' } },
   { kind: 'last name', th: 'นามสกุล', en: 'Last name', value: { th: 'ทองเปลว', en: 'Prewitt' } },
@@ -22,6 +23,7 @@ const BOOTH_LABELS = [
   { kind: 'subdistrict', th: 'ตำบล', en: 'Subdistrict', value: { th: 'บางรัก', en: 'Bang Rak' } },
   { kind: 'village', th: 'หมู่ที่', en: 'Village', value: { th: '12', en: 'Ban Pong' } },
   { kind: 'address', th: 'บ้านเลขที่', en: 'Address', value: { th: '123/45', en: '123/45 Suthep Road' } },
+  { kind: 'address, long', th: 'บ้านเลขที่', en: 'Address', value: { th: '123/45', en: '123/45 Soi Wattana Suthep Road Mueang Lamphun' } },
 ];
 
 const LANGUAGES = ['th', 'en'];

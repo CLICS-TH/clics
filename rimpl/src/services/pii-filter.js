@@ -199,17 +199,18 @@ const EN_NAME_RE = new RegExp(
   'g'
 );
 
-// English identifier labels, the Latin side of ชื่อ / นามสกุล and ตำบล / อำเภอ / จังหวัด (an English booth look sends
+// A value runs to the first prose word or case change (enValue), so a three-word name or a long address is masked whole;
+// the word caps only bound the regex. English identifier labels, the Latin side of ชื่อ / นามสกุล and ตำบล / อำเภอ / จังหวัด (an English booth look sends
 // English case text, #377). The value is the next words up to the first prose word (enValue). "name" and
 // "address" are also everyday verbs ("name the cause", "address hypoxia first"), so without a colon or "is" after
 // them the value must look like one: a capitalised name, or an address that opens with its house number.
 const EN_NAME_LABELS = ['patient\\s+name', 'family\\s+name', 'last\\s+name', 'surname', 'name'];
 const EN_LABELLED_RE = new RegExp(
-  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD})?)`,
+  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,5})`,
   'gi'
 );
 const EN_PLACE_RE = new RegExp(
-  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,3})`,
+  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,7})`,
   'gi'
 );
 const EN_VERB_LABELS = new Set(['name', 'address']);
