@@ -274,7 +274,7 @@ export default [
       h.check(score.length === 1 && h.same(score[0].body, {
         answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)], look: 'th+en',
       }), 'score: one request with three answers (the typed one with the de-identified text its reply gave), three replies, three asks and four sigs as the stub sent them');
-      h.check(await text(page, '.result-card .booth-tag') === 'Booth #042', 'result: the booth tag "Booth #042"');
+      h.check(await page.locator('.result-card .booth-tag').innerText() === 'Booth #042', 'result: the booth tag "Booth #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
       const bars = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
         key: e.dataset.key, th: e.querySelector('.domain-name .bi-th').textContent, en: e.querySelector('.domain-name .bi-en').textContent,
@@ -448,10 +448,14 @@ export default [
             && h.same(shown.options.map(({ id, label, line }) => ({ id, label, line })), next.options);
           for (const look of looks) {
             await lookIn(k.page, look);
+            // The case card gives up height down to its minimum before anything else moves, so what it can still give is
+            // spare too.
             const over = await k.page.evaluate(() => {
               const body = document.querySelector('.play-body').getBoundingClientRect();
+              const card = document.querySelector('.play-body > .case-card');
+              const give = card.getBoundingClientRect().height - parseFloat(getComputedStyle(card).minHeight);
               const below = (s) => Math.max(...[...document.querySelectorAll(s)].map((e) => e.getBoundingClientRect().bottom - body.bottom));
-              return Math.max(below('.options > [data-option]'), below('[data-action="type-own"]'), below('[data-action="send"]'));
+              return Math.max(below('.options > [data-option]'), below('[data-action="type-own"]'), below('[data-action="send"]'), below('.step-sheet')) - give;
             });
             if (over > tallest[look].over) tallest[look] = { name, next, over };
             if (!words || over > 1) misfits[look].push(`${name} (${words ? `${Math.round(over)}px below` : 'text differs'})`);
@@ -460,7 +464,7 @@ export default [
         for (const look of looks) {
           const t = tallest[look];
           h.check(misfits[look].length === 0, `${width}x${height}, ${look}: all ${banks.length} distinct banks show their text word for word, `
-            + `with all three options, "type my own" and Send on screen without scrolling (tallest ${t.name}, `
+            + `with the whole sheet, its three options, "type my own" and Send on screen without scrolling (tallest ${t.name}, `
             + `${Math.round(-t.over)}px to spare)${misfits[look].length ? `; misfits: ${misfits[look].join(', ')}` : ''}`);
           await show(t.next);
           await lookIn(k.page, look);

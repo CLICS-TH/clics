@@ -1,10 +1,10 @@
 // The booth result page (#251): renders the result in the URL fragment (booth-result-link.js) and nothing else.
-import { COPY, DEFAULT_LOOK, DEMO_LABEL, scoreText, tagText, fill } from './booth-copy.js';
+import { COPY, DEFAULT_LOOK, DEMO_LABEL, scoreText, fill } from './booth-copy.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
 import { tierChip } from './booth-answers.js';
 import { parseResultFragment } from './booth-result-link.js';
-import { el, bi, setLook } from './booth-dom.js';
+import { el, bi, setLook, tagName } from './booth-dom.js';
 
 const demoLabel = () => el('div', { class: 'demo-label result-demo', dataset: { demoLabel: '' } }, bi(DEMO_LABEL));
 
@@ -25,7 +25,7 @@ function resultView(r) {
     el('header', { class: 'result-head' },
       el('h1', {}, bi(COPY.resultTitle, 'result-title')),
       el('p', { class: 'result-meta' },
-        el('span', { dataset: { tag: '' } }, tagText(r.tag)),
+        el('span', { dataset: { tag: '' } }, tagName(r.tag)),
         el('time', { datetime: r.date }, r.date))),
     demoLabel(),
     el('section', { class: 'result-case', 'aria-label': COPY.resultCase.en },

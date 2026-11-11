@@ -39,6 +39,31 @@ const BANNED = [/on[-\s]?premise/i, /validated/i, /ติดตั้งภา�
 const withoutDemoLabel = (text) => text.split(DEMO_LABEL.th).join('').split(DEMO_LABEL.en).join('');
 
 const FLOOR = { textPx: 28, optionLabelPx: 32, tapPx: 80, contrast: 4.5, thaiLeading: 1.4 };
+
+/** The kiosk clips its page (overflow: clip), so whatever runs past the screen's bottom is lost. These are the only
+ *  boxes allowed to scroll, each for its reason; every other box must fit, and every tap target must be on screen
+ *  with each scroll box at its top. */
+const DESIGNED_SCROLLERS = [
+  ['.case-text', 'a case\'s vignette can be longer than its card: read in full on its own screen, then peeking above the step sheet'],
+  ['.result-more', 'the five other domains sit under Practise next and the leaderboard button; the card\'s head (score, QR, radar) stays put'],
+  ['.reveal-steps', 'three steps of question, answer and best option outgrow one screen in a two-language look; the title and Close stay put'],
+];
+
+/** In a one-language look, text the booth wrote holds no word of the other language, except these. Text whose nearest
+ *  lang (below <html>) is the shown language is that language's copy as its authors wrote it, abbreviations included. */
+const NEUTRAL_LATIN = [
+  ['CLICS', 'the product\'s name, the same in Thai'],
+  ['AI', 'the AI label every AI bubble carries (js/ui.js AI_LABEL), the same in Thai'],
+  ['A', 'an option\'s position mark, not a word'], ['B', 'an option\'s position mark, not a word'], ['C', 'an option\'s position mark, not a word'],
+];
+/** Text the booth did not write: the AI writes in the primary language of the look its reply was asked in (a switch
+ *  after it changes only the next reply), and a visitor types in any language. The control names each language in
+ *  that language, so a visitor finds theirs whatever the look. */
+const NOT_BOOTH_COPY = [
+  ['.ai-text, .bridge-text', 'written by the AI in the look the reply was asked in'],
+  ['.answer-text, .reveal-typed, .typing-box', 'typed by the visitor'],
+  ['[data-look-primary] .look-text', 'the control\'s language names, each in its own language'],
+];
 const PLAY_ID = '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f';
 const API = 'http://localhost:3001';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*', 'cache-control': 'no-store' };
@@ -391,7 +416,7 @@ async function phone(path, { width = 375, height = 812 } = {}) {
   return k;
 }
 
-function measure({ floor, banned, demo, demoLabel }) {
+function measure({ floor, banned, demo, demoLabel, looks, scrollers, neutral, notCopy, phone }) {
   const scale = innerWidth / 1080;
   const out = [];
   const say = (e) => (e.innerText || e.value || e.getAttribute('aria-label') || e.tagName).replace(/\s+/g, ' ').trim().slice(0, 50);
@@ -510,13 +535,59 @@ function measure({ floor, banned, demo, demoLabel }) {
   if (doc.scrollWidth > innerWidth + 1) out.push(`page is ${doc.scrollWidth}px wide on a ${innerWidth}px screen`);
   if (window.scrollY !== 0) out.push(`page scrolled to y ${window.scrollY}`);
 
+  const designed = scrollers.map(([sel]) => sel).join(', ');
+  const scrolls = (e) => /auto|scroll/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 1;
+  const scrolling = [...document.body.querySelectorAll('*')].filter((e) => shown(e) && scrolls(e));
+  for (const e of scrolling) if (!e.matches(designed)) out.push(`${e.className || e.tagName} scrolls ${e.scrollHeight - e.clientHeight}px, and it is no designed scroll box`);
+  // What the boxes around `e` let show, up to <body>: the kiosk's body and root clip at the screen's edge, and what
+  // they cut off is exactly what this check is after.
+  const fold = (e) => {
+    let { top, bottom } = e.getBoundingClientRect();
+    for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) {
+      if (getComputedStyle(a).overflowY === 'visible') continue;
+      const b = a.getBoundingClientRect();
+      [top, bottom] = [Math.max(top, b.top), Math.min(bottom, b.bottom)];
+    }
+    return { full: e.getBoundingClientRect(), top, bottom };
+  };
+  for (const e of taps) {
+    const f = fold(e);
+    const offScreen = !phone && (f.full.top < -1 || f.full.bottom > innerHeight + 1);
+    if (offScreen || f.top > f.full.top + 1 || f.bottom < f.full.bottom - 1) {
+      out.push(`tap target not fully on screen without scrolling (y ${Math.round(f.full.top)}..${Math.round(f.full.bottom)}, seen ${Math.round(f.top)}..${Math.round(f.bottom)} of ${innerHeight}): "${say(e)}"`);
+    }
+  }
+  if (!phone) {
+    for (const e of texts) {
+      if (e.closest(designed)) continue;
+      const f = fold(e);
+      if (f.bottom > f.top && f.bottom > innerHeight + 1) out.push(`text below the fold (y ${Math.round(f.top)}..${Math.round(f.bottom)} of ${innerHeight}): "${say(e)}"`);
+    }
+  }
+
+  const look = looks[document.documentElement.dataset.look];
+  if (look && !look.both) {
+    const other = look.primary === 'th' ? 'en' : 'th';
+    const skip = notCopy.map(([sel]) => sel).join(', ');
+    const allowed = new Set(neutral.map(([w]) => w));
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      const p = n.parentElement;
+      if (!n.data.trim() || !shown(p) || p.closest(skip)) continue;
+      const lang = p.closest('body [lang]')?.lang ?? null;
+      const words = other === 'th' ? n.data.match(/[฀-๿]+/g) : lang === 'th' ? null : n.data.match(/[A-Za-z][A-Za-z'’-]*/g)?.filter((w) => !allowed.has(w));
+      if (lang === other || words?.length) out.push(`${other === 'th' ? 'Thai' : 'English'} in the ${look.primary === 'th' ? 'Thai' : 'English'}-only look (lang ${lang}): "${n.data.trim().slice(0, 40)}"`);
+    }
+  }
+
   const rest = document.body.innerText.split(demoLabel.th).join('').split(demoLabel.en).join('');
   for (const [src, flags] of banned) {
     const m = new RegExp(src, flags).exec(rest);
     if (m) out.push(`banned copy "${m[0]}" on screen`);
   }
+  const wanted = look && !look.both ? [look.primary] : ['th', 'en'];
   const label = [...document.querySelectorAll('[data-demo-label]')].find((e) => shown(e)
-    && e.innerText.includes(demoLabel.th) && e.innerText.includes(demoLabel.en));
+    && wanted.every((l) => e.innerText.includes(demoLabel[l])));
   const numeric = /\d/.test(rest);
   if (demo === true || (demo === 'auto' && numeric)) {
     if (!label) out.push(`a number is on screen but the demo label is not`);
@@ -525,24 +596,29 @@ function measure({ floor, banned, demo, demoLabel }) {
       if (r.top < 0 || r.bottom > innerHeight + 1) out.push(`the demo label is off screen (y ${Math.round(r.top)}..${Math.round(r.bottom)})`);
     }
   }
-  return { out, scale, texts: texts.length, labels: labels.length, taps: taps.length, numeric, demoShown: !!label };
+  return { out, scale, texts: texts.length, labels: labels.length, taps: taps.length, numeric, demoShown: !!label, oneLanguage: !!(look && !look.both) };
 }
 
 /**
  * The checks every booth screen must pass, in one page.evaluate: text >= 28px x scale with AA contrast against
  * its composited background and Thai leading >= 1.4, option labels >= 32px x scale, tap targets >= 80px x scale,
- * nothing outside the screen, no page scroll, no banned copy, and the demo label on screen whenever a digit is.
- * @param {{ demo?: true | 'auto' }} [opts] true: the label is required even with no digit on screen
+ * nothing outside the screen, no page scroll, no banned copy, and the demo label on screen whenever a digit is, in
+ * the look's language(s). Vertical fit: only DESIGNED_SCROLLERS scroll, every tap target is fully on screen with every
+ * scroll box at its top, and on the kiosk no text outside a designed scroll box runs below the screen. In a
+ * one-language look no booth copy holds the other language (NEUTRAL_LATIN, NOT_BOOTH_COPY).
+ * @param {{ demo?: true | 'auto', phone?: boolean }} [opts] demo true: the label is required even with no digit on
+ *   screen; phone: the page is a document that scrolls, so text and tap targets below its first screen are fine
  */
 async function screenCheck(page, label, opts = {}) {
-  const r = await page.evaluate(measure, { floor: FLOOR, banned: BANNED.map((b) => [b.source, b.flags]), demo: opts.demo ?? 'auto', demoLabel: DEMO_LABEL });
+  const r = await page.evaluate(measure, { floor: FLOOR, banned: BANNED.map((b) => [b.source, b.flags]), demo: opts.demo ?? 'auto', demoLabel: DEMO_LABEL,
+    looks: LOOKS, scrollers: DESIGNED_SCROLLERS, neutral: NEUTRAL_LATIN, notCopy: NOT_BOOTH_COPY, phone: !!opts.phone });
   const f = (n) => Math.round(n * r.scale);
   check(r.texts > 0, `${label}: ${r.texts} texts, ${r.labels} option labels, ${r.taps} tap targets measured`);
   r.out.slice(0, 12).forEach((m) => check(false, `${label}: ${m}`));
   if (r.out.length > 12) check(false, `${label}: ${r.out.length - 12} more failures`);
   if (!r.out.length) {
     check(true, `${label}: text >= ${f(FLOOR.textPx)}px, option labels >= ${f(FLOOR.optionLabelPx)}px, taps >= ${f(FLOOR.tapPx)}px, `
-      + `AA contrast, Thai leading, no overflow, copy rule${r.demoShown ? ', demo label on screen' : ''}`);
+      + `AA contrast, Thai leading, no overflow, ${opts.phone ? 'no inner scroll' : 'vertical fit'}, copy rule${r.oneLanguage ? ', no word of the other language' : ''}${r.demoShown ? ', demo label on screen' : ''}`);
   }
   return r;
 }

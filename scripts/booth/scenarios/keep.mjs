@@ -127,7 +127,7 @@ export default [
       await page.waitForSelector('.result-card');
       const seen = await page.evaluate(() => ({
         score: document.querySelector('[data-score]')?.textContent,
-        tag: document.querySelector('[data-tag]')?.textContent,
+        tag: document.querySelector('[data-tag]')?.innerText,
         date: document.querySelector('time')?.getAttribute('datetime'),
         teaser: document.querySelector('.result-case .teaser')?.innerText,
         labels: document.querySelectorAll('[data-demo-label]').length,
@@ -165,7 +165,7 @@ export default [
         await page.evaluate((to) => document.scrollingElement.scrollTo(0, to), y);
         await page.evaluate(() => window.scrollTo(0, 0));
       }
-      await h.screenCheck(page, `result page ${width}px`, { demo: 'auto' });
+      await h.screenCheck(page, `result page ${width}px`, { demo: 'auto', phone: true });
       await h.shot(page, `result-page-${width}`, { fullPage: true });
       await page.evaluate((f) => { location.hash = f; }, `r1.${b64({ ...GOOD, s: 91 })}`);
       await page.waitForFunction(() => document.querySelector('[data-score]')?.textContent === '91');
@@ -188,7 +188,7 @@ export default [
           checkTry(h, 'missing', await tryLink(page), new URL(page.url()).origin);
           for (const [w, ht] of [[375, 812], [320, 640]]) {
             await page.setViewportSize({ width: w, height: ht });
-            await h.screenCheck(page, `missing result page ${w}px`, { demo: 'auto' });
+            await h.screenCheck(page, `missing result page ${w}px`, { demo: 'auto', phone: true });
             const smallest = await page.evaluate(() => Math.min(...[...document.querySelectorAll('.result-page *')].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
               .map((e) => parseFloat(getComputedStyle(e).fontSize))));
             h.check(smallest >= 16, `missing ${w}px: no text under 16 px (smallest ${smallest} px)`);

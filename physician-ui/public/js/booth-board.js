@@ -6,8 +6,8 @@
 //   leaderboardButton({ host, api, board, tag, short })  the button on the result card and the loop (#250): opens the board
 //                                               over `host`, from `board` when the score carried one, else GET /booth/board
 // The panel has no controls: on the loop a tap anywhere, the panel included, starts a play. The overlay has one, Close.
-import { tagText, DEMO_LABEL } from './booth-copy.js';
-import { el, bi } from './booth-dom.js';
+import { DEMO_LABEL } from './booth-copy.js';
+import { el, bi, tagName } from './booth-dom.js';
 
 const BOARD_TIMEOUT_MS = 8_000;
 const LOOP_REFRESH_MS = 60_000;
@@ -39,7 +39,7 @@ const icon = (name) => el('span', { class: 'booth-icon', 'aria-hidden': 'true', 
 
 /** @param {number} tag @returns {HTMLElement} */
 export function renderTag(tag) {
-  return el('p', { class: 'booth-tag', dataset: { tagIcon: tagIcon(tag) } }, icon(tagIcon(tag)), el('span', {}, tagText(tag)));
+  return el('p', { class: 'booth-tag', dataset: { tagIcon: tagIcon(tag) } }, icon(tagIcon(tag)), tagName(tag));
 }
 
 const isRank = (v) => Number.isInteger(v) && v > 0;
@@ -54,7 +54,7 @@ function boardList(title, entries, mine) {
       ? el('ol', { class: 'board-rows' }, ...entries.map((e, i) => el('li', {
         class: 'board-row', dataset: { tag: String(e.tag) }, ...(e.tag === mine ? { 'aria-current': 'true' } : {}),
       }, el('span', { class: 'board-rank' }, String(i + 1)), icon(tagIcon(e.tag)),
-      el('span', { class: 'board-tag' }, tagText(e.tag)), el('span', { class: 'board-score' }, String(Math.round(e.score))))))
+      el('span', { class: 'board-tag' }, tagName(e.tag)), el('span', { class: 'board-score' }, String(Math.round(e.score))))))
       : bi(COPY.empty, 'board-empty'));
 }
 

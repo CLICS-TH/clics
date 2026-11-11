@@ -1,7 +1,7 @@
-// The language look control (#377): fixed in one corner of every booth screen. It sits outside #booth, which the loop
-// and the play redraw wholesale, and above the loop's tap layer, so a tap on it never starts a play.
+// The language look control (#377): fixed in one corner of every booth screen, overlays included. It sits outside
+// #booth, which the loop and the play redraw wholesale, so a tap on it never starts a play or reaches an overlay.
 import { LOOKS, LOOK_COPY, lookOf } from './booth-copy.js';
-import { el, currentLook, setLook, onLook } from './booth-dom.js';
+import { el, bi, currentLook, setLook, onLook } from './booth-dom.js';
 
 const tick = () => el('span', { class: 'booth-icon look-tick', 'aria-hidden': 'true', dataset: { icon: 'check' } });
 
@@ -15,7 +15,7 @@ export function mountLookControl(host) {
   };
   const both = el('button', { type: 'button', class: 'look-btn look-both', dataset: { lookBoth: '' } },
     el('span', { class: 'look-box', 'aria-hidden': 'true' }, tick()),
-    el('span', { class: 'look-text' }, el('span', { lang: 'th' }, LOOK_COPY.both.th), el('span', { lang: 'en' }, LOOK_COPY.both.en)));
+    el('span', { class: 'look-text' }, bi(LOOK_COPY.both)));
   both.addEventListener('click', () => {
     const { primary, both: shown } = LOOKS[currentLook()];
     setLook(lookOf(primary, !shown));

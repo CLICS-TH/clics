@@ -14,7 +14,8 @@ export const LOOKS = Object.freeze({
 export const DEFAULT_LOOK = 'th+en';
 export const lookOf = (primary, both) => Object.keys(LOOKS).find((k) => LOOKS[k].primary === primary && LOOKS[k].both === both);
 
-/** The look control's own words: fixed, so a visitor finds their language whatever the look. */
+/** The look control's own words. Each language is named in itself whatever the look, so a visitor finds theirs;
+ *  "both" shows in the primary language only. */
 export const LOOK_COPY = Object.freeze({
   group: { th: 'ภาษา', en: 'Language' },
   th: 'ไทย',
@@ -114,7 +115,8 @@ export const COPY = Object.freeze({
   tryClics: { th: 'ลองใช้ CLICS', en: 'Try CLICS' },
 });
 
-export const tagText = (tag) => `Booth #${String(tag).padStart(3, '0')}`;
+/** @param {'th' | 'en'} [lang] */
+export const tagText = (tag, lang = 'en') => `${lang === 'th' ? 'บูธ' : 'Booth'} #${String(tag).padStart(3, '0')}`;
 
 export const scoreText = (composite) => String(Math.round(composite));
 

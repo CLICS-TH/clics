@@ -1,4 +1,4 @@
-import { LOOKS, DEFAULT_LOOK } from './booth-copy.js';
+import { LOOKS, DEFAULT_LOOK, tagText } from './booth-copy.js';
 
 export function el(tag, props = {}, ...kids) {
   const e = document.createElement(tag);
@@ -81,6 +81,11 @@ export function setLook(next) {
   for (const e of document.querySelectorAll('[data-look-lang]')) e.lang = LOOKS[next].primary;
   for (const fn of [...listeners]) fn(next);
 }
+
+/** A booth tag names one visitor, so it shows once: in English wherever the look shows English, in Thai in the
+ *  Thai-only look (booth.css). */
+export const tagName = (tag) => el('span', { class: 'tag-name' },
+  el('span', { class: 'tag-en', lang: 'en' }, tagText(tag, 'en')), el('span', { class: 'tag-th', lang: 'th' }, tagText(tag, 'th')));
 
 export const bi = (pair, cls = '') => el('span', { class: `bi ${cls}`.trim() },
   el('span', { class: `bi-th ${slotClass('th')}`, lang: 'th' }, ...phrases(pair.th)),

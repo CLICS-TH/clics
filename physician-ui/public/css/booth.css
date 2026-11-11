@@ -62,11 +62,12 @@ body.booth {
 .bi-main { display: block; font-size: var(--text-th); line-height: 1.6; }
 .bi-sub { display: block; order: 1; font-size: var(--text-en); line-height: 1.45; color: var(--bi-sub); }
 :root[data-both="false"] .bi-sub { display: none; }
-/* The demo label is a rule, not copy: it keeps both languages in every look. */
-:root[data-both="false"] [data-demo-label] .bi-sub { display: block; }
 /* English first: the Thai under it keeps Thai leading in every context, whatever that context gives its sub slot. */
 :root:lang(en) .bi > .bi-sub[lang="th"] { line-height: 1.5; }
 .ph { display: inline-block; max-width: 100%; }
+.tag-th { display: none; line-height: 1.45; }
+:root[data-look="th"] .tag-en { display: none; }
+:root[data-look="th"] .tag-th { display: inline; }
 
 .booth-icon { display: inline-flex; flex: none; }
 .booth-icon svg { width: calc(48 * var(--u)); height: calc(48 * var(--u)); }
@@ -113,35 +114,43 @@ body.booth {
 .start-over .bi-sub { font-size: var(--text-en); }
 
 .case-card {
-  flex: 0 1 auto; min-height: calc(220 * var(--u)); overflow-y: auto; box-sizing: border-box;
-  display: flex; flex-direction: column; align-items: flex-start; gap: calc(20 * var(--u));
+  flex: 0 1 auto; min-height: calc(220 * var(--u)); box-sizing: border-box;
+  display: flex; flex-direction: column;
   background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
-  padding: calc(32 * var(--u)) calc(40 * var(--u));
+  padding: calc(32 * var(--u)) calc(40 * var(--u)) 0;
 }
-.case-card:not(.case-card--full)::after {
+.case-text {
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; align-items: flex-start; gap: calc(20 * var(--u));
+  padding-bottom: calc(32 * var(--u));
+}
+.case-card:not(.case-card--full) .case-text::after {
   content: ''; flex: none; align-self: stretch; position: sticky; bottom: calc(-32 * var(--u));
-  height: calc(72 * var(--u)); margin: calc(-24 * var(--u)) calc(-40 * var(--u)) calc(-32 * var(--u));
+  height: calc(72 * var(--u)); margin: calc(-24 * var(--u)) 0 calc(-32 * var(--u));
   background: linear-gradient(to bottom, var(--card-clear), var(--card)); pointer-events: none;
 }
 .case-card--full { flex: 1 1 auto; justify-content: center; padding: calc(48 * var(--u)); }
+.case-card--full .case-text { padding-bottom: 0; }
 /* On a phone the teaser is two short lines: a card stretched to the body's height is mostly empty white, so it
    hugs its text and sits in the middle of the body. The kiosk (1080 px and up) keeps the full-height card. */
 @media (max-width: 600px) {
-  .case-card--full:has(> .teaser) { flex: none; margin-block: auto; }
+  .case-card--full:has(.teaser) { flex: none; margin-block: auto; }
   /* The kiosk's 1080-wide scale leaves the teaser at 16 / 12 px on a phone: hold it at a phone's body sizes. */
-  .case-card--full:has(> .teaser) .teaser .bi-main { font-size: max(18px, calc(42 * var(--u))); }
-  .case-card--full:has(> .teaser) .teaser .bi-sub { font-size: max(15px, calc(32 * var(--u))); }
+  .case-card--full:has(.teaser) .teaser .bi-main { font-size: max(18px, calc(42 * var(--u))); }
+  .case-card--full:has(.teaser) .teaser .bi-sub { font-size: max(15px, calc(32 * var(--u))); }
 }
 .case-card--full :is(.vignette, .teaser) .bi-main { font-size: calc(42 * var(--u)); line-height: 1.65; }
 .case-card--full :is(.vignette, .teaser) .bi-sub { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 .vignette .bi-sub { margin-top: calc(12 * var(--u)); }
 .play-actions--stack { flex-direction: column; }
 
+/* The tallest step under a long bridge is the booth's tightest fit: the sheet's own padding and gaps are where it ends
+   on screen, so they stay lean. */
 .step-sheet {
   flex: none; box-sizing: border-box;
-  display: flex; flex-direction: column; gap: calc(20 * var(--u));
+  display: flex; flex-direction: column; gap: calc(16 * var(--u));
   background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
-  padding: calc(32 * var(--u));
+  padding: calc(24 * var(--u));
   box-shadow: var(--shadow-sheet);
   animation: booth-rise 220ms ease-out;
 }
@@ -251,8 +260,8 @@ body.booth {
 }
 
 .result-card {
-  display: flex; flex-direction: column; gap: calc(28 * var(--u));
-  padding: calc(48 * var(--u)); background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
+  display: flex; flex-direction: column; gap: calc(24 * var(--u));
+  padding: calc(40 * var(--u)) calc(48 * var(--u)) calc(48 * var(--u)); background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
 .result-total { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--gap); padding-bottom: calc(24 * var(--u)); border-bottom: var(--line) solid var(--hairline); }
@@ -278,6 +287,16 @@ body.booth {
 .domain-band .bi-main { font-size: var(--text-small-th); line-height: 1.5; color: var(--ink); }
 .domain-band .bi-sub { font-size: var(--text-en); line-height: 1.35; }
 .result-card [data-action="leaderboard"] { justify-content: flex-start; }
+/* On the kiosk the card fits its screen: the head stays put and only .result-more scrolls, from the card's bottom edge
+   (its padding moves inside the scroll box, so the fold is the card's edge). The result page has no .result-more. */
+.play-body > .result-card { flex: 0 1 auto; min-height: 0; padding-bottom: 0; }
+.result-more {
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: calc(24 * var(--u)); padding-bottom: calc(48 * var(--u));
+}
+/* English first: Latin set at the Thai main sizes runs longer, and the leaderboard button would wrap under the ranks and
+   below the fold. These main slots take the sizes English had under the Thai, no smaller than the Thai under them. */
+:root:lang(en) :is(.domain-band, .rank-label, .domain-name) .bi-main { font-size: var(--text-en); line-height: 1.35; }
 
 @keyframes booth-pulse { 50% { opacity: .3; transform: scale(.8); } }
 .waiting-dots { display: flex; gap: calc(20 * var(--u)); }

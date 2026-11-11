@@ -93,13 +93,14 @@
 .still-count .bi-sub { font-variant-numeric: tabular-nums; }
 .still-card .booth-btn, .leave-card .booth-btn { justify-content: center; text-align: center; }
 
-/* The language look control (js/booth-look.js): above the loop's tap layer (.shell-tap 1, its leaderboard button 2),
-   so a tap on it starts no play, and under every overlay (9, 10). It floats over each screen's top padding instead of
-   a band of its own, which would cost the tallest step and the result card their fit; the harness checks it covers
-   no text on any screen. The pressed state also shows as a tick, not by colour alone. */
+/* The language look control (js/booth-look.js): above the loop's tap layer (.shell-tap 1, its leaderboard button 2)
+   and every overlay (9, 10), so it is reachable on every screen and a tap on it reaches no play or overlay. It floats
+   over each screen's top padding instead of a band of its own, which would cost the tallest step its fit; every box
+   that scrolls starts below it, and the harness checks it covers no text at any scroll position. The pressed state
+   also shows as a tick, not by colour alone. */
 .look-control {
   --look-inset: calc(8 * var(--u));
-  position: fixed; top: var(--look-inset); right: var(--look-inset); z-index: 5; display: flex; gap: calc(8 * var(--u));
+  position: fixed; top: var(--look-inset); right: var(--look-inset); z-index: 11; display: flex; gap: calc(8 * var(--u));
 }
 .look-segs { display: flex; border-radius: 999px; box-shadow: var(--shadow-card); }
 .look-btn {
@@ -125,6 +126,7 @@
 }
 .look-both[aria-pressed="true"] .look-box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .look-both:not([aria-pressed="true"]) .look-tick { visibility: hidden; }
-.look-both .look-text { display: flex; align-items: baseline; column-gap: calc(12 * var(--u)); }
+.look-both .bi-sub { display: none; }
+.look-btn .bi-main { font-size: inherit; line-height: inherit; }
 
 @media (prefers-reduced-motion: reduce) { .shell-tap .loop-bar, .look-btn { transition: none; } .tap-cue::after { animation: none; opacity: 0; } }

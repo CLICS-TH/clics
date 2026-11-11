@@ -46,7 +46,7 @@ const readSlots = (page) => page.evaluate(() => {
     const subShown = shown(sub);
     const size = (e) => parseFloat(getComputedStyle(e).fontSize);
     return {
-      text: b.innerText.replace(/\s+/g, ' ').slice(0, 40), radar: !!b.closest('.radar-label'), demo: !!b.closest('[data-demo-label]'), html: document.documentElement.lang,
+      text: b.innerText.replace(/\s+/g, ' ').slice(0, 40), one: !!b.closest('.radar-label, [data-look-control]'), html: document.documentElement.lang,
       main: main.lang, sub: sub.lang, subShown, first: !subShown || s.top >= m.bottom - 1 || (s.top < m.bottom && s.left >= m.right - 1),
       larger: !subShown || size(main) >= size(sub),
     };
@@ -54,21 +54,25 @@ const readSlots = (page) => page.evaluate(() => {
 });
 
 /** The slots read as `look` says: its primary in every main slot and on <html>, the sub slot shown exactly when the look
- *  shows both (never under a radar axis, always in the demo label), and the main slot first and no smaller. */
+ *  shows both (never under a radar axis or in the control's "show both" label, which name one thing in the primary
+ *  language), and the main slot first and no smaller. */
 async function checkSlots(h, page, label, look) {
   const { primary, both } = h.LOOKS[look];
   const pairs = await readSlots(page);
   const bad = pairs.filter((p) => p.main !== primary || p.sub === primary || p.html !== primary
-    || p.subShown !== (p.demo || (both && !p.radar)) || !p.first || !p.larger);
+    || p.subShown !== (both && !p.one) || !p.first || !p.larger);
   h.check(pairs.length > 0 && bad.length === 0, `${label}: ${pairs.length} bilingual texts in the ${look} look, ${primary === 'th' ? 'Thai' : 'English'} first and no smaller`
     + `${both ? ', the other language under it' : ', the other hidden'}${bad.length ? ` (wrong: ${bad.slice(0, 3).map((p) => JSON.stringify(p)).join('; ')})` : ''}`);
 }
 
-/** The control: its box, its buttons, whether it is the topmost thing at its centre, and everything it overlaps. */
+/** The control: its box, its buttons, whether it is the topmost thing at its centre, and everything it overlaps with
+ *  every scroll box on screen at its top, middle and bottom (each put back after). */
 const readControl = (page) => page.evaluate(() => {
   const c = document.querySelector('[data-look-control]');
   if (!c) return null;
   const cr = c.getBoundingClientRect();
+  const scrollers = [...document.body.querySelectorAll('*')].filter((e) => /auto|scroll/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 1);
+  const was = scrollers.map((e) => e.scrollTop);
   const hit = (r) => r.width > 0 && r.height > 0 && r.left < cr.right && r.right > cr.left && r.top < cr.bottom && r.bottom > cr.top;
   /** `r` cut to what its scrolling ancestors let show: text scrolled out of a play body is not on screen. */
   const seen = (r, e) => {
@@ -81,55 +85,63 @@ const readControl = (page) => page.evaluate(() => {
     return { left, top, right, bottom, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
   };
   const visible = (e) => { const cs = getComputedStyle(e); return cs.visibility !== 'hidden' && Number(cs.opacity) > 0; };
-  const over = [];
-  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const over = new Set();
   const range = document.createRange();
-  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
-    if (!n.data.trim() || c.contains(n) || !visible(n.parentElement)) continue;
-    range.selectNodeContents(n);
-    if ([...range.getClientRects()].some((r) => hit(seen(r, n.parentElement)))) over.push(`text "${n.data.trim().slice(0, 30)}"`);
+  for (const at of [0, 0.5, 1]) {
+    for (const e of scrollers) e.scrollTop = at * (e.scrollHeight - e.clientHeight);
+    const where = scrollers.length ? ` (scrolled to ${['top', 'middle', 'bottom'][at * 2]})` : '';
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (!n.data.trim() || c.contains(n) || !visible(n.parentElement)) continue;
+      range.selectNodeContents(n);
+      if ([...range.getClientRects()].some((r) => hit(seen(r, n.parentElement)))) over.add(`text "${n.data.trim().slice(0, 30)}"${where}`);
+    }
+    for (const e of document.querySelectorAll('button, [role="button"], textarea, input, a[href], [data-keep-qr] svg, [data-landing-qr] img')) {
+      if (c.contains(e) || !visible(e)) continue;
+      const r = e.getBoundingClientRect();
+      // The loop's tap layer spans the whole screen: the control is drawn over it by design.
+      const layer = r.left <= cr.left && r.right >= cr.right && r.top <= cr.top && r.bottom >= cr.bottom;
+      if (hit(seen(r, e)) && !layer) over.add(`${e.tagName.toLowerCase()} ${e.dataset.action ?? e.className?.baseVal ?? e.className}${where}`);
+    }
   }
-  for (const e of document.querySelectorAll('button, [role="button"], textarea, input, a[href], [data-keep-qr] svg, [data-landing-qr] img')) {
-    if (c.contains(e) || !visible(e)) continue;
-    const r = e.getBoundingClientRect();
-    // The loop's tap layer spans the whole screen: the control is drawn over it by design.
-    const layer = r.left <= cr.left && r.right >= cr.right && r.top <= cr.top && r.bottom >= cr.bottom;
-    if (hit(seen(r, e)) && !layer) over.push(`${e.tagName.toLowerCase()} ${e.dataset.action ?? e.className?.baseVal ?? e.className}`);
-  }
+  scrollers.forEach((e, i) => { e.scrollTop = was[i]; });
   const top = document.elementFromPoint((cr.left + cr.right) / 2, (cr.top + cr.bottom) / 2);
   return {
     box: { top: cr.top, right: innerWidth - cr.right, width: cr.width, height: cr.height }, fixed: getComputedStyle(c).position === 'fixed',
     outside: !c.closest('#booth'), modal: !!document.querySelector('[aria-modal="true"]'), topmost: c.contains(top),
+    scrolled: scrollers.map((e) => e.className || e.tagName),
     buttons: [...c.querySelectorAll('button')].map((b) => {
       const r = b.getBoundingClientRect();
       return { w: r.width, h: r.height, key: b.dataset.lookPrimary ?? 'both', pressed: b.getAttribute('aria-pressed'),
         tick: getComputedStyle(b.querySelector('.look-tick')).visibility };
     }),
-    over,
+    over: [...over],
   };
 });
 
 /**
  * The control on this screen in this look: in the same fixed corner as on every screen before it, every button at
- * least 80 px x scale, its pressed state matching the look with a tick (not colour alone), topmost unless a modal
- * covers it, and, uncovered, overlapping no visible text, tap target or QR.
+ * least 80 px x scale, its pressed state matching the look with a tick (not colour alone), topmost with an overlay
+ * open too, and overlapping no visible text, tap target or QR with every scroll box at its top, middle and bottom.
  */
 async function checkControl(h, k, label, look) {
   const c = await readControl(k.page);
   if (!h.check(!!c, `${label}: the look control is on screen`)) return;
   const scale = await k.page.evaluate(() => innerWidth / 1080);
   const round = (b) => Object.fromEntries(Object.entries(b).map(([key, v]) => [key, Math.round(v)]));
-  k.corner ??= round(c.box);
+  // The width follows the look: "show both" is named in the primary language only.
+  const corner = ({ top, right, height }) => ({ top, right, height });
+  k.corner ??= corner(round(c.box));
   const { primary, both } = h.LOOKS[look];
   const pressed = c.buttons.every((b) => (b.key === 'both' ? both : b.key === primary) === (b.pressed === 'true')
     && (b.pressed === 'true') === (b.tick === 'visible'));
-  h.check(c.fixed && c.outside && h.same(round(c.box), k.corner) && Math.abs(c.box.top - 8 * scale) <= 1 && Math.abs(c.box.right - 8 * scale) <= 1,
+  h.check(c.fixed && c.outside && h.same(corner(round(c.box)), k.corner) && Math.abs(c.box.top - 8 * scale) <= 1 && Math.abs(c.box.right - 8 * scale) <= 1,
     `${label}: the control is fixed top right, outside the play, in the same corner as on every screen (${JSON.stringify(round(c.box))})`);
   h.check(c.buttons.length === 3 && c.buttons.every((b) => b.w >= h.FLOOR.tapPx * scale - 0.01 && b.h >= h.FLOOR.tapPx * scale - 0.01) && pressed,
     `${label}: ไทย, English and Both are each >= ${Math.round(h.FLOOR.tapPx * scale)} px, the ${look} look pressed and ticked (${c.buttons.map((b) => `${b.key} ${Math.round(b.w)}x${Math.round(b.h)} ${b.pressed}`).join(', ')})`);
-  h.check(c.topmost === !c.modal, `${label}: the control is ${c.modal ? 'under the open overlay' : 'on top, so a tap on it reaches it'}`);
-  // Under an open overlay's scrim the control covers nothing; it is covered.
-  if (!c.modal) h.check(c.over.length === 0, `${label}: the control covers no text, tap target or QR${c.over.length ? ` (covers ${c.over.slice(0, 4).join(', ')})` : ''}`);
+  h.check(c.topmost, `${label}: the control is on top${c.modal ? ' of the open overlay' : ''}, so a tap on it reaches it`);
+  h.check(c.over.length === 0, `${label}: the control covers no text, tap target or QR${c.scrolled.length ? `, with ${c.scrolled.join(', ')} scrolled to top, middle and bottom` : ''}`
+    + `${c.over.length ? ` (covers ${c.over.slice(0, 4).join(', ')})` : ''}`);
 }
 
 /** The screen as it is, in `look`: the booth's screen checks, the slots and the control. */
@@ -149,16 +161,25 @@ async function eachLook(h, k, screen, opts = {}) {
   }
 }
 
-/** Each look on an overlay: the overlay covers the control, so the look is set first, then the overlay opened. */
-async function eachLookUnder(h, k, screen, open, close, opts = {}) {
+/** Each look on an open overlay, switched through the control over it: each tap changes the look, redraws the overlay
+ *  in it, and leaves the overlay open and the screen under it as they were. The clock holds meanwhile, so no overlay
+ *  closes itself or resets the page between looks. */
+async function eachLookOver(h, k, screen, overlay, open, close, opts = {}) {
+  const { page } = k;
+  await open();
+  await page.evaluate(() => document.fonts.ready);
+  await h.sleep(400);
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 50));
+  const under = [await k.screenNow(), await page.evaluate(() => document.querySelector('#booth').dataset.shell)];
   for (const look of Object.keys(h.LOOKS)) {
     await switchTo(h, k, look);
-    await open();
-    await k.page.evaluate(() => document.fonts.ready);
-    await h.sleep(400);
+    const now = [await k.screenNow(), await page.evaluate(() => document.querySelector('#booth').dataset.shell)];
+    h.check(await page.locator(overlay).count() === 1 && h.same(now, under),
+      `${k.label} ${screen}: a tap on the control turned the look to ${look} and left the overlay open over the same screen (${now.join(', ')})`);
     await checkLook(h, k, screen, look, opts);
-    await close();
   }
+  await page.clock.resume();
+  await close();
 }
 
 /** Tap a control that sends a reply or score request, noting the look on show as it was tapped. */
@@ -187,6 +208,7 @@ async function playAllLooks(h, width, height) {
   const stub = h.makeStub({ routes: {
     [REPLY_KEY]: (call) => {
       if (mode === 'stop') return { status: 409, body: { error: 'The play is not started.', reason: 'not_started' } };
+      if (mode === 'offline') return 'abort';
       return { status: 200, body: h.replyBody(call.body.answers, call.body.answers.length === 2 ? { reply: FIT_REPLY } : {}) };
     },
     [SCORE_KEY]: (call) => (mode === 'unavailable' ? { status: 200, body: { status: 'unavailable' } } : h.scoredFor(call, { rank_today: 3, rank_event: 5, board: BOARD })),
@@ -200,6 +222,13 @@ async function playAllLooks(h, width, height) {
   await k.shell('start');
   h.check(await lookNow(page) === h.DEFAULT_LOOK, `${k.label}: a fresh kiosk starts in the ${h.DEFAULT_LOOK} look`);
   await eachLook(h, k, 'loop');
+  await eachLookOver(h, k, 'loop leaderboard', '[data-board-overlay]', async () => {
+    await k.tap('.shell-loop [data-action="leaderboard"]');
+    await page.waitForSelector('[data-board-overlay] [data-board]');
+  }, async () => {
+    await k.tap('[data-board-overlay] [data-action="close-board"]');
+    await page.waitForFunction(() => !document.querySelector('[data-board-overlay]'), null, { timeout: 5000 });
+  }, { demo: true });
 
   const releaseDraw = stub.hold(DRAW_KEY);
   await k.tap('[data-action="start"]');
@@ -241,7 +270,7 @@ async function playAllLooks(h, width, height) {
     await k.tap('[data-action="start-over"]');
     await page.waitForSelector('[data-leave-confirm]', { timeout: 10_000 });
   };
-  await eachLookUnder(h, k, 'Start over confirm', confirm, () => k.tap('[data-action="keep-playing"]'));
+  await eachLookOver(h, k, 'Start over confirm', '[data-leave-confirm]', confirm, () => k.tap('[data-action="keep-playing"]'));
 
   await k.tap('[data-action="next"]');
   await k.screen('step');
@@ -274,7 +303,7 @@ async function playAllLooks(h, width, height) {
     await page.clock.fastForward(91_000);
     await page.waitForSelector('.still-there', { timeout: 10_000 });
   };
-  await eachLookUnder(h, k, 'Still there', stillThere, async () => {
+  await eachLookOver(h, k, 'Still there', '.still-there', stillThere, async () => {
     await k.tap('[data-action="keep-going"]');
     await page.waitForFunction(() => !document.querySelector('.still-there'), null, { timeout: 5000 });
   });
@@ -297,14 +326,14 @@ async function playAllLooks(h, width, height) {
       `${k.label} result card, ${look}: the QR is drawn again with the look in its link, on the same card, not a redrawn screen (l=${parseResultFragment(url.hash)?.look})`);
     if (look === 'en+th' && width === 1080) k.keptUrl = url;
   }
-  await eachLookUnder(h, k, 'See the answers', async () => {
+  await eachLookOver(h, k, 'See the answers', '[data-reveal-overlay]', async () => {
     await k.tap('[data-action="see-answers"]');
     await page.waitForSelector('[data-reveal-overlay] .reveal-step');
   }, async () => {
     await page.locator('[data-reveal-overlay] [data-action="close-answers"]').scrollIntoViewIfNeeded();
     await k.tap('[data-reveal-overlay] [data-action="close-answers"]');
   }, { demo: 'auto' });
-  await eachLookUnder(h, k, 'leaderboard', async () => {
+  await eachLookOver(h, k, 'leaderboard', '[data-board-overlay]', async () => {
     await k.tap('.result-card [data-action="leaderboard"]');
     await page.waitForSelector('[data-board-overlay] [data-board]');
   }, () => k.tap('[data-board-overlay] [data-action="close-board"]'), { demo: true });
@@ -350,6 +379,19 @@ async function playAllLooks(h, width, height) {
   await page.clock.resume();
   await k.shell('start', 15_000);
   h.check(await lookNow(page) === h.DEFAULT_LOOK, `${k.label}: the stopped screen's own reset also starts the next visitor at ${h.DEFAULT_LOOK}`);
+
+  mode = 'offline';
+  await toVignette(k);
+  await k.tap('[data-action="begin"]');
+  await k.screen('step');
+  await k.choose(1);
+  await k.tap('[data-action="send"]');
+  await k.screen('stopped');
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 50));
+  h.check((await page.locator('#booth [data-screen="stopped"]').innerText()).includes(h.COPY.stoppedOffline.th),
+    `${k.label}: a reply that never arrives stops the play on the offline stopped screen`);
+  await eachLook(h, k, 'stopped, offline');
+  await page.clock.resume();
   const keptUrl = k.keptUrl;
   await k.close();
   return keptUrl;
@@ -470,7 +512,7 @@ export default [
         await page.waitForFunction((l) => document.documentElement.dataset.look === l && document.querySelector('.result-card'), look);
         await page.evaluate(() => document.fonts.ready);
         const label = `result page ${width}px, ${look}`;
-        await h.screenCheck(page, label, { demo: 'auto' });
+        await h.screenCheck(page, label, { demo: 'auto', phone: true });
         await checkSlots(h, page, label, look);
         checkRadar(h, label, await readRadar(page), r.domains, h.LOOKS[look].primary);
         const seen = await page.evaluate(() => ({

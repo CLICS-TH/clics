@@ -53,17 +53,16 @@ function rowView(row, i) {
 function openAnswers(host, rows) {
   const close = el('button', { type: 'button', class: 'booth-btn primary wide', dataset: { action: 'close-answers' } },
     icon('x'), bi(COPY.closeAnswers, 'btn-label'));
+  // Only the steps scroll: the title and Close stay on screen, and no scrolled line rises under the language control.
+  const steps = el('ol', { class: 'reveal-steps' }, ...rows.map(rowView));
   const overlay = el('div', { class: 'reveal-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': COPY.answersTitle.en, dataset: { revealOverlay: '' } },
-    el('div', { class: 'reveal-card' },
-      el('h2', { class: 'reveal-title' }, bi(COPY.answersTitle)),
-      el('ol', { class: 'reveal-steps' }, ...rows.map(rowView)),
-      close));
+    el('div', { class: 'reveal-card' }, el('h2', { class: 'reveal-title' }, bi(COPY.answersTitle)), steps, close));
   let idle = 0;
   const shut = () => { clearTimeout(idle); overlay.remove(); };
   const restart = () => { clearTimeout(idle); idle = setTimeout(shut, OVERLAY_IDLE_MS); };
   restart();
   overlay.addEventListener('pointerdown', restart);
-  overlay.addEventListener('scroll', restart, { passive: true });
+  steps.addEventListener('scroll', restart, { passive: true });
   close.addEventListener('click', shut);
   host.append(overlay);
   window.hydrateIcons?.(overlay);

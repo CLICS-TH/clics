@@ -48,6 +48,7 @@ const measureFit = (page) => page.evaluate(() => {
   const th = document.querySelector('.teaser .bi-th');
   const en = document.querySelector('.teaser .bi-en');
   const card = document.querySelector('[data-screen="teaser"] .case-card');
+  const text = card.querySelector('.case-text');
   const body = document.querySelector('[data-screen="teaser"] .play-body');
   const lines = (e) => { const cs = getComputedStyle(e); return Math.round(e.getBoundingClientRect().height / parseFloat(cs.lineHeight)); };
   const cs = getComputedStyle(card);
@@ -57,7 +58,7 @@ const measureFit = (page) => page.evaluate(() => {
   const actions = [...document.querySelectorAll('[data-screen="teaser"] .play-actions button')];
   return {
     thLines: lines(th), enLines: lines(en), headroomLines: Math.floor((inner - content) / lh),
-    cardScrolls: card.scrollHeight > card.clientHeight + 1, bodyScrolls: body.scrollHeight > body.clientHeight + 1,
+    cardScrolls: card.scrollHeight > card.clientHeight + 1 || text.scrollHeight > text.clientHeight + 1, bodyScrolls: body.scrollHeight > body.clientHeight + 1,
     buttonsInside: actions.every((b) => { const r = b.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }),
   };
 });

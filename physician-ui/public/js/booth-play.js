@@ -336,7 +336,7 @@ function offerCase(root, dealt) {
     const button = buttonsFor(resolve);
     const reroll = dealt.live === null || dealt.live >= 2;
     draw(root, 'teaser', frame(
-      [el('section', { class: 'case-card case-card--full' }, bi(dealt.teaser, 'teaser'))],
+      [caseCard(dealt.teaser, 'teaser', 'case-card--full')],
       [button(labelled(COPY.startCase, null, 'arrowRight'), 'primary wide', () => 'start', { 'data-action': 'start-case' }),
         ...(reroll ? [button(labelled(COPY.reroll, 'refresh'), 'secondary wide', () => 'reroll', { 'data-action': 'reroll' })] : [])],
       { stack: true }));
@@ -345,14 +345,14 @@ function offerCase(root, dealt) {
 
 const VIEWS = {
   vignette: (s, { button }) => frame(
-    [caseCard(s.play, 'case-card--full')],
+    [caseCard(s.play.vignette, 'vignette', 'case-card--full')],
     [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })]),
 
   step: (s, { button }) => {
     const step = stepOf(s);
     const { chosen } = s.screen;
     return frame([
-      caseCard(s.play),
+      caseCard(s.play.vignette, 'vignette'),
       el('section', { class: 'step-sheet', 'aria-label': step.question.en },
         stepHead(s, step, { bridge: true }),
         el('div', { class: 'options' }, ...step.options.map((o, i) => button(
@@ -382,7 +382,7 @@ const VIEWS = {
         el('div', { class: 'action-row' },
           button(labelled(COPY.backToChoices), 'secondary', () => ({ type: 'closeTyping' }), { 'data-action': 'back' }),
           send)),
-      caseCard(s.play, 'case-card--behind'),
+      caseCard(s.play.vignette, 'vignette', 'case-card--behind'),
     ]);
   },
 
@@ -419,8 +419,8 @@ const VIEWS = {
           keepQr(s.play, score),
           score.steps ? answersButton({ host, rows: revealRows(s.steps, s.answers, score.steps) }) : null)),
       // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
-      ...domainSections(score.domains, el('div', { class: 'result-board-row' },
-        slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true }))));
+      el('div', { class: 'result-more' }, ...domainSections(score.domains, el('div', { class: 'result-board-row' },
+        slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true })))));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
   },
@@ -430,8 +430,10 @@ const VIEWS = {
   stopped: (s) => frame([stoppedView(s.screen.offline)]),
 };
 
-function caseCard(play, mod = '') {
-  return el('section', { class: `case-card ${mod}`.trim() }, bi(play.vignette, 'vignette'));
+// The text scrolls in a box of its own, inside the card's top padding, so a scrolled line never rises into the screen's
+// top corner, where the language control sits.
+function caseCard(pair, cls, mod = '') {
+  return el('section', { class: `case-card ${mod}`.trim() }, el('div', { class: 'case-text' }, bi(pair, cls)));
 }
 
 // The bridge is the AI's lead-in to this question, so it sits in the question's own block, AI-labelled.
