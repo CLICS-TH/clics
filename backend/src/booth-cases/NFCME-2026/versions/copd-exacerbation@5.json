@@ -1,0 +1,1105 @@
+{
+  "case_id": "copd-exacerbation",
+  "event_code": "NFCME-2026",
+  "version": "5",
+  "teaser": {
+    "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
+    "en": "A 68-year-old man at a community hospital ER, more breathless and coughing for 3 days"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน มาห้องฉุกเฉิน รพ.ชุมชน เพราะ 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
+    "en": "A fictional 68-year-old fruit farmer smoked for 40 years, quit 2 years ago and uses an inhaler daily. He comes to a community hospital ER because for 3 days he has been more breathless, coughing up more sputum that has turned green. Temperature 37.8 °C, pulse 106, RR 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases, using his accessory muscles. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและผลตรวจนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "ครั้งนี้เขาหอบมากขึ้นจากอะไร",
+            "en": "What explains his worse breathing this time?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ปอดอุดกั้นเรื้อรังกำเริบ",
+            "en": "Acute exacerbation of COPD"
+          },
+          "line": {
+            "th": "หอบมากขึ้นและเสมหะเปลี่ยนในคนสูบบุหรี่นาน",
+            "en": "Worse breathing and changed sputum in a long-term smoker."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "COPD กำเริบจากการติดเชื้อ",
+            "en": "COPD flare triggered by infection"
+          },
+          "line": {
+            "th": "เสมหะมากขึ้นและเขียวขึ้นชี้ว่าติดเชื้อกระตุ้น",
+            "en": "More and greener sputum points to an infective trigger."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ปอดอักเสบติดเชื้อในชุมชน",
+            "en": "Community-acquired pneumonia"
+          },
+          "line": {
+            "th": "ไข้ต่ำ ๆ และเสมหะเขียวเข้าได้กับปอดอักเสบ",
+            "en": "Low fever and green sputum fit pneumonia."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "หัวใจล้มเหลวกำเริบ",
+            "en": "Acute heart failure"
+          },
+          "line": {
+            "th": "หอบเหนื่อยในผู้สูงอายุมักมาจากหัวใจ",
+            "en": "Breathlessness in older adults often comes from the heart."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "หอบหืดกำเริบ",
+            "en": "Acute asthma attack"
+          },
+          "line": {
+            "th": "เสียงวี้ดและหายใจออกยาวพบบ่อยในหอบหืด",
+            "en": "Wheeze and a long expiration are common in asthma."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ABG, CBC และเกลือแร่",
+              "en": "ABG, CBC and electrolytes"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง การติดเชื้อ และโพแทสเซียมต่ำ",
+              "en": "Checks CO2 retention, infection and low potassium."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และเพาะเชื้อเสมหะ",
+              "en": "ABG and sputum culture"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
+              "en": "Checks CO2 retention and looks for the germ in the sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ABG, CBC และ CRP",
+              "en": "ABG, CBC and CRP"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และช่วยตัดสินใจเรื่องยาปฏิชีวนะ",
+              "en": "Checks CO2 retention and helps decide on an antibiotic."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และเพาะเชื้อเสมหะ",
+              "en": "ABG and sputum culture"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
+              "en": "Checks CO2 retention and looks for the germ in the sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "SpO2 88% เริ่มพ่นยาและ O2 88–92% แล้ว ตรวจอะไร",
+              "en": "SpO2 88%; the inhaled drug and O2 to 88–92% have started. Which tests?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ABG และ NT-proBNP",
+              "en": "ABG and NT-proBNP"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และแยกหัวใจล้มเหลวจากโรคปอด",
+              "en": "Checks CO2 retention and tells heart failure from lung disease."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และ peak flow ข้างเตียง",
+              "en": "ABG and bedside peak flow"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และวัดการตีบของหลอดลมข้างเตียง",
+              "en": "Checks CO2 retention and measures airway narrowing at the bedside."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และอัลตราซาวด์หัวใจ",
+              "en": "ABG and echocardiogram"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และเห็นการบีบตัวของหัวใจ",
+              "en": "Checks CO2 retention and shows how well the heart pumps."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
+              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "pH 7.37 WBC 13,000/มม.³ K 3.6 มิลลิโมล/ล. ให้ยาอะไร",
+              "en": "pH 7.37, WBC 13,000/µL, K 3.6 mmol/L. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "g"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
+              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "pH 7.37 WBC 13,000/มม.³ CRP 60 มก./ล. ให้ยาอะไร",
+              "en": "pH 7.37, WBC 13,000/µL, CRP 60 mg/L. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "g"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
+              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "pH 7.37 NT-proBNP ปกติ จะให้ยาอะไรเพิ่ม",
+              "en": "pH 7.37, NT-proBNP normal. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "g"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      }
+    }
+  }
+}

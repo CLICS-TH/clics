@@ -34,12 +34,20 @@ const BOLD_MAX_CHARS = 20;
  */
 
 const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
-// The bank for step n is keyed by the tier letters of the n answers before it.
-const BANK_AT = [(banks) => banks.step1, (banks, p) => banks.step2[p], (banks, p) => banks.step3[p]];
-const bankAt = (kase, tierPath) => BANK_AT[tierPath.length](kase.banks, tierPath);
-// The name of the bank each BANK_AT entry picks, in the same order, as the reply cache (#387) keeps it.
-const BANK_KEY = [() => 'step1', (p) => `step2.${p}`, (p) => `step3.${p}`];
-const bankKey = (tierPath) => BANK_KEY[tierPath.length](tierPath);
+const isBank = (level) => Array.isArray(level?.variants);
+/** The bank the step after `tierPath` draws from, read from the case's own layout, and its name as the reply cache
+ *  (#387) keeps it. A step's banks are one bank, or keyed by the whole tier path so far (three steps), or by the
+ *  previous step's tier (five steps, spec #370). */
+function bankEntry(kase, tierPath) {
+  const step = `step${tierPath.length + 1}`;
+  const level = kase.banks[step];
+  if (isBank(level)) return [step, level];
+  const key = Object.hasOwn(level, tierPath) ? tierPath : tierPath.slice(-1);
+  return [`${step}.${key}`, level[key]];
+}
+const bankAt = (kase, tierPath) => bankEntry(kase, tierPath)[1];
+const bankKey = (kase, tierPath) => bankEntry(kase, tierPath)[0];
+const stepCount = (kase) => Object.keys(kase.banks).filter((k) => /^step[1-9][0-9]*$/.test(k)).length;
 
 const randomOf = (list) => list[crypto.randomInt(list.length)];
 function shuffled(list) {
@@ -307,41 +315,44 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
   tier: TIERS.find((t) => t.letter === tierPath[i]).name,
 }));
 
-const StepFields = {
+// Keys a later writer adds to a step record are stripped, not refused, so they never drop a stored play.
+const StepRecordSchema = z.object({
   variant: z.string(),
   bridge: z.string(),
   options: z.array(z.string()).length(3),
-  reply: z.object(Object.fromEntries(REPLY_FIELDS.map((k) => [k, z.string()]))).strict(),
+  reply: z.object(Object.fromEntries(REPLY_FIELDS.map((k) => [k, z.string()]))),
   tier: z.enum(TIER_NAMES),
-};
-const StepRecordSchema = z.union([
-  z.object({ ...StepFields, choice: z.string() }).strict(),
-  z.object({ ...StepFields, typed: z.string().nullable() }).strict(),
-]);
+  choice: z.string().optional(),
+  typed: z.string().nullable().optional(),
+}).refine((s) => (s.choice === undefined) !== (s.typed === undefined), { message: 'needs exactly one of choice and typed' });
 
 /**
+ * A play's transcript as the auditor reads it, rebuilt from its step records against the case version it was
+ * played on (a case file or a study snapshot), whatever that version's number of steps. Typed answers read as
+ * their de-identified copy, unfenced.
  * @param {object} kase
  * @param {unknown} steps
- * @returns {{ role: 'physician' | 'assistant', content: string }[] | null}
+ * @returns {{ messages: { role: 'physician' | 'assistant', content: string }[] } | { why: 'malformed' | 'no_deidentified_copy' }}
  */
 function studyTranscript(kase, steps) {
-  const parsed = z.array(StepRecordSchema).length(STEPS).safeParse(steps);
-  if (!parsed.success || parsed.data.some((s) => s.typed === null)) return null;
+  const parsed = z.array(StepRecordSchema).length(stepCount(kase)).safeParse(steps);
+  if (!parsed.success) return { why: 'malformed' };
   const records = parsed.data;
+  if (records.some((s) => s.typed === null)) return { why: 'no_deidentified_copy' };
   const tierPath = records.map((s) => LETTER[s.tier]).join('');
   const asks = records.map(({ variant, bridge, options }) => ({ variant, bridge, options }));
   const fits = records.every((s, i) => {
     const bank = bankAt(kase, tierPath.slice(0, i));
-    if (!isValidAsk(bank, asks[i])) return false;
-    return !('choice' in s) || (s.options.includes(s.choice) && bank.options.find((o) => o.id === s.choice).tier === s.tier);
+    if (!bank || !isValidAsk(bank, asks[i])) return false;
+    return s.choice === undefined || (s.options.includes(s.choice) && bank.options.find((o) => o.id === s.choice).tier === s.tier);
   });
-  if (!fits) return null;
-  const answers = records.map((s) => ('choice' in s ? { choice: s.choice } : { text: s.typed }));
-  return dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false);
+  if (!fits) return { why: 'malformed' };
+  const answers = records.map((s) => (s.choice === undefined ? { text: s.typed } : { choice: s.choice }));
+  return { messages: dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false) };
 }
 
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
-  echoesAnswer, evaluateRequest, stepTiers, stepRecords, StepRecordSchema, studyTranscript,
+  echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
 };

@@ -14,6 +14,7 @@ const REFUSAL = {
 const route = (fn, ok, unavailable) => async (req, res) => {
   let result;
   try { result = await fn(req); } catch (err) { console.error('[booth-audits]', err.message); result = { refused: 'unavailable' }; }
+  if ('total' in result) res.set('X-Total-Count', String(result.total));
   if ('body' in result) return res.status(ok).json(result.body);
   if (result.refused === 'bad_request') return res.status(400).json({ error: result.error });
   if (result.refused === 'unavailable') return res.status(502).json({ error: unavailable });
@@ -22,7 +23,7 @@ const route = (fn, ok, unavailable) => async (req, res) => {
 };
 
 const LOAD_FAILED = 'Could not load the booth case studies — try again';
-router.get('/', route((req) => boothAudits.queue(req.user.id), 200, LOAD_FAILED));
+router.get('/', route((req) => boothAudits.queue(req.user.id, req.query.page), 200, LOAD_FAILED));
 router.get('/:id', route((req) => boothAudits.study(req.params.id, req.user.id), 200, LOAD_FAILED));
 router.post('/:id/audit', route((req) => boothAudits.submit(req.params.id, req.user.id, req.body),
   201, 'Could not save the audit — try again'));

@@ -122,6 +122,21 @@ is true and `GET /oversight/audit-log/verify` answers `consistent`. Then record 
 `consistent` into `intact`. From then on, `audit_log` refuses UPDATE / DELETE / TRUNCATE for every role,
 so no script may clean it up.
 
+### Booth audits (#389): migration, then backend, then dashboard
+
+`db/migration-booth-audits.sql` creates `booth_audits`, which every `/auditor/booth` call and the superadmin
+booth card's audit counts read. Production did not have it on 2026-11-10. Run in this order:
+
+1. **Migration.** The owner applies `db/migration-booth-audits.sql` on scaletest, then prod. Nobody else applies
+   it. It is re-runnable. `select to_regclass('public.booth_audits');` is non-null once it is applied.
+2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then `/health/deep` reports
+   `"service":"backend"`.
+3. **Dashboard.** `cd audit-dashboard && vercel --prod --yes`. This is what shows auditors the "Booth case studies"
+   link.
+
+Until the migration is applied, every `/auditor/booth` call (queue, study and submit) answers 502, and the
+superadmin booth card shows "—" for audits. The kiosk never reads `booth_audits`, so plays are unaffected.
+
 ### #279 round: PostgREST closure + logout contract
 
 `db/migration-postgrest-closed.sql` revokes every privilege `anon` and `authenticated` hold in `public`

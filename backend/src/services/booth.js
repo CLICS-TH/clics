@@ -7,6 +7,7 @@ const { costUsd } = require('../lib/pricing');
 const { compositeScore, WEIGHTS } = require('./ple-gate');
 const { rimplChat } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
+const { readStudyCase } = require('../booth-cases/study-snapshot');
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers, stepRecords, bankKey,
@@ -191,18 +192,26 @@ async function openEvent(now, stateOf = eventState) {
   return state.open ? { event } : { refused: 'closed' };
 }
 
-function caseFor(eventCode, caseId, caseVersion) {
-  const kase = eventCases(eventCode).find((k) => k.case_id === caseId);
-  return kase && kase.version === caseVersion ? kase : null;
-}
-
+/** The case the play started on, at the version it started with: never the event's current case. */
 async function playCase(playId, event) {
   const { data: row, error } = await supabase.from('booth_plays').select('case_id, case_version')
     .eq('id', playId).eq('event_code', event.code).maybeSingle();
   if (error) return { refused: 'unavailable' };
   if (!row) return { refused: 'not_found' };
-  const kase = caseFor(event.code, row.case_id, row.case_version);
-  return kase ? { kase } : UNAVAILABLE;
+  const kase = eventCases(event.code).find((k) => k.case_id === row.case_id);
+  return kase && kase.version === row.case_version ? { kase } : UNAVAILABLE;
+}
+
+const studyCache = new Map();
+
+/** The study snapshot of one case version (#389), kept for every version ever admitted, so a play stays auditable
+ *  after its case moves on. null when there is none. */
+function studyCase(code, caseId, version) {
+  const key = [casesDir(), code, caseId, version].join('\0');
+  if (!studyCache.has(key)) {
+    studyCache.set(key, SAFE_EVENT_CODE.test(code) ? readStudyCase(casesDir(), code, caseId, version) : null);
+  }
+  return studyCache.get(key);
 }
 
 // One server secret, one key per use: a label of its own keeps a sort memo key from ever standing for a turn sig.
@@ -501,7 +510,7 @@ const replyLanguage = (d) => (/\p{Script=Thai}/u.test(d.answers.at(-1).text) ? '
 async function cachedReplies(kase, d) {
   try {
     let query = supabase.from('booth_reply_cache').select('id, model, embedding, cues, tier, reply, pick')
-      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(d.tierPath))
+      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(kase, d.tierPath))
       .eq('tier_path', d.tierPath).eq('language', replyLanguage(d));
     if (d.memo) query = query.eq('tier', d.memo);
     const { data, error } = await query.order('created_at', { ascending: false }).limit(CACHE_ENTRIES_MAX);
@@ -537,7 +546,7 @@ async function keepReply(kase, d, res, issued) {
     || !hasReply(issued.replies[n - 1]) || echoesAnswer(kase, d, raw)) return;
   try {
     const { error } = await supabase.from('booth_reply_cache').insert({
-      case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
+      case_id: kase.case_id, case_version: kase.version, bank: bankKey(kase, d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
       ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ? { ...res.pick, bridge: '' } : null,
     });
     if (error) console.warn(`[booth] reply cache keep failed: ${error.code ?? 'error'}`);
@@ -790,6 +799,6 @@ async function updateBoothSettings(input) {
 }
 
 module.exports = {
-  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, caseFor, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay,
-  replyToStep, scorePlay, boothSettings, updateBoothSettings,
+  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
+  scorePlay, boothSettings, updateBoothSettings, studyCase,
 };

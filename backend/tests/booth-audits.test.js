@@ -9,6 +9,7 @@ const request = require('supertest');
 const { stamped } = require('./helpers/booth-tree');
 const { __mock: m } = require('../src/lib/supabase');
 const { stepRecords } = require('../src/services/booth-dialogue');
+const { snapshotOf, snapshotFile } = require('../src/booth-cases/study-snapshot');
 const { PHYSICIAN, SPECIAL, AUDITOR, AUDITOR_B, ADMIN, SUPERADMIN } = require('./helpers/roles');
 const app = require('../src/index');
 
@@ -17,6 +18,17 @@ const KASE = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/boot
 const CASES_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-cases-'));
 fs.mkdirSync(path.join(CASES_DIR, KASE.event_code));
 fs.writeFileSync(path.join(CASES_DIR, KASE.event_code, `${KASE.case_id}.json`), JSON.stringify(stamped(KASE)));
+// An earlier version of the case, kept only as its study snapshot: the case file has moved on to KASE.version.
+const EARLIER = {
+  ...KASE, version: '0',
+  teaser: { th: 'หญิงวัย 47 ปี ไอมา 5 วัน', en: 'A 47-year-old woman with cough for 5 days' },
+  vignette: { th: 'หญิงวัย 47 ปี ไอมีเสมหะ 5 วัน ไข้ 38.6', en: 'A 47-year-old woman, productive cough for 5 days, fever 38.6' },
+};
+for (const kase of [KASE, EARLIER]) {
+  const file = snapshotFile(CASES_DIR, kase.event_code, kase.case_id, kase.version);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(snapshotOf(kase)));
+}
 process.env.BOOTH_CASES_DIR = CASES_DIR;
 afterAll(() => { delete process.env.BOOTH_CASES_DIR; });
 
@@ -82,13 +94,16 @@ const columns = (ctx) => ctx.selectArgs[0].split(',').map((c) => c.trim());
 const project = (row, ctx) => (columns(ctx)[0] === '*' ? { ...row } : Object.fromEntries(columns(ctx).map((c) => [c, row[c]])));
 const matches = (row, ctx) => ctx.eqs.every(([c, v]) => row[c] === v)
   && ctx.nots.every(([c, op, v]) => op === 'is' && v === null && row[c] != null);
+// PostgREST answers at most 1000 rows a request, whatever range is asked for.
+const MAX_ROWS = 1000;
 function ordered(rows, ctx) {
   const out = [...rows];
   for (const [col, opts] of [...ctx.orders].reverse()) {
     const dir = opts?.ascending === false ? -1 : 1;
     out.sort((a, b) => (a[col] < b[col] ? -dir : a[col] > b[col] ? dir : 0));
   }
-  return ctx.limit == null ? out : out.slice(0, ctx.limit);
+  const [from, to] = ctx.range ?? [0, Infinity];
+  return out.slice(from, Math.min(to + 1, from + MAX_ROWS, from + (ctx.limit ?? Infinity)));
 }
 const answer = (rows, ctx, kind) => {
   const found = ordered(rows.filter((r) => matches(r, ctx)), ctx).map((r) => project(r, ctx));
@@ -115,13 +130,13 @@ const as = (caller) => {
   m.state.caller = caller;
   const auth = (r) => (caller ? r.set('Authorization', 'Bearer t') : r);
   return {
-    queue: () => auth(request(app).get('/auditor/booth')),
+    queue: (page) => auth(request(app).get(page === undefined ? '/auditor/booth' : `/auditor/booth?page=${page}`)),
     study: (id) => auth(request(app).get(`/auditor/booth/${id}`)),
     submit: (id, body = SCORES) => auth(request(app).post(`/auditor/booth/${id}/audit`)).send(body),
   };
 };
-const listed = (row, audited = false) => ({
-  id: row.id, played_on: row.scored_at.slice(0, 10), case: { case_id: KASE.case_id, teaser: KASE.teaser }, audited,
+const listed = (row, audited = false, kase = KASE) => ({
+  id: row.id, played_on: row.scored_at.slice(0, 10), case: { case_id: kase.case_id, teaser: kase.teaser }, audited,
 });
 const studyPlay = (row) => ({ id: row.id, played_on: row.scored_at.slice(0, 10), case: { case_id: KASE.case_id, teaser: KASE.teaser } });
 const boothQueries = () => m.state.queries.filter((q) => q.table.startsWith('booth_'));
@@ -134,6 +149,8 @@ function keysOf(value) {
 }
 
 beforeEach(() => {
+  jest.spyOn(console, 'info').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
   m.reset();
   m.state.resolve = resolve;
   plays = new Map();
@@ -142,6 +159,7 @@ beforeEach(() => {
   insertError = null;
   staleAuditReads = false;
 });
+afterEach(() => jest.restoreAllMocks());
 
 describe('who may audit', () => {
   const routes = (caller, id) => [as(caller).queue(), as(caller).study(id), as(caller).submit(id)];
@@ -208,13 +226,64 @@ describe('the queue', () => {
     expect(res.body).toEqual([listed(newest), listed(middle), listed(oldest)]);
   });
 
-  test('stops at the 200 newest plays', async () => {
-    const at = (i) => new Date(Date.UTC(2026, 10, 20, 0, 0, i)).toISOString();
-    const seeded = Array.from({ length: 201 }, (_, i) => seedPlay({ scored_at: at(i) }));
+  test('a play stays listed and studied on the version it was played on after its case file moves on', async () => {
+    const earlier = seedPlay({ case_version: EARLIER.version, scored_at: '2026-11-04T02:00:00.000Z' });
+    const current = seedPlay({ scored_at: '2026-11-20T02:00:00.000Z' });
+    expect((await as(AUDITOR).queue()).body).toEqual([listed(current), listed(earlier, false, EARLIER)]);
+    const { body } = await as(AUDITOR).study(earlier.id);
+    expect(body.play.case.teaser).toEqual(EARLIER.teaser);
+    expect(body.messages).toEqual(MESSAGES.map((t, i) => (i === 0 ? { ...t, content: t.content.replace(KASE.vignette.th, EARLIER.vignette.th) } : t)));
+    expect(body.messages[0].content.startsWith(EARLIER.vignette.th)).toBe(true);
+  });
+
+  const at = (i) => new Date(Date.UTC(2026, 10, 3) + i * 1000).toISOString();
+
+  test('pages the queue 50 plays a page, newest first, and counts every auditable play', async () => {
+    const seeded = Array.from({ length: 260 }, (_, i) => seedPlay({ scored_at: at(i) }));
+    const newestFirst = [...seeded].reverse().map((r) => r.id);
+    const first = await as(AUDITOR).queue();
+    const sixth = await as(AUDITOR).queue(6);
+    expect([first.status, sixth.status]).toEqual([200, 200]);
+    expect(first.body.map((p) => p.id)).toEqual(newestFirst.slice(0, 50));
+    expect(sixth.body.map((p) => p.id)).toEqual(newestFirst.slice(250));
+    expect([first.headers['x-total-count'], sixth.headers['x-total-count']]).toEqual(['260', '260']);
+    const past = await as(AUDITOR).queue(7);
+    expect([past.status, past.body, past.headers['x-total-count']]).toEqual([200, [], '260']);
+  });
+
+  test('a play that does not rebuild is not counted, and every queue load logs what it dropped and why', async () => {
+    const kept = [0, 1, 2].map((i) => seedPlay({ scored_at: at(i) }));
+    seedPlay({ case_version: 'never-snapshotted', scored_at: at(10) });
+    seedPlay({ steps: STEPS.map((s, i) => (i === 1 ? { ...s, typed: null } : s)), scored_at: at(11) });
+    seedPlay({ steps: STEPS.slice(0, 2), scored_at: at(12) });
     const res = await as(AUDITOR).queue();
-    expect(res.body).toHaveLength(200);
-    expect(res.body[0].id).toBe(seeded[200].id);
-    expect(res.body.map((p) => p.id)).not.toContain(seeded[0].id);
+    expect(res.body.map((p) => p.id)).toEqual(kept.reverse().map((r) => r.id));
+    expect(res.headers['x-total-count']).toBe('3');
+    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=3 dropped no_snapshot=1 no_deidentified_copy=1 malformed=1');
+  });
+
+  test('a queue load that drops nothing still logs its count', async () => {
+    seedPlay();
+    await as(AUDITOR).queue();
+    expect(console.info).toHaveBeenCalledWith('[booth-audits] queue auditable=1 dropped no_snapshot=0 no_deidentified_copy=0 malformed=0');
+  });
+
+  test.each(['0', '-1', '1.5', 'two', ''])('refuses page %p with 400 before any booth read', async (page) => {
+    seedPlay();
+    const res = await as(AUDITOR).queue(page);
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'page must be a whole number from 1' });
+    expect(boothQueries()).toEqual([]);
+  });
+
+  test('reaches every play and every one of the auditor\'s audits past the 1000 rows one read returns', async () => {
+    const seeded = Array.from({ length: 1001 }, (_, i) => seedPlay({ scored_at: at(i) }));
+    for (const play of seeded) seedAudit(play, AUDITOR);
+    const pages = await Promise.all(Array.from({ length: 21 }, (_, i) => as(AUDITOR).queue(i + 1)));
+    expect(pages[0].headers['x-total-count']).toBe('1001');
+    const listedPlays = pages.flatMap((r) => r.body);
+    expect(listedPlays.map((p) => p.id)).toEqual([...seeded].reverse().map((r) => r.id));
+    expect(listedPlays.filter((p) => !p.audited)).toEqual([]);
   });
 
   test('marks a play audited only by the caller\'s own audit', async () => {
