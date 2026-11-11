@@ -11,6 +11,7 @@ const { requestSignal } = require('../lib/request-signal');
 const { sendAiError, logAiError } = require('../lib/ai-errors');
 
 const router = Router();
+const CRITERIA_KEYS = ['c4', 'c5', 'c6', 'c7'];
 
 const Schema = z.object({
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
@@ -57,13 +58,19 @@ router.post('/', async (req, res) => {
     } catch {
       return res.status(502).json({ error: 'Classifier returned invalid JSON' });
     }
+    // parseJsonObject answers {} for prose or a reply cut off before its closing brace, and `!!undefined`
+    // would turn that into every criterion false: a silent tier-2 fail. Only a verdict that names all four
+    // criteria as booleans is one.
+    if (!CRITERIA_KEYS.every((k) => typeof result?.[k] === 'boolean')) {
+      return res.status(502).json({ error: 'Classifier returned invalid JSON' });
+    }
 
     // pii_map: the on-prem reversible token→raw map. Backend encrypts + persists it; NEVER stored
     // plaintext, never returned to a client, never sent to the cloud.
     // c7 (context/evidence integration) and on_topic are additive — see CRITERIA_CLASSIFIER_PROMPT.
     // The backend's tier-2 gate reads c4..c6 today and starts reading c7 with the CREC PLE-gate
     // change; returning it early is harmless and means the two can ship independently.
-    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6, c7: !!result.c7,
+    res.json({ c4: result.c4, c5: result.c5, c6: result.c6, c7: result.c7,
       on_topic: result.on_topic !== false,
       pii_map: registry.entries(), input_tokens: inputTokens, output_tokens: outputTokens, provider, model });
   } catch (err) {

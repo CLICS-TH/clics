@@ -295,12 +295,12 @@ describe('SSE: status {phase:"thinking"} once, before any text; done = the JSON 
     try {
       callAI.mockImplementationOnce(async ({ onReasoning }) => {
         onReasoning();
-        throw Object.assign(new Error('local tutor AI: the reply never closed its reasoning block'), { status: 502, code: 'reasoning_only', noRetry: true });
+        throw Object.assign(new Error('local tutor AI stream: the reply ended before the server finished it'), { status: 502, code: 'stream_incomplete' });
       });
       const events = parseSse((await stream({ message: DEEP_Q })).text);
       expect(events.map((e) => e.event)).toEqual(['status', 'done']);
       expect(events[1].data.status).toBe(500);
-      expect(JSON.stringify(events[1].data.body)).not.toMatch(/reasoning block/);   // the generic message, as before
+      expect(JSON.stringify(events[1].data.body)).not.toMatch(/ended before/);   // the generic message, as before
     } finally { err.mockRestore(); }
   });
 

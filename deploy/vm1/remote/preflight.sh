@@ -21,13 +21,14 @@ for n in INTERNAL_TOKEN ANTHROPIC_API_KEY SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY
   grep -qE "^$n=.+" "$BASE/env/rimpl.env" || die "rimpl.env: $n has no value"
 done
 check_internal_token
-for n in TS_AUTHKEY LOCAL_AI_HTTP_PROXY; do
+for n in TS_AUTHKEY LOCAL_AI_HTTP_PROXY LOCAL_TUTOR_AI_HTTP_PROXY; do
   if grep -qE "^$n=.+" "$BASE/env/rimpl.env"; then die "rimpl.env sets $n, which is Railway-only (see rimpl.env.example)"; fi
 done
 for n in RIMPL_URL PORT NODE_ENV; do
   if grep -qE "^$n=" "$BASE/env/backend.env"; then log "WARNING: backend.env sets $n; docker-compose.yml overrides it"; fi
 done
 check_reconcile
+check_model_block
 # The loopback port is free, or held by CLICS's own backend.
 if [ -n "$(ss -Hltn "sport = :$PORT")" ]; then
   [ -n "$(docker ps -q --filter "label=com.docker.compose.project=$PROJECT" --filter label=com.docker.compose.service=backend)" ] \

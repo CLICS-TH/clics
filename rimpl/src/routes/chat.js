@@ -88,6 +88,17 @@ const ChatSchema = z.object({
   // Returned de-identified as answer_deidentified so the backend never stores the raw text; never sent to the AI.
   // Headroom over the backend's ANSWER_MAX_CHARS (500).
   booth_answer: z.string().min(1).max(600).optional(),
+  // Booth reply cache (#387): the backend's entries at this point of the case, newest first, for a typed answer
+  // (booth_typed and booth_answer) while its switch is on. rimpl embeds answer_deidentified and may name one to
+  // reuse; the replies stay in the backend. An older RIMPL strips it.
+  booth_cache: z.object({
+    entries: z.array(z.object({
+      id: z.string().min(1).max(64),
+      model: z.string().min(1).max(200),
+      embedding: z.array(z.number()).max(4096),
+      cues: z.array(z.string().max(64)).max(64),
+    }).strict()).max(64),
+  }).strict().optional(),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -229,7 +240,8 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed, booth_answer } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode, booth_bank, booth_typed, booth_answer,
+          booth_cache } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -258,7 +270,7 @@ router.post('/', async (req, res) => {
     if (booth_mode) {
       return res.json(await boothReply({
         messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed,
-        answerDeidentified: cleanBoothAnswer, signal,
+        answerDeidentified: cleanBoothAnswer, cache: booth_cache, signal,
       }));
     }
     const ragDocs = await ragLookup(cleanMessage);
@@ -388,9 +400,10 @@ router.post('/', async (req, res) => {
       ? () => { if (statusSent || contentStarted) return; statusSent = true; sse.send('status', { phase: 'thinking' }); }
       : undefined;
 
-    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
+    const firstCall =
       await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: turnMaxTokens, signal, onDelta,
         ...(tierApplied ? { thinking: deep } : {}), ...(onReasoning ? { onReasoning } : {}) });
+    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } = firstCall;
     // Was the tier honoured by the provider that ANSWERED? Normally the one asked above — but not after
     // the (dormant) chat fail-over, or a superadmin toggle flipped between that question and the call.
     // A turn must never be recorded as thought on a provider that ignores `thinking`; nor is the retry
@@ -673,7 +686,7 @@ router.post('/', async (req, res) => {
         tier: route ? route.tier : null,
         reason: route ? route.reason : null,
         thinking: thinkingHonoured ? deep : null,
-        thinking_budget: thinkingHonoured && deep ? turnMaxTokens : null,
+        thinking_budget: thinkingHonoured && deep ? (firstCall.maxTokens ?? turnMaxTokens) : null,
         evidence_level: evidenceLevel,
         failed_over_from: failed_over_from ?? null,
       },

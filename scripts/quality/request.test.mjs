@@ -148,7 +148,9 @@ test('drift guard: the fast/deep router wiring request.mjs replicates is still c
     'tier: route ? route.tier : null,',
     'reason: route ? route.reason : null,',
     'thinking: thinkingHonoured ? deep : null,',
-    'thinking_budget: thinkingHonoured && deep ? turnMaxTokens : null,',
+    // chat.js records the max_tokens the transport reports it SENT (a per-endpoint floor, #425); the
+    // harness sends no floor, so its budget is turnMaxTokens, the fallback here.
+    'thinking_budget: thinkingHonoured && deep ? (firstCall.maxTokens ?? turnMaxTokens) : null,',
     'evidence_level: evidenceLevel,',
     'failed_over_from: failed_over_from ?? null,',
     // The SSE status: router on, streamed, once, never after text.

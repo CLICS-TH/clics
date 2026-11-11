@@ -58,6 +58,13 @@ function errorFromBody(path, status, body) {
     if (typeof body.error === 'string') err.detail = body.error.slice(0, 200);
     const ra = Number(body.retry_after_s);
     if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
+    // A call that failed AFTER the provider spent tokens on it (rimpl's 503 empty_reply). Carried so the
+    // caller can meter it: a failure that is retried must not be invisible to the budget pool.
+    const inT = Number(body.input_tokens), outT = Number(body.output_tokens);
+    if ((Number.isFinite(inT) && inT > 0) || (Number.isFinite(outT) && outT > 0)) {
+      err.burned = { input_tokens: Number.isFinite(inT) ? inT : 0, output_tokens: Number.isFinite(outT) ? outT : 0,
+        provider: typeof body.provider === 'string' ? body.provider : undefined };
+    }
   }
   return err;
 }
@@ -94,7 +101,7 @@ async function parseWithProvider(res) {
 // event is handed to `onEvent(name, data)` as it arrives, and the call still resolves with the same
 // body (or throws the same error) as a non-streamed call — taken from the final `done` event. rimpl
 // answers a rescue turn, and any failure before the first word, in plain JSON; both are read as before.
-async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, router_enabled, deep_mode, rescue_active, already_qualified, rescue_rounds, booth_mode, booth_bank, booth_typed, booth_answer, stream = false, onEvent }, { timeoutMs = CHAT_TIMEOUT_MS } = {}) {
+async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, router_enabled, deep_mode, rescue_active, already_qualified, rescue_rounds, booth_mode, booth_bank, booth_typed, booth_answer, booth_cache, stream = false, onEvent }, { timeoutMs = CHAT_TIMEOUT_MS } = {}) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: {
@@ -119,6 +126,8 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
       ...(booth_mode && booth_typed ? { booth_typed } : {}),
       // The typed answer alone, for rimpl to return de-identified: the only form of it a booth play stores (#375).
       ...(booth_mode && booth_answer ? { booth_answer } : {}),
+      // The reply cache's entries (#387), sent only while its switch is on.
+      ...(booth_mode && booth_cache ? { booth_cache } : {}),
       ...(stream ? { stream: true } : {}) }),
     signal: AbortSignal.timeout(timeoutMs),
   });
