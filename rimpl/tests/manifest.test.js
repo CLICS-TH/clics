@@ -131,7 +131,7 @@ describe('driftOf (pure)', () => {
   const manifest = () => JSON.parse(fs.readFileSync(M.MANIFEST_FILE, 'utf8'));
   const liveAsDeclared = () => ({
     providers: { chat: 'local-tutor', evaluate: 'local', criteria: 'local', discuss: 'local-tutor' },
-    models: { anthropic: 'claude-sonnet-4-6', local: 'deepseek-v4-flash-dspark', 'local-tutor': null },
+    models: { anthropic: 'claude-sonnet-4-6', local: 'DeepSeek-V4.1-Flash-1017', 'local-tutor': 'qwen3.8-flash-next' },
     last_seen: { local: null, 'local-tutor': null },
     decoding: {
       evaluate: { temperature: 0, max_tokens: 4096 }, shadow: { temperature: 0, max_tokens: 4096 },
@@ -147,17 +147,27 @@ describe('driftOf (pure)', () => {
     expect(M.driftOf(manifest(), liveAsDeclared())).toEqual([]);
   });
 
-  test('a null declared value is not compared (the tutor model is unknown, so any tutor model is not drift)', () => {
+  test('a null declared value is not compared (no fingerprint is recorded yet, nor the tutor engine)', () => {
     const live = liveAsDeclared();
-    live.models['local-tutor'] = 'qwen-anything';
-    live.last_seen['local-tutor'] = { model: 'qwen-anything', engine: 'ollama', runtime: 'x' };
+    live.last_seen.local = { model: 'DeepSeek-V4.1-Flash-1017', engine: 'vllm', runtime: 'vllm-anything' };
+    live.last_seen['local-tutor'] = { model: 'qwen3.8-flash-next', engine: 'ollama', runtime: 'x' };
     expect(M.driftOf(manifest(), live)).toEqual([]);
   });
 
   test('an observed served model that differs from the declared one is drift, even when the configured id matches', () => {
     const live = liveAsDeclared();
     live.last_seen.local = { model: 'deepseek-v4-flash-other', engine: 'vllm', runtime: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0' };
-    expect(M.driftOf(manifest(), live)).toEqual([{ key: 'declared.local.served_model', expected: 'deepseek-v4-flash-dspark', live: 'deepseek-v4-flash-other' }]);
+    expect(M.driftOf(manifest(), live)).toEqual([{ key: 'declared.local.served_model', expected: 'DeepSeek-V4.1-Flash-1017', live: 'deepseek-v4-flash-other' }]);
+  });
+
+  test('once a fingerprint is declared, an observed different one is drift (the lock by model identity rests on it)', () => {
+    const m = manifest();
+    m.expected.declared.local.system_fingerprint = 'vllm-declared-fp';
+    const live = liveAsDeclared();
+    live.last_seen.local = { model: 'DeepSeek-V4.1-Flash-1017', engine: 'vllm', runtime: 'vllm-other-fp' };
+    expect(M.driftOf(m, live)).toEqual([{ key: 'declared.local.system_fingerprint', expected: 'vllm-declared-fp', live: 'vllm-other-fp' }]);
+    live.last_seen.local.runtime = 'vllm-declared-fp';
+    expect(M.driftOf(m, live)).toEqual([]);
   });
 
   test('no manifest: no drift to compute (the health check reports the missing file instead)', () => {

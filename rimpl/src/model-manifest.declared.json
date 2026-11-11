@@ -13,16 +13,16 @@
   },
   "local": {
     "role": "evaluator",
-    "model": "deepseek-v4-flash-dspark",
+    "model": "DeepSeek-V4.1-Flash-1017",
     "engine": "vllm",
-    "system_fingerprint": "vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0",
-    "source": "The model id is the one the evaluator was calibrated on (docs/ARCHITECTURE-MAPPING-CCME.md section 4, item 3). The fingerprint is the one last seen, on 2026-10-02 (scripts/quality/report/BASELINE-2026-10-02.md); the endpoint address is not recorded. CCME has not confirmed either for the target box."
+    "system_fingerprint": null,
+    "source": "The model id is the on-prem evaluator CME serves on vm1 since the 2026-11-11 redeployment (CONTEXT.md, On-prem evaluator). Its system fingerprint has not been observed yet, so it is null; the value recorded before belonged to the earlier deepseek-v4-flash-dspark deployment. The engine is kept as vllm from that earlier deployment's fingerprint and is not confirmed for this model."
   },
   "local-tutor": {
     "role": "tutor",
-    "model": null,
+    "model": "qwen3.8-flash-next",
     "engine": null,
     "system_fingerprint": null,
-    "source": "Unknown. CCME has not confirmed the tutor model, its server or its thinking switch (docs/ARCHITECTURE-MAPPING-CCME.md section 4, items 6-7), and its endpoint is not reachable from here, so nothing has been observed."
+    "source": "The model id is the on-prem tutor CME serves on vm1 since the 2026-11-11 redeployment (CONTEXT.md, On-prem tutor). Its engine and system fingerprint have not been observed, so both are null."
   }
 }
