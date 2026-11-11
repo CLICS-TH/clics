@@ -21,13 +21,17 @@ const { logEvent } = require('../lib/audit');
 const { resolveScope } = require('../lib/eval-scope');
 const { triggerEvaluation } = require('./ple-evaluation');
 const { isDeterministicRimplError } = require('./rimpl-client');
-const { budgetPool } = require('../lib/usage');
+const { budgetPool, accrueBurned } = require('../lib/usage');
 const { loadTranscriptForEvaluation } = require('./eval-transcript');
 
 const INTERVAL_MS = parseInt(process.env.EVAL_DRAIN_INTERVAL_MS || '60000', 10);
 const ENV_CONCURRENCY = Math.max(1, parseInt(process.env.EVAL_DRAIN_CONCURRENCY || '1', 10));
 const LEASE_S = Math.max(60, parseInt(process.env.EVAL_LEASE_S || '600', 10));
 const MAX_ATTEMPTS = Math.max(1, parseInt(process.env.EVAL_MAX_ATTEMPTS || '20', 10));
+// A reply with no answer text (rimpl 503 empty_reply) is retried, but a reasoning model whose budget is
+// too small fails the same way every time: after this many attempts the PLE goes to manual QA rather
+// than burning the box EVAL_MAX_ATTEMPTS times. Each attempt is metered (accrueBurned).
+const EMPTY_REPLY_MAX_ATTEMPTS = Math.max(1, parseInt(process.env.EVAL_EMPTY_REPLY_MAX_ATTEMPTS || '3', 10));
 const MAX_BACKOFF_MS = 15 * 60_000;
 const BASE_BACKOFF_MS = 30_000;
 
@@ -96,9 +100,13 @@ async function runOne(pleId) {
     state.evaluated++;
   } catch (e) {
     const attempts = ple?.eval_attempts ?? 1;
+    if (ple?.physician_id) await accrueBurned(ple.physician_id, e);
     if (isDeterministicRimplError(e)) {
       console.error(`[eval-drain] PLE ${pleId}: deterministic failure (${e.status}${e.code ? ' ' + e.code : ''}) -> manual QA`);
       await flag(pleId, `deterministic:${e.status}${e.code ? ':' + e.code : ''}`, 'ple.eval_deterministic_failure', ple);
+    } else if (e?.code === 'empty_reply' && attempts >= EMPTY_REPLY_MAX_ATTEMPTS) {
+      console.error(`[eval-drain] PLE ${pleId}: ${attempts} empty evaluator replies -> manual QA`);
+      await flag(pleId, `empty_reply:${attempts}`, 'ple.eval_exhausted', ple);
     } else if (attempts >= MAX_ATTEMPTS) {
       console.error(`[eval-drain] PLE ${pleId}: ${attempts} attempts exhausted -> manual QA (last: ${e.message})`);
       await flag(pleId, `exhausted:${attempts}:${e?.code ?? e?.message ?? ''}`.slice(0, 200), 'ple.eval_exhausted', ple);

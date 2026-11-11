@@ -179,6 +179,21 @@ describe('armed — CHAT_FAILOVER_PROVIDER=anthropic, chat primary local', () =>
     expect(toFailover.signal).toBe(ac.signal);
   });
 
+  test.each([['an empty reply', ''], ['a whitespace-only reply', ' \n ']])('%s from the primary is empty_reply, not DOWN: no second call', async (_label, text) => {
+    mockLocal.call.mockResolvedValueOnce({ ...L, text, stopReason: 'max_tokens' });
+    await expect(ai.callAI(args('chat'))).rejects.toMatchObject({ code: 'empty_reply', status: 503, reasoningOnly: false });
+    expect(mockLocal.call).toHaveBeenCalledTimes(1);
+    expect(mockAnthropic.call).not.toHaveBeenCalled();
+  });
+
+  test('a reasoning-only error from the primary (unclosed THINK_PREOPENED block) does not fail over', async () => {
+    const { emptyReplyError } = require('../src/lib/ai-errors');
+    const err = Object.assign(emptyReplyError({ provider: 'local AI', stopReason: 'length', outputTokens: 900, reasoningOnly: true }), { noRetry: true });
+    mockLocal.call.mockRejectedValueOnce(err);
+    await expect(ai.callAI(args('chat'))).rejects.toBe(err);
+    expect(mockAnthropic.call).not.toHaveBeenCalled();
+  });
+
   test('a healthy primary is a single call and carries no marker', async () => {
     const r = await ai.callAI(args('chat'));
     expect(r).toEqual({ ...L, provider: 'local' });

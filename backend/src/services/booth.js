@@ -9,7 +9,8 @@ const { rimplChat } = require('./rimpl-client');
 const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers, stepRecords,
+  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers, stepRecords, bankKey,
+  echoesAnswer,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -18,6 +19,8 @@ const BOOTH_SETTINGS = Object.freeze({
   opensAt: 'booth_opens_at',
   closesAt: 'booth_closes_at',
   ceilingUsd: 'booth_play_ceiling_usd',
+  // The reply cache (#387). Not on the superadmin card: the owner switches it by SQL, after the calibration.
+  replyCache: 'booth_reply_cache',
 });
 
 const REPLY_RESERVE_USD = 0.05;
@@ -155,6 +158,7 @@ function boothEvent(rows) {
     opensAt: instant(rowText(rows, BOOTH_SETTINGS.opensAt)),
     closesAt: instant(rowText(rows, BOOTH_SETTINGS.closesAt)),
     ceilingUsd: Number.isFinite(ceiling) && ceiling > 0 ? ceiling : null,
+    replyCache: Number(rows[BOOTH_SETTINGS.replyCache]?.value) === 1,
   };
 }
 
@@ -474,6 +478,70 @@ async function memoTier(key, letter = null) {
   return letter;
 }
 
+// Reply cache (#387, db/migration-booth-reply-cache.sql). The backend keeps the replies; rimpl sees each entry's
+// embedding and cues only, and names the one a typed answer may reuse.
+const CACHE_ENTRIES_MAX = 32;
+const TIER_NAME = Object.fromEntries(TIERS.map((t) => [t.letter, t.name]));
+const CacheLive = z.object({
+  model: z.string().min(1).max(200),
+  embedding: z.array(z.number().finite()).min(16).max(4096),
+  cues: z.array(z.string().regex(/^[0-9a-f]{16}$/)).max(64),
+});
+
+/** The language rimpl replies to `d`'s typed answer in, by its booth prompt: Thai when the answer holds any Thai,
+ *  else English. The request's `language` is always 'th', so it cannot key the cache. */
+const replyLanguage = (d) => (/\p{Script=Thai}/u.test(d.answers.at(-1).text) ? 'th' : 'en');
+
+/** The newest entries at the point `d`'s typed answer was given, in its reply language; with a memo, only the
+ *  memo's tier (the exact sort memo wins). A database fault never refuses the reply: it reads as no entries. */
+async function cachedReplies(kase, d) {
+  try {
+    let query = supabase.from('booth_reply_cache').select('id, model, embedding, cues, tier, reply, pick')
+      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(d.tierPath))
+      .eq('tier_path', d.tierPath).eq('language', replyLanguage(d));
+    if (d.memo) query = query.eq('tier', d.memo);
+    const { data, error } = await query.order('created_at', { ascending: false }).limit(CACHE_ENTRIES_MAX);
+    if (!error && Array.isArray(data)) return data;
+    console.warn(`[booth] reply cache read failed: ${error ? error.code ?? 'error' : 'not a list'}`);
+  } catch (err) {
+    console.warn(`[booth] reply cache read failed: ${err.name}`);
+  }
+  return [];
+}
+
+/** What rimpl's response stands for. A reuse names an entry the backend sent: that entry's reply, pick and tier, as
+ *  if the AI had given them. An entry it did not send is no reply. Either way rimpl made no AI call. */
+function answerOf(res, entries) {
+  if (res?.cache?.hit === undefined) return { ai: res, reused: false };
+  const entry = entries?.find((e) => e.id === res.cache.hit);
+  return entry
+    ? { ai: { ...res, reply: entry.reply, pick: entry.pick, tier: TIER_NAME[entry.tier] }, reused: true }
+    : { ai: null, reused: true, reason: 'cache_unknown' };
+}
+
+/** Keeps a live reply for later answers that mean the same, only when the tier taken is the AI's own, best or
+ *  reasonable, the reply shows and holds no safety field, and it repeats none of this visitor's own words beyond the
+ *  case's text: a weaker or safety reply, or one carrying what a visitor typed, is never shown to another. Never the
+ *  answer's text, raw or de-identified, and never the pick's bridge, which the AI writes from this visitor's answer
+ *  and may quote. A database fault never refuses the reply. */
+async function keepReply(kase, d, res, issued) {
+  const live = CacheLive.safeParse(res.cache);
+  const n = d.answers.length;
+  const taken = issued.answers[n - 1].tier;
+  const raw = Object.fromEntries(REPLY_FIELDS.map((k) => [k, typeof res.reply?.[k] === 'string' ? res.reply[k] : '']));
+  if (!live.success || taken !== sortedTier(res.tier) || !['B', 'R'].includes(taken) || raw.safety.trim() !== ''
+    || !hasReply(issued.replies[n - 1]) || echoesAnswer(kase, d, raw)) return;
+  try {
+    const { error } = await supabase.from('booth_reply_cache').insert({
+      case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
+      ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ? { ...res.pick, bridge: '' } : null,
+    });
+    if (error) console.warn(`[booth] reply cache keep failed: ${error.code ?? 'error'}`);
+  } catch (err) {
+    console.warn(`[booth] reply cache keep failed: ${err.name}`);
+  }
+}
+
 /** The reply call's outcome once the dialogue is read, and what its latency line needs: `reason` unless the AI
  *  replied, `provider` when the AI answered. */
 async function replyOutcome(playId, event, kase, dialogue) {
@@ -491,20 +559,30 @@ async function replyOutcome(playId, event, kase, dialogue) {
   const key = dialogue.unsorted ? sortKey(kase, dialogue) : null;
   const recalled = key ? await memoTier(key) : null;
   const asked = recalled ? { ...dialogue, memo: recalled } : dialogue;
+  const request = chatRequest(kase, asked);
+  // Off (the default), nothing about the cache is read, written or sent.
+  const entries = dialogue.unsorted && event.replyCache ? await cachedReplies(kase, asked) : null;
+  const cache = entries ? { booth_cache: { entries: entries.map(({ id, model, embedding, cues }) => ({ id, model, embedding, cues })) } } : {};
   let res = null;
   let reason = '';
   try {
-    res = await rimplChat({ ple_id: playId, ...chatRequest(kase, asked) }, { timeoutMs: REPLY_TIMEOUT_MS });
+    res = await rimplChat({ ple_id: playId, ...request, ...cache }, { timeoutMs: REPLY_TIMEOUT_MS });
   } catch (err) {
     // The reservation stays: a call that failed or timed out may still have been billed.
     reason = err.status || err.name;
   }
-  if (res) await settle(playId, res, REPLY_RESERVE_USD);
+  const answered = answerOf(res, entries);
+  const ai = answered.ai;
+  // A reuse made no AI call, so its whole reservation is refunded.
+  if (res) await settle(playId, answered.reused ? null : res, REPLY_RESERVE_USD);
+  if (answered.reason) reason = answered.reason;
   // A rimpl older than the reply fields (#376) answers `content`: every step would show no reply, billed and unseen.
-  if (res && (typeof res.reply !== 'object' || res.reply === null)) reason = 'no_fields';
-  // Only a tier the model gave is kept: a failed or unreadable call must not pin a text to weaker for good.
-  const kept = key && !recalled && typeof res?.tier === 'string' ? await memoTier(key, sortedTier(res.tier)) : null;
-  const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, res);
+  if (ai && (typeof ai.reply !== 'object' || ai.reply === null)) reason = 'no_fields';
+  // Only a tier the model gave is kept: a failed or unreadable call must not pin a text to weaker for good, and a
+  // reuse's tier was given to another text.
+  const kept = key && !recalled && !answered.reused && typeof ai?.tier === 'string' ? await memoTier(key, sortedTier(ai.tier)) : null;
+  const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, ai);
+  if (entries && !answered.reused && res?.cache) await keepReply(kase, asked, res, issued);
   const { bank, ask } = issued;
   const body = {
     status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),

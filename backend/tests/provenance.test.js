@@ -67,7 +67,9 @@ describe('honest about what it can and cannot measure', () => {
     expect(src).not.toMatch(/const EVAL_DECODING =/);   // one definition, not a second copy in the route
     expect(src).toMatch(/maxTokens: EVAL_DECODING\.maxTokens/);
     expect(src).toMatch(/temperature: EVAL_DECODING\.temperature/);
-    expect(src).toMatch(/temperature: EVAL_DECODING\.temperature, maxTokens: EVAL_DECODING\.maxTokens/);
+    // The record takes the max_tokens the transport reports it SENT (a per-endpoint floor, #425) and
+    // falls back to EVAL_DECODING's, which is what was sent when no floor applied.
+    expect(src).toMatch(/temperature: EVAL_DECODING\.temperature, maxTokens: first\?\.maxTokens \?\? EVAL_DECODING\.maxTokens/);
   });
 
   test('the shadow evaluator sends the same decoding — the candidate is measured under the instrument\'s', () => {

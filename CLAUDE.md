@@ -51,27 +51,39 @@ Five CLICS-tuned subagents live in `.claude/agents/`. Prefer them over generic a
 poteto-agent writes the code. Repo agents join at fixed points:
 - review: after verify and before `gh pr create`, and in /jjstack:doublej. Sort what it finds by Ticket scope in Feature loop.
 - spec: during /jjstack:jjflow, ask it the domain-fact questions the grill needs.
-- verify: run it during verify, next to the verify skill (`.claude/skills/verify-clics/`, read-only scope).
+- verify: run it during verify, next to the verify skill.
+  The verify skill is `.claude/skills/verify-clics/` (read-only scope).
 
 | Agent | Role | Covers |
 |---|---|---|
 | clics-reviewer | review | every diff: bugs, security, PII leak, rubric drift, blinding, a11y/contrast, Thai type, tokens |
 | clics-explorer | spec | cross-layer "where/how/why" questions, doc-vs-code drift |
-| clics-rimpl | spec (rimpl, PII, PIS-7 rubric, provider routing, calibration provenance) | `rimpl/`, `audit-dashboard/lib/pis7-rubric.ts` |
-| clics-frontend | spec (portal + dashboard conventions) | `physician-ui/`, `audit-dashboard/` |
+| clics-rimpl | spec | `rimpl/`, `audit-dashboard/lib/pis7-rubric.ts`: PII, PIS-7 rubric, provider routing, calibration provenance |
+| clics-frontend | spec | `physician-ui/`, `audit-dashboard/`: portal + dashboard conventions |
 | clics-verifier | verify | hermetic suites, tsc, lint, responsive/readability gates |
 
 ## Learning loop
 After /jjstack:doublej, and whenever I correct an agent (a ticket session does not reflect: doublej sees what its review caught):
-1. Read and follow pstack's `reflect` skill on this session's transcript.
-2. Route a lesson about a repo agent's domain to that agent's memory in `.claude/agent-memory/<agent>/`.
-   Edit the agent file itself only when its role or scope changes.
+1. Read and follow pstack's `reflect` skill on this session's transcript. Steps 2-4 decide where an approved edit lands and how it ships,
+   over reflect's `.cursor/skills` copies and its no-PR rule; its rule against editing under `plugins/cache/` still holds.
+2. Agents propose lessons in their final reports and never write their own memory. Route a lesson about a
+   repo agent's domain to that agent's memory in `.claude/agent-memory/<agent>/`; you, the parent, write it
+   once step 3's approval is in. Edit the agent file itself only when its role or scope changes.
+   A lesson about how to gate, verify, fix or ship (not a domain fact) goes to `.claude/skills/lessons/`,
+   one file per lesson, by jjstack's `lessons` skill; jjstack's own skills are never edited from here.
+   A lesson that recurs, or that more than one agent needs, moves to the domain skill's `references/` and
+   leaves memory in the same edit. A lesson that would push a file over the budgets in jjstack's
+   agent-architecture standard lands in a `references/` file, with an index line.
 3. Prune as you add: read the whole file a lesson lands in and cut, in the same edit, lines it replaces
    or contradicts, repeats, and lines stale against the code. Show the Accepted additions and cuts together
    and wait for my approval before changing any file.
 4. Ship approved edits through review as one small `chore(agents): <lesson>` PR cut from origin/master, never on a ticket branch:
    lessons on parallel ticket branches collide in the same `.claude/**` files. A lesson whose file an open PR also edits waits for that PR to merge.
    **CLICS exception:** `.claude/` is gitignored here, so agent files and memory are local-only — apply approved edits in place, no PR, and back up `.claude/agents/` + `.claude/agent-memory/` before a batch edit.
+An agent that still has a `memory:` field can write into the checkout it runs in, despite step 2. After any
+repo-agent run, list each write under `.claude/agent-memory/` (path plus one line) in your reply, and ship it
+with the step-4 edits or hold it for my approval.
+
 A mistake made twice goes to /pstack:correct instead, which enforces it in the code.
 
 ## Feature loop

@@ -1,0 +1,458 @@
+[
+  {
+    "id": "th-same-01",
+    "lang": "th",
+    "kind": "same",
+    "a": "ให้ doxycycline 100 mg bid 7 วัน นัดดูอาการพรุ่งนี้",
+    "b": "ด็อกซี่ 100 mg bid x 7 วัน นัด f/u พรุ่งนี้",
+    "note": "leptospirosis step3: doxycycline written as ด็อกซี่, f/u for นัดดูอาการ, same plan"
+  },
+  {
+    "id": "th-same-02",
+    "lang": "th",
+    "kind": "same",
+    "a": "DKA ใน type 1 DM รายใหม่",
+    "b": "new onset T1DM มาด้วย DKA",
+    "note": "dka-young-adult step1: word order and T1DM abbreviation, same diagnosis"
+  },
+  {
+    "id": "th-same-03",
+    "lang": "th",
+    "kind": "same",
+    "a": "atropine IV เพิ่มเท่าตัวทุก 5 นาทีจนปอดแห้ง + PAM",
+    "b": "ให้อะโทรปีน IV double dose q 5 นาที จน chest clear ร่วมกับ pralidoxime",
+    "note": "organophosphate step3: Thai drug name, PAM for pralidoxime, chest clear for ปอดแห้ง"
+  },
+  {
+    "id": "th-same-04",
+    "lang": "th",
+    "kind": "same",
+    "a": "ส่ง CXR, ECG, ABG",
+    "b": "ABG CXR EKG",
+    "note": "copd-exacerbation step2: order changed, EKG for ECG, no punctuation"
+  },
+  {
+    "id": "th-same-05",
+    "lang": "th",
+    "kind": "same",
+    "a": "ORS 750 ml ใน 4 ชม. + zinc แล้วประเมินซ้ำ",
+    "b": "ป้อน ORS 750ml ใน 4ชม. ร่วมกับซิงค์ แล้ว reassess",
+    "note": "toddler-gastro-dehydration step3: 750ml and 4ชม. re-spaced, ซิงค์ for zinc, same plan"
+  },
+  {
+    "id": "th-same-06",
+    "lang": "th",
+    "kind": "same",
+    "a": "admit ให้ IV fluid แก้ปวด งดน้ำงดอาหารไว้ก่อน",
+    "b": "รับไว้ ให้สารน้ำ ยาแก้ปวด NPO ไว้ก่อน",
+    "note": "alcohol-pancreatitis step3: NPO for งดน้ำงดอาหาร, only one side carries a negation word"
+  },
+  {
+    "id": "th-same-07",
+    "lang": "th",
+    "kind": "same",
+    "a": "หยุด allopurinol ส่งต่อ burn unit",
+    "b": "stop allopurinol แล้ว refer หน่วยแผลไหม้",
+    "note": "sjs-ten-allopurinol step3: หยุด vs stop, burn unit in Thai, same plan"
+  },
+  {
+    "id": "th-same-08",
+    "lang": "th",
+    "kind": "same",
+    "a": "ทำ FAST ข้างเตียง และส่ง G/M จองเลือด",
+    "b": "จองเลือด G/M แล้วทำ bedside FAST",
+    "note": "motorcycle-shock step2: order swapped, bedside for ข้างเตียง"
+  },
+  {
+    "id": "th-negated-01",
+    "lang": "th",
+    "kind": "negated",
+    "a": "ให้ NSS กับ insulin drip ไม่ให้ bicarb",
+    "b": "ให้ NSS กับ bicarb ไม่ให้ insulin drip",
+    "note": "dka-young-adult step3: ไม่ให้ moves from bicarbonate to insulin"
+  },
+  {
+    "id": "th-negated-02",
+    "lang": "th",
+    "kind": "negated",
+    "a": "NSS ก่อน ยังไม่เริ่ม insulin จนกว่าผล K จะออก",
+    "b": "NSS แล้วเริ่ม insulin เลย ไม่ต้องรอผล K",
+    "note": "dka-young-adult step3 RW: ยังไม่ holds insulin vs ไม่ต้องรอ starts it now"
+  },
+  {
+    "id": "th-negated-03",
+    "lang": "th",
+    "kind": "negated",
+    "a": "IV fluid แก้ปวด เริ่มกินอาหารได้เลยถ้าทนได้",
+    "b": "IV fluid แก้ปวด งดอาหารไว้ก่อน",
+    "note": "alcohol-pancreatitis step3: early feeding vs งดอาหาร added"
+  },
+  {
+    "id": "th-negated-04",
+    "lang": "th",
+    "kind": "negated",
+    "a": "หยุด allopurinol ให้ IV fluid ส่ง ICU",
+    "b": "ให้ allopurinol ต่อ ให้ IV fluid ส่ง ICU",
+    "note": "sjs-ten-allopurinol step3: หยุด removed, culprit drug continued"
+  },
+  {
+    "id": "th-negated-05",
+    "lang": "th",
+    "kind": "negated",
+    "a": "หยุดยา ให้สารน้ำ IV ห้ามให้ steroid",
+    "b": "หยุดยา ให้สารน้ำ IV ให้ steroid ด้วย",
+    "note": "sjs-ten-allopurinol step3 RW: ห้าม removed, steroid given"
+  },
+  {
+    "id": "th-negated-06",
+    "lang": "th",
+    "kind": "negated",
+    "a": "ให้ doxy กิน 7 วัน ไม่ต้องนอน รพ. นัดดูพรุ่งนี้",
+    "b": "ให้ doxy กิน 7 วัน admit นอน รพ. ดูอาการ",
+    "note": "leptospirosis step3: ไม่ต้องนอน รพ. (outpatient) vs admit"
+  },
+  {
+    "id": "th-negated-07",
+    "lang": "th",
+    "kind": "negated",
+    "a": "ORS 750 ml ใน 4 ชม. กับ zinc ไม่ควรให้ยาฆ่าเชื้อ",
+    "b": "ORS 750 ml ใน 4 ชม. กับ zinc ควรให้ยาฆ่าเชื้อด้วย",
+    "note": "toddler-gastro-dehydration step3: ไม่ควร removed, antibiotic added"
+  },
+  {
+    "id": "th-negated-08",
+    "lang": "th",
+    "kind": "negated",
+    "a": "O2 + furosemide IV อย่าเพิ่งให้ nitrate",
+    "b": "O2 + furosemide IV + อม nitrate ใต้ลิ้นเลย",
+    "note": "adhf step3: อย่าเพิ่ง withholds nitrate vs gives SL nitrate now"
+  },
+  {
+    "id": "th-negated-09",
+    "lang": "th",
+    "kind": "negated",
+    "a": "atropine IV จนปอดแห้ง แล้ว drip ต่อ ห้ามเลิกทันที",
+    "b": "atropine IV จนปอดแห้ง แล้วเลิกให้ได้เลย",
+    "note": "organophosphate step3: keep atropine running vs เลิก stops it once dry"
+  },
+  {
+    "id": "th-unsafe-01",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "NSS แล้ว insulin drip 0.1 u/kg/hr เติม K",
+    "b": "NSS แล้ว insulin drip 1 u/kg/hr เติม K",
+    "note": "dka-young-adult step3: insulin rate 0.1 vs 1 u/kg/hr, tenfold"
+  },
+  {
+    "id": "th-unsafe-02",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ORS ไม่ได้ เปลี่ยนเป็น IV LRS 750 ml ใน 4 ชม.",
+    "b": "ORS ไม่ได้ เปลี่ยนเป็น IV LRS 75 ml ใน 4 ชม.",
+    "note": "toddler-gastro-dehydration step3: 750 ml vs 75 ml for a 10 kg child"
+  },
+  {
+    "id": "th-unsafe-03",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "นึกถึงโรคฉี่หนู ลุยน้ำท่วม ปวดน่อง ตาแดง",
+    "b": "นึกถึง scrub typhus ลุยน้ำท่วม ปวดน่อง ตาแดง",
+    "note": "leptospirosis step1: leptospirosis vs scrub typhus, same supporting findings"
+  },
+  {
+    "id": "th-unsafe-04",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ceftazidime IV 2 g q 8 hr แล้วต่อ TMP-SMX",
+    "b": "ceftriaxone IV 2 g q 8 hr แล้วต่อ TMP-SMX",
+    "note": "melioidosis-farmer step3: ceftazidime vs ceftriaxone, close spelling, wrong drug"
+  },
+  {
+    "id": "th-unsafe-05",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ให้เลือด + TXA แล้ว refer รพ.จังหวัดด่วน",
+    "b": "ให้เลือด + TXA แล้ว admit สังเกตอาการที่นี่",
+    "note": "motorcycle-shock step3: urgent refer for surgery vs keep and observe"
+  },
+  {
+    "id": "th-unsafe-06",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "อะโทรปีน 2 mg IV ซ้ำทุก 5 นาที",
+    "b": "อะดรีนาลีน 2 mg IV ซ้ำทุก 5 นาที",
+    "note": "organophosphate step3: atropine vs adrenaline in Thai script"
+  },
+  {
+    "id": "th-unsafe-07",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ให้เลือดแล้วเข้า OR ex-lap ทันที",
+    "b": "ให้เลือดแล้ว observe เจาะ Hb ซ้ำ",
+    "note": "ectopic-rupture step3: emergency laparotomy vs observe with repeat Hb"
+  },
+  {
+    "id": "th-unsafe-08",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "O2 + furosemide 40 mg IV แล้วประเมินซ้ำ",
+    "b": "O2 + furosemide 40 mg PO แล้วประเมินซ้ำ",
+    "note": "adhf step3: furosemide IV vs PO in pulmonary oedema"
+  },
+  {
+    "id": "th-unsafe-09",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ORS 75 ml/kg ใน 4 ชม. แล้วประเมินซ้ำ",
+    "b": "ORS 75 ml/kg ใน 4 วัน แล้วประเมินซ้ำ",
+    "note": "toddler-gastro-dehydration step3: plan B ORS over 4 ชม. vs 4 วัน, hours vs days"
+  },
+  {
+    "id": "th-unsafe-10",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ให้ O2 กับ furosemide 40 มก. IV แล้วดู urine output",
+    "b": "ให้ O2 กับ furosemide 40 กรัม IV แล้วดู urine output",
+    "note": "adhf step3: furosemide 40 มก. vs 40 กรัม, a thousandfold, Thai unit abbreviations"
+  },
+  {
+    "id": "th-unsafe-11",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "load NSS 1 ลิตร ใน 1 ชม.แรก แล้วเริ่ม insulin drip",
+    "b": "load NSS 1 มล. ใน 1 ชม.แรก แล้วเริ่ม insulin drip",
+    "note": "dka-young-adult step3: 1 ลิตร vs 1 มล. of saline in the first hour, litres vs millilitres"
+  },
+  {
+    "id": "th-unsafe-12",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "ให้ doxy 100 mg วันละสองครั้ง เจ็ดวัน",
+    "b": "ให้ doxy 100 mg วันละสี่ครั้ง เจ็ดวัน",
+    "note": "leptospirosis step3: doxycycline twice vs four times a day, the number written as a Thai word"
+  },
+  {
+    "id": "th-unsafe-13",
+    "lang": "th",
+    "kind": "unsafe",
+    "a": "atropine .5 mg IV แล้ว double ทุก 5 นาทีจนปอดแห้ง",
+    "b": "atropine 5 mg IV แล้ว double ทุก 5 นาทีจนปอดแห้ง",
+    "note": "organophosphate step3: atropine .5 mg vs 5 mg, a leading point dropped, tenfold"
+  },
+  {
+    "id": "en-same-01",
+    "lang": "en",
+    "kind": "same",
+    "a": "Transfuse and take her straight to OR for ex-lap",
+    "b": "transfuse, emergency laparotomy now",
+    "note": "ectopic-rupture step3: ex-lap vs laparotomy, OR implied, same plan"
+  },
+  {
+    "id": "en-same-02",
+    "lang": "en",
+    "kind": "same",
+    "a": "glucose, ketones, VBG, lytes",
+    "b": "VBG + electrolytes, serum ketones and glucose",
+    "note": "dka-young-adult step2: order changed, lytes for electrolytes"
+  },
+  {
+    "id": "en-same-03",
+    "lang": "en",
+    "kind": "same",
+    "a": "O2, IV furosemide 40 mg, SL GTN",
+    "b": "oxygen, furosemide 40mg IV, sublingual nitroglycerin",
+    "note": "adhf step3: abbreviations spelled out, 40mg re-spaced, same plan"
+  },
+  {
+    "id": "en-same-04",
+    "lang": "en",
+    "kind": "same",
+    "a": "Leptospirosis",
+    "b": "lepto - waded in flood water, calf pain, red eyes",
+    "note": "leptospirosis step1: bare diagnosis vs abbreviation with reasons, same answer"
+  },
+  {
+    "id": "en-same-05",
+    "lang": "en",
+    "kind": "same",
+    "a": "pred 40 mg x5 days plus doxy",
+    "b": "prednisolone 40 mg for 5 days + doxycycline",
+    "note": "copd-exacerbation step3: abbreviations and x5 vs for 5 days"
+  },
+  {
+    "id": "en-same-06",
+    "lang": "en",
+    "kind": "same",
+    "a": "IV atropine titrated to a dry chest + pralidoxime, decontaminate",
+    "b": "atropine IV till lungs dry, add 2-PAM, strip and wash him",
+    "note": "organophosphate step3: 2-PAM for pralidoxime adds a digit, same plan"
+  },
+  {
+    "id": "en-same-07",
+    "lang": "en",
+    "kind": "same",
+    "a": "stop allopurinol, refer to burn unit",
+    "b": "discontinue allopurinol and send to burns unit",
+    "note": "sjs-ten-allopurinol step3: stop vs discontinue, refer vs send"
+  },
+  {
+    "id": "en-same-08",
+    "lang": "en",
+    "kind": "same",
+    "a": "ORS 750 mL over 4 hrs plus zinc, reassess at 4h",
+    "b": "ORS 750 mL ovr 4 hrs + zinc, reasses at 4h",
+    "note": "toddler-gastro-dehydration step3: typos ovr and reasses, same plan"
+  },
+  {
+    "id": "en-negated-01",
+    "lang": "en",
+    "kind": "negated",
+    "a": "start insulin drip, no bicarbonate",
+    "b": "start bicarbonate, no insulin drip",
+    "note": "dka-young-adult step3: no moves from bicarbonate to insulin"
+  },
+  {
+    "id": "en-negated-02",
+    "lang": "en",
+    "kind": "negated",
+    "a": "fluids now, withhold insulin until K is back",
+    "b": "fluids now and start insulin, don't wait for K",
+    "note": "dka-young-adult step3 RW: withhold insulin vs start it without waiting for K"
+  },
+  {
+    "id": "en-negated-03",
+    "lang": "en",
+    "kind": "negated",
+    "a": "fluids, analgesia, avoid an NG tube",
+    "b": "fluids, analgesia, put in an NG tube",
+    "note": "alcohol-pancreatitis step3: avoid removed, NG tube placed"
+  },
+  {
+    "id": "en-negated-04",
+    "lang": "en",
+    "kind": "negated",
+    "a": "oral doxy, skip admission, review tomorrow",
+    "b": "oral doxy, admit, review tomorrow",
+    "note": "leptospirosis step3: skip admission vs admit"
+  },
+  {
+    "id": "en-negated-05",
+    "lang": "en",
+    "kind": "negated",
+    "a": "stop allopurinol, IV fluids, refrain from steroids, ICU",
+    "b": "stop allopurinol, IV fluids, IV steroids, ICU",
+    "note": "sjs-ten-allopurinol step3: refrain from steroids vs IV steroids"
+  },
+  {
+    "id": "en-negated-06",
+    "lang": "en",
+    "kind": "negated",
+    "a": "ORS 750 mL over 4 h with zinc, hold off on antibiotics",
+    "b": "ORS 750 mL over 4 h with zinc plus an oral antibiotic",
+    "note": "toddler-gastro-dehydration step3: hold off on antibiotics vs oral antibiotic added"
+  },
+  {
+    "id": "en-negated-07",
+    "lang": "en",
+    "kind": "negated",
+    "a": "pred 5 days + amox-clav rather than IV ceftriaxone",
+    "b": "IV ceftriaxone rather than amox-clav, pred 5 days",
+    "note": "copd-exacerbation step3: rather than flips which antibiotic is chosen"
+  },
+  {
+    "id": "en-negated-08",
+    "lang": "en",
+    "kind": "negated",
+    "a": "blood instead of saline, TXA, transfer",
+    "b": "saline instead of blood, TXA, transfer",
+    "note": "motorcycle-shock step3: instead of flips blood and saline"
+  },
+  {
+    "id": "en-negated-09",
+    "lang": "en",
+    "kind": "negated",
+    "a": "blood and ex-lap now without waiting for a formal scan",
+    "b": "wait for the formal scan, then blood and ex-lap",
+    "note": "ectopic-rupture step3: without waiting vs wait for the scan first"
+  },
+  {
+    "id": "en-unsafe-01",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "atropine 2 mg IV, double every 5 min",
+    "b": "adrenaline 2 mg IV, double every 5 min",
+    "note": "organophosphate step3: atropine vs adrenaline, same dose wording"
+  },
+  {
+    "id": "en-unsafe-02",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "IV ceftazidime 2 g q8h then TMP-SMX",
+    "b": "IV cefazolin 2 g q8h then TMP-SMX",
+    "note": "melioidosis-farmer step3: ceftazidime vs cefazolin, wrong drug"
+  },
+  {
+    "id": "en-unsafe-03",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "doxycycline 100 mg bid x 7 days",
+    "b": "doxycycline 1000 mg bid x 7 days",
+    "note": "leptospirosis step3: 100 mg vs 1000 mg, tenfold"
+  },
+  {
+    "id": "en-unsafe-04",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "admit, LR 1.5 ml/kg/h, analgesia, ultrasound",
+    "b": "admit, LR 15 ml/kg/h, analgesia, ultrasound",
+    "note": "alcohol-pancreatitis step3: fluid rate 1.5 vs 15 ml/kg/h"
+  },
+  {
+    "id": "en-unsafe-05",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "blood + TXA, refer to the provincial hospital for surgery",
+    "b": "blood + TXA, keep him here and observe overnight",
+    "note": "motorcycle-shock step3: refer for surgery vs observe overnight"
+  },
+  {
+    "id": "en-unsafe-06",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "controlled O2 to 88-92%, nebs, pred, doxy",
+    "b": "high-flow O2 to 98-100%, nebs, pred, doxy",
+    "note": "copd-exacerbation step3: O2 target 88-92% vs 98-100% in a CO2 retainer"
+  },
+  {
+    "id": "en-unsafe-07",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "DKA, likely new type 1 diabetes",
+    "b": "HHS, likely new type 1 diabetes",
+    "note": "dka-young-adult step1: DKA vs HHS, one token apart"
+  },
+  {
+    "id": "en-unsafe-08",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "2 units PRC and straight to theatre",
+    "b": "2 units PRC, admit, repeat Hb in 6 h",
+    "note": "ectopic-rupture step3: theatre now vs admit and repeat Hb"
+  },
+  {
+    "id": "en-unsafe-09",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "NSS bolus, then insulin drip 0.1 units/kg/hr once K is back",
+    "b": "NSS bolus, then insulin drip 0.1 units/kg/min once K is back",
+    "note": "dka-young-adult step3: insulin rate per hour vs per minute, sixtyfold"
+  },
+  {
+    "id": "en-unsafe-10",
+    "lang": "en",
+    "kind": "unsafe",
+    "a": "fluids, insulin drip, replace K at 0.3 mmol/kg/hr on a cardiac monitor",
+    "b": "fluids, insulin drip, replace K at 0.3 mmol/kg/day on a cardiac monitor",
+    "note": "dka-young-adult step3: potassium per hour vs per day, a 24-fold rate change"
+  }
+]

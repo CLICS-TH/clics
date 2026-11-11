@@ -1,0 +1,9 @@
+workflows: af2420a90e49264d33099fc9f6fabe28c09b2d2b
+date: 2026-11-10
+# billed minutes per case (skipped jobs excluded: GitHub bills no runner for them)
+# case                                   before  after (est.)
+docs-only PR (#436)                      1       1
+rimpl PR (#414)                          9       9
+vm1-only PR (#438)                       3       3
+booth PR, dashboard + portal (#420)      27      ~25
+default-branch push (master)             43      ~41

@@ -300,7 +300,7 @@ describe.each(['local', 'local-tutor'])('%s: returned replies are stripped', (wh
     expect(warnSpy.mock.calls.map(([m]) => m).join('\n')).not.toMatch(/ALREADY been shown/);
   });
 
-  test.each([['streamed', true], ['non-streamed', false]])('THINK_PREOPENED=1, %s, no close tag at all: an ERROR (reasoning_only, not retried) — never the text, never a blank reply', async (_l, streamed) => {
+  test.each([['streamed', true], ['non-streamed', false]])('THINK_PREOPENED=1, %s, no close tag at all: an ERROR (empty_reply, reasoning only, not retried) — never the text, never a blank reply', async (_l, streamed) => {
     process.env[`${which === 'local' ? 'LOCAL_AI_' : 'LOCAL_TUTOR_AI_'}THINK_PREOPENED`] = '1';
     const body = `${SECRET}; still thinking when max_tokens hit`;
     fetchMock.mockResolvedValue(streamed
@@ -308,14 +308,14 @@ describe.each(['local', 'local-tutor'])('%s: returned replies are stripped', (wh
       : json(body, { choices: [{ message: { content: body }, finish_reason: 'length' }] }));
     const pieces = [];
     const err = await load(which).call(args(streamed ? { onDelta: (t) => pieces.push(t) } : {})).then(() => null, (e) => e);
-    expect(err).toMatchObject({ code: 'reasoning_only', status: 502, noRetry: true });
+    expect(err).toMatchObject({ code: 'empty_reply', status: 503, reasoningOnly: true, noRetry: true });
     expect(err.message).toMatch(/THINK_PREOPENED=1/);
     expect(err.message).not.toContain('Somchai');
     expect(pieces).toEqual([]);                 // the physician saw nothing
     expect(fetchMock).toHaveBeenCalledTimes(1); // and the shared box was not asked three more times
   });
 
-  test('THINK_PREOPENED=1 and an EMPTY content: unchanged — returns "" (the existing empty-reply path), no error', async () => {
+  test('THINK_PREOPENED=1 and an EMPTY content: the provider returns "" (services/ai.js makes that empty_reply), no reasoning-only error', async () => {
     process.env[`${which === 'local' ? 'LOCAL_AI_' : 'LOCAL_TUTOR_AI_'}THINK_PREOPENED`] = '1';
     fetchMock.mockResolvedValue(json(''));
     expect((await load(which).call(args())).text).toBe('');
@@ -440,17 +440,17 @@ describe('THINK_PREOPENED is per instance', () => {
     process.env.LOCAL_AI_THINK_PREOPENED = '1';
     fetchMock.mockImplementation(async () => json('Plain answer, no markup.'));
     expect((await load('local-tutor').call(args())).text).toBe('Plain answer, no markup.');
-    await expect(load('local').call(args())).rejects.toMatchObject({ code: 'reasoning_only' });
+    await expect(load('local').call(args())).rejects.toMatchObject({ code: 'empty_reply', reasoningOnly: true });
     delete process.env.LOCAL_AI_THINK_PREOPENED;
     process.env.LOCAL_TUTOR_AI_THINK_PREOPENED = '1';
     expect((await load('local').call(args())).text).toBe('Plain answer, no markup.');
-    await expect(load('local-tutor').call(args())).rejects.toMatchObject({ code: 'reasoning_only' });
+    await expect(load('local-tutor').call(args())).rejects.toMatchObject({ code: 'empty_reply', reasoningOnly: true });
   });
 
-  test('a reasoning_only error is not a DOWN provider: the chat fail-over would not move it to another vendor', () => {
+  test('an empty_reply error is not a DOWN provider despite its 503: the chat fail-over would not move it to another vendor', () => {
     jest.resetModules();
     const { isProviderDown } = require('../src/services/ai');
-    expect(isProviderDown(Object.assign(new Error('x'), { status: 502, code: 'reasoning_only', noRetry: true }))).toBe(false);
+    expect(isProviderDown(Object.assign(new Error('x'), { status: 503, code: 'empty_reply', reasoningOnly: true, noRetry: true }))).toBe(false);
     expect(isProviderDown(Object.assign(new Error('x'), { status: 502 }))).toBe(true);   // an ordinary 5xx still is
   });
 });
