@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { readEventCases, SAFE_EVENT_CODE } = require('../src/services/booth');
 const { snapshotFile, snapshotState, snapshotProblem, StudyCaseSchema, readStudyCase } = require('../src/booth-cases/study-snapshot');
-const { bankAt, stepRecords, studyTranscript } = require('../src/services/booth-dialogue');
+const { bankAt, stepRecords, studyTranscript, LOOK_LANGUAGE } = require('../src/services/booth-dialogue');
 
 // readEventCases logs each case it leaves out; the invariant reads only the admitted ones.
 beforeAll(() => jest.spyOn(console, 'warn').mockImplementation(() => {}));
@@ -45,13 +45,18 @@ function walk(kase, tierPath) {
   return { asks: steps.map((s) => s.ask), answers: steps.map((s) => s.answer), replies, tierPath };
 }
 
-test.each(SNAPSHOTS.map((f) => [path.relative(DIR, f), f]))('%s is a study snapshot of its own case and version, and rebuilds a play', (_name, file) => {
+test.each(SNAPSHOTS.map((f) => [path.relative(DIR, f), f]))('%s is a study snapshot of its own case and version, and rebuilds a play in every look', (_name, file) => {
   const parsed = StudyCaseSchema.safeParse(JSON.parse(fs.readFileSync(file, 'utf8')));
   expect(parsed.error?.issues ?? []).toEqual([]);
   const { event_code: code, case_id: id, version, banks } = parsed.data;
   expect(file).toBe(snapshotFile(DIR, code, id, version));
   const kase = readStudyCase(DIR, code, id, version);
   const tierPath = Object.keys(banks).map((_, i) => LETTERS[i % 3]).join('');
-  const rebuilt = studyTranscript(kase, stepRecords(walk(kase, tierPath)));
-  expect(rebuilt.messages?.filter((t) => t.role === 'physician')).toHaveLength(tierPath.length);
+  const steps = stepRecords(walk(kase, tierPath));
+  // null is a play scored before #377; each look reads in its primary language (#377).
+  for (const look of [null, ...Object.keys(LOOK_LANGUAGE)]) {
+    const physician = studyTranscript(kase, steps, look).messages?.filter((t) => t.role === 'physician');
+    expect(physician).toHaveLength(tierPath.length);
+    expect(physician[0].content.startsWith(`${kase.vignette[LOOK_LANGUAGE[look ?? 'th+en']]}\n\n`)).toBe(true);
+  }
 });

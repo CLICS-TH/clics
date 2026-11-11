@@ -56,8 +56,8 @@ const WALKED = {
 };
 const STEPS = stepRecords(WALKED);
 
-const question = (bank, variant) => bank.variants.find((v) => v.id === variant).question.th;
-const said = (bank, id) => { const o = bank.options.find((x) => x.id === id); return `${o.label.th}: ${o.line.th}`; };
+const question = (bank, variant, lang = 'th') => bank.variants.find((v) => v.id === variant).question[lang];
+const said = (bank, id, lang = 'th') => { const o = bank.options.find((x) => x.id === id); return `${o.label[lang]}: ${o.line[lang]}`; };
 const MESSAGES = [
   { role: 'physician', content: `${KASE.vignette.th}\n\n${question(B1, 'v1')}\n${said(B1, 'c')}` },
   { role: 'assistant', content: 'ซักประวัติครบ ควรถามเรื่องยา ลองคิดต่ออีกขั้น' },
@@ -83,7 +83,8 @@ function seedPlay(over = {}) {
   const row = {
     id: crypto.randomUUID(), event_code: KASE.event_code, tag: 917, status: 'scored', spend_usd: 0, ...DEMO,
     created_at: '2026-11-20T03:00:00.000Z', scored_at: '2026-11-20T03:12:44.120Z', ranked: true, case_id: KASE.case_id,
-    case_version: KASE.version, tier_path: 'RBW', replied_step: 3, steps: STEPS, score_source: 'table', ...over,
+    case_version: KASE.version, tier_path: 'RBW', replied_step: 3, steps: STEPS, score_source: 'table', language_look: null,
+    ...over,
   };
   plays.set(row.id, row);
   return row;
@@ -301,6 +302,61 @@ describe('the queue', () => {
     const res = await as(AUDITOR).queue();
     expect(res.status).toBe(502);
     expect(res.body).toEqual({ error: 'Could not load the booth case studies — try again' });
+  });
+});
+
+describe('the language the visitor saw (#377)', () => {
+  // An English-look play: the AI replied in English and the visitor typed in English.
+  const DEIDENTIFIED_EN = 'Start antibiotics for [NAME-1]';
+  const STEPS_EN = stepRecords({
+    ...WALKED,
+    answers: WALKED.answers.map((a) => ('text' in a ? { text: 'Start antibiotics for Mr Somchai', tier: 'B', deidentified: DEIDENTIFIED_EN } : a)),
+    replies: [
+      { strength: '**History** taken in full', weigh: 'Ask about drugs', safety: '' },
+      { strength: 'Good', weigh: '', safety: 'Watch for respiratory failure' },
+      { strength: '', weigh: 'Think about resistant organisms', safety: '' },
+    ],
+    asks: WALKED.asks.map((a, i) => ({ ...a, bridge: ['', 'Take it one step further', 'Next is treatment'][i] })),
+  });
+  const englishOf = (kase) => [
+    { role: 'physician', content: `${kase.vignette.en}\n\n${question(B1, 'v1', 'en')}\n${said(B1, 'c', 'en')}` },
+    { role: 'assistant', content: 'History taken in full Ask about drugs Take it one step further' },
+    { role: 'physician', content: `${question(B2, 'v2', 'en')}\n${DEIDENTIFIED_EN}` },
+    { role: 'assistant', content: 'Good Watch for respiratory failure Next is treatment' },
+    { role: 'physician', content: `${question(B3, 'v1', 'en')}\n${said(B3, 'd', 'en')}` },
+    { role: 'assistant', content: 'Think about resistant organisms' },
+  ];
+
+  test.each(['en', 'en+th'])('a play scored in the %s look is studied in English, case text and replies alike', async (look) => {
+    const play = seedPlay({ steps: STEPS_EN, language_look: look });
+    expect((await as(AUDITOR).queue()).body).toEqual([listed(play)]);
+    const res = await as(AUDITOR).study(play.id);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ state: 'blind', play: studyPlay(play), messages: englishOf(KASE) });
+    const shown = JSON.stringify(res.body.messages);
+    for (const thai of [KASE.vignette.th, question(B1, 'v1'), said(B3, 'd')]) expect(shown).not.toContain(thai);
+  });
+
+  test('an English play on an earlier case version reads that version\'s snapshot in English', async () => {
+    const play = seedPlay({ steps: STEPS_EN, language_look: 'en', case_version: EARLIER.version });
+    const { body } = await as(AUDITOR).study(play.id);
+    expect(body.messages).toEqual(englishOf(EARLIER));
+    expect(body.messages[0].content.startsWith(`${EARLIER.vignette.en}\n\n`)).toBe(true);
+  });
+
+  test.each([['th', 'th'], ['th+en', 'th+en'], ['no look (scored before #377)', null]])(
+    'a play scored in %s is studied in Thai', async (_name, look) => {
+      const play = seedPlay({ language_look: look });
+      expect((await as(AUDITOR).study(play.id)).body.messages).toEqual(MESSAGES);
+    },
+  );
+
+  test('a play whose look is none of the four is dropped as malformed, never shown in a guessed language', async () => {
+    const play = seedPlay({ language_look: 'fr' });
+    const res = await as(AUDITOR).queue();
+    expect([res.body, res.headers['x-total-count']]).toEqual([[], '0']);
+    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=0 dropped no_snapshot=0 no_deidentified_copy=0 malformed=1');
+    expect((await as(AUDITOR).study(play.id)).status).toBe(404);
   });
 });
 

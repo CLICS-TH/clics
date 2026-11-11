@@ -5,7 +5,7 @@ const { studyCase } = require('./booth');
 const { studyTranscript } = require('./booth-dialogue');
 
 const DOMAINS = Object.keys(WEIGHTS);
-const BLIND_COLUMNS = 'id, event_code, case_id, case_version, scored_at, steps';
+const BLIND_COLUMNS = 'id, event_code, case_id, case_version, scored_at, steps, language_look';
 const REVEAL_COLUMNS = [...DOMAINS, 'composite'].join(', ');
 const AUDIT_COLUMNS = [...DOMAINS, 'created_at'].join(', ');
 const PER_PAGE = 50;
@@ -43,12 +43,13 @@ async function readAll(query) {
   }
 }
 
-/** The play as an auditor studies it, from the study snapshot of the case version it was played on.
+/** The play as an auditor studies it, from the study snapshot of the case version it was played on, in the language
+ *  of the look it was scored in.
  *  @returns {{ play: StudyPlay, messages: Turn[] } | { why: string }} */
 function studyOf(row) {
   const kase = studyCase(row.event_code, row.case_id, row.case_version);
   if (!kase) return { why: 'no_snapshot' };
-  const rebuilt = studyTranscript(kase, row.steps);
+  const rebuilt = studyTranscript(kase, row.steps, row.language_look);
   if (rebuilt.why) return rebuilt;
   const play = { id: row.id, played_on: blindDay(row.scored_at), case: { case_id: kase.case_id, teaser: kase.teaser } };
   return { play, messages: rebuilt.messages };

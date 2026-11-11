@@ -338,17 +338,25 @@ const StepRecordSchema = z.object({
   typed: z.string().nullable().optional(),
 }).refine((s) => (s.choice === undefined) !== (s.typed === undefined), { message: 'needs exactly one of choice and typed' });
 
+// booth_plays.language_look: a look, or null for a play scored before #377 (the kiosk then showed th+en). undefined
+// is refused, so a read that left the column out drops its plays loudly instead of showing them in Thai.
+const StoredLookSchema = z.enum(Object.keys(LOOK_LANGUAGE)).nullable();
+
 /**
  * A play's transcript as the auditor reads it, rebuilt from its step records against the case version it was
- * played on (a case file or a study snapshot), whatever that version's number of steps. Typed answers read as
+ * played on (a case file or a study snapshot), whatever that version's number of steps. The case text is in the
+ * primary language of the look the play was scored in, the language its replies came in (#377). The step records
+ * keep no look, so after a mid-play switch the replies before it are in the other language. Typed answers read as
  * their de-identified copy, unfenced.
  * @param {object} kase
  * @param {unknown} steps
+ * @param {unknown} look  booth_plays.language_look
  * @returns {{ messages: { role: 'physician' | 'assistant', content: string }[] } | { why: 'malformed' | 'no_deidentified_copy' }}
  */
-function studyTranscript(kase, steps) {
+function studyTranscript(kase, steps, look) {
+  const stored = StoredLookSchema.safeParse(look);
   const parsed = z.array(StepRecordSchema).length(stepCount(kase)).safeParse(steps);
-  if (!parsed.success) return { why: 'malformed' };
+  if (!stored.success || !parsed.success) return { why: 'malformed' };
   const records = parsed.data;
   if (records.some((s) => s.typed === null)) return { why: 'no_deidentified_copy' };
   const tierPath = records.map((s) => LETTER[s.tier]).join('');
@@ -360,7 +368,8 @@ function studyTranscript(kase, steps) {
   });
   if (!fits) return { why: 'malformed' };
   const answers = records.map((s) => (s.choice === undefined ? { text: s.typed } : { choice: s.choice }));
-  return { messages: dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false) };
+  const language = LOOK_LANGUAGE[stored.data ?? DEFAULT_LOOK];
+  return { messages: dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false, language) };
 }
 
 module.exports = {

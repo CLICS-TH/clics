@@ -28,7 +28,7 @@ const PATHS = ['B', 'R', 'W'].flatMap((a) => ['B', 'R', 'W'].flatMap((b) => ['B'
 
 test.each(PATHS)('a tapped play along %s rebuilds to the transcript the evaluator reads for it', (tierPath) => {
   const walked = walk(tierPath);
-  expect(studyTranscript(KASE, stepRecords(walked))).toEqual({ messages: evaluateRequest(KASE, walked).transcript });
+  expect(studyTranscript(KASE, stepRecords(walked), null)).toEqual({ messages: evaluateRequest(KASE, walked).transcript });
 });
 
 const DEIDENTIFIED = 'ให้ออกซิเจน [NAME-1]';
@@ -43,7 +43,7 @@ test('a typed answer reads as its de-identified copy, without the fence the eval
   const asEvaluated = evaluateRequest(KASE, { ...walked, answers: walked.answers.map((a) => ('text' in a ? { text: a.deidentified } : a)) }).transcript;
   const unfenced = asEvaluated.map((t) => ({ ...t, content: t.content.replace(fenced(DEIDENTIFIED), DEIDENTIFIED) }));
   expect(unfenced).not.toEqual(asEvaluated);
-  expect(studyTranscript(KASE, stepRecords(walked))).toEqual({ messages: unfenced });
+  expect(studyTranscript(KASE, stepRecords(walked), null)).toEqual({ messages: unfenced });
 });
 
 const STEPS = stepRecords(typedWalk());
@@ -51,12 +51,12 @@ const at = (i, change) => STEPS.map((s, j) => (j === i ? change(s) : s));
 
 test('a step record carrying a key a later writer added still rebuilds, as if the key were not there', () => {
   const added = at(0, (s) => ({ ...s, cache_hit: true, language_look: 'en' }));
-  expect(studyTranscript(KASE, added)).toEqual(studyTranscript(KASE, STEPS));
-  expect(studyTranscript(KASE, STEPS).messages).toHaveLength(6);
+  expect(studyTranscript(KASE, added, null)).toEqual(studyTranscript(KASE, STEPS, null));
+  expect(studyTranscript(KASE, STEPS, null).messages).toHaveLength(6);
 });
 
 test('a typed answer with no de-identified copy does not rebuild, and says so', () => {
-  expect(studyTranscript(KASE, stepRecords(typedWalk(null)))).toEqual({ why: 'no_deidentified_copy' });
+  expect(studyTranscript(KASE, stepRecords(typedWalk(null)), null)).toEqual({ why: 'no_deidentified_copy' });
 });
 
 test.each([
@@ -72,7 +72,7 @@ test.each([
   ['a choice that was not offered', at(2, (s) => ({ ...s, choice: 'b', tier: 'best' }))],
   ['a choice whose tier is not the step\'s tier', at(2, (s) => ({ ...s, tier: 'best' }))],
 ])('%s is malformed', (_name, steps) => {
-  expect(studyTranscript(KASE, steps)).toEqual({ why: 'malformed' });
+  expect(studyTranscript(KASE, steps, null)).toEqual({ why: 'malformed' });
 });
 
 // Spec #370's five-step layout: one step-1 bank, then three banks per step keyed on the previous step's tier.
@@ -98,7 +98,7 @@ test('a five-step play rebuilds against a five-step snapshot, each step from the
     replies: [...tierPath].map((_, i) => ({ strength: `ดี${i + 1}`, weigh: '', safety: '' })),
     tierPath,
   };
-  expect(studyTranscript(FIVE, stepRecords(walked))).toEqual({
+  expect(studyTranscript(FIVE, stepRecords(walked), null)).toEqual({
     messages: [
       { role: 'physician', content: 'ผู้ป่วยชายไข้สูง\n\nคำถาม 1\nตัวเลือก1b: เหตุผล1b' },
       { role: 'assistant', content: 'ดี1 ต่อ2' },
@@ -113,5 +113,44 @@ test('a five-step play rebuilds against a five-step snapshot, each step from the
     ],
   });
   expect([bankKey(FIVE, 'RB'), bankKey(KASE, 'RB')]).toEqual(['step3.B', 'step3.RB']);
-  expect(studyTranscript(FIVE, STEPS)).toEqual({ why: 'malformed' });
+  expect(studyTranscript(FIVE, STEPS, null)).toEqual({ why: 'malformed' });
 });
+
+test('a play is rebuilt in the primary language of the look it was scored in, from its snapshot (#377)', () => {
+  const tierPath = 'BRWBR';
+  const choice = { B: 'a', R: 'b', W: 'c' };
+  const records = stepRecords({
+    asks: [...tierPath].map((_, i) => ({ variant: 'v2', bridge: i === 0 ? '' : `Next ${i + 1}`, options: ['a', 'b', 'c'] })),
+    answers: [...tierPath].map((l) => ({ choice: choice[l] })),
+    replies: [...tierPath].map((_, i) => ({ strength: `Good ${i + 1}`, weigh: '', safety: '' })),
+    tierPath,
+  });
+  const english = {
+    messages: [
+      { role: 'physician', content: 'A man with a high fever\n\nOther 1\nOption 1a: Why 1a' },
+      { role: 'assistant', content: 'Good 1 Next 2' },
+      { role: 'physician', content: 'Other 2B\nOption 2Bb: Why 2Bb' },
+      { role: 'assistant', content: 'Good 2 Next 3' },
+      { role: 'physician', content: 'Other 3R\nOption 3Rc: Why 3Rc' },
+      { role: 'assistant', content: 'Good 3 Next 4' },
+      { role: 'physician', content: 'Other 4W\nOption 4Wa: Why 4Wa' },
+      { role: 'assistant', content: 'Good 4 Next 5' },
+      { role: 'physician', content: 'Other 5B\nOption 5Bb: Why 5Bb' },
+      { role: 'assistant', content: 'Good 5' },
+    ],
+  };
+  expect(studyTranscript(FIVE, records, 'en')).toEqual(english);
+  expect(studyTranscript(FIVE, records, 'en+th')).toEqual(english);
+  const thai = studyTranscript(FIVE, records, 'th');
+  expect(thai.messages[0].content).toBe('ผู้ป่วยชายไข้สูง\n\nอีกคำถาม 1\nตัวเลือก1a: เหตุผล1a');
+  expect(thai.messages[8].content).toBe('อีกคำถาม 5B\nตัวเลือก5Bb: เหตุผล5Bb');
+  // A play scored before #377 has no look; the kiosk showed it as th+en.
+  expect([studyTranscript(FIVE, records, 'th+en'), studyTranscript(FIVE, records, null)]).toEqual([thai, thai]);
+});
+
+// A missing look (a caller that forgot the column) is refused like an unknown one, never read as Thai.
+test.each([['an unknown look', 'fr'], ['a look in the wrong case', 'EN'], ['no look argument at all', undefined]])(
+  '%s is malformed', (_name, look) => {
+    expect(studyTranscript(KASE, STEPS, look)).toEqual({ why: 'malformed' });
+  },
+);
