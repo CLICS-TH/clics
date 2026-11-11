@@ -8,23 +8,34 @@ const fs = require('fs');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
-const { STEPS, LETTER, bankAt, firstAsk, chatOutcome } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { LETTER, bankAt, bankKey, stepCount, firstAsk, chatOutcome } = require(path.join(SRC, 'services', 'booth-dialogue'));
 const { TIERS } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
 const LETTERS = TIERS.map((t) => t.letter);
-const TIER_PATHS = LETTERS.flatMap((a) => LETTERS.flatMap((b) => LETTERS.map((c) => a + b + c)));
+/** Every tier path of `length` letters, B…B first and W…W last. */
+const tierPaths = (length) => (length === 0 ? [''] : LETTERS.flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)));
 const REPLIES_DIR = path.join(__dirname, 'sample-replies');
 
-/** A bank's key in a sample reply file: step1, step2.<tier>, step3.<tier><tier>. */
-const bankKey = (prefix) => (prefix ? `step${prefix.length + 1}.${prefix}` : 'step1');
-const prefixes = () => ['', ...LETTERS, ...LETTERS.flatMap((a) => LETTERS.map((b) => a + b))];
+/** The first tier path to reach each of the case's banks: 13 banks in either shape. A sample reply file keys a bank by
+ *  its name as the booth gives it (bankKey): step1, step2.<tier>, then step3.<tier><tier> for three steps and
+ *  step3.<tier> to step5.<tier> for five. */
+function bankPrefixes(kase) {
+  const first = new Map();
+  for (let n = 0; n < stepCount(kase); n += 1) {
+    for (const p of tierPaths(n)) {
+      const key = bankKey(kase, p);
+      if (!first.has(key)) first.set(key, p);
+    }
+  }
+  return [...first.values()];
+}
 
 const tierOf = (bank, id) => LETTER[bank.options.find((o) => o.id === id).tier];
 
 /** The AI's answer to the tap of `choice`: the sample reply and, before the last step, a random pick of the next bank. */
 function sampleRes(kase, replies, prefix, choice, letter) {
-  const reply = replies[bankKey(prefix)]?.[choice];
-  if (!reply) throw new Error(`${kase.case_id}: no sample reply for ${bankKey(prefix)} ${choice}`);
-  if (prefix.length + 1 === STEPS) return { reply };
+  const reply = replies[bankKey(kase, prefix)]?.[choice];
+  if (!reply) throw new Error(`${kase.case_id}: no sample reply for ${bankKey(kase, prefix)} ${choice}`);
+  if (prefix.length + 1 === stepCount(kase)) return { reply };
   const next = firstAsk(bankAt(kase, prefix + letter));
   return { reply, pick: { variant_id: next.variant, option_ids: next.options, bridge: '' } };
 }
@@ -33,7 +44,7 @@ function sampleRes(kase, replies, prefix, choice, letter) {
  *  the booth draws it; each later ask is the sample's random pick, issued through chatOutcome. */
 function sampleWalk(kase, replies, tierPath) {
   let d = { answers: [], replies: [], asks: [firstAsk(kase.banks.step1)], tierPath: '' };
-  for (let step = 0; step < STEPS; step += 1) {
+  for (let step = 0; step < stepCount(kase); step += 1) {
     const bank = bankAt(kase, d.tierPath);
     const choice = d.asks[step].options.find((id) => tierOf(bank, id) === tierPath[step]);
     const walked = { ...d, answers: [...d.answers, { choice }], tierPath: d.tierPath + tierPath[step] };
@@ -49,11 +60,11 @@ const THAI = /[฀-๿]/;
  *  option, Thai, with strength and weigh, no double quote, and come through the booth API's reply checks unchanged
  *  (field length, bold runs) under every question variant. */
 function replyProblems(kase, replies) {
-  return prefixes().flatMap((prefix) => {
+  return bankPrefixes(kase).flatMap((prefix) => {
     const bank = bankAt(kase, prefix);
     return bank.options.flatMap((option) => {
-      const at = `${bankKey(prefix)} ${option.id}`;
-      const r = replies[bankKey(prefix)]?.[option.id];
+      const at = `${bankKey(kase, prefix)} ${option.id}`;
+      const r = replies[bankKey(kase, prefix)]?.[option.id];
       if (!r) return [`${at}: no reply`];
       const problems = [];
       if (Object.keys(r).sort().join() !== 'safety,strength,weigh') problems.push('fields must be strength, weigh and safety');
@@ -89,9 +100,10 @@ function readReplies(kase, dir = path.join(REPLIES_DIR, kase.event_code)) {
   return raw.replies;
 }
 
-/** Every evaluator call a build makes: `samples` per sampled tier path (`pathsOf` the case), per case. */
-const jobsFor = (cases, samples = 3, pathsOf = () => TIER_PATHS) => cases.flatMap((kase) => pathsOf(kase).flatMap((tierPath) =>
-  Array.from({ length: samples }, (_, i) => ({ kase, tierPath, sample: i + 1 }))));
+/** Every evaluator call a build makes: `samples` per sampled tier path (`pathsOf` the case, by default every path of
+ *  its own length), per case. */
+const jobsFor = (cases, samples = 3, pathsOf = (kase) => tierPaths(stepCount(kase))) => cases.flatMap((kase) =>
+  pathsOf(kase).flatMap((tierPath) => Array.from({ length: samples }, (_, i) => ({ kase, tierPath, sample: i + 1 }))));
 
 // The locked evaluator, as rimpl's committed model manifest declares it for the API: what every table sample must have
 // been scored by.
@@ -126,4 +138,4 @@ if (require.main === module) {
   process.exit(bad ? 1 : 0);
 }
 
-module.exports = { TIER_PATHS, LOCKED, bankKey, sampleWalk, replyProblems, readReplies, jobsFor, lockProblems };
+module.exports = { LOCKED, sampleWalk, replyProblems, readReplies, jobsFor, lockProblems };

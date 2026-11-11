@@ -34,8 +34,10 @@ import { MIN_POOL, verdicts, summaryMarkdown } from './sandbox-verdict.mjs';
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
-const { GROUPS, PATHS, ANTHROPIC_MODEL, tapping, personaChooser, playOnce, jobsFor, estimate, runPlays, rimplCalls, personaCall } = require('./sandbox-play.js');
+const { GROUPS, PATHS, PATHS_BY_STEPS, ANTHROPIC_MODEL, tapping, personaChooser, playOnce, jobsFor, estimate, runPlays, rimplCalls,
+  personaCall } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
+const { stepCount } = require(path.join(ROOT, 'backend', 'src', 'services', 'booth-dialogue'));
 
 const fail = (msg) => { console.error(msg); process.exit(2); };
 
@@ -123,7 +125,8 @@ let done = 0;
 const { results, spent_usd, stopped, over_cap } = await runPlays(jobs, {
   capUsd: opts.cap,
   concurrency: opts.concurrency,
-  play: (job) => playOnce({ kase: job.kase, ai, choose: job.persona ? personaChooser(job.group) : tapping(PATHS[job.group]) }),
+  play: (job) => playOnce({ kase: job.kase, ai,
+    choose: job.persona ? personaChooser(job.group) : tapping(PATHS_BY_STEPS[stepCount(job.kase)][job.group]) }),
   onDone: (job, r) => {
     done += 1;
     console.log(`[${done}/${jobs.length}] ${job.kase.case_id} ${job.group}#${job.run} ${r.tier_path ?? ''} `
