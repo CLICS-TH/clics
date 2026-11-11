@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { WEIGHTS } = require('../services/ple-gate');
+const { WEIGHTS, compositeScore } = require('../services/ple-gate');
 const { treeSha } = require('./tree-sha');
 
 const TIERS = Object.freeze([
@@ -8,9 +8,8 @@ const TIERS = Object.freeze([
   Object.freeze({ name: 'weaker', letter: 'W' }),
 ]);
 const LETTERS = TIERS.map((t) => t.letter);
-const STEP2_KEYS = LETTERS;
-const STEP3_KEYS = LETTERS.flatMap((a) => LETTERS.map((b) => a + b));
-const TIER_PATHS = LETTERS.flatMap((a) => STEP3_KEYS.map((bc) => a + bc));
+/** Every tier path of `length` letters, B…B first and W…W last. */
+const tierPaths = (length) => (length === 0 ? [''] : LETTERS.flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)));
 const LANGS = ['th', 'en'];
 
 const Id = z.string().regex(/^[a-z][a-z0-9_]{0,15}$/, 'must match /^[a-z][a-z0-9_]{0,15}$/');
@@ -49,23 +48,50 @@ const Bank = z.object({
 const keyedBanks = (keys) => z.object(Object.fromEntries(keys.map((k) => [k, Bank]))).strict();
 
 const Sha256 = z.string().regex(/^[0-9a-f]{64}$/, 'must be 64 lowercase hex characters');
-// A wave-1 domain is the median of three whole evaluator samples, on the evaluator's own 0-5 scale, and
-// booth_plays.d1..d7 are smallint between 0 and 5.
-const PathDomains = z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, z.number().int().min(0).max(5)]))).strict();
+// A three-step domain is the median of three whole evaluator samples, on the evaluator's own 0-5 scale. A five-step
+// domain is a fitted value held to one decimal (scripts/booth/path-fit.mjs). booth_plays.d1..d7 are checked 0 to 5.
+const WholeDomain = z.number().int().min(0).max(5);
+const TenthDomain = z.number().min(0).max(5).refine((v) => Math.round(v * 10) / 10 === v, 'must have at most one decimal');
 // Field names follow rimpl's model manifest.
-const PathScoreTable = z.object({
+const pathScoreTable = (steps, method, domain) => z.object({
   provenance: z.object({
     evaluator_model: Text,
     prompt_sha256: Sha256,
     decoding: z.object({ temperature: z.number().min(0), max_tokens: z.number().int().positive() }).strict(),
     samples_per_path: z.number().int().min(1),
-    method: z.literal('median'),
+    method: z.literal(method),
     run_id: Text,
     date: CalendarDate,
     tree_sha256: Sha256,
   }).strict(),
-  paths: z.object(Object.fromEntries(TIER_PATHS.map((p) => [p, PathDomains]))).strict(),
+  paths: z.object(Object.fromEntries(tierPaths(steps).map((p) => [p,
+    z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, domain]))).strict()]))).strict(),
 }).strict();
+
+/** A tree shape (spec #370): the banks of a case of `steps` steps, where step n's banks after step 1 are keyed by the
+ *  last `keyLength(n)` tiers chosen, and its path score table, built by `method` with `domain` entries. A play's
+ *  composite is the shape's `composite` of its table entry. */
+const shape = (steps, { keyLength, method, domain, composite }) => Object.freeze({
+  method,
+  composite,
+  banks: z.object({
+    step1: Bank,
+    ...Object.fromEntries(Array.from({ length: steps - 1 }, (_, i) => [`step${i + 2}`, keyedBanks(tierPaths(keyLength(i + 2)))])),
+  }).strict(),
+  table: pathScoreTable(steps, method, domain),
+});
+const SHAPES = Object.freeze({
+  3: shape(3, { keyLength: (n) => n - 1, method: 'median', domain: WholeDomain, composite: compositeScore }),
+  5: shape(5, { keyLength: () => 1, method: 'median-regression', domain: TenthDomain, composite: (d) => Math.round(compositeScore(d)) }),
+});
+const MAX_STEPS = Math.max(...Object.keys(SHAPES).map(Number));
+/** The shape a tree's own banks pick: a step-4 or step-5 bank makes it five steps. */
+const treeSteps = (banks) => (banks && typeof banks === 'object' && ('step4' in banks || 'step5' in banks) ? 5 : 3);
+/** The shape a table's own paths pick, by their length, if any. */
+const tableSteps = (table) => {
+  const first = table?.paths && typeof table.paths === 'object' ? Object.keys(table.paths)[0] : undefined;
+  return first && SHAPES[first.length] ? first.length : undefined;
+};
 
 const CaseTreeSchema = z.object({
   case_id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,31}$/, 'must match /^[a-z0-9][a-z0-9-]{0,31}$/'),
@@ -73,7 +99,7 @@ const CaseTreeSchema = z.object({
   event_code: z.string().regex(/^[A-Z0-9][A-Z0-9-]{0,31}$/, 'must match /^[A-Z0-9][A-Z0-9-]{0,31}$/'),
   teaser: Bilingual,
   vignette: Bilingual,
-  banks: z.object({ step1: Bank, step2: keyedBanks(STEP2_KEYS), step3: keyedBanks(STEP3_KEYS) }).strict(),
+  banks: z.union(Object.values(SHAPES).map((s) => s.banks)),
   admission: z.object({
     safety_review: z.object({ model: Text, date: CalendarDate, findings: Text }).strict().optional(),
     sandbox: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
@@ -86,7 +112,7 @@ const CaseTreeSchema = z.object({
   }).strict().optional(),
   // The demo score of each tier path (ADR 0009), built by scripts/booth/build-path-tables.mjs, never by hand.
   // Optional in the file so a case can be checked before its table is built; isAdmitted requires it.
-  path_score_table: PathScoreTable.optional(),
+  path_score_table: z.union(Object.values(SHAPES).map((s) => s.table)).optional(),
 }).strict();
 
 const isAdmitted = (kase) => {
@@ -94,6 +120,13 @@ const isAdmitted = (kase) => {
   const run = kase?.path_score_table?.provenance.run_id;
   return Boolean(a?.safety_review && (a.sandbox || a.owner_waiver) && run
     && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
+};
+
+/** A finished play's score, read from its case's path score table (ADR 0009): its tier path's domains, and their
+ *  composite as the case's shape gives it. */
+const tableScore = (kase, tierPath) => {
+  const domains = kase.path_score_table.paths[tierPath];
+  return { domains, composite: SHAPES[treeSteps(kase.banks)].composite(domains) };
 };
 
 // Thai combining marks take no width at the kiosk. Budgets are the line counts measured at the
@@ -134,11 +167,8 @@ const words = {
     .filter((x) => x.isWordLike && x.segment.length >= 2 && !STOPWORDS.th.has(x.segment)).map((x) => x.segment),
 };
 
-const bankEntries = (k) => [
-  ['banks.step1', k.banks.step1],
-  ...STEP2_KEYS.map((key) => [`banks.step2.${key}`, k.banks.step2[key]]),
-  ...STEP3_KEYS.map((key) => [`banks.step3.${key}`, k.banks.step3[key]]),
-];
+const bankEntries = (k) => Object.entries(k.banks).flatMap(([step, level]) => (step === 'step1' ? [[`banks.${step}`, level]]
+  : Object.entries(level).map(([key, bank]) => [`banks.${step}.${key}`, bank])));
 const fields = (k) => [
   { kind: 'teaser', path: 'teaser', text: k.teaser },
   { kind: 'vignette', path: 'vignette', text: k.vignette },
@@ -168,9 +198,16 @@ const issuePath = (p) => p.reduce((at, k) => (typeof k === 'number' ? `${at}[${k
 
 /** Every shape and content problem in a raw case file, as "<path>: <message>". Empty means valid. */
 function caseTreeProblems(raw) {
-  const parsed = CaseTreeSchema.safeParse(raw);
+  // Checked against the one shape each part picks, so a problem names its field, not the union's "Invalid input".
+  const steps = treeSteps(raw?.banks);
+  const tabled = tableSteps(raw?.path_score_table) ?? steps;
+  const parsed = CaseTreeSchema.extend({ banks: SHAPES[steps].banks, path_score_table: SHAPES[tabled].table.optional() })
+    .safeParse(raw);
   if (!parsed.success) return parsed.error.issues.map((i) => `${issuePath(i.path)}: ${i.message}`);
   const kase = parsed.data;
+  if (kase.path_score_table && tabled !== steps) {
+    return [`path_score_table: is a ${tabled}-step table (${3 ** tabled} paths, method ${SHAPES[tabled].method}) on a ${steps}-step tree`];
+  }
   // A table vouches only for the tree it was built from, which is the tree its safety review read (ADR 0009).
   if (kase.path_score_table && kase.path_score_table.provenance.tree_sha256 !== treeSha(raw)) {
     return ['path_score_table.provenance.tree_sha256: is not this tree\'s hash: the tree changed after its table was built, so it needs a new safety review and table'];
@@ -181,4 +218,4 @@ function caseTreeProblems(raw) {
     .map((r) => r.test(t, ctx)).filter(Boolean).map((msg) => `${t.path}.${t.lang}: ${msg}`));
 }
 
-module.exports = { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted };
+module.exports = { TIERS, MAX_STEPS, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore };

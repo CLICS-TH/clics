@@ -6,11 +6,11 @@ const { supabase } = require('../lib/supabase');
 const { costUsd } = require('../lib/pricing');
 const { compositeScore, WEIGHTS } = require('./ple-gate');
 const { rimplChat } = require('./rimpl-client');
-const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
+const { TIERS, MAX_STEPS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
 const {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers,
-  stepRecords, bankKey, echoesAnswer, replyLanguage,
+  stepRecords, bankKey, stepCount, echoesAnswer, replyLanguage,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -65,10 +65,10 @@ const DialogueSchema = z.object({
       text: z.string().trim().min(1).max(ANSWER_MAX_CHARS),
       deidentified: z.string().max(DEIDENTIFIED_MAX_CHARS).nullable().optional(),
     }).strict(),
-  ])).min(1).max(STEPS),
-  replies: z.array(ReplySchema).max(STEPS),
-  asks: z.array(AskSchema).min(1).max(STEPS),
-  sigs: z.array(z.string().max(64)).min(1).max(STEPS + 1),
+  ])).min(1).max(MAX_STEPS),
+  replies: z.array(ReplySchema).max(MAX_STEPS),
+  asks: z.array(AskSchema).min(1).max(MAX_STEPS),
+  sigs: z.array(z.string().max(64)).min(1).max(MAX_STEPS + 1),
   // The kiosk's language look (#377). Optional so an older kiosk still plays; no turn sig binds it, so a visitor may
   // switch it mid-play.
   look: z.enum(Object.keys(LOOK_LANGUAGE)).optional(),
@@ -274,9 +274,10 @@ function parseDialogue(kase, playId, raw, phase) {
   const parsed = DialogueSchema.safeParse(raw);
   if (!parsed.success) return null;
   const n = parsed.data.answers.length;
-  const counted = phase === 'score'
-    ? n === STEPS && parsed.data.replies.length === STEPS && parsed.data.asks.length === STEPS && parsed.data.sigs.length === STEPS + 1
-    : parsed.data.replies.length === n - 1 && parsed.data.asks.length === n && parsed.data.sigs.length === n;
+  const steps = stepCount(kase);
+  const counted = n <= steps && (phase === 'score'
+    ? n === steps && parsed.data.replies.length === steps && parsed.data.asks.length === steps && parsed.data.sigs.length === steps + 1
+    : parsed.data.replies.length === n - 1 && parsed.data.asks.length === n && parsed.data.sigs.length === n);
   const answers = counted ? recoverTiers(playId, parsed.data) : null;
   if (!answers) return null;
   const d = { ...parsed.data, answers };
@@ -496,7 +497,7 @@ const CacheLive = z.object({
 async function cachedReplies(kase, d) {
   try {
     let query = supabase.from('booth_reply_cache').select('id, model, embedding, cues, tier, reply, pick')
-      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(d.tierPath))
+      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(kase, d.tierPath))
       .eq('tier_path', d.tierPath).eq('language', replyLanguage(d));
     if (d.memo) query = query.eq('tier', d.memo);
     const { data, error } = await query.order('created_at', { ascending: false }).limit(CACHE_ENTRIES_MAX);
@@ -532,7 +533,7 @@ async function keepReply(kase, d, res, issued) {
     || !hasReply(issued.replies[n - 1]) || echoesAnswer(kase, d, raw)) return;
   try {
     const { error } = await supabase.from('booth_reply_cache').insert({
-      case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
+      case_id: kase.case_id, case_version: kase.version, bank: bankKey(kase, d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
       ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ? { ...res.pick, bridge: '' } : null,
     });
     if (error) console.warn(`[booth] reply cache keep failed: ${error.code ?? 'error'}`);

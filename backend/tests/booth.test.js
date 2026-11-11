@@ -2405,7 +2405,7 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     const { bankKey, bankAt } = require('../src/services/booth-dialogue');
     const paths = ['', ...Object.keys(KASE.banks.step2), ...Object.keys(KASE.banks.step3)];
     for (const p of paths) {
-      const [step, at] = bankKey(p).split('.');
+      const [step, at] = bankKey(KASE, p).split('.');
       expect(at === undefined ? KASE.banks[step] : KASE.banks[step][at]).toBe(bankAt(KASE, p));
     }
   });

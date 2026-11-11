@@ -7,7 +7,6 @@
 const crypto = require('crypto');
 const { TIERS } = require('../booth-cases/tree-schema');
 
-const STEPS = 3;
 const BRIDGE_MAX_CHARS = 120;
 const ANSWER_MAX_CHARS = 500;
 // rimpl's tokens can run longer than the words they replace ("นายก" -> "นาย[NAME-1]").
@@ -37,12 +36,20 @@ const DEFAULT_LOOK = 'th+en';
  */
 
 const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
-// The bank for step n is keyed by the tier letters of the n answers before it.
-const BANK_AT = [(banks) => banks.step1, (banks, p) => banks.step2[p], (banks, p) => banks.step3[p]];
-const bankAt = (kase, tierPath) => BANK_AT[tierPath.length](kase.banks, tierPath);
-// The name of the bank each BANK_AT entry picks, in the same order, as the reply cache (#387) keeps it.
-const BANK_KEY = [() => 'step1', (p) => `step2.${p}`, (p) => `step3.${p}`];
-const bankKey = (tierPath) => BANK_KEY[tierPath.length](tierPath);
+const isBank = (level) => Array.isArray(level?.variants);
+/** The bank the step after `tierPath` draws from, read from the case's own layout, and its name as the reply cache
+ *  (#387) keeps it. A step's banks are one bank, or keyed by the whole tier path so far (three steps), or by the
+ *  previous step's tier (five steps, spec #370). */
+function bankEntry(kase, tierPath) {
+  const step = `step${tierPath.length + 1}`;
+  const level = kase.banks[step];
+  if (isBank(level)) return [step, level];
+  const key = Object.hasOwn(level, tierPath) ? tierPath : tierPath.slice(-1);
+  return [`${step}.${key}`, level[key]];
+}
+const bankAt = (kase, tierPath) => bankEntry(kase, tierPath)[1];
+const bankKey = (kase, tierPath) => bankEntry(kase, tierPath)[0];
+const stepCount = (kase) => Object.keys(kase.banks).filter((k) => /^step[1-9][0-9]*$/.test(k)).length;
 
 const randomOf = (list) => list[crypto.randomInt(list.length)];
 function shuffled(list) {
@@ -242,12 +249,13 @@ const TIER_NAMES = TIERS.map((t) => t.name);
 /** The AI's tier for a typed answer as a letter. Anything but a tier it was given (unclear, unsafe, none) is weaker. */
 const sortedTier = (name) => LETTER[TIER_NAMES.includes(name) ? name : 'weaker'];
 
-/** What rimpl needs to sort a typed answer to step n: that step's bank, and for n < 3 the next step's bank per tier.
- *  With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step taken. */
+/** What rimpl needs to sort a typed answer to step n: that step's bank, and before the last step the next step's bank
+ *  per tier. With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step
+ *  taken. */
 function typedBanks(kase, tierPath, n, memo) {
   return {
     current: bankForAi(bankAt(kase, tierPath)),
-    ...(n < STEPS ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
+    ...(n < stepCount(kase) ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
   };
 }
 
@@ -265,7 +273,7 @@ function chatRequest(kase, d) {
   const history = dialogueTurns(kase, d, true, language);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
-    : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
+    : n < stepCount(kase) ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
   return { history, message, language, booth_mode: true, ...forAi };
 }
 
@@ -282,7 +290,7 @@ function chatOutcome(kase, d, res) {
   const reply = checkedReply(res?.reply, quotesFor(kase, d));
   const typed = d.unsorted ? (d.memo ?? sortedTier(res?.tier)) : null;
   const tierPath = typed ? d.tierPath + typed : d.tierPath;
-  const bank = n < STEPS ? bankAt(kase, tierPath) : null;
+  const bank = n < stepCount(kase) ? bankAt(kase, tierPath) : null;
   const ask = bank && (hasReply(reply) ? askFromPick(bank, res.pick) : fallbackAsk(bank));
   const answers = typed
     ? [...d.answers.slice(0, -1), { ...d.answers[n - 1], tier: typed, deidentified: deidentifiedOf(res) }] : d.answers;
@@ -319,7 +327,7 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
 }));
 
 module.exports = {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
+  BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, stepCount, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
   replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords,
 };
