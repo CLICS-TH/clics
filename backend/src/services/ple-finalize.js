@@ -5,7 +5,7 @@
 // re-runs just this step — the session is never permanently stranded at 'ended'.
 const { supabase } = require('../lib/supabase');
 const { rimplEvaluateCriteria, isDeterministicRimplError } = require('./rimpl-client');
-const { accrueUsage } = require('../lib/usage');
+const { accrueUsage, accrueBurned } = require('../lib/usage');
 const { costUsd } = require('../lib/pricing');
 const evalDrain = require('./eval-drain');
 const { persistPiiMap } = require('../lib/pii-map');
@@ -15,12 +15,14 @@ const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]
 
 // Retry the tier-2 criteria call on a TRANSIENT failure (so one RIMPL blip at /end can't wrongly
 // demote a fully-qualifying session to manual QA); give up immediately on a deterministic failure.
-async function evaluateCriteriaWithRetry(payload, attempts = 3) {
+// `physicianId` (optional) meters a failed attempt that still spent tokens (an empty classifier reply).
+async function evaluateCriteriaWithRetry(payload, attempts = 3, physicianId = null) {
   let lastErr;
   for (let i = 0; i < attempts; i++) {
     try { return await rimplEvaluateCriteria(payload); }
     catch (e) {
       lastErr = e;
+      await accrueBurned(physicianId, e);
       if (isDeterministicRimplError(e)) throw e;
       if (i < attempts - 1) await new Promise(r => setTimeout(r, 1500 * (i + 1)));
     }
@@ -36,7 +38,7 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
 // `chief_complaint` seeds RIMPL's token numbering (never shown to the classifier), so the PII map it
 // returns is the reverse of the tokens every other route uses. Falls back to the ple row's own.
 async function finalizeScreening({ pleId, physicianId, transcript, tier1, patient_ref, chief_complaint, ple = {} }) {
-  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref, chief_complaint: chief_complaint ?? ple.chief_complaint ?? null });
+  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref, chief_complaint: chief_complaint ?? ple.chief_complaint ?? null }, 3, physicianId);
   // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
   await persistPiiMap(pleId, crit.pii_map);
   // The CREC082 §1 qualifying test, all four elements. c7 (context/evidence integration) is the one

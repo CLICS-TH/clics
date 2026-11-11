@@ -54,6 +54,60 @@ check_reconcile() {
   fi
 }
 
+# The on-prem model block in rimpl.env is DECLARED and never ROUTED (#424), and its two instances are two
+# model artifacts (CCME R3). Refused: any provider-selecting name (AI_PROVIDER, AI_PROVIDER_<PURPOSE>,
+# EMBED_PROVIDER, SHADOW_EVAL_PROVIDER, CHAT_FAILOVER_PROVIDER) set to `local` or `local-tutor`, read as
+# rimpl/src/services/ai.js reads it (trimmed, lower-cased); a second line for any of the four
+# BASE_URL/MODEL names; any of those names holding # or $ (compose would read a comment or a
+# variable there, not the value checked); and an evaluator and tutor whose base URL and model are equal, compared the way
+# rimpl's endpointKey() compares them (scheme and host case, a default port and trailing slashes do
+# not make another box). awk compares in-process and prints names only, never a value.
+check_model_block() {
+  local f=$BASE/env/rimpl.env msg
+  msg=$(awk -v q="'" '
+    function val(s) {
+      sub(/^[^=]*=/, "", s); sub(/\r$/, "", s); gsub(/^[ \t]+|[ \t]+$/, "", s)
+      if (s ~ /^".*"$/ || s ~ ("^" q ".*" q "$")) s = substr(s, 2, length(s) - 2)
+      gsub(/^[ \t]+|[ \t]+$/, "", s); return s
+    }
+    function endpoint(u,   scheme, rest, host, path, i) {
+      if (!match(u, /^[A-Za-z][A-Za-z0-9+.-]*:\/\//)) { sub(/\/+$/, "", u); return tolower(u) }
+      scheme = tolower(substr(u, 1, RLENGTH - 3)); rest = substr(u, RLENGTH + 1)
+      i = index(rest, "/"); host = tolower(i ? substr(rest, 1, i - 1) : rest); path = i ? substr(rest, i) : ""
+      if (scheme == "https") sub(/:443$/, "", host); if (scheme == "http") sub(/:80$/, "", host)
+      sub(/\/+$/, "", path); return scheme "://" host path
+    }
+    {
+      line = $0; sub(/^[ \t]*(export[ \t]+)?/, "", line)
+      if (!match(line, /^[A-Z][A-Z0-9_]*[ \t]*=/)) next
+      name = substr(line, 1, RLENGTH); sub(/[ \t]*=$/, "", name)
+      watched = name ~ /^(AI_PROVIDER(_[A-Z0-9_]+)?|EMBED_PROVIDER|SHADOW_EVAL_PROVIDER|CHAT_FAILOVER_PROVIDER|LOCAL_(TUTOR_)?AI_(BASE_URL|MODEL))$/
+      if (watched && val(line) ~ /[#$]/) { print "rimpl.env: " name " holds # or $, which docker compose reads as a comment or a variable, so this check cannot see the value rimpl gets. Write the plain value. Nothing was changed."; failed = 1; exit 1 }
+      if (name ~ /^(AI_PROVIDER(_[A-Z0-9_]+)?|EMBED_PROVIDER|SHADOW_EVAL_PROVIDER|CHAT_FAILOVER_PROVIDER)$/) {
+        p = tolower(val(line))
+        if (p == "local" || p == "local-tutor") { print "rimpl.env routes to the on-prem model: " name " names " p ". This deploy declares the model block and routes nothing to it (#424). Delete the line. Nothing was changed."; failed = 1; exit 1 }
+      }
+      if (name ~ /^LOCAL_(TUTOR_)?AI_(BASE_URL|MODEL)$/) {
+        if (++seen[name] > 1) { print "rimpl.env assigns " name " more than once; keep one line. Nothing was changed."; failed = 1; exit 1 }
+        v[name] = val(line)
+      }
+    }
+    END {
+      if (failed) exit 1
+      if (v["LOCAL_AI_BASE_URL"] != "" && v["LOCAL_AI_MODEL"] != "" &&
+          endpoint(v["LOCAL_AI_BASE_URL"]) == endpoint(v["LOCAL_TUTOR_AI_BASE_URL"]) &&
+          v["LOCAL_AI_MODEL"] == v["LOCAL_TUTOR_AI_MODEL"]) {
+        print "rimpl.env: the evaluator (LOCAL_AI_BASE_URL + LOCAL_AI_MODEL) and the tutor (LOCAL_TUTOR_AI_BASE_URL + LOCAL_TUTOR_AI_MODEL) resolve to the same base URL and model. CCME R3 requires two model artifacts. Nothing was changed."; exit 1
+      }
+      for (e = 0; e < 2; e++) {
+        pre = e ? "LOCAL_TUTOR_AI" : "LOCAL_AI"; who = e ? "tutor" : "evaluator"
+        if (v[pre "_BASE_URL"] != "" && v[pre "_MODEL"] != "") print "on-prem " who " declared (" pre "_BASE_URL, " pre "_MODEL), routed to nothing"
+        else print "WARNING: on-prem " who " not declared: " pre "_BASE_URL or " pre "_MODEL has no value"
+      }
+    }' "$f") || die "$msg"
+  while IFS= read -r l; do log "$l"; done <<< "$msg"
+}
+
 # /opt/clics/current, when it exists, must point at a release that is on this host: a failed activation
 # restores that release from its directory. Pruning keeps `current` and `previous` (README, Operating it).
 check_current_release() {

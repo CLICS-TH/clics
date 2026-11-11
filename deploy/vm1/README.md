@@ -67,8 +67,8 @@ names in `backend.env.example` and `rimpl.env.example`:
 - Keep `RECONCILE_INTERVAL_MS=0` in `backend.env`, as the example ships it (see *Parallel run*). A blank
   `RECONCILE_INTERVAL_MS=` is **not** 0: the backend reads it as every 6 hours. The preflight refuses a
   blank, non-numeric or non-zero value until cutover step 5.
-- Leave out `TS_AUTHKEY`, `LOCAL_AI_HTTP_PROXY`, `PORT`, `NODE_ENV`, `RIMPL_URL` and every
-  `RAILWAY_*`. The preflight refuses the first two.
+- Leave out `TS_AUTHKEY`, `LOCAL_AI_HTTP_PROXY`, `LOCAL_TUTOR_AI_HTTP_PROXY`, `PORT`, `NODE_ENV`, `RIMPL_URL` and every
+  `RAILWAY_*`. The preflight refuses the first three.
 - Delete optional lines you do not need. A blank `NAME=` sets the variable to an empty string.
 - If a value contains `$`, `#` or a space, wrap it in single quotes. Compose interpolates unquoted
   values.
@@ -131,7 +131,8 @@ What happens on vm1:
 
 1. **preflight** (read-only): x86_64, docker + compose + systemd-run present, user `clics` exists, both
    env files exist at mode 600 owned by `clics`, the required names have values, each file has exactly
-   one `INTERNAL_TOKEN=` line and the two lines are byte-identical, no Railway-only names,
+   one `INTERNAL_TOKEN=` line and the two lines are byte-identical, no Railway-only names, no purpose
+   routed to an on-prem model and the evaluator and tutor distinct (see *On-prem model block*),
    `RECONCILE_INTERVAL_MS` is an explicit 0 (or `CLICS_CUTOVER_DONE=1` is set), port 3101 free or
    CLICS's own, the compose project name `clics` is not used by anyone else, and `current` (if any)
    points at a release that is on the host.
@@ -252,6 +253,40 @@ if they still exist; otherwise they are rebuilt from the release directory.
 **Remove CLICS from vm1 entirely:** `docker rm -f clics-backend-1 clics-rimpl-1`,
 `docker network rm clics_clics`, `docker image rm` the `clics-*` images, `rm -rf /opt/clics`. Then ask
 CME to remove the nginx site, the certificate and the DNS record.
+
+## On-prem model block (declared, never routed)
+
+RIMPL on vm1 knows both on-prem models and routes no purpose to either (#424). The
+evaluator is `local` (`LOCAL_AI_*`), the tutor `local-tutor` (`LOCAL_TUTOR_AI_*`). Fill both blocks in
+`rimpl.env` from `rimpl.env.example`, on the host only: no address, key or tailnet name goes into the
+repo, a ticket or a chat. Routing lives in `app_settings` (shared with Railway) and in env, and
+this deploy adds no route.
+
+The preflight, and activate again, refuse:
+- any `AI_PROVIDER`, `AI_PROVIDER_<PURPOSE>`, `EMBED_PROVIDER`, `SHADOW_EVAL_PROVIDER` or
+  `CHAT_FAILOVER_PROVIDER` line in `rimpl.env` that names `local` or `local-tutor`;
+- an evaluator and a tutor that resolve to the same base URL and model (CCME R3);
+- a second line for any of the four `BASE_URL` / `MODEL` names, or `#` or `$` in any of those
+  values (compose would read a comment or a variable, not what the check saw);
+- `LOCAL_TUTOR_AI_HTTP_PROXY`, like `LOCAL_AI_HTTP_PROXY` (Railway-only).
+
+It logs whether each block is declared. A missing block is a warning, not a refusal, so the deploy
+beside Railway does not wait on the tutor's details. The preflight cannot see `app_settings`: before
+deploying, check that no `ai_provider_*` row names `local` or `local-tutor` (the superadmin AI provider switch).
+
+**Reachability, from inside the RIMPL container** (owner-run on vm1, after the deploy):
+```bash
+cd /opt/clics/current/deploy/vm1
+docker exec -i "$(docker ps -q --filter label=com.docker.compose.project=clics --filter label=com.docker.compose.service=rimpl)" node - < model-reach.cjs
+```
+For each endpoint it prints `GET /models` status and whether the model is listed, then one
+`POST /chat/completions` status, finish reason and reply length. It prints no key, base URL or server
+error text. Exit 0 means both answered 200 with a non-empty reply. Paste its output into the PR.
+
+`/health/deep` on vm1 must then show `service: backend`, `checks.rimpl.status` `up` and the same
+`checks.rimpl.deep.manifest.sha256` as Railway (cutover step 2). The sha is the build's manifest file,
+so the same commit gives the same sha on both hosts. A declared model that differs from the manifest's
+target shows under `manifest.drift`, which is expected until the manifest names it.
 
 ## 6. Operating it
 
