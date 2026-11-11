@@ -7,6 +7,7 @@ const { supabase } = require('../lib/supabase');
 const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider, PROVIDERS } = require('../services/ai');
 const { internalAuth } = require('../lib/internal-auth');
 const modelManifest = require('../services/manifest');
+const { localOnly } = require('../lib/provider-policy');
 
 const router = Router();
 
@@ -106,6 +107,9 @@ router.get('/deep', async (_req, res) => {
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'rimpl',
+    // Local-only mode (CLICS_LOCAL_ONLY, ADR 0012): `on` means every non-local provider is refused before
+    // any call, so the owner can prove the no-commercial-AI promise at any moment.
+    local_only: localOnly() ? 'on' : 'off',
     ...(warnings.length ? { warnings } : {}),
     model: summaryModel(),
     providers: activeProviders(),

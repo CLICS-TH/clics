@@ -174,6 +174,15 @@ function evaluatorLockedAt() {
   return cache.lockedAt;
 }
 
+// SYNC. True when this process has a database layer (credentials, PROVIDER_SETTINGS_SOURCE=database) but
+// has never read it: the store was unreachable since boot. Env decides in that state, which is the
+// fail-soft rule above — except under local-only mode (services/ai.js), where a cold cache REFUSES: env
+// resolution there is exactly how a purpose would silently fall to a default nobody chose. A warm cache
+// whose later refreshes fail keeps its last known good values and is not cold.
+function cold() {
+  return !!client() && !cache.loaded;
+}
+
 // For /health/deep: whether the override layer is live, and how stale it is. A deployment that
 // THINKS it is DB-controlled but is silently running on env should be visible, not inferred.
 function status() {
@@ -197,4 +206,4 @@ function __resetForTests() {
   warnedAt = 0;
 }
 
-module.exports = { ensureFresh, overrideFor, numberFor, evaluatorLockedAt, refresh, status, keyFor, NUMBER_KEYS, __resetForTests };
+module.exports = { ensureFresh, overrideFor, numberFor, evaluatorLockedAt, refresh, status, cold, keyFor, NUMBER_KEYS, __resetForTests };

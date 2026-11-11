@@ -4,6 +4,7 @@
 //   499 (no body)                                             — the client hung up; nobody to answer
 //   413 { code: 'transcript_too_large', est_tokens, limit }   — the prompt cannot fit the model
 //   503 { code: 'empty_reply', input_tokens, output_tokens, provider } — the model answered with no reply text
+//   503 { code: 'local_only_refused', provider, purpose } — local-only mode refused a non-local provider; nothing was sent
 //   500 { error }                                             — the route's own generic message
 //
 // Bodies are deliberately generic. The transcript, the identifiers it carried, and the provider's
@@ -13,6 +14,7 @@ const isQueueFull = (err) => !!err && err.code === 'queue_full';
 const isAborted = (err) => !!err && (err.aborted === true || err.code === 'aborted');
 const isTooLarge = (err) => !!err && (err.contextTooSmall === true || err.code === 'transcript_too_large');
 const isEmptyReply = (err) => !!err && err.code === 'empty_reply';
+const isLocalOnlyRefused = (err) => !!err && err.code === 'local_only_refused';
 
 // 503, not 502: backend/src/services/rimpl-client.js treats a 502 as deterministic (criteria go to manual
 // QA, no retry) and a 503 as transient. A reasoning model that spent max_tokens thinking may well answer
@@ -30,6 +32,18 @@ function emptyReplyError({ provider, stopReason, inputTokens, outputTokens, reas
     code: 'empty_reply', status: 503, provider: provider || null, stopReason: stop,
     inputTokens: Number.isFinite(inputTokens) ? inputTokens : null, outputTokens: tokens, reasoningOnly: !!reasoningOnly,
   });
+}
+
+// Local-only mode (lib/provider-policy.js localOnly, ADR 0012) refused the call BEFORE any request was
+// sent: the purpose resolved to a non-local provider, or the settings cache is cold. 503, not 500: the
+// backend treats a 503 as transient (an evaluation is requeued, never sent to manual QA; a chat turn is
+// refunded and its text kept), and the fix is a configuration change, not a different request. The
+// message is for the on-prem log and names where the provider came from; the HTTP body carries only the
+// code, the provider name and the purpose.
+function localOnlyError({ provider, purpose, whence, reason } = {}) {
+  const what = reason || `provider "${provider}"${whence ? ` (from ${whence})` : ''} is not an on-prem model`;
+  const err = new Error(`Local-only mode (CLICS_LOCAL_ONLY) refused ${purpose ? `"${purpose}"` : 'this call'}: ${what}. Only the on-prem evaluator (local) and the on-prem tutor (local-tutor) may serve while it is on; nothing was sent.`);
+  return Object.assign(err, { code: 'local_only_refused', status: 503, provider: provider || null, purpose: purpose || null });
 }
 
 // Copy ONLY the named keys, and only when they are finite numbers (else null). An error body travels
@@ -70,6 +84,13 @@ function sendAiError(res, err, fallback = 'AI service temporarily unavailable. P
       provider: typeof err.provider === 'string' && /^[a-z-]{1,32}$/.test(err.provider) ? err.provider : null,
     });
   }
+  if (isLocalOnlyRefused(err)) {
+    const word = (v) => (typeof v === 'string' && /^[a-z-]{1,32}$/.test(v) ? v : null);
+    return res.status(503).json({
+      error: 'Local-only mode is on: this AI request was refused before anything was sent.', code: 'local_only_refused',
+      provider: word(err.provider), purpose: word(err.purpose),
+    });
+  }
   return res.status(500).json({ error: fallback });
 }
 
@@ -77,8 +98,8 @@ function sendAiError(res, err, fallback = 'AI service temporarily unavailable. P
 // full error otherwise. A provider error may quote the SERVER's message; it never carries the prompt.
 function logAiError(tag, err) {
   if (isAborted(err)) return console.warn(`${tag} client went away — call aborted (${err?.message || ''})`);
-  if (isQueueFull(err) || isTooLarge(err) || isEmptyReply(err)) return console.warn(`${tag} ${err.code}: ${err.message}`);
+  if (isQueueFull(err) || isTooLarge(err) || isEmptyReply(err) || isLocalOnlyRefused(err)) return console.warn(`${tag} ${err.code}: ${err.message}`);
   console.error(`${tag} error:`, err);
 }
 
-module.exports = { sendAiError, logAiError, emptyReplyError, isQueueFull, isAborted, isTooLarge, isEmptyReply };
+module.exports = { sendAiError, logAiError, emptyReplyError, localOnlyError, isQueueFull, isAborted, isTooLarge, isEmptyReply, isLocalOnlyRefused };
