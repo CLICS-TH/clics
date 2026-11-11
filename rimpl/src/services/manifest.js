@@ -83,6 +83,9 @@ function liveSnapshot() {
         evidence_line_max_tokens: T.EVIDENCE_LINE_MAX_TOKENS,
       },
       num_ctx: per((l) => l.configured?.num_ctx ?? null),
+      // Per endpoint, the floors that raise max_tokens above the values above. Present only when set.
+      ...(Object.values(local).some((l) => l.configured?.max_tokens_floor)
+        ? { max_tokens_floor: per((l) => l.configured?.max_tokens_floor ?? null) } : {}),
     },
     consistency: {
       evaluate_mode: C.consistencyModeFor('local'),
