@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scanPii, parseAiRead, aiReadRequest } from './open-dataset.mjs';
+import { scanPii, parseAiRead, aiReadRequest, STEP_KEYS } from './open-dataset.mjs';
 import { run, anthropicRead, gitCaseFile, currentCaseFiles } from './build-open-dataset.mjs';
 
 const { ANTHROPIC_MODEL } = createRequire(import.meta.url)('../../rimpl/src/lib/provider-policy.js');
@@ -71,9 +71,16 @@ function ai(answer = { identifying: false, reason: 'no identifier' }) {
   return { read, calls };
 }
 
-const CASES = { 'demo@1': '{"case_id":"demo","version":"1"}\n', 'demo@2': '{"case_id":"demo","version":"2"}\n' };
+const BANK = { variants: [{ id: 's1v1' }, { id: 's1v2' }], options: ['o1', 'o2', 'o3', 'o4'].map((id) => ({ id })) };
+const LETTERS = ['B', 'R', 'W'];
+const demoCase = (version) => `${JSON.stringify({ case_id: 'demo', version, banks: {
+  step1: BANK,
+  step2: Object.fromEntries(LETTERS.map((a) => [a, BANK])),
+  step3: Object.fromEntries(LETTERS.flatMap((a) => LETTERS.map((b) => [a + b, BANK]))),
+} })}\n`;
+const CASES = { 'demo@1': demoCase('1'), 'demo@2': demoCase('2') };
 
-async function build(t, { plays, enabled = 0, aiRead = ai().read, cap = 1, signoff, out = tmp(t),
+async function build(t, { plays, enabled = 0, aiRead = ai().read, cap = 1, signoff, out = tmp(t), stepKeys,
   caseFile = (id, v) => (CASES[`${id}@${v}`] ? Buffer.from(CASES[`${id}@${v}`]) : null),
   currentCases = () => [{ case_id: 'demo', version: '2' }] }) {
   const signoffPath = join(out, 'review', 'signoff.json');
@@ -84,7 +91,7 @@ async function build(t, { plays, enabled = 0, aiRead = ai().read, cap = 1, signo
   const { db, reads } = fakeDb({ enabled, plays });
   const lines = { out: [], err: [] };
   const code = await run({
-    opts: { event: EVENT, version: 1, out, signoff: signoffPath, cap, commit: 'abc1234' },
+    opts: { event: EVENT, version: 1, out, signoff: signoffPath, cap, commit: 'abc1234', stepKeys },
     db, aiRead, caseFile, currentCases, now: new Date('2026-11-10T03:00:00Z'),
     log: { out: (l) => lines.out.push(l), err: (l) => lines.err.push(l) },
   });
@@ -385,6 +392,10 @@ test('a play whose steps hold a key or value outside the published shape refuses
     [tapped({ at: '2026-11-05T03:47:11Z' }), 'an unknown step key'],
     [tapped({ reply: reply({ note: 'คุณสมชาย' }) }), 'an unknown reply key'],
     [tapped({ choice: 'คุณสมชาย โทร 0812345678' }), 'text in an id field'],
+    [tapped({ choice: '0812345678' }), 'an id-shaped value that is no option of the case'],
+    [tapped({ choice: 'o4' }), 'an option of the bank that was not offered'],
+    [tapped({ variant: 's9v9' }), 'a variant the case file does not hold'],
+    [tapped({ options: ['o1', 'o2', 'x9'] }), 'an option the case file does not hold'],
     [tapped({ tier: 'excellent' }), 'a tier that is not a tier name'],
   ]) {
     const b = await build(t, { plays: [play(1, [bad, tapped(), tapped()], { tier_path: 'BBB' })] });
@@ -403,4 +414,33 @@ test('no span the scan flags reaches the AI read: a labelled English name and a 
     assert.ok(!sent.includes(leak), `the AI read is not sent ${leak}`);
   }
   assert.match(sent, /\[FLAGGED\]/);
+});
+
+test('one key list decides what is published and how: a free-text key added to it is screened, a key with no kind refuses', async (t) => {
+  const withNote = { step: { ...STEP_KEYS.step, note: 'text' }, reply: STEP_KEYS.reply };
+  const planted = play(1, [tapped({ note: 'ชื่อ สมชาย ใจดี โทร 0812345678' }), tapped(), tapped()], { tier_path: 'BBB' });
+  const reader = ai();
+  const b = await build(t, { plays: [planted], stepKeys: withNote, aiRead: reader.read });
+  assert.equal(b.code, 0, b.lines.err.join('\n'));
+  assert.equal(stateOf(b, 'BBB'), 'withheld', 'the new free-text key is scanned');
+  assert.ok(b.flagged().rows[0].strings.some((s) => s.includes('0812345678')), 'the screen read the note');
+  assert.ok(!JSON.stringify(reader.calls).includes('0812345678'), 'the AI read gets the note masked');
+  assert.ok(!(b.file('bundle/transcripts.jsonl') ?? '').includes('0812345678'), 'the note is not published');
+
+  const clean = play(2, [tapped({ note: 'ให้สารน้ำก่อน' }), tapped(), tapped()], { tier_path: 'BBB' });
+  const released = await build(t, { plays: [clean], stepKeys: withNote });
+  assert.equal(released.transcripts()[0].steps[0].note, 'ให้สารน้ำก่อน', 'a listed key that passes the screen is published');
+
+  for (const kind of ['free', undefined, 'id']) {
+    const bad = await build(t, { plays: [planted], stepKeys: { step: { ...STEP_KEYS.step, note: kind }, reply: STEP_KEYS.reply } });
+    assert.equal(bad.code, 2, `a key of kind ${kind} refuses the build`);
+    assert.match(bad.lines.err.join('\n'), /has no kind this build checks/);
+    assert.ok(!bad.reads.some((q) => q.table === 'booth_plays'), 'no play is read');
+  }
+});
+
+test('the AI read keeps the name aliases rimpl registers: later mentions of a titled or labelled name are masked', () => {
+  const sent = JSON.stringify(aiReadRequest(['นายพรรณราย\nทองเปลว', 'full name: Mr John Smith; John Smith called again']));
+  for (const leak of ['พรรณราย', 'ทองเปลว', 'John', 'Smith']) assert.ok(!sent.includes(leak), `the AI read is not sent ${leak}`);
+  assert.match(sent, /called again/, 'the words around the names are kept');
 });

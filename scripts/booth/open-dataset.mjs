@@ -5,7 +5,7 @@ import { ascii, TH_HONORIFIC_NAME, TH_LABELLED_NAME } from '../manuals/lib/pii-g
 import { bangkokTime } from './purge-summary.mjs';
 
 const require = createRequire(import.meta.url);
-const { stripPii, makeRegistry } = require('../../rimpl/src/services/pii-filter.js');
+const { stripPii, makeRegistry, primeRegistry } = require('../../rimpl/src/services/pii-filter.js');
 
 const DOMAINS = Object.freeze([
   ['d1', 'Clinical Question Intelligence'], ['d2', 'Reasoning Depth'], ['d3', 'Contextual Integration'],
@@ -51,37 +51,75 @@ export const PLAY_COLUMNS = Object.freeze([
 export const READ_COLUMNS = 'id, event_code, created_at, status, case_id, case_version, tier_path, replied_step, ranked, '
   + 'composite, d1, d2, d3, d4, d5, d6, d7, score_source, steps';
 
-// backend/tests/booth-open-dataset-steps.test.js holds this list to the keys stepRecords writes.
+// One list decides what a step publishes and how each key is checked. backend/tests/booth-open-dataset-steps.test.js
+// holds its keys to the ones stepRecords writes.
 export const STEP_KEYS = Object.freeze(JSON.parse(readFileSync(new URL('./open-dataset-step-keys.json', import.meta.url), 'utf8')));
-const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$/;
 const TIER_NAMES = new Set(['best', 'reasonable', 'weaker']);
 const isText = (v) => v == null || typeof v === 'string';
+const isObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
 
-/** Why a play's steps cannot be published as they are: a key outside STEP_KEYS, or a value of the wrong shape, so
- *  nothing reaches transcripts.jsonl that freeText did not hand to the screen. @returns {string[]} */
-export function stepProblems(row) {
+/** The case file's bank for step i of a play on tierPath: step1, then stepN keyed by the tier letters before it. */
+function bankAt(kase, tierPath, i) {
+  const b = kase?.banks?.[`step${i + 1}`];
+  if (i === 0 || !b) return b ?? null;
+  const before = String(tierPath ?? '').slice(0, i);
+  return b[before] ?? b[before.at(-1)] ?? null;
+}
+const ids = (list) => (Array.isArray(list) ? list.map((x) => x?.id) : []);
+
+/** How each kind of step value is checked; a free-text kind is checked only for being text, then screened. */
+const STEP_CHECKS = Object.freeze({
+  variant: (v, { bank }) => ids(bank?.variants).includes(v) || 'is not a question variant of its bank in the case file',
+  options: (v, { bank }) => (Array.isArray(v) && v.length > 0 && v.every((o) => ids(bank?.options).includes(o)))
+    || 'are not options of its bank in the case file',
+  choice: (v, { bank, step }) => (ids(bank?.options).includes(v) && Array.isArray(step.options) && step.options.includes(v))
+    || 'is not an option offered at this step',
+  tier: (v) => TIER_NAMES.has(v) || 'is not a tier name',
+  text: (v) => isText(v) || 'is not text',
+  reply: (v, { reg }) => {
+    if (v == null) return true;
+    if (!isObject(v)) return 'is not an object';
+    const bad = Object.entries(v).find(([k, t]) => reg.reply[k] !== 'text' || !isText(t));
+    return !bad || `has ${reg.reply[bad[0]] === 'text' ? 'a field that is not text' : `unknown key ${bad[0]}`}`;
+  },
+});
+
+/** Why the key list itself cannot be used: a key whose kind this build has no check for. @returns {string[]} */
+export function stepKeyProblems(reg = STEP_KEYS) {
+  return [
+    ...Object.entries(reg.step ?? {}).filter(([, kind]) => !(kind in STEP_CHECKS)).map(([k, kind]) => `step key ${k} has no kind this build checks (${JSON.stringify(kind)})`),
+    ...Object.entries(reg.reply ?? {}).filter(([, kind]) => kind !== 'text').map(([k, kind]) => `reply key ${k} has no kind this build checks (${JSON.stringify(kind)})`),
+  ];
+}
+
+/** Why a play's steps cannot be published: a key outside the list, or a value its kind's check refuses, ids checked
+ *  against the case file the play walked. @returns {string[]} */
+export function stepProblems(row, kase, reg = STEP_KEYS) {
   if (row.steps == null) return [];
   if (!Array.isArray(row.steps)) return ['steps is not an array'];
-  return row.steps.flatMap((s, i) => {
+  return row.steps.flatMap((step, i) => {
     const at = `step ${i + 1}`;
-    if (!s || typeof s !== 'object' || Array.isArray(s)) return [`${at} is not an object`];
-    const out = Object.keys(s).filter((k) => !STEP_KEYS.step.includes(k)).map((k) => `${at} has unknown key ${k}`);
-    if (s.reply != null && (typeof s.reply !== 'object' || Array.isArray(s.reply))) out.push(`${at} reply is not an object`);
-    else out.push(...Object.keys(s.reply ?? {}).filter((k) => !STEP_KEYS.reply.includes(k)).map((k) => `${at} reply has unknown key ${k}`));
-    if (!ID.test(String(s.variant))) out.push(`${at} variant is not an id`);
-    if (!Array.isArray(s.options) || !s.options.every((o) => ID.test(String(o)))) out.push(`${at} options are not ids`);
-    if ('choice' in s && !ID.test(String(s.choice))) out.push(`${at} choice is not an id`);
-    if (!TIER_NAMES.has(s.tier)) out.push(`${at} tier is not a tier name`);
-    for (const t of [s.bridge, s.typed, ...Object.values(s.reply ?? {})]) if (!isText(t)) { out.push(`${at} holds a text field that is not text`); break; }
-    return out;
+    if (!isObject(step)) return [`${at} is not an object`];
+    const bank = bankAt(kase, row.tier_path, i);
+    return Object.entries(step).flatMap(([k, v]) => {
+      const kind = reg.step[k];
+      if (!kind) return [`${at} has unknown key ${k}`];
+      const ok = STEP_CHECKS[kind](v, { bank, step, reg });
+      return ok === true ? [] : [`${at} ${k} ${ok}`];
+    });
   });
 }
 
-const publishedStep = (s) => Object.fromEntries(STEP_KEYS.step.filter((k) => k in s).map((k) => [k,
-  k === 'reply' && s.reply ? Object.fromEntries(STEP_KEYS.reply.filter((r) => r in s.reply).map((r) => [r, s.reply[r]])) : s[k]]));
+const publishedStep = (s, reg) => Object.fromEntries(Object.keys(reg.step).filter((k) => k in s).map((k) => [k,
+  reg.step[k] === 'reply' && isObject(s[k]) ? Object.fromEntries(Object.keys(reg.reply).filter((r) => r in s[k]).map((r) => [r, s[k][r]])) : s[k]]));
 
-export const freeText = (row) => (row.steps ?? [])
-  .flatMap((s) => [s.bridge, s.typed, ...Object.values(s.reply ?? {})])
+/** Every free-text value of a play, in step order, as the list's kinds name them: what the screen reads. */
+export const freeText = (row, reg = STEP_KEYS) => (row.steps ?? [])
+  .flatMap((s) => Object.entries(reg.step).flatMap(([k, kind]) => {
+    if (kind === 'text') return [s[k]];
+    if (kind === 'reply') return Object.keys(reg.reply).map((r) => s[k]?.[r]);
+    return [];
+  }))
   .filter((t) => typeof t === 'string' && t !== '');
 
 export const textSha = (strings) => createHash('sha256').update(JSON.stringify(strings)).digest('hex');
@@ -168,11 +206,26 @@ const AI_READ_SYSTEM = [
   '{"identifying": true or false, "reason": "one short sentence"}',
 ].join('\n');
 
-// Critical rule 1: each span the scan's own rules flag becomes [FLAGGED] and rimpl's filter masks what it finds, so
-// the cloud model is sent only what neither found. A bare name neither sees still reaches it: that is what it reads for.
+// The words of each name a span rule found, after its title or label, so later bare mentions are masked too. They are
+// read from the raw text as well: rimpl's filter can rewrite a label so the rule no longer matches what is left.
+const NAME_RULES = [HONORIFIC_SPAN, LABELLED_SPAN];
+const nameWords = (text) => NAME_RULES.flatMap((re) => [...text.matchAll(re)])
+  .filter((m) => !STARTS_WITH_PLACEHOLDER.test(m[1]))
+  .flatMap((m) => m[0].slice(m[0].indexOf(m[1])).split(/\s+/))
+  .map((w) => w.replace(/[.,;:!?()'"]+$/u, ''))
+  .filter((w) => w.length >= 2 && /\p{L}/u.test(w) && !w.startsWith('['));
+const escaped = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Critical rule 1. rimpl's filter runs first, on the unmasked text, so a titled or labelled name registers its later
+// mentions as it does at play time; then each span the scan's own rules flag, and every word of a name they found,
+// becomes [FLAGGED]. The cloud model is sent only what neither found: a bare name neither sees is what it reads for.
 export function aiReadRequest(strings) {
   const registry = makeRegistry();
-  const masked = strings.map((s) => stripPii(maskSpans(ascii(s)), registry));
+  const flat = strings.map((s) => ascii(s));
+  primeRegistry(flat, registry);
+  const deidentified = flat.map((s) => stripPii(s, registry));
+  const names = [...new Set([...flat, ...deidentified].flatMap(nameWords))].sort((a, b) => b.length - a.length);
+  const masked = deidentified.map((s) => names.reduce((t, w) => t.replace(new RegExp(escaped(w), 'gu'), FLAGGED_TOKEN), maskSpans(s)));
   return {
     system: AI_READ_SYSTEM,
     messages: [{ role: 'user', content: `The strings to check, as a JSON array:\n${JSON.stringify(masked)}` }],
@@ -230,9 +283,9 @@ export function playsCsv(rows, stateOf) {
   return `${[PLAY_COLUMNS.map((c) => c.name).join(','), ...lines].join('\n')}\n`;
 }
 
-export function transcriptsJsonl(rows, stateOf) {
+export function transcriptsJsonl(rows, stateOf, reg = STEP_KEYS) {
   return sortedByRef(rows).filter(({ ref }) => stateOf(ref) === 'released').map(({ ref, row }) => `${JSON.stringify({
-    play_ref: ref, case_id: row.case_id, case_version: row.case_version, tier_path: row.tier_path, steps: row.steps.map(publishedStep),
+    play_ref: ref, case_id: row.case_id, case_version: row.case_version, tier_path: row.tier_path, steps: row.steps.map((step) => publishedStep(step, reg)),
   })}\n`).join('');
 }
 

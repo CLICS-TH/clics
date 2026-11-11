@@ -23,9 +23,9 @@ test('every key stepRecords writes, tapped and typed, is in the open dataset\'s 
   const records = stepRecords(walked);
   const stepKeys = new Set(records.flatMap((r) => Object.keys(r)));
   const replyKeys = new Set(records.flatMap((r) => Object.keys(r.reply)));
-  expect([...stepKeys].sort()).toEqual([...ALLOWED.step].sort());
-  expect([...replyKeys].sort()).toEqual([...ALLOWED.reply].sort());
-  expect([...REPLY_FIELDS].sort()).toEqual([...ALLOWED.reply].sort());
+  expect([...stepKeys].sort()).toEqual(Object.keys(ALLOWED.step).sort());
+  expect([...replyKeys].sort()).toEqual(Object.keys(ALLOWED.reply).sort());
+  expect([...REPLY_FIELDS].sort()).toEqual(Object.keys(ALLOWED.reply).sort());
 });
 
 test('a step record never carries the raw typed text', () => {

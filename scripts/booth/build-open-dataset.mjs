@@ -23,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SAFE_EVENT_CODE } from './purge-summary.mjs';
 import {
-  READ_COLUMNS, sortedByRef, playRef, bangkokDate, stepProblems, freeText, textSha, scanPii, aiReadRequest, parseAiRead, flagged,
+  READ_COLUMNS, STEP_KEYS, sortedByRef, playRef, bangkokDate, stepKeyProblems, stepProblems, freeText, textSha, scanPii, aiReadRequest, parseAiRead, flagged,
   signedKeys, transcriptState, playsCsv, transcriptsJsonl, flaggedReport, readme, dictionary,
 } from './open-dataset.mjs';
 
@@ -39,6 +39,7 @@ const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const PAGE = 1000;
 const SAFE_CASE_ID = /^[a-z0-9][a-z0-9-]{0,31}$/;
 const SAFE_VERSION = /^[A-Za-z0-9][A-Za-z0-9.-]{0,31}$/;
+const parseCase = (bytes) => { try { return JSON.parse(bytes.toString('utf8')); } catch { return null; } };
 const BUNDLE_NAMES = new Set(['plays.csv', 'transcripts.jsonl', 'cases', 'README.md', 'DATA-DICTIONARY.md']);
 
 function parseArgs(argv) {
@@ -96,6 +97,12 @@ const unread = (reason) => ({ kind: 'unread', reason });
  */
 export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }) {
   const { event, version, out, cap } = opts;
+  const reg = opts.stepKeys ?? STEP_KEYS;
+  const keyProblems = stepKeyProblems(reg);
+  if (keyProblems.length) {
+    log.err(`the step key list cannot be used (scripts/booth/open-dataset-step-keys.json):\n  ${keyProblems.join('\n  ')}\nNothing was read.`);
+    return 2;
+  }
   const bundleDir = path.join(out, 'bundle');
   const reviewDir = path.join(out, 'review');
 
@@ -143,11 +150,6 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
     return 1;
   }
   if (!rows.length) { log.err(`${event} has no booth plays. Nothing was written: check the event code.`); return 1; }
-  const malformed = rows.flatMap((r) => stepProblems(r).map((p) => `${playRef(r.id)} ${p}`));
-  if (malformed.length) {
-    log.err(`plays whose steps are not the shape this build publishes (scripts/booth/open-dataset-step-keys.json):\n  ${malformed.join('\n  ')}\nNothing was written.`);
-    return 1;
-  }
 
   let current;
   try { current = currentCases(); } catch (e) { log.err(`the case folder of ${event} is unreadable: ${e.message}`); return 2; }
@@ -156,14 +158,22 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
     if (id != null && v != null) wanted.set(`${id}@${v}`, [id, String(v)]);
   }
   const cases = new Map();
+  const parsed = new Map();
   const missing = [];
   for (const [id, v] of wanted.values()) {
     const bytes = SAFE_CASE_ID.test(id) && SAFE_VERSION.test(v) ? caseFile(id, v) : null;
-    if (bytes) cases.set(`${id}-v${v}.json`, bytes);
+    if (bytes) { cases.set(`${id}-v${v}.json`, bytes); parsed.set(`${id}@${v}`, parseCase(bytes)); }
     else missing.push(`${id}@${v}`);
   }
   if (missing.length) {
     log.err(`no committed case file holds ${missing.join(', ')}. Nothing was written.`);
+    return 1;
+  }
+
+  const malformed = rows.flatMap((r) => stepProblems(r, parsed.get(`${r.case_id}@${r.case_version}`), reg)
+    .map((p) => `${playRef(r.id)} ${p}`));
+  if (malformed.length) {
+    log.err(`plays whose steps are not the shape this build publishes (scripts/booth/open-dataset-step-keys.json):\n  ${malformed.join('\n  ')}\nNothing was written.`);
     return 1;
   }
 
@@ -172,7 +182,7 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   let spent = 0;
   let capped = false;
   for (const { ref, row } of ordered.filter(({ row }) => Array.isArray(row.steps))) {
-    const strings = freeText(row);
+    const strings = freeText(row, reg);
     const findings = strings.flatMap(scanPii);
     let ai = { kind: 'clear' };
     if (strings.length) {
@@ -213,7 +223,7 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
   rmSync(bundleDir, { recursive: true, force: true });
   mkdirSync(path.join(bundleDir, 'cases'), { recursive: true });
   writeFileSync(path.join(bundleDir, 'plays.csv'), playsCsv(rows, stateOf));
-  writeFileSync(path.join(bundleDir, 'transcripts.jsonl'), transcriptsJsonl(rows, stateOf));
+  writeFileSync(path.join(bundleDir, 'transcripts.jsonl'), transcriptsJsonl(rows, stateOf, reg));
   for (const [name, bytes] of cases) writeFileSync(path.join(bundleDir, 'cases', name), bytes);
   writeFileSync(path.join(bundleDir, 'README.md'),
     readme({ event, version, commit: opts.commit ?? null, builtOn: bangkokDate(now.toISOString()), counts }));

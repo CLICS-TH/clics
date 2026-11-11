@@ -1,4 +1,16 @@
 {
-  "step": ["variant", "bridge", "options", "choice", "typed", "reply", "tier"],
-  "reply": ["strength", "weigh", "safety"]
+  "step": {
+    "variant": "variant",
+    "options": "options",
+    "choice": "choice",
+    "tier": "tier",
+    "bridge": "text",
+    "typed": "text",
+    "reply": "reply"
+  },
+  "reply": {
+    "strength": "text",
+    "weigh": "text",
+    "safety": "text"
+  }
 }
