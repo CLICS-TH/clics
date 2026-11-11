@@ -35,7 +35,7 @@ async function toResult(k) {
 }
 
 const rowsOf = (page, list) => page.$$eval(`[data-board] .board-list:nth-of-type(${list}) .board-row`, (els) => els.map((e) => ({
-  rank: e.querySelector('.board-rank').textContent, tag: e.querySelector('.board-tag').textContent,
+  rank: e.querySelector('.board-rank').textContent, tag: e.querySelector('.board-tag').innerText,
   score: e.querySelector('.board-score').textContent, icon: e.querySelector('.booth-icon')?.dataset.icon,
   drawn: !!e.querySelector('.booth-icon svg'), mine: e.getAttribute('aria-current') === 'true',
 })));
@@ -60,7 +60,7 @@ export default [
       await h.screenCheck(page, 'result leaderboard overlay', { demo: true });
       await h.shot(page, 'result-board');
       const tag = await page.locator('.result-card .booth-tag').evaluate((e) => ({
-        text: e.textContent, icon: e.querySelector('.booth-icon')?.dataset.icon, drawn: !!e.querySelector('.booth-icon svg'),
+        text: e.innerText, icon: e.querySelector('.booth-icon')?.dataset.icon, drawn: !!e.querySelector('.booth-icon svg'),
       }));
       h.check(tag.text === 'Booth #042' && tag.icon === TAG_ICONS[(42 * 7) % TAG_ICONS.length] && tag.drawn,
         `result: "Booth #042" with its icon from the Portal set (${JSON.stringify(tag)})`);

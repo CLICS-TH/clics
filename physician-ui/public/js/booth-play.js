@@ -7,14 +7,14 @@
 //   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
-import { COPY, DEMO_LABEL, DOMAINS, REPLY_FIELDS, TIERS, scoreText, fill } from './booth-copy.js';
+import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
 import { revealRows, answersButton } from './booth-answers.js';
 import { resultUrl, boothDate } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
-import { el, phrases, markedPhrases, bi } from './booth-dom.js';
+import { el, phrases, markedPhrases, bi, textLang, currentLook, onLook } from './booth-dom.js';
 
 const START_TIMEOUT_MS = 15_000;
 const REPLY_TIMEOUT_MS = 45_000;
@@ -165,7 +165,8 @@ function keptAnswers(answers, deidentified) {
 
 const stepIndex = (s) => (s.screen.at === 'step' || s.screen.at === 'typing' ? s.answers.length : s.answers.length - 1);
 const stepOf = (s) => s.steps[stepIndex(s)];
-const dialogue = (s) => ({ answers: s.answers, replies: s.replies, asks: s.steps.slice(0, s.answers.length).map((n) => n.ask), sigs: s.sigs });
+const dialogue = (s) => ({ answers: s.answers, replies: s.replies, asks: s.steps.slice(0, s.answers.length).map((n) => n.ask), sigs: s.sigs,
+  look: currentLook() });
 const isOffline = (e) => !(e instanceof BoothApiError && e.kind === 'http');
 
 async function requestReply(api, s) {
@@ -335,7 +336,7 @@ function offerCase(root, dealt) {
     const button = buttonsFor(resolve);
     const reroll = dealt.live === null || dealt.live >= 2;
     draw(root, 'teaser', frame(
-      [el('section', { class: 'case-card case-card--full' }, bi(dealt.teaser, 'teaser'))],
+      [caseCard(dealt.teaser, 'teaser', 'case-card--full')],
       [button(labelled(COPY.startCase, null, 'arrowRight'), 'primary wide', () => 'start', { 'data-action': 'start-case' }),
         ...(reroll ? [button(labelled(COPY.reroll, 'refresh'), 'secondary wide', () => 'reroll', { 'data-action': 'reroll' })] : [])],
       { stack: true }));
@@ -344,14 +345,14 @@ function offerCase(root, dealt) {
 
 const VIEWS = {
   vignette: (s, { button }) => frame(
-    [caseCard(s.play, 'case-card--full')],
+    [caseCard(s.play.vignette, 'vignette', 'case-card--full')],
     [button(labelled(COPY.begin, null, 'arrowRight'), 'primary wide', () => ({ type: 'begin' }), { 'data-action': 'begin' })]),
 
   step: (s, { button }) => {
     const step = stepOf(s);
     const { chosen } = s.screen;
     return frame([
-      caseCard(s.play),
+      caseCard(s.play.vignette, 'vignette'),
       el('section', { class: 'step-sheet', 'aria-label': step.question.en },
         stepHead(s, step, { bridge: true }),
         el('div', { class: 'options' }, ...step.options.map((o, i) => button(
@@ -367,7 +368,7 @@ const VIEWS = {
   typing: (s, { button }) => {
     const step = stepOf(s);
     const box = el('textarea', {
-      class: 'typing-box', maxlength: String(s.play.answerMax), rows: '3', enterkeyhint: 'enter', lang: 'th',
+      class: 'typing-box', maxlength: String(s.play.answerMax), rows: '3', enterkeyhint: 'enter', lang: LOOKS[currentLook()].primary, 'data-look-lang': '',
       'aria-label': `${COPY.typeOwn.th} ${COPY.typeOwn.en}`, autocomplete: 'off', spellcheck: 'false',
     });
     const send = button(labelled(COPY.send), 'primary', () => ({ type: 'sendText', text: box.value }), { 'data-action': 'send', disabled: '' });
@@ -381,7 +382,7 @@ const VIEWS = {
         el('div', { class: 'action-row' },
           button(labelled(COPY.backToChoices), 'secondary', () => ({ type: 'closeTyping' }), { 'data-action': 'back' }),
           send)),
-      caseCard(s.play, 'case-card--behind'),
+      caseCard(s.play.vignette, 'vignette', 'case-card--behind'),
     ]);
   },
 
@@ -392,7 +393,7 @@ const VIEWS = {
     const fields = REPLY_FIELDS.filter(({ key }) => reply[key].trim() !== '');
     const said = fields.length === 0 ? bi(COPY.noReply, 'reply-note') : aiBubble(...fields.map((f) => el('section',
       { class: 'reply-field', dataset: { field: f.key }, 'aria-label': f.en },
-      bi(f, 'reply-head'), el('p', { class: 'ai-text', lang: 'th' }, ...markedPhrases(reply[f.key])))));
+      bi(f, 'reply-head'), el('p', { class: 'ai-text', lang: textLang(reply[f.key]) }, ...markedPhrases(reply[f.key])))));
     const [copy, action] = s.answers.length === STEPS ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
       [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);
@@ -418,8 +419,8 @@ const VIEWS = {
           keepQr(s.play, score),
           score.steps ? answersButton({ host, rows: revealRows(s.steps, s.answers, score.steps) }) : null)),
       // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
-      ...domainSections(score.domains, el('div', { class: 'result-board-row' },
-        slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true }))));
+      el('div', { class: 'result-more' }, ...domainSections(score.domains, el('div', { class: 'result-board-row' },
+        slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true })))));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
   },
@@ -429,8 +430,10 @@ const VIEWS = {
   stopped: (s) => frame([stoppedView(s.screen.offline)]),
 };
 
-function caseCard(play, mod = '') {
-  return el('section', { class: `case-card ${mod}`.trim() }, bi(play.vignette, 'vignette'));
+// The text scrolls in a box of its own, inside the card's top padding, so a scrolled line never rises into the screen's
+// top corner, where the language control sits.
+function caseCard(pair, cls, mod = '') {
+  return el('section', { class: `case-card ${mod}`.trim() }, el('div', { class: 'case-text' }, bi(pair, cls)));
 }
 
 // The bridge is the AI's lead-in to this question, so it sits in the question's own block, AI-labelled.
@@ -438,7 +441,7 @@ function stepHead(s, step, { bridge = false } = {}) {
   const lead = bridge && step.ask.bridge.trim() !== ''
     ? el('p', { class: 'ai-bridge', dataset: { bridge: '' } },
       el('span', { class: 'ai-label' }, window.AI_LABEL.th), ' ',
-      el('span', { class: 'bridge-text', lang: 'th' }, ...phrases(step.ask.bridge)))
+      el('span', { class: 'bridge-text', lang: textLang(step.ask.bridge) }, ...phrases(step.ask.bridge)))
     : null;
   return el('header', { class: 'step-head' },
     bi(fill(COPY.stepOf, { n: stepIndex(s) + 1 }), 'step-of'),
@@ -458,7 +461,7 @@ function exchange(s, aiPart) {
   const answer = s.answers[s.answers.length - 1];
   const given = 'choice' in answer
     ? bi(step.options.find((o) => o.id === answer.choice).label, 'answer-choice')
-    : el('p', { class: 'answer-text', lang: 'th' }, ...plainText(answer.text));
+    : el('p', { class: 'answer-text', lang: textLang(answer.text) }, ...plainText(answer.text));
   return el('div', { class: 'exchange' },
     stepHead(s, step),
     el('section', { class: 'answer-card', 'aria-label': COPY.yourAnswer.en }, bi(COPY.yourAnswer, 'answer-label'), given),
@@ -494,16 +497,26 @@ function svgEl(tag, attrs, ...kids) {
 }
 
 // The QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.
+// The link carries the look, so it is drawn again on a switch; the card itself is not, or the result's idle timer
+// (booth-idle.js, keyed on data-screen) would start over.
 function keepQr(play, score) {
-  const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser,
-    tiers: score.steps?.map((st) => st.tier) ?? null });
-  const qr = window.qrcode(0, 'L');
-  qr.addData(url);
-  qr.make();
-  const n = qr.getModuleCount();
-  let d = '';
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
-  const svg = svgEl('svg', { viewBox: `0 0 ${n + 8} ${n + 8}`, 'shape-rendering': 'crispEdges', role: 'img', 'aria-label': COPY.keepResult.en },
-    svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', { fill: '#000', d }));
-  return el('figure', { class: 'keep-qr', dataset: { keepQr: '', resultUrl: url } }, svg, bi(COPY.keepResult, 'keep-qr-caption'));
+  const fig = el('figure', { class: 'keep-qr', dataset: { keepQr: '' } }, bi(COPY.keepResult, 'keep-qr-caption'));
+  const drawQr = () => {
+    const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser,
+      tiers: score.steps?.map((st) => st.tier) ?? null, look: currentLook() });
+    const qr = window.qrcode(0, 'L');
+    qr.addData(url);
+    qr.make();
+    const n = qr.getModuleCount();
+    let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
+    const svg = svgEl('svg', { viewBox: `0 0 ${n + 8} ${n + 8}`, 'shape-rendering': 'crispEdges', role: 'img', 'aria-label': COPY.keepResult.en },
+      svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', { fill: '#000', d }));
+    fig.querySelector('svg')?.remove();
+    fig.prepend(svg);
+    fig.dataset.resultUrl = url;
+  };
+  drawQr();
+  const off = onLook(() => { if (fig.isConnected) drawQr(); else off(); });
+  return fig;
 }

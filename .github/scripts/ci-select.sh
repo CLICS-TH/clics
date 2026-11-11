@@ -16,7 +16,7 @@ event=${1:?usage: ci-select.sh <event> < changed-paths}
 # job "ALL": a change here selects every job (workflows, this script, the root manifest + lockfile).
 RULES='
 ALL               ^(\.github/|package\.json$|package-lock\.json$)
-backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
+backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|scripts/booth/open-dataset-step-keys\.json$|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
 license_verifier  ^license-verifier/
 rimpl             ^(rimpl/|backend/src/booth-cases/|backend/src/services/(booth-dialogue|ple-gate)\.js$)
 dashboard         ^(audit-dashboard/|physician-ui/public/|backend/src/|db/|rimpl/src/lib/)
@@ -30,7 +30,7 @@ calibration       ^(scripts/calibration/|rimpl/src/|backend/src/services/)
 manuals           ^(scripts/manuals/|docs/manuals/|physician-ui/public/|audit-dashboard/|rimpl/src/)
 portal_browser    ^(scripts/auth/|physician-ui/public/|audit-dashboard/)
 responsive        ^(scripts/(responsive|chat|booth)/|physician-ui/public/|backend/src/booth-cases/)
-booth_scripts     ^(scripts/booth/|rimpl/src/lib/booth-cache(\.js|-calibration\.json)$)
+booth_scripts     ^(scripts/booth/|rimpl/src/lib/booth-cache(\.js|-calibration\.json)$|backend/src/(services/ple-gate|booth-cases/tree-sha)\.js$|rimpl/src/services/pii-(filter|names\.th|clinical-words\.th)\.js$|rimpl/src/lib/provider-policy\.js$|backend/src/lib/pricing\.js$|scripts/manuals/lib/pii-gate\.mjs$)
 '
 
 jobs=$(printf '%s\n' "$RULES" | awk 'NF == 2 && $1 != "ALL" { print $1 }')

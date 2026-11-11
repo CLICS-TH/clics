@@ -6,29 +6,29 @@
 .result-ranks { display: flex; align-items: center; justify-content: space-between; gap: var(--gap); }
 .rank-lines { display: grid; grid-template-columns: auto auto; align-items: center; gap: calc(16 * var(--u)) calc(28 * var(--u)); }
 .rank { display: contents; }
-.rank-label .bi-th { font-size: var(--text-small-th); font-weight: 500; line-height: 1.5; }
-.rank-label .bi-en { font-size: var(--text-en); line-height: 1.35; }
+.rank-label .bi-main { font-size: var(--text-small-th); font-weight: 500; line-height: 1.5; }
+.rank-label .bi-sub { font-size: var(--text-en); line-height: 1.35; }
 .rank-value { font-size: calc(56 * var(--u)); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
 
 .result-top { display: flex; align-items: flex-start; gap: var(--gap); }
-.result-summary { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: calc(28 * var(--u)); }
+.result-summary { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: calc(24 * var(--u)); }
 .result-summary .result-score { flex: none; white-space: nowrap; }
 .keep-qr { margin: 0; flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(8 * var(--u)); max-width: calc(340 * var(--u)); text-align: center; }
 .keep-qr svg { width: calc(320 * var(--u)); height: calc(320 * var(--u)); display: block; }
-.keep-qr-caption .bi-th { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
-.keep-qr-caption .bi-en { font-size: var(--text-en); line-height: 1.3; }
+.keep-qr-caption .bi-main { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
+.keep-qr-caption .bi-sub { font-size: var(--text-en); line-height: 1.3; }
 .landing-qr { margin: 0; flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(8 * var(--u)); max-width: calc(300 * var(--u)); text-align: center; }
 .landing-qr img { width: calc(220 * var(--u)); height: calc(220 * var(--u)); display: block; }
-.landing-qr-caption .bi-th { font-size: var(--text-en); line-height: 1.45; }
-.landing-qr-caption .bi-en { font-size: var(--text-en); line-height: 1.3; }
+.landing-qr-caption .bi-main { font-size: var(--text-en); line-height: 1.45; }
+.landing-qr-caption .bi-sub { font-size: var(--text-en); line-height: 1.3; }
 
 .board-panel { display: flex; flex-direction: column; gap: calc(20 * var(--u)); padding: calc(28 * var(--u)); background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius-s); }
-.board-title .bi-th { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
-.board-title .bi-en { font-size: var(--text-en); line-height: 1.3; }
+.board-title .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
+.board-title .bi-sub { font-size: var(--text-en); line-height: 1.3; }
 .board-lists { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: calc(28 * var(--u)); }
 .board-list { display: flex; flex-direction: column; gap: calc(8 * var(--u)); min-width: 0; }
-.board-list-title .bi-th { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
-.board-list-title .bi-en { font-size: var(--text-en); line-height: 1.3; }
+.board-list-title .bi-main { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
+.board-list-title .bi-sub { font-size: var(--text-en); line-height: 1.3; }
 .board-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .board-row {
   display: grid; grid-template-columns: calc(44 * var(--u)) calc(40 * var(--u)) minmax(0, 1fr) auto; align-items: center;
@@ -40,7 +40,7 @@
 .board-rank { color: var(--body); text-align: right; }
 .board-tag { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .board-score { font-weight: 600; }
-.board-empty .bi-th, .board-empty .bi-en { font-size: var(--text-en); line-height: 1.45; color: var(--body); }
+.board-empty .bi-main, .board-empty .bi-sub { font-size: var(--text-en); line-height: 1.45; color: var(--body); }
 .board-label { padding: calc(14 * var(--u)) calc(20 * var(--u)); background: var(--band); border-radius: calc(10 * var(--u)); }
 
 .board-overlay {
@@ -50,8 +50,8 @@
 }
 .board-card { box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: var(--gap); padding: calc(40 * var(--u)); background: var(--canvas); border-radius: var(--radius); box-shadow: var(--shadow-card); }
 .board-unavailable { padding: var(--gutter) 0; text-align: center; }
-.board-unavailable .bi-th { font-size: var(--text-label-th); font-weight: 600; line-height: 1.5; color: var(--ink); }
-.board-unavailable .bi-en { font-size: var(--text-en); color: var(--body); }
+.board-unavailable .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.5; color: var(--ink); }
+.board-unavailable .bi-sub { font-size: var(--text-en); color: var(--body); }
 
 /* The result card's right column: the keep QR, then "See the answers" when the score carried tiers (#379). */
 .result-side { flex: none; display: flex; flex-direction: column; gap: calc(8 * var(--u)); width: calc(340 * var(--u)); }
@@ -59,8 +59,14 @@
 /* The side column sets the card's top height (QR, caption, this button), and every unit here pushes Practise next
    toward the fold, so the button keeps only the tap floor's padding. */
 .result-side [data-action="see-answers"] { padding-block: calc(8 * var(--u)); justify-content: center; text-align: center; }
+/* "See the answers" at the Thai main size takes two lines in this column; at 30 units it holds one. */
+:root:lang(en) .result-side [data-action="see-answers"] .bi-main { font-size: var(--text-small-th); }
 /* A 36-unit "คะแนนรวม" wraps beside a three-digit score in this column; at 30 units it holds one line. */
-.result-summary .result-overall .bi-th { font-size: var(--text-small-th); }
+.result-summary .result-overall .bi-main { font-size: var(--text-small-th); }
 .result-board-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap); }
-.result-board-row > [data-booth-slot="board"] { flex: none; }
+/* The ranks sit beside the leaderboard button. The Landing QR, when it is on, takes a line of its own under them, in
+   the card's scroll box: beside them it would push the button below the fold. */
+.result-board-row > [data-booth-slot="board"], .result-board-row .result-ranks { display: contents; }
+.result-board-row .rank-lines { flex: none; }
+.result-board-row .landing-qr { order: 1; flex-basis: 100%; max-width: none; }
 .result-board-row > [data-action="leaderboard"] { flex: 1 1 calc(400 * var(--u)); width: auto; }

@@ -7,8 +7,8 @@
 -- ai_evaluations/lpdp_snapshots row and no code, and its AI spend never touches professionals.usage_cost_usd
 -- (the $0.50 cap and api_budget_pool_usd both read that column). Since #375 (ADR 0010) a scored play keeps its
 -- dialogue as open research data: per step the ids it was asked and chose, the AI reply and, for a typed answer,
--- rimpl's de-identified text of it. Never the raw typed text, an IP or device data
--- (backend/tests/booth-consistency.test.js holds the column list). Rows are kept, with no 30-day delete;
+-- rimpl's de-identified text of it, and since #377 the kiosk's language look. Never the raw typed text, an IP or
+-- device data (backend/tests/booth-consistency.test.js holds the column list). Rows are kept, with no 30-day delete;
 -- migration-booth-purge.sql removes an event's plays only for a test event or an owner-ordered removal.
 --
 -- Idempotent. #246 adds case_id, case_version and tier_path and replaces booth_start_play(text) with
@@ -73,12 +73,17 @@ alter table public.booth_plays add column if not exists steps jsonb
 alter table public.booth_plays add column if not exists score_source text
   constraint booth_plays_score_source_check check (score_source in ('table', 'live'));
 
+-- #377: the kiosk's language look when the play was scored (backend services/booth-dialogue.js LOOK_LANGUAGE). It
+-- set the language of the AI replies, never the score. Older rows keep null.
+alter table public.booth_plays add column if not exists language_look text
+  constraint booth_plays_language_look_check check (language_look in ('th+en', 'th', 'en+th', 'en'));
+
 -- DENY-ALL (RLS on, no policy): only the backend's service role reads or writes booth plays.
 alter table public.booth_plays enable row level security;
 
 comment on table public.booth_plays is
   'Booth Mode plays (ADR 0004, 0010): tag, demo score, d1-d7, spend, status, case id and version, tier path, '
-  'score source and the de-identified dialogue (option ids, AI replies, rimpl''s de-identified typed answers). '
+  'score source, language look and the de-identified dialogue (option ids, AI replies, rimpl''s de-identified typed answers). '
   'Never raw typed text, IP or device data, and no link to professionals or ples. Kept as open research data with '
   'no 30-day delete; purged only for a test event or an owner-ordered removal.';
 
