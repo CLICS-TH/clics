@@ -89,7 +89,7 @@ test('a masked step-1 answer is kept exactly as the AI saw it, without the quest
   const d = typedPlay(kase, '', ['v1'], ['นายพรรณราย ตัวดี']);
   const res = await request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(kase, d) });
   const seen = seenAnswer(sentTurns()[0]);
-  expect(seen).toMatch(/^นาย\[NAME-\d+\] \[NAME-\d+\]$/);
+  expect(seen).toMatch(/^\[[A-Z]+-\d+\]$/); // นาย is a label: one token from it on (#422)
   expect(res.body.answer_deidentified).toBe(seen);
 });
 
