@@ -72,3 +72,6 @@ scripts/calibration/anchors/imports/
 
 # Physician sandbox reports (scripts/booth/sandbox.mjs): the JSON stays local, the .md summary may be committed.
 scripts/booth/sandbox-runs/*.json
+
+# Open booth dataset builds: production-derived plays and the private list of flagged typed text. Never committed.
+scripts/booth/open-dataset/

@@ -134,16 +134,28 @@
       "prompts": {
         "chat": {
           "booth": {
-            "label": "chat-prompt-580f6441",
-            "sha256": "580f64411591173a3a89bc2ea3dd63a1a7128f572a2f9cf46e0686501c3843ac"
+            "label": "chat-prompt-0023d4ba",
+            "sha256": "0023d4ba55b753ddb525be6d54ed27d96a8ffa9b6d301e5ea4ff0d5da9aa94f9"
+          },
+          "booth+en": {
+            "label": "chat-prompt-455f92f2",
+            "sha256": "455f92f2e15105b388bd9a9605a35ab62611f9b17cf5c97fe238e659903f92d5"
           },
           "booth+grill": {
-            "label": "chat-prompt-19efed7e",
-            "sha256": "19efed7ea7246c31c7252b3a22b167f4c9dc3bc09aee4c62c4ca8da36cae100e"
+            "label": "chat-prompt-d0ad920f",
+            "sha256": "d0ad920f8964129434b29c0970f1ced5f90afa360791cd08d8f7fce5142784b8"
+          },
+          "booth+grill+en": {
+            "label": "chat-prompt-9d4920f4",
+            "sha256": "9d4920f45c81d37039f8228d8adb007ea703a8cfeaa550c6e8d6b152456a8a92"
           },
           "booth+typed": {
-            "label": "chat-prompt-5419dd1f",
-            "sha256": "5419dd1ff639ca3666b12f6dd195b078853c144056b61bf017ee42241d77848b"
+            "label": "chat-prompt-219dccac",
+            "sha256": "219dccac5569750e606257b0ebb1899f10853a2bd0c3ee1c30dd874a2ecb0da3"
+          },
+          "booth+typed+en": {
+            "label": "chat-prompt-3736924f",
+            "sha256": "3736924ff02e7dbf5175ee3469afa350e50b958013920cd4cbcdfab8d912f97a"
           },
           "examiner": {
             "label": "chat-prompt-c6efcfc6",
@@ -353,5 +365,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "cf8070d82c268dd903fd23ffc59623e22baf65889971e27a2718f6039a5e3444"
+  "sha256": "fd8b71014322db170349e21d64b0bc7c3e218295a58f7e72ca6a74510062f530"
 }

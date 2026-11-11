@@ -15,6 +15,16 @@ const SOURCE = await readFile(fileURLToPath(new URL('../../../physician-ui/publi
 const { BAND_LINES, SAFETY_REVIEW, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
 
 const size = (line) => line.th.length + line.en.length;
+
+/** Sets the look through the kiosk's own setLook, as a tap on the control does, and waits for the fonts it draws and
+ *  for the control's colour transitions to end. */
+const lookIn = (page, look) => page.evaluate(async (l) => {
+  (await import('/js/booth-dom.js')).setLook(l);
+  await document.fonts.ready;
+  await new Promise((r) => requestAnimationFrame(r));
+  await Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+    .map((a) => a.finished.catch(() => {})));
+}, look);
 const RANKS = { rank_today: 3, rank_event: 5 };
 
 /** The score sets the card is checked with: every domain at each band, and the two longest low lines made weakest. */
@@ -140,42 +150,46 @@ export default [
     },
   },
   ...SIZES.map(([width, height]) => ({
-    name: `result card at ${width}x${height}: the radar, a descriptor per domain, the two weakest first under Practise next, the leaderboard button above the fold`,
+    name: `result card at ${width}x${height} in each look: the radar, a descriptor per domain, the two weakest first under Practise next, the leaderboard button above the fold`,
     async run(h) {
       for (const [label, domains] of scoreSets()) {
         const stub = h.makeStub({ routes: { [SCORE_KEY]: (call) => h.scoredFor(call, { domains, ...RANKS }) } });
         const k = await h.kiosk({ width, height, stub });
         const { page } = k;
         await toResult(k);
-        const tag = `${width}x${height} ${label}`;
-        await h.screenCheck(page, `result card ${tag}`, { demo: true });
-        await h.shot(page, `result-bands-${width}-${label.split(' ').slice(0, 2).join('-')}`);
-        checkRadar(h, tag, await readRadar(page), domains);
+        for (const look of Object.keys(h.LOOKS)) {
+          await lookIn(page, look);
+          const tag = `${width}x${height} ${label}, ${look}`;
+          await h.screenCheck(page, `result card ${tag}`, { demo: true });
+          await h.shot(page, `result-bands-${width}-${label.split(' ').slice(0, 2).join('-')}-${look}`);
+          checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary);
 
-        const order = weakestFirst(domains);
-        const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
-        const other = await page.$$eval('.other-domains .domain', (els) => els.map((e) => e.dataset.key));
-        h.check(h.same(next, order.slice(0, 2)) && h.same(other, order.slice(2)),
-          `${tag}: Practise next lists ${order.slice(0, 2)} first, then the other five (${next} | ${other})`);
-        const rows = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
-          key: e.dataset.key, th: e.querySelector('.domain-band .bi-th')?.textContent, en: e.querySelector('.domain-band .bi-en')?.textContent,
-        })));
-        h.check(rows.length === 7 && rows.every((r) => r.th === BAND_LINES[r.key][bandOf(domains[r.key])].th && r.en === BAND_LINES[r.key][bandOf(domains[r.key])].en),
-          `${tag}: each of the 7 rows carries the Thai and English line of its domain and band`);
-        const fit = await page.evaluate(() => {
-          const lines = (e) => Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight));
-          const body = document.querySelector('.play-body').getBoundingClientRect();
-          const button = document.querySelector('.result-card [data-action="leaderboard"]').getBoundingClientRect();
-          const next = document.querySelector('.practise-next').getBoundingClientRect();
-          return {
-            tall: [...document.querySelectorAll('.domain-band span[lang]')].filter((e) => lines(e) > 2).length,
-            buttonBottom: Math.round(button.bottom), nextBottom: Math.round(next.bottom), bodyBottom: Math.round(body.bottom),
-            sheetBelowFold: document.querySelector('.other-domains').getBoundingClientRect().top >= next.bottom,
-          };
-        });
-        h.check(fit.tall === 0, `${tag}: no descriptor runs past two lines`);
-        h.check(fit.nextBottom <= fit.bodyBottom && fit.buttonBottom <= fit.bodyBottom && fit.sheetBelowFold,
-          `${tag}: with both ranks, Practise next and the leaderboard button are visible without scrolling (button ends ${fit.buttonBottom}, card area ends ${fit.bodyBottom})`);
+          const order = weakestFirst(domains);
+          const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
+          const other = await page.$$eval('.other-domains .domain', (els) => els.map((e) => e.dataset.key));
+          h.check(h.same(next, order.slice(0, 2)) && h.same(other, order.slice(2)),
+            `${tag}: Practise next lists ${order.slice(0, 2)} first, then the other five (${next} | ${other})`);
+          const rows = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
+            key: e.dataset.key, th: e.querySelector('.domain-band .bi-th')?.textContent, en: e.querySelector('.domain-band .bi-en')?.textContent,
+          })));
+          h.check(rows.length === 7 && rows.every((r) => r.th === BAND_LINES[r.key][bandOf(domains[r.key])].th && r.en === BAND_LINES[r.key][bandOf(domains[r.key])].en),
+            `${tag}: each of the 7 rows carries the Thai and English line of its domain and band`);
+          // The fold is the lowest edge nothing scrolls past: the screen, the play body and the card's scroll box.
+          const fit = await page.evaluate(() => {
+            const lines = (e) => Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight));
+            const fold = Math.min(innerHeight, ...['.play-body', '.result-more'].map((s) => document.querySelector(s)?.getBoundingClientRect().bottom ?? Infinity));
+            const button = document.querySelector('.result-card .result-board-row').getBoundingClientRect();
+            const next = document.querySelector('.practise-next').getBoundingClientRect();
+            return {
+              tall: [...document.querySelectorAll('.domain-band span[lang]')].filter((e) => e.getBoundingClientRect().height > 0 && lines(e) > 2).length,
+              buttonBottom: Math.round(button.bottom), nextBottom: Math.round(next.bottom), fold: Math.round(fold),
+              sheetBelowFold: document.querySelector('.other-domains').getBoundingClientRect().top >= next.bottom,
+            };
+          });
+          h.check(fit.tall === 0, `${tag}: no descriptor runs past two lines`);
+          h.check(fit.nextBottom <= fit.fold && fit.buttonBottom <= fit.fold && fit.sheetBelowFold,
+            `${tag}: with both ranks, Practise next, the ranks and the leaderboard button are visible without scrolling (their row ends ${fit.buttonBottom}, fold ${fit.fold}, ${Math.round((fit.fold - fit.buttonBottom) * 1080 / width)}u to spare)`);
+        }
         await k.close();
       }
     },

@@ -3,12 +3,14 @@ import { runPlay } from './booth-play.js';
 import * as board from './booth-board.js';
 import { mountLoop, loadLoopItems } from './booth-loop.js';
 import { watchIdle } from './booth-idle.js';
-import { COPY } from './booth-copy.js';
-import { el, bi } from './booth-dom.js';
+import { mountLookControl } from './booth-look.js';
+import { COPY, DEFAULT_LOOK } from './booth-copy.js';
+import { el, bi, setLook, currentLook, onLook } from './booth-dom.js';
 
 const STATUS_TIMEOUT_MS = 8_000;
 const STATUS_POLL_MS = 30_000;
 const GHOST_TAP_MS = 350;
+const LOOP_LOOK_IDLE_MS = 90_000;
 
 /** @typedef {'checking' | 'open' | 'closed' | 'offline'} ShellStatus */
 
@@ -99,8 +101,20 @@ function showLoop() {
 
   let status = null;
   let poll = 0;
+  // The loop never reloads, so a look a passer-by picked here would carry into the next visitor's play: left alone
+  // for 90 s, the loop returns to the default look. A look picked and then started keeps.
+  let lookIdle = 0;
+  const restartLookIdle = () => {
+    clearTimeout(lookIdle);
+    if (currentLook() !== DEFAULT_LOOK) lookIdle = setTimeout(() => setLook(DEFAULT_LOOK), LOOP_LOOK_IDLE_MS);
+  };
+  const stopLookWatch = onLook(restartLookIdle);
+  for (const type of ['pointerdown', 'keydown']) document.addEventListener(type, restartLookIdle, true);
   const leave = () => {
     clearInterval(poll);
+    clearTimeout(lookIdle);
+    stopLookWatch();
+    for (const type of ['pointerdown', 'keydown']) document.removeEventListener(type, restartLookIdle, true);
     loop.stop();
     if (typeof stopBoard === 'function') stopBoard();
   };
@@ -141,6 +155,8 @@ async function play() {
   root.dataset.shell = 'done';
 }
 
+setLook(DEFAULT_LOOK);
+mountLookControl(document.body);
 guardGhostTaps();
 showLoop();
 registerWorker();

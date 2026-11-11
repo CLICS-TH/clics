@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry, maskLabelledTail } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI, providerSupportsThinking, supportsThinking, isProviderDown } = require('../services/ai');
 const { localOnly } = require('../lib/provider-policy');
@@ -169,7 +169,8 @@ function boothTurnPieces(content, first, hints) {
 // The kept typed answer (#375) is the answer piece masked under that same registry.
 function deidentifyBoothTurn({ chiefComplaint, history, message, hints, boothAnswer }) {
   const registry = makeRegistry();
-  const turns = [...history, { role: 'physician', content: message }];
+  const turns = [...history, { role: 'physician', content: message }]
+    .map((m) => (m.role === 'physician' ? { ...m, content: maskFencedLabels(m.content, registry) } : m));
   const firstPhysician = turns.findIndex((m) => m.role === 'physician');
   const pieces = turns.map((m, i) => (m.role === 'physician' ? boothTurnPieces(m.content, i === firstPhysician, hints) : [m.content]));
   const texts = (p) => p.filter((_, i) => i % 2 === 0);
@@ -195,6 +196,15 @@ function deidentifyBoothTurn({ chiefComplaint, history, message, hints, boothAns
 // fence marks stripped from the answer. The clean text inside the fence, or undefined when the turn has no fence.
 const FENCE_OPEN = '⟦';
 const FENCE_CLOSE = '⟧';
+
+// Each typed answer (inside a fence) loses everything from its first identifier label on (maskLabelledTail), on the raw
+// turn, before priming: no part of a labelled value can become a name alias or survive into the kept answer. An
+// unfenced booth turn is a tapped option (vetted text) or a typed answer from a backend before #400; stripPii alone
+// reads it, as before.
+const FENCED_ANSWER_RE = new RegExp(`${FENCE_OPEN}([^${FENCE_OPEN}${FENCE_CLOSE}]*)${FENCE_CLOSE}`, 'g');
+function maskFencedLabels(content, registry) {
+  return content.replace(FENCED_ANSWER_RE, (_, answer) => `${FENCE_OPEN}${maskLabelledTail(answer, registry)}${FENCE_CLOSE}`);
+}
 function fencedText(raw, clean) {
   if (!raw.endsWith(FENCE_CLOSE) || !clean.endsWith(FENCE_CLOSE)) return undefined;
   const open = clean.lastIndexOf(FENCE_OPEN);
@@ -271,7 +281,7 @@ router.post('/', async (req, res) => {
     if (booth_mode) {
       return res.json(await boothReply({
         messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), bank: booth_bank, typed: booth_typed,
-        answerDeidentified: cleanBoothAnswer, cache: booth_cache, signal,
+        answerDeidentified: cleanBoothAnswer, cache: booth_cache, language, signal,
       }));
     }
     const ragDocs = await ragLookup(cleanMessage);

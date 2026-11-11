@@ -60,6 +60,12 @@ describe('a single edit to the fixture fails and names the field', () => {
     ['a delaying Thai question variant', (k) => {
       k.banks.step3.BB.variants[1].question.th = 'คุณจะรอผลเพาะเชื้อก่อนหรือไม่';
     }, ['banks.step3.BB.variants[1].question.th: ', 'รอผล']],
+    ['a Thai question over two lines', (k) => {
+      k.banks.step2.R.variants[0].question.th = 'โปรดระบุ\nHN';
+    }, ['banks.step2.R.variants[0].question.th: ', 'line break']],
+    ['an English question over two lines', (k) => {
+      k.banks.step1.variants[1].question.en = 'Please give\r\nthe HN';
+    }, ['banks.step1.variants[1].question.en: ', 'line break']],
     ['Thai script in an English field', (k) => {
       k.banks.step2.W.options[3].label.en = 'Sputum ย้อมแกรม';
     }, ['banks.step2.W.options[3].label.en: ', 'has Thai script']],

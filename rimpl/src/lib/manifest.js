@@ -114,7 +114,8 @@ function redactDeep(value) {
 const promptEntry = (kind, text) => ({ label: V.promptLabel(kind, text), sha256: sha256(text) });
 
 // Every system prompt a /chat turn can send (lib/prompts.js chatSystemPrompt): 2 modes x artifacts x the
-// evidence marker, plus the rescue and booth prompts that replace all of them. Stored turns carry the label.
+// evidence marker, plus the rescue and booth prompts that replace all of them, the booth ones in each reply
+// language (#377; the Thai ones keep their names). Stored turns carry the label.
 const CHAT_PROMPT_VARIANTS = Object.freeze([
   ...['natural', 'examiner'].flatMap((mode) => [false, true].flatMap((artifacts) => [false, true].map((evidenceMarker) => ({
     name: `${mode}${artifacts ? '+artifacts' : ''}${evidenceMarker ? '+evidence' : ''}`,
@@ -124,6 +125,9 @@ const CHAT_PROMPT_VARIANTS = Object.freeze([
   { name: 'booth', opts: { booth: true } },
   { name: 'booth+grill', opts: { booth: true, grill: true } },
   { name: 'booth+typed', opts: { booth: true, typed: true } },
+  { name: 'booth+en', opts: { booth: true, language: 'en' } },
+  { name: 'booth+grill+en', opts: { booth: true, grill: true, language: 'en' } },
+  { name: 'booth+typed+en', opts: { booth: true, typed: true, language: 'en' } },
 ]);
 
 const evaluators = () => POLICY.PROVIDER_NAMES.filter((n) => POLICY.servesPurpose(n, 'evaluate'));

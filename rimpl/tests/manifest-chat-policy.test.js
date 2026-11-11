@@ -55,7 +55,7 @@ describe('prompt labels: every manifest variant is what /chat stamps', () => {
     expect(M.canonicalJson(committed.manifest.expected.code)).toBe(M.canonicalJson(M.expectedCode()));
   });
 
-  const variants = M.CHAT_PROMPT_VARIANTS.filter((v) => !['rescue', 'booth', 'booth+grill', 'booth+typed'].includes(v.name));
+  const variants = M.CHAT_PROMPT_VARIANTS.filter((v) => v.name !== 'rescue' && !v.opts.booth);
   test.each(variants.map((v) => [v.name, v.opts]))('%s', async (name, opts) => {
     callAI.mockResolvedValue(r(`${GOOD}\n\n${P.evidenceLineFor('moderate')}`));
     const res = await send({ socratic: opts.socratic, artifacts: opts.artifacts, evidence_marker: opts.evidenceMarker });
@@ -72,42 +72,35 @@ describe('prompt labels: every manifest variant is what /chat stamps', () => {
     expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat.rescue.label);
   });
 
-  test('booth — the prompt that replaces all of the above on a kiosk turn, at its own ceiling', async () => {
-    callAI.mockResolvedValue(r('{"strength":"An ECG first is reasonable.","weigh":"","safety":""}'));
-    const res = await send({ socratic: true, artifacts: true, evidence_marker: true, booth_mode: true });
-    expect(call(0).systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_BOOTH);
-    expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat.booth.label);
+  // The bank and SORT block shapes rimpl's schema takes; the reply text is never judged here.
+  const BANK = {
+    variants: [{ id: 'v1', question: { th: 'ขั้นต่อไป', en: 'Next' } }],
+    options: ['best', 'reasonable', 'weaker'].map((tier, i) => ({ id: 'abc'[i], tier, label: { th: 'ก', en: 'a' }, line: { th: 'ข', en: 'b' } })),
+  };
+  const BOOTH = [
+    ['booth', 'th', {}, P.RIMPL_SYSTEM_PROMPT_BOOTH],
+    ['booth+grill', 'th', { booth_bank: BANK }, P.RIMPL_SYSTEM_PROMPT_BOOTH_GRILL],
+    ['booth+typed', 'th', { booth_typed: { current: BANK } }, P.RIMPL_SYSTEM_PROMPT_BOOTH_TYPED],
+    ['booth+en', 'en', {}, P.chatSystemPrompt({ booth: true, language: 'en' })],
+    ['booth+grill+en', 'en', { booth_bank: BANK }, P.chatSystemPrompt({ booth: true, grill: true, language: 'en' })],
+    ['booth+typed+en', 'en', { booth_typed: { current: BANK } }, P.chatSystemPrompt({ booth: true, typed: true, language: 'en' })],
+  ];
+  test.each(BOOTH)('%s (language %s) — a kiosk prompt that replaces all of the above, at the booth ceiling', async (name, language, body, prompt) => {
+    callAI.mockResolvedValue(r('{"strength":"Reasonable.","weigh":"","safety":"","tier":"best","variant_id":"v1","bridge":"","option_ids":["a","b","c"]}'));
+    const res = await send({ socratic: true, artifacts: true, evidence_marker: true, booth_mode: true, language, ...body });
+    expect(call(0).systemPrompt).toBe(prompt);
+    expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat[name].label);
     expect(call(0).maxTokens).toBe(committed.manifest.expected.code.decoding.chat.booth.max_tokens);
   });
 
-  test('booth+grill — the kiosk prompt when the next step\'s bank is sent, at the booth ceiling', async () => {
-    callAI.mockResolvedValue(r('{"strength":"Reasonable.","weigh":"","safety":"","variant_id":"v1","bridge":"","option_ids":["a","b","c"]}'));
-    const bank = {
-      variants: [{ id: 'v1', question: { th: 'ขั้นต่อไป', en: 'Next' } }],
-      options: ['best', 'reasonable', 'weaker'].map((tier, i) => ({ id: 'abc'[i], tier, label: { th: 'ก', en: 'a' }, line: { th: 'ข', en: 'b' } })),
-    };
-    const res = await send({ booth_mode: true, booth_bank: bank });
-    expect(call(0).systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_BOOTH_GRILL);
-    expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat['booth+grill'].label);
-    expect(call(0).maxTokens).toBe(committed.manifest.expected.code.decoding.chat.booth.max_tokens);
+  test('every booth variant the manifest lists is one the route was shown to send', () => {
+    expect(M.CHAT_PROMPT_VARIANTS.filter((v) => v.opts.booth).map((v) => v.name).sort()).toEqual(BOOTH.map(([name]) => name).sort());
   });
 
-  test('booth+typed — the kiosk prompt when the last answer was typed, at the booth ceiling', async () => {
-    callAI.mockResolvedValue(r('{"strength":"Reasonable.","weigh":"","safety":"","tier":"best"}'));
-    const bank = {
-      variants: [{ id: 'v1', question: { th: 'ขั้นนี้', en: 'This' } }],
-      options: ['best', 'reasonable', 'weaker'].map((tier, i) => ({ id: 'abc'[i], tier, label: { th: 'ก', en: 'a' }, line: { th: 'ข', en: 'b' } })),
-    };
-    const res = await send({ booth_mode: true, booth_typed: { current: bank } });
-    expect(call(0).systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_BOOTH_TYPED);
-    expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat['booth+typed'].label);
-    expect(call(0).maxTokens).toBe(committed.manifest.expected.code.decoding.chat.booth.max_tokens);
-  });
-
-  test('twelve variants, twelve distinct labels', () => {
+  test('fifteen variants, fifteen distinct labels', () => {
     const labels = Object.values(committed.manifest.expected.code.prompts.chat).map((e) => e.label);
-    expect(labels).toHaveLength(12);
-    expect(new Set(labels).size).toBe(12);
+    expect(labels).toHaveLength(15);
+    expect(new Set(labels).size).toBe(15);
   });
 });
 
