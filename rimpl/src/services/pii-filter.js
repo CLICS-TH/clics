@@ -191,36 +191,11 @@ const TH_NAME_RE = new RegExp(
   `(${TH_TITLES.join('|')})\\s*(${TH_NAME})`,
   'g'
 );
-// English: the title (case-sensitive: MR / MS are mitral regurgitation / multiple sclerosis), then up to two name
-// words in any case (enValue).
-const EN_WORD = "[A-Za-z0-9]+(?:['’./-][A-Za-z0-9]+)*";
+// English: spacing + capitalisation make a 2-token (first + last) name safe.
 const EN_NAME_RE = new RegExp(
-  `\\b(${EN_TITLES.join('|')})(\\.?\\s+|\\.)(${EN_WORD}(?:\\s+${EN_WORD})?)`,
+  `\\b(${EN_TITLES.join('|')})\\.?\\s+(${EN_NAME}(?:\\s+${EN_NAME})?)`,
   'g'
 );
-
-// A value runs to the first prose word or case change (enValue), so a three-word name or a long address is masked whole;
-// the word caps only bound the regex. English identifier labels, the Latin side of ชื่อ / นามสกุล and ตำบล / อำเภอ / จังหวัด (an English booth look sends
-// English case text, #377). The value is the next words up to the first prose word (enValue). "name" and
-// "address" are also everyday verbs ("name the cause", "address hypoxia first"), so without a colon or "is" after
-// them the value must look like one: a capitalised name, or an address that opens with its house number.
-const EN_NAME_LABELS = ['patient\\s+name', 'family\\s+name', 'last\\s+name', 'surname', 'name'];
-const EN_LABELLED_RE = new RegExp(
-  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,5})`,
-  'gi'
-);
-const EN_PLACE_RE = new RegExp(
-  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,7})`,
-  'gi'
-);
-const EN_VERB_LABELS = new Set(['name', 'address']);
-// Words that end a label's value: function words, and the nouns that follow these labels in clinical prose
-// ("district hospital", "village health volunteer").
-const EN_LABEL_PROSE = new Set([
-  'a', 'an', 'this', 'that', 'these', 'those', 'it', 'its', 'is', 'be', 'of', 'to', 'in', 'on', 'at', 'by', 'from', 'or',
-  'as', 'if', 'his', 'her', 'their', 'my', 'your', 'our', 'him', 'them', 'you', 'we', 'they', 'i', 'unknown', 'no', 'none',
-  'hospital', 'health', 'office', 'clinic', 'centre', 'center', 'level', 'nurse', 'team', 'volunteer', 'chief', 'head',
-]);
 
 // Clinical-lead shield for a bare (un-keyworded) surname token after a labelled
 // given name. Thai compounds words without spaces, so the space-separated token
@@ -524,16 +499,16 @@ const PASSES = [
   // Allow internal spaces/dashes in the digit run (e.g. "HN 12-34567"); the
   // guard re-checks the total digit count so a loose run can't over-match.
   {
-    re: /\b(?:HN|hospital\s+(?:number|no\.?))(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}/gi,
+    re: /\bHN\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
     cat: 'HN',
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
     },
   },
-  // MRN / AN / ID explicit code fields (same internal-separator tolerance).
+  // MRN / AN explicit code fields (same internal-separator tolerance).
   {
-    re: /\b(?:MRN|AN|ID(?:\s*(?:number|no\.?))?)(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}/gi,
+    re: /\b(?:MRN|AN)\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
     cat: 'MRN',
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
@@ -599,7 +574,6 @@ const PASSES = [
   // alone (จังหวัด...) IS masked here: a named province is an address component.
   // Clinical false-positive shields (ต่างจังหวัด, รพ.สต., รพ.จังหวัด เพื่อ…): see applyThAdminPass.
   { cat: 'ADDR', kind: 'th-admin' },
-  { re: EN_PLACE_RE, cat: 'ADDR', kind: 'en-place' },
 
   // --- Intake hints: the KNOWN patient identifier from ple_patient_refs (on-prem), masked verbatim
   // BEFORE the name regexes so it becomes the authoritative [NAME-n] referent. Closes the bare,
@@ -615,7 +589,6 @@ const PASSES = [
   // so the final 'bare-name' pass can catch later standalone occurrences.
   { re: TH_LABELLED_RE, cat: 'NAME', kind: 'th-labelled' },
   { re: TH_SURNAME_RE, cat: 'NAME', kind: 'th-surname' },
-  { re: EN_LABELLED_RE, cat: 'NAME', kind: 'en-labelled' },
   { re: TH_NAME_RE, cat: 'NAME', kind: 'th-title' },
   { re: EN_NAME_RE, cat: 'NAME', kind: 'en-title' },
   // Bare occurrences of an already-seen name part (no title), e.g. a transcript
@@ -834,45 +807,6 @@ const EN_CLINICAL_CONTINUATIONS = new Set([
 // Long drug-name endings after a 3+ letter stem (Amoxicillin, Paracetamol, Omeprazole). Short, ambiguous
 // endings (-vir, -mab, -sone) are left out: a missed drug is over-masked, a wrongly spared surname leaks.
 const EN_DRUG_SUFFIX_RE = /^[A-Za-z]{3,}(?:cillin|mycin|cycline|statin|sartan|olol|azole|oxacin|azepam|tidine|formin|profen|etamol|dipine|parin|xaban)$/i;
-// The value after an English label or title (`words`, as the regex took them; `sep` is what stood between): the words
-// up to the first prose word or title and while they keep the first word's case ("Mr Smith vomited" takes Smith), or
-// '' for none. A value opens with a letter, except a place's (an address opens with its house number).
-// A value ends where the next labelled field starts in the text itself, never at a bare label word: "Name: Dalton
-// Last" keeps Last in the value (an over-mask), while "Name: Dalton\nSurname: Prewitt" ends at Surname, so the
-// surname pass still finds its label. A line that opens with "Word:" is a new field too.
-const EN_FIELD_START_RE = new RegExp(
-  '^(?:(?:HN|MRN|AN|ID(?:\\s*(?:number|no\\.?))?|hospital\\s+(?:number|no\\.?))(?:\\s*[:#])?\\s*\\d'
-  + `|(?:${EN_NAME_LABELS.join('|')}|sub-?district|district|province|village|address)\\b(?:\\s+(?:is|was)\\b|\\s*[:：]|\\s+[A-Z\\d]))`,
-  'i'
-);
-const startsField = (text, newline) => EN_FIELD_START_RE.test(text) || (newline && /^[A-Za-z][\w ]{0,30}[:：]/.test(text));
-
-// `tail` is the text from the first value word to the end of the input.
-function enValue(label, sep, words, place, tail = words) {
-  const parts = words.split(/(\s+)/);
-  const declared = /[:：]|\b(?:is|was)\b/i.test(sep);
-  if (EN_VERB_LABELS.has(label.toLowerCase()) && !declared
-    && !(label.toLowerCase() === 'name' ? /^[A-Z]/ : /^\d/).test(parts[0])) return '';
-  // Clinical prose says "in this province leptospirosis is common": with no colon, a place is a proper name or a
-  // house number, never a lowercase word.
-  if (place && !declared && !/^[A-Z\d]/.test(parts[0])) return '';
-  let style = '';
-  let n = 0;
-  let at = 0;
-  for (let i = 0; i < parts.length; i += 2) {
-    const w = parts[i];
-    const lower = w.toLowerCase();
-    if (i > 0) at += parts[i - 2].length + parts[i - 1].length;
-    if (i > 0 && startsField(tail.slice(at), /[\r\n]/.test(parts[i - 1]))) break;
-    if (EN_LABEL_PROSE.has(lower) || EN_CLINICAL_CONTINUATIONS.has(lower) || MED_SHIELD.has(w)
-      || EN_TITLES.includes(w.replace(/\.$/, '')) || EN_DRUG_SUFFIX_RE.test(w)) break;
-    const c = /^[A-Z]/.test(w) ? 'A' : /^[a-z]/.test(w) ? 'a' : '';
-    if ((n === 0 && !c && !place) || (c && style && c !== style)) break;
-    style = style || c;
-    n += 1;
-  }
-  return n === 0 ? '' : parts.slice(0, 2 * n - 1).join('');
-}
 // Invisible format characters (zero-width space / joiners, soft hyphen, bidi marks).
 const ZERO_WIDTH_RE = /\p{Cf}/gu;
 // Any whitespace, line breaks and NEL included (owner ruling), or list / bracket / quote punctuation.
@@ -1078,24 +1012,13 @@ function applyPass(text, pass, token, hints) {
         // Thai titles glue to the name (นาย+สมชาย), no separating space.
         return title + tok;
       }
-      if (kind === 'en-labelled') {
-        const value = enValue(g1, g2, g3, false, m.input.slice(m.index + g1.length + g2.length));
-        if (!value) return [g1, g1.length];
-        const tok = token('NAME', value);
-        registerNameAliases(token, value, tok);
-        return [g1 + g2 + tok, g1.length + g2.length + value.length];
-      }
       // en-title: preserve the honorific, mask the (1-2 token) name group.
-      const value = enValue(g1, g2, g3, false, m.input.slice(m.index + g1.length + g2.length));
-      if (!value) return [g1, g1.length];
-      const tok = token('NAME', value);
-      registerNameAliases(token, value, tok);
-      return [g1 + ' ' + tok, g1.length + g2.length + value.length];
-    }
-    if (kind === 'en-place') {
-      const value = enValue(g1, g2, g3, true, m.input.slice(m.index + g1.length + g2.length));
-      if (!value) return [g1, g1.length];
-      return [g1 + g2 + token(cat, value), g1.length + g2.length + value.length];
+      const title = g1;
+      const nameTokens = g2;
+      if (MED_SHIELD.has(nameTokens.trim())) return match;
+      const tok = token('NAME', nameTokens);
+      registerNameAliases(token, nameTokens, tok);
+      return title + ' ' + tok;
     }
 
     return token(cat, match);
@@ -1143,4 +1066,40 @@ function primeRegistry(texts, registry, hints = []) {
   throw new Error('PII filter: surname search did not settle');
 }
 
-module.exports = { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry };
+// The identifier labels of a booth typed answer (maskLabelledTail). English matches in any case, as a whole word, with
+// the words of a label joined by anything or nothing ("last name", "lastname", "sub-district"). A Thai label matches
+// anywhere except right after a leading vowel, so เชื่อ ("believe") is not ชื่อ.
+const BOOTH_ID_LABELS = {
+  en: ['name', 'first name', 'last name', 'family name', 'surname', 'patient name', 'mr', 'mrs', 'ms', 'miss', 'hn',
+    'hospital number', 'hospital no', 'mrn', 'id', 'id number', 'national id', 'citizen id', 'passport', 'phone', 'tel',
+    'telephone', 'mobile', 'address', 'village', 'sub district', 'district', 'province', 'date of birth',
+    'dob', 'born'],
+  th: ['ชื่อ', 'ชื่อผู้ป่วย', 'นามสกุล', 'นาย', 'นาง', 'นางสาว', 'เด็กชาย', 'เด็กหญิง', 'ด.ช.', 'ด.ญ.', 'เลข HN',
+    'เลขบัตรประชาชน', 'บัตรประชาชน', 'เบอร์', 'โทร', 'ที่อยู่', 'บ้านเลขที่', 'หมู่ที่', 'หมู่บ้าน', 'ตำบล', 'อำเภอ', 'จังหวัด', 'วันเกิด'],
+};
+// โทร also opens drug names in booth answers (อะโทรปีน, โทรโปนิน, อะซิโทรมัยซิน): there it is a label only when no Thai
+// letter but the ศ of โทรศัพท์ follows.
+const TH_LABEL_GUARDS = { โทร: '(?!(?!ศ)[ก-ฮเ-ไ])' };
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const byLength = (a, b) => b.length - a.length;
+const BOOTH_LABEL_RES = [
+  new RegExp(`(?<![A-Za-z])(?:${[...BOOTH_ID_LABELS.en].sort(byLength).map((l) => l.split(' ').map(escapeRe).join('[^A-Za-z]{0,3}')).join('|')})(?![A-Za-z])`, 'i'),
+  new RegExp(`(?<![เแโใไ])(?:${[...BOOTH_ID_LABELS.th].sort(byLength).map((l) => l.split(' ').map(escapeRe).join('\\s{0,3}') + (TH_LABEL_GUARDS[l] ?? '')).join('|')})`),
+  // The admission number: never the article "an".
+  /(?<![A-Za-z])AN(?=[\s:#.-]{0,3}\d)/,
+];
+
+// Booth typed answers only (routes/chat.js), never in PASSES: on PLE chat these words are clinical prose ("name the
+// cause", "address hypoxia first"). A value typed after a label has no end a rule can find (each value-extent rule
+// tried in #422 leaked the next shape), so everything from the first label to the end of the answer becomes ONE token
+// of `registry`, fail closed. The token is not a NAME and registers no alias, so no part of the value is masked, or
+// learnt, anywhere else in the call.
+function maskLabelledTail(answer, registry) {
+  const text = answer.replace(ZERO_WIDTH_RE, '');
+  const starts = BOOTH_LABEL_RES.map((re) => text.search(re)).filter((i) => i >= 0);
+  if (starts.length === 0) return text;
+  const at = Math.min(...starts);
+  return `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
+}
+
+module.exports = { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry, maskLabelledTail };

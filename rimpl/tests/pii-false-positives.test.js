@@ -1,4 +1,4 @@
-const { stripPii } = require('../src/services/pii-filter');
+const { stripPii, makeRegistry, primeRegistry } = require('../src/services/pii-filter');
 
 // ---------------------------------------------------------------------------
 // Clinical FALSE POSITIVES of the de-identifier — and their near misses.
@@ -331,5 +331,36 @@ describe('bare English personal name (documented gap)', () => {
     const out = stripPii('John Smith presented with chest pain', undefined, ['John', 'Smith']);
     expect(out).not.toMatch(/John|Smith/);
     expect(out).toContain('presented with chest pain');
+  });
+});
+
+// #422 added English label and lowercase-title rules to every PLE turn; each of these lost clinical words to them. PLE
+// chat keeps master's filter: the booth's English labels are a booth typed-answer rule only (maskLabelledTail).
+describe('English clinical prose with a title or a label word keeps its clinical words (#422)', () => {
+  test.each([
+    ['Dr ordered a CBC and the patient ordered food.', 'Dr ordered a CBC and the patient ordered food.'],
+    ['Dr. smith vomited twice', 'vomited twice'],
+    ['Patient name: dalton prewitt ran out of his tablets', 'ran out of his tablets'],
+  ])('%j keeps %j', (text, clinical) => {
+    expect(stripPii(text)).toContain(clinical);
+  });
+
+  test.each([
+    'In this province leptospirosis is common.',
+    'Cases rise in the district during floods.',
+    'The village water supply may be contaminated.',
+    'Name the next test.',
+    'Address hypoxia first.',
+  ])('%j passes unchanged', (text) => {
+    expect(stripPii(text)).toBe(text);
+  });
+
+  test('"The diagnosis name is heart failure." masks no "heart" elsewhere in the same call', () => {
+    const chiefComplaint = 'Sudden chest pain, a suspected heart attack.';
+    const message = 'The diagnosis name is heart failure.';
+    const registry = makeRegistry();
+    primeRegistry([chiefComplaint, message], registry);
+    expect(stripPii(chiefComplaint, registry)).toBe(chiefComplaint);
+    expect(stripPii(message, registry)).toBe(message);
   });
 });

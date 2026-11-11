@@ -1159,7 +1159,7 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
   });
 
   // #377: under an English-primary look the backend builds the turn from the case's English text, the typed answer
-  // fenced as booth-dialogue.js `fenced` writes it. Nothing but the in-text English rules stands in the way.
+  // fenced as booth-dialogue.js `fenced` writes it. The title Mr is a label: the answer is one token from it on (#422).
   test('an English-primary turn: the name and phone reach neither the AI call nor answer_deidentified', async () => {
     const english = (en) => ({ th: 'x', en });
     const EN_BANK = {
@@ -1186,7 +1186,7 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
       expect(wire).not.toContain(frag);
       expect(res.body.answer_deidentified).not.toContain(frag);
     }
-    expect(res.body.answer_deidentified).toMatch(/^Call Mr\.? \[NAME-\d+\].* at \[PHONE-\d+\] and repeat the PCR$/);
+    expect(res.body.answer_deidentified).toMatch(/^Call \[[A-Z]+-\d+\]$/);
     expect(wire).toContain('What would you do next?');
   });
 });

@@ -1,7 +1,8 @@
-// A booth visitor may type a patient identifier behind its label ("HN 1234567", "Patient name Dalton Prewitt"), in the
-// language of the look they play in (#377): an English look sends the English vignette and questions. Every row of
-// tests/helpers/booth-labels.js, in both languages, goes through POST /chat in booth_mode the way the backend builds
-// it, and no word or digit run of the value may reach the AI or the kept answer_deidentified.
+// A booth visitor may type a patient identifier behind its label ("HN 1234567", "Patient name Dalton Prewitt"), in
+// either look's language (#377). A value typed after a label has no end a rule can find, so in a typed answer
+// everything from the first label on is one token (maskLabelledTail, #422). Every row of tests/helpers/booth-labels.js
+// in both languages, and every shape that leaked past the value-extent rules, goes through POST /chat in booth_mode
+// the way the backend builds it.
 jest.mock('../src/services/ai', () => ({
   callAI: jest.fn(),
   providerSupportsThinking: jest.fn(),
@@ -17,26 +18,40 @@ const path = require('path');
 const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
-const { chatRequest, fenced, bankAt } = require('../../backend/src/services/booth-dialogue');
+const { chatRequest, bankAt } = require('../../backend/src/services/booth-dialogue');
 const { stripPii } = require('../src/services/pii-filter');
-const { BOOTH_LABELS, LANGUAGES, labelRows } = require('./helpers/booth-labels');
+const { LANGUAGES, labelRows } = require('./helpers/booth-labels');
 
 const CASES_DIR = path.join(__dirname, '../../backend/src/booth-cases/NFCME-2026');
 const CASES = fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort()
   .map((f) => [f, JSON.parse(fs.readFileSync(path.join(CASES_DIR, f), 'utf8'))]);
 const kase = CASES.find(([f]) => f === 'adhf.json')[1];
-const LOOK = { th: 'th', en: 'en' };
 const OTHER_ANSWERS = { th: ['ให้ยาขับปัสสาวะ', 'ให้ออกซิเจน'], en: ['Give a diuretic', 'Give oxygen'] };
+const NEUTRAL = { th: 'ให้ฟูโรซีไมด์', en: 'Give furosemide' };
 
-const TOKEN = /\[[A-Z]+-\d+\]/g;
-const parts = (value) => value.split(/[\s/-]+/).filter(Boolean);
-// The parts long enough that finding one anywhere in the request means the value leaked.
-const wireParts = (value) => parts(value).filter((p) => p.length >= 3);
-const expectAbsent = (text, value) => {
-  expect(text).toMatch(TOKEN);
-  const rest = text.replace(TOKEN, '');
-  for (const part of parts(value)) expect(rest).not.toContain(part);
-};
+// Each shape leaked part of its value past the value-extent rules at 0df2e919 (doublej gate, #422 finding 1), or
+// masked clinical text elsewhere in the call through an alias (finding 2). [typed answer, the text before its label].
+const LEAKED = [
+  ['Name: Dalton prewitt', ''],
+  ['Name: Dalton van Prewitt', ''],
+  ['Name dalton prewitt', ''],
+  ['Province nakhon pathom', ''],
+  ['Name: dalton province prewitt', ''],
+  ['Address: 12 Village\ngreen', ''],
+  ['Address: 12 Hospital Road', ''],
+  ['Name: Dalton No Prewitt', ''],
+  ['Mr Dalton James Prewitt', ''],
+  ['Address: 123/45 Soi Wattana Suthep Road Mueang Lamphun Chiang Mai', ''],
+  ['Name:\nSurname: Prewitt', ''],
+  ['The diagnosis name is heart failure.', 'The diagnosis '],
+  ['Patient name: dalton prewitt ran out of his tablets', ''],
+  ['Give oxygen first. hn1234567', 'Give oxygen first. '],
+];
+
+const TOKEN = /\[[A-Z]+-\d+\]/;
+const FENCE_RE = /⟦([^⟦⟧]*)⟧/g;
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const oneToken = (before) => new RegExp(`^${escapeRe(before)}${TOKEN.source}$`);
 
 beforeEach(() => {
   callAI.mockReset();
@@ -51,52 +66,76 @@ function typedPlay(language, tierPath, texts) {
     asks: texts.map(() => ({ variant: 'v1', bridge: '' })),
     tierPath,
     unsorted: true,
-    look: LOOK[language],
+    look: language,
   };
 }
 
-// The request the backend sends (fenced, #400), or the same turns unfenced, as a backend before #400 sent them.
-const SHAPES = {
-  fenced: (d) => chatRequest(kase, d),
-  unfenced: (d) => {
-    const req = chatRequest(kase, d);
-    return { ...req, history: req.history.map((m) => ({ ...m, content: unfence(m.content) })), message: unfence(req.message) };
-  },
-};
-const [FENCE_HEAD, FENCE_TAIL] = fenced('@@').split('@@');
-const unfence = (content) => (content.endsWith(FENCE_TAIL) ? content.replace(FENCE_HEAD, '').slice(0, -FENCE_TAIL.length) : content);
-const sentTurns = () => callAI.mock.calls[0][0].messages.filter((m) => m.role === 'user').map((m) => m.content.split('\n\nSORT: ')[0]);
-const wire = () => JSON.stringify(callAI.mock.calls);
+const send = (d) => request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(kase, d) });
+const userTurns = () => callAI.mock.calls[0][0].messages.filter((m) => m.role === 'user').map((m) => m.content);
+// The text inside every fence the AI was sent, in answer order.
+const fences = () => userTurns().flatMap((c) => [...c.matchAll(FENCE_RE)].map((m) => m[1]));
+// The AI call with every typed answer emptied: what must not change when one answer holds a labelled value.
+const outsideAnswers = () => JSON.stringify(callAI.mock.calls).replace(FENCE_RE, '⟦⟧');
 
-test('every value part is absent from the case text, so finding it in a request means it leaked', () => {
-  const caseText = JSON.stringify(CASES.map(([, k]) => k));
-  for (const row of BOOTH_LABELS) for (const lang of LANGUAGES) for (const part of wireParts(row.value[lang])) expect(caseText).not.toContain(part);
+// Plants `typed` as the answer at `at` of `texts`. That answer reaches the AI and the kept answer as one token from its
+// label on, and the rest of the call is the call with an unlabelled answer in its place, so no value part reaches the AI
+// anywhere else and none became an alias masking text elsewhere.
+async function expectMasked(language, tierPath, texts, at, typed, before) {
+  const play = (answer) => typedPlay(language, tierPath, texts.map((t, i) => (i === at ? answer : t)));
+  const res = await send(play(typed));
+  expect(res.status).toBe(200);
+  expect(fences()[at]).toMatch(oneToken(before));
+  if (at === texts.length - 1) expect(res.body.answer_deidentified).toMatch(oneToken(before));
+  const masked = outsideAnswers();
+  callAI.mockClear();
+  await send(play(NEUTRAL[language]));
+  expect(masked).toBe(outsideAnswers());
+}
+
+describe.each(LANGUAGES)('%s look: a value typed behind its label is one token from the label on', (lang) => {
+  const [first, third] = OTHER_ANSWERS[lang];
+
+  test.each(labelRows(lang))('%s (%s %s) at step 1, after the vignette', async (_kind, label, value) => {
+    await expectMasked(lang, '', [''], 0, `${label} ${value}`, '');
+    expect(userTurns()[0]).toContain(`\n\n${bankAt(kase, '').variants[0].question[lang]}\n`);
+  });
+
+  test.each(labelRows(lang))('%s (%s %s) at step 2, then in the next turn\'s history', async (_kind, label, value) => {
+    await expectMasked(lang, 'W', [first, ''], 1, `${label} ${value}`, '');
+    callAI.mockClear();
+    await expectMasked(lang, 'WB', [first, '', third], 1, `${label} ${value}`, '');
+    expect(userTurns()).toHaveLength(3);
+  });
 });
 
-describe.each(LANGUAGES.flatMap((lang) => Object.keys(SHAPES).map((shape) => [lang, shape])))(
-  '%s look, %s turn: a value typed behind its label in the answer',
-  (lang, shape) => {
-    const send = (d) => request(app).post('/chat').send({ ple_id: 'x', ...SHAPES[shape](d) });
+describe.each(LEAKED)('%j, typed in the English look', (typed, before) => {
+  test('at step 1, after the vignette', async () => {
+    await expectMasked('en', '', [''], 0, typed, before);
+  });
 
-    test.each(labelRows(lang))('%s (%s) at step 1, after the vignette', async (_kind, label, value) => {
-      const res = await send(typedPlay(lang, '', [`${label} ${value}`]));
-      expect(sentTurns()[0]).toContain(`\n\n${bankAt(kase, '').variants[0].question[lang]}\n`);
-      for (const part of wireParts(value)) expect(wire()).not.toContain(part);
-      expectAbsent(res.body.answer_deidentified, value);
-    });
+  test('at step 2, then in the next turn\'s history', async () => {
+    await expectMasked('en', 'W', ['Give a diuretic', ''], 1, typed, before);
+    callAI.mockClear();
+    await expectMasked('en', 'WB', ['Give a diuretic', '', 'Give oxygen'], 1, typed, before);
+  });
+});
 
-    test.each(labelRows(lang))('%s (%s) at step 2, then in the next turn\'s history', async (_kind, label, value) => {
-      const [first, third] = OTHER_ANSWERS[lang];
-      const second = await send(typedPlay(lang, 'W', [first, `${label} ${value}`]));
-      for (const part of wireParts(value)) expect(wire()).not.toContain(part);
-      expectAbsent(second.body.answer_deidentified, value);
-      callAI.mockClear();
-      await send(typedPlay(lang, 'WB', [first, `${label} ${value}`, third]));
-      for (const part of wireParts(value)) expect(wire()).not.toContain(part);
-      expect(sentTurns()).toHaveLength(3);
-    });
-  },
-);
+// A tapped answer is vetted option text, sent unfenced; the label rule never reads it. This line holds จังหวัด.
+test.each(LANGUAGES)('%s look: a tapped option reaches the AI as written', async (lang) => {
+  const best = (tierPath) => ({ choice: bankAt(kase, tierPath).options.find((o) => o.tier === 'best').id });
+  const refer = bankAt(kase, 'BB').options.find((o) => o.id === 'refer');
+  const d = {
+    answers: [best(''), best('B'), { choice: 'refer' }],
+    replies: [{ strength: 'ok', weigh: '', safety: '' }, { strength: 'ok', weigh: '', safety: '' }],
+    asks: [{ variant: 'v1', bridge: '' }, { variant: 'v1', bridge: '' }, { variant: 'v1', bridge: '' }],
+    tierPath: 'BB',
+    look: lang,
+  };
+  expect(refer.line.th).toContain('จังหวัด');
+  await send(d);
+  expect(userTurns().at(-1)).toContain(`${refer.label[lang]}: ${refer.line[lang]}`);
+  expect(fences()).toEqual([]);
+});
 
 // #412: a bank question that ENDS in the label, with the value typed under it. On master the fence note sits between
 // them and keeps them apart. #414 fixes that structure; its check iterates this same table (labelRows, both
@@ -108,7 +147,7 @@ describe('#414: a question ending in the label masks the value typed under it', 
 });
 
 // Vetted English case text holds no PII, and routes/chat.js reads a question that masks on its own apart from its
-// answer (#406), so an English label rule that fires in case text would both corrupt the case and move that split.
+// answer (#406), so a rule that fires in case text would both corrupt the case and move that split.
 test('no vetted English case text masks as anything but an age', () => {
   const texts = CASES.flatMap(([, k]) => {
     const banks = [k.banks.step1, ...Object.values(k.banks.step2), ...Object.values(k.banks.step3)];
@@ -118,43 +157,3 @@ test('no vetted English case text masks as anything but an age', () => {
   expect(texts.length).toBeGreaterThan(1000);
   for (const t of texts) expect(stripPii(t).replace(/\[AGE-\d+\]/g, '')).not.toMatch(TOKEN);
 });
-
-// A value runs across a line break and over a word that only looks like a label, and ends where the next labelled
-// field starts: a value that swallowed that field's label would end its match past the label and send its value as
-// typed, and one that ended at a bare label word would send the rest of the name.
-test.each([
-  ['Name: Dalton\nSurname: Prewitt', ['Dalton', 'Prewitt']],
-  ['Name: Dalton Ames Prewitt Surname Prewitt', ['Dalton', 'Ames', 'Prewitt']],
-  ['Patient name: Dalton Prewitt\nAddress: 123/45 Suthep Road', ['Dalton', 'Prewitt', '123/45', 'Suthep']],
-  ['Address: Ban Pong Province Nakhon Pathom', ['Ban Pong', 'Nakhon', 'Pathom']],
-  ['Patient name: Dalton Prewitt\nHN 1234567', ['Dalton', 'Prewitt', '1234567']],
-  ['Patient name: Dalton\nPrewitt', ['Dalton', 'Prewitt']],
-  ['Address: 123/45 Suthep Road\nMueang Lamphun', ['123/45', 'Suthep', 'Mueang', 'Lamphun']],
-  ['Name: Dalton Last', ['Dalton', 'Last']],
-  ['Surname: Patient', ['Patient']],
-])('every value in %j is masked', (text, values) => {
-  const clean = stripPii(text);
-  for (const v of values) expect(clean).not.toContain(v);
-});
-
-// The filter runs on every English PLE turn too: a place label in clinical prose keeps the words after it.
-test.each([
-  'In this province leptospirosis is common.',
-  'Cases rise in the district during floods.',
-  'The village water supply may be contaminated.',
-  'Name the next test.',
-  'Address hypoxia first.',
-])('clinical prose "%s" passes the filter unchanged', (t) => {
-  expect(stripPii(t)).toBe(t);
-});
-
-// A turn may be 24000 chars (lib/turn-limits.js). A label separator written as two adjacent \s* runs (HN's before this
-// change) took ~0.4 s on a label followed by that much whitespace; a linear one takes ~1 ms.
-test.each(['Patient name', 'Name is', 'Province:', 'Address', 'Mr', 'HN', 'Hospital number', 'MRN', 'ID number'])(
-  'the English label "%s" before 24000 spaces is masked in linear time',
-  (label) => {
-    const started = Date.now();
-    stripPii(`${label}${' '.repeat(24000)}!`);
-    expect(Date.now() - started).toBeLessThan(100);
-  },
-);
