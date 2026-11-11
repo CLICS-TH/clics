@@ -1,5 +1,6 @@
--- Booth Mode plays (#210): one booth_plays row per kiosk play (tag, demo score, d1-d7, spend, status), the five
--- booth_* app_settings rows that open and close a booth event, and the booth_* functions the backend calls.
+-- Booth Mode plays (#210): one booth_plays row per kiosk play (tag, demo score, d1-d7, spend, status), the
+-- booth_* app_settings rows that open and close a booth event and switch the board to five-step plays, and the
+-- booth_* functions the backend calls.
 --
 -- Why outside the pilot model (ADR 0004): SANDBOX is not an isolation boundary. ICC, payouts and the XLSX export
 -- filter only on is_test, the Participants sheet lists every professional, PLE/P- codes are global sequences, and
@@ -16,6 +17,11 @@
 -- before deploying the backend that sends p_case and p_version: a start fails in between. Then re-apply
 -- migration-booth-purge.sql, which reads the same advisory key.
 --
+-- #380 (spec #370) lets a play run five steps: tier_path up to five letters, replied_step up to 5, and d1-d7 one
+-- decimal (a five-step case scores from a fitted table). It seeds booth_board_five_steps off. Apply it before
+-- deploying the backend that plays five-step cases: the old checks refuse a fourth reply, a tier path past three
+-- letters and a decimal domain, so such a play would answer unavailable.
+--
 -- Switching the event on, until the superadmin booth card (#214) exists (times need an explicit offset):
 --   update public.app_settings set value = 1, updated_at = now() where key = 'booth_enabled';
 --   update public.app_settings set value_text = '2026-11-03T08:00:00+07:00', updated_at = now() where key = 'booth_opens_at';
@@ -30,13 +36,13 @@ create table if not exists public.booth_plays (
               check (status in ('started', 'scored', 'unavailable', 'abandoned')),
   spend_usd   numeric(10, 6) not null default 0 check (spend_usd >= 0),
   composite   numeric(5, 2) check (composite between 0 and 100),
-  d1 smallint check (d1 between 0 and 5),
-  d2 smallint check (d2 between 0 and 5),
-  d3 smallint check (d3 between 0 and 5),
-  d4 smallint check (d4 between 0 and 5),
-  d5 smallint check (d5 between 0 and 5),
-  d6 smallint check (d6 between 0 and 5),
-  d7 smallint check (d7 between 0 and 5),
+  d1 numeric(2, 1) check (d1 between 0 and 5),
+  d2 numeric(2, 1) check (d2 between 0 and 5),
+  d3 numeric(2, 1) check (d3 between 0 and 5),
+  d4 numeric(2, 1) check (d4 between 0 and 5),
+  d5 numeric(2, 1) check (d5 between 0 and 5),
+  d6 numeric(2, 1) check (d6 between 0 and 5),
+  d7 numeric(2, 1) check (d7 between 0 and 5),
   created_at  timestamptz not null default now(),
   scored_at   timestamptz,
   constraint booth_plays_event_tag_key unique (event_code, tag),
@@ -57,12 +63,27 @@ alter table public.booth_plays add column if not exists case_id text
   constraint booth_plays_case_id_check check (case_id ~ '^[a-z0-9][a-z0-9-]{0,31}$');
 alter table public.booth_plays add column if not exists case_version text;
 alter table public.booth_plays add column if not exists tier_path text
-  constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,3}$');
+  constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,5}$');
 
 -- #247: how many replies the play has had. A reply for step n claims it only from n - 1, so one step is answered
 -- once and a re-posted reply cannot draw the AI's tier for a typed answer again.
 alter table public.booth_plays add column if not exists replied_step smallint not null default 0
-  constraint booth_plays_replied_step_check check (replied_step between 0 and 3);
+  constraint booth_plays_replied_step_check check (replied_step between 0 and 5);
+
+-- #380: a table that existed before five-step plays keeps its three-step checks and whole domains through the adds
+-- above, so they are replaced here. Converting smallint to numeric(2, 1) keeps every stored value.
+alter table public.booth_plays drop constraint if exists booth_plays_tier_path_check;
+alter table public.booth_plays add constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,5}$');
+alter table public.booth_plays drop constraint if exists booth_plays_replied_step_check;
+alter table public.booth_plays add constraint booth_plays_replied_step_check check (replied_step between 0 and 5);
+alter table public.booth_plays
+  alter column d1 type numeric(2, 1),
+  alter column d2 type numeric(2, 1),
+  alter column d3 type numeric(2, 1),
+  alter column d4 type numeric(2, 1),
+  alter column d5 type numeric(2, 1),
+  alter column d6 type numeric(2, 1),
+  alter column d7 type numeric(2, 1);
 
 -- #375 (ADR 0010): the play's dialogue (backend services/booth-dialogue.js stepRecords), per step { variant,
 -- bridge, options, choice | typed, reply, tier }, typed being rimpl's de-identified text, and whether the score came
@@ -153,5 +174,6 @@ insert into public.app_settings (key, value, value_text) values
   ('booth_enabled',          0, null),
   ('booth_opens_at',         0, null),
   ('booth_closes_at',        0, null),
-  ('booth_play_ceiling_usd', 3, null)
+  ('booth_play_ceiling_usd', 3, null),
+  ('booth_board_five_steps', 0, null)
 on conflict (key) do nothing;
