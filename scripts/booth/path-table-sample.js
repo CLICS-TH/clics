@@ -89,8 +89,8 @@ function readReplies(kase, dir = path.join(REPLIES_DIR, kase.event_code)) {
   return raw.replies;
 }
 
-/** Every evaluator call a build makes: `samples` per tier path, per case. */
-const jobsFor = (cases, samples = 3) => cases.flatMap((kase) => TIER_PATHS.flatMap((tierPath) =>
+/** Every evaluator call a build makes: `samples` per sampled tier path (`pathsOf` the case), per case. */
+const jobsFor = (cases, samples = 3, pathsOf = () => TIER_PATHS) => cases.flatMap((kase) => pathsOf(kase).flatMap((tierPath) =>
   Array.from({ length: samples }, (_, i) => ({ kase, tierPath, sample: i + 1 }))));
 
 // The locked evaluator, as rimpl's committed model manifest declares it for the API: what every table sample must have

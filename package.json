@@ -16,7 +16,7 @@
     "test:chat-settle": "node scripts/chat/turn-settle-smoke.mjs",
     "test:chat-scroll": "node scripts/responsive/chat-scroll-guard.mjs",
     "test:booth": "node scripts/booth/harness.mjs",
-    "test:booth-scripts": "node --test scripts/booth/score-latency.test.mjs scripts/booth/purge-summary.test.mjs scripts/booth/sandbox-verdict.test.mjs scripts/booth/sandbox-noise.test.mjs scripts/booth/path-table.test.mjs scripts/booth/reply-cache-calibration.test.mjs",
+    "test:booth-scripts": "node --test scripts/booth/score-latency.test.mjs scripts/booth/purge-summary.test.mjs scripts/booth/sandbox-verdict.test.mjs scripts/booth/sandbox-noise.test.mjs scripts/booth/path-table.test.mjs scripts/booth/reply-cache-calibration.test.mjs scripts/booth/path-fit.test.mjs",
     "test:portal-browser": "node scripts/auth/portal-browser.mjs",
     "manuals": "node scripts/manuals/build.mjs",
     "test:manuals": "node --test scripts/manuals/lib/parse.test.mjs scripts/manuals/lib/pii-gate.test.mjs && node scripts/manuals/build.mjs --check && node scripts/manuals/verify-labels.mjs && node scripts/manuals/prose-audit.mjs",
