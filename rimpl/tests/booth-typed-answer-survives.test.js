@@ -194,16 +194,87 @@ describe('a bank question that ends in an identifier label masks the value typed
   });
 });
 
-// routes/chat.js reads a bank question apart from the answer only when the question masks on its own. Such a
-// question must give the answer no label context, or splitting it off would unmask a value master masks (#375).
-test('no question read apart from its answer ends in an identifier label', () => {
-  const questions = [...new Set(PLAYS.flatMap(([, kase, d]) => [...d.tierPath].map((_, i) => d.tierPath.slice(0, i)).concat(d.tierPath)
-    .flatMap((p) => bankAt(kase, p).variants.map((v) => v.question.th))))];
-  const apart = questions.filter((q) => stripPii(q) !== q);
-  expect(apart.length).toBeGreaterThan(0);
-  for (const q of apart) {
-    for (const value of ['1234567', '0812345678', '65-012345', '1-2345-67890-12-3']) {
-      expect(stripPii(`${q}\n${value}`).endsWith(`\n${stripPii(value)}`)).toBe(true);
+// #412: every real bank question, in each language the backend sends it in (#377 adds English: `look` picks the
+// language, and the vignette and question are set in both slots so the request is the same with or without #377),
+// ending in each kind of identifier label, with a matching value typed under it. The value never reaches the AI nor
+// answer_deidentified, whether routes/chat.js reads the question with the answer or apart (a question that masks on
+// its own, #406), and the kept copy is the text inside the fence the AI saw. Every request is the backend's own
+// chatRequest, through POST /chat.
+describe('every bank question that ends in an identifier label masks the value typed under it', () => {
+  // Every title the filter knows (pii-filter.js TH_TITLES, EN_TITLES): each question that masks on its own gets every
+  // one, the others one each in turn.
+  const TH_TITLES = ['นพ.', 'พญ.', 'ด.ช.', 'ด.ญ.', 'เด็กชาย', 'เด็กหญิง', 'เด็กทารก', 'นางสาว', 'นาง', 'นาย', 'คุณ'];
+  const EN_TITLES = ['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Prof'];
+  const LABELS = [
+    ['a given name', 'ชื่อ', 'พรรณราย'],
+    ['a nickname', 'ชื่อเล่น', 'แป้งร่ำ'],
+    ['a surname', 'นามสกุล', 'ทองเปลว'],
+    ['a Thai title', TH_TITLES, 'พรรณราย ทองเปลว'],
+    ['an English title', EN_TITLES, 'Johnathan Smithers'],
+    ['a LINE id', 'LINE ID', 'pannarai99'],
+    ['a subdistrict', 'ตำบล', 'บางรัก'],
+    ['a district', 'อำเภอ', 'บางรัก'],
+    ['a province', 'จังหวัด', 'นครปฐม'],
+    ['an HN', 'HN', '1234567'],
+    ['an MRN', 'MRN', '65-012345'],
+    ['a national ID', 'เลขบัตรประชาชน', '1234567890123'],
+  ];
+  const LEAD = { th: ' ระบุ', en: ' ' };
+  // One play per distinct question text and language, the question at the step of its bank, every step typed.
+  const seen = new Set();
+  const QUESTIONS = PLAYS.flatMap(([, kase, d]) => {
+    const variant = d.asks[d.asks.length - 1].variant;
+    const { question } = bankAt(kase, d.tierPath).variants.find((v) => v.id === variant);
+    return ['th', 'en'].filter((lang) => !seen.has(`${lang}:${question[lang]}`) && seen.add(`${lang}:${question[lang]}`))
+      .map((lang) => ({ kase, d, variant, lang, question: question[lang] }));
+  });
+
+  test('every distinct question is here in both languages, the questions that mask on their own among them', () => {
+    expect(QUESTIONS.filter((q) => q.lang === 'th').length).toBeGreaterThan(150);
+    expect(QUESTIONS.filter((q) => q.lang === 'en').length).toBeGreaterThan(150);
+    expect(QUESTIONS.filter((q) => stripPii(q.question) !== q.question).length).toBeGreaterThan(0);
+  });
+
+  // Each question with each label of a kind, or with one of them in turn (a question that masks on its own takes all).
+  const labelled = (labels) => QUESTIONS.flatMap((q, i) => (typeof labels === 'string' ? [labels]
+    : stripPii(q.question) !== q.question ? labels : [labels[i % labels.length]]).map((label) => ({ ...q, label })));
+
+  test.each(LABELS)('%s', async (_kind, labels, value) => {
+    const leaks = [];
+    for (const { kase: base, d, variant, lang, question, label } of labelled(labels)) {
+      const kase = structuredClone(base);
+      const v = bankAt(kase, d.tierPath).variants.find((x) => x.id === variant);
+      v.question.th = `${question}${LEAD[lang]}${label}`;
+      v.question.en = v.question.th;
+      if (lang === 'en') kase.vignette.th = kase.vignette.en;
+      const answers = [...d.answers.slice(0, -1), { text: value }];
+      callAI.mockClear();
+      const res = await request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(kase, { ...d, answers, look: lang }) });
+      const wire = JSON.stringify(callAI.mock.calls);
+      const kept = res.body.answer_deidentified;
+      const parts = value.split(' ');
+      const where = [
+        parts.some((part) => wire.includes(part)) && 'AI',
+        parts.some((part) => (kept ?? '').includes(part)) && 'stored',
+        kept !== seenAnswer(sentTurns().pop()) && 'stored copy is not the fenced text',
+      ].filter(Boolean);
+      if (where.length) leaks.push(`${lang} ${JSON.stringify(v.question.th)}: ${where.join(', ')}`);
     }
-  }
+    expect(leaks).toEqual([]);
+  }, 60000);
+});
+
+// #412: a question holding a line break must not move the fence. rimpl reads the fence from the end of the turn, so
+// the value under an HN label on the question's second line is masked like the one-line question's.
+// (backend/src/booth-cases/tree-schema.js also refuses such a question.)
+test.each([
+  ['on one line', 'โปรดระบุHN'],
+  ['over two lines', 'โปรดระบุ\nHN'],
+])('a question ending in an HN label %s masks the value typed under it', async (_kind, question) => {
+  const kase = caseFile('adhf.json');
+  bankAt(kase, '').variants[0].question.th = question;
+  const res = await request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(kase, typedPlay(kase, '', ['v1'], ['1234567'])) });
+  expect(JSON.stringify(callAI.mock.calls)).not.toContain('1234567');
+  expect(res.body.answer_deidentified).toBe('[HN-1]');
+  expect(seenAnswer(sentTurns()[0])).toBe('[HN-1]');
 });

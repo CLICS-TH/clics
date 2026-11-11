@@ -127,79 +127,117 @@ function deidentifyTurn({ chiefComplaint, history, message, hints }) {
 
 // A booth physician turn (backend/src/services/booth-dialogue.js dialogueTurns) is the vetted vignette (turn 1 only),
 // the vetted bank question, then the visitor's answer. A typed answer comes fenced behind a note line (#400,
-// booth-dialogue.js `fenced`): `[vignette \n\n] question \n note \n ⟦answer⟧`. A tapped answer, or a typed one from a
-// backend older than #400, follows the question line bare. Neither the vignette, the question nor the note holds a
-// line break, and the backend strips the fence marks from the answer. Vetted text holds no PII, though, so a question
-// the filter masks on its own holds a false positive: a question opening with the pronoun คุณ ("คุณจะส่งตรวจ…")
-// becomes a name, which then takes the answer on the next line as its surname (#406). Such a question is `apart`:
-// read apart from the answer.
-const FENCED = /^([^\n]*)\n⟦([^⟦⟧]*)⟧$/;
+// booth-dialogue.js `fenced`): `[vignette \n\n] question \n note \n ⟦answer⟧`, read from the end, so a line break in
+// the question cannot move the fence. The backend strips the fence marks from the answer, and the note holds no line
+// break. A tapped answer, or a typed one from a backend older than #400, follows the first line bare
+// (backend/src/booth-cases/tree-schema.js refuses a question that holds a line break). `own`: the question masks on
+// its own.
+const FENCED = /(?:^|\n)([^\n]*)\n⟦([^⟦⟧]*)⟧$/;
 function boothTurnParts(content, first, hints) {
   let vignette = null;
   let rest = content;
   const gap = first ? rest.indexOf('\n\n') : -1;
   if (gap >= 0) { vignette = rest.slice(0, gap); rest = rest.slice(gap + 2); }
-  const end = rest.indexOf('\n');
-  if (end < 0) return { vignette, question: null, apart: true, note: null, answer: rest };
-  const question = rest.slice(0, end);
-  const fence = FENCED.exec(rest.slice(end + 1));
+  const fence = FENCED.exec(rest);
+  const end = fence ? fence.index : rest.indexOf('\n');
+  const question = end > 0 ? rest.slice(0, end) : null;
   return {
-    vignette, question, apart: stripPii(question, makeRegistry(), hints) !== question,
+    vignette, question, own: question !== null && stripPii(question, makeRegistry(), hints) !== question,
     note: fence ? fence[1] : null, answer: fence ? fence[2] : rest.slice(end + 1),
   };
 }
 
-// The texts of a turn's parts in the order they are read: a question that is not apart is read with its answer.
-const boothTurnTexts = ({ vignette, question, apart, note, answer }) => [
-  vignette, ...(apart ? [question, answer] : [`${question}\n${answer}`]), note,
-].filter((s) => s !== null);
-
-// Where `clean`, the clean form of a text that opens with `before`, stops matching `cleanBefore`, the clean form of
-// `before` alone. A cut inside a token moves back to the token's '['.
-function cleanCut(cleanBefore, clean) {
+// The clean forms of `lead` and of `answer` read after it on the next line, as if the note line were not between
+// them. The cut between the two falls in the clean text, so neither side holds anything the filter did not see: a cut
+// inside a token moves back to the token's '[', and an end of `lead` the filter left as typed after the cut, up to a
+// token or a space, goes back to its side.
+function cleanAfter(lead, answer, strip) {
+  if (!lead) return { cleanLead: '', cleanAnswer: strip(answer) };
+  const clean = strip(`${lead}\n${answer}`);
+  const cleanBefore = strip(lead);
   let cut = 0;
   while (cut < cleanBefore.length && cleanBefore[cut] === clean[cut]) cut += 1;
   const open = cut > 0 ? clean.lastIndexOf('[', cut - 1) : -1;
-  return open > clean.lastIndexOf(']', cut - 1) ? open : cut;
+  if (open > clean.lastIndexOf(']', cut - 1)) cut = open;
+  const rest = clean.slice(cut);
+  for (let k = Math.min(rest.length, lead.length); k > 0; k -= 1) {
+    if (lead.endsWith(rest.slice(0, k)) && (k === rest.length || /[\s[]/.test(rest[k]))) { cut += k; break; }
+  }
+  // The line break between them, which the filter may have turned into a space.
+  return { cleanLead: clean.slice(0, cut), cleanAnswer: clean.slice(cut).replace(/^\s/, '') };
 }
 
-// A question that is not apart is read with its answer, as if the note line were not between them, so a label that
-// ends the question masks the value typed under it (#375, #412). The cut between the two falls in the clean text, so
-// neither side holds anything the filter did not see. The note is read on its own.
-function cleanBoothTurn({ vignette, question, apart, note, answer }, registry, hints) {
+// What of a question the answer is read after: all of it, unless the question masks on its own. Vetted text holds no
+// PII, so such a mask is a false positive: a question opening with the pronoun คุณ ("คุณจะส่งตรวจ…") becomes a name,
+// which then takes the answer on the next line as its surname (#406), and its words become that name's aliases; a
+// label can mask on its own at the end of a question too (นางสาว reads as the title นาง and the name สาว). Then it is
+// the longest end of the question that, read with the answer, leaves no token of its own in the answer, under a
+// registry that knows what every other question of the call that masks on its own masks, and what this one masks once
+// it is read apart (any end short of all of it). So a label that ends the question masks the value typed under it (#375,
+// #412), and no false name in the question takes the answer.
+function boothLead(part, ownParts, hints, from) {
+  const { question, own, answer } = part;
+  if (question === null || !own) return question ?? '';
+  for (let start = from; start < question.length; start += 1) {
+    const lead = question.slice(start);
+    const known = makeRegistry();
+    const others = ownParts.filter((p) => start > 0 || p !== part).map((p) => p.question);
+    primeRegistry([...others, `${lead}\n${answer}`], known, hints);
+    const { cleanLead, cleanAnswer } = cleanAfter(lead, answer, (s) => stripPii(s, known, hints));
+    if (!takenBy(cleanLead, cleanAnswer)) return lead;
+  }
+  return '';
+}
+
+// Whether a clean answer holds a token of the clean question text it was read after: a name in the question took it.
+const TOKEN = /\[[A-Z]+-\d+\]/g;
+const takenBy = (cleanLead, cleanAnswer) => (cleanAnswer.match(TOKEN) ?? []).some((t) => cleanLead.includes(t));
+
+// The texts of a turn's parts in the order they are read: the answer after its lead, and a question read `apart`
+// (only part of it leads the answer) as a text of its own before it.
+const boothTurnTexts = ({ vignette, question, lead, apart, note, answer }) => [
+  vignette, apart ? question : null, lead ? `${lead}\n${answer}` : answer, note,
+].filter((s) => s !== null);
+
+// A question read apart is read on its own for its line; the note is read on its own.
+function cleanBoothTurn({ vignette, question, lead, apart, note, answer }, registry, hints) {
   const strip = (s) => stripPii(s, registry, hints);
   const head = vignette === null ? '' : `${strip(vignette)}\n\n`;
-  let cleanQuestion = null;
-  let cleanAnswer;
-  if (apart) {
-    if (question !== null) cleanQuestion = strip(question);
-    cleanAnswer = strip(answer);
-  } else {
-    const clean = strip(`${question}\n${answer}`);
-    const cut = cleanCut(strip(question), clean);
-    cleanQuestion = clean.slice(0, cut);
-    // The line break between them, which the filter may have turned into a space.
-    cleanAnswer = clean.slice(cut).replace(/^\s/, '');
-  }
+  const { cleanLead, cleanAnswer } = cleanAfter(lead, answer, strip);
+  const cleanQuestion = question === null ? null : apart ? strip(question) : cleanLead;
   const said = note === null ? cleanAnswer : `${strip(note)}\n⟦${cleanAnswer}⟧`;
-  return { content: `${head}${cleanQuestion === null ? '' : `${cleanQuestion}\n`}${said}`, answer: cleanAnswer };
+  return { content: `${head}${cleanQuestion === null ? '' : `${cleanQuestion}\n`}${said}`, lead: cleanLead, answer: cleanAnswer };
 }
 
 // deidentifyTurn for a booth turn: the same one registry and order, with each physician turn read in its parts.
-// The kept typed answer (#375) is the answer as the AI sees it. It holds none of the vetted text before it, except a
-// token the filter laid over both.
+// The kept typed answer (#375) is the answer exactly as the AI sees it: the text inside the fence (or after the
+// question line, unfenced). It holds none of the vetted text before it, except a token the filter laid over both.
+// A lead is first checked against what the other questions mask; once every text of the call is known, a lead whose
+// question still took its answer reads less of the question, until none does (a lead of nothing takes nothing).
 function deidentifyBoothTurn({ chiefComplaint, history, message, hints, boothAnswer }) {
-  const registry = makeRegistry();
   const turns = [...history, { role: 'physician', content: message }];
   const firstPhysician = turns.findIndex((m) => m.role === 'physician');
   const parts = turns.map((m, i) => (m.role === 'physician' ? boothTurnParts(m.content, i === firstPhysician, hints) : null));
-  primeRegistry([chiefComplaint || '', ...turns.flatMap((m, i) => (parts[i] ? boothTurnTexts(parts[i]) : [m.content]))], registry, hints);
-  const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
-  const cleaned = turns.map((m, i) => (parts[i] ? cleanBoothTurn(parts[i], registry, hints) : { content: stripPii(m.content, registry, hints) }));
-  const cleanTurns = turns.map((m, i) => ({ ...m, content: cleaned[i].content }));
-  const cleanMessage = cleanTurns.pop().content;
-  const cleanBoothAnswer = boothAnswer ? cleaned[cleaned.length - 1].answer.trim() || null : undefined;
-  return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage, cleanBoothAnswer };
+  const ownParts = parts.filter((p) => p?.own);
+  const from = new Map(ownParts.map((p) => [p, 0]));
+  for (;;) {
+    for (const p of parts.filter(Boolean)) {
+      p.lead = boothLead(p, ownParts, hints, from.get(p));
+      p.apart = p.question !== null && p.lead !== p.question;
+    }
+    const registry = makeRegistry();
+    primeRegistry([chiefComplaint || '', ...turns.flatMap((m, i) => (parts[i] ? boothTurnTexts(parts[i]) : [m.content]))], registry, hints);
+    const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
+    const cleaned = turns.map((m, i) => (parts[i] ? cleanBoothTurn(parts[i], registry, hints) : { content: stripPii(m.content, registry, hints) }));
+    const taken = parts.filter((p, i) => p?.own && p.lead && takenBy(cleaned[i].lead, cleaned[i].answer));
+    if (taken.length === 0) {
+      const cleanTurns = turns.map((m, i) => ({ ...m, content: cleaned[i].content }));
+      const cleanMessage = cleanTurns.pop().content;
+      const cleanBoothAnswer = boothAnswer ? cleaned[cleaned.length - 1].answer || null : undefined;
+      return { cleanChiefComplaint, cleanHistory: cleanTurns, cleanMessage, cleanBoothAnswer };
+    }
+    for (const p of taken) from.set(p, p.question.length - p.lead.length + 1);
+  }
 }
 
 // Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only
