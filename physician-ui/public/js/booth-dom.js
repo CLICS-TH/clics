@@ -1,3 +1,5 @@
+import { LOOKS, DEFAULT_LOOK, tagText } from './booth-copy.js';
+
 export function el(tag, props = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
@@ -45,5 +47,46 @@ function boldRuns(p, from, bold) {
   });
 }
 
+/** The language of one text the server or the visitor wrote: Thai when it holds a Thai letter. */
+export const textLang = (text) => (/[฀-๿]/.test(text) ? 'th' : 'en');
+
+// The look lives in this page's memory only: a reload (Done, Start over, an idle reset) starts the next visitor at
+// DEFAULT_LOOK, and nothing reaches any storage.
+let look = DEFAULT_LOOK;
+const listeners = new Set();
+
+export const currentLook = () => look;
+
+/** @param {(look: string) => void} fn called after every switch @returns {() => void} unsubscribe */
+export function onLook(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+const slotClass = (lang) => (lang === LOOKS[look].primary ? 'bi-main' : 'bi-sub');
+
+/** Switches every bilingual text on the page by its slot classes alone. No node moves: the shell's ghost-tap guard
+ *  reads an added node as freshly drawn and would swallow the next tap on it. */
+export function setLook(next) {
+  if (!Object.hasOwn(LOOKS, next)) return;
+  look = next;
+  const root = document.documentElement;
+  root.dataset.look = next;
+  root.dataset.both = String(LOOKS[next].both);
+  root.lang = LOOKS[next].primary;
+  for (const span of document.querySelectorAll('.bi > [lang]')) {
+    span.classList.toggle('bi-main', slotClass(span.lang) === 'bi-main');
+    span.classList.toggle('bi-sub', slotClass(span.lang) === 'bi-sub');
+  }
+  for (const e of document.querySelectorAll('[data-look-lang]')) e.lang = LOOKS[next].primary;
+  for (const fn of [...listeners]) fn(next);
+}
+
+/** A booth tag names one visitor, so it shows once: in English wherever the look shows English, in Thai in the
+ *  Thai-only look (booth.css). */
+export const tagName = (tag) => el('span', { class: 'tag-name' },
+  el('span', { class: 'tag-en', lang: 'en' }, tagText(tag, 'en')), el('span', { class: 'tag-th', lang: 'th' }, tagText(tag, 'th')));
+
 export const bi = (pair, cls = '') => el('span', { class: `bi ${cls}`.trim() },
-  el('span', { class: 'bi-th', lang: 'th' }, ...phrases(pair.th)), el('span', { class: 'bi-en', lang: 'en' }, pair.en));
+  el('span', { class: `bi-th ${slotClass('th')}`, lang: 'th' }, ...phrases(pair.th)),
+  el('span', { class: `bi-en ${slotClass('en')}`, lang: 'en' }, pair.en));

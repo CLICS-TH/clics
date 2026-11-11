@@ -35,7 +35,8 @@ const TABLE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-pa
 const KASE = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8')), path_score_table: TABLE };
 const EVENT = KASE.event_code;
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const SCORE_WRITE_COLUMNS = ['status', 'composite', ...DOMAINS, 'scored_at', 'ranked', 'tier_path', 'steps', 'score_source'];
+const SCORE_WRITE_COLUMNS = ['status', 'composite', ...DOMAINS, 'scored_at', 'ranked', 'tier_path', 'steps', 'score_source',
+  'language_look'];
 const RPC_ARG_KEYS = ['p_event', 'p_case', 'p_version', 'p_play', 'p_amount', 'p_ceiling', 'p_delta', 'p_key', 'p_tier'];
 const BOOTH_RPCS = ['booth_start_play', 'booth_reserve_spend', 'booth_settle_spend', 'booth_sort_memo'];
 const PILOT_TABLES = ['professionals', 'ples', 'messages', 'ai_evaluations', 'lpdp_snapshots', 'shadow_evaluations', 'councils'];
@@ -1778,6 +1779,121 @@ describe('the kept dialogue (#375, ADR 0010: de-identified, bound by the turn si
   });
 });
 
+describe('the language look (#377): the reply follows the primary language, the score never does', () => {
+  const LOOKS = ['th+en', 'th', 'en+th', 'en'];
+  const EN_REPLY = { strength: 'Naming the pneumonia is a strength.', weigh: 'Weigh how sick he looks.', safety: '' };
+  /** Answers like the kiosk, sending the look the visitor has on screen for this call (none: an older kiosk). */
+  const answerIn = (p, given, look) => {
+    p.d = look === undefined ? p.d : { ...p.d, look };
+    return answer(p, given);
+  };
+  const turnIn = (language, tierPath, ask, choice, first) => {
+    const b = bank(tierPath);
+    const o = b.options.find((x) => x.id === choice);
+    const q = b.variants.find((v) => v.id === ask.variant).question[language];
+    return `${first ? `${KASE.vignette[language]}\n\n` : ''}${q}\n${o.label[language]}: ${o.line[language]}`;
+  };
+  const thaiOf = (tierPath, ask, choice) => {
+    const b = bank(tierPath);
+    const o = b.options.find((x) => x.id === choice);
+    return [KASE.vignette.th, b.variants.find((v) => v.id === ask.variant).question.th, o.label.th, o.line.th];
+  };
+
+  test.each([['en+th'], ['en']])('%s: rimpl is sent English case text and language en, and its English reply comes back', async (look) => {
+    rimplChat.mockImplementation(async () => ({ ...CHAT_OK, reply: EN_REPLY }));
+    const p = await begin();
+    const [ask1, choice1] = [p.d.asks[0], offered(p, 'best')];
+    const res = await answerIn(p, 'best', look);
+    expect(res.status).toBe(200);
+    expect(res.body.reply).toEqual(EN_REPLY);
+    const [ask2, choice2] = [p.d.asks[1], offered(p, 'reasonable')];
+    await answerIn(p, 'reasonable', look);
+    const [first, second] = rimplChat.mock.calls.map(([args]) => args);
+    expect(first).toMatchObject({ language: 'en', history: [], message: turnIn('en', '', ask1, choice1, true) });
+    expect(second.language).toBe('en');
+    expect(second.history[0].content).toBe(turnIn('en', '', ask1, choice1, true));
+    expect(second.message).toBe(turnIn('en', 'B', ask2, choice2, false));
+    const physician = [first.message, second.history[0].content, second.message].join('\n');
+    for (const th of [...thaiOf('', ask1, choice1), ...thaiOf('B', ask2, choice2).slice(1)]) expect(physician).not.toContain(th);
+    expect(first.booth_bank).toEqual({ variants: bank('B').variants, options: bank('B').options });
+  });
+
+  test.each([[undefined], ['th+en'], ['th']])('look %s: rimpl is sent the Thai case text and language th', async (look) => {
+    const p = await begin();
+    const [ask, choice] = [p.d.asks[0], offered(p, 'best')];
+    await answerIn(p, 'best', look);
+    expect(rimplChat.mock.calls[0][0]).toMatchObject({ language: 'th', history: [], message: turnIn('th', '', ask, choice, true) });
+  });
+
+  test('a switch mid-play changes only the next reply: Thai for reply 1, English from reply 2', async () => {
+    const p = await begin();
+    const [ask1, choice1] = [p.d.asks[0], offered(p, 'best')];
+    await answerIn(p, 'best', 'th+en');
+    const sentFirst = structuredClone(rimplChat.mock.calls[0][0]);
+    const [ask2, choice2] = [p.d.asks[1], offered(p, 'best')];
+    expect((await answerIn(p, 'best', 'en+th')).body.status).toBe('replied');
+    const [first, second] = rimplChat.mock.calls.map(([args]) => args);
+    expect(first).toEqual(sentFirst);
+    expect(first).toMatchObject({ language: 'th', message: turnIn('th', '', ask1, choice1, true) });
+    expect(second).toMatchObject({ language: 'en', message: turnIn('en', 'B', ask2, choice2, false) });
+    expect(second.history).toEqual([{ role: 'physician', content: turnIn('en', '', ask1, choice1, true) }, aiTurn(AI_TEXT, p.d.asks[1])]);
+  });
+
+  test.each([['EN'], ['th+th'], [''], [null], [1]])('a look of %j is refused as bad_request before any spend, on reply and score', async (look) => {
+    const p = await begin();
+    const res = await post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [{ choice: offered(p, 'best') }], look });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: expect.any(String), reason: 'bad_request' });
+    expect(rimplChat).not.toHaveBeenCalled();
+    const done = await walked();
+    expect((await score(done, { ...done.d, look })).body.reason).toBe('bad_request');
+    expect(plays.get(done.id).status).toBe('started');
+  });
+
+  test('the demo score is the same in every look, and the look it was scored in is stored', async () => {
+    const scored = [];
+    for (const look of LOOKS) {
+      newIp();
+      const p = await begin();
+      for (const g of ['best', 'reasonable', 'weaker']) expect((await answerIn(p, g, look)).body.status).toBe('replied');
+      const { composite, domains } = (await score(p, { ...p.d, look })).body;
+      scored.push({ composite, domains });
+      expect(plays.get(p.id)).toMatchObject({ status: 'scored', tier_path: 'BRW', language_look: look });
+    }
+    expect(scored.map(({ composite }) => composite)).toEqual(LOOKS.map(() => compositeScore(TABLE.paths.BRW)));
+    for (const s of scored) expect(s).toEqual(scored[0]);
+  });
+
+  test('a score with no look stores language_look null', async () => {
+    const p = await walked();
+    expect((await score(p)).body.status).toBe('scored');
+    expect(plays.get(p.id).language_look).toBeNull();
+  });
+
+  test('a typed answer under English primary is sorted from the bilingual banks and only its de-identified text is stored', async () => {
+    const RAW = 'Call Mr. John Carter at 081-234-5678 and get a chest X-ray';
+    const DEID = 'Call Mr. [NAME-1] at [PHONE-1] and get a chest X-ray';
+    sorting('best');
+    const sort = rimplChat.getMockImplementation();
+    rimplChat.mockImplementation(async (body) => ({ ...(await sort(body)), ...(body.booth_answer ? { answer_deidentified: DEID } : {}) }));
+    const p = await begin();
+    await answerIn(p, 'best', 'en');
+    const typed = await answerIn(p, { text: RAW }, 'en');
+    await answerIn(p, 'reasonable', 'en');
+    const [args] = rimplChat.mock.calls[1];
+    expect(args).toMatchObject({ language: 'en', booth_answer: RAW });
+    expect(args.message.endsWith(`\n${fenced(RAW)}`)).toBe(true);
+    const ai = (b) => ({ variants: b.variants, options: b.options });
+    expect(args.booth_typed).toEqual({ current: ai(bank('B')), next: { best: ai(bank('BB')), reasonable: ai(bank('BR')), weaker: ai(bank('BW')) } });
+    expect(typed.body.deidentified).toBe(DEID);
+    expect(p.path).toBe('BBR');
+    expect((await score(p, { ...p.d, look: 'en' })).body.status).toBe('scored');
+    expect(plays.get(p.id).steps[1]).toMatchObject({ typed: DEID, tier: 'best' });
+    const written = JSON.stringify([writes().map((w) => w.payload), rpcCalls, plays.get(p.id)]);
+    for (const part of ['John', 'Carter', '081-234-5678']) expect(written).not.toContain(part);
+  });
+});
+
 describe('the sort memo (#374: the same typed text at the same point sorts the same)', () => {
   const TYPED = { text: 'ตรวจ CBC ก่อน' };
   /** The step-2 banks that could have shown the kiosk `p.next`, as tier letters. */
@@ -2028,13 +2144,18 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
     expect(p.path).toBe('BR');
   });
 
+  // rimpl replies in the look's primary language (#377), whatever language the answer was typed in.
   test.each([
-    ['in English only', { text: 'check CBC first' }, 'en'],
-    ['holding Thai', TYPED, 'th'],
-  ])('a typed answer %s reads and keeps its entries in the language rimpl replies in', async (_label, typed, language) => {
+    ['in English under ไทย+EN', { text: 'check CBC first' }, 'th+en', 'th'],
+    ['in English under no look (an older kiosk)', { text: 'check CBC first' }, undefined, 'th'],
+    ['holding Thai under English+ไทย', TYPED, 'en+th', 'en'],
+    ['in English under English', { text: 'check CBC first' }, 'en', 'en'],
+  ])('a typed answer %s reads and keeps its entries in the language rimpl replies in', async (_label, typed, look, language) => {
     switchedOn();
     live('reasonable');
-    await answer(await begin(), typed);
+    const p = await begin();
+    if (look) p.d = { ...p.d, look };
+    await answer(p, typed);
     const read = new Map(cacheQueries('select')[0].eqs).get('language');
     expect({ read, kept: cacheQueries('insert')[0].payload.language }).toEqual({ read: language, kept: language });
   });

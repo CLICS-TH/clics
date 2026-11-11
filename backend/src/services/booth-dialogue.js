@@ -19,6 +19,10 @@ const REPLY_FIELDS = ['strength', 'weigh', 'safety'];
 const FIELD_MAX_CHARS = 115;
 const BOLD_MAX_RUNS = 2;
 const BOLD_MAX_CHARS = 20;
+// The kiosk's language looks (#377), each to the primary language the AI replies in. scripts/booth/harness.mjs reads
+// this line by regex and checks its keys against the kiosk's LOOKS, so it stays on one line.
+const LOOK_LANGUAGE = Object.freeze({ 'th+en': 'th', th: 'th', 'en+th': 'en', en: 'en' });
+const DEFAULT_LOOK = 'th+en';
 
 /**
  * A typed answer's `deidentified` is rimpl's de-identified copy of `text` (null when rimpl gave none): the only form
@@ -119,10 +123,10 @@ const HIDDEN_CHARS = /[\p{Cc}\p{Cf}]/gu;
 const stripped = (text) => text.replace(HIDDEN_CHARS, (c) => (c === '\n' ? c : '')).replaceAll(FENCE_OPEN, '').replaceAll(FENCE_CLOSE, '');
 const fenced = (text) => `${FENCE_NOTE}\n${FENCE_OPEN}${stripped(text)}${FENCE_CLOSE}`;
 
-function saidFor(bank, answer, fence = false) {
+function saidFor(bank, answer, fence, language) {
   if (!('choice' in answer)) return fence ? fenced(answer.text) : answer.text;
   const { label, line } = bank.options.find((o) => o.id === answer.choice);
-  return `${label.th}: ${line.th}`;
+  return `${label[language]}: ${line[language]}`;
 }
 
 // Bold may stress what the visitor read or wrote, never point at an option they did not choose. Compared after NFC,
@@ -228,11 +232,14 @@ const replyText = (reply) => REPLY_FIELDS.map((k) => reply[k].replaceAll('**', '
 // Turn 1 carries the vignette because the evaluator reads the transcript alone (chief_complaint only seeds
 // rimpl's de-identification registry). The bridge into question i+1 came from the same AI call as reply i, so it
 // closes that assistant turn: the evaluator scores the physician turns, and an AI sentence never sits in one.
-function dialogueTurns(kase, { answers, replies, asks, tierPath }, fence = false) {
+function dialogueTurns(kase, { answers, replies, asks, tierPath }, fence = false, language = 'th') {
   return answers.flatMap((answer, i) => {
     const bank = bankAt(kase, tierPath.slice(0, i));
-    const question = bank.variants.find((v) => v.id === asks[i].variant).question.th;
-    const physician = { role: 'physician', content: `${i === 0 ? `${kase.vignette.th}\n\n` : ''}${question}\n${saidFor(bank, answer, fence)}` };
+    const question = bank.variants.find((v) => v.id === asks[i].variant).question[language];
+    const physician = {
+      role: 'physician',
+      content: `${i === 0 ? `${kase.vignette[language]}\n\n` : ''}${question}\n${saidFor(bank, answer, fence, language)}`,
+    };
     const assistant = [replies[i] && replyText(replies[i]), asks[i + 1]?.bridge].filter(Boolean).join(' ');
     return assistant ? [physician, { role: 'assistant', content: assistant }] : [physician];
   });
@@ -253,17 +260,22 @@ function typedBanks(kase, tierPath, n, memo) {
   };
 }
 
-/** rimpl's booth chat request for the last answer of `d`, less ple_id. A tapped answer already fixes the next bank.
+/** rimpl's booth chat request for the last answer of `d`, less ple_id, in the primary language of `d.look`: each reply
+ *  call follows the look it was sent with (#377). A tapped answer already fixes the next bank.
  *  A typed one is sorted in this same call, so rimpl gets the step's own bank as the yardstick and the next step's
  *  bank for each tier it might sort the answer into, plus the typed text alone (booth_answer) to de-identify for
  *  storage. No chief_complaint: rimpl prefixes it to the last user turn, and turn 1 already carries the vignette. */
+/** The language rimpl replies to `d` in: the primary language of the look the kiosk sent with this call (#377). */
+const replyLanguage = (d) => LOOK_LANGUAGE[d.look ?? DEFAULT_LOOK];
+
 function chatRequest(kase, d) {
   const n = d.answers.length;
-  const history = dialogueTurns(kase, d, true);
+  const language = replyLanguage(d);
+  const history = dialogueTurns(kase, d, true, language);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
     : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
-  return { history, message, language: 'th', booth_mode: true, ...forAi };
+  return { history, message, language, booth_mode: true, ...forAi };
 }
 
 const deidentifiedOf = (res) => {
@@ -353,6 +365,6 @@ function studyTranscript(kase, steps) {
 
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier, chatRequest, chatOutcome,
-  echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
+  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
+  replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
 };

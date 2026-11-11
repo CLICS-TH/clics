@@ -10,8 +10,8 @@ const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../boot
 const { readStudyCase } = require('../booth-cases/study-snapshot');
 const {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers, stepRecords, bankKey,
-  echoesAnswer,
+  LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers,
+  stepRecords, bankKey, echoesAnswer, replyLanguage,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -40,7 +40,7 @@ const DAY_MS = 86_400_000;
 /**
  * Answer, Ask and Reply are typed in ./booth-dialogue. The kiosk sends a typed answer as its text and, once replied,
  * the `deidentified` copy the reply gave it: its `tier` is set server-side from the turn sigs (recoverTiers).
- * @typedef {{ answers: Answer[], replies: Reply[], asks: Ask[], sigs: string[] }} Dialogue
+ * @typedef {{ answers: Answer[], replies: Reply[], asks: Ask[], sigs: string[], look?: keyof typeof LOOK_LANGUAGE }} Dialogue
  *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
  *   A reply has every field '' when the AI gave none for that step; its sig still binds the ''s.
  * @typedef {{ tag: number, score: number, at: string }} BoardEntry
@@ -70,6 +70,9 @@ const DialogueSchema = z.object({
   replies: z.array(ReplySchema).max(STEPS),
   asks: z.array(AskSchema).min(1).max(STEPS),
   sigs: z.array(z.string().max(64)).min(1).max(STEPS + 1),
+  // The kiosk's language look (#377). Optional so an older kiosk still plays; no turn sig binds it, so a visitor may
+  // switch it mid-play.
+  look: z.enum(Object.keys(LOOK_LANGUAGE)).optional(),
 }).strict();
 
 const CASE_ID = z.string().regex(/^[a-z0-9][a-z0-9-]{0,31}$/);
@@ -368,15 +371,15 @@ async function settledOutcome(playId, event, steps) {
   return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at, steps) };
 }
 
-/** Scores a play still started, from its case's path score table (ADR 0009). The play's dialogue (stepRecords) and
- *  score source are kept with the score (ADR 0010). */
+/** Scores a play still started, from its case's path score table (ADR 0009). The play's dialogue (stepRecords), score
+ *  source and the language look it was scored in are kept with the score (ADR 0010, #377). */
 async function finish(playId, event, domains, dialogue, source, steps) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
     .update({
       status: 'scored', composite, ...domains, scored_at: scoredAt, ranked: true, tier_path: dialogue.tierPath,
-      steps: stepRecords(dialogue), score_source: source,
+      steps: stepRecords(dialogue), score_source: source, language_look: dialogue.look ?? null,
     })
     .eq('id', playId).eq('status', 'started').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
@@ -500,10 +503,6 @@ const CacheLive = z.object({
   embedding: z.array(z.number().finite()).min(16).max(4096),
   cues: z.array(z.string().regex(/^[0-9a-f]{16}$/)).max(64),
 });
-
-/** The language rimpl replies to `d`'s typed answer in, by its booth prompt: Thai when the answer holds any Thai,
- *  else English. The request's `language` is always 'th', so it cannot key the cache. */
-const replyLanguage = (d) => (/\p{Script=Thai}/u.test(d.answers.at(-1).text) ? 'th' : 'en');
 
 /** The newest entries at the point `d`'s typed answer was given, in its reply language; with a memo, only the
  *  memo's tier (the exact sort memo wins). A database fault never refuses the reply: it reads as no entries. */

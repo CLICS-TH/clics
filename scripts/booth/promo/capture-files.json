@@ -17,6 +17,7 @@
   "physician-ui/public/js/booth-dom.js",
   "physician-ui/public/js/booth-domains.js",
   "physician-ui/public/js/booth-idle.js",
+  "physician-ui/public/js/booth-look.js",
   "physician-ui/public/js/booth-loop.js",
   "physician-ui/public/js/booth-play.js",
   "physician-ui/public/js/booth-radar.js",

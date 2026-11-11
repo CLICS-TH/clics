@@ -20,6 +20,15 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
       deploy the kiosk (Vercel), the backend and rimpl as one release: an older backend or kiosk ends every play.
       The reply fields of #376 need the same: an older kiosk or backend ends every play, and an older rimpl blanks
       every reply (the backend logs `reply empty ... reason=no_fields`). Roll back all three together.
+- [ ] **The language look of #377 ships in this order:** the migration, then rimpl, then the backend, then the
+      Portal. Re-apply `db/migration-booth-plays.sql` first: it adds `booth_plays.language_look`, and the new
+      backend writes that column on every score, so without it every play ends on the score-unavailable card.
+      Deploy rimpl next: an older rimpl ignores `language: 'en'` and replies in Thai to an English look. Deploy the
+      backend before the Portal: its dialogue schema is strict, so a new kiosk that sends `look` to an older backend
+      gets a 400 on every reply and every play stops.
+- [ ] **Check, read-only,** in the Supabase SQL editor:
+      `select 1 from information_schema.columns where table_schema = 'public' and table_name = 'booth_plays' and column_name = 'language_look';`
+      returns one row. No row means the #377 migration is not applied.
 - [ ] **Check, read-only:** `cd backend && node ../scripts/booth/purge-event.mjs --event FREEZE-CHECK` prints
       `dry run: nothing deleted` and `plays 0`. A `Next step:` line that says to apply
       `db/migration-booth-purge.sql` means the purge migration is not applied.

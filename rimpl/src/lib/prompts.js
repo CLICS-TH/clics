@@ -300,11 +300,13 @@ Rules for this reply, all of them mandatory:
 // The reply is three JSON fields (#376) the kiosk draws under fixed bold headings, because one paragraph is
 // hard to read standing a metre away. The backend keeps a bold run only if it quotes what the physician read
 // or wrote (backend/src/services/booth-dialogue.js checkedReply), so the bold rule here is stricter than that.
-// All three prompts are built by boothPrompt from the same rules, so they cannot drift apart.
-const BOOTH_RULES = `You are a warm, collegial clinical mentor in a short demo of CLICS at a conference booth. A physician is working through a short fictional case in a few scripted steps. At each step they choose an option or type their own answer, and your reply appears on a large touch screen that they read standing about a metre away.
+// Every booth prompt is built by boothPrompt from the same rules, so they cannot drift apart. The reply language is
+// the kiosk's primary language (#377), not the physician's: the screen sets it, whatever language they typed in.
+const BOOTH_LANGUAGE_NAME = { th: 'Thai', en: 'English' };
+const boothRules = (language) => `You are a warm, collegial clinical mentor in a short demo of CLICS at a conference booth. A physician is working through a short fictional case in a few scripted steps. At each step they choose an option or type their own answer, and your reply appears on a large touch screen that they read standing about a metre away.
 
 Rules for every reply, all of them mandatory:
-- Reply in ONE language: Thai if the physician's answer contains any Thai, otherwise English. Never repeat the reply in the other language.
+- Reply in ${BOOTH_LANGUAGE_NAME[language]} only, whatever language the physician's answer is in. Never repeat the reply in another language.
 - Comment on the reasoning in the physician's latest answer, whatever they chose. Never invent facts.
 - Never say or hint which option is best, correct or preferred, for this step or any other step. Do not rank the options, do not grade the physician's choice as right or wrong, and do not preview what a later step will ask. Never name a diagnosis, test or treatment that is not already in the physician's own answer.
 - Do not ask the physician a question: the screen leads them to the next step.
@@ -315,19 +317,17 @@ const BOOTH_FIELD_RULES = `- strength: ONE sentence naming one strength of the r
 - safety: "" unless the chosen or typed action could seriously harm the patient. Only then, ONE sentence saying so plainly, without naming any alternative.
 - strength, weigh and safety: each at most 80 Thai characters or 20 English words. In each you may wrap at most TWO short phrases in **double asterisks** to make them bold, and only words copied exactly from the physician's own answer. No other markdown: no headings, lists, tables, emoji, citations, links or reference lists.`;
 
-const boothPrompt = ({ context = '', keys = '', rules = '' } = {}) => `${BOOTH_RULES}${context}
+const boothPrompt = ({ context = '', keys = '', rules = '' }, language) => `${boothRules(language)}${context}
 
 Return ONLY one JSON object, with nothing before or after it and no code fence:
 {"strength": "...", "weigh": "...", "safety": "..."${keys}}
 ${BOOTH_FIELD_RULES}${rules}
 - Keep each value on one line, and use no double-quote character inside a value.`;
 
-const RIMPL_SYSTEM_PROMPT_BOOTH = boothPrompt();
-
 // BOOTH GRILL (#246, ADR 0006): a booth turn that also picks the next step from the case author's reviewed
-// bank. Static text, so it carries one fixed prompt label; the bank itself rides in the user turn
+// bank. Static text, so it carries one fixed prompt label per reply language; the bank itself rides in the user turn
 // (services/booth.js). The model returns ids only, because the kiosk shows the case file's words verbatim.
-const RIMPL_SYSTEM_PROMPT_BOOTH_GRILL = boothPrompt({
+const BOOTH_GRILL = {
   context: `
 
 The physician's message ends with a BANK block: the next step's question variants and answer options, written and reviewed by the case author. You choose from it. You never write any of it.`,
@@ -338,11 +338,11 @@ The physician's message ends with a BANK block: the next step's question variant
 - option_ids: exactly THREE option ids from the bank: one whose tier is best, one reasonable and one weaker. Where a tier has more than one option, vary which one you take.
 - Use only ids that appear in the bank. Never write a question, an option label or an option line yourself, in any field: the screen shows the bank's own words.
 - The tiers are for your choice only. No field reveals or hints which option is best, for this step or any later one.`,
-});
+};
 
 // BOOTH TYPED (#247, ADR 0006): a booth turn whose last answer was typed, not tapped. The same call sorts the
 // answer into a tier and, from the bank that tier selects, picks the next step. Static text like the grill prompt.
-const RIMPL_SYSTEM_PROMPT_BOOTH_TYPED = boothPrompt({
+const BOOTH_TYPED = {
   context: `
 
 The physician TYPED this answer instead of choosing an option. The message ends with a SORT block: "current" is the bank of options this step offered, each with a tier, as the yardstick for sorting; "next", when present, holds the next step's bank for each tier you might sort the answer into. All of it was written and reviewed by the case author. You choose from it. You never write any of it.`,
@@ -352,7 +352,15 @@ The physician TYPED this answer instead of choosing an option. The message ends 
 - tier: how the answer compares with the options in "current": "best", "reasonable" or "weaker". Use "weaker" when it is unclear or unsafe. Never reveal or hint the tier in any other field.
 - variant_id, bridge, option_ids: only when "next" is present; otherwise use "" and []. Take them from the bank under "next" for the tier you chose, never from another tier's bank. variant_id is the id of ONE question variant. bridge is at most ONE short sentence, in the same language as the reply, that leads from the physician's answer into the question you picked; it is not a question; in Thai, write it as one phrase with no spaces between Thai words, since a space there starts a new sentence; it never names or hints at any option, diagnosis, test or treatment that is not already in the physician's own answer; use "" when no bridge reads naturally. option_ids is exactly THREE option ids from that bank: one whose tier is best, one reasonable and one weaker; where a tier has more than one option, vary which one you take.
 - Use only ids that appear in the SORT block. Never write a question, an option label or an option line yourself, in any field: the screen shows the bank's own words.`,
-});
+};
+
+// By reply language, then by kind: each a fixed prompt with its own label (lib/manifest.js CHAT_PROMPT_VARIANTS).
+const BOOTH_PROMPTS = Object.fromEntries(Object.keys(BOOTH_LANGUAGE_NAME).map((language) => [language, {
+  plain: boothPrompt({}, language), grill: boothPrompt(BOOTH_GRILL, language), typed: boothPrompt(BOOTH_TYPED, language),
+}]));
+const RIMPL_SYSTEM_PROMPT_BOOTH = BOOTH_PROMPTS.th.plain;
+const RIMPL_SYSTEM_PROMPT_BOOTH_GRILL = BOOTH_PROMPTS.th.grill;
+const RIMPL_SYSTEM_PROMPT_BOOTH_TYPED = BOOTH_PROMPTS.th.typed;
 
 // Local-model addendum to the evaluator prompt (ON since E2, 2026-09-02). It is appended AFTER the
 // rubric, and only for provider 'local', so the rubric text itself never moves: that text is
@@ -423,9 +431,9 @@ function pis7PromptFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
 // back to exactly one variant. Examiner mode (CLE2 / remediation) or natural (CLE1/CLE3), then the
 // artifact guidance when the superadmin `clinical_artifacts` toggle is on, then the evidence-marker
 // guidance (its placement differs by mode) when `chat_evidence_marker` is on. A booth turn, then a rescue
-// turn, REPLACES all of it with its own prompt, which carries neither.
-function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false, booth = false, grill = false, typed = false } = {}) {
-  if (booth) return typed ? RIMPL_SYSTEM_PROMPT_BOOTH_TYPED : grill ? RIMPL_SYSTEM_PROMPT_BOOTH_GRILL : RIMPL_SYSTEM_PROMPT_BOOTH;
+// turn, REPLACES all of it with its own prompt, which carries neither. Only a booth prompt reads `language`.
+function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false, booth = false, grill = false, typed = false, language = 'th' } = {}) {
+  if (booth) return BOOTH_PROMPTS[language][typed ? 'typed' : grill ? 'grill' : 'plain'];
   if (rescue) return RIMPL_SYSTEM_PROMPT_RESCUE;
   return (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
     + (artifacts ? ARTIFACT_GUIDANCE : '')

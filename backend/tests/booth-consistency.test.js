@@ -5,6 +5,7 @@ const path = require('path');
 const { BOOTH_SETTINGS, SAFE_EVENT_CODE } = require('../src/services/booth');
 const { schemaFromSql } = require('./helpers/sql-schema');
 const { CaseTreeSchema } = require('../src/booth-cases/tree-schema');
+const { LOOK_LANGUAGE } = require('../src/services/booth-dialogue');
 
 const MIGRATION = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-plays.sql'), 'utf8');
 const SQL = MIGRATION.replace(/--[^\n]*/g, '');
@@ -12,7 +13,13 @@ const SQL = MIGRATION.replace(/--[^\n]*/g, '');
 test('booth_plays has exactly the allowed columns', () => {
   expect([...(schemaFromSql().booth_plays ?? [])].sort()).toEqual(['id', 'event_code', 'tag', 'status', 'spend_usd',
     'composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'created_at', 'scored_at', 'ranked', 'case_id', 'case_version',
-    'tier_path', 'replied_step', 'steps', 'score_source'].sort());
+    'tier_path', 'replied_step', 'steps', 'score_source', 'language_look'].sort());
+});
+
+test('language_look holds exactly the looks of LOOK_LANGUAGE (#377)', () => {
+  const look = /check \(language_look in \(([^)]*)\)\)/.exec(SQL);
+  expect(look).not.toBeNull();
+  expect([...look[1].matchAll(/'([a-z+]+)'/g)].map(([, s]) => s).sort()).toEqual(Object.keys(LOOK_LANGUAGE).sort());
 });
 
 test('score_source holds exactly the two sources the score writes, and steps only an array (#375)', () => {
