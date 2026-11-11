@@ -337,12 +337,13 @@ const SHIELD_MAX_RUN = 256;
 // String#replace for a global regex, except the callback may consume only PART of a match by returning
 // [replacement, consumedLength]; scanning then resumes right after the consumed part. Iterative — the
 // shields above use it instead of re-scanning fragments recursively.
-function replaceResumable(text, re, fn) {
+// `view`, when given, is a same-length copy of `text` the regex runs on; the cut is made in `text`.
+function replaceResumable(text, re, fn, view = text) {
   const rx = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`); // exec must advance
   let out = '';
   let last = 0;
   let m;
-  while ((m = rx.exec(text)) !== null) {
+  while ((m = rx.exec(view)) !== null) {
     const r = fn(m);
     const [rep, used] = Array.isArray(r) ? r : [r, m[0].length];
     out += text.slice(last, m.index) + rep;
@@ -485,10 +486,13 @@ const PASSES = [
     guard: lineIdGuard,
   },
 
+  // The ID / HN / MRN / PHONE passes set `thaiDigits`: they match ๐–๙ as 0–9 (#440; see applyPass).
+
   // Thai national ID: 13 digits, with or without the X-XXXX-XXXXX-XX-X dashes.
   {
     re: /\b\d(?:[\s-]?\d){12}\b/g,
     cat: 'ID',
+    thaiDigits: true,
     // Guard: only when the digits actually total 13 (the loose run above could
     // otherwise straddle unrelated numbers separated by spaces).
     guard: (m) => (m.replace(/\D/g, '').length === 13),
@@ -501,6 +505,7 @@ const PASSES = [
   {
     re: /\bHN\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
     cat: 'HN',
+    thaiDigits: true,
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
@@ -510,6 +515,7 @@ const PASSES = [
   {
     re: /\b(?:MRN|AN)\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
     cat: 'MRN',
+    thaiDigits: true,
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
@@ -528,6 +534,7 @@ const PASSES = [
   {
     re: /\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]*\d){6,9}/g,
     cat: 'PHONE',
+    thaiDigits: true,
     guard: (m) => {
       // national number: 8 digits (landline) or 9 (mobile); a written trunk 0
       // adds one (10). Accept 8-10 after stripping the leading 66.
@@ -541,9 +548,24 @@ const PASSES = [
     // never eats a longer run or a bare lab count (which has no leading 0).
     re: /\(?0\d\)?(?:[\s()-]*\d){7,9}/g,
     cat: 'PHONE',
+    thaiDigits: true,
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 9 && d <= 10;
+    },
+  },
+  // Dot-separated, national or +66 (081.234.5678, 02.123.4567, +66.81.234.5678). Its own pass so '.' never
+  // joins the loose runs above: three groups, not after a digit or dot and not before a decimal, so a lab
+  // list (Cr 1.05 2.10) or a dotted date (05.12.2569) is no phone. Only a match holding a dot counts.
+  {
+    re: /(?<![\d.])(?:\+?66[\s.-]?(?:\(0\)[\s.-]?)?\d{1,2}|\(?0\d{1,2}\)?)[\s.-]\d{3,4}[\s.-]\d{3,4}(?!\.?\d)/g,
+    cat: 'PHONE',
+    thaiDigits: true,
+    guard: (m) => {
+      if (!m.includes('.')) return false;
+      const intl = /^\+?66/.test(m);
+      const nat = m.replace(/\D/g, '').slice(intl ? 2 : 0);
+      return nat.length >= (intl ? 8 : 9) && nat.length <= 10; // the same counts as the two passes above
     },
   },
 
@@ -915,9 +937,14 @@ function applyGivenSurnamePass(text, token) {
   throw new Error('PII filter: surname search did not settle');
 }
 
+// Thai digits ๐–๙ (U+0E50–U+0E59) as ASCII 0–9. One UTF-16 unit each way, so the copy is index-for-index the
+// original: a numeric pass matches on it and cuts the original, and text left unmasked keeps its Thai digits.
+const THAI_DIGIT_RE = /[๐-๙]/g;
+const asciiDigits = (s) => s.replace(THAI_DIGIT_RE, (c) => String.fromCharCode(c.charCodeAt(0) - 0x0E50 + 0x30));
+
 // Apply one pass, threading the shared registry so tokens are stable per call.
 function applyPass(text, pass, token, hints) {
-  const { re, cat, guard, kind } = pass;
+  const { re, cat, guard, kind, thaiDigits } = pass;
 
   if (kind === 'bare-name') return applyBareNamePass(text, token);
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
@@ -1021,8 +1048,8 @@ function applyPass(text, pass, token, hints) {
       return title + ' ' + tok;
     }
 
-    return token(cat, match);
-  });
+    return token(cat, match); // a thaiDigits match is the ASCII view: both scripts of one number share a token
+  }, thaiDigits ? asciiDigits(text) : text);
 }
 
 // Mask one string. If a registry is provided, tokens stay stable across all

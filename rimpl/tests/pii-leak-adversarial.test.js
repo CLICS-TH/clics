@@ -225,6 +225,48 @@ describe('adversarial — HN / AN / MRN', () => {
 });
 
 // ===========================================================================
+// THAI DIGITS (๐–๙) AND DOTTED PHONES (#440) — the numeric passes matched ASCII \d only, and the phone
+// passes took no '.' separator, so both shapes reached the model and the booth's kept answer in clear.
+// ===========================================================================
+describe('adversarial — Thai-digit and dotted identifiers (#440)', () => {
+  test.each([
+    ['Thai-digit dashed mobile', 'โทร ๐๘๑-๒๓๔-๕๖๗๘', ['๐๘๑', '๒๓๔', '๕๖๗๘'], 'PHONE'],
+    ['Thai-digit plain mobile', 'มือถือ ๐๘๑๒๓๔๕๖๗๘', ['๐๘๑๒๓๔๕๖๗๘', '๕๖๗๘'], 'PHONE'],
+    ['Thai-digit landline', 'บ้าน ๐๒-๑๒๓-๔๕๖๗', ['๑๒๓', '๔๕๖๗'], 'PHONE'],
+    ['Thai-digit +66', 'ติดต่อ +๖๖ ๘๑ ๒๓๔ ๕๖๗๘', ['๒๓๔', '๕๖๗๘'], 'PHONE'],
+    ['mixed Thai and ASCII digits', 'โทร ๐๘๑-234-5678', ['๐๘๑', '5678'], 'PHONE'],
+    ['dotted mobile', 'โทร 081.234.5678', ['081', '234', '5678'], 'PHONE'],
+    ['dotted landline', 'call 02.123.4567', ['123', '4567'], 'PHONE'],
+    ['dot then space', 'โทร 081 234.5678', ['081', '5678'], 'PHONE'],
+    ['dotted +66', 'tel +66.81.234.5678', ['234', '5678'], 'PHONE'],
+    ['+66 then dotted', 'tel +66 81.234.5678', ['234', '5678'], 'PHONE'],
+    ['dotted Thai-digit mobile', 'โทร ๐๘๑.๒๓๔.๕๖๗๘', ['๐๘๑', '๕๖๗๘'], 'PHONE'],
+    ['Thai-digit HN', 'ผู้ป่วย HN ๑๒๓๔๕๖๗๘ มาด้วย', ['๑๒๓๔๕๖๗๘'], 'HN'],
+    ['Thai-digit HN with dash', 'HN: ๖๕-๐๑๒๓๔๕', ['๖๕-๐๑๒๓๔๕', '๐๑๒๓๔๕'], 'HN'],
+    ['Thai-digit MRN', 'MRN: ๔๔๕๕๖๖๗', ['๔๔๕๕๖๖๗'], 'MRN'],
+    ['Thai-digit national ID, plain', 'บัตรประชาชน ๑๒๓๔๕๖๗๘๙๐๑๒๓', ['๑๒๓๔๕๖๗๘๙๐๑๒๓'], 'ID'],
+    ['Thai-digit national ID, dashed', 'เลขบัตร ๑-๒๓๔๕-๖๗๘๙๐-๑๒-๓', ['๖๗๘๙๐', '๒๓๔๕'], 'ID'],
+  ])('%s is masked', (_label, input, leaked, cat) => {
+    assertScrubbed(input, leaked);
+    expect(scrubbedOut).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  test('a Thai-digit phone and its ASCII form are one person: one token', () => {
+    expect(stripPii('โทร 081-234-5678 หรือ ๐๘๑-๒๓๔-๕๖๗๘')).toBe('โทร [PHONE-1] หรือ [PHONE-1]');
+  });
+
+  // NEGATIVES — Thai digits outside an identifier stay Thai digits, and decimals / dotted dates are not phones.
+  test.each([
+    'ความดัน ๑๒๐/๘๐ ชีพจร ๘๘',
+    'platelet ๒๕๐๐๐๐',
+    'Cr 1.05 2.10 3.20 4.1',
+    'K 3.5 Na 135 Cl 100',
+    'วันที่ 05.12.2569',
+    'NSS 0.9% 1000 ml',
+  ])('%s survives byte-for-byte', (text) => assertSurvives(text));
+});
+
+// ===========================================================================
 // ADDRESSES — บ้านเลขที่ / หมู่ / ตำบล / อำเภอ / จังหวัด
 // ===========================================================================
 describe('adversarial — Thai home address components', () => {
@@ -1138,6 +1180,25 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
     } finally {
       delete process.env.BOOTH_EMBED_MODEL_DIR;
     }
+  });
+
+  // #440: a phone typed in Thai digits or with dots passed stripPii, so it reached the model and booth_plays.steps.
+  test.each([
+    ['Thai digits', '๐๘๑-๒๓๔-๕๖๗๘', ['๐๘๑', '๕๖๗๘']],
+    ['dots', '081.234.5678', ['081.234', '5678']],
+  ])('a phone typed in %s reaches neither the AI call nor answer_deidentified', async (_label, phone, leaked) => {
+    const answer = `โทรหาผู้ป่วยที่ ${phone} มาตรวจ PCR ซ้ำ`;
+    const res = await request(app).post('/chat').send({
+      ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${answer}`,
+      booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: answer,
+    });
+    expect(res.status).toBe(200);
+    const wire = JSON.stringify(callAI.mock.calls);
+    for (const frag of leaked) {
+      expect(wire).not.toContain(frag);
+      expect(res.body.answer_deidentified).not.toContain(frag);
+    }
+    expect(res.body.answer_deidentified).toBe('โทรหาผู้ป่วยที่ [PHONE-1] มาตรวจ PCR ซ้ำ');
   });
 
   // The gate's case (#375): the label ends the question and the value is the whole answer. The message masks the two
