@@ -80,19 +80,22 @@ const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
  * @param {Record<string, Record<string, number[]>>} table composites per case id, then per group
  * @param {string[]} groups the groups every case must have, in report order; must include 'best' and 'weakest'
  * @param {{ pool?: { medians: Record<string, number | null>, pool_n: Record<string, number> }, incomplete?: string,
- *   runs?: Record<string, number> }} [opts] runs: plays planned per group, per case (default 1)
+ *   runs?: Record<string, number>, averaged?: Record<string, number> }} [opts] runs: plays planned per group, per case
+ *   (default 1); averaged: how many plays' mean a group's value is as noisy as, which sizes its band and the gap
+ *   (default runs)
  */
-export function verdicts(table, groups, { pool, incomplete, runs = {} } = {}) {
+export function verdicts(table, groups, { pool, incomplete, runs = {}, averaged = {} } = {}) {
   const ids = Object.keys(table);
   const planned = (g) => runs[g] ?? 1;
+  const noise = (g) => averaged[g] ?? planned(g);
   const complete = (id, g) => (table[id][g] ?? []).length >= planned(g);
   const means = Object.fromEntries(ids.map((id) => [id, Object.fromEntries(groups.map((g) => [g, complete(id, g) ? mean(table[id][g]) : null]))]));
   const pooledIn = (g) => ids.map((id) => means[id][g]).filter((m) => m != null);
   const medians = pool?.medians ?? Object.fromEntries(groups.map((g) => [g, median(pooledIn(g))]));
   const poolN = pool?.pool_n ?? Object.fromEntries(groups.map((g) => [g, pooledIn(g).length]));
   const thin = groups.filter((g) => !(poolN[g] >= MIN_POOL));
-  const bands = Object.fromEntries(groups.map((g) => [g, thin.includes(g) ? null : bandFor(g, planned(g), poolN[g], groups.length)]));
-  const gapMin = gapFor(planned('best'), planned('weakest'));
+  const bands = Object.fromEntries(groups.map((g) => [g, thin.includes(g) ? null : bandFor(g, noise(g), poolN[g], groups.length)]));
+  const gapMin = gapFor(noise('best'), noise('weakest'));
   const runReasons = [
     ...(incomplete ? [`incomplete run: ${incomplete}`] : []),
     ...(thin.length ? [`no pool: ${thin.map((g) => `${g} pooled from ${poolN[g] ?? 0} case(s)`).join(', ')}, fewer than ${MIN_POOL}`] : []),
