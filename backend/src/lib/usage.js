@@ -206,8 +206,16 @@ async function budgetPool() {
   return { cap, spent, exhausted: spent >= cap, uncapped: false };
 }
 
+// Meter the tokens a FAILED RIMPL call still spent (rimpl-client errorFromBody's `burned`, today only a
+// 503 empty_reply). Priced against the provider that burned them, like a successful call. No-op otherwise.
+async function accrueBurned(userId, err) {
+  const b = err?.burned;
+  if (!userId || !b) return null;
+  return accrueUsage(userId, b.input_tokens, b.output_tokens, costUsd(b.input_tokens, b.output_tokens, b.provider));
+}
+
 module.exports = {
-  budgetPool,
+  budgetPool, accrueBurned,
   POOLS, STANDARD_LIMIT_KEY, DEFAULT_STANDARD_LIMIT_USD, RESERVE_ESTIMATE_USD,
   standardLimit, effectiveLimit, standardTokenLimit, effectiveTokenLimit, tokensUsed, budgetState,
   accrueUsage, reserveUsage, settleUsage, refundUsage, _resetCaches,

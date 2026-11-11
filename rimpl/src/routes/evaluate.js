@@ -192,7 +192,7 @@ router.post('/', async (req, res) => {
       provenance: buildProvenance({
         provider, model,
         promptVersion, rubricVersion: RUBRIC_VERSION,
-        temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens, numCtx,
+        temperature: EVAL_DECODING.temperature, maxTokens: first?.maxTokens ?? EVAL_DECODING.maxTokens, numCtx,
         weightsSha256: weights_sha256 ?? null,
         lockDeclarationSha256: lock_declaration_sha256 ?? null,
         engine, quantization, runtime,

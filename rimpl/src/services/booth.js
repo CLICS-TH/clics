@@ -11,6 +11,8 @@ const { stripArtifactDelimiters } = require('../lib/transcript');
 const { promptLabel } = require('../lib/versions');
 const { parseJsonObject } = require('../lib/parse');
 const { BOOTH_TYPED_DECODING } = require('../lib/decoding');
+const { cuesOf, bestReusable, calibrated } = require('../lib/booth-cache');
+const { embed, MODEL_ID } = require('./embed');
 
 // A bank's text in the reply language only (#377), which is also the bridge's.
 const bankIn = (bank, language) => ({
@@ -55,9 +57,22 @@ function readReply(text, { grill, typed }) {
   };
 }
 
+// A reuse (#387): no AI call, so no reply of its own. The backend answers with its copy of the entry `id` names.
+const cacheHit = (id, answerDeidentified) => ({
+  reply: Object.fromEntries(REPLY_FIELDS.map((k) => [k, ''])), pick: null, tier: null, cache: { hit: id },
+  answer_deidentified: answerDeidentified, refs: [], token_count: 0, input_tokens: 0, output_tokens: 0,
+  provider: 'cache', model: MODEL_ID, prompt_version: null, failed_over_from: null,
+});
+
 // `messages` and `answerDeidentified` must already be de-identified (routes/chat.js deidentifyBoothTurn's output).
-// answerDeidentified is only echoed back for the backend to store (#375); the model never sees it apart.
-async function boothReply({ messages, bank, typed, answerDeidentified, language, signal }) {
+// answerDeidentified is only echoed back for the backend to store (#375); the model never sees it apart. With
+// `cache` (#387), a typed answer is embedded from answerDeidentified alone, never the raw text: it may reuse an
+// entry (once the guards are calibrated), else the live reply carries the embedding for the backend to store.
+async function boothReply({ messages, bank, typed, answerDeidentified, cache, language, signal }) {
+  const embedding = typed && cache && answerDeidentified ? await embed(answerDeidentified) : null;
+  const query = embedding && { model: MODEL_ID, embedding, cues: cuesOf(answerDeidentified) };
+  const hit = query && calibrated(MODEL_ID) ? bestReusable(query, cache.entries) : null;
+  if (hit) return cacheHit(hit, answerDeidentified);
   const systemPrompt = chatSystemPrompt({ booth: true, grill: Boolean(bank), typed: Boolean(typed), language });
   const { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } = await callAI({
     purpose: 'chat', systemPrompt, signal,
@@ -79,6 +94,7 @@ async function boothReply({ messages, bank, typed, answerDeidentified, language,
     model,
     prompt_version: promptLabel('chat', systemPrompt),
     failed_over_from: failed_over_from ?? null,
+    ...(query ? { cache: query } : {}),
   };
 }
 

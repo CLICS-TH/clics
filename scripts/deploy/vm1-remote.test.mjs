@@ -528,6 +528,59 @@ test('preflight: RECONCILE_INTERVAL_MS must be an explicit 0 unless CLICS_CUTOVE
   }
 });
 
+// #424: the on-prem model block is declared, never routed, and its two instances are two model artifacts.
+const EVAL_URL = 'http://evaluator-box.invalid:8000/v1';
+const EVAL_KEY = 'sk-EVAL-5c4b3a';
+const block = (tutorUrl = 'http://tutor-box.invalid:8000/v1', tutorModel = 'tutor-model') =>
+  `LOCAL_AI_BASE_URL=${EVAL_URL}\nLOCAL_AI_MODEL=eval-model\nLOCAL_AI_API_KEY=${EVAL_KEY}\n` +
+  `LOCAL_TUTOR_AI_BASE_URL=${tutorUrl}\nLOCAL_TUTOR_AI_MODEL=${tutorModel}\n`;
+test('preflight: the on-prem model block is declared, never routed, and evaluator != tutor', () => {
+  const cases = [
+    [block(), false, /on-prem evaluator declared .* on-prem tutor declared/s],
+    ['', false, /WARNING: on-prem evaluator not declared/],
+    [`${block()}AI_PROVIDER=anthropic\nAI_PROVIDER_CHAT=anthropic\n`, false, /preflight ok/],
+    [`${block()}AI_PROVIDER_CHAT=local-tutor\n`, true, /AI_PROVIDER_CHAT names local-tutor/],
+    [`${block()}AI_PROVIDER=local\n`, true, /AI_PROVIDER names local\b/],
+    [`${block()}AI_PROVIDER_EVALUATE= 'LOCAL' \n`, true, /AI_PROVIDER_EVALUATE names local/],
+    [`${block()}export SHADOW_EVAL_PROVIDER=local\n`, true, /SHADOW_EVAL_PROVIDER names local/],
+    [`${block()}CHAT_FAILOVER_PROVIDER=local-tutor\n`, true, /CHAT_FAILOVER_PROVIDER names local-tutor/],
+    [`${block()}EMBED_PROVIDER=local\n`, true, /EMBED_PROVIDER names local/],
+    [`${block()}AI_PROVIDER_EMBED="local"\n`, true, /AI_PROVIDER_EMBED names local/],
+    [block(EVAL_URL, 'eval-model'), true, /resolve to the same base URL and model\. CCME R3/],
+    [block('HTTP://Evaluator-Box.invalid:8000/v1//', 'eval-model'), true, /same base URL and model/],
+    [block('https://box.invalid:443/v1', 'm').replace(EVAL_URL, 'https://BOX.invalid/v1/').replace('=eval-model', '=m'), true, /same base URL and model/],
+    [block(EVAL_URL, 'other-model'), false, /preflight ok/],
+    [block('http://tutor-box.invalid:8000/v1', 'eval-model'), false, /preflight ok/],
+    [`${block()}LOCAL_AI_MODEL=again\n`, true, /assigns LOCAL_AI_MODEL more than once/],
+    [`${block()}AI_PROVIDER_CHAT=local-tutor   # tutor trial\n`, true, /AI_PROVIDER_CHAT holds # or \$/],
+    [`${block()}AI_PROVIDER_CHAT=$TUTOR\n`, true, /AI_PROVIDER_CHAT holds # or \$/],
+    [block(EVAL_URL, 'eval-model # tutor'), true, /LOCAL_TUTOR_AI_MODEL holds # or \$/],
+    [`${block()}LOCAL_TUTOR_AI_HTTP_PROXY=http://proxy.invalid:1055\n`, true, /rimpl\.env sets LOCAL_TUTOR_AI_HTTP_PROXY/],
+  ];
+  for (const [rimplExtra, refused, want] of cases) {
+    const h = host({ rimplExtra });
+    try {
+      const r = remote(h, 'preflight');
+      assert.equal(r.status !== 0, refused, `${JSON.stringify(rimplExtra)}: ${r.out}`);
+      assert.match(r.out, want);
+      for (const secret of [EVAL_KEY, 'evaluator-box', 'tutor-box', 'box.invalid']) {
+        assert.ok(!r.out.includes(secret), `printed ${secret}:\n${r.out}`);
+      }
+    } finally { cleanup(h); }
+  }
+});
+
+test('activate re-checks the model block and refuses a route before it builds or starts anything', () => {
+  const h = host({ releases: [SHA], current: SHA, rimplExtra: `${block()}AI_PROVIDER_DISCUSS=local-tutor\n` });
+  try {
+    const r = remote(h, 'activate', 'rollback', { STUB_IMAGES: '1' });
+    assert.notEqual(r.status, 0);
+    assert.match(lastLine(r.out), /AI_PROVIDER_DISCUSS names local-tutor\. .* Nothing was changed\./);
+    assert.ok(!r.calls.some((c) => / compose -p /.test(c)), `no compose call:\n${r.calls.join('\n')}`);
+    assert.equal(current(h), `releases/${SHA}`);
+  } finally { cleanup(h); }
+});
+
 // ---- launch / attach: the detached activation --------------------------------------------------------
 function stage(h, script = stepScript('activate'), run = RUN) {
   mkdirSync(path.join(h.base, 'runs', run), { recursive: true });

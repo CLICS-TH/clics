@@ -2,7 +2,7 @@
 // encrypt + persist — while still sending ZERO raw PII to the cloud model. Hermetic.
 jest.mock('../src/services/ai', () => ({
   callAI: jest.fn().mockResolvedValue({
-    text: '{"c4":true,"c5":true,"c6":true}', inputTokens: 5, outputTokens: 5,
+    text: '{"c4":true,"c5":true,"c6":true,"c7":true}', inputTokens: 5, outputTokens: 5,
     provider: 'anthropic', model: 'claude-sonnet-4-6',
   }),
 }));

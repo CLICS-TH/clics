@@ -5,6 +5,15 @@ jest.mock('../src/services/rag', () => ({ ragLookup: jest.fn().mockResolvedValue
 jest.mock('../src/lib/supabase', () => ({
   supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
 }));
+// The booth reply cache's in-process embedder (#387): a fake pipeline that records every text it is given.
+const mockEmbedded = [];
+jest.mock('@huggingface/transformers', () => ({
+  env: {},
+  pipeline: jest.fn(async () => async (text) => {
+    mockEmbedded.push(text);
+    return { data: Float32Array.from({ length: 16 }, (_, k) => (k === 0 ? 1 : 0)) };
+  }),
+}));
 
 const { stripPii, stripHistoryPii, deriveHintTokens, primeRegistry, makeRegistry } = require('../src/services/pii-filter');
 const request = require('supertest');
@@ -1102,6 +1111,33 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
       expect(res.body.answer_deidentified).not.toContain(frag);
     }
     expect(res.body.answer_deidentified).toMatch(/^ให้นาย\[NAME-\d+\] .*\[PHONE-\d+\] มาตรวจ PCR ซ้ำ$/);
+  });
+
+  // #387: with the reply cache on, the answer is also embedded, in-process, and its embedding and cues come back for
+  // the backend to store. The embedder is a third place the identifiers must not reach.
+  test('with booth_cache, neither reaches the AI call, the embedder, or anything the response hands back to store', async () => {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const { MODEL, REVISION, REVISION_FILE } = require('../src/services/embed');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-embed-model-'));
+    fs.mkdirSync(path.join(dir, MODEL), { recursive: true });
+    fs.writeFileSync(path.join(dir, MODEL, REVISION_FILE), `${REVISION}\n`);
+    process.env.BOOTH_EMBED_MODEL_DIR = dir;
+    try {
+      const res = await request(app).post('/chat').send({
+        ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${ANSWER}`,
+        booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: ANSWER,
+        booth_cache: { entries: [] },
+      });
+      expect(res.status).toBe(200);
+      expect(mockEmbedded).toEqual([res.body.answer_deidentified]);
+      expect(res.body.cache).toEqual({ model: expect.any(String), embedding: expect.any(Array), cues: expect.any(Array) });
+      const seen = JSON.stringify([callAI.mock.calls, mockEmbedded, res.body]);
+      for (const frag of LEAKED) expect(seen).not.toContain(frag);
+    } finally {
+      delete process.env.BOOTH_EMBED_MODEL_DIR;
+    }
   });
 
   // The gate's case (#375): the label ends the question and the value is the whole answer. The message masks the two

@@ -40,6 +40,9 @@ const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
 // The bank for step n is keyed by the tier letters of the n answers before it.
 const BANK_AT = [(banks) => banks.step1, (banks, p) => banks.step2[p], (banks, p) => banks.step3[p]];
 const bankAt = (kase, tierPath) => BANK_AT[tierPath.length](kase.banks, tierPath);
+// The name of the bank each BANK_AT entry picks, in the same order, as the reply cache (#387) keeps it.
+const BANK_KEY = [() => 'step1', (p) => `step2.${p}`, (p) => `step3.${p}`];
+const bankKey = (tierPath) => BANK_KEY[tierPath.length](tierPath);
 
 const randomOf = (list) => list[crypto.randomInt(list.length)];
 function shuffled(list) {
@@ -134,6 +137,37 @@ function quotesFor(kase, d) {
   return (run) => { const quote = comparable(run); return sources.some((s) => s.includes(quote)); };
 }
 
+const ECHO_MIN_CHARS = 8;
+// Every side of the echo check alike: format and control characters dropped (zero-width, bidi, BOM; a tab or line
+// break stays a space), the fence marks and every `*` too, then `comparable`, so none of them can split a run.
+const echoForm = (s) => comparable(s.replace(/\p{Cf}|(?![\t\n\v\f\r])\p{Cc}/gu, '').replaceAll(FENCE_OPEN, '')
+  .replaceAll(FENCE_CLOSE, '').replaceAll('*', ''));
+
+/** Whether `said` and one of `fields` share a run of ECHO_MIN_CHARS or more that no text in `own` holds. */
+function repeats(said, fields, own) {
+  for (let i = 0; i + ECHO_MIN_CHARS <= said.length; i += 1) {
+    // The longest run from i that one field repeats: when it is in the case's text, so is every shorter one.
+    let end = i;
+    while (end < said.length && fields.some((f) => f.includes(said.slice(i, end + 1)))) end += 1;
+    const run = said.slice(i, end);
+    if (run.length >= ECHO_MIN_CHARS && !own.some((t) => t.includes(run))) return true;
+  }
+  return false;
+}
+
+/** Whether a reply in dialogue `d` repeats ECHO_MIN_CHARS or more of any answer the visitor typed (the AI sees the
+ *  whole history) that the case's text (the vignette, and each step's question and options, in either language)
+ *  does not hold. Such a reply may carry what that visitor typed, so the reply cache (#387) never keeps it. */
+function echoesAnswer(kase, d, reply) {
+  const own = [kase.vignette.th, kase.vignette.en, ...d.answers.flatMap((_, i) => {
+    const bank = bankAt(kase, d.tierPath.slice(0, i));
+    const { question } = bank.variants.find((v) => v.id === d.asks[i].variant);
+    return [question.th, question.en, ...bank.options.flatMap((o) => [o.label.th, o.label.en, o.line.th, o.line.en])];
+  })].map(echoForm);
+  const fields = REPLY_FIELDS.map((k) => echoForm(reply[k]));
+  return d.answers.some((a) => 'text' in a && repeats(echoForm(a.text), fields, own));
+}
+
 /** One field as it may reach the screen: whitespace collapsed, at most BOLD_MAX_RUNS `**` runs kept, each a short
  *  run `quotes` accepts (a failed run keeps its text), no other `*`, and at most FIELD_MAX_CHARS of visible text. */
 function checkedField(raw, quotes) {
@@ -222,9 +256,12 @@ function typedBanks(kase, tierPath, n, memo) {
  *  A typed one is sorted in this same call, so rimpl gets the step's own bank as the yardstick and the next step's
  *  bank for each tier it might sort the answer into, plus the typed text alone (booth_answer) to de-identify for
  *  storage. No chief_complaint: rimpl prefixes it to the last user turn, and turn 1 already carries the vignette. */
+/** The language rimpl replies to `d` in: the primary language of the look the kiosk sent with this call (#377). */
+const replyLanguage = (d) => LOOK_LANGUAGE[d.look ?? DEFAULT_LOOK];
+
 function chatRequest(kase, d) {
   const n = d.answers.length;
-  const language = LOOK_LANGUAGE[d.look ?? DEFAULT_LOOK];
+  const language = replyLanguage(d);
   const history = dialogueTurns(kase, d, true, language);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
@@ -283,6 +320,6 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
 
 module.exports = {
   STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  LOOK_LANGUAGE, DEFAULT_LOOK, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, replyText, sortedTier,
-  chatRequest, chatOutcome, evaluateRequest, stepTiers, stepRecords,
+  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
+  replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords,
 };

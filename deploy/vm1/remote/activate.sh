@@ -65,6 +65,7 @@ flock -n 9 || die "another deploy is running on this host"
 # Preflight ran these already; the env files may have been edited since.
 check_internal_token
 check_reconcile
+check_model_block
 check_current_release
 cd "$BASE/releases/$SHA/deploy/vm1" || die "release $SHA is not unpacked on this host"
 CLICS_RELEASE=$SHA
