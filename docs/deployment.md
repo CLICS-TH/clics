@@ -131,6 +131,8 @@ booth card's audit counts read. Production did not have it on 2026-11-10. Run in
    it. It is re-runnable. `select to_regclass('public.booth_audits');` is non-null once it is applied. The queue
    also reads `booth_plays.language_look`, which `db/migration-booth-plays.sql` adds (#377). The #377 backend
    needs that column too, so check that it is there before this deploy (`docs/BOOTH-REHEARSAL.md` has the check).
+   If it is missing, apply `db/migration-booth-plays.sql` first, in #377's order (`docs/BOOTH-REHEARSAL.md`):
+   without the column every `/auditor/booth` call answers 502 and every kiosk play ends unscored.
 2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then `/health/deep` reports
    `"service":"backend"`.
 3. **Dashboard.** `cd audit-dashboard && vercel --prod --yes`. This is what shows auditors the "Booth case studies"
