@@ -105,8 +105,20 @@ const SPAN_RULES = Object.freeze([
 const spanMatches = (flat) => SPAN_RULES.flatMap(({ rule, re, keep = () => true }) =>
   [...flat.matchAll(re)].filter(keep).map((m) => ({ rule, match: m[0], index: m.index })));
 
-const maskSpans = (flat) => spanMatches(flat).sort((a, b) => b.index - a.index)
-  .reduce((t, m) => `${t.slice(0, m.index)}${FLAGGED_TOKEN}${t.slice(m.index + m.match.length)}`, flat);
+// Spans of different rules can overlap, so they are merged into disjoint ranges before any is replaced.
+function maskSpans(flat) {
+  const ranges = spanMatches(flat).map((m) => [m.index, m.index + m.match.length]).sort((a, b) => a[0] - b[0])
+    .reduce((out, [s, e]) => {
+      const last = out.at(-1);
+      if (last && s <= last[1]) last[1] = Math.max(last[1], e);
+      else out.push([s, e]);
+      return out;
+    }, []);
+  let text = '';
+  let at = 0;
+  for (const [s, e] of ranges) { text += flat.slice(at, s) + FLAGGED_TOKEN; at = e; }
+  return text + flat.slice(at);
+}
 
 const excerpt = (a, b) => {
   let i = 0;

@@ -395,10 +395,11 @@ test('a play whose steps hold a key or value outside the published shape refuses
 });
 
 test('no span the scan flags reaches the AI read: a labelled English name and a titled Thai name are masked', () => {
-  const strings = ['full name: John Smith', 'ส่งต่อให้ รศ.สมชาย ใจดี ดูแล', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ หรือ a.b@c.co'];
+  const strings = ['full name: John Smith', 'ส่งต่อให้ รศ.สมชาย ใจดี ดูแล', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ หรือ a.b@c.co',
+    'ชื่อจริง นายวิชัย 0899999999 ต่อ', 'full name: Jane 0877777777 Doe', 'ชื่อจริง นายกรณ์ Lee Wu'];
   for (const s of strings) assert.notDeepEqual(scanPii(s), [], `the scan flags ${s}`);
   const sent = JSON.stringify(aiReadRequest(strings));
-  for (const leak of ['John', 'Smith', 'สมชาย', 'ใจดี', '081', '๐๘๑', '5678', 'a.b@c.co']) {
+  for (const leak of ['John', 'Smith', 'สมชาย', 'ใจดี', '081', '๐๘๑', '5678', 'a.b@c.co', 'วิชัย', '9999', 'Jane', '7777', 'กรณ์', 'Lee', 'Wu']) {
     assert.ok(!sent.includes(leak), `the AI read is not sent ${leak}`);
   }
   assert.match(sent, /\[FLAGGED\]/);
