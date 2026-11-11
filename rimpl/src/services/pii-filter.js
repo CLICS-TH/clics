@@ -1066,8 +1066,8 @@ function primeRegistry(texts, registry, hints = []) {
   throw new Error('PII filter: surname search did not settle');
 }
 
-// The identifier labels of a booth typed answer (maskLabelledTail). English matches in any case, as a whole word, with
-// the words of a label joined by anything or nothing ("last name", "lastname", "sub-district"). A Thai label matches
+// The identifier labels of a booth typed answer (maskLabelledTail). English matches in any case, with the words of a
+// label joined by anything or nothing ("last name", "lastname", "sub-district"); where in a word, see enLabel. A Thai label matches
 // anywhere except right after a leading vowel, so เชื่อ ("believe") is not ชื่อ.
 const BOOTH_ID_LABELS = {
   en: ['name', 'first name', 'last name', 'family name', 'surname', 'patient name', 'mr', 'mrs', 'ms', 'miss', 'hn',
@@ -1082,8 +1082,20 @@ const BOOTH_ID_LABELS = {
 const TH_LABEL_GUARDS = { โทร: '(?!(?!ศ)[ก-ฮเ-ไ])' };
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const byLength = (a, b) => b.length - a.length;
+// Fail closed on how a label is written: plural, glued to the value or inside a word ("Names:", "fullname",
+// "NameDalton"), so these labels match anywhere in any case. The short ones, and those inside common clinical words
+// (miss in admission, born in newborn, hospital no in "hospital now"), match only at a word start, then take a
+// plural (s, es) and stop before a lowercase letter: "MrDalton", "IDs" and "Misses" count, "MRI" counts too
+// (over-mask), "idea", "dobutamine" and "mobilise" do not.
+const EN_WORD_START_LABELS = new Set(['mr', 'mrs', 'ms', 'miss', 'hn', 'mrn', 'id', 'tel', 'dob', 'born', 'phone', 'mobile',
+  'hospital no']);
+const anyCase = (s) => s.replace(/[A-Za-z]/g, (c) => `[${c.toUpperCase()}${c.toLowerCase()}]`);
+const enLabel = (l) => {
+  const words = l.split(' ').map((w) => anyCase(escapeRe(w))).join('[^A-Za-z]{0,3}');
+  return EN_WORD_START_LABELS.has(l) ? `(?<![A-Za-z])${words}(?:[Ee]?[Ss])?(?![a-z])` : words;
+};
 const BOOTH_LABEL_RES = [
-  new RegExp(`(?<![A-Za-z])(?:${[...BOOTH_ID_LABELS.en].sort(byLength).map((l) => l.split(' ').map(escapeRe).join('[^A-Za-z]{0,3}')).join('|')})(?![A-Za-z])`, 'i'),
+  new RegExp(`(?:${[...BOOTH_ID_LABELS.en].sort(byLength).map(enLabel).join('|')})`),
   new RegExp(`(?<![เแโใไ])(?:${[...BOOTH_ID_LABELS.th].sort(byLength).map((l) => l.split(' ').map(escapeRe).join('\\s{0,3}') + (TH_LABEL_GUARDS[l] ?? '')).join('|')})`),
   // The admission number: never the article "an".
   /(?<![A-Za-z])AN(?=[\s:#.-]{0,3}\d)/,

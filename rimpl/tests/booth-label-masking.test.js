@@ -19,7 +19,7 @@ const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
 const { chatRequest, bankAt } = require('../../backend/src/services/booth-dialogue');
-const { stripPii } = require('../src/services/pii-filter');
+const { stripPii, maskLabelledTail, makeRegistry } = require('../src/services/pii-filter');
 const { LANGUAGES, labelRows } = require('./helpers/booth-labels');
 
 const CASES_DIR = path.join(__dirname, '../../backend/src/booth-cases/NFCME-2026');
@@ -46,7 +46,21 @@ const LEAKED = [
   ['The diagnosis name is heart failure.', 'The diagnosis '],
   ['Patient name: dalton prewitt ran out of his tablets', ''],
   ['Give oxygen first. hn1234567', 'Give oxygen first. '],
+  // A label written plural, glued to its value or inside a word passed the whole-word rule at 86f14f96 (re-gate).
+  ['Names: Dalton Prewitt', ''],
+  ['Patient names Dalton Prewitt', ''],
+  ['fullname Dalton Prewitt', 'full'],
+  ['NameDalton Prewitt', ''],
+  ['MrDalton Prewitt', ''],
+  ['Misses: Dalton Prewitt', ''],
+  ['IDs 1234567', ''],
 ];
+
+// Clinical words a booth answer keeps whole: the short labels match only at a word start.
+test.each(['admission to ICU', 'start dobutamine', 'newborn jaundice', 'admit to hospital now', 'identify the cause',
+  'early mobilisation', 'consider IV fluid'])('the clinical answer %j keeps every word', (answer) => {
+  expect(maskLabelledTail(answer, makeRegistry())).toBe(answer);
+});
 
 const TOKEN = /\[[A-Z]+-\d+\]/;
 const FENCE_RE = /⟦([^⟦⟧]*)⟧/g;
