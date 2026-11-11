@@ -63,6 +63,7 @@ const NOT_BOOTH_COPY = [
   ['.ai-text, .bridge-text', 'written by the AI in the look the reply was asked in'],
   ['.answer-text, .reveal-typed, .typing-box', 'typed by the visitor'],
   ['[data-look-primary] .look-text', 'the control\'s language names, each in its own language'],
+  ['.loop-media', 'the attract-loop video: one bilingual MP4 in every look (owner decision on PR #422: exempt the video)'],
 ];
 const PLAY_ID = '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f';
 const API = 'http://localhost:3001';
