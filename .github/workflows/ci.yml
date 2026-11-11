@@ -138,6 +138,12 @@ jobs:
       - name: booth-sort-memo — booth_sort_memo against a throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/booth-sort-memo-test.sh
+      # Booth reply cache (db/migration-booth-reply-cache.sql, #387): applies it twice to a throwaway PostgreSQL and
+      # asserts the column list, the switch seeded off, the CHECKs that keep a weaker or safety reply out, and that
+      # only service_role reaches the table, to read and append.
+      - name: booth-reply-cache — booth_reply_cache against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/booth-reply-cache-test.sh
       # PostgREST closed (db/migration-postgrest-closed.sql, ADR 0007): applies it twice over the real RLS policies
       # and asserts anon, an assigned auditor and the owning physician are refused every read, write and app
       # function while service_role is not, and that postgrest_exposure() lists a re-grant and schema.sql matches.

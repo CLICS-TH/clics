@@ -88,6 +88,8 @@ let rpcCalls;
 let rpcOverride;
 let standingsError;
 let countError;
+let cacheRows;
+let cacheFault;
 
 const matches = (row, ctx) => ctx.eqs.every(([c, v]) => row[c] === v)
   && ctx.iss.every(([c, v]) => (v === null ? row[c] == null : row[c] === v));
@@ -159,6 +161,15 @@ function resolve(table, kind, ctx) {
     const row = [...plays.values()].find((r) => matches(r, ctx));
     return row ? { ...row } : null;
   }
+  if (table === 'booth_reply_cache' && kind === 'list') {
+    if (cacheFault.read) return { data: null, error: cacheFault.read };
+    return cacheRows.filter((r) => matches(r, ctx)).map((r) => ({ ...r }));
+  }
+  if (table === 'booth_reply_cache' && kind === 'insert') {
+    if (cacheFault.insert) return { data: null, error: cacheFault.insert };
+    cacheRows.unshift({ id: crypto.randomUUID(), ...ctx.payload });
+    return { data: null, error: null };
+  }
   if (table === 'booth_plays' && kind === 'update') {
     const hits = [...plays.values()].filter((r) => matches(r, ctx));
     for (const r of hits) {
@@ -198,6 +209,8 @@ beforeEach(() => {
   rpcOverride = {};
   standingsError = null;
   countError = null;
+  cacheRows = [];
+  cacheFault = {};
   jest.clearAllMocks();
   rimplChat.mockImplementation(async () => ({ ...CHAT_OK }));
   jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -1959,6 +1972,324 @@ describe('the sort memo (#374: the same typed text at the same point sorts the s
   });
 });
 
+describe('the reply cache (#387: a typed answer that means the same may reuse a reply; ships off)', () => {
+  const TYPED = { text: 'ตรวจ CBC ก่อน' };
+  const DEID = 'ตรวจ CBC ก่อน (de-identified)';
+  const CACHE_ON = { key: 'booth_reply_cache', value: 1, value_text: null };
+  const LIVE = { model: 'embed@0123456789ab:q8', embedding: Array.from({ length: 16 }, (_, i) => (i + 1) / 16), cues: ['0123456789abcdef'] };
+  const COLUMNS = ['case_id', 'case_version', 'bank', 'tier_path', 'language', 'model', 'embedding', 'cues', 'tier', 'reply', 'pick'];
+  const switchedOn = () => { settings = { rows: [...eventSettings(), CACHE_ON] }; };
+  const cacheQueries = (op) => m.all('booth_reply_cache', op);
+  const sentCache = () => rimplChat.mock.calls.map(([body]) => body.booth_cache);
+  /** rimpl sorting every typed answer into `tier`, de-identifying it, and handing back the embedding to keep when sent booth_cache. */
+  const live = (tier, over = {}) => {
+    sorting(tier);
+    const sort = rimplChat.getMockImplementation();
+    rimplChat.mockImplementation(async (body) => ({
+      ...(await sort(body)), ...(body.booth_answer ? { answer_deidentified: DEID } : {}), ...(body.booth_cache ? { cache: LIVE } : {}), ...over,
+    }));
+  };
+  /** A row kept from an earlier answer at step 1 (tier path ''), as the table holds it. */
+  const entry = (over = {}) => ({
+    id: crypto.randomUUID(), case_id: KASE.case_id, case_version: KASE.version, bank: 'step1', tier_path: '', language: 'th',
+    model: LIVE.model, embedding: LIVE.embedding, cues: LIVE.cues, tier: 'R',
+    reply: { strength: 'เริ่มจาก **ตรวจ CBC** ก่อนเป็นจุดแข็ง', weigh: 'ชั่ง **EARLIER-WORDS** ด้วย', safety: '' },
+    pick: pickFor(bank('R'), { bridge: '' }), created_at: iso(-60_000), ...over,
+  });
+  /** rimpl reusing the entry `id`: no AI call, so no reply of its own. */
+  const reusing = (id) => rimplChat.mockImplementation(async () => ({
+    reply: NO_REPLY, pick: null, tier: null, cache: { hit: id }, answer_deidentified: DEID, refs: [], token_count: 0,
+    input_tokens: 0, output_tokens: 0, provider: 'cache', model: LIVE.model, prompt_version: null, failed_over_from: null,
+  }));
+  const replyLines = () => [...console.info.mock.calls, ...console.warn.mock.calls].map(([l]) => String(l)).filter((l) => l.startsWith('[booth] reply '));
+
+  test.each([
+    ['missing', () => {}],
+    ['0', () => { settings = { rows: [...eventSettings(), { ...CACHE_ON, value: 0 }] }; }],
+  ])('switched off (row %s): no booth_cache is sent, and the table is never read or written', async (_label, set) => {
+    set();
+    live('reasonable');
+    const p = await walked(['best', TYPED, 'best']);
+    expect((await score(p)).body.status).toBe('scored');
+    expect(rimplChat.mock.calls[1][0].booth_answer).toBe(TYPED.text);
+    for (const body of rimplChat.mock.calls.map(([b]) => b)) expect(body).not.toHaveProperty('booth_cache');
+    expect(cacheQueries()).toEqual([]);
+  });
+
+  test('switched on, a typed answer reads the newest entries at its point and sends only their embeddings and cues', async () => {
+    switchedOn();
+    cacheRows = [entry({ bank: 'step2.B', tier_path: 'B', tier: 'B' })];
+    live('reasonable');
+    const p = await walked(['best', TYPED]);
+    const [read] = cacheQueries('select');
+    expect(read.eqs).toEqual([['case_id', KASE.case_id], ['case_version', KASE.version], ['bank', 'step2.B'], ['tier_path', 'B'], ['language', 'th']]);
+    expect(sentCache()).toEqual([undefined, { entries: [{ id: cacheRows.at(-1).id, model: LIVE.model, embedding: LIVE.embedding, cues: LIVE.cues }] }]);
+    expect(JSON.stringify(sentCache())).not.toContain('EARLIER-WORDS');
+    expect(p.path).toBe('BR');
+  });
+
+  test.each([
+    ['in English only', { text: 'check CBC first' }, 'en'],
+    ['holding Thai', TYPED, 'th'],
+  ])('a typed answer %s reads and keeps its entries in the language rimpl replies in', async (_label, typed, language) => {
+    switchedOn();
+    live('reasonable');
+    await answer(await begin(), typed);
+    const read = new Map(cacheQueries('select')[0].eqs).get('language');
+    expect({ read, kept: cacheQueries('insert')[0].payload.language }).toEqual({ read: language, kept: language });
+  });
+
+  test('switched on, a tapped answer reads and sends nothing', async () => {
+    switchedOn();
+    live('reasonable');
+    await walked(['best', 'reasonable', 'weaker']);
+    expect(sentCache()).toEqual([undefined, undefined, undefined]);
+    expect(cacheQueries()).toEqual([]);
+  });
+
+  test('a reuse: the kiosk gets the kept reply checked against its own dialogue, the kept tier and pick, at no spend', async () => {
+    switchedOn();
+    const kept = entry();
+    cacheRows = [kept];
+    reusing(kept.id);
+    const p = await begin();
+    const res = await answer(p, TYPED);
+    expect(res.body).toMatchObject({ status: 'replied', deidentified: DEID });
+    expect(res.body.reply).toEqual({ strength: 'เริ่มจาก **ตรวจ CBC** ก่อนเป็นจุดแข็ง', weigh: 'ชั่ง EARLIER-WORDS ด้วย', safety: '' });
+    expect(res.body.next.ask.bridge).toBe('');
+    expect([...res.body.next.ask.options].sort()).toEqual([...kept.pick.option_ids].sort());
+    expect(res.body.next).toEqual(shown(bank('R'), res.body.next.ask));
+    expect(plays.get(p.id).spend_usd).toBe(0);
+    expect(rpcNamed('booth_settle_spend').map((a) => a.p_delta)).toEqual([-0.05]);
+    expect(JSON.stringify(console.warn.mock.calls)).not.toMatch(/unknown AI provider/);
+    expect(rpcNamed('booth_sort_memo').map((a) => a.p_tier)).toEqual([null]);
+    expect(replyLines()).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] reply replied play=${p.id} step=1 ms=\\d+ provider=cache$`))]);
+    expect(cacheQueries('insert')).toEqual([]);
+    p.path = 'R';
+    rimplChat.mockImplementation(async ({ booth_bank }) => ({ ...CHAT_OK, pick: booth_bank ? pickFor(booth_bank) : null }));
+    await answer(p, 'best');
+    await answer(p, 'best');
+    const scored = await score(p);
+    expect(scored.body.steps[0].tier).toBe('reasonable');
+    expect(plays.get(p.id).steps[0]).toMatchObject({ typed: DEID, tier: 'reasonable', reply: res.body.reply });
+  });
+
+  test('a reuse writes no sort memo: its tier was given to another text, so the next play of this text is sorted afresh', async () => {
+    switchedOn();
+    const kept = entry();
+    cacheRows = [kept];
+    reusing(kept.id);
+    await answer(await begin(), TYPED);
+    expect(rpcNamed('booth_sort_memo').filter((a) => a.p_tier !== null)).toEqual([]);
+    expect([...memos.values()]).toEqual([]);
+    cacheRows = [];
+    live('best');
+    const p = await begin();
+    await answer(p, TYPED);
+    expect(p.next).toEqual(shown(bank('B'), p.next.ask));
+    expect(rpcNamed('booth_sort_memo').filter((a) => a.p_tier !== null).map((a) => a.p_tier)).toEqual(['B']);
+  });
+
+  test.each([
+    ['an entry it did not send', () => crypto.randomUUID()],
+    ['an entry of another point', () => { const other = entry({ bank: 'step2.B', tier_path: 'B' }); cacheRows.push(other); return other.id; }],
+  ])('a reuse naming %s is no reply: the fallback ask, logged cache_unknown, and refunded', async (_label, idOf) => {
+    switchedOn();
+    cacheRows = [entry()];
+    reusing(idOf());
+    const p = await begin();
+    const res = await answer(p, TYPED);
+    expect(res.body).toMatchObject({ status: 'replied', reply: NO_REPLY });
+    expectFallback(bank('W'), res.body.next);
+    expect(plays.get(p.id).spend_usd).toBe(0);
+    expect(rpcNamed('booth_sort_memo').map((a) => a.p_tier)).toEqual([null]);
+    expect(replyLines()).toEqual([expect.stringMatching(/ provider=cache reason=cache_unknown$/)]);
+  });
+
+  test('a live reply sorted best or reasonable is kept: exactly the cache columns, no answer text raw or de-identified', async () => {
+    switchedOn();
+    live('reasonable');
+    const p = await begin();
+    const res = await answer(p, TYPED);
+    const [insert] = cacheQueries('insert');
+    expect(Object.keys(insert.payload).sort()).toEqual([...COLUMNS].sort());
+    expect(insert.payload).toEqual({
+      case_id: KASE.case_id, case_version: KASE.version, bank: 'step1', tier_path: '', language: 'th', ...LIVE,
+      tier: 'R', reply: AI_REPLY, pick: { ...pickFor(bank('R')), bridge: '' },
+    });
+    const written = JSON.stringify(insert.payload);
+    for (const s of [TYPED.text, DEID, 'ตรวจ']) expect(written).not.toContain(s);
+    expect(res.body.deidentified).toBe(DEID);
+  });
+
+  test.each([
+    ['sorted weaker', () => live('weaker')],
+    ['sorted unclear (taken as weaker)', () => live('unclear')],
+    ['with a safety field', () => live('best', { reply: { ...AI_REPLY, safety: 'Stopping fluids could harm him.' } })],
+    ['with no reply to show', () => live('best', { reply: NO_REPLY })],
+    ['with no embedding (the embedder was unavailable)', () => { live('best'); const l = rimplChat.getMockImplementation(); rimplChat.mockImplementation(async (b) => { const { cache: _, ...r } = await l(b); return r; }); }],
+    ['with an embedding of the wrong shape', () => live('best', { cache: { ...LIVE, embedding: [1, 2, 3] } })],
+  ])('a live reply %s is not kept, and the play goes on', async (_label, set) => {
+    switchedOn();
+    set();
+    const p = await begin();
+    expect((await answer(p, TYPED)).body.status).toBe('replied');
+    expect(cacheQueries('insert')).toEqual([]);
+  });
+
+  describe('a reply that repeats the visitor\'s own words is never kept for another visitor', () => {
+    const ANSWER = { text: 'ส่งต่อให้หมอสมศักดิ์ ใจกล้า ดูต่อพรุ่งนี้' };
+    const replying = (strength) => live('reasonable', { reply: { strength, weigh: 'ชั่งน้ำหนักเรื่องเวลา', safety: '' } });
+    const kept = async (answered) => {
+      switchedOn();
+      const p = await begin();
+      expect((await answer(p, answered)).body.status).toBe('replied');
+      return cacheQueries('insert').map((q) => q.payload.reply.strength);
+    };
+
+    test('a reply quoting a phrase of the answer that the case does not hold is not kept', async () => {
+      replying('การส่งต่อให้หมอสมศักดิ์ ใจกล้า เหมาะสม');
+      expect(await kept(ANSWER)).toEqual([]);
+    });
+
+    test('control: the same reply without the quote is kept', async () => {
+      replying('การส่งต่อเหมาะสม');
+      expect(await kept(ANSWER)).toEqual(['การส่งต่อเหมาะสม']);
+    });
+
+    test('a quote of the answer that the vignette also holds is kept', async () => {
+      expect(KASE.vignette.th).toContain('ไอมีเสมหะสีเหลือง');
+      replying('ไอมีเสมหะสีเหลือง เป็นข้อมูลสำคัญ');
+      expect(await kept({ text: 'ไอมีเสมหะสีเหลือง ให้ยาฆ่าเชื้อกิน' })).toEqual(['ไอมีเสมหะสีเหลือง เป็นข้อมูลสำคัญ']);
+    });
+
+    test('the quote is found through bold markers and spacing', async () => {
+      replying('ดีที่ **ส่งต่อให้หมอ  สมศักดิ์** ไว้');
+      expect(await kept({ text: 'ส่งต่อให้หมอ สมศักดิ์ ใจกล้า' })).toEqual([]);
+    });
+
+    // Each mark splits the quote into pieces shorter than the 8-character run, so only removing it finds the quote.
+    test.each([
+      ['a zero-width space', '​'],
+      ['a zero-width no-break space', '﻿'],
+      ['a bidi mark', '‮'],
+      ['a control character', '\u0007'],
+      ['a stray *', '*'],
+    ])('the quote is found through %s inside it', async (_label, mark) => {
+      replying(['ดีที่ส่ง', 'ต่อให้', 'หมอสม', 'ศัก', 'ดิ์ ใจ', 'กล้า'].join(mark));
+      expect(await kept(ANSWER)).toEqual([]);
+    });
+
+    test('a reply at step 2 that repeats the answer typed at step 1 is not kept; without the quote it is', async () => {
+      const step2 = { text: 'ตรวจเลือดซ้ำพรุ่งนี้เช้า' };
+      const play = async (strength) => {
+        switchedOn();
+        live('reasonable');
+        const p = await begin();
+        await answer(p, ANSWER);
+        replying(strength);
+        await answer(p, step2);
+        return cacheQueries('insert').filter((q) => q.payload.tier_path === 'R').map((q) => q.payload.reply.strength);
+      };
+      expect(await play('ส่งต่อให้หมอสมศักดิ์ ใจกล้า ตามที่วางไว้')).toEqual([]);
+      cacheRows = [];
+      m.state.queries.length = 0;
+      expect(await play('ตามแผนที่วางไว้')).toEqual(['ตามแผนที่วางไว้']);
+    });
+  });
+
+  describe('a kept reply keeps no bridge: the AI may quote the visitor in it', () => {
+    const ANSWER = { text: 'ส่งต่อให้หมอสมศักดิ์ ใจกล้า ดูต่อพรุ่งนี้' };
+    const QUOTING = 'ส่งต่อให้หมอสมศักดิ์ดูต่อพรุ่งนี้ก่อน';
+    /** rimpl replying with fields that quote nothing of the answer, and a bridge that quotes it. */
+    const bridging = () => {
+      live('reasonable', { reply: { strength: 'การส่งต่อเหมาะสม', weigh: 'ชั่งน้ำหนักเรื่องเวลา', safety: '' } });
+      const l = rimplChat.getMockImplementation();
+      rimplChat.mockImplementation(async (b) => { const r = await l(b); return { ...r, pick: r.pick && { ...r.pick, bridge: QUOTING } }; });
+    };
+
+    test('a live reply whose bridge alone quotes the answer is kept with an empty bridge; its own visitor still sees it', async () => {
+      switchedOn();
+      bridging();
+      const res = await answer(await begin(), ANSWER);
+      expect(res.body.next.ask.bridge).toBe(QUOTING);
+      const [insert] = cacheQueries('insert');
+      expect(insert.payload.pick).toEqual({ ...pickFor(bank('R')), bridge: '' });
+      expect(JSON.stringify(insert.payload)).not.toContain('สมศักดิ์');
+    });
+
+    test('a reuse of that reply shows the next visitor no bridge', async () => {
+      switchedOn();
+      bridging();
+      await answer(await begin(), ANSWER);
+      const [kept] = cacheRows;
+      reusing(kept.id);
+      const res = await answer(await begin(), { text: 'ส่งต่อให้แพทย์เฉพาะทางดูต่อ' });
+      expect(res.body.next.ask.bridge).toBe('');
+      expect([...res.body.next.ask.options].sort()).toEqual([...kept.pick.option_ids].sort());
+      expect(JSON.stringify(res.body)).not.toContain('สมศักดิ์');
+    });
+  });
+
+  test('a live reply whose tier is not the one the memo already took is not kept', async () => {
+    live('best');
+    await answer(await begin(), TYPED);
+    switchedOn();
+    live('reasonable');
+    const p = await begin();
+    await answer(p, TYPED);
+    expect(cacheQueries('insert')).toEqual([]);
+  });
+
+  test('the exact sort memo wins: with a memo of R, a B entry for the same point is never sent, and the step takes R', async () => {
+    live('reasonable');
+    await answer(await begin(), TYPED);
+    switchedOn();
+    const b = entry({ tier: 'B' });
+    cacheRows = [b];
+    rpcCalls = [];
+    rimplChat.mockClear();
+    live('reasonable');
+    const p = await begin();
+    await answer(p, TYPED);
+    expect(cacheQueries('select').at(-1).eqs).toContainEqual(['tier', 'R']);
+    expect(sentCache()).toEqual([{ entries: [] }]);
+    expect(rimplChat.mock.calls[0][0].booth_typed.next.best).toEqual(rimplChat.mock.calls[0][0].booth_typed.next.reasonable);
+    reusing(b.id);
+    const q = await begin();
+    expect((await answer(q, TYPED)).body.reply).toEqual(NO_REPLY);
+  });
+
+  test.each([
+    ['read', 'an error', () => { cacheFault.read = { code: 'PGRST205', message: 'no table' }; }],
+    ['insert', 'an error', () => { cacheFault.insert = { code: '23514', message: 'check' }; }],
+    ['read', 'a throw', () => { const from = supabase.from; supabase.from = (t) => { if (t === 'booth_reply_cache') throw new TypeError('boom'); return from(t); }; return () => { supabase.from = from; }; }],
+  ])('a %s fault (%s) never refuses the reply, and its warning names no text', async (stage, _kind, fault) => {
+    switchedOn();
+    live('reasonable');
+    const restore = fault();
+    try {
+      const p = await begin();
+      const res = await answer(p, TYPED);
+      expect(res.body).toMatchObject({ status: 'replied', reply: AI_REPLY });
+      if (stage === 'read') expect(sentCache()).toEqual([{ entries: [] }]);
+      expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^\\[booth\\] reply cache ${stage === 'read' ? 'read' : 'keep'} failed`)));
+      expect(JSON.stringify(console.warn.mock.calls)).not.toContain('ตรวจ');
+    } finally {
+      restore?.();
+    }
+  });
+
+  test('the bank key names the bank the step draws from, for every tier path of the case', () => {
+    const { bankKey, bankAt } = require('../src/services/booth-dialogue');
+    const paths = ['', ...Object.keys(KASE.banks.step2), ...Object.keys(KASE.banks.step3)];
+    for (const p of paths) {
+      const [step, at] = bankKey(p).split('.');
+      expect(at === undefined ? KASE.banks[step] : KASE.banks[step][at]).toBe(bankAt(KASE, p));
+    }
+  });
+});
+
 describe('the board (#212)', () => {
   const { standings } = require('../src/services/booth');
   const BKK = 7 * HOUR;
@@ -2232,5 +2563,13 @@ describe('a typed play through the real rimpl-client, with only fetch stubbed', 
     expect((await score(p)).body.status).toBe('scored');
     expect(plays.get(p.id).steps[1].typed).toBe(DEID);
     expect(JSON.stringify(writes().map((w) => w.payload))).not.toContain('สมชาย');
+  });
+
+  test('with the reply cache on, the entries reach rimpl as booth_cache on the typed call only (#387)', async () => {
+    settings = { rows: [...eventSettings(), { key: 'booth_reply_cache', value: 1, value_text: null }] };
+    const p = await begin();
+    await answer(p, 'best');
+    await answer(p, { text: RAW });
+    expect(sent.filter((s) => s.path === '/chat').map((s) => s.body.booth_cache)).toEqual([undefined, { entries: [] }]);
   });
 });

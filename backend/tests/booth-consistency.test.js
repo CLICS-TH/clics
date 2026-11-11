@@ -34,13 +34,18 @@ test('the booth_plays.case_id CHECK is the case-file case_id rule, and tier_path
   expect(/check \(tier_path ~ '([^']+)'\)/.exec(SQL)?.[1]).toBe('^[BRW]{0,3}$');
 });
 
-test('the migration seeds exactly the BOOTH_SETTINGS keys, switched off, for an event that has a case file', () => {
-  const insert = /insert into public\.app_settings \(key, value, value_text\) values([\s\S]*?)on conflict/.exec(SQL);
-  expect(insert).not.toBeNull();
-  const seeds = Object.fromEntries([...insert[1].matchAll(/\('([a-z_]+)',\s*([0-9.]+),\s*(null|'[^']*')\)/g)]
-    .map(([, key, value, text]) => [key, { value: Number(value), text: text === 'null' ? null : text.slice(1, -1) }]));
+test('the migrations seed exactly the BOOTH_SETTINGS keys, switched off, for an event that has a case file', () => {
+  const seedsOf = (sql) => {
+    const insert = /insert into public\.app_settings \(key, value, value_text\) values([\s\S]*?)on conflict/.exec(sql);
+    expect(insert).not.toBeNull();
+    return Object.fromEntries([...insert[1].matchAll(/\('([a-z_]+)',\s*([0-9.]+),\s*(null|'[^']*')\)/g)]
+      .map(([, key, value, text]) => [key, { value: Number(value), text: text === 'null' ? null : text.slice(1, -1) }]));
+  };
+  const cache = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-reply-cache.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  const seeds = { ...seedsOf(SQL), ...seedsOf(cache) };
   expect(Object.keys(seeds).sort()).toEqual(Object.values(BOOTH_SETTINGS).sort());
   expect(seeds[BOOTH_SETTINGS.enabled].value).toBe(0);
+  expect(seeds[BOOTH_SETTINGS.replyCache].value).toBe(0);
   expect(seeds[BOOTH_SETTINGS.ceilingUsd].value).toBe(3);
   const code = seeds[BOOTH_SETTINGS.code].text;
   expect(code).toBe('NFCME-2026');
@@ -81,6 +86,20 @@ test('booth_sort_memos holds a key, a tier letter and a time: no text column, RL
   expect(memo).toContain('revoke all on function public.booth_sort_memo(text, text) from public, anon, authenticated;');
   expect(memo).toContain('grant execute on function public.booth_sort_memo(text, text) to service_role;');
   expect(memo).not.toMatch(/grant [^;]* on (table )?public\.booth_sort_memos/i);
+});
+
+test('booth_reply_cache holds no answer text, keeps only B or R and no safety reply, RLS on, read and appended by service_role only', () => {
+  expect([...(schemaFromSql().booth_reply_cache ?? [])].sort()).toEqual(['id', 'case_id', 'case_version', 'bank', 'tier_path',
+    'language', 'model', 'embedding', 'cues', 'tier', 'reply', 'pick', 'created_at'].sort());
+  const cache = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-reply-cache.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  const caseId = CaseTreeSchema.shape.case_id._def.checks.find((c) => c.kind === 'regex').regex;
+  expect(/check \(case_id ~ '([^']+)'\)/.exec(cache)?.[1]).toBe(caseId.source);
+  expect(cache).toContain("check (tier in ('B', 'R'))");
+  expect(cache).toContain(`reply->'safety' = '""'::jsonb`);
+  expect(cache).toContain('alter table public.booth_reply_cache enable row level security;');
+  expect(cache).toContain('revoke all on table public.booth_reply_cache from public, anon, authenticated, service_role;');
+  expect(cache).toContain('grant select, insert on table public.booth_reply_cache to service_role;');
+  expect(cache).not.toMatch(/create policy/i);
 });
 
 test('booth_event_purges holds aggregates only, under the booth_plays event-code CHECK', () => {
