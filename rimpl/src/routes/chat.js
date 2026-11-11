@@ -225,8 +225,8 @@ function joinedReading(lead, answer, strip, falseNames) {
 
 // The answer read on its own, after the whole lead, and after the lead without its closing note. A character of the
 // answer is kept as typed only where every reading keeps it; each masked run takes the tokens the readings laid on it.
-// So the answer is the visitor's text with only masks put in, never question text. A reading that was taken lays no
-// masks; `taken`: every reading with the lead was.
+// So the answer is the visitor's text with only masks put in, never question text. Every reading's masks count, a taken
+// one's too (fail closed); `taken`: every reading with the lead was, so the lead is read shorter.
 function readAfter(lead, answer, strip, falseNames = []) {
   const alone = strip(answer);
   const leads = leadsOf(lead);
@@ -234,8 +234,7 @@ function readAfter(lead, answer, strip, falseNames = []) {
   const own = cleanSpans(answer, alone);
   const readings = leads.map((l) => joinedReading(l, answer, strip, falseNames));
   if (!own || readings.includes(null)) return cutAfter(lead, answer, strip);
-  const usable = readings.filter((r) => !r.taken);
-  const marks = [...own.filter((s) => s.tokens), ...usable.flatMap((r) => r.marks)].sort((a, b) => a.start - b.start);
+  const marks = [...own.filter((s) => s.tokens), ...readings.flatMap((r) => r.marks)].sort((a, b) => a.start - b.start);
   let cleanAnswer = '';
   for (let i = 0; i < answer.length;) {
     let end = i;
@@ -244,7 +243,7 @@ function readAfter(lead, answer, strip, falseNames = []) {
     cleanAnswer += [...new Set(marks.filter((m) => m.start < end && m.end > i).flatMap((m) => m.tokens))].join('');
     i = end;
   }
-  return { cleanLead: readings[0].cleanLead, cleanAnswer, taken: usable.length === 0 };
+  return { cleanLead: readings[0].cleanLead, cleanAnswer, taken: readings.every((r) => r.taken) };
 }
 
 // readAfter when a reading cannot be matched to its raw text: the joined clean text cut where it stops matching the
