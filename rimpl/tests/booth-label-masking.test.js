@@ -119,6 +119,19 @@ test('no vetted English case text masks as anything but an age', () => {
   for (const t of texts) expect(stripPii(t).replace(/\[AGE-\d+\]/g, '')).not.toMatch(TOKEN);
 });
 
+// One labelled field never runs into the next, on the next line or the same one: a value that swallowed the next
+// label would end that field's match past its label and send its value as typed.
+test.each([
+  ['Name: Dalton\nSurname: Prewitt', ['Dalton', 'Prewitt']],
+  ['Name: Dalton Ames Prewitt Surname Prewitt', ['Dalton', 'Ames', 'Prewitt']],
+  ['Patient name: Dalton Prewitt\nAddress: 123/45 Suthep Road', ['Dalton', 'Prewitt', '123/45', 'Suthep']],
+  ['Address: Ban Pong Province Nakhon Pathom', ['Ban Pong', 'Nakhon', 'Pathom']],
+  ['Patient name: Dalton Prewitt\nHN 1234567', ['Dalton', 'Prewitt', '1234567']],
+])('every value in %j is masked', (text, values) => {
+  const clean = stripPii(text);
+  for (const v of values) expect(clean).not.toContain(v);
+});
+
 // The filter runs on every English PLE turn too: a place label in clinical prose keeps the words after it.
 test.each([
   'In this province leptospirosis is common.',

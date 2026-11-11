@@ -204,13 +204,15 @@ const EN_NAME_RE = new RegExp(
 // English case text, #377). The value is the next words up to the first prose word (enValue). "name" and
 // "address" are also everyday verbs ("name the cause", "address hypoxia first"), so without a colon or "is" after
 // them the value must look like one: a capitalised name, or an address that opens with its house number.
+// A value never runs onto the next line: the next line may be another labelled field.
+const EN_GAP = '[^\\S\\r\\n]+';
 const EN_NAME_LABELS = ['patient\\s+name', 'family\\s+name', 'last\\s+name', 'surname', 'name'];
 const EN_LABELLED_RE = new RegExp(
-  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,5})`,
+  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:${EN_GAP}${EN_WORD}){0,5})`,
   'gi'
 );
 const EN_PLACE_RE = new RegExp(
-  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,7})`,
+  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:${EN_GAP}${EN_WORD}){0,7})`,
   'gi'
 );
 const EN_VERB_LABELS = new Set(['name', 'address']);
@@ -220,6 +222,9 @@ const EN_LABEL_PROSE = new Set([
   'a', 'an', 'this', 'that', 'these', 'those', 'it', 'its', 'is', 'be', 'of', 'to', 'in', 'on', 'at', 'by', 'from', 'or',
   'as', 'if', 'his', 'her', 'their', 'my', 'your', 'our', 'him', 'them', 'you', 'we', 'they', 'i', 'unknown', 'no', 'none',
   'hospital', 'health', 'office', 'clinic', 'centre', 'center', 'level', 'nurse', 'team', 'volunteer', 'chief', 'head',
+  // A label word starts the next field: a value that ran over it would end that field's match past its label.
+  'name', 'surname', 'patient', 'family', 'last', 'address', 'village', 'district', 'subdistrict', 'sub-district',
+  'province', 'hn', 'mrn', 'id',
 ]);
 
 // Clinical-lead shield for a bare (un-keyworded) surname token after a labelled
