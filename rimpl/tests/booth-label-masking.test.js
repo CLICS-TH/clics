@@ -119,14 +119,19 @@ test('no vetted English case text masks as anything but an age', () => {
   for (const t of texts) expect(stripPii(t).replace(/\[AGE-\d+\]/g, '')).not.toMatch(TOKEN);
 });
 
-// One labelled field never runs into the next, on the next line or the same one: a value that swallowed the next
-// label would end that field's match past its label and send its value as typed.
+// A value runs across a line break and over a word that only looks like a label, and ends where the next labelled
+// field starts: a value that swallowed that field's label would end its match past the label and send its value as
+// typed, and one that ended at a bare label word would send the rest of the name.
 test.each([
   ['Name: Dalton\nSurname: Prewitt', ['Dalton', 'Prewitt']],
   ['Name: Dalton Ames Prewitt Surname Prewitt', ['Dalton', 'Ames', 'Prewitt']],
   ['Patient name: Dalton Prewitt\nAddress: 123/45 Suthep Road', ['Dalton', 'Prewitt', '123/45', 'Suthep']],
   ['Address: Ban Pong Province Nakhon Pathom', ['Ban Pong', 'Nakhon', 'Pathom']],
   ['Patient name: Dalton Prewitt\nHN 1234567', ['Dalton', 'Prewitt', '1234567']],
+  ['Patient name: Dalton\nPrewitt', ['Dalton', 'Prewitt']],
+  ['Address: 123/45 Suthep Road\nMueang Lamphun', ['123/45', 'Suthep', 'Mueang', 'Lamphun']],
+  ['Name: Dalton Last', ['Dalton', 'Last']],
+  ['Surname: Patient', ['Patient']],
 ])('every value in %j is masked', (text, values) => {
   const clean = stripPii(text);
   for (const v of values) expect(clean).not.toContain(v);

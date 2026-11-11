@@ -204,15 +204,13 @@ const EN_NAME_RE = new RegExp(
 // English case text, #377). The value is the next words up to the first prose word (enValue). "name" and
 // "address" are also everyday verbs ("name the cause", "address hypoxia first"), so without a colon or "is" after
 // them the value must look like one: a capitalised name, or an address that opens with its house number.
-// A value never runs onto the next line: the next line may be another labelled field.
-const EN_GAP = '[^\\S\\r\\n]+';
 const EN_NAME_LABELS = ['patient\\s+name', 'family\\s+name', 'last\\s+name', 'surname', 'name'];
 const EN_LABELLED_RE = new RegExp(
-  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:${EN_GAP}${EN_WORD}){0,5})`,
+  `\\b(${EN_NAME_LABELS.join('|')})\\b((?:\\s+(?:is|was))?(?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,5})`,
   'gi'
 );
 const EN_PLACE_RE = new RegExp(
-  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:${EN_GAP}${EN_WORD}){0,7})`,
+  `\\b(sub-?district|district|province|village|address)\\b((?:\\s*[:：])?\\s*)(${EN_WORD}(?:\\s+${EN_WORD}){0,7})`,
   'gi'
 );
 const EN_VERB_LABELS = new Set(['name', 'address']);
@@ -222,9 +220,6 @@ const EN_LABEL_PROSE = new Set([
   'a', 'an', 'this', 'that', 'these', 'those', 'it', 'its', 'is', 'be', 'of', 'to', 'in', 'on', 'at', 'by', 'from', 'or',
   'as', 'if', 'his', 'her', 'their', 'my', 'your', 'our', 'him', 'them', 'you', 'we', 'they', 'i', 'unknown', 'no', 'none',
   'hospital', 'health', 'office', 'clinic', 'centre', 'center', 'level', 'nurse', 'team', 'volunteer', 'chief', 'head',
-  // A label word starts the next field: a value that ran over it would end that field's match past its label.
-  'name', 'surname', 'patient', 'family', 'last', 'address', 'village', 'district', 'subdistrict', 'sub-district',
-  'province', 'hn', 'mrn', 'id',
 ]);
 
 // Clinical-lead shield for a bare (un-keyworded) surname token after a labelled
@@ -842,7 +837,18 @@ const EN_DRUG_SUFFIX_RE = /^[A-Za-z]{3,}(?:cillin|mycin|cycline|statin|sartan|ol
 // The value after an English label or title (`words`, as the regex took them; `sep` is what stood between): the words
 // up to the first prose word or title and while they keep the first word's case ("Mr Smith vomited" takes Smith), or
 // '' for none. A value opens with a letter, except a place's (an address opens with its house number).
-function enValue(label, sep, words, place) {
+// A value ends where the next labelled field starts in the text itself, never at a bare label word: "Name: Dalton
+// Last" keeps Last in the value (an over-mask), while "Name: Dalton\nSurname: Prewitt" ends at Surname, so the
+// surname pass still finds its label. A line that opens with "Word:" is a new field too.
+const EN_FIELD_START_RE = new RegExp(
+  '^(?:(?:HN|MRN|AN|ID(?:\\s*(?:number|no\\.?))?|hospital\\s+(?:number|no\\.?))(?:\\s*[:#])?\\s*\\d'
+  + `|(?:${EN_NAME_LABELS.join('|')}|sub-?district|district|province|village|address)\\b(?:\\s+(?:is|was)\\b|\\s*[:：]|\\s+[A-Z\\d]))`,
+  'i'
+);
+const startsField = (text, newline) => EN_FIELD_START_RE.test(text) || (newline && /^[A-Za-z][\w ]{0,30}[:：]/.test(text));
+
+// `tail` is the text from the first value word to the end of the input.
+function enValue(label, sep, words, place, tail = words) {
   const parts = words.split(/(\s+)/);
   const declared = /[:：]|\b(?:is|was)\b/i.test(sep);
   if (EN_VERB_LABELS.has(label.toLowerCase()) && !declared
@@ -852,9 +858,12 @@ function enValue(label, sep, words, place) {
   if (place && !declared && !/^[A-Z\d]/.test(parts[0])) return '';
   let style = '';
   let n = 0;
+  let at = 0;
   for (let i = 0; i < parts.length; i += 2) {
     const w = parts[i];
     const lower = w.toLowerCase();
+    if (i > 0) at += parts[i - 2].length + parts[i - 1].length;
+    if (i > 0 && startsField(tail.slice(at), /[\r\n]/.test(parts[i - 1]))) break;
     if (EN_LABEL_PROSE.has(lower) || EN_CLINICAL_CONTINUATIONS.has(lower) || MED_SHIELD.has(w)
       || EN_TITLES.includes(w.replace(/\.$/, '')) || EN_DRUG_SUFFIX_RE.test(w)) break;
     const c = /^[A-Z]/.test(w) ? 'A' : /^[a-z]/.test(w) ? 'a' : '';
@@ -1070,21 +1079,21 @@ function applyPass(text, pass, token, hints) {
         return title + tok;
       }
       if (kind === 'en-labelled') {
-        const value = enValue(g1, g2, g3, false);
+        const value = enValue(g1, g2, g3, false, m.input.slice(m.index + g1.length + g2.length));
         if (!value) return [g1, g1.length];
         const tok = token('NAME', value);
         registerNameAliases(token, value, tok);
         return [g1 + g2 + tok, g1.length + g2.length + value.length];
       }
       // en-title: preserve the honorific, mask the (1-2 token) name group.
-      const value = enValue(g1, g2, g3, false);
+      const value = enValue(g1, g2, g3, false, m.input.slice(m.index + g1.length + g2.length));
       if (!value) return [g1, g1.length];
       const tok = token('NAME', value);
       registerNameAliases(token, value, tok);
       return [g1 + ' ' + tok, g1.length + g2.length + value.length];
     }
     if (kind === 'en-place') {
-      const value = enValue(g1, g2, g3, true);
+      const value = enValue(g1, g2, g3, true, m.input.slice(m.index + g1.length + g2.length));
       if (!value) return [g1, g1.length];
       return [g1 + g2 + token(cat, value), g1.length + g2.length + value.length];
     }
