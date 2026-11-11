@@ -957,8 +957,11 @@ function applyPass(text, pass, token, hints) {
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
   return replaceResumable(text, re, (m) => {
-    const [match, g1, g2, g3] = m;
-    if (guard && !guard(match)) return match;
+    // `seen` is what the regex read (the ASCII view on a thaiDigits pass); `match` is the original text, which
+    // every return that masks nothing must give back unchanged.
+    const [seen, g1, g2, g3] = m;
+    const match = text.slice(m.index, m.index + seen.length);
+    if (guard && !guard(seen)) return match;
 
     if (cat === 'NAME') {
       if (kind === 'th-nickname' || kind === 'en-nickname') {
@@ -1048,7 +1051,7 @@ function applyPass(text, pass, token, hints) {
       return title + ' ' + tok;
     }
 
-    return token(cat, match); // a thaiDigits match is the ASCII view: both scripts of one number share a token
+    return token(cat, seen); // keyed by the ASCII view: both scripts of one number share a token
   }, thaiDigits ? asciiDigits(text) : text);
 }
 

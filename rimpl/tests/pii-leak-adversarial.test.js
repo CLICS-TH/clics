@@ -263,6 +263,14 @@ describe('adversarial — Thai-digit and dotted identifiers (#440)', () => {
     'K 3.5 Na 135 Cl 100',
     'วันที่ 05.12.2569',
     'NSS 0.9% 1000 ml',
+    // A run a numeric pass matches but its guard rejects is put back as written, never as its ASCII view.
+    'เลข ๐๒ ๑๒๓ ๔๕๖',
+    'เลข ๐๑๒๓๔๕๖๗๘๙๐๑',
+    // Phone-shaped dotted groups that only the dotted pass's lookarounds reject: after a dot, before a decimal,
+    // before a fifth digit.
+    'ref 1.081.234.5678',
+    'ref 081.234.5678.9',
+    'ref 081.234.56789',
   ])('%s survives byte-for-byte', (text) => assertSurvives(text));
 });
 
