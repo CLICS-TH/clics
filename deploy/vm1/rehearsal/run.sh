@@ -171,8 +171,10 @@ case "${1:-}" in
     # Read before anything else: every `docker compose exec` below forwards this script's stdin.
     IFS= read -r SRC_URL || die "no database URL on stdin"
     export_env "$2"
-    # A failure must not leave a partial copy of production running: take the whole project down.
-    trap 'log "vm1-up failed: removing the rehearsal project"; dc --profile mail down -v --remove-orphans' ERR
+    # A failure must not leave a partial copy of production running: unless the step reaches its end, the
+    # whole project goes down on exit, whether it failed through set -e or through die.
+    UP_OK=
+    trap '[ -n "$UP_OK" ] || { log "vm1-up did not finish: removing the rehearsal project"; dc --profile mail down -v --remove-orphans; }' EXIT
     [ -n "${SKIP_BUILD:-}" ] || dc build backend
     dc --profile mail up -d mailpit
     up_db
@@ -215,7 +217,7 @@ case "${1:-}" in
     dc up -d --wait --wait-timeout 180 postgrest supabase-gw
     dc up -d --no-deps --wait --wait-timeout 180 backend
     assert_surface
-    trap - ERR
+    UP_OK=1
     log "up: replay with run.sh vm1-paths $2"
     ;;
   vm1-paths)
