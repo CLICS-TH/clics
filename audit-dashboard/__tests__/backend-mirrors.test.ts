@@ -101,11 +101,15 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
   const has6b = fs.existsSync(lockSvcPath);
   const lockSvc = has6b ? fs.readFileSync(lockSvcPath, 'utf8') : '';
 
-  // `const ModelLockSchema = z.object({ ... });` — top-level keys at two spaces, decoding's at four.
+  // The fields every basis shares (`const DeclarationSchema = z.object({ ... });`, top-level keys at two
+  // spaces, decoding's at four) plus the weights_sha256 line of the weights_sha256 branch, which is the
+  // basis the form declares (identity_basis omitted = weights_sha256).
   const schema = (() => {
-    const m = /const ModelLockSchema = z\.object\(\{\n([\s\S]*?)\n\}\);/.exec(superadmin);
-    if (!m) throw new Error('ModelLockSchema not found in superadmin.js — did the declaration change shape?');
-    return m[1];
+    const m = /const DeclarationSchema = z\.object\(\{\n([\s\S]*?)\n\}\);/.exec(superadmin);
+    if (!m) throw new Error('DeclarationSchema not found in superadmin.js — did the declaration change shape?');
+    const w = /identity_basis: z\.literal\('weights_sha256'\),[\s\S]*?\n\s*(weights_sha256: [^\n]*)/.exec(superadmin);
+    if (!w) throw new Error('the weights_sha256 branch of ModelLockSchema not found in superadmin.js');
+    return `  ${w[1]}\n${m[1]}`;
   })();
   const topLines = schema.split('\n').filter((l) => /^ {2}\w+:/.test(l));
   const top = topLines.map((l) => /^ {2}(\w+):/.exec(l)![1]);
