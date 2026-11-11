@@ -3,6 +3,7 @@
 // rehearsal network (rehearsal/run.sh), so it has the backend's SUPABASE_URL and keys:
 //
 //   BACKEND_URL   the rehearsal backend                          default http://backend:3001
+//   API_EXTERNAL_URL  the public origin: the reset link must be <it>/auth/v1/verify (run.sh passes gotrue.env's)
 //   MAILPIT_URL   read GoTrue's mail from mailpit                 unset: codes come from GoTrue's admin API
 //   OLD_PASSWORDS a file of `email<TAB>password` lines: accounts in the restored database whose password must
 //                 still verify (the "Added 2026-11-11" check). Only their line numbers are printed.
@@ -198,6 +199,10 @@ await step('forgot password: recovery link, new password, old one refused', asyn
   } else {
     link = want(await call(AUTH, '/admin/generate_link', { method: 'POST', body: { type: 'recovery', email: email('forgot') } }), 200, 'generate_link').json.action_link;
   }
+  // The link a user clicks must be GoTrue's public /verify, which nginx serves at <origin>/auth/v1. From inside
+  // the network that origin is reached through supabase-gw, so the same path and query are followed there.
+  const ext = process.env.API_EXTERNAL_URL;
+  expect(ext && link.startsWith(`${ext}/auth/v1/verify?`), `the reset link is not ${ext}/auth/v1/verify?...: ${new URL(link).origin}${new URL(link).pathname}`);
   const v = new URL(link);
   const r = await call(AUTH, `/verify${v.search}`, { key: ANON });
   expect(r.status === 303 || r.status === 302, `GET /verify answered ${r.status}`);

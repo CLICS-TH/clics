@@ -26,7 +26,10 @@ services:
     networks:
       - clics
 
+  # No host port either: once CME installs the nginx site, 127.0.0.1:3102 is public at /auth/v1, and a
+  # rehearsal GoTrue holds a copy of production's identities. The replay reaches it through supabase-gw.
   gotrue:
+    ports: !reset []
     depends_on:
       db:
         condition: service_healthy

@@ -49,21 +49,22 @@ load_schema() {
 }
 
 paths() { # [extra docker run args...]
-  dc run --rm --no-deps -T -v "$PWD/rehearsal/auth-paths.mjs:/paths.mjs:ro" "$@" backend node /paths.mjs
+  dc run --rm --no-deps -T -v "$PWD/rehearsal/auth-paths.mjs:/paths.mjs:ro" \
+    -e "API_EXTERNAL_URL=$(sed -n 's/^API_EXTERNAL_URL=//p' "$CLICS_ENV_DIR/gotrue.env")" "$@" backend node /paths.mjs
 }
 
-# What a running stack exposes (R1-R4, ADR 0007): GoTrue on 127.0.0.1:3102 and nothing else on the host;
-# every auth container non-root with a read-only root. Run against the live containers, so it checks docker's
-# own view, not the compose text (scripts/deploy/vm1-auth.test.mjs checks that).
+# What a running rehearsal exposes (R1-R4, ADR 0007): no host port at all, GoTrue's included (its loopback
+# port is reset in the rehearsal, see docker-compose.rehearsal.yml), and every auth container non-root with a
+# read-only root. Run against the live containers, so it checks docker's own view; the compose text, and
+# GoTrue's 127.0.0.1:3102 outside a rehearsal, are scripts/deploy/vm1-auth.test.mjs's.
 assert_surface() {
   local svc id bound user
-  for svc in postgrest supabase-gw backend db; do
+  for svc in gotrue postgrest supabase-gw backend db; do
     id=$(dc ps -q "$svc")
     bound=$(docker inspect -f '{{range $p, $v := .NetworkSettings.Ports}}{{if $v}}{{$p}} {{end}}{{end}}' "$id")
     [ -z "$bound" ] || die "$svc publishes host ports: $bound"
     [ "$(docker inspect -f '{{len .HostConfig.PortBindings}}' "$id")" = 0 ] || die "$svc has port bindings"
   done
-  [ "$(dc port gotrue 9999)" = "127.0.0.1:3102" ] || die "gotrue is not published on 127.0.0.1:3102 only"
   for svc in gotrue postgrest supabase-gw; do
     id=$(dc ps -q "$svc")
     user=$(docker inspect -f '{{.Config.User}}' "$id")
@@ -78,7 +79,13 @@ assert_surface() {
     dc exec -T "$svc" sh -c 'touch /tmp/probe' || die "$svc cannot write its tmpfs /tmp"
     if dc exec -T "$svc" sh -c 'touch /var/tmp/probe /probe' 2>/dev/null; then die "$svc root filesystem accepts writes"; fi
   done
-  log "surface ok: gotrue on 127.0.0.1:3102 only; postgrest, supabase-gw, db and the rehearsal backend unpublished; non-root, read-only roots"
+  log "surface ok: no rehearsal container publishes a host port; gotrue, postgrest and supabase-gw non-root with read-only roots"
+}
+
+# auth-role-keys.cjs in the backend's own base image, with no network: vm1's host has no node of its own.
+mint_role_keys() {
+  docker run --rm -i --network none "$(sed -n 's/^FROM \([^ ]*\).*/\1/p' backend.Dockerfile | head -n 1)" \
+    node -e "$(cat auth-role-keys.cjs)" < "$1"
 }
 
 # Env files for a throwaway stack: fresh secrets, the role keys minted from them, nothing reused.
@@ -93,7 +100,7 @@ GOTRUE_DB_DATABASE_URL=postgres://supabase_auth_admin:$db@db:5432/postgres
 GOTRUE_SMTP_PASS=unused
 GOTRUE_EXTERNAL_GOOGLE_SECRET=rehearsal-not-a-secret
 API_EXTERNAL_URL=http://localhost:3102
-GOTRUE_JWT_ISSUER=http://localhost:3102
+GOTRUE_JWT_ISSUER=http://localhost:3102/auth/v1
 GOTRUE_JWT_EXP=3600
 GOTRUE_SITE_URL=http://portal.rehearsal.invalid
 GOTRUE_URI_ALLOW_LIST=http://portal.rehearsal.invalid/auth/callback,http://portal.rehearsal.invalid/reset
@@ -110,7 +117,7 @@ EOF
   printf 'PGRST_JWT_SECRET=%s\nPGRST_DB_URI=postgres://authenticator:%s@db:5432/postgres\n' "$jwt" "$db" > "$d/postgrest.env"
   {
     echo "SUPABASE_URL=http://supabase-gw:8080"
-    node auth-role-keys.cjs "$d/gotrue.env"
+    mint_role_keys "$d/gotrue.env"
     echo "INTERNAL_TOKEN=$(openssl rand -hex 24)"
     echo "GUEST_TOKEN_SECRET=$(openssl rand -hex 24)"
     echo "IDENTITY_ENC_KEY=$(openssl rand -hex 32)"
@@ -164,28 +171,42 @@ case "${1:-}" in
     # Read before anything else: every `docker compose exec` below forwards this script's stdin.
     IFS= read -r SRC_URL || die "no database URL on stdin"
     export_env "$2"
+    # A failure must not leave a partial copy of production running: take the whole project down.
+    trap 'log "vm1-up failed: removing the rehearsal project"; dc --profile mail down -v --remove-orphans' ERR
     [ -n "${SKIP_BUILD:-}" ] || dc build backend
     dc --profile mail up -d mailpit
     up_db
     # GoTrue first: its own migrations make the auth tables, and auth is restored data-only into them, so a
     # column the hosted GoTrue has and this one lacks fails the restore loudly.
     dc up -d --wait --wait-timeout 180 gotrue
-    log "restoring from Supabase: public (schema, data, grants) and auth (data), triggers off; the URL is read from stdin"
+    log "restoring from Supabase: auth (data), then public (schema, data, grants), triggers off; the URL is read from stdin"
     # Tables the restore creates must not pick up the image's default grants to anon and authenticated
     # (db/migration-postgrest-closed.sql does the same on Supabase, ADR 0007). The dump runs inside the db
     # container and streams into its psql, so no copy of it reaches a disk: not vm1's (the database is
     # tmpfs) and not a laptop's.
-    printf '%s\n' "$SRC_URL" | dc exec -T db bash -c 'set -euo pipefail; read -r SRC; {
+    printf '%s\n' "$SRC_URL" | dc exec -T db bash -c 'set -euo pipefail; read -r SRC
+      # The URL is split into libpq variables, set only on the two source commands, so it is never in
+      # any argv (ps). %XX escapes in the user or password are decoded.
+      re="^postgres(ql)?://([^:@/]+):([^@]*)@([^:/?]+)(:([0-9]+))?/([^?]+)(\?(.*))?$"
+      [[ $SRC =~ $re ]] || { echo "the source is not a postgres://user:password@host[:port]/db URL" >&2; exit 64; }
+      dec() { local v=${1//+/ }; printf "%b" "${v//%/\\x}"; }
+      SU=$(dec "${BASH_REMATCH[2]}") SP=$(dec "${BASH_REMATCH[3]}") SH=${BASH_REMATCH[4]} SPORT=${BASH_REMATCH[6]:-5432}
+      SDB=${BASH_REMATCH[7]} SSL=$(sed -n "s/.*sslmode=\([a-z-]*\).*/\1/p" <<< "${BASH_REMATCH[9]}")
+      unset SRC
+      src() { PGUSER=$SU PGPASSWORD=$SP PGHOST=$SH PGPORT=$SPORT PGDATABASE=$SDB PGSSLMODE=${SSL:-prefer} "$@"; }
+      {
         echo "set session_replication_role = replica;"
         for r in supabase_admin postgres; do for k in tables sequences functions; do
           echo "alter default privileges for role $r in schema public revoke all on $k from anon, authenticated;"
         done; done
         # pg_dump --schema leaves extensions out; the ones the source keeps in public must exist first.
-        psql "$SRC" -AtX -c "select format('"'"'create extension if not exists %I with schema public;'"'"', e.extname)
+        src psql -AtX -c "select format('"'"'create extension if not exists %I with schema public;'"'"', e.extname)
           from pg_extension e join pg_namespace n on n.oid = e.extnamespace where n.nspname = '"'"'public'"'"'"
+        # auth data first: adding public.professionals_id_fkey checks its rows against auth.users, and
+        # session_replication_role skips triggers, not that check.
+        src pg_dump --no-owner --no-privileges --data-only --schema=auth --exclude-table=auth.schema_migrations
         # The image already has the (empty) public schema, and its default ACLs hang off it: keep it.
-        pg_dump "$SRC" --no-owner --schema=public | sed "/^CREATE SCHEMA public;$/d"
-        pg_dump "$SRC" --no-owner --no-privileges --data-only --schema=auth --exclude-table=auth.schema_migrations
+        src pg_dump --no-owner --schema=public | sed "/^CREATE SCHEMA public;$/d"
       } | psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q >/dev/null'
     unset SRC_URL
     users=$(dc exec -T db psql -U supabase_admin -d postgres -AtX -c 'select count(*) from auth.users')
@@ -194,6 +215,7 @@ case "${1:-}" in
     dc up -d --wait --wait-timeout 180 postgrest supabase-gw
     dc up -d --no-deps --wait --wait-timeout 180 backend
     assert_surface
+    trap - ERR
     log "up: replay with run.sh vm1-paths $2"
     ;;
   vm1-paths)

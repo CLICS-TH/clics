@@ -63,18 +63,21 @@ not otherwise allow. Keep the window short.
    cd /opt/clics/rehearsal/src/deploy/vm1 && rehearsal/run.sh vm1-env /opt/clics/rehearsal/env
    ```
 3. **The source URL.** A human writes the Supabase session-pooler connection string (Project, Connect,
-   Session pooler, which vm1 reaches over IPv4) into `/root/.supabase-db-url`, mode 600. It is never typed
-   on a command line or pasted into a chat.
+   Session pooler, which vm1 reaches over IPv4) into `/root/.supabase-db-url`, mode 600, with the password
+   URL-encoded (Supabase's Connect panel does this). It is never typed on a command line or pasted into a
+   chat. `run.sh` splits it into libpq variables, so it is not in any process's argv either.
 4. **Restore and start.** Size it first: the tmpfs is 2 GB by default (`REHEARSAL_DB_TMPFS=4g` raises it).
    ```bash
    rehearsal/run.sh vm1-up /opt/clics/rehearsal/env < /root/.supabase-db-url
    ```
-   GoTrue migrates the empty `auth` schema first. Then `public` (schema, data, grants) and `auth` (data only)
-   are restored with triggers off. A column the hosted GoTrue has and v2.197.0 lacks fails here, by name. The
+   GoTrue migrates the empty `auth` schema first. Then `auth` (data only) and `public` (schema, data,
+   grants) are restored, in that order, with triggers off. If any step fails, the whole rehearsal project is
+   taken down, so no partial copy stays in memory. A column the hosted GoTrue has and v2.197.0 lacks fails here, by name. The
    step ends by printing the restored user count and checking the container surface.
 5. **Old passwords and hosted settings (optional files in the env directory).**
    - `old-passwords.tsv`: one `email<TAB>password` line per test account (the SANDBOX accounts). A human
-     writes it.
+     writes it at mode 644: the replay runs as the clics uid, and the directory's mode 700 keeps it from
+     everyone else.
    - `hosted-settings.json`: the hosted project's settings, fetched with the public anon key from
      `physician-ui/public/js/config.js`:
      `curl -s https://PROJECT_REF.supabase.co/auth/v1/settings -H 'apikey: ANON_KEY' > hosted-settings.json`

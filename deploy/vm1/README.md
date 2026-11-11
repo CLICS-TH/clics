@@ -314,10 +314,12 @@ switches sign-in over. Until then the services run only in a rehearsal (`rehears
 
 ```bash
 openssl rand -base64 48    # once: GOTRUE_JWT_SECRET in gotrue.env AND PGRST_JWT_SECRET in postgrest.env, unquoted
-node /opt/clics/current/deploy/vm1/auth-role-keys.cjs /opt/clics/env/gotrue.env
+cd /opt/clics/current/deploy/vm1
+docker run --rm -i --network none node:22-slim node -e "$(cat auth-role-keys.cjs)" < /opt/clics/env/gotrue.env
 ```
 
-The second command prints `SUPABASE_ANON_KEY=` and `SUPABASE_SERVICE_ROLE_KEY=` lines. They go into
+The second command runs the key tool in the backend's base image (vm1's host has no node of its own) and
+prints `SUPABASE_ANON_KEY=` and `SUPABASE_SERVICE_ROLE_KEY=` lines. They go into
 `backend.env` and `rimpl.env` **at the move (#432)**, not before: today those files still hold the hosted
 project's keys. The preflight (and activate again) refuses:
 
@@ -325,7 +327,8 @@ project's keys. The preflight (and activate again) refuses:
 - one service's name in the other's file;
 - either file without the other, or at the wrong mode or owner;
 - a required name left blank;
-- a JWT secret shorter than 32 characters, quoted, or different between the two files.
+- a JWT secret shorter than 32 characters, quoted or holding anything but base64 characters, or different
+  between the two files.
 
 With neither file present it logs that sign-in is not configured, and the deploy goes on.
 

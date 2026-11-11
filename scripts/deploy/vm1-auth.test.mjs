@@ -87,6 +87,7 @@ test('the settings the sign-in paths rely on are pinned in compose, not left to 
     'GOTRUE_DISABLE_SIGNUP: "false"', 'GOTRUE_EXTERNAL_GOOGLE_ENABLED: "true"', 'GOTRUE_EXTERNAL_PHONE_ENABLED: "false"',
     'GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"', 'GOTRUE_MAILER_AUTOCONFIRM: "false"',
     'GOTRUE_SECURITY_MANUAL_LINKING_ENABLED: "false"', 'GOTRUE_JWT_ADMIN_ROLES: service_role', 'GOTRUE_JWT_AUD: authenticated',
+    'GOTRUE_LOG_LEVEL: warn', 'GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify', 'GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify',
   ]) assert.ok(g.includes(want), `gotrue pins ${want}`);
   assert.ok(!/SKIP_NONCE_CHECK/.test(AUTH), 'the id_token nonce check stays on (ADR 0008)');
   for (const t of ['confirmation', 'magic_link']) {
@@ -120,9 +121,12 @@ test('nginx: GoTrue at /auth/v1 only (its admin API refused), and no path to Pos
   assert.match(NGINX, /upstream clics_gotrue \{\s*server 127\.0\.0\.1:3102;/, 'the GoTrue upstream is the compose loopback port');
   const proxied = [...NGINX.matchAll(/^\s*proxy_pass\s+([^;]+);/gm)].map((m) => m[1]);
   assert.deepEqual([...new Set(proxied)].sort(), ['http://clics_backend', 'http://clics_gotrue/'], 'nginx proxies to the backend and GoTrue only');
-  const gotrueLoc = /location \^~ \/auth\/v1\/ \{[^}]*proxy_pass http:\/\/clics_gotrue\/;[^}]*\}/.exec(NGINX);
-  assert.ok(gotrueLoc, 'GoTrue is proxied from location ^~ /auth/v1/, prefix stripped');
-  assert.match(NGINX, /location \^~ \/auth\/v1\/admin \{\s*return 404;\s*\}/, 'the admin API is not published');
+  assert.match(NGINX, /location \/auth\/v1\/ \{[^}]*proxy_pass http:\/\/clics_gotrue\/;[^}]*\}/, 'GoTrue is proxied from /auth/v1/, prefix stripped');
+  // A plain prefix, so the regex refusal below is consulted (a ^~ prefix would skip it).
+  assert.ok(!/location \^~ \/auth/.test(NGINX), 'no ^~ on an /auth location');
+  const refused = /location ~ \^\/auth\/v1\/\(([a-z|]+)\)\(\/\|\$\) \{\s*return 404;\s*\}/.exec(NGINX);
+  assert.ok(refused, 'a regex location refuses the backend-only GoTrue endpoints');
+  assert.deepEqual(refused[1].split('|').sort(), ['admin', 'invite', 'magiclink', 'otp', 'reauthenticate', 'recover', 'resend', 'signup']);
   assert.equal([...NGINX.matchAll(/clics_gotrue/g)].length, 2, 'clics_gotrue appears in its upstream and its one location only');
   for (const forbidden of [/postgrest/i, /supabase-gw/, /:3000\b/, /:8080\b/, /\/rest\/v1/]) {
     assert.ok(!meaningful(NGINX).some((l) => forbidden.test(l)), `nginx must not reach PostgREST (${forbidden})`);

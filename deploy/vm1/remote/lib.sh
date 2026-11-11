@@ -140,8 +140,12 @@ check_auth_env() { # [required]
     [ "$(grep -cE "^[[:space:]]*(export[[:space:]]+)?${n%%:*}[[:space:]]*=" "${n#*:}")" = 1 ] \
       || die "$(basename "${n#*:}") must assign ${n%%:*} exactly once, as ${n%%:*}=value at the start of its line. Nothing was changed."
   done
-  # Unquoted: compose strips quotes, and auth-role-keys.cjs, which reads the file itself, would not.
-  if grep -qE "^(GOTRUE|PGRST)_JWT_SECRET=[\"']" "$g" "$p"; then die "write GOTRUE_JWT_SECRET and PGRST_JWT_SECRET unquoted. Nothing was changed."; fi
+  # Base64 characters only, unquoted: compose strips quotes and interpolates $ (and # starts a comment),
+  # while auth-role-keys.cjs reads the file raw, so anything else would mint keys GoTrue then rejects.
+  for n in GOTRUE_JWT_SECRET:"$g" PGRST_JWT_SECRET:"$p"; do
+    grep -qE "^${n%%:*}=[A-Za-z0-9+/=_-]+\$" "${n#*:}" \
+      || die "write GOTRUE_JWT_SECRET and PGRST_JWT_SECRET unquoted, in base64 characters only (openssl rand -base64 48). Nothing was changed."
+  done
   [ "$(grep -E '^GOTRUE_JWT_SECRET=' "$g" | sed 's/^GOTRUE_JWT_SECRET=//' | tr -d '\n' | wc -c)" -ge 32 ] \
     || die "gotrue.env: GOTRUE_JWT_SECRET is shorter than 32 characters; generate it with openssl rand -base64 48. Nothing was changed."
   [ "$(auth_value_sha "$g" GOTRUE_JWT_SECRET)" = "$(auth_value_sha "$p" PGRST_JWT_SECRET)" ] \

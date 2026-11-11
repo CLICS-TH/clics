@@ -625,6 +625,7 @@ test('preflight: well-formed sign-in env files pass, and every misplaced or miss
     [{}, { gotrue: full.replace(JWT, 'short'), postgrest: 'PGRST_JWT_SECRET=short\nPGRST_DB_URI=x\n' }, /shorter than 32 characters/],
     [{}, { gotrue: full.replace(`=${JWT}`, `='${JWT}'`), postgrest: `PGRST_JWT_SECRET='${JWT}'\nPGRST_DB_URI=x\n` }, /unquoted/],
     [{}, { gotrue: `${full}GOTRUE_JWT_SECRET=${JWT}\n` }, /must assign GOTRUE_JWT_SECRET exactly once/],
+    [{}, { gotrue: full.replace(JWT, `${JWT}$x`), postgrest: `PGRST_JWT_SECRET=${JWT}$x\nPGRST_DB_URI=x\n` }, /base64 characters only/],
   ];
   for (const [hostOpts, files, want] of cases) {
     h = host(hostOpts);

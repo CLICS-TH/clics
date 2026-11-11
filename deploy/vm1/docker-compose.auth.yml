@@ -85,7 +85,15 @@ services:
       GOTRUE_MAILER_AUTOCONFIRM: "false"
       # Link Google relies on GoTrue linking a verified Google identity to the account with the same email.
       GOTRUE_SECURITY_MANUAL_LINKING_ENABLED: "false"
-      GOTRUE_LOG_LEVEL: info
+      # warn, not info: every info line of an auth event names the user's email, and json-file logs sit on
+      # vm1's disk, which keeps no PII at rest (R5). Sign-in history stays in auth.audit_log_entries.
+      GOTRUE_LOG_LEVEL: warn
+      # Mail links are built as API_EXTERNAL_URL (the public origin) + these paths. Without them GoTrue drops
+      # the /auth/v1 that nginx routes on, and every reset link lands on the backend as a 404.
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
       # The hosted project's edited templates (docs/AUTH-SETUP.md): the two code mails carry {{ .Token }},
       # which the Portal asks for. GoTrue fetches them from supabase-gw, which serves auth-templates/.
       GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://supabase-gw:8080/templates/confirmation.html
