@@ -1,8 +1,8 @@
 // Band descriptors for the booth result card (#250): one fixed Thai and English line for each PIS-7 domain and band.
 // No imports, so the harness can load this file as a data: URL like booth-copy.js.
 // Bands follow the rubric's own anchors (0 -> 3 -> 5, rimpl/src/lib/prompts.js PER-DOMAIN ANCHORS). Each line says what
-// this one three-tap play showed (answers, choices, replies), never a free chat or what the physician is: the rubric forbids
-// reading a score as overall competence. Thai and English make the same strength of claim.
+// this one play showed (answers, choices, replies), whatever its number of steps, never a free chat or what the physician
+// is: the rubric forbids reading a score as overall competence. Thai and English make the same strength of claim.
 
 /** Recorded like a case's admission.safety_review (ADR 0005): fresh AI reviewers read all 21 pairs; this record covers the text that ships. */
 export const SAFETY_REVIEW = Object.freeze({
@@ -11,14 +11,18 @@ export const SAFETY_REVIEW = Object.freeze({
   findings: 'Three fresh reviews of the 21 pairs. No clinical claims, no judgment of the physician, nothing demeaning. Fixed: d2 drifted from depth of reasoning, d4 wrong for the first answer, d6 described answer coherence where the scorer reads a summing-up, d3 high counted details, Thai stronger than English (d1 mid), d7 low English harsher than the Thai, and the low-band English lines lacked the Thai yet (d2, d4, d5, d6, d7). Open, not changed here (issue 334): d3 low and mid still count details; d5, d6 and d7 mid and high describe engagement with the AI a tap-only play may not show; the domain names above the lines and the Practise next heading.',
 });
 
-/** 0-2 is the low band, 3 the middle, 4-5 the high. */
-export const bandOf = (value) => (value <= 2 ? 'low' : value === 3 ? 'mid' : 'high');
+/** 0-2 is the low band, 3 the middle, 4-5 the high. A five-step play's fitted score (one decimal) takes the band of its
+ *  rounded value, so 2.6 is middle, not high. */
+export const bandOf = (value) => {
+  const whole = Math.round(value);
+  return whole <= 2 ? 'low' : whole === 3 ? 'mid' : 'high';
+};
 
 export const BAND_LINES = Object.freeze({
   d1: {
-    low: { th: 'คำตอบทั้งสามขั้นยังเชื่อมกับเคสนี้ได้ไม่ชัด', en: 'Your three answers did not yet connect clearly to this case.' },
-    mid: { th: 'คำตอบทั้งสามขั้นเกี่ยวกับเคส แต่ยังกว้างอยู่', en: 'Your three answers related to the case but stayed general.' },
-    high: { th: 'คำตอบทั้งสามขั้นตรงประเด็นหลักของเคสอย่างเจาะจง', en: 'Your three answers were specific to the case\'s main issue.' },
+    low: { th: 'คำตอบรอบนี้ยังเชื่อมกับเคสนี้ได้ไม่ชัด', en: 'Your answers did not yet connect clearly to this case.' },
+    mid: { th: 'คำตอบรอบนี้เกี่ยวกับเคส แต่ยังกว้างอยู่', en: 'Your answers related to the case but stayed general.' },
+    high: { th: 'คำตอบรอบนี้ตรงประเด็นหลักของเคสอย่างเจาะจง', en: 'Your answers were specific to the case\'s main issue.' },
   },
   d2: {
     low: { th: 'คำตอบรอบนี้ยังไม่ค่อยแสดงเหตุผลเบื้องหลังคำตอบ', en: 'Your answers did not yet show much of the reasoning behind them.' },
@@ -31,9 +35,9 @@ export const BAND_LINES = Object.freeze({
     high: { th: 'คำตอบรอบนี้นำรายละเอียดผู้ป่วยรายนี้มาใช้ตัดสินใจหลายจุด', en: 'Your answers let this patient\'s details shape several decisions.' },
   },
   d4: {
-    low: { th: 'คำตอบขั้นถัดมายังต่อยอดจากขั้นก่อนหน้าไม่มากนัก', en: 'Your later answers did not yet build much on the step before.' },
-    mid: { th: 'คำตอบขั้นถัดมาต่อยอดจากขั้นก่อนหน้าได้บางส่วน', en: 'Your later answers partly built on the step before.' },
-    high: { th: 'คำตอบขั้นถัดมาต่อยอดจากขั้นก่อนหน้าอย่างชัดเจน', en: 'Your later answers clearly built on the step before.' },
+    low: { th: 'คำตอบในขั้นต่อมายังต่อยอดจากขั้นก่อนหน้าไม่มากนัก', en: 'Your later answers did not yet build much on earlier steps.' },
+    mid: { th: 'คำตอบในขั้นต่อมาต่อยอดจากขั้นก่อนหน้าได้บางส่วน', en: 'Your later answers partly built on earlier steps.' },
+    high: { th: 'คำตอบในขั้นต่อมาต่อยอดจากขั้นก่อนหน้าอย่างชัดเจน', en: 'Your later answers clearly built on earlier steps.' },
   },
   d5: {
     low: { th: 'รอบนี้ยังเห็นการชั่งน้ำหนักคำตอบจาก AI ไม่มากนัก', en: 'This play did not yet show much weighing of the AI\'s replies.' },

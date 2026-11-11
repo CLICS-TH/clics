@@ -7,7 +7,7 @@
 //   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
-import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill } from './booth-copy.js';
+import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill, isDomainScore } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
@@ -21,7 +21,9 @@ const REPLY_TIMEOUT_MS = 45_000;
 const SCORE_TIMEOUT_MS = 75_000;
 const SCORING_SHOWN_MS = 1_000;
 const STILL_WORKING_MS = 8_000;
-const STEPS = 3;
+/** A start that names no step count comes from a backend older than five-step cases (spec #370): its plays are three. */
+const OLDER_BACKEND_STEPS = 3;
+const MAX_STEPS = 5;
 const GHOST_TAP_MS = 350;
 
 /**
@@ -29,7 +31,8 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ id: string, label: Bi, line: Bi }} Option
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask   ids only, posted back as the server sent it
  * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
- * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, answerMax: number }} Play
+ * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, answerMax: number, steps: number }} Play
+ *   steps: how many answers the play takes (1-5), from the start; the last reply carries no Next.
  * @typedef {{ choice: string } | { text: string, deidentified?: string }} Answer
  *   deidentified: the server's de-identified copy of a typed answer, from its reply, posted back untouched (ADR 0010).
  * @typedef {{ strength: string, weigh: string, safety: string }} Reply   the object as received, posted back as is.
@@ -146,7 +149,7 @@ function transition(s, ev) {
       ? { ...s, answers: keptAnswers(s.answers, ev.deidentified), replies: [...s.replies, ev.reply], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
-      return { ...s, screen: s.answers.length < STEPS ? { at: 'step', chosen: null } : { at: 'scoring', shown: false } };
+      return { ...s, screen: s.answers.length < s.play.steps ? { at: 'step', chosen: null } : { at: 'scoring', shown: false } };
     case 'slow': return at === 'scoring' && !s.screen.shown ? { ...s, screen: { at: 'scoring', shown: true } } : s;
     case 'scored': return at === 'scoring' ? { ...s, screen: { at: 'scored', score: ev.score } } : s;
     case 'unavailable': return at === 'replying' || at === 'scoring' ? { ...s, screen: { at: 'unavailable' } } : s;
@@ -173,9 +176,10 @@ async function requestReply(api, s) {
   try {
     const body = await api.post(`/booth/plays/${encodeURIComponent(s.play.id)}/reply`, dialogue(s), { timeoutMs: REPLY_TIMEOUT_MS });
     if (body?.status === 'unavailable') return { type: 'unavailable' };
-    const next = s.answers.length < STEPS ? parseNext(body?.next) : null;
+    const last = s.answers.length === s.play.steps;
+    const next = last ? null : parseNext(body?.next);
     const reply = parseReply(body?.reply);
-    if (body?.status === 'replied' && reply && typeof body.reply_sig === 'string' && (next || s.answers.length === STEPS)) {
+    if (body?.status === 'replied' && reply && typeof body.reply_sig === 'string' && (next || last)) {
       return { type: 'replied', reply, sig: body.reply_sig, next,
         deidentified: typeof body.deidentified === 'string' ? body.deidentified : null };
     }
@@ -228,12 +232,14 @@ function parseDraw(body) {
 
 function parseStart(body, teaser) {
   const next = parseNext(body?.next);
+  const steps = body?.steps === undefined ? OLDER_BACKEND_STEPS : body.steps;
   if (!isId(body?.play_id) || !Number.isInteger(body.tag) || body.tag < 1
     || !Number.isInteger(body.answer_max_chars) || body.answer_max_chars < 1
-    || !isBi(body.case?.vignette) || !next || !isId(body.sig)) {
+    || !isBi(body.case?.vignette) || !next || !isId(body.sig)
+    || !Number.isInteger(steps) || steps < 1 || steps > MAX_STEPS) {
     return null;
   }
-  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette, teaser }, next, sig: body.sig };
+  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette, teaser, steps }, next, sig: body.sig };
 }
 
 function parseScore(body, s) {
@@ -241,7 +247,7 @@ function parseScore(body, s) {
   const domains = {};
   for (const { key } of DOMAINS) {
     const v = body.domains?.[key];
-    if (!Number.isInteger(v) || v < 0 || v > 5) return null;
+    if (!isDomainScore(v)) return null;
     domains[key] = v;
   }
   return { composite: body.composite, domains, steps: parseSteps(body.steps, dialogue(s).asks), body };
@@ -394,7 +400,7 @@ const VIEWS = {
     const said = fields.length === 0 ? bi(COPY.noReply, 'reply-note') : aiBubble(...fields.map((f) => el('section',
       { class: 'reply-field', dataset: { field: f.key }, 'aria-label': f.en },
       bi(f, 'reply-head'), el('p', { class: 'ai-text', lang: textLang(reply[f.key]) }, ...markedPhrases(reply[f.key])))));
-    const [copy, action] = s.answers.length === STEPS ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
+    const [copy, action] = s.answers.length === s.play.steps ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
       [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);
   },
@@ -419,7 +425,7 @@ const VIEWS = {
           keepQr(s.play, score),
           score.steps ? answersButton({ host, rows: revealRows(s.steps, s.answers, score.steps) }) : null)),
       // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
-      el('div', { class: 'result-more' }, ...domainSections(score.domains, el('div', { class: 'result-board-row' },
+      el('div', { class: 'result-more' }, ...domainSections(score.domains, s.play.steps, el('div', { class: 'result-board-row' },
         slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true })))));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
@@ -444,7 +450,7 @@ function stepHead(s, step, { bridge = false } = {}) {
       el('span', { class: 'bridge-text', lang: textLang(step.ask.bridge) }, ...phrases(step.ask.bridge)))
     : null;
   return el('header', { class: 'step-head' },
-    bi(fill(COPY.stepOf, { n: stepIndex(s) + 1 }), 'step-of'),
+    bi(fill(COPY.stepOf, { n: stepIndex(s) + 1, total: s.play.steps }), 'step-of'),
     el('div', { class: lead ? 'prompt prompt--bridged' : 'prompt' }, lead, bi(step.question, 'question')));
 }
 
