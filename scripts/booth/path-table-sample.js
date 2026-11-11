@@ -9,10 +9,7 @@ const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
 const { LETTER, bankAt, bankKey, stepCount, firstAsk, chatOutcome } = require(path.join(SRC, 'services', 'booth-dialogue'));
-const { TIERS } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
-const LETTERS = TIERS.map((t) => t.letter);
-/** Every tier path of `length` letters, B…B first and W…W last. */
-const tierPaths = (length) => (length === 0 ? [''] : LETTERS.flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)));
+const { tierPaths } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
 const REPLIES_DIR = path.join(__dirname, 'sample-replies');
 
 /** The first tier path to reach each of the case's banks: 13 banks in either shape. A sample reply file keys a bank by

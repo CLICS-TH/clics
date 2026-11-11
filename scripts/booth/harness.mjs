@@ -196,7 +196,7 @@ const SIG = (n) => `sig-${n}`;
 const DEIDENTIFIED = (n) => `de-identified answer ${n}`;
 /** What a start answers on `tree`: the play, its vignette, step 1's Next, the first sig and the case's step count. */
 const startFor = (tree) => ({ play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: { vignette: tree.vignette }, next: nextFor(tree, ''), sig: SIG(0),
-  steps: stepCount(tree) });
+  step_count: stepCount(tree) });
 const START = startFor(TREE);
 /** What a draw answers: the case id and its teaser, nothing else of the case. */
 const drawOf = (tree) => ({ case_id: tree.case_id, teaser: tree.teaser });
@@ -233,7 +233,7 @@ const scoredFor = (call, over = {}, tree = TREE) => ({ status: 200, body: { ...S
  *   'GET /booth/status'            { open: true, event_code }
  *   'POST /booth/draw'             drawOf(tree): { case_id, teaser }
  *   'POST /booth/plays'            startFor(tree): { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig,
- *                                  steps: the tree's step count }; 400 bad_request unless the body names a case_id
+ *                                  step_count: the tree's step count }; 400 bad_request unless the body names a case_id
  *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), DEIDENTIFIED(n) for
  *                                  a typed answer n, next for the tier path walked (n < the tree's step count)
  *   'GET /booth/board'             { board: { today: [], event: [] } }

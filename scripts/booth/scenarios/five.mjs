@@ -206,9 +206,9 @@ export default [
     },
   })),
   {
-    name: 'a start with no steps (a backend older than five steps) plays three; steps outside 1-5 and a two-decimal domain stop the play',
+    name: 'a start with no step_count (a backend older than five steps) plays three; a step_count outside 1-5 and a two-decimal domain stop the play',
     async run(h) {
-      const { steps: _, ...older } = h.START;
+      const { step_count: _, ...older } = h.START;
       const k = await h.kiosk({ stub: h.makeStub({ routes: { [START_KEY]: () => ({ status: 201, body: older }) } }) });
       await k.shell('start');
       await k.toVignette();
@@ -231,13 +231,13 @@ export default [
       await k.close();
 
       for (const bad of [0, 6, 2.5, '5', null]) {
-        const s = await h.kiosk({ stub: h.makeStub({ routes: { [START_KEY]: () => ({ status: 201, body: { ...h.START, steps: bad } }) } }), label: `steps ${JSON.stringify(bad)}` });
+        const s = await h.kiosk({ stub: h.makeStub({ routes: { [START_KEY]: () => ({ status: 201, body: { ...h.START, step_count: bad } }) } }), label: `step_count ${JSON.stringify(bad)}` });
         await s.shell('start');
         await s.tap('[data-action="start"]');
         await s.screen('teaser');
         await s.tap('[data-action="start-case"]');
         await s.screen('stopped');
-        h.check(await s.screenNow() === 'stopped', `steps ${JSON.stringify(bad)}: the start does not read, and the play stops`);
+        h.check(await s.screenNow() === 'stopped', `step_count ${JSON.stringify(bad)}: the start does not read, and the play stops`);
         await s.close();
       }
 

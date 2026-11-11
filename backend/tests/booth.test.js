@@ -392,7 +392,7 @@ describe('POST /booth/plays', () => {
     rpcOverride.booth_start_play = () => ({ data: [{ play_id: playId, play_tag: 42 }], error: null });
     const res = await post('/booth/plays', { case_id: KASE.case_id });
     expect(res.status).toBe(201);
-    expect(res.body).toEqual({ play_id: playId, tag: 42, steps: 3, answer_max_chars: 500, case: { vignette: KASE.vignette },
+    expect(res.body).toEqual({ play_id: playId, tag: 42, step_count: 3, answer_max_chars: 500, case: { vignette: KASE.vignette },
       next: shown(bank(''), res.body.next.ask), sig: expect.any(String) });
     const { ask } = res.body.next;
     expect(ask.bridge).toBe('');
@@ -832,8 +832,7 @@ describe('POST /booth/plays/:id/reply', () => {
       (await answer(p, { text: 'second typed' })).body];
     for (const body of before) {
       expect(JSON.stringify(body)).not.toMatch(/tier/i);
-      // The start's steps is the case's step count (#380); the per-step list comes with the score alone.
-      expect(Array.isArray(body.steps)).toBe(false);
+      expect(body).not.toHaveProperty('steps');
     }
     const scored = (await score(p)).body;
     expect(scored.steps).toEqual(stepsOf(p));
@@ -2546,7 +2545,7 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
 
   test('starts with steps 5, asks each next step from its bank keyed on the previous tier, stops asking after step 5, and scores the fitted table entry', async () => {
     const p = await begin(KASE5);
-    expect(p.started.steps).toBe(5);
+    expect(p.started.step_count).toBe(5);
     for (const [i, given] of ['best', 'reasonable', 'weaker', 'reasonable', 'best'].entries()) {
       const res = await answer(p, given);
       expect(res.body.status).toBe('replied');
@@ -2592,7 +2591,7 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
 
   test('the three-step case beside it still starts with steps 3 and scores its own table', async () => {
     const p = await walked(['best', 'reasonable', 'weaker']);
-    expect(p.started.steps).toBe(3);
+    expect(p.started.step_count).toBe(3);
     expect((await score(p)).body).toMatchObject({ status: 'scored', composite: compositeScore(TABLE.paths.BRW), domains: TABLE.paths.BRW });
     expect(plays.get(p.id)).toMatchObject({ tier_path: 'BRW', replied_step: 3 });
   });

@@ -218,4 +218,4 @@ function caseTreeProblems(raw) {
     .map((r) => r.test(t, ctx)).filter(Boolean).map((msg) => `${t.path}.${t.lang}: ${msg}`));
 }
 
-module.exports = { TIERS, MAX_STEPS, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore };
+module.exports = { TIERS, MAX_STEPS, tierPaths, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore };

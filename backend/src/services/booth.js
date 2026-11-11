@@ -427,7 +427,7 @@ async function drawCase(input, now = new Date()) {
   return { body: { case_id, teaser, live: live.length } };
 }
 
-/** @returns {Promise<Result>} body: { play_id, tag, steps, answer_max_chars, case: { vignette }, next, sig } */
+/** @returns {Promise<Result>} body: { play_id, tag, step_count, answer_max_chars, case: { vignette }, next, sig } */
 async function startPlay(input, now = new Date()) {
   const opened = await openEvent(now, dealState);
   if (opened.refused) return opened;
@@ -445,7 +445,7 @@ async function startPlay(input, now = new Date()) {
   const ask = firstAsk(bank);
   return {
     body: {
-      play_id: row.play_id, tag: row.play_tag, steps: stepCount(kase), answer_max_chars: ANSWER_MAX_CHARS, case: { vignette: kase.vignette },
+      play_id: row.play_id, tag: row.play_tag, step_count: stepCount(kase), answer_max_chars: ANSWER_MAX_CHARS, case: { vignette: kase.vignette },
       next: nextOf(bank, ask), sig: turnSig(row.play_id, 0, { answers: [], replies: [], asks: [ask] }),
     },
   };
