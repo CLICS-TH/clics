@@ -603,6 +603,75 @@ test('activate re-checks the model block and refuses a route before it builds or
   } finally { cleanup(h); }
 });
 
+// ---- self-hosted sign-in env (#427): gotrue.env + postgrest.env under R6 ---------------------------
+const JWT = 'jwt-SECRET-0123456789abcdef0123456789abcdef';
+const GOTRUE_NAMES = ['GOTRUE_DB_DATABASE_URL', 'GOTRUE_SMTP_PASS', 'GOTRUE_EXTERNAL_GOOGLE_SECRET', 'API_EXTERNAL_URL',
+  'GOTRUE_JWT_EXP', 'GOTRUE_SITE_URL', 'GOTRUE_URI_ALLOW_LIST', 'GOTRUE_SMTP_HOST', 'GOTRUE_SMTP_PORT', 'GOTRUE_SMTP_USER',
+  'GOTRUE_SMTP_ADMIN_EMAIL', 'GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID', 'GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI'];
+function authEnv(h, { gotrue = `GOTRUE_JWT_SECRET=${JWT}\n${GOTRUE_NAMES.map((n) => `${n}=x`).join('\n')}\n`,
+  postgrest = `PGRST_JWT_SECRET=${JWT}\nPGRST_DB_URI=x\n`, gotrueMode = 0o600 } = {}) {
+  if (gotrue !== null) { writeFileSync(path.join(h.base, 'env', 'gotrue.env'), gotrue); chmodSync(path.join(h.base, 'env', 'gotrue.env'), gotrueMode); }
+  if (postgrest !== null) { writeFileSync(path.join(h.base, 'env', 'postgrest.env'), postgrest); chmodSync(path.join(h.base, 'env', 'postgrest.env'), 0o600); }
+}
+
+test('preflight: with no gotrue.env or postgrest.env, sign-in is reported as not configured and the deploy goes on', () => {
+  const h = host();
+  try {
+    const r = remote(h, 'preflight');
+    assert.equal(r.status, 0, r.out);
+    assert.match(r.out, /self-hosted sign-in not configured on this host/);
+  } finally { cleanup(h); }
+});
+
+test('preflight: well-formed sign-in env files pass, and every misplaced or missing secret is refused unprinted', () => {
+  let h = host();
+  try {
+    authEnv(h);
+    const r = remote(h, 'preflight');
+    assert.equal(r.status, 0, r.out);
+    assert.match(r.out, /self-hosted sign-in env ok/);
+  } finally { cleanup(h); }
+
+  const full = `GOTRUE_JWT_SECRET=${JWT}\n${GOTRUE_NAMES.map((n) => `${n}=x`).join('\n')}\n`;
+  const cases = [
+    [{ backendExtra: `GOTRUE_JWT_SECRET=${JWT}\n` }, {}, /backend\.env sets GOTRUE_JWT_SECRET, a self-hosted sign-in name/],
+    [{ rimplExtra: `export PGRST_JWT_SECRET=${JWT}\n` }, {}, /rimpl\.env sets PGRST_JWT_SECRET/],
+    [{}, { postgrest: null }, /postgrest\.env is missing/],
+    [{}, { gotrue: null }, /gotrue\.env is missing/],
+    [{}, { gotrueMode: 0o644 }, /gotrue\.env must be mode 600/],
+    [{}, { gotrue: full.replace('GOTRUE_SMTP_PASS=x', 'GOTRUE_SMTP_PASS=') }, /gotrue\.env: GOTRUE_SMTP_PASS has no value/],
+    [{}, { postgrest: `PGRST_JWT_SECRET=${JWT}\n` }, /postgrest\.env: PGRST_DB_URI has no value/],
+    [{}, { gotrue: `${full}PGRST_DB_URI=x\n` }, /gotrue\.env sets a PGRST_ name/],
+    [{}, { postgrest: `PGRST_JWT_SECRET=${JWT}\nPGRST_DB_URI=x\nGOTRUE_JWT_SECRET=${JWT}\n` }, /postgrest\.env sets a GoTrue name/],
+    [{}, { postgrest: `PGRST_JWT_SECRET=${JWT}x\nPGRST_DB_URI=x\n` }, /GOTRUE_JWT_SECRET \(gotrue\.env\) and PGRST_JWT_SECRET \(postgrest\.env\) differ/],
+    [{}, { gotrue: full.replace(JWT, 'short'), postgrest: 'PGRST_JWT_SECRET=short\nPGRST_DB_URI=x\n' }, /shorter than 32 characters/],
+    [{}, { gotrue: full.replace(`=${JWT}`, `='${JWT}'`), postgrest: `PGRST_JWT_SECRET='${JWT}'\nPGRST_DB_URI=x\n` }, /unquoted/],
+    [{}, { gotrue: `${full}GOTRUE_JWT_SECRET=${JWT}\n` }, /must assign GOTRUE_JWT_SECRET exactly once/],
+    [{}, { gotrue: full.replace(JWT, `${JWT}$x`), postgrest: `PGRST_JWT_SECRET=${JWT}$x\nPGRST_DB_URI=x\n` }, /base64 characters only/],
+  ];
+  for (const [hostOpts, files, want] of cases) {
+    h = host(hostOpts);
+    try {
+      authEnv(h, files);
+      const r = remote(h, 'preflight');
+      assert.notEqual(r.status, 0, `expected a refusal for ${want}`);
+      assert.match(r.out, want);
+      assert.ok(!r.out.includes(JWT) && !r.calls.join('\n').includes(JWT), `a secret leaked:\n${r.out}`);
+    } finally { cleanup(h); }
+  }
+});
+
+test('activate re-checks the sign-in env and refuses before it builds or starts anything', () => {
+  const h = host({ releases: [SHA], current: SHA });
+  try {
+    authEnv(h, { postgrest: null });
+    const r = remote(h, 'activate', 'rollback', { STUB_IMAGES: '1' });
+    assert.notEqual(r.status, 0);
+    assert.match(lastLine(r.out), /postgrest\.env is missing/);
+    assert.ok(!r.calls.some((c) => / compose -p /.test(c)), `no compose call:\n${r.calls.join('\n')}`);
+  } finally { cleanup(h); }
+});
+
 // ---- launch / attach: the detached activation --------------------------------------------------------
 function stage(h, script = stepScript('activate'), run = RUN) {
   mkdirSync(path.join(h.base, 'runs', run), { recursive: true });
