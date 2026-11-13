@@ -103,6 +103,20 @@ test('a scripted-only run is judged on the scripted groups alone', () => {
   assert.deepEqual(Object.values(v.cases).map((c) => c.pass), [true, true, true]);
 });
 
+test('one value per group judged as the mean of 3 plays is complete and gets the 3-play gap; left to runs, it gets the 1-play gap', () => {
+  const scripted = ['best', 'mixed', 'weakest'];
+  const each = (n) => ({ best: n, mixed: n, weakest: n });
+  const one = (s) => ({ best: [45 + s], mixed: [42 + s], weakest: [35 + s] });
+  const table = { a: one(0), b: one(2), c: one(-2) };
+  const asThree = verdicts(table, scripted, { runs: each(1), averaged: each(3) });
+  assert.deepEqual(Object.values(asThree.cases).map((c) => c.pass), [true, true, true]);
+  assert.equal(asThree.gap_min, 6.59);
+  // 1.645 × 4.91 × √2 = 11.42, over the 10 that best beats weakest by.
+  const asOne = verdicts(table, scripted, { runs: each(1) });
+  assert.equal(asOne.gap_min, 11.42);
+  assert.deepEqual(asOne.cases.a.reasons, ['best is only 10 above weakest, under 11.42']);
+});
+
 test('the summary shows each case, the pool medians, the bands and why a failing case failed', () => {
   const table = pool(3, { x: kase(0, { best: [70, 70, 70] }) });
   const verdict = judge(table);

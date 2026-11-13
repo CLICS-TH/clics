@@ -14,29 +14,24 @@ const { BOOTH_TYPED_DECODING } = require('../lib/decoding');
 const { cuesOf, bestReusable, calibrated } = require('../lib/booth-cache');
 const { embed, MODEL_ID } = require('./embed');
 
-// The bank goes after the (already de-identified) last user turn only, so it is never part of the history
-// the backend replays. Thai text only: the reply's language rule decides the bridge's language.
-function withBank(messages, bank) {
-  const block = JSON.stringify({
-    variants: bank.variants.map((v) => ({ id: v.id, question: v.question.th })),
-    options: bank.options.map((o) => ({ id: o.id, tier: o.tier, label: o.label.th, line: o.line.th })),
-  });
-  const last = messages[messages.length - 1];
-  return [...messages.slice(0, -1), { ...last, content: `${last.content}\n\nBANK: ${block}` }];
-}
-
-// A typed answer: the step's own bank as the yardstick, then the next step's bank under each tier. Thai text only.
-const thBank = (bank) => ({
-  variants: bank.variants.map((v) => ({ id: v.id, question: v.question.th })),
-  options: bank.options.map((o) => ({ id: o.id, tier: o.tier, label: o.label.th, line: o.line.th })),
+// A bank's text in the reply language only (#377), which is also the bridge's.
+const bankIn = (bank, language) => ({
+  variants: bank.variants.map((v) => ({ id: v.id, question: v.question[language] })),
+  options: bank.options.map((o) => ({ id: o.id, tier: o.tier, label: o.label[language], line: o.line[language] })),
 });
-function withSort(messages, typed) {
-  const block = JSON.stringify({
-    current: thBank(typed.current),
-    ...(typed.next ? { next: Object.fromEntries(Object.entries(typed.next).map(([tier, bank]) => [tier, thBank(bank)])) } : {}),
-  });
+
+// The block goes after the (already de-identified) last user turn only, so it is never part of the history the
+// backend replays. A tapped answer gets the next step's BANK; a typed one gets SORT: the step's own bank as the
+// yardstick, then the next step's bank under each tier.
+function withBlock(messages, { bank, typed }, language) {
+  const block = typed
+    ? `SORT: ${JSON.stringify({
+      current: bankIn(typed.current, language),
+      ...(typed.next ? { next: Object.fromEntries(Object.entries(typed.next).map(([tier, b]) => [tier, bankIn(b, language)])) } : {}),
+    })}`
+    : `BANK: ${JSON.stringify(bankIn(bank, language))}`;
   const last = messages[messages.length - 1];
-  return [...messages.slice(0, -1), { ...last, content: `${last.content}\n\nSORT: ${block}` }];
+  return [...messages.slice(0, -1), { ...last, content: `${last.content}\n\n${block}` }];
 }
 
 // The kiosk draws a reply's fields in this order, each under its own heading.
@@ -73,15 +68,15 @@ const cacheHit = (id, answerDeidentified) => ({
 // answerDeidentified is only echoed back for the backend to store (#375); the model never sees it apart. With
 // `cache` (#387), a typed answer is embedded from answerDeidentified alone, never the raw text: it may reuse an
 // entry (once the guards are calibrated), else the live reply carries the embedding for the backend to store.
-async function boothReply({ messages, bank, typed, answerDeidentified, cache, signal }) {
+async function boothReply({ messages, bank, typed, answerDeidentified, cache, language, signal }) {
   const embedding = typed && cache && answerDeidentified ? await embed(answerDeidentified) : null;
   const query = embedding && { model: MODEL_ID, embedding, cues: cuesOf(answerDeidentified) };
   const hit = query && calibrated(MODEL_ID) ? bestReusable(query, cache.entries) : null;
   if (hit) return cacheHit(hit, answerDeidentified);
-  const systemPrompt = chatSystemPrompt({ booth: true, grill: Boolean(bank), typed: Boolean(typed) });
+  const systemPrompt = chatSystemPrompt({ booth: true, grill: Boolean(bank), typed: Boolean(typed), language });
   const { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } = await callAI({
     purpose: 'chat', systemPrompt, signal,
-    messages: typed ? withSort(messages, typed) : bank ? withBank(messages, bank) : messages,
+    messages: typed || bank ? withBlock(messages, { bank, typed }, language) : messages,
     maxTokens: BOOTH_MAX_TOKENS,
     ...(typed ? { temperature: BOOTH_TYPED_DECODING.temperature } : {}),
   });

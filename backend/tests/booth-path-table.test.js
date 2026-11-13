@@ -8,6 +8,7 @@ const { spawn, spawnSync } = require('child_process');
 const { isValidAsk, evaluateRequest } = require('../src/services/booth-dialogue');
 const { treeSha } = require('../src/booth-cases/tree-sha');
 const { TIER_PATHS, bankKey, sampleWalk, replyProblems, jobsFor, lockProblems } = require('../../scripts/booth/path-table-sample');
+const { PATHS, PATHS_BY_STEPS } = require('../../scripts/booth/sandbox-play');
 const MANIFEST = require('../../rimpl/src/model-manifest.json').expected.code;
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
@@ -68,6 +69,19 @@ describe('a sample walk', () => {
     const jobs = jobsFor([KASE], 3);
     expect(jobs).toHaveLength(81);
     expect(new Set(jobs.map((j) => `${j.tierPath}#${j.sample}`)).size).toBe(81);
+  });
+
+  test('a build samples only the paths its table plan names', () => {
+    const jobs = jobsFor([KASE], 3, () => ['BBB', 'WWW']);
+    expect(jobs.map((j) => `${j.tierPath}#${j.sample}`)).toEqual(['BBB#1', 'BBB#2', 'BBB#3', 'WWW#1', 'WWW#2', 'WWW#3']);
+  });
+});
+
+describe('the scripted paths by case length', () => {
+  test('three steps keep the sandbox\'s paths, and five steps are the ones the path table\'s node tests plan from', () => {
+    expect(PATHS_BY_STEPS[3]).toBe(PATHS);
+    // scripts/booth/path-table.test.mjs holds this map as a literal, since sandbox-play.js needs this suite's packages.
+    expect(PATHS_BY_STEPS[5]).toEqual({ best: 'BBBBB', mixed: 'BRWRR', weakest: 'WWWWW' });
   });
 });
 
@@ -202,6 +216,22 @@ describe('the build runner', () => {
     } finally {
       rimpl.server.close();
     }
+  });
+
+  test('--from records the three-step method, its scripted paths and the 27 paths it sampled', () => {
+    const { dir, args } = throwawayBuild();
+    const caseFile = path.join(dir, `${KASE.case_id}.json`);
+    const kase = JSON.parse(fs.readFileSync(caseFile, 'utf8'));
+    const out = args[args.indexOf('--out') + 1];
+    const file = path.join(out, 'run.samples.jsonl');
+    const header = { run_id: 'ptb-method', date: '2026-11-10', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
+    const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
+      tree_sha256: treeSha(kase), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0.017, ...scored(locked()) }));
+    fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
+    expect([0, 1]).toContain(run([...args, '--from', file]).status);
+    const report = JSON.parse(fs.readFileSync(path.join(out, 'ptb-method.json'), 'utf8'));
+    expect(report).toMatchObject({ method: 'median', scripted: PATHS, sampled: TIER_PATHS });
+    expect(JSON.parse(fs.readFileSync(caseFile, 'utf8')).path_score_table.provenance.method).toBe('median');
   });
 
   test('--from refuses a run that went over the cap it ran under', () => {

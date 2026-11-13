@@ -51,11 +51,11 @@ const LICENCE_LABELLED =
 
 // Honorific + a Thai given name. The honorifics are the ones the product's own forms and the rimpl
 // title list use; a name behind one of these is never a clinical noun.
-const TH_HONORIFIC_NAME =
+export const TH_HONORIFIC_NAME =
   /(?:นายแพทย์|แพทย์หญิง|ศาสตราจารย์|รองศาสตราจารย์|ผู้ช่วยศาสตราจารย์|นพ\.|พญ\.|ศ\.|รศ\.|ผศ\.|ดร\.|นางสาว|นาง|นาย)\s*([ก-ฮ][ก-ฮะ-๎]{2,})/g;
 
 // An explicitly labelled name field — what /identity renders back from full_name_th / full_name_en.
-const TH_LABELLED_NAME = /(?:ชื่อ-?นามสกุล|ชื่อจริง|นามสกุล|full[_\s]?name)\s*[:：]?\s*([^\s,;)]{2,})/gi;
+export const TH_LABELLED_NAME = /(?:ชื่อ-?นามสกุล|ชื่อจริง|นามสกุล|full[_\s]?name)\s*[:：]?\s*([^\s,;)]{2,})/gi;
 
 /** The pseudonym the pilot is supposed to show instead of a name. */
 const PSEUDONYM = /^P-\d{3}$/;

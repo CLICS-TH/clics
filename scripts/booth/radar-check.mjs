@@ -17,15 +17,17 @@ export const readRadar = (page) => page.locator('[data-radar]').first().evaluate
   });
   const labels = [...fig.querySelectorAll('.radar-label')].map((l) => {
     const r = l.getBoundingClientRect();
-    return { key: l.dataset.key, text: l.textContent, inside: r.left >= box.left - 1 && r.right <= box.right + 1 && r.top >= box.top - 1 && r.bottom <= box.bottom + 1 };
+    return { key: l.dataset.key, text: l.querySelector('.bi-main')?.textContent, lang: l.querySelector('.bi-main')?.lang,
+      sub: l.querySelector('.bi-sub')?.getBoundingClientRect().height ?? 0, inside: r.left >= box.left - 1 && r.right <= box.right + 1 && r.top >= box.top - 1 && r.bottom <= box.bottom + 1 };
   });
   return { role: fig.getAttribute('role'), aria: fig.getAttribute('aria-label'), along, labels,
     fill: getComputedStyle(shape).fill, stroke: getComputedStyle(shape).stroke, card: getComputedStyle(card).backgroundColor };
 });
 
-export function checkRadar(h, tag, seen, domains) {
-  h.check(seen.labels.length === 7 && seen.labels.every((l, i) => l.key === `d${i + 1}` && l.text === h.DOMAIN_SHORT[l.key].th && l.inside),
-    `${tag}: the radar names d1-d7 by their short Thai names, each inside its box (${seen.labels.map((l) => l.text).join(', ')})`);
+/** @param {'th' | 'en'} primary the look's primary language: the axis names show in it alone */
+export function checkRadar(h, tag, seen, domains, primary = 'th') {
+  h.check(seen.labels.length === 7 && seen.labels.every((l, i) => l.key === `d${i + 1}` && l.lang === primary && l.text === h.DOMAIN_SHORT[l.key][primary] && l.sub === 0 && l.inside),
+    `${tag}: the radar names d1-d7 by their short ${primary === 'th' ? 'Thai' : 'English'} names alone, each inside its box (${seen.labels.map((l) => l.text).join(', ')})`);
   h.check(seen.along.length === 7 && seen.along.every((a, i) => Math.abs(a - domains[`d${i + 1}`] / 5) < 0.01),
     `${tag}: each corner of the score shape sits at its domain's score along its spoke (${seen.along.map((a) => (a * 5).toFixed(1)).join(' ')})`);
   const fill = contrast(seen.fill, seen.card);
@@ -34,28 +36,3 @@ export function checkRadar(h, tag, seen, domains) {
   h.check(seen.role === 'img' && h.DOMAINS.every((d) => seen.aria.includes(`${d.th} ${domains[d.key]}/5`)),
     `${tag}: the radar is one image whose label names every domain with its score`);
 }
-
-/** The score sets the card is checked with: every domain at each band, and the two longest low lines made weakest. */
-function scoreSets() {
-  const longest = [...KEYS].sort((a, b) => size(BAND_LINES[b].low) - size(BAND_LINES[a].low)).slice(0, 2);
-  return [
-    ['all low', Object.fromEntries(KEYS.map((k) => [k, 1]))],
-    ['all middle', Object.fromEntries(KEYS.map((k) => [k, 3]))],
-    ['all high', Object.fromEntries(KEYS.map((k) => [k, 5]))],
-    [`longest low lines (${longest.join(', ')}) weakest`, Object.fromEntries(KEYS.map((k) => [k, longest.includes(k) ? 0 : 4]))],
-  ];
-}
-
-async function toResult(k) {
-  await k.shell('start');
-  await k.toVignette();
-  await k.tap('[data-action="begin"]');
-  for (let n = 1; n <= 3; n++) {
-    await k.screen('step');
-    await k.tap('.options > [data-option]:nth-child(1)');
-    await k.screen('reply');
-    await k.tap(`[data-action="${n === 3 ? 'see-score' : 'next'}"]`);
-  }
-  await k.screen('scored');
-}
-

@@ -156,6 +156,9 @@ const RULES = [
   { applies: ANY, test: ({ lang, s }) => (lang === 'th' ? !THAI.test(s) && 'has no Thai script' : THAI.test(s) && 'has Thai script') },
   { applies: ANY, test: ({ kind, lang, s }) => width[lang](s) > BUDGETS[kind][lang] && `is ${width[lang](s)} characters (limit ${BUDGETS[kind][lang]})` },
   { applies: ANY, test: ({ s }) => { const w = OVERCLAIMS.find((x) => s.toLowerCase().includes(x)); return w && `overclaims ("${w}")`; } },
+  // A booth question is one line: rimpl reads a tapped answer's turn by its first line (rimpl/src/routes/chat.js
+  // boothTurnParts, #412).
+  { applies: new Set(['question']), test: ({ s }) => /[\r\n\u2028\u2029]/.test(s) && 'holds a line break (a question is one line)' },
   { applies: new Set(['question', 'label', 'line']), test: ({ lang, s }) => { const m = s.match(WITHHOLDS[lang])?.[0] ?? (lang === 'th' && waitWord(s)); return m && `reads as withholding or delaying treatment ("${m}")`; } },
   { applies: new Set(['line']), test: ({ lang, s }) => { const m = s.match(AGAINST[lang]); return m && `argues against its own option ("${m[0]}")`; } },
   { applies: new Set(['teaser']), test: ({ lang, s }, { best }) => { const w = words[lang](s).find((x) => best[lang].has(x)); return w && `hints the step-1 best answer ("${w}")`; } },
