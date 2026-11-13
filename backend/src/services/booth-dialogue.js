@@ -341,10 +341,12 @@ const StepRecordSchema = z.object({
 
 // Six or more numerals with nothing but non-letters between them, in any script: a phone or an id however it is
 // written (slashes, brackets, dashes of any kind, spaces of any width, zero-width or bidi marks, full-width or
-// Arabic-Indic digits). A class guard: every non-letter is dropped before the run is measured, so a new separator
-// needs no edit. It also catches a lab value of six digits (150000); the owner accepts that (gate #370 round 3).
+// Arabic-Indic digits). A class guard: every non-letter is dropped before the run is measured, and so is every
+// default-ignorable code point, which covers the letters that render blank (Hangul fillers U+3164, U+115F, U+1160,
+// U+FFA0), so a new separator needs no edit. It also catches a lab value of six digits (150000); the owner accepts
+// that (gate #370 round 3).
 const LONG_DIGIT_RUN = /\p{N}{6,}/u;
-const longDigitRun = (text) => LONG_DIGIT_RUN.test(text.replace(/[^\p{L}\p{N}]/gu, ''));
+const longDigitRun = (text) => LONG_DIGIT_RUN.test(text.replace(/[^\p{L}\p{N}]|\p{Default_Ignorable_Code_Point}/gu, ''));
 const flaggedForAuditor = (content) => {
   const t = content.replaceAll('**', '');
   return ascii(t) !== t || longDigitRun(t) || spanMatches(t).length > 0;

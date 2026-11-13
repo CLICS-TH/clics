@@ -180,6 +180,10 @@ test.each([
   ['a phone split by zero-width spaces', at(1, (s) => ({ ...s, typed: 'โทร 081\u200B234\u200B5678' }))],
   ['a phone split by bidi marks and a wide space', at(1, (s) => ({ ...s, typed: 'โทร 081\u200E\u3000234\u2060(5678)' }))],
   ['a bracketed phone in a bridge', at(2, (s) => ({ ...s, bridge: 'โทร (081) 234–5678' }))],
+  ['a phone split by Hangul fillers, letters that render blank', at(1, (s) => ({ ...s, typed: 'โทร 081\u3164234\uFFA05678' }))],
+  ['a phone in keycap digits', at(1, (s) => ({ ...s, typed: `โทร ${[...'0812345678'].map((d) => `${d}\uFE0F\u20E3`).join('')}` }))],
+  // The owner accepts that a six-digit lab value in free text withholds the play too.
+  ['a six-digit lab value in a reply', reply(0, { weigh: 'เกล็ดเลือด 150000' })],
 ])('%s is withheld as flagged', (_name, steps) => {
   expect(studyTranscript(KASE, steps, null)).toEqual({ why: 'flagged' });
 });
