@@ -10,9 +10,9 @@
 // exclusive lock and is refused when it would take the spend past the cap, so concurrent runs share one total.
 //
 // A ledger comes into being only through `node scripts/booth/spend-ledger.mjs init`, seeded from the committed record
-// (scripts/booth/path-table-runs/spend.jsonl). A missing ledger, or one that does not parse line by line, refuses the
-// run: it cannot prove the spend so far. Package-free, like the other booth scripts.
-import { appendFileSync, closeSync, mkdirSync, openSync, readFileSync, unlinkSync, writeSync } from 'node:fs';
+// (scripts/booth/path-table-runs/spend.jsonl). A missing or empty ledger, or one that does not parse line by line,
+// refuses the run: it cannot prove the spend so far. Package-free, like the other booth scripts.
+import { appendFileSync, closeSync, fsyncSync, linkSync, mkdirSync, openSync, readFileSync, unlinkSync, writeSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -50,6 +50,7 @@ const missing = () => refuse('does not exist, so the spend so far cannot be prov
 function parse(raw) {
   const lines = raw.split('\n');
   if (lines.pop() !== '') refuse('does not end in a newline: its last line may be torn');
+  if (!lines.length) refuse('is empty: it has no init line, so the spend so far cannot be proven');
   const reserved = new Set();
   const settled = new Set();
   return lines.map((line, i) => {
@@ -142,14 +143,20 @@ export function init(record = RECORD) {
   });
   const ledger = ledgerPath();
   mkdirSync(path.dirname(ledger), { recursive: true });
-  let fd;
-  try { fd = openSync(ledger, 'wx'); } catch (err) {
-    if (err.code === 'EEXIST') throw new Error(`the spend ledger ${ledger} already exists: init runs once per machine`);
-    throw err;
-  }
   const head = { kind: 'init', at: new Date().toISOString(), seeded_from: path.relative(path.join(HERE, '..', '..'), record) };
-  writeSync(fd, [head, ...charges].map((l) => `${JSON.stringify(l)}\n`).join(''));
-  closeSync(fd);
+  // Written whole to a temp file and linked into place, so the ledger never exists half-written.
+  const tmp = `${ledger}.${randomUUID()}.tmp`;
+  const fd = openSync(tmp, 'wx');
+  try {
+    try {
+      writeSync(fd, [head, ...charges].map((l) => `${JSON.stringify(l)}\n`).join(''));
+      fsyncSync(fd);
+    } finally { closeSync(fd); }
+    try { linkSync(tmp, ledger); } catch (err) {
+      if (err.code === 'EEXIST') throw new Error(`the spend ledger ${ledger} already exists: init runs once per machine`);
+      throw err;
+    }
+  } finally { unlinkSync(tmp); }
   return fold([head, ...charges]);
 }
 

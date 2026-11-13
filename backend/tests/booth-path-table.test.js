@@ -324,6 +324,7 @@ describe('the build runner', () => {
   }, 20_000);
 
   test.each([
+    ['no bytes at all', '', /is empty/],
     ['a first line that is not init', `${JSON.stringify({ kind: 'charge', run_id: 'r', usd: 1 })}\n`, /does not start with an init line/],
     ['a line that does not parse', `${JSON.stringify(INIT)}\n{"kind":"charge",\n`, /line 2 is not JSON/],
     ['a line of an unknown kind', `${JSON.stringify(INIT)}\n${JSON.stringify({ kind: 'refund', run_id: 'r', usd: 5 })}\n`, /line 2 is not an init, charge, reserve or settle line/],
@@ -403,6 +404,7 @@ describe('the build runner', () => {
     expect(again.status).toBe(2);
     expect(again.stderr).toMatch(/already exists/);
     expect(fs.readFileSync(ledgerFile(home), 'utf8')).toBe(seeded);
+    expect(fs.readdirSync(path.dirname(ledgerFile(home)))).toEqual(['ledger.jsonl']);
     const rimpl = await stubRimpl({ answer: locked() });
     try {
       const res = await runAsync([...throwawayBuild().args, '--go'], goEnv(home, rimpl));
