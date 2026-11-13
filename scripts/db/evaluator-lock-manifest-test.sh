@@ -10,7 +10,10 @@
 # untouched; the table's grants, RLS flag and deny-all policy are byte-identical before and after;
 # anon/authenticated still see no row and cannot write one while the service role can; the CHECKs refuse
 # a malformed sha and a half-written pair; shadow_evaluations.decoding is added once that table exists;
-# and db/schema.sql declares the same columns and constraints as prerequisite + migration.
+# db/migration-evaluator-lock-identity.sql (#430) refuses before its prerequisite, applies twice, keeps
+# the pre-existing row as a weights lock, and its CHECK lets a row name the evaluator by a weights digest
+# or by model id + system fingerprint, never both or neither; and db/schema.sql declares the same
+# columns and constraints as prerequisite + both migrations.
 set -euo pipefail
 export LC_ALL=C LANG=C
 export PGOPTIONS="-c client_min_messages=warning"   # the IF [NOT] EXISTS notices are expected; keep the output readable
@@ -18,6 +21,7 @@ export PGOPTIONS="-c client_min_messages=warning"   # the IF [NOT] EXISTS notice
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MIG="$ROOT/db/migration-evaluator-lock-manifest.sql"
 PRE="$ROOT/db/migration-evaluator-model-lock.sql"
+ID="$ROOT/db/migration-evaluator-lock-identity.sql"
 PG_BIN="${PG_BIN:-$(dirname "$(command -v pg_ctl || echo /opt/homebrew/opt/postgresql@17/bin/pg_ctl)")}"
 DIR="$(mktemp -d)"
 trap '"$PG_BIN/pg_ctl" -D "$DIR/data" stop -m fast >/dev/null 2>&1 || true; rm -rf "$DIR"' EXIT
@@ -147,7 +151,37 @@ expect "an upper-case evaluator sha is refused (23514)" "23514" "$(sqlstate "$(I
 expect "a short evaluator sha is refused (23514)" "23514" "$(sqlstate "$(INS "$GOOD" "'{}'::jsonb" "'abc'")")"
 expect "the evaluator sha alone may be NULL (a pre-binding row)" "ok" "$(sqlstate "$(INS "$GOOD" "'{}'::jsonb" "null")")"
 
-echo "db/schema.sql agrees with prerequisite + migration"
+echo "identity migration (#430)"
+if OUT="$(PDB s -f "$ID" 2>&1)"; then R=applied; else R=refused; fi
+expect "refuses before migration-evaluator-model-lock.sql" "refused 1" \
+  "$R $(echo "$OUT" | grep -c 'apply db/migration-evaluator-model-lock.sql first' || true)"
+RUNS=""
+for n in 1 2; do if P -f "$ID" >/dev/null 2>&1; then RUNS="$RUNS ok"; else RUNS="$RUNS fail"; fi; done
+expect "applies twice (idempotent)" " ok ok" "$RUNS"
+expect "identity_basis not null, system_fingerprint and weights_sha256 nullable" \
+  "identity_basis text NO|system_fingerprint text YES|weights_sha256 text YES" \
+  "$(P -c "select string_agg(column_name || ' ' || data_type || ' ' || is_nullable, '|' order by column_name) from information_schema.columns
+           where table_name = 'evaluator_model_lock' and column_name in ('identity_basis', 'system_fingerprint', 'weights_sha256')")"
+expect "exactly one copy of the identity CHECK" "1" \
+  "$(P -c "select count(*) from pg_constraint where conrelid = 'public.evaluator_model_lock'::regclass and conname = 'evaluator_model_lock_identity_basis'")"
+expect "pre-existing lock row untouched" "$ROW_BEFORE" "$(P -c "$ROW")"
+expect "  → and reads as a weights lock" "weights_sha256" \
+  "$(P -c "select identity_basis from evaluator_model_lock where id = '00000000-0000-0000-0000-0000000000a1'")"
+IDINS() { echo "insert into evaluator_model_lock (identity_basis, weights_sha256, model_version, system_fingerprint, inference_engine,
+  system_prompt_version, evaluator_prompt_version, rubric_version) values ($1, $2, $3, $4, 'vllm', 's', 'p', 'r')"; }
+expect "a model-identity lock with no digest is accepted" "ok" \
+  "$(sqlstate "set role service_role; $(IDINS "'model_id+system_fingerprint'" "null" "'CCME_LLM_v8.0+DeepSeek-V4.1-Flash-1017'" "'fp'")")"
+expect "a model-identity lock with a digest is refused (23514)" "23514" \
+  "$(sqlstate "$(IDINS "'model_id+system_fingerprint'" "repeat('e', 64)" "'m'" "'fp'")")"
+expect "a model-identity lock with no fingerprint is refused (23514)" "23514" \
+  "$(sqlstate "$(IDINS "'model_id+system_fingerprint'" "null" "'m'" "null")")"
+expect "a model-identity lock with no model id is refused (23514)" "23514" \
+  "$(sqlstate "$(IDINS "'model_id+system_fingerprint'" "null" "null" "'fp'")")"
+expect "a weights lock with no digest is refused (23514)" "23514" "$(sqlstate "$(IDINS "'weights_sha256'" "null" "'m'" "null")")"
+expect "an unknown basis is refused (23514)" "23514" "$(sqlstate "$(IDINS "'neither'" "null" "'m'" "'fp'")")"
+expect "RLS flag, ACL and deny-all policy still byte-identical" "$SEC_BEFORE" "$(P -c "$SEC")"
+
+echo "db/schema.sql agrees with prerequisite + both migrations"
 # The table's block in schema.sql, applied alone to a fresh database with the same stubs.
 sed -n '/^create table public.evaluator_model_lock (/,/^create policy evaluator_model_lock_no_access/p' "$ROOT/db/schema.sql" > "$DIR/schema-block.sql"
 expect "schema.sql declares the table" "1" "$(grep -c '^create table public.evaluator_model_lock (' "$DIR/schema-block.sql" || true)"
@@ -155,8 +189,8 @@ PDB s -f "$DIR/schema-block.sql" >/dev/null
 expect "same columns, types and nullability" "$(P -c "$COLS")" "$(PDB s -c "$COLS")"
 expect "same CHECK constraints" "$(P -c "$CONS")" "$(PDB s -c "$CONS")"
 expect "same RLS flag and policy" "$(P -c "$SEC" | cut -d'|' -f1,2,4)" "$(PDB s -c "$SEC" | cut -d'|' -f1,2,4)"
-expect "  → and the migration is a no-op on a schema.sql install" "ok" \
-  "$(PDB s -f "$PRE" >/dev/null 2>&1 && PDB s -f "$MIG" >/dev/null 2>&1 && echo ok || echo fail)"
+expect "  → and the migrations are a no-op on a schema.sql install" "ok" \
+  "$(PDB s -f "$PRE" >/dev/null 2>&1 && PDB s -f "$MIG" >/dev/null 2>&1 && PDB s -f "$ID" >/dev/null 2>&1 && echo ok || echo fail)"
 expect "  → columns still match after it" "$(P -c "$COLS")" "$(PDB s -c "$COLS")"
 
 if [ "$FAIL" = 0 ]; then echo "ALL PASS"; else echo "FAILURES"; exit 1; fi

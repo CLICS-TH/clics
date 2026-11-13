@@ -866,6 +866,10 @@ async function deliverTurn(message) {
     retractPhysicianBubble();
     renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null, { system: true, announce: true });
     restoreDraft(message); // restore the typed question
+  } else if (res?.code === 'ai_unavailable') {
+    // The on-prem AI is down (local-only mode, ADR 0012): nothing was stored, counted or charged. The typed
+    // text goes back in the box and the key is kept, so Retry re-sends the same turn once the AI is back.
+    renderTurnFailure(message, 'ระบบ AI ไม่พร้อมใช้งานชั่วคราว เซสชันของคุณบันทึกไว้แล้ว / AI temporarily unavailable, your session is saved.');
   } else if (outcomeUnknown(res)) {
     // No answer came back, so we do not know whether the turn was stored. Look before offering Retry.
     // (turn_pending = the backend says another request is still working on it: the clock restarts now.)

@@ -222,7 +222,7 @@ async function rimplDeidentify({ messages, patient_ref, chief_complaint }) {
 // and the persisted PII map, the auditor's view and the evaluator's input agree on every token. A
 // caller that omits it (the calibration harness) gets the transcript-only numbering, recorded as such
 // in provenance.deid. An older RIMPL ignores the key (its zod schemas strip unknown keys).
-async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 }, { timeoutMs = EVAL_TIMEOUT_MS } = {}) {
+async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256, identity_basis }, { timeoutMs = EVAL_TIMEOUT_MS } = {}) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
@@ -235,8 +235,11 @@ async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint,
     // hash, never a transcript or an identifier; rimpl stamps it on the score and sends it nowhere else.
     // An older rimpl strips the key (zod) and answers 200 anyway; services/ple-evaluation.js's echo check
     // then refuses to save the score and defers it, so deploy rimpl first.
+    // identity_basis: what names the evaluator under the lock in force ('weights_sha256' or
+    // 'model_id+system_fingerprint', services/model-lock.js LOCK_IDENTITY). Absent when unlocked, and
+    // echo-checked the same way.
     body: JSON.stringify({ ple_id, transcript, patient_ref, chief_complaint: chief_complaint ?? null, shadow, weights_sha256: weights_sha256 ?? null,
-      ...(lock_declaration_sha256 ? { lock_declaration_sha256 } : {}) }),
+      ...(lock_declaration_sha256 ? { lock_declaration_sha256 } : {}), ...(identity_basis ? { identity_basis } : {}) }),
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw await rimplError('/evaluate', res);
@@ -286,6 +289,18 @@ async function probeRimplProvider({ name, purpose = 'chat', timeoutMs = PROVIDER
   return res.json();
 }
 
+// rimpl's local-only mode ('on' | 'off'), from GET /health/mode: memory only, no provider probe. THROWS on
+// a network error, a timeout, a non-2xx (an older rimpl answers 404) or any other answer, so the caller
+// can fail closed (routes/superadmin.js localOnlyState).
+const MODE_TIMEOUT_MS = parseInt(process.env.RIMPL_MODE_TIMEOUT_MS || '2500', 10);
+async function fetchRimplLocalOnly({ timeoutMs = MODE_TIMEOUT_MS } = {}) {
+  const res = await fetch(`${RIMPL_URL}/health/mode`, { signal: AbortSignal.timeout(timeoutMs) });
+  if (!res.ok) throw new Error(`RIMPL /health/mode returned ${res.status}`);
+  const mode = (await res.json())?.local_only;
+  if (mode !== 'on' && mode !== 'off') throw new Error(`RIMPL /health/mode returned local_only=${JSON.stringify(mode)}`);
+  return mode;
+}
+
 // The model manifest (CCME R2): rimpl's GET /manifest, behind the internal token. Returns the parsed
 // body, { manifest, sha256, claimed_sha256, file, code_match, live, drift }, and THROWS on anything
 // else: network error, timeout, non-2xx (an older rimpl answers 404), or a body that is not a JSON
@@ -305,4 +320,4 @@ async function fetchRimplManifest({ timeoutMs = MANIFEST_TIMEOUT_MS } = {}) {
   return body;
 }
 
-module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, fetchRimplManifest, DEFAULT_PROVIDER };
+module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, fetchRimplLocalOnly, fetchRimplManifest, DEFAULT_PROVIDER };

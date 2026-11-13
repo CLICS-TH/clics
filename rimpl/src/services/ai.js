@@ -19,7 +19,7 @@ const local = require('./providers/local');
 const localTutor = require('./providers/local-tutor');
 const openaiEmbed = require('./providers/openai-embed');
 const settings = require('./provider-settings');
-const { isQueueFull, isAborted, isTooLarge, isEmptyReply, emptyReplyError } = require('../lib/ai-errors');
+const { isQueueFull, isAborted, isTooLarge, isEmptyReply, emptyReplyError, localOnlyError, isLocalOnlyRefused } = require('../lib/ai-errors');
 
 // `local` is the on-prem EVALUATOR (DeepSeek); `local-tutor` is the on-prem tutor model, a second
 // instance of the same transport on its own endpoint (providers/local-tutor.js, CCME R3). Each key
@@ -32,6 +32,7 @@ const PROVIDERS = { anthropic, local, 'local-tutor': localTutor };
 const {
   PURPOSES, PROVIDER_NAMES, EMBED_PROVIDER_NAMES, PROVIDER_PURPOSES, servesPurpose,
   FAILOVER_PURPOSES: FAILOVER_PURPOSE_LIST, DEFAULT_PROVIDER, DEFAULT_EMBED_PROVIDER,
+  LOCAL_ONLY_DEFAULT_PROVIDER, localOnly, isLocalProvider,
 } = require('../lib/provider-policy');
 
 // Embeddings are a SEPARATE registry, not a fifth entry in PURPOSES. Anthropic has no embeddings
@@ -59,12 +60,28 @@ function envProviderName(purpose, fallbackEnv, dflt) {
 
 // SYNCHRONOUS by contract — shadow.js and /health/deep both call it outside an async resolution
 // step. The database value therefore comes from provider-settings' cache, which fails soft to env.
+// Under local-only mode the last-resort default is on-prem (lib/provider-policy.js), never a cloud vendor.
 function providerNameFor(purpose) {
-  return settings.overrideFor(purpose) || envProviderName(purpose, 'AI_PROVIDER', DEFAULT_PROVIDER);
+  return settings.overrideFor(purpose) || envProviderName(purpose, 'AI_PROVIDER', localOnly() ? LOCAL_ONLY_DEFAULT_PROVIDER : DEFAULT_PROVIDER);
 }
 
 function embedProviderName() {
-  return settings.overrideFor(EMBED_PURPOSE) || envProviderName(EMBED_PURPOSE, 'EMBED_PROVIDER', DEFAULT_EMBED_PROVIDER);
+  return settings.overrideFor(EMBED_PURPOSE) || envProviderName(EMBED_PURPOSE, 'EMBED_PROVIDER', localOnly() ? LOCAL_ONLY_DEFAULT_PROVIDER : DEFAULT_EMBED_PROVIDER);
+}
+
+// LOCAL-ONLY MODE (ADR 0012; lib/provider-policy.js localOnly). Two refusals, both thrown BEFORE any
+// request is built, both a no-op while the mode is off:
+//   * a provider that is not an on-prem instance, wherever its name came from (a database row, env, a
+//     pin, the shadow or fail-over env, the embed lane);
+//   * a COLD settings cache (provider-settings.js cold): the database layer exists but has never been
+//     read, so resolution would fall to env and a default nobody chose for this purpose.
+function assertLocalOnly(name, purpose, whence) {
+  if (localOnly() && !isLocalProvider(name)) throw localOnlyError({ provider: name, purpose, whence });
+}
+function assertSettingsWarm(purpose) {
+  if (localOnly() && settings.cold()) {
+    throw localOnlyError({ purpose, reason: 'app_settings has not been readable since this process started, so its provider cannot be resolved' });
+  }
 }
 
 // PROVIDER_PURPOSES / servesPurpose (lib/provider-policy.js): `local-tutor` is the TUTOR and may serve
@@ -90,9 +107,12 @@ function lookup(registry, name, whence) {
 }
 
 function providerFor(purpose) {
+  assertSettingsWarm(purpose);
   const name = providerNameFor(purpose);
   const whence = `${purpose ? `app_settings.ai_provider_${purpose} / AI_PROVIDER_${String(purpose).toUpperCase()} / ` : ''}AI_PROVIDER`;
-  return assertServes(lookup(PROVIDERS, name, whence), purpose, whence);
+  const provider = assertServes(lookup(PROVIDERS, name, whence), purpose, whence);
+  assertLocalOnly(provider.name, purpose, whence);
+  return provider;
 }
 
 // Resolve the provider NAME for a purpose — database layer included, validated, nothing called. For a
@@ -167,7 +187,7 @@ function errorCode(err) {
 // `empty_reply` (callWith below, or an unclosed THINK_PREOPENED block) is not DOWN either, despite its
 // 503: the box answered, with no reply text. Moving a research turn to another vendor is not the fix.
 function isProviderDown(err) {
-  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err) || isEmptyReply(err)) return false;
+  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err) || isEmptyReply(err) || isLocalOnlyRefused(err)) return false;
   if (err.localTimeout === true || err.name === 'TimeoutError') return true;
   if (typeof err.status === 'number') return err.status >= 500;
   const code = errorCode(err);
@@ -185,10 +205,22 @@ function downReason(err) {
 // The fail-over target for a primary, or null when the hook is dormant (env unset) or would point
 // back at the same provider. An UNKNOWN name throws on the first chat turn, with the primary healthy,
 // rather than surfacing for the first time during the outage it was meant to cover.
+//
+// Under local-only mode a non-local target is REFUSED: no fail-over, so a primary that is down fails
+// closed (its own error propagates). Not a throw on every turn: the mode is what makes the env value
+// harmless, and a healthy on-prem primary must keep serving. readiness() reports it as a warning.
+let failoverRefusedWarned = false;
 function failoverProviderFor(primary) {
   const name = String(process.env.CHAT_FAILOVER_PROVIDER || '').trim().toLowerCase();
   if (!name) return null;
   const provider = lookup(PROVIDERS, name, 'CHAT_FAILOVER_PROVIDER');
+  if (localOnly() && !isLocalProvider(provider.name)) {
+    if (!failoverRefusedWarned) {
+      failoverRefusedWarned = true;
+      console.warn(`[ai] CHAT_FAILOVER_PROVIDER="${provider.name}" is refused by local-only mode (CLICS_LOCAL_ONLY) — chat never fails over to it`);
+    }
+    return null;
+  }
   return provider.name === primary.name ? null : provider;
 }
 
@@ -231,6 +263,7 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
   let provider;
   if (pinned) {
     provider = assertServes(lookup(PROVIDERS, String(pinned).trim().toLowerCase(), 'a pinned provider'), purpose, 'a pinned provider');
+    assertLocalOnly(provider.name, purpose, 'a pinned provider');
   } else {
     // Cold cache blocks here exactly once per process; afterwards this is a cache read with a
     // background refresh. See provider-settings.ensureFresh.
@@ -272,6 +305,7 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
 // here; this is the backstop if anything ever calls past that check.
 async function callProvider({ provider: name, purpose, systemPrompt, messages, maxTokens, temperature, signal, thinking, onReasoning }) {
   const provider = assertServes(lookup(PROVIDERS, String(name || '').trim().toLowerCase(), 'an explicit provider name'), purpose, 'an explicit provider name');
+  assertLocalOnly(provider.name, purpose, 'an explicit provider name');
   return callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal, thinking, onReasoning });
 }
 
@@ -329,8 +363,11 @@ async function ragEnabled() {
 
 async function embedText(text) {
   await settings.ensureFresh(SETTING_PURPOSES);
+  assertSettingsWarm(EMBED_PURPOSE);
   const name = embedProviderName();
-  const provider = lookup(EMBED_PROVIDERS, name, `app_settings.ai_provider_embed / AI_PROVIDER_EMBED / EMBED_PROVIDER`);
+  const whence = 'app_settings.ai_provider_embed / AI_PROVIDER_EMBED / EMBED_PROVIDER';
+  const provider = lookup(EMBED_PROVIDERS, name, whence);
+  assertLocalOnly(name, EMBED_PURPOSE, whence);
   if (typeof provider.embed !== 'function') {
     throw new Error(`Provider "${name}" cannot embed. Valid embedding providers: ${Object.keys(EMBED_PROVIDERS).join(', ')}`);
   }
@@ -410,7 +447,9 @@ function providersToProbe({ includeEmbed } = {}) {
   // Last, so a provider serving BOTH chat and embeddings keeps its chat registry entry — local is in
   // both maps, and its ready() there is the one that checks the served context.
   if (includeEmbed) add(embedProviderName(), EMBED_PROVIDERS);
-  return [...found.entries()];
+  // Local-only mode: a provider the mode refuses is never called, so it is never probed either. A missing
+  // ANTHROPIC_API_KEY must not degrade a box that cannot use it; readiness() reports the routing instead.
+  return [...found.entries()].filter(([n]) => !localOnly() || isLocalProvider(n));
 }
 
 // Aggregated readiness across every provider that must be probed (see providersToProbe). Never
@@ -428,6 +467,24 @@ async function readiness() {
     const name = providerNameFor(purpose);
     if (!servesPurpose(name, purpose)) {
       checks[`${purpose}_routing`] = { status: 'down', error: `"${name}" cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[name].join(', ')}` };
+    } else if (localOnly() && !isLocalProvider(name)) {
+      // Every call for this purpose is refused before it is sent: not ready, and said so here rather
+      // than by the refused vendor's own probe (providersToProbe drops it).
+      checks[`${purpose}_routing`] = { status: 'down', error: `local-only mode refuses "${name}" for "${purpose}"` };
+    }
+  }
+  if (localOnly()) {
+    if (settings.cold()) {
+      checks.local_only_settings = { status: 'down', error: 'local-only mode: app_settings has not been readable since start, so every purpose refuses' };
+    }
+    // Neither of these fails a served call (the fail-over is not taken; a refused embedding is a retrieval
+    // miss, which ragLookup survives), so they are findings, not outages.
+    const failover = String(process.env.CHAT_FAILOVER_PROVIDER || '').trim().toLowerCase();
+    if (failover && !isLocalProvider(failover)) {
+      checks.chat_failover = { status: 'warn', warning: `CHAT_FAILOVER_PROVIDER="${failover}" is refused by local-only mode: chat never fails over to it` };
+    }
+    if (includeEmbed && !isLocalProvider(embedProviderName())) {
+      checks.embed_routing = { status: 'warn', warning: `local-only mode refuses "${embedProviderName()}" for embed: retrieval is skipped on every turn` };
     }
   }
   // CCME R3: the evaluator must be a distinct model artifact from the tutor. If the tutor instance is
@@ -483,6 +540,12 @@ async function probeProvider(name, purpose = 'chat') {
   if (!servesPurpose(name, purpose)) {
     return { provider: name, purpose, fit: false, code: 'purpose_not_served',
       reason: `"${name}" cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[name].join(', ')}`, checks: {} };
+  }
+  // So is one local-only mode refuses, and probing it would itself reach the vendor (an embed probe embeds
+  // a string). The backend's switch treats this code as a refusal no typed phrase overrides.
+  if (localOnly() && !isLocalProvider(name)) {
+    return { provider: name, purpose, fit: false, code: 'local_only_refused',
+      reason: `local-only mode (CLICS_LOCAL_ONLY) refuses "${name}": only the on-prem models may serve`, checks: {} };
   }
 
   let checks = {};

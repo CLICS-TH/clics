@@ -72,3 +72,32 @@ describe('fetchRimplManifest', () => {
     await expect(fetchRimplManifest({ timeoutMs: 100 })).rejects.toThrow(/aborted/);
   });
 });
+
+// GET /health/mode: rimpl's local-only mode. THROWS on anything but 'on' / 'off', so the superadmin switch
+// (routes/superadmin.js localOnlyState) can count an unreadable mode as on.
+describe('fetchRimplLocalOnly', () => {
+  const { fetchRimplLocalOnly } = require('../src/services/rimpl-client');
+  const origFetch = global.fetch;
+  afterEach(() => { global.fetch = origFetch; });
+
+  test.each(['on', 'off'])('%s is returned as is, from /health/mode', async (mode) => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ local_only: mode }) });
+    await expect(fetchRimplLocalOnly({ timeoutMs: 100 })).resolves.toBe(mode);
+    expect(global.fetch.mock.calls[0][0]).toMatch(/\/health\/mode$/);
+  });
+
+  test('a 404 (an older rimpl) throws', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
+    await expect(fetchRimplLocalOnly({ timeoutMs: 100 })).rejects.toThrow(/404/);
+  });
+
+  test('any other value throws', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ local_only: true }) });
+    await expect(fetchRimplLocalOnly({ timeoutMs: 100 })).rejects.toThrow(/local_only/);
+  });
+
+  test('a network error throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    await expect(fetchRimplLocalOnly({ timeoutMs: 100 })).rejects.toThrow(/ECONNREFUSED/);
+  });
+});

@@ -60,7 +60,7 @@ describe('the prompt and its version', () => {
 
   test('a shadow row for local-tutor would be stamped with the base prompt version', () => {
     expect(blankRow('p', 'local-tutor', 'qwen-tutor').prompt_version).toBe(PROMPT_VERSION);
-    expect(blankRow('p', 'local', 'deepseek-evaluator').prompt_version).toBe(promptVersionFor('local'));
+    expect(blankRow('p', 'local', 'deepseek-evaluator').prompt_version).toBe(`${promptVersionFor('local')}@deepseek-evaluator`);
   });
 });
 

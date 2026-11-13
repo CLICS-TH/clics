@@ -51,12 +51,13 @@ describe('/health/deep on a default env (every purpose on anthropic)', () => {
         { key: 'declared.providers.discuss', expected: 'local-tutor', live: 'anthropic' },
         { key: 'declared.providers.evaluate', expected: 'local', live: 'anthropic' },
         // A model id is free text: on this public endpoint only whether it is set, and its hash.
-        { key: 'declared.local.model', expected: 'deepseek-v4-flash-dspark', live_present: false, live_sha256_12: null },
+        { key: 'declared.local.model', expected: 'DeepSeek-V4.1-Flash-1017', live_present: false, live_sha256_12: null },
+        { key: 'declared.local-tutor.model', expected: 'qwen3.8-flash-next', live_present: false, live_sha256_12: null },
       ],
     });
     expect(res.body.manifest.sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(res.body.checks.manifest).toEqual({ status: 'warn',
-      warning: 'model manifest: 5 live value(s) differ from the manifest (declared target or code defaults) — see manifest.drift' });
+      warning: 'model manifest: 6 live value(s) differ from the manifest (declared target or code defaults) — see manifest.drift' });
     expect(res.body.warnings).toEqual(['manifest']);
   });
 
@@ -72,7 +73,8 @@ describe('/health/deep on a default env (every purpose on anthropic)', () => {
     process.env.AI_PROVIDER_CRITERIA = 'local';
     process.env.AI_PROVIDER_CHAT = 'local-tutor';
     process.env.AI_PROVIDER_DISCUSS = 'local-tutor';
-    process.env.LOCAL_AI_MODEL = 'deepseek-v4-flash-dspark';
+    process.env.LOCAL_AI_MODEL = 'DeepSeek-V4.1-Flash-1017';
+    process.env.LOCAL_TUTOR_AI_MODEL = 'qwen3.8-flash-next';
     const res = await request(app).get('/health/deep');
     expect(res.body.manifest.drift).toEqual([]);
     expect(res.body.checks.manifest).toEqual({ status: 'up' });
@@ -115,13 +117,13 @@ describe('drift', () => {
 
   test('the served engine: unobserved is not drift; observed and different is', async () => {
     process.env.LOCAL_AI_BASE_URL = 'http://evalbox.internal:8000/v1';
-    process.env.LOCAL_AI_MODEL = 'deepseek-v4-flash-dspark';
+    process.env.LOCAL_AI_MODEL = 'DeepSeek-V4.1-Flash-1017';
     const before = (await request(app).get('/health/deep')).body.manifest.drift;
     expect(before.some((d) => /engine|fingerprint|served_model/.test(d.key))).toBe(false);
 
     const realFetch = globalThis.fetch;
     globalThis.fetch = jest.fn(async () => ({ ok: true, status: 200, headers: { get: () => 'application/json' },
-      json: async () => ({ model: 'deepseek-v4-flash-dspark', system_fingerprint: 'vllm-0.22.0-tp2-0badc0de',
+      json: async () => ({ model: 'DeepSeek-V4.1-Flash-1017', system_fingerprint: 'sglang-0.5.2-tp2-0badc0de',
         choices: [{ message: { content: '{}' }, finish_reason: 'stop' }], usage: { prompt_tokens: 5, completion_tokens: 1 } }) }));
     try {
       await local.call({ systemPrompt: 's', messages: [{ role: 'user', content: 'u' }], maxTokens: 10, purpose: 'evaluate' });
@@ -129,16 +131,16 @@ describe('drift', () => {
 
     const after = (await request(app).get('/health/deep')).body.manifest.drift;
     expect(after).toEqual(expect.arrayContaining([
-      { key: 'declared.local.system_fingerprint', expected: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0',
-        live_present: true, live_sha256_12: sha12('vllm-0.22.0-tp2-0badc0de') },
+      { key: 'declared.local.engine', expected: 'vllm', live: 'sglang' },
     ]));
-    expect(after.some((d) => d.key === 'declared.local.engine')).toBe(false);   // vllm both
+    // No fingerprint is declared yet (null is not compared), and the served model is the declared one.
+    expect(after.some((d) => d.key === 'declared.local.system_fingerprint')).toBe(false);
     expect(after.some((d) => d.key === 'declared.local.served_model')).toBe(false);
     // Behind the token, the same entry is raw.
     process.env.INTERNAL_TOKEN = 'internal-test-token';
     const raw = (await request(app).get('/manifest').set('x-internal-token', 'internal-test-token')).body.drift;
     expect(raw).toEqual(expect.arrayContaining([
-      { key: 'declared.local.system_fingerprint', expected: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0', live: 'vllm-0.22.0-tp2-0badc0de' },
+      { key: 'declared.local.engine', expected: 'vllm', live: 'sglang' },
     ]));
   });
 });
@@ -172,9 +174,9 @@ describe('no URL, host, IP or key ever reaches the unauthenticated body', () => 
     expect(res.status).toBe(200);
     const body = JSON.stringify(res.body);
     for (const re of UNSAFE) expect(body).not.toMatch(re);
-    // The fingerprint was observed and differs — and only its presence and a hash are public.
+    // The served model was observed and differs — and only its presence and a hash are public.
     expect(res.body.manifest.drift).toEqual(expect.arrayContaining([
-      { key: 'declared.local.system_fingerprint', expected: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0',
+      { key: 'declared.local.served_model', expected: 'DeepSeek-V4.1-Flash-1017',
         live_present: true, live_sha256_12: expect.stringMatching(/^[0-9a-f]{12}$/) },
     ]));
 
@@ -213,9 +215,9 @@ describe('operator- and server-supplied strings: hashed in public, raw behind th
     for (const s of [MODEL, SERVED, FINGERPRINT, TUTOR]) expect(body).not.toContain(s);
     // …but the drift still says which values differ, and the hashes let a holder of the value confirm it.
     expect(pub.body.manifest.drift).toEqual(expect.arrayContaining([
-      { key: 'declared.local.model', expected: 'deepseek-v4-flash-dspark', live_present: true, live_sha256_12: sha12(MODEL) },
-      { key: 'declared.local.served_model', expected: 'deepseek-v4-flash-dspark', live_present: true, live_sha256_12: sha12(SERVED) },
-      { key: 'declared.local.system_fingerprint', expected: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0', live_present: true, live_sha256_12: sha12(FINGERPRINT) },
+      { key: 'declared.local.model', expected: 'DeepSeek-V4.1-Flash-1017', live_present: true, live_sha256_12: sha12(MODEL) },
+      { key: 'declared.local.served_model', expected: 'DeepSeek-V4.1-Flash-1017', live_present: true, live_sha256_12: sha12(SERVED) },
+      { key: 'declared.local-tutor.model', expected: 'qwen3.8-flash-next', live_present: true, live_sha256_12: sha12(TUTOR) },
     ]));
 
     process.env.INTERNAL_TOKEN = 'internal-test-token';
@@ -224,8 +226,8 @@ describe('operator- and server-supplied strings: hashed in public, raw behind th
     expect(priv.body.live.models).toMatchObject({ local: MODEL, 'local-tutor': TUTOR });
     expect(priv.body.live.last_seen.local).toMatchObject({ model: SERVED, runtime: FINGERPRINT, engine: 'vllm' });
     expect(priv.body.drift).toEqual(expect.arrayContaining([
-      { key: 'declared.local.model', expected: 'deepseek-v4-flash-dspark', live: MODEL },
-      { key: 'declared.local.system_fingerprint', expected: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0', live: FINGERPRINT },
+      { key: 'declared.local.model', expected: 'DeepSeek-V4.1-Flash-1017', live: MODEL },
+      { key: 'declared.local-tutor.model', expected: 'qwen3.8-flash-next', live: TUTOR },
     ]));
   });
 });

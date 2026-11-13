@@ -528,6 +528,28 @@ test('preflight: RECONCILE_INTERVAL_MS must be an explicit 0 unless CLICS_CUTOVE
   }
 });
 
+// #428 (ADR 0012): CLICS_LOCAL_ONLY. rimpl refuses the calls, and the backend counts the mode on when either
+// file has it on, so on in backend.env alone (hidden in the switch, still called by rimpl) is refused.
+test('preflight: CLICS_LOCAL_ONLY on in backend.env must be on in rimpl.env too', () => {
+  const cases = [
+    ['', '', false, /local-only mode off \(CLICS_LOCAL_ONLY: rimpl\.env off, backend\.env off\)/],
+    ['CLICS_LOCAL_ONLY=1\n', '', false, /local-only mode on \(CLICS_LOCAL_ONLY: rimpl\.env on, backend\.env off\)/],
+    ['CLICS_LOCAL_ONLY=1\n', 'CLICS_LOCAL_ONLY=yes\n', false, /local-only mode on \(CLICS_LOCAL_ONLY: rimpl\.env on, backend\.env on\)/],
+    ['CLICS_LOCAL_ONLY=0\n', 'CLICS_LOCAL_ONLY= Off \n', false, /local-only mode off/],
+    ['', 'CLICS_LOCAL_ONLY=1\n', true, /backend\.env turns local-only mode on .* rimpl\.env does not/],
+    ['CLICS_LOCAL_ONLY=false\n', 'CLICS_LOCAL_ONLY=1\n', true, /rimpl\.env does not/],
+    ['CLICS_LOCAL_ONLY=1\nCLICS_LOCAL_ONLY=0\n', '', true, /rimpl\.env assigns CLICS_LOCAL_ONLY more than once/],
+  ];
+  for (const [rimplExtra, backendExtra, refused, want] of cases) {
+    const h = host({ rimplExtra, backendExtra });
+    try {
+      const r = remote(h, 'preflight');
+      assert.equal(r.status !== 0, refused, `${JSON.stringify(rimplExtra)} + ${JSON.stringify(backendExtra)}: ${r.out}`);
+      assert.match(r.out, want);
+    } finally { cleanup(h); }
+  }
+});
+
 // #424: the on-prem model block is declared, never routed, and its two instances are two model artifacts.
 const EVAL_URL = 'http://evaluator-box.invalid:8000/v1';
 const EVAL_KEY = 'sk-EVAL-5c4b3a';

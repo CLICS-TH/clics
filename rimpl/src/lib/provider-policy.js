@@ -62,6 +62,26 @@ const LOCAL_INSTANCES = Object.freeze({
   'local-tutor': Object.freeze({ envPrefix: 'LOCAL_TUTOR_AI_', queuePrefix: 'LOCAL_TUTOR_' }),
 });
 
+// LOCAL-ONLY MODE (ADR 0012, #428). Dormant: off unless CLICS_LOCAL_ONLY is set. When on, services/ai.js
+// refuses every provider that is not an on-prem instance (the evaluator `local`, the tutor `local-tutor`)
+// for every purpose, before any request is sent: a routed purpose, a pinned call, the shadow evaluator,
+// the embed lane and CHAT_FAILOVER_PROVIDER alike. A cold settings cache (app_settings unreadable since
+// boot) refuses too, rather than resolving from env to a default. With the mode on the default is `local`,
+// never `anthropic`/`openai`. The Anthropic key may stay in the env as the rollback: this is the guard.
+//
+// FAIL CLOSED on the value: only an unset/blank variable or an explicit off spelling (0, false, off, no)
+// is off. Any other value, including a typo of `1`, is ON — a typo must never quietly mean "the cloud
+// is allowed". Read per call, like the provider env, so switching it is an env change plus a restart.
+const LOCAL_ONLY_ENV = 'CLICS_LOCAL_ONLY';
+const LOCAL_ONLY_OFF_VALUES = Object.freeze(['', '0', 'false', 'off', 'no']);
+function localOnly() {
+  return !LOCAL_ONLY_OFF_VALUES.includes(String(process.env[LOCAL_ONLY_ENV] ?? '').trim().toLowerCase());
+}
+// The on-prem instances are exactly the ones the mode allows. One list (LOCAL_INSTANCES below), so a
+// third on-prem instance is allowed by adding it there, and nothing else can become "local" by accident.
+// The default under the mode, for chat-completion purposes and for embed alike.
+const LOCAL_ONLY_DEFAULT_PROVIDER = 'local';
+
 // <prefix>NUM_CTX when unset: 0 = off, no `options.num_ctx` is sent (providers/local-factory.js call()).
 const LOCAL_NUM_CTX_DEFAULT = 0;
 
@@ -77,8 +97,14 @@ const KNOWN_ENGINES = Object.freeze(['vllm', 'ollama', 'llamacpp', 'tgi', 'sglan
 // services/providers/anthropic.js sends exactly this (its MODEL).
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
 
+// May this provider name serve anything while local-only mode is on? Only an on-prem instance.
+function isLocalProvider(name) {
+  return Object.prototype.hasOwnProperty.call(LOCAL_INSTANCES, String(name ?? '').trim().toLowerCase());
+}
+
 module.exports = {
   PROVIDER_NAMES, PURPOSES, EMBED_PROVIDER_NAMES, DEFAULT_PROVIDER, DEFAULT_EMBED_PROVIDER,
   PROVIDER_PURPOSES, PURPOSE_CLASS, servesPurpose, FAILOVER_PURPOSES,
   LOCAL_INSTANCES, LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES, ANTHROPIC_MODEL,
+  LOCAL_ONLY_ENV, LOCAL_ONLY_OFF_VALUES, LOCAL_ONLY_DEFAULT_PROVIDER, localOnly, isLocalProvider,
 };

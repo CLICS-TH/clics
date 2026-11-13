@@ -24,6 +24,8 @@ jest.mock('../src/services/rimpl-client', () => ({
   fetchRimplManifest: jest.fn(),
   probeRimplProvider: async () => ({ fit: true }),
   probeRimplDeep: jest.fn(async () => ({ body: {} })),
+  // rimpl's local-only mode is off here, so the switch reaches the lock checks this suite is about.
+  fetchRimplLocalOnly: async () => 'off',
 }));
 
 const request = require('supertest');
@@ -41,7 +43,10 @@ const auth = (r) => r.set('Authorization', 'Bearer t');
 const SA = { id: 'sa-1', role: 'superadmin', status: 'active', email: 'sa@t' };
 const DIGEST = 'a'.repeat(64);
 const MSHA = 'f'.repeat(64);
-const PV = 'pis7-prompt-59561c29+local-c5ffe572aa81';
+// The local evaluator's label: the manifest's model-free label plus `@<declared model>` (rimpl
+// versions.js promptVersionFor), which is what its rows are stamped with and what a lock declares.
+const PV_LABEL = 'pis7-prompt-59561c29+local-c5ffe572aa81';
+const PV = `${PV_LABEL}@qwen-2.5-72b`;
 const RV = 'pis7-weights-08b0cb1a';
 const MV = 'CCME_LLM_v8.0+qwen-2.5-72b';
 const DECLARATION = {
@@ -65,7 +70,7 @@ const EXPECTED = {
   code: {
     anthropic: { model: 'claude-sonnet-4-6', model_version: 'CCME_LLM_v8.0+claude-sonnet-4-6' },
     model_version_prefix: 'CCME_LLM_v8.0+',
-    evaluator: { prompt_version: { anthropic: 'pis7-prompt-59561c29', local: PV }, rubric_version: RV },
+    evaluator: { prompt_version: { anthropic: 'pis7-prompt-59561c29', local: PV_LABEL }, rubric_version: RV },
     // The rimpl shape: a plain number, or { default, env } for an env-tunable value.
     decoding: { evaluate: { max_tokens: { default: 1500, env: 'EVAL_MAX_TOKENS' }, temperature: 0 },
       num_ctx: { local: { default: null, env: 'LOCAL_AI_NUM_CTX', sent: 'as options.num_ctx, only when > 0' },
@@ -342,7 +347,7 @@ describe('GET /evaluator-lock', () => {
     expect(r.status).toBe(200);
     expect(r.body.can_declare).toBe(false);
     expect(r.body.blockers).toEqual(['migration_required']);
-    expect(r.body.migrations_pending).toEqual(['db/migration-evaluator-lock-manifest.sql']);
+    expect(r.body.migrations_pending).toEqual(['db/migration-evaluator-lock-manifest.sql', 'db/migration-evaluator-lock-identity.sql']);
   });
 
   test('an unreadable lock state is a 503, not a guess at "unlocked"', async () => {
@@ -683,9 +688,9 @@ describe('declared vs measured vs the manifest', () => {
     expect(r.body.code).toBe('manifest_mismatch');
     expect(r.body.diff).toEqual([{
       field: 'evaluator_prompt_version', source: 'declaration', value: OLD, expected: PV,
-      manifest_path: 'expected.code.evaluator.prompt_version.local',
+      manifest_path: "expected.code.evaluator.prompt_version.local + '@' + expected.declared.local.model",
     }]);
-    expect(r.body.error).toMatch(/evaluator_prompt_version: declared "pis7-prompt-59561c29\+local-aaaaaaaaaaaa", manifest expects "pis7-prompt-59561c29\+local-c5ffe572aa81"/);
+    expect(r.body.error).toMatch(/evaluator_prompt_version: declared "pis7-prompt-59561c29\+local-aaaaaaaaaaaa", manifest expects "pis7-prompt-59561c29\+local-c5ffe572aa81@qwen-2\.5-72b"/);
     expect(r.body.manifest_sha256).toBe(MSHA);
     expectNoLock();
   });
@@ -715,9 +720,10 @@ describe('declared vs measured vs the manifest', () => {
     fetchRimplManifest.mockResolvedValue(manifestBody({ manifest: { sha256: MSHA, expected: { ...EXPECTED, declared: {} } } }));
     const r = await declare();
     expect(r.status).toBe(409);
-    // No declared block: neither the evaluate provider nor the model can be met.
+    // No declared block: neither the evaluate provider, the model, nor the prompt label naming it can be met.
     expect(r.body.diff).toEqual([
       expect.objectContaining({ field: 'provider', expected: null, manifest_path: 'expected.declared.providers.evaluate' }),
+      expect.objectContaining({ field: 'evaluator_prompt_version', expected: null }),
       expect.objectContaining({ field: 'model_version', expected: null }),
     ]);
   });
@@ -745,16 +751,16 @@ describe('before db/migration-evaluator-lock-manifest.sql is applied', () => {
     db.fail.schemaProbe = { code: '42703', message: 'column evaluator_model_lock.manifest_sha256 does not exist' };
     const r = await declare();
     expect(r.status).toBe(503);
-    expect(r.body).toMatchObject({ code: 'migration_required', migrations: ['db/migration-evaluator-lock-manifest.sql'] });
-    expect(r.body.error).toMatch(/apply db\/migration-evaluator-lock-manifest\.sql first/);
+    expect(r.body).toMatchObject({ code: 'migration_required', migrations: ['db/migration-evaluator-lock-manifest.sql', 'db/migration-evaluator-lock-identity.sql'] });
+    expect(r.body.error).toMatch(/apply db\/migration-evaluator-lock-manifest\.sql, then db\/migration-evaluator-lock-identity\.sql first/);
     expectNoLock();
   });
 
-  test('no lock table at all: both migrations, in order', async () => {
+  test('no lock table at all: every migration, in order', async () => {
     db.fail.schemaProbe = { code: 'PGRST205', message: "Could not find the table 'public.evaluator_model_lock' in the schema cache" };
     const r = await declare();
     expect(r.status).toBe(503);
-    expect(r.body.migrations).toEqual(['db/migration-evaluator-model-lock.sql', 'db/migration-evaluator-lock-manifest.sql']);
+    expect(r.body.migrations).toEqual(['db/migration-evaluator-model-lock.sql', 'db/migration-evaluator-lock-manifest.sql', 'db/migration-evaluator-lock-identity.sql']);
   });
 
   test('the insert itself reporting a missing column (PGRST204) is a 503 too, never a 500', async () => {
@@ -1041,7 +1047,7 @@ describe('GET /admin/ai-readiness relays the manifest and the lock verdict', () 
     expect((await auth(request(app).get('/admin/ai-readiness'))).body.model_lock).toMatchObject({ status: 'up' });   // caches build A
     // rimpl is redeployed with a different evaluator (build B), and the lock is replaced on it.
     const expectedB = JSON.parse(JSON.stringify(EXPECTED));
-    expectedB.code.evaluator.prompt_version.local = PV;           // the same declared prompt...
+    expectedB.code.evaluator.prompt_version.local = PV_LABEL;           // the same declared prompt...
     expectedB.code.evaluator.weights = { d1: 0.2 };                // ...but a different evaluator
     fetchRimplManifest.mockResolvedValue(manifestBody({ manifest: { sha256: 'b'.repeat(64), expected: expectedB }, sha256: 'b'.repeat(64), claimed_sha256: 'b'.repeat(64) }));
     expect((await declare({ ...DECLARATION, confirm_relock: 'REPLACE THE LOCK' })).status).toBe(200);
@@ -1765,5 +1771,112 @@ describe('evaluatorDriftKeys: pinned to rimpl/src/lib/manifest.js', () => {
     expect(evaluatorDriftKeys(ALL_KEYS, 'local').filter((k) => k.includes('local-tutor'))).toEqual([]);
     expect(evaluatorDriftKeys(null, 'local')).toEqual([]);
     expect(evaluatorDriftKeys(['declared.local.model', 'declared.local.model'], 'local')).toEqual(['declared.local.model']);
+  });
+});
+
+// ---- ADR 0012: a lock may name the evaluator by model id + system fingerprint, with no weights digest ----
+describe('identity_basis model_id+system_fingerprint', () => {
+  const BASIS = 'model_id+system_fingerprint';
+  const { weights_sha256: _w, ...NO_DIGEST } = DECLARATION;
+  const BY_ID = { ...NO_DIGEST, identity_basis: BASIS };
+  const OBSERVED_SENTINEL = 'vllm-OBSERVED-SENTINEL-tp4';
+  const seen = (runtime) => manifestBody({ live: { models: { local: LIVE_SENTINEL }, last_seen: { local: { model: 'qwen-2.5-72b', engine: 'vllm', runtime } } } });
+  beforeEach(() => { fetchRimplManifest.mockImplementation(async () => seen(FP_SENTINEL)); });
+
+  test('an empty digest with no basis is 400 invalid_declaration, as before', async () => {
+    for (const body of [{ ...DECLARATION, weights_sha256: '' }, NO_DIGEST]) {
+      const r = await declare(body);
+      expect(r.status).toBe(400);
+      expect(r.body.code).toBe('invalid_declaration');
+    }
+    expectNoLock();
+  });
+
+  test('a digest supplied with the identity basis is refused, pointing at REPLACE THE LOCK with basis weights_sha256', async () => {
+    const r = await declare({ ...DECLARATION, identity_basis: BASIS });
+    expect(r.status).toBe(400);
+    expect(r.body.code).toBe('invalid_declaration');
+    expect(JSON.stringify(r.body.details)).toMatch(/REPLACE THE LOCK.*identity_basis weights_sha256/);
+    expectNoLock();
+  });
+
+  test('an unknown basis is 400', async () => {
+    expect((await declare({ ...BY_ID, identity_basis: 'model_id' })).status).toBe(400);
+    expectNoLock();
+  });
+
+  test('the basis weights_sha256 stated explicitly is the lock it always was', async () => {
+    const r = await declare({ ...DECLARATION, identity_basis: 'weights_sha256' });
+    expect(r.status).toBe(200);
+    expect(db.locks[0]).toMatchObject({ identity_basis: 'weights_sha256', weights_sha256: DIGEST });
+    expect(db.locks[0]).not.toHaveProperty('system_fingerprint');
+  });
+
+  test('locks: the record says no digest exists and names the model id and the declared fingerprint', async () => {
+    const r = await declare(BY_ID);
+    expect(r.status).toBe(200);
+    expect(db.locks).toHaveLength(1);
+    expect(db.locks[0]).toMatchObject({ identity_basis: BASIS, weights_sha256: null, model_version: MV, system_fingerprint: FP_SENTINEL, provider: 'local' });
+    expect(db.settings.evaluator_locked_at).toBe(db.locks[0].locked_at);
+    expect(db.settings.evaluator_weights_sha256).toBeNull();
+    expect(lockAudits()[0].metadata).toMatchObject({ identity_basis: BASIS, weights_sha256: null, model_version: MV });
+  });
+
+  test('the manifest declares no fingerprint: 409 declared_fingerprint_missing, bilingual, nothing written', async () => {
+    const expected = { ...EXPECTED, declared: { ...EXPECTED.declared, local: { ...EXPECTED.declared.local, system_fingerprint: null } } };
+    fetchRimplManifest.mockResolvedValue({ ...seen(FP_SENTINEL), manifest: { schema: 'clics-model-manifest/v1', expected, sha256: MSHA } });
+    const r = await declare(BY_ID);
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('declared_fingerprint_missing');
+    expect(r.body.error).toMatch(/[฀-๿].* \/ The model manifest declares no system fingerprint for local/);
+    expectNoLock();
+  });
+
+  test('rimpl has observed no fingerprint: 409 fingerprint_not_observed, nothing written', async () => {
+    for (const body of [manifestBody(), seen(null)]) {
+      fetchRimplManifest.mockResolvedValue(body);
+      const r = await declare(BY_ID);
+      expect(r.status).toBe(409);
+      expect(r.body.code).toBe('fingerprint_not_observed');
+    }
+    expectNoLock();
+  });
+
+  test('rimpl observed another fingerprint: 409 fingerprint_mismatch, and the observed value is in no response and no log', async () => {
+    fetchRimplManifest.mockResolvedValue(seen(OBSERVED_SENTINEL));
+    const r = await declare(BY_ID);
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('fingerprint_mismatch');
+    expect(JSON.stringify(r.body)).not.toContain(OBSERVED_SENTINEL);
+    expect(JSON.stringify(r.body)).not.toContain(FP_SENTINEL);
+    expect(JSON.stringify((await getLock()).body)).not.toContain(OBSERVED_SENTINEL);
+    expect(JSON.stringify(console.error.mock.calls)).not.toContain(OBSERVED_SENTINEL);
+    expectNoLock();
+  });
+
+  test('a weights_sha256 lock does not look at the fingerprint at all', async () => {
+    fetchRimplManifest.mockResolvedValue(manifestBody());
+    expect((await declare()).status).toBe(200);
+  });
+
+  test('the verdict is asked for the declared model of the provider serving evaluate', async () => {
+    await declare(BY_ID);
+    expect(decisiveVerdict).toHaveBeenLastCalledWith(expect.objectContaining({ promptVersion: PV, modelVersion: MV }));
+    db.settings.ai_provider_evaluate = 'anthropic';
+    await declare({ ...DECLARATION, confirm_relock: 'REPLACE THE LOCK' });
+    expect(decisiveVerdict).toHaveBeenLastCalledWith(expect.objectContaining({ modelVersion: 'CCME_LLM_v8.0+claude-sonnet-4-6' }));
+  });
+
+  test('only the identity migration pending: 503 migration_required naming that file alone; nothing written', async () => {
+    const base = resolve;
+    m.state.resolve = (table, kind, ctx) => (table === 'evaluator_model_lock' && kind === 'list'
+      && String(ctx.selectArgs?.[0] ?? '').includes('identity_basis')
+      ? { error: { code: '42703', message: 'column evaluator_model_lock.identity_basis does not exist' } }
+      : base(table, kind, ctx));
+    const r = await declare(BY_ID);
+    expect(r.status).toBe(503);
+    expect(r.body).toMatchObject({ code: 'migration_required', migrations: ['db/migration-evaluator-lock-identity.sql'] });
+    expect((await getLock()).body.migrations_pending).toEqual(['db/migration-evaluator-lock-identity.sql']);
+    expectNoLock();
   });
 });

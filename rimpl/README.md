@@ -61,6 +61,18 @@ Every request must carry the `x-internal-token` shared secret (matched against t
   and zero unsafe reuses, and bound to the sha256 of `booth-cache.js`: any edit to the guards switches reuse off
   until the pairs are run again. CI fails a record whose `pairs_sha` is not the committed pair set's. The
   switch-on order is in `db/migration-booth-reply-cache.sql`.
+- **Local-only mode ([ADR 0012](../docs/adr/0012-on-prem-data-custody.md)), dormant:** `CLICS_LOCAL_ONLY=1`
+  makes `services/ai.js` refuse every provider other than `local` (the on-prem evaluator) and `local-tutor`
+  (the on-prem tutor), for every purpose, before any request: shadow, embed and `CHAT_FAILOVER_PROVIDER`
+  included. A settings cache that has never been read refuses too, and the default becomes `local`. A
+  refusal is a 503 `local_only_refused`; an on-prem tutor that is down under the mode is a 503
+  `ai_unavailable` (no fail-over). `/health/deep` and `GET /health/mode` (memory only, no probe) report
+  `local_only: on|off`. **The mode counts as on when either side is on:** the backend's provider switch
+  hides and refuses every commercial provider when its own `CLICS_LOCAL_ONLY` is on, or rimpl's
+  `/health/mode` says on, or that read fails. rimpl's variable is the one that refuses calls, so set it
+  here first and give the backend the same value (the vm1 preflight refuses backend on with rimpl off).
+- **The evaluator rule:** `ai_provider_evaluate` stays `anthropic` until the on-prem evaluator passes the
+  decisive gate, and no participant starts before local-only mode is on.
 
 Deploy: `railway up . --path-as-root --service rimpl --ci` (the local `rimpl/` dir is mis-linked to the
 `backend` service — **always pass `--service rimpl`**). See [../docs/deployment.md](../docs/deployment.md).

@@ -16,14 +16,15 @@ const retention = require('../services/retention');
 const booth = require('../services/booth');
 const boothAudits = require('../services/booth-audits');
 const { decryptJson } = require('../lib/crypto');
-const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
+const { probeRimplProvider, probeRimplDeep, fetchRimplLocalOnly } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
-const { AI_PROVIDER_CHOICES, evaluateClass } = require('../lib/ai-providers');
+const { AI_PROVIDER_CHOICES, evaluateClass, localOnly, isLocalProvider, providerChoices } = require('../lib/ai-providers');
 const { getTextSetting, getTextSettingStrict, minAuditorsPerPle } = require('../lib/settings');
 const {
   manifestForLock, expectedFor, manifestDiff, manifestMismatch, evaluatorDigest, lockSchemaStatus, lockInForce,
   evaluatorDriftKeys, evaluatorLiveDrift, cachedLiveManifest, driftKeysOf,
   modelLockCheck, resetManifestCache, migrationRequired, isMissingColumnOrTable, isMissingTable, lockDeclarationDigest,
+  pendingFrom, LOCK_MIGRATION, MANIFEST_MIGRATION, LOCK_IDENTITY, DEFAULT_IDENTITY_BASIS,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
 } = require('../services/model-lock');
@@ -622,18 +623,35 @@ const AiProviderSchema = z.object({
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
 );
 
+// Local-only mode as the superadmin switch must see it (ADR 0012): ON when this process's CLICS_LOCAL_ONLY
+// is on OR rimpl reports its own on, and ON when rimpl's cannot be read. rimpl is the process that refuses
+// the calls, so a switch that trusted only this env would offer and store commercial routes rimpl refuses;
+// unknown counts as on because offering a commercial route by guess breaks the promise and refusing one
+// costs only a retry. Never rejects.
+async function localOnlyState() {
+  const backend = localOnly();
+  let rimpl;
+  try { rimpl = await fetchRimplLocalOnly(); } catch { rimpl = 'unknown'; }
+  return { on: backend || rimpl !== 'off', sources: { backend, rimpl } };
+}
+
 // The provider switch's state. The LOCK is read strictly (services/model-lock.js lockInForce): an
 // unreadable flag used to display as "unlocked", which offered the Lock button and enabled the evaluator
 // choices on a guess. Returns { body } or { error }.
 async function readAiProviders() {
-  const [providers, lock] = await Promise.all([
+  const [providers, lock, mode] = await Promise.all([
     Promise.all(AI_PURPOSES.map(async (p) => [p, await getTextSetting(`ai_provider_${p}`, AI_PROVIDER_DEFAULT[p])])),
     lockInForce(),
+    localOnlyState(),
   ]);
   if (lock.error) return { error: lock.error };
   return { body: {
     providers: Object.fromEntries(providers),
-    choices: AI_PROVIDER_CHOICES,
+    // Commercial providers are hidden while local-only mode is on in either process (localOnlyState).
+    choices: providerChoices(mode.on),
+    local_only: mode.on,
+    // Which process holds it: { backend: bool, rimpl: 'on' | 'off' | 'unknown' }.
+    local_only_sources: mode.sources,
     evaluator_locked_at: lock.locked_at,
     // Additive: whether the lock in force has a record behind it, and whether that record is bound to
     // the evaluator digest. A flag with neither is what the retired quick lock left behind.
@@ -664,10 +682,7 @@ router.get('/ai-providers', async (_req, res) => {
 // a running system cannot read for itself — the weights checksum above all, which is not obtainable
 // over an inference API and must be stated by someone with filesystem access. Until it is, the lock
 // is an assertion rather than a checkable fact.
-const ModelLockSchema = z.object({
-  // 64 hex characters. Loose validation here would defeat the point: a checksum nobody can verify
-  // the shape of is a string, not evidence.
-  weights_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/, 'expected a 64-character SHA-256 hex digest'),
+const DeclarationSchema = z.object({
   inference_engine: z.string().min(1).max(200),
   quantization: z.string().max(200).optional(),
   system_prompt_version: z.string().min(1).max(200),
@@ -683,6 +698,28 @@ const ModelLockSchema = z.object({
   note: z.string().max(4000).optional(),
   confirm_relock: z.string().optional(),
 });
+
+// What names the evaluator, by identity_basis (services/model-lock.js LOCK_IDENTITY). Omitted, the basis
+// is weights_sha256, so a declaration written before the basis existed means what it always meant.
+const ModelLockSchema = z.preprocess(
+  (b) => (b && typeof b === 'object' && !Array.isArray(b) && b.identity_basis === undefined ? { ...b, identity_basis: DEFAULT_IDENTITY_BASIS } : b),
+  z.discriminatedUnion('identity_basis', [
+    DeclarationSchema.extend({
+      identity_basis: z.literal('weights_sha256'),
+      // 64 hex characters. Loose validation here would defeat the point: a checksum nobody can verify
+      // the shape of is a string, not evidence.
+      weights_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/, 'expected a 64-character SHA-256 hex digest'),
+    }),
+    DeclarationSchema.extend({
+      identity_basis: z.literal('model_id+system_fingerprint'),
+      // Stored NULL. A digest is never attached to a model-identity lock: it is a different declaration,
+      // made by replacing the lock (REPLACE THE LOCK) with identity_basis weights_sha256.
+      weights_sha256: z.literal('', { errorMap: () => ({ message:
+        'a model_id+system_fingerprint lock has no weights digest; to declare one, replace the lock (REPLACE THE LOCK) with identity_basis weights_sha256' }) })
+        .optional().transform(() => null),
+    }),
+  ]),
+);
 
 // The lock settings as they stand, for undoing a lock that must not stand. Both are read STRICTLY:
 // a guessed "previous value" written back on a rollback would itself be a change to the instrument.
@@ -854,7 +891,7 @@ router.get('/evaluator-lock', async (_req, res) => {
         } : null }
       : { ok: false, ...manifest.body },
     manifest_diff: diff,
-    migrations_pending: schema.missing ? migrationRequired({ tableMissing: schema.tableMissing }).migrations : [],
+    migrations_pending: schema.missing ? schema.pending : [],
     confirm_phrases: { replace_lock: CONFIRM_RELOCK },
   });
 });
@@ -883,21 +920,27 @@ router.post('/evaluator-lock', async (req, res) => {
     });
   }
 
-  // Code ships BEFORE db/migration-evaluator-lock-manifest.sql. Until it is applied, say what to apply
-  // rather than failing half-way through the insert.
+  // Code ships BEFORE the lock record's migrations (services/model-lock.js LOCK_SCHEMA). Until they are
+  // applied, say what to apply rather than failing half-way through the insert.
   const schema = await lockSchemaStatus();
-  if (!schema.ok && schema.missing) return res.status(503).json(migrationRequired({ tableMissing: schema.tableMissing }));
+  if (!schema.ok && schema.missing) return res.status(503).json(migrationRequired(schema.pending));
   if (!schema.ok) return sendDbError(res, schema.error);
 
   // BIND TO THE MANIFEST. A lock that cannot name the build it froze is a weights digest and a promise.
   const manifest = await manifestForLock();
   if (!manifest.ok) return res.status(503).json(manifest.body);
 
-  // The verdict that permits the freeze is computed on the DECLARED prompt version's own rows: a
-  // candidate scored under another prompt addendum is a different instrument and does not count here.
+  const serving = await servingEvaluator();
+  if (serving.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
+  // The model the manifest declares for the provider serving evaluate. The verdict counts only its rows.
+  const declaredModel = expectedFor(manifest.expected, serving.value).model_version ?? undefined;
+
+  // The verdict that permits the freeze is computed on the DECLARED prompt version's own rows, from the
+  // declared model: a candidate scored under another prompt addendum, or by another model under the
+  // same prompt, is a different instrument and does not count here.
   let gate;
   try {
-    gate = await decisiveVerdict({ promptVersion: declaration.evaluator_prompt_version });
+    gate = await decisiveVerdict({ promptVersion: declaration.evaluator_prompt_version, modelVersion: declaredModel });
   } catch (e) {
     return res.status(500).json({
       error: 'คำนวณผลความสอดคล้องไม่สำเร็จ จึงยังไม่ได้ล็อก / The agreement verdict could not be computed, so nothing was locked.',
@@ -907,9 +950,9 @@ router.post('/evaluator-lock', async (req, res) => {
   if (!gate.ok) return sendDbError(res, gate.error);
   if (gate.verdict.state !== 'pass') {
     return res.status(409).json({
-      ...gateNotPassed(gate.verdict, { promptVersion: declaration.evaluator_prompt_version, noCandidate: !gate.candidate }),
+      ...gateNotPassed(gate.verdict, { promptVersion: declaration.evaluator_prompt_version, modelVersion: declaredModel, noCandidate: !gate.candidate }),
       code: 'gate_not_passed', gate: gate.verdict, prompt_version: declaration.evaluator_prompt_version,
-      candidate: gate.candidate ?? null,
+      model_version: declaredModel ?? null, candidate: gate.candidate ?? null,
     });
   }
   // The candidate must be a provider that may serve `evaluate`. services/agreement.js already only
@@ -925,8 +968,6 @@ router.post('/evaluator-lock', async (req, res) => {
 
   // The candidate must be the provider SERVING evaluate. Otherwise the lock freezes a shadow while
   // another model scores every PLE: switch first (CHANGE EVALUATOR), then lock.
-  const serving = await servingEvaluator();
-  if (serving.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
   if (serving.value !== gate.candidate.provider) {
     return res.status(409).json({ ...candidateNotServing(gate.candidate.provider, serving.value), candidate: gate.candidate });
   }
@@ -947,6 +988,13 @@ router.post('/evaluator-lock', async (req, res) => {
   const liveDrift = evaluatorDriftKeys(manifest.drift_keys, gate.candidate.provider, manifest.expected);
   if (liveDrift.length) return res.status(409).json(evaluatorLiveDrift(liveDrift, gate.candidate.provider));
 
+  // WHAT NAMES THE EVALUATOR. For a model-identity lock: the declared system fingerprint, which rimpl
+  // must have observed unchanged. The observed value is compared here and goes nowhere else.
+  const identity = LOCK_IDENTITY[declaration.identity_basis].resolve({
+    provider: gate.candidate.provider, expected: manifest.expected, observed: manifest.observed_fingerprints,
+  });
+  if (!identity.ok) return res.status(409).json(identity.body);
+
   const now = new Date().toISOString();
   const evaluatorSha = evaluatorDigest(manifest.expected, gate.candidate.provider);
   const { data: row, error } = await supabase.from('evaluator_model_lock').insert({
@@ -954,6 +1002,7 @@ router.post('/evaluator-lock', async (req, res) => {
     provider: gate.candidate?.provider ?? null,
     model_version: gate.candidate?.model_version ?? null,
     ...declaration,
+    ...identity.columns,
     // The proof that the freeze was permitted, kept beside the thing it permitted. Reconstructing
     // the corpus as it stood on the day is not something anyone will actually do later.
     gate: gate.verdict,
@@ -972,7 +1021,7 @@ router.post('/evaluator-lock', async (req, res) => {
     evaluator_sha256: evaluatorSha,
   }).select('*').maybeSingle();
   if (error && isMissingColumnOrTable(error)) {
-    return res.status(503).json(migrationRequired({ tableMissing: isMissingTable(error) }));
+    return res.status(503).json(migrationRequired(pendingFrom(isMissingTable(error) ? LOCK_MIGRATION : MANIFEST_MIGRATION)));
   }
   if (sendDbError(res, error)) return;
   if (!row?.id) {
@@ -1012,7 +1061,8 @@ router.post('/evaluator-lock', async (req, res) => {
   // measuring instrument nobody can account for, so a failed write undoes the lock: settings first
   // (so the flag stops claiming a freeze), then the record. Every step is checked.
   const audit = await logEventStrict({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_model_lock',
-    metadata: { locked_at: now, record_id: row.id, weights_sha256: declaration.weights_sha256, replaced_lock: existingLock ?? null,
+    metadata: { locked_at: now, record_id: row.id, identity_basis: declaration.identity_basis, weights_sha256: declaration.weights_sha256,
+      replaced_lock: existingLock ?? null,
       provider: gate.candidate?.provider ?? null, model_version: gate.candidate?.model_version ?? null,
       prompt_version: declaration.evaluator_prompt_version, rubric_version: declaration.rubric_version,
       manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha, lock_declaration_sha256: declarationSha, gate: gate.verdict } });
@@ -1187,6 +1237,21 @@ router.patch('/ai-providers', async (req, res) => {
   // --- provider change -------------------------------------------------------------------------
   const name = String(provider).trim().toLowerCase();
   const allowed = AI_PROVIDER_CHOICES[purpose];
+  // Local-only mode (ADR 0012), on in either process or unreadable in rimpl (localOnlyState): a commercial
+  // provider is refused outright, before the evaluator guard, the readiness probe and the same-provider
+  // shortcut that skips it, and no typed phrase overrides it. Switching the mode off is an env change.
+  if (allowed.includes(name) && !isLocalProvider(name)) {
+    const mode = await localOnlyState();
+    if (mode.on) {
+      const where = mode.sources.rimpl === 'unknown' && !mode.sources.backend
+        ? 'RIMPL\'s local-only mode could not be read, so it counts as on'
+        : `Local-only mode is on (CLICS_LOCAL_ONLY: backend ${mode.sources.backend ? 'on' : 'off'}, RIMPL ${mode.sources.rimpl})`;
+      return res.status(409).json({
+        error: `${where}: "${name}" is a commercial provider and cannot serve ${purpose}. Choose an on-prem model.`,
+        code: 'local_only',
+      });
+    }
+  }
   if (!allowed.includes(name)) {
     return res.status(400).json({ error: `"${name}" cannot serve ${purpose}. Valid: ${allowed.join(', ')}`, code: 'invalid_provider' });
   }
@@ -1232,6 +1297,11 @@ router.patch('/ai-providers', async (req, res) => {
       verdict = await probeRimplProvider({ name, purpose });
     } catch (e) {
       verdict = { fit: false, code: 'probe_unreachable', reason: `could not reach RIMPL to probe "${name}": ${e.message}` };
+    }
+    // rimpl's own local-only refusal (its CLICS_LOCAL_ONLY may be on while this process's is not): the
+    // provider can never serve there, so the typed override would only store a route rimpl refuses.
+    if (verdict.code === 'local_only_refused') {
+      return res.status(409).json({ error: `"${name}" is refused by RIMPL's local-only mode: ${verdict.reason}`, code: 'local_only' });
     }
     if (!verdict.fit && confirm_unfit !== CONFIRM_UNFIT) {
       return res.status(409).json({

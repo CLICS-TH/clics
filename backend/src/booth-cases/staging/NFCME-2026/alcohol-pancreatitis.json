@@ -1,0 +1,1292 @@
+{
+  "case_id": "alcohol-pancreatitis",
+  "version": "4",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชายวัย 45 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน ปวดท้องลิ้นปี่รุนแรงหลังดื่มหนักช่วงสุดสัปดาห์",
+    "en": "A 45-year-old man in a community hospital emergency room with severe upper belly pain after a weekend of heavy drinking"
+  },
+  "vignette": {
+    "th": "ชายอายุ 45 ปี ดื่มเหล้าขาวทุกวันมา 10 ปี ปวดท้องลิ้นปี่รุนแรงร้าวไปหลังมา 1 วัน หลังดื่มหนักช่วงสุดสัปดาห์ คลื่นไส้และอาเจียนหลายครั้ง อุณหภูมิ 37.8 °C ชีพจร 110 หายใจ 22 ครั้ง/นาที ความดัน 116/74 SpO2 97% ขณะหายใจอากาศปกติ กดเจ็บบริเวณลิ้นปี่ ท้องไม่แข็งเกร็ง รู้สึกตัวดี",
+    "en": "A 45-year-old man who has drunk rice spirit daily for 10 years has had severe epigastric pain going through to the back for 1 day, after a weekend of heavy drinking, with nausea and repeated vomiting. Temperature 37.8 °C, pulse 110, respiratory rate 22, BP 116/74, SpO2 97% on room air. Epigastric tenderness, abdomen not rigid. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "ภาพทางคลินิกนี้เข้าได้กับโรคใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "ดื่มหนักแล้วปวดลิ้นปี่ร้าวไปหลัง นึกถึงโรคใดก่อน",
+            "en": "Heavy drinking, then epigastric pain to the back: which diagnosis first?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ตับอ่อนอักเสบเฉียบพลัน",
+            "en": "Acute pancreatitis"
+          },
+          "line": {
+            "th": "ปวดลิ้นปี่ร้าวไปหลังร่วมกับอาเจียนเข้าได้ดี",
+            "en": "Epigastric pain to the back with vomiting fits it well."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "ตับอ่อนอักเสบจากสุรา",
+            "en": "Alcohol-related pancreatitis"
+          },
+          "line": {
+            "th": "การดื่มหนักเป็นสาเหตุที่พบบ่อยของโรคนี้",
+            "en": "Heavy drinking is a common cause of this disease."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "แผลกระเพาะอาหารทะลุ",
+            "en": "Perforated peptic ulcer"
+          },
+          "line": {
+            "th": "คนดื่มหนักที่ปวดลิ้นปี่รุนแรงอาจมีแผลทะลุ",
+            "en": "Severe epigastric pain in a heavy drinker can be a perforation."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "reasonable",
+          "label": {
+            "th": "ถุงน้ำดีอักเสบเฉียบพลัน",
+            "en": "Acute cholecystitis"
+          },
+          "line": {
+            "th": "ปวดท้องส่วนบน ไข้ต่ำ และอาเจียนอาจเข้าได้",
+            "en": "Upper abdominal pain, low fever and vomiting can fit."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "กระเพาะอาหารอักเสบจากสุรา",
+            "en": "Alcoholic gastritis"
+          },
+          "line": {
+            "th": "สุราระคายกระเพาะจนปวดลิ้นปี่และอาเจียนได้",
+            "en": "Alcohol irritates the stomach and can cause pain and vomiting."
+          }
+        },
+        {
+          "id": "f",
+          "tier": "weaker",
+          "label": {
+            "th": "กรดไหลย้อน",
+            "en": "Acid reflux disease"
+          },
+          "line": {
+            "th": "แสบลิ้นปี่หลังดื่มหนักพบได้บ่อย",
+            "en": "Burning epigastric pain after heavy drinking is common."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "e"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "จะส่งตรวจอะไรเป็นอย่างแรก",
+              "en": "Which first tests will you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "จะยืนยันโรคและประเมินความรุนแรงด้วยการตรวจใด",
+              "en": "Which tests confirm it and gauge severity?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "severity",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปส BUN ครีเอตินิน CBC",
+              "en": "Lipase, BUN, creatinine, CBC"
+            },
+            "line": {
+              "th": "ยืนยันโรคและประเมินความรุนแรงได้ในคราวเดียว",
+              "en": "Confirms it and gauges severity at the same time."
+            }
+          },
+          {
+            "id": "sev_us",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปส BUN CBC อัลตราซาวด์",
+              "en": "Lipase, BUN, CBC, ultrasound"
+            },
+            "line": {
+              "th": "เพิ่มอัลตราซาวด์เพื่อหานิ่วที่อาจเป็นสาเหตุ",
+              "en": "Adds an ultrasound to look for gallstones that may be the cause."
+            }
+          },
+          {
+            "id": "lipase_only",
+            "tier": "reasonable",
+            "label": {
+              "th": "ไลเปสในเลือดอย่างเดียว",
+              "en": "Serum lipase alone"
+            },
+            "line": {
+              "th": "ไลเปสตั้งแต่ 3 เท่าของค่าปกติกับปวดแบบนี้ยืนยันโรค",
+              "en": "Lipase at least 3 times normal with this pain confirms it."
+            }
+          },
+          {
+            "id": "amylase",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะไมเลสในเลือด",
+              "en": "Serum amylase"
+            },
+            "line": {
+              "th": "อะไมเลสตั้งแต่ 3 เท่าของค่าปกติก็เข้าเกณฑ์วินิจฉัย",
+              "en": "Amylase at least 3 times normal also meets the diagnostic criteria."
+            }
+          },
+          {
+            "id": "ct",
+            "tier": "weaker",
+            "label": {
+              "th": "CT ช่องท้องทันทีที่มาถึง",
+              "en": "CT abdomen on arrival"
+            },
+            "line": {
+              "th": "CT เห็นตับอ่อนและเนื้อเยื่อรอบ ๆ ได้ละเอียด",
+              "en": "CT shows the pancreas and the tissue around it in detail."
+            }
+          },
+          {
+            "id": "axr",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ช่องท้อง",
+              "en": "Plain abdominal X-ray"
+            },
+            "line": {
+              "th": "ฟิล์มท้องอาจเห็นลำไส้อืดหรือหินปูนในตับอ่อน",
+              "en": "A plain film may show ileus or pancreatic calcification."
+            }
+          }
+        ],
+        "default_trio": [
+          "severity",
+          "lipase_only",
+          "ct"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "จะแยกสาเหตุที่อันตรายด้วยการตรวจใดก่อน",
+              "en": "Which first tests will sort out the dangerous causes?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ในผู้ป่วยรายนี้ ควรเริ่มตรวจอะไร",
+              "en": "In this patient, which tests come first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "lipase_cxr",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปสและเอกซเรย์ปอดท่ายืน",
+              "en": "Lipase and upright chest X-ray"
+            },
+            "line": {
+              "th": "ตรวจตับอ่อนและหาลมใต้กะบังลมได้พร้อมกัน",
+              "en": "Checks the pancreas and looks for free air together."
+            }
+          },
+          {
+            "id": "full_r",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปส CXR ท่ายืน อัลตราซาวด์",
+              "en": "Lipase, upright CXR, ultrasound"
+            },
+            "line": {
+              "th": "ครอบคลุมตับอ่อน แผลทะลุ และถุงน้ำดีในรอบเดียว",
+              "en": "Covers pancreas, perforation and gallbladder in one round."
+            }
+          },
+          {
+            "id": "cxr",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดท่ายืน",
+              "en": "Upright chest X-ray"
+            },
+            "line": {
+              "th": "ลมใต้กะบังลมช่วยจับแผลทะลุได้เร็ว",
+              "en": "Free air under the diaphragm flags a perforation fast."
+            }
+          },
+          {
+            "id": "us",
+            "tier": "reasonable",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้องส่วนบน",
+              "en": "Upper abdominal ultrasound"
+            },
+            "line": {
+              "th": "อัลตราซาวด์ข้างเตียงดูถุงน้ำดีและนิ่วได้",
+              "en": "Bedside ultrasound shows the gallbladder and any stones."
+            }
+          },
+          {
+            "id": "supine",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ช่องท้องท่านอน",
+              "en": "Supine abdominal X-ray"
+            },
+            "line": {
+              "th": "ฟิล์มท่านอนอาจเห็นลำไส้พองหรือหินปูน",
+              "en": "A supine film may show dilated bowel or calcification."
+            }
+          },
+          {
+            "id": "lft",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจการทำงานของตับ",
+              "en": "Liver function tests"
+            },
+            "line": {
+              "th": "เอนไซม์ตับสูงอาจชี้ไปทางนิ่วถุงน้ำดี",
+              "en": "Raised liver enzymes may point to gallstones."
+            }
+          }
+        ],
+        "default_trio": [
+          "lipase_cxr",
+          "cxr",
+          "supine"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ยาลดกรดแล้วยังปวดมากและอาเจียนซ้ำ ตรวจอะไรดี",
+              "en": "After an antacid he is still in severe pain and vomiting. Which tests?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "อาการหนักกว่าโรคกระเพาะทั่วไป จะตรวจอะไรต่อ",
+              "en": "This looks worse than a simple stomach upset. Which tests now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "lipase",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปสในเลือด",
+              "en": "Serum lipase"
+            },
+            "line": {
+              "th": "ปวดรุนแรงร้าวไปหลังควรตรวจไลเปสในเลือด",
+              "en": "Severe pain to the back calls for a serum lipase."
+            }
+          },
+          {
+            "id": "severity",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปส BUN ครีเอตินิน CBC",
+              "en": "Lipase, BUN, creatinine, CBC"
+            },
+            "line": {
+              "th": "ยืนยันตับอ่อนอักเสบและประเมินความรุนแรงได้พร้อมกัน",
+              "en": "Confirms pancreatitis and gauges severity at the same time."
+            }
+          },
+          {
+            "id": "amylase",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะไมเลสในเลือด",
+              "en": "Serum amylase"
+            },
+            "line": {
+              "th": "อะไมเลสตั้งแต่ 3 เท่าของค่าปกติก็เข้าเกณฑ์วินิจฉัย",
+              "en": "Amylase at least 3 times normal also meets the diagnostic criteria."
+            }
+          },
+          {
+            "id": "ecg",
+            "tier": "reasonable",
+            "label": {
+              "th": "คลื่นไฟฟ้าหัวใจ 12 ลีด",
+              "en": "12-lead ECG"
+            },
+            "line": {
+              "th": "ปวดลิ้นปี่อาจเป็นกล้ามเนื้อหัวใจตายเฉียบพลัน",
+              "en": "Epigastric pain can be a heart attack."
+            }
+          },
+          {
+            "id": "axr",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ช่องท้อง",
+              "en": "Plain abdominal X-ray"
+            },
+            "line": {
+              "th": "ฟิล์มท้องอาจเห็นลำไส้อืดหรือหินปูนในตับอ่อน",
+              "en": "A plain film may show ileus or pancreatic calcification."
+            }
+          },
+          {
+            "id": "urine",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจปัสสาวะ",
+              "en": "Urinalysis"
+            },
+            "line": {
+              "th": "ปัสสาวะอาจบ่งชี้ภาวะขาดน้ำหรือนิ่วในไต",
+              "en": "Urine may point to dehydration or a kidney stone."
+            }
+          }
+        ],
+        "default_trio": [
+          "severity",
+          "amylase",
+          "axr"
+        ]
+      }
+    },
+    "step3": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสสูง 6 เท่าของค่าปกติ จะดูแลอย่างไร",
+              "en": "Lipase is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเข้าได้กับตับอ่อนอักเสบ จะเริ่มรักษาอย่างไร",
+              "en": "The results fit pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ แก้ปวด ไทอามีน CIWA-Ar",
+              "en": "Fluids, analgesia, thiamine, CIWA-Ar"
+            },
+            "line": {
+              "th": "คนดื่มทุกวันควรได้ไทอามีนและประเมินอาการถอนสุรา",
+              "en": "Daily drinkers should get thiamine and withdrawal scoring."
+            }
+          },
+          {
+            "id": "oral",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด เริ่มกินเร็ว",
+              "en": "Fluids, pain relief, early diet"
+            },
+            "line": {
+              "th": "เริ่มกินทางปากเร็วตามที่ทนได้ ช่วยให้ฟื้นตัวไว",
+              "en": "Starting oral food early as tolerated speeds recovery."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด งดน้ำงดอาหาร",
+              "en": "Fluids, pain relief, nil by mouth"
+            },
+            "line": {
+              "th": "งดน้ำงดอาหารช่วงคลื่นไส้เป็นวิธีที่ใช้กันมานาน",
+              "en": "Nil by mouth during the nausea is a long-standing practice."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ น้ำเกลือนอร์มัล ยาแก้ปวด",
+              "en": "Admit, normal saline, pain relief"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ยา PPI",
+              "en": "Fluids, analgesia, PPI"
+            },
+            "line": {
+              "th": "บางคนให้ยา PPI เพื่อปกป้องกระเพาะอาหาร",
+              "en": "Some give a PPI to protect the stomach."
+            }
+          },
+          {
+            "id": "ct_day1",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด CT วันแรก",
+              "en": "Fluids, analgesia, CT on day 1"
+            },
+            "line": {
+              "th": "CT วันแรกมุ่งประเมินความเสียหายของตับอ่อน",
+              "en": "A day-one CT aims to stage the pancreatic damage."
+            }
+          }
+        ],
+        "default_trio": [
+          "thiamine",
+          "saline",
+          "ppi"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลไลเปสสูง 6 เท่าของค่าปกติ จะดูแลอย่างไร",
+              "en": "Lipase comes back at 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจเพิ่มเติมเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "Further results fit pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ แก้ปวด ไทอามีน CIWA-Ar",
+              "en": "Fluids, analgesia, thiamine, CIWA-Ar"
+            },
+            "line": {
+              "th": "คนดื่มทุกวันควรได้ไทอามีนและประเมินอาการถอนสุรา",
+              "en": "Daily drinkers should get thiamine and withdrawal scoring."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด แนะนำให้เลิกดื่ม",
+              "en": "Fluids, analgesia, advice to quit"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราอาจช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol may help cut repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด งดน้ำงดอาหาร",
+              "en": "Fluids, pain relief, nil by mouth"
+            },
+            "line": {
+              "th": "งดน้ำงดอาหารช่วงคลื่นไส้เป็นวิธีที่ใช้กันมานาน",
+              "en": "Nil by mouth during the nausea is a long-standing practice."
+            }
+          },
+          {
+            "id": "surgery",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ปรึกษาศัลยแพทย์",
+              "en": "Fluids, analgesia, surgical consult"
+            },
+            "line": {
+              "th": "ศัลยแพทย์ช่วยประเมินท้องที่ปวดรุนแรงเช่นนี้",
+              "en": "A surgeon helps assess an abdomen this painful."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ยา PPI",
+              "en": "Fluids, analgesia, PPI"
+            },
+            "line": {
+              "th": "บางคนให้ยา PPI เพื่อปกป้องกระเพาะอาหาร",
+              "en": "Some give a PPI to protect the stomach."
+            }
+          },
+          {
+            "id": "ng",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ใส่สาย NG",
+              "en": "Fluids, analgesia, nasogastric tube"
+            },
+            "line": {
+              "th": "สายทางจมูกช่วยระบายกระเพาะเมื่ออาเจียนบ่อย",
+              "en": "A nasogastric tube drains the stomach when vomiting is frequent."
+            }
+          }
+        ],
+        "default_trio": [
+          "alcohol",
+          "npo",
+          "ng"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผ่านไป 3 ชม. ไลเปสที่ส่งเพิ่มสูง 6 เท่า จะดูแลอย่างไร",
+              "en": "Three hours on, an added lipase is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ยังปวดมาก ผลไลเปสที่ส่งเพิ่มสูง 6 เท่า จะดูแลอย่างไร",
+              "en": "He is still in severe pain, and an added lipase is 6 times normal. Plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "admit",
+            "tier": "best",
+            "label": {
+              "th": "รับไว้ สารน้ำ แก้ปวด อัลตราซาวด์",
+              "en": "Admit, fluids, analgesia, ultrasound"
+            },
+            "line": {
+              "th": "สารน้ำปานกลาง ยาแก้ปวด และอัลตราซาวด์หานิ่ว",
+              "en": "Moderate fluids and analgesia, plus an ultrasound for gallstones."
+            }
+          },
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ แก้ปวด ไทอามีน CIWA-Ar",
+              "en": "Fluids, analgesia, thiamine, CIWA-Ar"
+            },
+            "line": {
+              "th": "คนดื่มทุกวันควรได้ไทอามีนและประเมินอาการถอนสุรา",
+              "en": "Daily drinkers should get thiamine and withdrawal scoring."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ น้ำเกลือนอร์มัล ยาแก้ปวด",
+              "en": "Admit, normal saline, pain relief"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "surgery",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ปรึกษาศัลยแพทย์",
+              "en": "Fluids, analgesia, surgical consult"
+            },
+            "line": {
+              "th": "ศัลยแพทย์ช่วยประเมินท้องที่ปวดรุนแรงเช่นนี้",
+              "en": "A surgeon helps assess an abdomen this painful."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ยา PPI",
+              "en": "Fluids, analgesia, PPI"
+            },
+            "line": {
+              "th": "บางคนให้ยา PPI เพื่อปกป้องกระเพาะอาหาร",
+              "en": "Some give a PPI to protect the stomach."
+            }
+          },
+          {
+            "id": "ng",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด ใส่สาย NG",
+              "en": "Fluids, analgesia, nasogastric tube"
+            },
+            "line": {
+              "th": "สายทางจมูกช่วยระบายกระเพาะเมื่ออาเจียนบ่อย",
+              "en": "A nasogastric tube drains the stomach when vomiting is frequent."
+            }
+          }
+        ],
+        "default_trio": [
+          "admit",
+          "saline",
+          "ppi"
+        ]
+      }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 ปวดลดลงมาก ชีพจร 88 รู้สึกหิว ทำอย่างไรต่อ",
+              "en": "Day 2: far less pain, pulse 88, and he feels hungry. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 48 ชม. อาการดีขึ้นชัดเจน คุณจะทำอย่างไรต่อ",
+              "en": "After 48 hours he is clearly better. What do you do now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "soft",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มเป็นอาหารอ่อนไขมันต่ำ",
+              "en": "Move on to a soft low-fat diet"
+            },
+            "line": {
+              "th": "ปวดลดลงและหิวแล้ว จึงกินอาหารอ่อนได้",
+              "en": "Less pain and real hunger mean he can take soft food."
+            }
+          },
+          {
+            "id": "taper",
+            "tier": "best",
+            "label": {
+              "th": "ลดสารน้ำ ยาแก้ปวดชนิดกิน",
+              "en": "Taper IV fluids, oral pain relief"
+            },
+            "line": {
+              "th": "เมื่อกินดื่มได้ดี ค่อยลดสารน้ำลง",
+              "en": "Once he eats and drinks well, the drip can come down."
+            }
+          },
+          {
+            "id": "labs",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ BUN ครีเอตินิน CBC ซ้ำ",
+              "en": "Repeat BUN, creatinine and CBC"
+            },
+            "line": {
+              "th": "ผลเลือดช่วยยืนยันว่าไตและเลือดยังดีอยู่",
+              "en": "Blood results confirm the kidneys and blood count are holding."
+            }
+          },
+          {
+            "id": "clear",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้อาหารเหลวใสอย่างเดียววันนี้",
+              "en": "Clear liquid diet only for today"
+            },
+            "line": {
+              "th": "บางคนเริ่มอาหารเหลวใสก่อนเพื่อดูว่าทนได้",
+              "en": "Some start with clear liquids to see that he keeps them down."
+            }
+          },
+          {
+            "id": "ct",
+            "tier": "weaker",
+            "label": {
+              "th": "ทำ CT ช่องท้องดูตับอ่อน",
+              "en": "CT abdomen to look at the pancreas"
+            },
+            "line": {
+              "th": "บางคนทำ CT เพื่อดูสภาพตับอ่อนให้เห็นกับตา",
+              "en": "Some order a CT to see the pancreas for themselves."
+            }
+          },
+          {
+            "id": "ivsame",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้สารน้ำอัตราเดิมต่อ",
+              "en": "Keep IV fluids at the same rate"
+            },
+            "line": {
+              "th": "บางคนให้สารน้ำต่อเนื่องระหว่างเริ่มกินอาหาร",
+              "en": "Some keep the drip running while he restarts food."
+            }
+          }
+        ],
+        "default_trio": [
+          "soft",
+          "labs",
+          "ct"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 ปวดลดลงบ้าง ยังคลื่นไส้ ชีพจร 104 ทำอย่างไรต่อ",
+              "en": "Day 2: a little less pain, still nauseated, pulse 104. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 48 ชม. ดีขึ้นช้า ยังเบื่ออาหาร คุณจะทำอย่างไร",
+              "en": "After 48 hours he is slow to improve with a poor appetite. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "antiemetic",
+            "tier": "best",
+            "label": {
+              "th": "ยาแก้อาเจียน แล้วเริ่มอาหาร",
+              "en": "Antiemetic, then start oral food"
+            },
+            "line": {
+              "th": "คุมคลื่นไส้แล้วเริ่มกิน ช่วยให้ลำไส้ฟื้นตัว",
+              "en": "Settling the nausea, then eating, helps the gut recover."
+            }
+          },
+          {
+            "id": "recheck",
+            "tier": "best",
+            "label": {
+              "th": "ประเมินสารน้ำซ้ำ ใช้ CIWA-Ar",
+              "en": "Reassess fluids and score CIWA-Ar"
+            },
+            "line": {
+              "th": "ชีพจรเร็วอาจมาจากขาดน้ำหรือถอนสุรา",
+              "en": "A fast pulse may be dehydration or alcohol withdrawal."
+            }
+          },
+          {
+            "id": "labs",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ BUN ครีเอตินิน CBC ซ้ำ",
+              "en": "Repeat BUN, creatinine and CBC"
+            },
+            "line": {
+              "th": "ผลเลือดช่วยยืนยันว่าไตและเลือดยังดีอยู่",
+              "en": "Blood results confirm the kidneys and blood count are holding."
+            }
+          },
+          {
+            "id": "clear",
+            "tier": "reasonable",
+            "label": {
+              "th": "อาหารเหลวใสก่อน แล้วอาหารอ่อน",
+              "en": "Clear liquids first, then soft food"
+            },
+            "line": {
+              "th": "เริ่มทีละขั้นช่วยให้ทนอาหารได้ดี",
+              "en": "A step-by-step start helps him keep food down."
+            }
+          },
+          {
+            "id": "ct",
+            "tier": "weaker",
+            "label": {
+              "th": "ทำ CT ช่องท้องวันนี้",
+              "en": "CT abdomen today"
+            },
+            "line": {
+              "th": "CT ช่วยหาเหตุที่อาการดีขึ้นช้า",
+              "en": "A CT looks for why he is slow to improve."
+            }
+          },
+          {
+            "id": "ng",
+            "tier": "weaker",
+            "label": {
+              "th": "ใส่สาย NG ระบายกระเพาะ",
+              "en": "NG tube to drain the stomach"
+            },
+            "line": {
+              "th": "ระบายกระเพาะช่วยลดคลื่นไส้ที่ค้างอยู่",
+              "en": "Draining the stomach eases the lingering nausea."
+            }
+          }
+        ],
+        "default_trio": [
+          "recheck",
+          "labs",
+          "ct"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 มือสั่น เหงื่อออก กระสับกระส่าย ชีพจร 118 ทำอย่างไร",
+              "en": "Day 2: tremor, sweating, agitation, pulse 118. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คืนที่ 2 นอนไม่หลับ มือสั่น หงุดหงิด จะทำอย่างไร",
+              "en": "On the second night he is sleepless, shaky and irritable. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "dzp",
+            "tier": "best",
+            "label": {
+              "th": "ไทอามีน ไดอะซีแพมตาม CIWA-Ar",
+              "en": "Thiamine, diazepam by CIWA-Ar"
+            },
+            "line": {
+              "th": "ภาวะถอนสุราควรได้ยากลุ่มเบนโซไดอะซีปีนตามคะแนน",
+              "en": "Withdrawal calls for a benzodiazepine dosed by score."
+            }
+          },
+          {
+            "id": "thia_dzp",
+            "tier": "best",
+            "label": {
+              "th": "ไทอามีนฉีดร่วมกับไดอะซีแพม",
+              "en": "Injected thiamine with diazepam"
+            },
+            "line": {
+              "th": "รักษาอาการถอนสุราและปกป้องสมองไปพร้อมกัน",
+              "en": "Treats withdrawal and protects the brain at the same time."
+            }
+          },
+          {
+            "id": "lytes",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจน้ำตาล เกลือแร่ แมกนีเซียม",
+              "en": "Glucose, electrolytes, magnesium"
+            },
+            "line": {
+              "th": "น้ำตาลต่ำหรือเกลือแร่ผิดปกติก็ทำให้มือสั่นได้",
+              "en": "Low glucose or an electrolyte upset can also cause a tremor."
+            }
+          },
+          {
+            "id": "score",
+            "tier": "reasonable",
+            "label": {
+              "th": "เตียงใกล้พยาบาล ใช้ CIWA-Ar",
+              "en": "Bed near the nurses, score CIWA-Ar"
+            },
+            "line": {
+              "th": "คะแนนบอกความรุนแรงและติดตามต่อได้",
+              "en": "A score shows how severe it is and can be tracked."
+            }
+          },
+          {
+            "id": "relative",
+            "tier": "weaker",
+            "label": {
+              "th": "ญาติเฝ้า ไดอะซีแพมเมื่อจำเป็น",
+              "en": "A relative sits in, PRN diazepam"
+            },
+            "line": {
+              "th": "คนคุ้นเคยช่วยให้สงบ มียาไว้ใช้เมื่อจำเป็น",
+              "en": "A familiar face calms him, with diazepam on hand."
+            }
+          }
+        ],
+        "default_trio": [
+          "dzp",
+          "lytes",
+          "relative"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 5 กินอาหารได้ ปวดน้อย สัญญาณชีพปกติ วางแผนอย่างไร",
+              "en": "Day 5: he eats, has little pain and normal vital signs. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "อาการดีขึ้นจนพร้อมกลับบ้าน จะดูแลต่ออย่างไร",
+              "en": "He is well enough to go home. How do you follow him up?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "discharge_bi",
+            "tier": "best",
+            "label": {
+              "th": "จำหน่าย ให้คำแนะนำสั้นเรื่องสุรา",
+              "en": "Discharge with brief alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราอาจช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol may help cut repeat attacks."
+            }
+          },
+          {
+            "id": "audit_refer",
+            "tier": "best",
+            "label": {
+              "th": "คัดกรอง AUDIT ส่งคลินิกบำบัดสุรา",
+              "en": "AUDIT, refer to an alcohol clinic"
+            },
+            "line": {
+              "th": "คะแนน AUDIT ช่วยวางแผนเลิกสุราให้เหมาะกับเขา",
+              "en": "An AUDIT score shapes a plan to stop that fits him."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่าย นัดตรวจใน 2 สัปดาห์",
+              "en": "Discharge, clinic visit in 2 weeks"
+            },
+            "line": {
+              "th": "นัดติดตามช่วยดูว่าหายดีและกินอาหารได้",
+              "en": "A follow-up visit checks he is well and eating."
+            }
+          },
+          {
+            "id": "warn",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่าย สอนอาการเตือน",
+              "en": "Discharge with warning-sign advice"
+            },
+            "line": {
+              "th": "ผู้ป่วยรู้ว่าอาการใดต้องกลับมาทันที",
+              "en": "He knows which signs mean coming back at once."
+            }
+          },
+          {
+            "id": "stay",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ต่ออีก 1 สัปดาห์",
+              "en": "Keep him in for another week"
+            },
+            "line": {
+              "th": "บางคนให้นอนต่อเพื่อให้มั่นใจว่าหายดี",
+              "en": "Some keep him in longer to be sure he has healed."
+            }
+          },
+          {
+            "id": "ct",
+            "tier": "weaker",
+            "label": {
+              "th": "ทำ CT ช่องท้องก่อนจำหน่าย",
+              "en": "CT abdomen before discharge"
+            },
+            "line": {
+              "th": "บางคนทำ CT ก่อนกลับบ้านเพื่อดูตับอ่อนอีกครั้ง",
+              "en": "Some order a CT before discharge to look at the pancreas again."
+            }
+          }
+        ],
+        "default_trio": [
+          "discharge_bi",
+          "clinic",
+          "stay"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 5 กินอาหารอ่อนได้ ยังปวดเล็กน้อย วางแผนอย่างไร",
+              "en": "Day 5: he takes soft food with mild pain left. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ดีขึ้นช้ากว่าที่คาด ตอนนี้กินได้แล้ว จะดูแลต่ออย่างไร",
+              "en": "He improved more slowly than hoped and now eats. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "bi_review",
+            "tier": "best",
+            "label": {
+              "th": "แนะนำเลิกสุรา นัดอีก 1 สัปดาห์",
+              "en": "Alcohol advice, review in 1 week"
+            },
+            "line": {
+              "th": "คุยเรื่องสุราวันนี้และนัดดูอาการใน 1 สัปดาห์",
+              "en": "Raises alcohol today and checks his recovery in a week."
+            }
+          },
+          {
+            "id": "audit_refer",
+            "tier": "best",
+            "label": {
+              "th": "คัดกรอง AUDIT ส่งคลินิกบำบัดสุรา",
+              "en": "AUDIT, refer to an alcohol clinic"
+            },
+            "line": {
+              "th": "คะแนน AUDIT ช่วยวางแผนเลิกสุราให้เหมาะกับเขา",
+              "en": "An AUDIT score shapes a plan to stop that fits him."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่าย นัดตรวจใน 2 สัปดาห์",
+              "en": "Discharge, clinic visit in 2 weeks"
+            },
+            "line": {
+              "th": "นัดติดตามช่วยดูว่าหายดีและกินอาหารได้",
+              "en": "A follow-up visit checks he is well and eating."
+            }
+          },
+          {
+            "id": "warn",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่าย สอนอาการเตือน",
+              "en": "Discharge with warning-sign advice"
+            },
+            "line": {
+              "th": "ผู้ป่วยรู้ว่าอาการใดต้องกลับมาทันที",
+              "en": "He knows which signs mean coming back at once."
+            }
+          },
+          {
+            "id": "stay",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ต่ออีก 1 สัปดาห์",
+              "en": "Keep him in for another week"
+            },
+            "line": {
+              "th": "บางคนให้นอนต่อเพื่อให้มั่นใจว่าหายดี",
+              "en": "Some keep him in longer to be sure he has healed."
+            }
+          },
+          {
+            "id": "surgeon",
+            "tier": "weaker",
+            "label": {
+              "th": "ส่งต่อศัลยแพทย์ รพ.จังหวัด",
+              "en": "Refer to the provincial surgeon"
+            },
+            "line": {
+              "th": "ศัลยแพทย์ช่วยดูแลตับอ่อนที่หายช้า",
+              "en": "A surgeon can manage a slow-healing pancreas."
+            }
+          }
+        ],
+        "default_trio": [
+          "bi_review",
+          "warn",
+          "surgeon"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 6 นอน รพ. นานขึ้น คงที่ กินได้ วางแผนอย่างไร",
+              "en": "Day 6: after a longer stay he is stable and eating. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ภรรยาถามวิธีป้องกันการเป็นซ้ำ จะวางแผนอย่างไร",
+              "en": "His wife asks how to stop this happening again. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "audit_refer",
+            "tier": "best",
+            "label": {
+              "th": "คัดกรอง AUDIT ส่งคลินิกบำบัดสุรา",
+              "en": "AUDIT, refer to an alcohol clinic"
+            },
+            "line": {
+              "th": "คะแนน AUDIT ช่วยวางแผนเลิกสุราให้เหมาะกับเขา",
+              "en": "An AUDIT score shapes a plan to stop that fits him."
+            }
+          },
+          {
+            "id": "family",
+            "tier": "best",
+            "label": {
+              "th": "คุยเรื่องเลิกสุราร่วมกับภรรยา",
+              "en": "Alcohol talk with him and his wife"
+            },
+            "line": {
+              "th": "ครอบครัวช่วยสนับสนุนการเลิกสุราที่บ้าน",
+              "en": "Family support helps him stop drinking at home."
+            }
+          },
+          {
+            "id": "clinic",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่าย นัดตรวจใน 2 สัปดาห์",
+              "en": "Discharge, clinic visit in 2 weeks"
+            },
+            "line": {
+              "th": "นัดติดตามช่วยดูว่าหายดีและกินอาหารได้",
+              "en": "A follow-up visit checks he is well and eating."
+            }
+          },
+          {
+            "id": "warn",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่าย สอนอาการเตือน",
+              "en": "Discharge with warning-sign advice"
+            },
+            "line": {
+              "th": "ผู้ป่วยรู้ว่าอาการใดต้องกลับมาทันที",
+              "en": "He knows which signs mean coming back at once."
+            }
+          },
+          {
+            "id": "diet",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้เอกสารอาหารไขมันต่ำ",
+              "en": "Give a low-fat diet leaflet"
+            },
+            "line": {
+              "th": "อาหารไขมันต่ำช่วยลดภาระของตับอ่อน",
+              "en": "A low-fat diet eases the load on the pancreas."
+            }
+          },
+          {
+            "id": "stay",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ต่ออีก 1 สัปดาห์",
+              "en": "Keep him in for another week"
+            },
+            "line": {
+              "th": "บางคนให้นอนต่อเพื่อให้มั่นใจว่าหายดี",
+              "en": "Some keep him in longer to be sure he has healed."
+            }
+          }
+        ],
+        "default_trio": [
+          "family",
+          "clinic",
+          "diet"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-13",
+      "findings": "Fresh claude-opus-5-5 reviewer, five-step version (step 3 merged, steps 4 and 5 new), checked against ACG 2024, AGA 2018, revised Atlanta 2012 and WATERFALL (NEJM 2022) for pancreatitis; CIWA-Ar symptom-triggered benzodiazepine dosing with thiamine before glucose for alcohol withdrawal; and the Thai MoPH / Department of Mental Health AUDIT-based screening and brief intervention programme with the WHO AUDIT zones. Found two unsafe step-4 weaker options in active withdrawal (faster IV fluids, removed; a relative at the bedside, now with PRN diazepam), a best withdrawal option without thiamine on paths that never gave it, two path-inconsistent questions (an unordered lipase result, eating after nil by mouth), five weaker-option lines stating false facts (CT, continued IV fluids, a longer stay), one Thai/English mismatch and several Thai wording fixes. All are fixed in this version.\n A second fresh reviewer then re-read steps 3 to 5 and found no must-fix: every step-4.W option is safe in active withdrawal and both best options give thiamine with diazepam; its path-fit and Thai wording polish (lipase wording, eating at 48 hours, bed near the nurses) is applied. Reviewed tree sha256 fe09f513a0696d36032597702a13954756e0290e0b0cb121c068407a59bd3f6a."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
+    }
+  }
+}

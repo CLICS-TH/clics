@@ -44,11 +44,14 @@ function isMissingRelation(error) {
  *   among groups scored under exactly this prompt_version. The Model Lock passes the DECLARED version,
  *   so the verdict that permits a freeze is computed on the prompt being frozen. Omitted, the most
  *   recent group wins, as before.
+ * @param {string} [opts.modelVersion] when given, the candidate must also have exactly this
+ *   model_version. The Model Lock passes the model the manifest declares, so a verdict behind a lock
+ *   never counts another model's rows, even under the same prompt label.
  * @returns {Promise<{ok: true, ...}|{ok: false, error: object}>} `ok:false` carries the db error for
  *   the caller to surface — this returns rather than throws so an express handler cannot die
  *   silently mid-response (this router has no error middleware; a throw hangs the client).
  */
-async function pairedSets({ includeTest = false, promptVersion } = {}) {
+async function pairedSets({ includeTest = false, promptVersion, modelVersion } = {}) {
   const { data: auditScores, error: auditErr } = await supabase
     .from('audit_scores').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   if (auditErr) return { ok: false, error: auditErr };
@@ -121,9 +124,8 @@ async function pairedSets({ includeTest = false, promptVersion } = {}) {
     (y.latest - x.latest)
     || String(y.model_version ?? '').localeCompare(String(x.model_version ?? ''))
     || String(y.prompt_version ?? '').localeCompare(String(x.prompt_version ?? '')));
-  const candidate = (promptVersion === undefined
-    ? ranked[0]
-    : ranked.find((g) => g.prompt_version === promptVersion)) ?? null;
+  const candidate = ranked.find((g) => (promptVersion === undefined || g.prompt_version === promptVersion)
+    && (modelVersion === undefined || g.model_version === modelVersion)) ?? null;
   // Every group, summarised, so a reader can see what was NOT pooled into the candidate.
   const groupSummaries = ranked.map((g) => ({
     provider: g.provider, model_version: g.model_version, prompt_version: g.prompt_version,
@@ -181,8 +183,8 @@ function decisiveOverall(sets) {
  * two models agreeing closely can be similarly wrong, and freezing the study's measuring instrument
  * against a number that never touched a human judgement is exactly what this must prevent.
  */
-async function decisiveVerdict({ includeTest = false, promptVersion } = {}) {
-  const sets = await pairedSets({ includeTest, promptVersion });
+async function decisiveVerdict({ includeTest = false, promptVersion, modelVersion } = {}) {
+  const sets = await pairedSets({ includeTest, promptVersion, modelVersion });
   if (!sets.ok) return { ok: false, error: sets.error };
   const gates = await iccGates();
   return {
