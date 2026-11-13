@@ -84,6 +84,10 @@ describe('a single edit to the fixture fails and names the field', () => {
     }, ['banks.step1.options[0].line.en: ', 'argues against']],
     ['an overclaim in the vignette', (k) => { k.vignette.en += ' Seen at a validated clinic.'; }, ['vignette.en: ', 'validated']],
     ['a duplicate option id', (k) => { k.banks.step3.RR.options[1].id = 'a'; }, ['banks.step3.RR.options[1].id: ', 'duplicate']],
+    // rimpl sends ids to the AI as written: an id has no room for an HN or a phone number (gate #370 on PR #482).
+    ['an option id holding an HN', (k) => { k.banks.step3.RR.options[1].id = 'hn1234567'; }, ['banks.step3.RR.options[1].id: ', 'at most one digit']],
+    ['a variant id holding a phone number', (k) => { k.banks.step3.RR.variants[1].id = 'v0812345678'; }, ['banks.step3.RR.variants[1].id: ', '/^v[1-3]$/']],
+    ['a variant id that is not v1 to v3', (k) => { k.banks.step1.variants[0].id = 'hn1234567'; }, ['banks.step1.variants[0].id: ', '/^v[1-3]$/']],
     ['a default trio with two options of one tier', (k) => {
       k.banks.step2.B.default_trio = ['a', 'b', 'c'];
     }, ['banks.step2.B.default_trio: ', 'one option per tier']],

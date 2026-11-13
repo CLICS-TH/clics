@@ -48,4 +48,11 @@ const caseTexts = (kase) => [
   ]),
 ].flatMap(([at, text]) => LANGUAGES.map((lang) => ({ at: `${at}.${lang}`, lang, text: text[lang] })));
 
-module.exports = { CASES, bankEntries, reachableBanks, caseTexts };
+/** Every variant and option id of the case, with its place in the file. rimpl sends them to the AI as written
+ *  (rimpl/src/services/booth.js bankIn), so the case text scan reads them too. */
+const caseIds = (kase) => bankEntries(kase).flatMap(([at, bank]) => [
+  ...bank.variants.map((v, i) => ({ at: `${at}.variants[${i}].id`, text: v.id })),
+  ...bank.options.map((o, i) => ({ at: `${at}.options[${i}].id`, text: o.id })),
+]);
+
+module.exports = { CASES, bankEntries, reachableBanks, caseTexts, caseIds };

@@ -2,7 +2,7 @@
 // hash names (#468, #470).
 const fs = require('fs');
 const path = require('path');
-const { isAdmitted, eventPool } = require('../src/booth-cases/tree-schema');
+const { isAdmitted, eventPool, caseTreeProblems } = require('../src/booth-cases/tree-schema');
 const { treeSha } = require('../src/booth-cases/tree-sha');
 const { stamped } = require('./helpers/booth-tree');
 
@@ -42,6 +42,35 @@ describe('a record that judges a tree admits only the tree its hash names', () =
     const edited = structuredClone(THREE);
     edited.teaser.en = `${edited.teaser.en}.`;
     expect(isAdmitted(edited)).toBe(false);
+  });
+
+  // gate #370 on PR #482: tree_sha256 is the mover's copy, so an edit with every hash field recomputed must still be
+  // refused. Only the reviewer's findings keep naming the tree the review read.
+  test('edit + recomputed tree_sha256, findings unchanged: not admitted, and a case problem', () => {
+    const edited = structuredClone(THREE);
+    edited.teaser.en = `${edited.teaser.en}.`;
+    const sha = treeSha(edited);
+    for (const record of [edited.admission.safety_review, edited.admission.sandbox, edited.path_score_table.provenance]) record.tree_sha256 = sha;
+    expect(edited.admission.safety_review.findings).toBe(THREE.admission.safety_review.findings);
+    expect(isAdmitted(edited)).toBe(false);
+    expect(caseTreeProblems(edited)).toEqual([expect.stringMatching(/^admission\.safety_review\.tree_sha256: is not the tree its findings name/)]);
+    // The same edit with a review that names the new tree, as a new review would, is admitted.
+    expect(isAdmitted(stamped(edited))).toBe(true);
+  });
+
+  test('a safety review whose findings name no tree, or two, admits nothing', () => {
+    const sha = treeSha(THREE);
+    for (const findings of ['No must-fix.', `Tree sha256 ${sha}. Earlier tree sha256 ${'a'.repeat(64)}.`]) {
+      expect(isAdmitted(withRecord('safety_review', { ...THREE.admission.safety_review, findings }))).toBe(false);
+    }
+  });
+
+  test('the leptospirosis edit the gate made (7 days of doxycycline to 5, tree_sha256 recomputed) is a case problem', () => {
+    const k = read('../src/booth-cases/NFCME-2026/leptospirosis.json');
+    expect(caseTreeProblems(k)).toEqual([]);
+    k.banks.step4.B.options[0].label.en = k.banks.step4.B.options[0].label.en.replace('7 days', '5 days');
+    k.admission.safety_review.tree_sha256 = treeSha(k);
+    expect(caseTreeProblems(k)).toEqual([expect.stringMatching(/^admission\.safety_review\.tree_sha256: is not the tree its findings name/)]);
   });
 });
 

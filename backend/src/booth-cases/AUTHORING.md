@@ -97,7 +97,7 @@ A case is reviewed before it can be drawn.
 1. Ask a fresh AI reviewer that did not write the case to check it against current Thai and WHO guidance.
 2. The reviewer checks every question variant and option for wrong facts, unsafe options, tier mislabels and Thai and English that disagree.
 3. Fix every finding in the case PR.
-4. Record the review under `admission.safety_review` with the reviewer `model`, the `date` as `YYYY-MM-DD`, a short `findings` summary, and the `tree_sha256` of the tree the reviewer read.
+4. Record the review under `admission.safety_review` with the reviewer `model`, the `date` as `YYYY-MM-DD`, a short `findings` summary, and the `tree_sha256` of the tree the reviewer read. The reviewer names that tree in the findings too, as `tree sha256 <the 64-character hash>` (see "Moving a staged case into place").
 
 `admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id`, `date` and the `tree_sha256` of the tree the run played. The script itself writes no case file. You do not write that part. Instead of `admission.sandbox`, the owner may add `admission.owner_waiver` (ADR 0005): its `date`, `adr` (`"0005"`), `reason`, the `sandbox_run_id` the case failed and the `tree_sha256` of the tree it waives. A case needs `admission.safety_review` and one of the other two to be drawn. Without them it is valid but never drawn.
 
@@ -107,7 +107,7 @@ Each of these three records counts only while its `tree_sha256` is the case's tr
 node -e "console.log(require('./backend/src/booth-cases/tree-sha').treeSha(require('./backend/src/booth-cases/<EVENT_CODE>/<case_id>.json')))"
 ```
 
-The table build also refuses a case whose review names no tree or another one (`scripts/booth/path-table.mjs` `reviewedTree`).
+The table build also refuses a case whose review names no tree or another one (`scripts/booth/path-table.mjs` `reviewedTree`), and so does the admission check when the findings do not name the review's `tree_sha256`.
 
 ## The path score table
 
@@ -136,6 +136,8 @@ A staged case goes live in one change, the way the ten five-step NFCME-2026 case
 1. Move `staging/<EVENT_CODE>/<case_id>.json` over `<EVENT_CODE>/<case_id>.json`, and its sample replies over `scripts/booth/sample-replies/<EVENT_CODE>/<case_id>.json`. Change no tree field on the way: an edit needs a new review.
 2. Give the moved file a `version` above every version the live file ever had, so it never shares a study snapshot with an old one.
 3. Keep `admission.safety_review` as reviewed, with the `tree_sha256` of the tree the reviewer read. A review that recorded the hash only in its `findings` gets it promoted into `tree_sha256`. Check it equals the moved file's hash with the command above.
+
+   The findings must name that tree in one form, `tree sha256 <the 64-character hash>`, in any case of letters: the ten NFCME-2026 cases write `Tree sha256 <hash>.`, `Reviewed tree sha256 <hash>.` or `tree sha256 <hash>,`. `tree_sha256` counts only while it equals the one hash the findings name (`backend/src/booth-cases/tree-sha.js` `reviewedSha`). The mover writes `tree_sha256`, not the reviewer, so an edit with a recomputed `tree_sha256` is refused by the table build (`reviewedTree`), the contract test (`caseTreeProblems`) and the admission check (`isAdmitted`). Findings that name no hash, or two different ones, bind no tree. An edited tree needs a new review whose findings name the new hash; never rewrite the hash in the findings yourself.
 4. Drop every record bound to another tree: the old file's `sandbox`, `owner_waiver`, `table_check`, `table_waiver` and `path_score_table` judged the old tree and admit nothing now.
 5. Run the contract test and `node scripts/booth/build-path-tables.mjs`, which spends nothing. The moved case must print `as reviewed in <commit>`.
 

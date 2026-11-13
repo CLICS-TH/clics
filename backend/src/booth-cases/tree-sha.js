@@ -12,4 +12,14 @@ const canonical = (x) => (Array.isArray(x) ? `[${x.map(canonical).join(',')}]`
 const treeSha = (raw) => createHash('sha256')
   .update(canonical(Object.fromEntries(Object.entries(raw).filter(([k]) => !NOT_TREE.has(k))))).digest('hex');
 
-module.exports = { canonical, treeSha };
+// The tree a safety review read, in its reviewer's own words: `findings` names it as "tree sha256 <64 hex>" (AUTHORING.md,
+// "Moving a staged case into place"). The mover writes `tree_sha256`; a tree_sha256 recomputed after an edit no longer
+// matches the findings, so the edit is refused. Undefined unless the findings name exactly one hash, so a review
+// that names none, or two, binds no tree.
+const TREE_NAMED = /\btree sha256 ([0-9a-f]{64})(?![0-9a-f])/gi;
+const reviewedSha = (findings) => {
+  const named = new Set([...String(findings ?? '').matchAll(TREE_NAMED)].map((m) => m[1].toLowerCase()));
+  return named.size === 1 ? [...named][0] : undefined;
+};
+
+module.exports = { canonical, treeSha, reviewedSha };

@@ -1,6 +1,6 @@
 const { z } = require('zod');
 const { WEIGHTS, compositeScore } = require('../services/ple-gate');
-const { treeSha } = require('./tree-sha');
+const { treeSha, reviewedSha } = require('./tree-sha');
 
 const TIERS = Object.freeze([
   Object.freeze({ name: 'best', letter: 'B' }),
@@ -16,21 +16,25 @@ const tierPaths = (length) => {
 };
 const LANGS = ['th', 'en'];
 
-const Id = z.string().regex(/^[a-z][a-z0-9_]{0,15}$/, 'must match /^[a-z][a-z0-9_]{0,15}$/');
+// rimpl sends variant and option ids to the AI as written (rimpl/src/services/booth.js bankIn), so an id holds no room
+// for an identifier: a variant is v1 to v3, and an option a short word of letters and underscores with at most one
+// digit (abx5, o2_iv, opd_2wk), never a number such as an HN or a phone (gate #370 on PR #482).
+const VariantId = z.string().regex(/^v[1-3]$/, 'must match /^v[1-3]$/');
+const OptionId = z.string().regex(/^(?=.{1,16}$)[a-z][a-z_]*(?:[0-9][a-z_]*)?$/, 'must be 1-16 letters and underscores, with at most one digit');
 const Text = z.string().trim().min(1);
 const Bilingual = z.object({ th: Text, en: Text }).strict();
 const CalendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD')
   .refine((s) => !Number.isNaN(Date.parse(s)) && new Date(s).toISOString().startsWith(s), 'is not a calendar date');
 
 const Bank = z.object({
-  variants: z.array(z.object({ id: Id, question: Bilingual }).strict()).min(2).max(3),
+  variants: z.array(z.object({ id: VariantId, question: Bilingual }).strict()).min(2).max(3),
   options: z.array(z.object({
-    id: Id,
+    id: OptionId,
     tier: z.enum(TIERS.map((t) => t.name)),
     label: Bilingual,
     line: Bilingual,
   }).strict()).min(3).max(6),
-  default_trio: z.array(Id).length(3),
+  default_trio: z.array(OptionId).length(3),
 }).strict().superRefine((bank, ctx) => {
   const issue = (path, message) => ctx.addIssue({ code: z.ZodIssueCode.custom, path, message });
   for (const list of ['variants', 'options']) {
@@ -125,14 +129,16 @@ const SHAPED = Object.fromEntries(Object.entries(SHAPES).map(([steps, tree]) => 
 
 /** Whether a case file may be dealt. Its safety review and its sandbox pass or owner waiver count only when bound to
  *  this tree by its hash, so a record never vouches for a tree it did not judge (#468, #470); its table vouches by its
- *  own run. Read on the raw file, the bytes those hashes were taken of. */
+ *  own run. The safety review's hash must also be the one its findings name (reviewedSha), so a tree_sha256 recomputed
+ *  after an edit admits nothing (#386). Read on the raw file, the bytes those hashes were taken of. */
 const isAdmitted = (raw) => {
   const a = raw?.admission;
   if (!a) return false;
   const sha = treeSha(raw);
   const bound = (record) => record?.tree_sha256 === sha;
   const run = raw.path_score_table?.provenance.run_id;
-  return Boolean(bound(a.safety_review) && (bound(a.sandbox) || bound(a.owner_waiver)) && run
+  return Boolean(bound(a.safety_review) && reviewedSha(a.safety_review.findings) === sha
+    && (bound(a.sandbox) || bound(a.owner_waiver)) && run
     && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
 };
 
@@ -254,6 +260,11 @@ function caseTreeProblems(raw) {
   // A table vouches only for the tree it was built from, which is the tree its safety review read (ADR 0009).
   if (kase.path_score_table && kase.path_score_table.provenance.tree_sha256 !== treeSha(raw)) {
     return ['path_score_table.provenance.tree_sha256: is not this tree\'s hash: the tree changed after its table was built, so it needs a new safety review and table'];
+  }
+  // The hash a safety review records is the mover's copy of the one its reviewer named in the findings (#386).
+  const review = kase.admission?.safety_review;
+  if (review?.tree_sha256 && reviewedSha(review.findings) !== review.tree_sha256) {
+    return ['admission.safety_review.tree_sha256: is not the tree its findings name ("tree sha256 <hash>"): a tree edited after its review needs a new review, not a new hash'];
   }
   const bestLabels = kase.banks.step1.options.filter((o) => o.tier === 'best').map((o) => o.label);
   const ctx = { best: Object.fromEntries(LANGS.map((lang) => [lang, new Set(bestLabels.flatMap((l) => words[lang](l[lang])))])) };
