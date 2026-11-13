@@ -1,0 +1,58 @@
+# The sign-in rehearsal (#427): the auth services of docker-compose.auth.yml against a throwaway database, with
+# a backend that talks to them. Rendered on top of the two vm1 files, under its OWN project name, so it never
+# touches the live `clics` containers:
+#   docker compose -p clics-rehearsal -f docker-compose.yml -f docker-compose.auth.yml \
+#     -f rehearsal/docker-compose.rehearsal.yml ...
+# rehearsal/run.sh drives it; README.md in this directory says when and how.
+#
+# The database lives in memory only (tmpfs): stopping the `db` container deletes every row, so a rehearsal
+# restored from a Supabase dump leaves no participant data at rest on vm1 (R5) once `run.sh down` has run.
+services:
+  db:
+    # The image the data host will run (ADR 0012), for its roles (supabase_auth_admin, authenticator, anon,
+    # service_role), its `auth` schema and pgvector. Not hardened like the app services: the image starts
+    # as root to initialise its data directory. It runs only during a rehearsal and publishes no port.
+    image: supabase/postgres:17.6.1.136
+    environment:
+      POSTGRES_PASSWORD: ${REHEARSAL_DB_PASSWORD:?set by rehearsal/run.sh}
+    tmpfs:
+      - /var/lib/postgresql/data:rw,size=${REHEARSAL_DB_TMPFS:-2g}
+    shm_size: 256m
+    # tmpfs pages can be swapped out, and swap is disk. The memory cgroup holds the tmpfs and /dev/shm pages;
+    # memswap_limit equal to mem_limit gives it no swap at all, so a copy of production never reaches vm1's
+    # swap. Over the limit the container is killed, which loses the copy rather than spilling it. run.sh
+    # checks the kernel enforces it (memory.swap.max is 0) before any data is loaded.
+    mem_limit: ${REHEARSAL_DB_MEM:-3g}
+    memswap_limit: ${REHEARSAL_DB_MEM:-3g}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - clics
+
+  # No host port either: once CME installs the nginx site, 127.0.0.1:3102 is public at /auth/v1, and a
+  # rehearsal GoTrue holds a copy of production's identities. The replay reaches it through supabase-gw.
+  gotrue:
+    ports: !reset []
+    depends_on:
+      db:
+        condition: service_healthy
+
+  postgrest:
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Never the live backend's port: the rehearsal backend is reached only on the project network.
+  backend:
+    ports: !reset []
+
+  # Captures GoTrue's mail so the replay can read the OTP and reset mails, in the hermetic run and on vm1
+  # alike. Delivery through Resend's SMTP is proved separately (README.md, step 6).
+  mailpit:
+    image: axllent/mailpit:v1.27.0
+    profiles: ["mail"]
+    networks:
+      - clics
