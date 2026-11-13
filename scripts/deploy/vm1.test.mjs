@@ -286,7 +286,7 @@ test('nginx serves one origin: /api stripped to the backend, /audit kept for the
   assert.match(sse, /rewrite \^\/api\(\/\.\*\)\$ \$1 break;/);
   assert.match(sse, /proxy_buffering off;/);
   assert.match(sse, /proxy_pass http:\/\/clics_backend;/);
-  assert.match(loc('= /audit'), /return 301 \/audit\/\$is_args\$args;/);
+  assert.match(loc('= /audit'), /proxy_pass http:\/\/clics_dashboard;/);
   assert.match(loc('/audit/'), /proxy_pass http:\/\/clics_dashboard;/);
   assert.match(loc('/'), /proxy_pass http:\/\/clics_portal;/);
   assert.ok(!/location ~ \^\/ples/.test(nginx), 'the backend answers under /api only');

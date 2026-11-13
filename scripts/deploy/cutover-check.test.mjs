@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pageVerdict, auditRedirectVerdict, healthVerdict, manifestVerdict, streamVerdict } from './cutover-check.mjs';
+import { pageVerdict, healthVerdict, manifestVerdict, streamVerdict } from './cutover-check.mjs';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -15,13 +15,6 @@ test('a front-end page passes only as a 200 HTML page', () => {
   assert.equal(pageVerdict(404, 'text/html').ok, false);
   assert.equal(pageVerdict(200, 'application/json').ok, false, 'the backend answering a page path is a failure');
   assert.equal(pageVerdict(502, null).ok, false);
-});
-
-test('a bare /audit must redirect to the base path', () => {
-  assert.equal(auditRedirectVerdict(301, 'https://clics.ccme.or.th/audit/').ok, true);
-  assert.equal(auditRedirectVerdict(301, '/audit/').ok, true);
-  assert.equal(auditRedirectVerdict(404, null).ok, false);
-  assert.equal(auditRedirectVerdict(301, '/login').ok, false);
 });
 
 test('health: rimpl serving as the public origin is a failure', () => {

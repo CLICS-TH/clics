@@ -272,7 +272,8 @@ VM1_HOST=VM1_TAILNET_NAME deploy/vm1/deploy.sh --rollback PREVIOUS_SHA
 if they still exist; otherwise they are rebuilt from the release directory.
 
 **Back to Vercel and Railway (within the 7 days):** Railway was never changed, so only the front ends move
-back, from a commit before #429 (the one Vercel ran before step 4).
+back, from a commit before #472 (the one Vercel ran before step 4; #472 already pointed `config.js` at
+this origin's root, which after #429 is the Portal, not the backend).
 1. Deploy that commit to both Vercel projects (`vercel --prod --yes` in `physician-ui` and in
    `audit-dashboard`). Its `vercel.json` files serve the apps again instead of redirecting, and its
    `config.js` and the dashboard's `NEXT_PUBLIC_API_URL` point at Railway.

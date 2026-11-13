@@ -12,15 +12,10 @@ const { SITE_ORIGIN, VM1_API_BASE, RAILWAY_ORIGIN, apiOrigin } = createRequire(i
 
 // The pages a signed-out visitor reaches first, each from its own server: the Portal's sign-in, and the
 // dashboard's under its base path (a 200 there means the /audit/ location reaches Next, not the Portal).
-export const SITE_PAGES = [['Portal /login', '/login'], ['dashboard /audit/login', '/audit/login']];
+export const SITE_PAGES = [['Portal /login', '/login'], ['dashboard /audit/login', '/audit/login'], ['dashboard bare /audit, redirects followed', '/audit'], ['dashboard /audit/, redirects followed', '/audit/']];
 
 export function pageVerdict(status, contentType) {
   return { ok: status === 200 && /text\/html/.test(contentType || ''), detail: `HTTP ${status} ${contentType || 'no content-type'}` };
-}
-
-// A bare /audit must land on the dashboard's base path, not on the Portal's 404.
-export function auditRedirectVerdict(status, location) {
-  return { ok: [301, 308].includes(status) && /\/audit\/$/.test(location || ''), detail: `HTTP ${status} location=${location ?? 'none'}` };
 }
 
 export function healthVerdict(body) {
@@ -116,11 +111,11 @@ async function main() {
   row('vm1 /health/deep', healthVerdict(vm1.body));
   row('evaluator manifest equals Railway', manifestVerdict(vm1.body, rail.body));
   for (const [name, p] of SITE_PAGES) {
-    const r = await fetch(site + p);
-    row(name, pageVerdict(r.status, r.headers.get('content-type')));
+    // fetch follows redirects and throws on a loop, which is how a proxy/Next redirect cycle shows.
+    const r = await fetch(site + p).catch((e) => ({ status: 0, headers: new Headers(), error: e }));
+    const v = pageVerdict(r.status, r.headers.get('content-type'));
+    row(name, r.error ? { ok: false, detail: `fetch failed: ${r.error.cause?.message || r.error.message}` } : v);
   }
-  const bare = await fetch(`${site}/audit`, { redirect: 'manual' });
-  row('bare /audit redirects to /audit/', auditRedirectVerdict(bare.status, bare.headers.get('location')));
   if (args.includes('--stream')) row('streamed chat turn is not buffered', await streamedTurn(base));
   else console.log('skip  streamed chat turn (run with --stream; it spends one AI turn)');
   process.exit(rows.every((r) => r.ok) ? 0 : 1);
