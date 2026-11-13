@@ -30,11 +30,10 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { stripPii, makeRegistry } = require('../../../rimpl/src/services/pii-filter.js');
+// ascii and the two Thai name rules live with the booth's span rules, which the backend deploys on its own.
+const spans = require('../../../backend/src/lib/pii-spans.js');
 
-/** Thai digits ๐-๙ defeat every \d predicate, so normalise before any numeric rule runs. */
-export function ascii(s) {
-  return String(s).replace(/[๐-๙]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0x0e50 + 48));
-}
+export const { ascii, TH_HONORIFIC_NAME, TH_LABELLED_NAME } = spans;
 
 // A Thai national ID is 13 digits and is normally WRITTEN with separators (1-2345-67890-12-3), so
 // the run is collapsed before counting. Bounded on both sides by a non-digit so a longer number —
@@ -49,13 +48,6 @@ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const LICENCE_LABELLED =
   /(?:ใบอนุญาต|เลขที่ใบประกอบ|licen[cs]e)(?:\s*(?:no\.?|number|เลขที่))?\s*[:：/]*\s*((?:ว\.?\s*)?[A-Za-z0-9-]*\d[A-Za-z0-9-]*\d[A-Za-z0-9-]*)/gi;
 
-// Honorific + a Thai given name. The honorifics are the ones the product's own forms and the rimpl
-// title list use; a name behind one of these is never a clinical noun.
-export const TH_HONORIFIC_NAME =
-  /(?:นายแพทย์|แพทย์หญิง|ศาสตราจารย์|รองศาสตราจารย์|ผู้ช่วยศาสตราจารย์|นพ\.|พญ\.|ศ\.|รศ\.|ผศ\.|ดร\.|นางสาว|นาง|นาย)\s*([ก-ฮ][ก-ฮะ-๎]{2,})/g;
-
-// An explicitly labelled name field — what /identity renders back from full_name_th / full_name_en.
-export const TH_LABELLED_NAME = /(?:ชื่อ-?นามสกุล|ชื่อจริง|นามสกุล|full[_\s]?name)\s*[:：]?\s*([^\s,;)]{2,})/gi;
 
 /** The pseudonym the pilot is supposed to show instead of a name. */
 const PSEUDONYM = /^P-\d{3}$/;

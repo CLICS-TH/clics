@@ -4,13 +4,14 @@ const path = require('path');
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { costUsd } = require('../lib/pricing');
-const { compositeScore, WEIGHTS } = require('./ple-gate');
+const { WEIGHTS } = require('./ple-gate');
 const { rimplChat } = require('./rimpl-client');
-const { TIERS, CaseTreeSchema, caseTreeProblems, isAdmitted } = require('../booth-cases/tree-schema');
+const { TIERS, MAX_STEPS, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore } = require('../booth-cases/tree-schema');
+const { readStudyCase } = require('../booth-cases/study-snapshot');
 const {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers,
-  stepRecords, bankKey, echoesAnswer, replyLanguage,
+  stepRecords, bankKey, stepCount, echoesAnswer, replyLanguage,
 } = require('./booth-dialogue');
 
 const BOOTH_SETTINGS = Object.freeze({
@@ -21,6 +22,8 @@ const BOOTH_SETTINGS = Object.freeze({
   ceilingUsd: 'booth_play_ceiling_usd',
   // The reply cache (#387). Not on the superadmin card: the owner switches it by SQL, after the calibration.
   replyCache: 'booth_reply_cache',
+  // On, only five-step plays rank (spec #370, #386 switches it on). Not on the superadmin card either: switched by SQL.
+  boardFiveSteps: 'booth_board_five_steps',
 });
 
 const REPLY_RESERVE_USD = 0.05;
@@ -40,7 +43,8 @@ const DAY_MS = 86_400_000;
  * Answer, Ask and Reply are typed in ./booth-dialogue. The kiosk sends a typed answer as its text and, once replied,
  * the `deidentified` copy the reply gave it: its `tier` is set server-side from the turn sigs (recoverTiers).
  * @typedef {{ answers: Answer[], replies: Reply[], asks: Ask[], sigs: string[], look?: keyof typeof LOOK_LANGUAGE }} Dialogue
- *   reply (n = answers.length, 1..3): n asks, n - 1 replies, n sigs. score: 3 answers, replies and asks, 4 sigs.
+ *   reply (n = answers.length, 1..steps of the case): n asks, n - 1 replies, n sigs. score: steps answers, replies and
+ *   asks, steps + 1 sigs.
  *   A reply has every field '' when the AI gave none for that step; its sig still binds the ''s.
  * @typedef {{ tag: number, score: number, at: string }} BoardEntry
  * @typedef {{ today: BoardEntry[], event: BoardEntry[] }} Board
@@ -65,10 +69,10 @@ const DialogueSchema = z.object({
       text: z.string().trim().min(1).max(ANSWER_MAX_CHARS),
       deidentified: z.string().max(DEIDENTIFIED_MAX_CHARS).nullable().optional(),
     }).strict(),
-  ])).min(1).max(STEPS),
-  replies: z.array(ReplySchema).max(STEPS),
-  asks: z.array(AskSchema).min(1).max(STEPS),
-  sigs: z.array(z.string().max(64)).min(1).max(STEPS + 1),
+  ])).min(1).max(MAX_STEPS),
+  replies: z.array(ReplySchema).max(MAX_STEPS),
+  asks: z.array(AskSchema).min(1).max(MAX_STEPS),
+  sigs: z.array(z.string().max(64)).min(1).max(MAX_STEPS + 1),
   // The kiosk's language look (#377). Optional so an older kiosk still plays; no turn sig binds it, so a visitor may
   // switch it mid-play.
   look: z.enum(Object.keys(LOOK_LANGUAGE)).optional(),
@@ -162,6 +166,7 @@ function boothEvent(rows) {
     closesAt: instant(rowText(rows, BOOTH_SETTINGS.closesAt)),
     ceilingUsd: Number.isFinite(ceiling) && ceiling > 0 ? ceiling : null,
     replyCache: Number(rows[BOOTH_SETTINGS.replyCache]?.value) === 1,
+    boardFiveSteps: Number(rows[BOOTH_SETTINGS.boardFiveSteps]?.value) === 1,
   };
 }
 
@@ -204,6 +209,18 @@ async function playCase(playId, event) {
   return kase && kase.version === row.case_version ? { kase } : UNAVAILABLE;
 }
 
+const studyCache = new Map();
+
+/** The study snapshot of one case version (#389), kept for every version ever admitted, so a play stays auditable
+ *  after its case moves on. null when there is none. */
+function studyCase(code, caseId, version) {
+  const key = [casesDir(), code, caseId, version].join('\0');
+  if (!studyCache.has(key)) {
+    studyCache.set(key, SAFE_EVENT_CODE.test(code) ? readStudyCase(casesDir(), code, caseId, version) : null);
+  }
+  return studyCache.get(key);
+}
+
 // One server secret, one key per use: a label of its own keeps a sort memo key from ever standing for a turn sig.
 function hmacKey(label) {
   const secret = process.env.GUEST_TOKEN_SECRET;
@@ -219,7 +236,7 @@ const turnKey = () => hmacKey('booth-turn-v1');
 const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null, a.deidentified ?? null]);
 const canonicalReply = (r) => REPLY_FIELDS.map((k) => r[k]);
 
-/** Turn k (0..3) binds everything the server had issued after k answers: the answers (typed ones with their sorted
+/** Turn k (0..steps) binds everything the server had issued after k answers: the answers (typed ones with their sorted
  *  tier) and replies before it and the asks through the next one, so a client can neither invent a reply nor
  *  answer an option it was not offered. */
 function turnSig(playId, k, { answers, replies, asks }) {
@@ -274,9 +291,10 @@ function parseDialogue(kase, playId, raw, phase) {
   const parsed = DialogueSchema.safeParse(raw);
   if (!parsed.success) return null;
   const n = parsed.data.answers.length;
-  const counted = phase === 'score'
-    ? n === STEPS && parsed.data.replies.length === STEPS && parsed.data.asks.length === STEPS && parsed.data.sigs.length === STEPS + 1
-    : parsed.data.replies.length === n - 1 && parsed.data.asks.length === n && parsed.data.sigs.length === n;
+  const steps = stepCount(kase);
+  const counted = n <= steps && (phase === 'score'
+    ? n === steps && parsed.data.replies.length === steps && parsed.data.asks.length === steps && parsed.data.sigs.length === steps + 1
+    : parsed.data.replies.length === n - 1 && parsed.data.asks.length === n && parsed.data.sigs.length === n);
   const answers = counted ? recoverTiers(playId, parsed.data) : null;
   if (!answers) return null;
   const d = { ...parsed.data, answers };
@@ -320,9 +338,10 @@ const entry = (r) => ({ tag: r.tag, score: r.composite, at: r.scored_at });
 const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(entry), event: event.slice(0, BOARD_SIZE).map(entry) });
 
 async function readStandings(event, dayOf) {
-  const { data, error } = await supabase.from('booth_plays').select('id, tag, composite, scored_at')
-    .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true)
-    .order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
+  let query = supabase.from('booth_plays').select('id, tag, composite, scored_at')
+    .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true);
+  if (event.boardFiveSteps) query = query.like('tier_path', '_'.repeat(5));
+  const { data, error } = await query.order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
   if (error || !Array.isArray(data)) {
     console.error(`[booth] standings read failed for ${event.code}: ${error?.message ?? 'not a list'}`);
     return null;
@@ -358,10 +377,9 @@ async function settledOutcome(playId, event, steps) {
   return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at, steps) };
 }
 
-/** Scores a play still started, from its case's path score table (ADR 0009). The play's dialogue (stepRecords), score
- *  source and the language look it was scored in are kept with the score (ADR 0010, #377). */
-async function finish(playId, event, domains, dialogue, source, steps) {
-  const composite = compositeScore(domains);
+/** Scores a play still started with its table score (ADR 0009). The play's dialogue (stepRecords), score source and the
+ *  language look it was scored in are kept with the score (ADR 0010, #377). */
+async function finish(playId, event, { domains, composite }, dialogue, source, steps) {
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
     .update({
@@ -422,7 +440,7 @@ async function drawCase(input, now = new Date()) {
   return { body: { case_id, teaser, live: live.length } };
 }
 
-/** @returns {Promise<Result>} body: { play_id, tag, answer_max_chars, case: { vignette }, next, sig } */
+/** @returns {Promise<Result>} body: { play_id, tag, step_count, answer_max_chars, case: { vignette }, next, sig } */
 async function startPlay(input, now = new Date()) {
   const opened = await openEvent(now, dealState);
   if (opened.refused) return opened;
@@ -440,7 +458,7 @@ async function startPlay(input, now = new Date()) {
   const ask = firstAsk(bank);
   return {
     body: {
-      play_id: row.play_id, tag: row.play_tag, answer_max_chars: ANSWER_MAX_CHARS, case: { vignette: kase.vignette },
+      play_id: row.play_id, tag: row.play_tag, step_count: stepCount(kase), answer_max_chars: ANSWER_MAX_CHARS, case: { vignette: kase.vignette },
       next: nextOf(bank, ask), sig: turnSig(row.play_id, 0, { answers: [], replies: [], asks: [ask] }),
     },
   };
@@ -496,7 +514,7 @@ const CacheLive = z.object({
 async function cachedReplies(kase, d) {
   try {
     let query = supabase.from('booth_reply_cache').select('id, model, embedding, cues, tier, reply, pick')
-      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(d.tierPath))
+      .eq('case_id', kase.case_id).eq('case_version', kase.version).eq('bank', bankKey(kase, d.tierPath))
       .eq('tier_path', d.tierPath).eq('language', replyLanguage(d));
     if (d.memo) query = query.eq('tier', d.memo);
     const { data, error } = await query.order('created_at', { ascending: false }).limit(CACHE_ENTRIES_MAX);
@@ -532,7 +550,7 @@ async function keepReply(kase, d, res, issued) {
     || !hasReply(issued.replies[n - 1]) || echoesAnswer(kase, d, raw)) return;
   try {
     const { error } = await supabase.from('booth_reply_cache').insert({
-      case_id: kase.case_id, case_version: kase.version, bank: bankKey(d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
+      case_id: kase.case_id, case_version: kase.version, bank: bankKey(kase, d.tierPath), tier_path: d.tierPath, language: replyLanguage(d),
       ...live.data, tier: taken, reply: { ...raw, safety: '' }, pick: res.pick ? { ...res.pick, bridge: '' } : null,
     });
     if (error) console.warn(`[booth] reply cache keep failed: ${error.code ?? 'error'}`);
@@ -653,7 +671,7 @@ async function scoreOutcome(playId, input, now) {
   if (settled) return { result: settled, reason: settled.refused === 'unavailable' ? 'read' : 'settled' };
 
   // ADR 0009: every admitted case has a path score table, so the score is read from it with no spend and no AI call.
-  const result = await finish(playId, event, kase.path_score_table.paths[dialogue.tierPath], dialogue, 'table', steps);
+  const result = await finish(playId, event, tableScore(kase, dialogue.tierPath), dialogue, 'table', steps);
   return result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider: 'table' };
 }
 
@@ -786,5 +804,5 @@ async function updateBoothSettings(input) {
 
 module.exports = {
   BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
-  scorePlay, boothSettings, updateBoothSettings,
+  scorePlay, boothSettings, updateBoothSettings, studyCase,
 };

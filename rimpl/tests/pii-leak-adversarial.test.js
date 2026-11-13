@@ -225,6 +225,180 @@ describe('adversarial — HN / AN / MRN', () => {
 });
 
 // ===========================================================================
+// THAI DIGITS (๐–๙) AND DOTTED PHONES (#440) — the numeric passes matched ASCII \d only, and the phone
+// passes took no '.' separator, so both shapes reached the model and the booth's kept answer in clear.
+// ===========================================================================
+describe('adversarial — Thai-digit and dotted identifiers (#440)', () => {
+  test.each([
+    ['Thai-digit dashed mobile', 'โทร ๐๘๑-๒๓๔-๕๖๗๘', ['๐๘๑', '๒๓๔', '๕๖๗๘'], 'PHONE'],
+    ['Thai-digit plain mobile', 'มือถือ ๐๘๑๒๓๔๕๖๗๘', ['๐๘๑๒๓๔๕๖๗๘', '๕๖๗๘'], 'PHONE'],
+    ['Thai-digit landline', 'บ้าน ๐๒-๑๒๓-๔๕๖๗', ['๑๒๓', '๔๕๖๗'], 'PHONE'],
+    ['Thai-digit +66', 'ติดต่อ +๖๖ ๘๑ ๒๓๔ ๕๖๗๘', ['๒๓๔', '๕๖๗๘'], 'PHONE'],
+    ['mixed Thai and ASCII digits', 'โทร ๐๘๑-234-5678', ['๐๘๑', '5678'], 'PHONE'],
+    ['dotted mobile', 'โทร 081.234.5678', ['081', '234', '5678'], 'PHONE'],
+    ['dotted landline', 'call 02.123.4567', ['123', '4567'], 'PHONE'],
+    ['dot then space', 'โทร 081 234.5678', ['081', '5678'], 'PHONE'],
+    ['dotted +66', 'tel +66.81.234.5678', ['234', '5678'], 'PHONE'],
+    ['+66 then dotted', 'tel +66 81.234.5678', ['234', '5678'], 'PHONE'],
+    ['dotted Thai-digit mobile', 'โทร ๐๘๑.๒๓๔.๕๖๗๘', ['๐๘๑', '๕๖๗๘'], 'PHONE'],
+    ['Thai-digit HN', 'ผู้ป่วย HN ๑๒๓๔๕๖๗๘ มาด้วย', ['๑๒๓๔๕๖๗๘'], 'HN'],
+    ['Thai-digit HN with dash', 'HN: ๖๕-๐๑๒๓๔๕', ['๖๕-๐๑๒๓๔๕', '๐๑๒๓๔๕'], 'HN'],
+    ['Thai-digit MRN', 'MRN: ๔๔๕๕๖๖๗', ['๔๔๕๕๖๖๗'], 'MRN'],
+    ['Thai-digit national ID, plain', 'บัตรประชาชน ๑๒๓๔๕๖๗๘๙๐๑๒๓', ['๑๒๓๔๕๖๗๘๙๐๑๒๓'], 'ID'],
+    ['Thai-digit national ID, dashed', 'เลขบัตร ๑-๒๓๔๕-๖๗๘๙๐-๑๒-๓', ['๖๗๘๙๐', '๒๓๔๕'], 'ID'],
+  ])('%s is masked', (_label, input, leaked, cat) => {
+    assertScrubbed(input, leaked);
+    expect(scrubbedOut).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  test('a Thai-digit phone and its ASCII form are one person: one token', () => {
+    expect(stripPii('โทร 081-234-5678 หรือ ๐๘๑-๒๓๔-๕๖๗๘')).toBe('โทร [PHONE-1] หรือ [PHONE-1]');
+  });
+
+  // NEGATIVES — Thai digits outside an identifier stay Thai digits, and decimals / dotted dates are not phones.
+  test.each([
+    'ความดัน ๑๒๐/๘๐ ชีพจร ๘๘',
+    'platelet ๒๕๐๐๐๐',
+    'Cr 1.05 2.10 3.20 4.1',
+    'K 3.5 Na 135 Cl 100',
+    'NSS 0.9% 1000 ml',
+    // A run a numeric pass matches but its guard rejects is put back as written, never as its ASCII view.
+    'เลข ๐๒ ๑๒๓ ๔๕๖',
+    'เลข ๐๑๒๓๔๕๖๗๘๙๐๑',
+    // Phone-shaped dotted groups that only the dotted pass's lookarounds reject: before a decimal, before a fifth digit.
+    'ref 081.234.5678.9',
+    'ref 081.234.56789',
+    // Decimal runs that open with 0 or carry dots are not phones or dates (#440 round 2).
+    'Cr 0.85 0.92 1.10 1.25 1.30',
+    'Hb 10.5 12.3 11.8',
+    'pH 7.35 pCO2 40.2 HCO3 22.1',
+    'Wt 66.5 kg HR 120 bpm',
+    'dose 1.5.2 mg',
+    // A decimal ending in 66 then a spaced list is no +66 phone (round-2 review).
+    'Cr 0.66 0.70 0.81 0.92 mg/dL',
+    'Cr 1.66 2.10 3.20 4.10 5.00',
+    'Wt 66.2 65.8 65.1 64.9 kg',
+    'Hct 0.66 0.61 0.58 0.55',
+    'pH 7.66 7.70 7.81 7.92',
+    'K 3.66 4.1 4.0 3.8 3.9 4.2',
+    'ค่า Cr ๐.๖๖ ๐.๗๐ ๐.๘๑ ๐.๙๒',
+  ])('%s survives byte-for-byte', (text) => assertSurvives(text));
+});
+
+// ===========================================================================
+// EVERY DIGIT SCRIPT, EVERY NUMERIC PASS, EVERY DOTTED SHAPE (#440 round 2) — the Thai-digit view reached only the
+// ID / HN / MRN / PHONE passes, full-width and Arabic-Indic digits reached none, and the dotted-phone pass refused a
+// number after a dot, a two-group or 4-3-3 number and a dot with a space beside it. Each shape runs through the three
+// surfaces that strip PII: stripPii, POST /deidentify (the auditor's copy) and the booth's kept answer.
+// ===========================================================================
+const NUMERIC_SHAPES = [
+  ['dotted phone after a Thai label and dot', 'โทร.081.234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['dotted phone after an English label and dot', 'Tel.081.234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['dot then space', '081. 234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['space then dot', '081 .234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['two dotted groups, mobile', '081.2345678', ['081', '2345678'], 'PHONE'],
+  ['two dotted groups, landline', '02.1234567', ['1234567'], 'PHONE'],
+  ['4-3-3 dotted groups', '0812.345.678', ['0812', '345', '678'], 'PHONE'],
+  ['+66 then a dot, ungrouped', '+66.812345678', ['812345678', '5678'], 'PHONE'],
+  ['2-digit dotted groups', 'โทร 081.234.56.78', ['081', '234', '56.78'], 'PHONE'],
+  ['numbered list then a dotted phone', '1.081.234.5678', ['081', '5678'], 'PHONE'],
+  ['numbered list, a space, then a dotted phone', '1. 081.234.5678', ['081', '5678'], 'PHONE'],
+  ['numbered list then a plain phone', '1.0812345678', ['0812345678', '5678'], 'PHONE'],
+  ['numbered list then a slash date', '1.20/10/2569', ['20/10', '2569'], 'DATE'],
+  ['dotted date, one-digit day, two-digit year', 'วันเกิด 5.10.69', ['5.10.69'], 'DATE'],
+  // A loose run that takes the next number fails its guard as a whole; the pass falls back to the phone alone (#461).
+  ['dashed phone then a count', 'โทร 081-234-5678 2 ครั้ง', ['081', '234', '5678'], 'PHONE'],
+  ['spaced phone then a time', 'โทร 081 234 5678 10 โมง', ['081', '234', '5678'], 'PHONE'],
+  ['plain phone then a count', 'โทร 0812345678 2 ครั้ง', ['0812345678', '5678'], 'PHONE'],
+  ['dotted phone then hours', 'โทร 081.234.5678 24 ชั่วโมง', ['081', '234', '5678'], 'PHONE'],
+  ['Thai-digit dashed phone then a count', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ ๒ ครั้ง', ['๐๘๑', '๒๓๔', '๕๖๗๘'], 'PHONE'],
+  ['+66 glued to the area code, dotted', 'โทร +6681.234.5678', ['6681', '234', '5678'], 'PHONE'],
+  ['two dashed phones in a row', 'โทร 081-234-5678 089-876-5432', ['5678', '089', '876-5432'], 'PHONE'],
+  ['phone with wide gaps between groups', 'โทร 081    234    5678', ['081', '234', '5678'], 'PHONE'],
+  // A Thai national ID in category 0 (no Thai nationality) starts with 0 and is still an ID.
+  ['category-0 national ID, dashed', 'บัตร 0-1234-56789-12-3', ['56789', '1234'], 'ID'],
+  ['category-00 national ID, plain', 'บัตร 0012345678901', ['0012345678901', '5678901'], 'ID'],
+  ['full-width digits', '０８１-２３４-５６７８', ['０８１', '２３４', '５６７８'], 'PHONE'],
+  ['full-width digits and dots', 'Tel.０８１．２３４．５６７８', ['０８１', '５６７８'], 'PHONE'],
+  ['Arabic-Indic digits', '٠٨١٢٣٤٥٦٧٨', ['٠٨١٢٣٤٥٦٧٨', '٥٦٧٨'], 'PHONE'],
+  ['Persian digits', '۰۸۱۲۳۴۵۶۷۸', ['۰۸۱۲۳۴۵۶۷۸', '۵۶۷۸'], 'PHONE'],
+  ['full-width HN', 'ＨＮ １２３４５６７', ['１２３４５６７'], 'HN'],
+  ['Thai-digit date', 'วันที่ ๑๒/๐๕/๒๕๖๙', ['๑๒/๐๕', '๒๕๖๙'], 'DATE'],
+  ['Thai-digit ISO date', 'วันที่ ๒๕๖๙-๐๕-๑๒', ['๒๕๖๙-๐๕'], 'DATE'],
+  ['dotted date', 'นัด 20.10.2026', ['20.10', '2026'], 'DATE'],
+  ['dotted date with spaces', 'นัด 20. 10. 2026', ['2026'], 'DATE'],
+  ['dotted Buddhist-era date', 'วันที่ 05.12.2569', ['05.12', '2569'], 'DATE'],
+  ['Thai-digit dotted date', 'วันที่ ๒๐.๑๐.๒๕๖๙', ['๒๐.๑๐', '๒๕๖๙'], 'DATE'],
+  ['Thai-digit house number', 'บ้านเลขที่ ๙๙/๑', ['๙๙/๑'], 'ADDR'],
+  ['Thai-digit หมู่', 'หมู่ที่ ๕ ตำบล', ['๕'], 'ADDR'],
+  ['Thai-digit อายุ … ปี', 'อายุ ๔๕ ปี', ['๔๕'], 'AGE'],
+  ['Thai-digit … ปี', 'ผู้ป่วยหญิง ๖๒ ปี', ['๖๒'], 'AGE'],
+  ['Thai-digit อายุ', 'อายุ ๗๑', ['๗๑'], 'AGE'],
+  ['Arabic-Indic อายุ', 'อายุ ٤٥ ปี', ['٤٥'], 'AGE'],
+];
+
+describe('adversarial — every digit script and dotted shape, on every surface (#440 round 2)', () => {
+  test.each(NUMERIC_SHAPES)('stripPii masks %s', (_label, input, leaked, cat) => {
+    assertScrubbed(input, leaked);
+    expect(scrubbedOut).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  test.each(NUMERIC_SHAPES)('POST /deidentify masks %s', async (_label, input, leaked, cat) => {
+    const res = await request(app).post('/deidentify').send({ messages: [{ role: 'user', content: `ผู้ป่วย ${input} ค่ะ` }] });
+    expect(res.status).toBe(200);
+    const out = res.body.messages[0].content;
+    for (const frag of leaked) expect(out).not.toContain(frag);
+    expect(out).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  // The number after a phone is clinical (a count, a time) and stays; only the phone is masked.
+  test.each([
+    ['โทร 081-234-5678 2 ครั้ง', 'โทร [PHONE-1] 2 ครั้ง'],
+    ['โทร 081 234 5678 10 โมง', 'โทร [PHONE-1] 10 โมง'],
+    ['โทร 0812345678 2 ครั้ง', 'โทร [PHONE-1] 2 ครั้ง'],
+    ['โทร 081.234.5678 24 ชั่วโมง', 'โทร [PHONE-1] 24 ชั่วโมง'],
+    ['เบอร์ 081-234-5678 ติดต่อได้ 24 ชม.', 'เบอร์ [PHONE-1] ติดต่อได้ 24 ชม.'],
+    ['call 081-234-5678 at 9', 'call [PHONE-1] at 9'],
+    // A phone before ".<digit>" is masked whole; it never backs off and leaves its last digit in clear.
+    ['โทร 0812345678.5', 'โทร [PHONE-1].5'],
+    ['081-234-5678.2', '[PHONE-1].2'],
+    ['+66812345678.5', '[PHONE-1].5'],
+    ['โทร 081-234-5678 089-876-5432', 'โทร [PHONE-1] [PHONE-2]'],
+    [`โทร 0812345678${' '.repeat(60)}3 ครั้ง`, `โทร [PHONE-1]${' '.repeat(60)}3 ครั้ง`],
+    [`โทร 0812345678${'\n'.repeat(55)}2`, `โทร [PHONE-1]${'\n'.repeat(55)}2`],
+  ])('%s keeps the number after the phone', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+
+  test('a phone in three digit scripts is one person: one token', () => {
+    expect(stripPii('โทร 081-234-5678 หรือ ０８１-２３４-５６７８ หรือ ٠٨١-٢٣٤-٥٦٧٨')).toBe('โทร [PHONE-1] หรือ [PHONE-1] หรือ [PHONE-1]');
+  });
+
+  // The dotted pass took a lot number before round 2; it must take no more of it than that.
+  test('a phone-shaped lot number is masked no wider than before', () => {
+    expect(stripPii('lot 012.345.6789X')).toBe('lot [PHONE-1]X');
+  });
+
+  test.each([
+    'BP ๑๒๐/๘๐ HR ๘๘',
+    'BP ١٢٠/٨٠ HR ٨٨',
+    'BP １２０/８０ HR ８８',
+    'ให้ ๐.๕ mg ๓ ครั้ง',
+    // No phone or date starts right after "<digit>." or ends right before ".<digit>" (round 2).
+    'Na 140.00 139.50 138 mmol/L',
+    'Hb 12.5. 11.2 g/dL on repeat',
+    'BMI 22.5. 24.3',
+    // A section or version number is no dotted date.
+    'หัวข้อ 1.2.10',
+    'version 1.2.10',
+    'v1.2.10',
+    'ข้อ 3.4.15 ระบุ',
+    'Na 1.00 139.50 138.2',
+    'Na 1.00 139 138 140',
+  ])('%s survives byte-for-byte', (text) => assertSurvives(text));
+});
+
+// ===========================================================================
 // ADDRESSES — บ้านเลขที่ / หมู่ / ตำบล / อำเภอ / จังหวัด
 // ===========================================================================
 describe('adversarial — Thai home address components', () => {
@@ -1139,6 +1313,44 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
       delete process.env.BOOTH_EMBED_MODEL_DIR;
     }
   });
+
+  // #440: a phone typed in Thai digits or with dots passed stripPii, so it reached the model and booth_plays.steps.
+  test.each([
+    ['Thai digits', '๐๘๑-๒๓๔-๕๖๗๘', ['๐๘๑', '๕๖๗๘']],
+    ['dots', '081.234.5678', ['081.234', '5678']],
+  ])('a phone typed in %s reaches neither the AI call nor answer_deidentified', async (_label, phone, leaked) => {
+    const answer = `โทรหาผู้ป่วยที่ ${phone} มาตรวจ PCR ซ้ำ`;
+    const res = await request(app).post('/chat').send({
+      ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${answer}`,
+      booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: answer,
+    });
+    expect(res.status).toBe(200);
+    const wire = JSON.stringify(callAI.mock.calls);
+    for (const frag of leaked) {
+      expect(wire).not.toContain(frag);
+      expect(res.body.answer_deidentified).not.toContain(frag);
+    }
+    expect(res.body.answer_deidentified).toBe('โทรหาผู้ป่วยที่ [PHONE-1] มาตรวจ PCR ซ้ำ');
+  });
+
+  // #440 round 2: every digit script and dotted shape is masked in the kept answer and on the wire too.
+  test.each(NUMERIC_SHAPES)(
+    'a typed answer holding %s reaches neither the AI call nor answer_deidentified',
+    async (_label, value, leaked, cat) => {
+      const answer = `ผู้ป่วย ${value} มาตรวจ PCR ซ้ำ`;
+      const res = await request(app).post('/chat').send({
+        ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${answer}`,
+        booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: answer,
+      });
+      expect(res.status).toBe(200);
+      const wire = JSON.stringify(callAI.mock.calls);
+      for (const frag of leaked) {
+        expect(wire).not.toContain(frag);
+        expect(res.body.answer_deidentified).not.toContain(frag);
+      }
+      expect(res.body.answer_deidentified).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+    }
+  );
 
   // The gate's case (#375): the label ends the question and the value is the whole answer. The message masks the two
   // together, so the kept answer must be the answer's part of the masked message, never the answer stripped alone.

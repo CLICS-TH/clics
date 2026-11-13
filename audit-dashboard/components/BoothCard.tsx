@@ -12,7 +12,9 @@ import { Skeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Overlays';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { type ApiResult, type BoothSettings, type BoothState, formatApiError } from '@/lib/types';
+import { DOMAIN_LABELS } from '@/lib/labels';
+import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
+import { type ApiResult, type BoothAuditSummary, type BoothSettings, type BoothState, formatApiError } from '@/lib/types';
 
 // Thailand has no daylight saving, so a fixed offset is exact.
 const BANGKOK_OFFSET = '+07:00';
@@ -43,6 +45,50 @@ const count = (n: number | null) => (n == null ? '—' : n.toLocaleString('en-US
 const money = (n: number | null) => (n == null ? '—' : `$${n.toFixed(2)}`);
 
 type Draft = { opens?: string; closes?: string; ceiling?: string };
+
+export function signedGap(n: number): string {
+  const r = Math.round(n * 100) / 100 || 0;
+  return r > 0 ? `+${r}` : String(r);
+}
+
+function GapList({ gap }: { gap: Record<string, number> }) {
+  return (
+    <dl className="grid grid-cols-2 gap-2 @min-[640px]:grid-cols-7">
+      {PIS7_RUBRIC.map((d, i) => (
+        <div key={d.key} className="rounded-lg border p-2">
+          <dt className="text-xs text-muted-foreground" title={d.en}>{DOMAIN_LABELS[i]}</dt>
+          <dd className="mt-1 text-base font-bold tabular-nums text-foreground">{signedGap(gap[d.key])}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function BoothAudits({ audits }: { audits: BoothAuditSummary | null }) {
+  return (
+    <div role="group" aria-label="Booth audits" className="space-y-2">
+      <h3 className="text-sm font-medium"><BiLabel th="ผลประเมินกรณีศึกษา (ทุกงาน)" en="Case-study audits (all events)" /></h3>
+      {!audits ? <p className="text-sm text-muted-foreground">—</p> : (
+        <>
+          <p className="text-sm text-muted-foreground tabular-nums" data-testid="booth-audit-counts">
+            {count(audits.audits)} ผลประเมิน / audits · {count(audits.auditors)} ผู้ประเมิน / auditors · {count(audits.plays)} การเล่น / plays
+          </p>
+          {!audits.mean_gap ? (
+            <p className="text-sm text-muted-foreground">ยังไม่มีผลประเมิน • No audits yet.</p>
+          ) : (
+            <>
+              <GapList gap={audits.mean_gap} />
+              <p className="text-sm text-muted-foreground">
+                ค่าเฉลี่ยผู้ประเมินลบคะแนนในตาราง บวก = ผู้ประเมินให้สูงกว่าตาราง •
+                Mean auditor score minus the table&apos;s; + means auditors score above the table.
+              </p>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 export function BoothCard() {
   const [booth, setBooth] = useState<BoothSettings | null>(null);
@@ -200,6 +246,8 @@ export function BoothCard() {
                   ))}
               </dl>
             </div>
+
+            <BoothAudits audits={booth.audits} />
 
             <div role="group" aria-label="Case pool" className="space-y-2">
               <h3 className="text-sm font-medium"><BiLabel th="ชุดเคสที่ผ่านการรับรอง" en="Case pool" /></h3>

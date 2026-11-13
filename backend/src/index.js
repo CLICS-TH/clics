@@ -77,6 +77,7 @@ app.use('/ples', require('./routes/ples'));
 // router-level requireRole('superadmin') that 403s and ENDS every admin-role request, and
 // admin.js's GET /users intentionally shadows the same path (dual-role, council-scoped).
 app.use('/admin', require('./routes/admin'));
+app.use('/auditor/booth', require('./routes/booth-audits'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));
 app.use('/oversight', require('./routes/oversight')); // Tier-3 analyst + Tier-4 ethics (read-only)

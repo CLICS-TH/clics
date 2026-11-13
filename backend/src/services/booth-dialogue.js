@@ -5,9 +5,10 @@
 // and the table build scores each tier path, both with evaluateRequest, so a table holds the score of exactly the
 // transcript a kiosk play would make. Nothing here reads or writes the database.
 const crypto = require('crypto');
+const { z } = require('zod');
 const { TIERS } = require('../booth-cases/tree-schema');
+const { ascii, spanMatches } = require('../lib/pii-spans');
 
-const STEPS = 3;
 const BRIDGE_MAX_CHARS = 120;
 const ANSWER_MAX_CHARS = 500;
 // rimpl's tokens can run longer than the words they replace ("นายก" -> "นาย[NAME-1]").
@@ -37,12 +38,20 @@ const DEFAULT_LOOK = 'th+en';
  */
 
 const LETTER = Object.fromEntries(TIERS.map((t) => [t.name, t.letter]));
-// The bank for step n is keyed by the tier letters of the n answers before it.
-const BANK_AT = [(banks) => banks.step1, (banks, p) => banks.step2[p], (banks, p) => banks.step3[p]];
-const bankAt = (kase, tierPath) => BANK_AT[tierPath.length](kase.banks, tierPath);
-// The name of the bank each BANK_AT entry picks, in the same order, as the reply cache (#387) keeps it.
-const BANK_KEY = [() => 'step1', (p) => `step2.${p}`, (p) => `step3.${p}`];
-const bankKey = (tierPath) => BANK_KEY[tierPath.length](tierPath);
+const isBank = (level) => Array.isArray(level?.variants);
+/** The bank the step after `tierPath` draws from, read from the case's own layout, and its name as the reply cache
+ *  (#387) keeps it. A step's banks are one bank, or keyed by the whole tier path so far (three steps), or by the
+ *  previous step's tier (five steps, spec #370). */
+function bankEntry(kase, tierPath) {
+  const step = `step${tierPath.length + 1}`;
+  const level = kase.banks[step];
+  if (isBank(level)) return [step, level];
+  const key = Object.hasOwn(level, tierPath) ? tierPath : tierPath.slice(-1);
+  return [`${step}.${key}`, level[key]];
+}
+const bankAt = (kase, tierPath) => bankEntry(kase, tierPath)[1];
+const bankKey = (kase, tierPath) => bankEntry(kase, tierPath)[0];
+const stepCount = (kase) => Object.keys(kase.banks).filter((k) => /^step[1-9][0-9]*$/.test(k)).length;
 
 const randomOf = (list) => list[crypto.randomInt(list.length)];
 function shuffled(list) {
@@ -242,12 +251,13 @@ const TIER_NAMES = TIERS.map((t) => t.name);
 /** The AI's tier for a typed answer as a letter. Anything but a tier it was given (unclear, unsafe, none) is weaker. */
 const sortedTier = (name) => LETTER[TIER_NAMES.includes(name) ? name : 'weaker'];
 
-/** What rimpl needs to sort a typed answer to step n: that step's bank, and for n < 3 the next step's bank per tier.
- *  With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step taken. */
+/** What rimpl needs to sort a typed answer to step n: that step's bank, and before the last step the next step's bank
+ *  per tier. With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step
+ *  taken. */
 function typedBanks(kase, tierPath, n, memo) {
   return {
     current: bankForAi(bankAt(kase, tierPath)),
-    ...(n < STEPS ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
+    ...(n < stepCount(kase) ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
   };
 }
 
@@ -265,7 +275,7 @@ function chatRequest(kase, d) {
   const history = dialogueTurns(kase, d, true, language);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
-    : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
+    : n < stepCount(kase) ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
   return { history, message, language, booth_mode: true, ...forAi };
 }
 
@@ -282,7 +292,7 @@ function chatOutcome(kase, d, res) {
   const reply = checkedReply(res?.reply, quotesFor(kase, d));
   const typed = d.unsorted ? (d.memo ?? sortedTier(res?.tier)) : null;
   const tierPath = typed ? d.tierPath + typed : d.tierPath;
-  const bank = n < STEPS ? bankAt(kase, tierPath) : null;
+  const bank = n < stepCount(kase) ? bankAt(kase, tierPath) : null;
   const ask = bank && (hasReply(reply) ? askFromPick(bank, res.pick) : fallbackAsk(bank));
   const answers = typed
     ? [...d.answers.slice(0, -1), { ...d.answers[n - 1], tier: typed, deidentified: deidentifiedOf(res) }] : d.answers;
@@ -318,8 +328,76 @@ const stepRecords = ({ answers, replies, asks, tierPath }) => answers.map((a, i)
   tier: TIERS.find((t) => t.letter === tierPath[i]).name,
 }));
 
+// Keys a later writer adds to a step record are stripped, not refused, so they never drop a stored play.
+const StepRecordSchema = z.object({
+  variant: z.string(),
+  bridge: z.string(),
+  options: z.array(z.string()).length(3),
+  reply: z.object(Object.fromEntries(REPLY_FIELDS.map((k) => [k, z.string()]))),
+  tier: z.enum(TIER_NAMES),
+  choice: z.string().optional(),
+  typed: z.string().nullable().optional(),
+}).refine((s) => (s.choice === undefined) !== (s.typed === undefined), { message: 'needs exactly one of choice and typed' });
+
+// Six or more numerals with nothing but non-letters between them, in any script: a phone or an id however it is
+// written (slashes, brackets, dashes of any kind, spaces of any width, zero-width or bidi marks, full-width or
+// Arabic-Indic digits). A class guard: every non-letter is dropped before the run is measured, and so is every
+// default-ignorable code point, which covers the letters that render blank (Hangul fillers U+3164, U+115F, U+1160,
+// U+FFA0), so a new separator needs no edit. It also catches a lab value of six digits (150000); the owner accepts
+// that (gate #370 round 3).
+const LONG_DIGIT_RUN = /\p{N}{6,}/u;
+const longDigitRun = (text) => LONG_DIGIT_RUN.test(text.replace(/[^\p{L}\p{N}]|\p{Default_Ignorable_Code_Point}/gu, ''));
+const flaggedForAuditor = (content) => {
+  const t = content.replaceAll('**', '');
+  return ascii(t) !== t || longDigitRun(t) || spanMatches(t).length > 0;
+};
+
+// booth_plays.language_look: a look, or null for a play scored before #377 (the kiosk then showed th+en). undefined
+// is refused, so a read that left the column out drops its plays loudly instead of showing them in Thai.
+const StoredLookSchema = z.enum(Object.keys(LOOK_LANGUAGE)).nullable();
+
+/**
+ * A play's transcript as the auditor reads it, rebuilt from its step records against the case version it was
+ * played on (a case file or a study snapshot), whatever that version's number of steps. The case text is in the
+ * primary language of the look the play was scored in, the language its replies came in (#377). The step records
+ * keep no look, so after a mid-play switch the replies before it are in the other language. Typed answers read as
+ * their de-identified copy, unfenced. rimpl's write-time filter misses some shapes (a dotted or slashed phone, #449,
+ * #451), so each message is screened again as it is returned, after the join, bold markers removed: a play with a
+ * finding is withheld as 'flagged', never shown or masked here. The case's own text (vignette, question, a tapped
+ * option) is cut first: it is fixed and reviewed, and a lab value in it (leptospirosis' platelets, 110,000) would
+ * otherwise withhold every play through its bank. A finding is a span of the open dataset's
+ * rules (lib/pii-spans), any Thai digit (rimpl's own rules read \d, which a Thai digit never matched at write time),
+ * or a long digit run (longDigitRun).
+ * @param {object} kase
+ * @param {unknown} steps
+ * @param {unknown} look  booth_plays.language_look
+ * @returns {{ messages: { role: 'physician' | 'assistant', content: string }[] } | { why: 'malformed' | 'no_deidentified_copy' | 'flagged' }}
+ */
+function studyTranscript(kase, steps, look) {
+  const stored = StoredLookSchema.safeParse(look);
+  const parsed = z.array(StepRecordSchema).length(stepCount(kase)).safeParse(steps);
+  if (!stored.success || !parsed.success) return { why: 'malformed' };
+  const records = parsed.data;
+  if (records.some((s) => s.typed === null)) return { why: 'no_deidentified_copy' };
+  const tierPath = records.map((s) => LETTER[s.tier]).join('');
+  const asks = records.map(({ variant, bridge, options }) => ({ variant, bridge, options }));
+  const fits = records.every((s, i) => {
+    const bank = bankAt(kase, tierPath.slice(0, i));
+    if (!bank || !isValidAsk(bank, asks[i])) return false;
+    return s.choice === undefined || (s.options.includes(s.choice) && bank.options.find((o) => o.id === s.choice).tier === s.tier);
+  });
+  if (!fits) return { why: 'malformed' };
+  const answers = records.map((s) => (s.choice === undefined ? { text: s.typed } : { choice: s.choice }));
+  const language = LOOK_LANGUAGE[stored.data ?? DEFAULT_LOOK];
+  const messages = dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false, language);
+  // Each message as returned, less the case's own text: an assistant turn whole (replies and the next bridge, joined),
+  // a physician turn's typed answer (what follows the case's question). A tapped turn is all case text.
+  const shown = [...messages.filter((m) => m.role === 'assistant').map((m) => m.content), ...answers.flatMap((a) => a.text ?? [])];
+  return shown.some(flaggedForAuditor) ? { why: 'flagged' } : { messages };
+}
+
 module.exports = {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
-  replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords,
+  BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, stepCount, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
+  replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
 };
