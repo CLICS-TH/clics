@@ -44,6 +44,8 @@ const banksOf = (kase) => Object.entries(kase.banks).flatMap(([step, level]) => 
   : Object.entries(level).map(([k, bank]) => [`${step}.${k}`, bank])));
 
 const plain = (s) => comparable(s.replaceAll('**', ''));
+// Whole numbers as written (7.15, 120, 3), so "12" is not found inside "120".
+const numbers = (s) => new Set(s.match(/\d+(?:[.,]\d+)*/g) ?? []);
 // Latin words of five letters or more, in either language's text (a Thai field names a drug or test in Latin too:
 // CPAP, NT-proBNP). Thai has no word-level rule: its word segments (และ, ให้, ส่ง) are too common to tell an option
 // apart, so a Thai field is held to the whole-label rule and the safety review.
@@ -76,6 +78,13 @@ function replyContentProblems(kase, replies) {
       const others = rest.flatMap((o) => LANGS.map((l) => comparable(o.label[l]))).filter((label) => !said.some((s) => s.includes(label)));
       const shown = latinWords([...said, ...LANGS.flatMap((l) => [kase.vignette[l], ...bank.variants.map((v) => v.question[l])])].join(' '));
       const theirs = [...latinWords(rest.flatMap((o) => LANGS.map((l) => o.label[l])).join(' '))].filter((w) => !shown.has(w));
+      // A reply serves every variant of its bank, so it never cites a number that some variants show and others do
+      // not (unless the vignette or the chosen option shows it): a visitor dealt another variant never saw it. A
+      // number no variant shows, such as a guideline's time window, is the safety review's to judge.
+      const variantNumbers = bank.variants.map((v) => numbers(LANGS.map((l) => v.question[l]).join(' ')));
+      const shownAlways = numbers(LANGS.flatMap((l) => [kase.vignette[l], option.label[l], option.line[l]]).join(' '));
+      const partial = new Set(variantNumbers.flatMap((set) => [...set])
+        .filter((n) => !shownAlways.has(n) && !variantNumbers.every((set) => set.has(n))));
       for (const lang of LANGS) {
         const alts = entry[lang];
         if (alts.length !== ALTERNATIVES) problems.push(`${at}.${lang}: has ${alts.length} alternatives (needs ${ALTERNATIVES})`);
@@ -95,6 +104,8 @@ function replyContentProblems(kase, replies) {
             const words = latinWords(text);
             const named = others.find((label) => plain(text).includes(label)) ?? theirs.find((w) => words.has(w));
             if (named) problems.push(`${where}: names another option ("${named}")`);
+            const unseen = [...numbers(text)].find((n) => partial.has(n));
+            if (unseen) problems.push(`${where}: cites ${unseen}, which only some question variants of this bank show`);
           }
         });
       }
@@ -125,7 +136,4 @@ function replyBankProblems(kase, file) {
   return problems;
 }
 
-/** The alternatives a tapped `optionId` gets in bank `key`, in `language`. */
-const bankReplies = (replies, key, optionId, language) => replies[key][optionId][language];
-
-module.exports = { ALTERNATIVES, repliesSha, replyContentProblems, replyBankProblems, bankReplies };
+module.exports = { ALTERNATIVES, repliesSha, replyContentProblems, replyBankProblems };

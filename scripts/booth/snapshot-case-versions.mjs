@@ -20,14 +20,15 @@
  */
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const CASES = fileURLToPath(new URL('../../backend/src/booth-cases', import.meta.url));
-const { CaseTreeSchema, eventPool } = require(path.join(CASES, 'tree-schema'));
+const { CaseTreeSchema } = require(path.join(CASES, 'tree-schema'));
+const { readEventFiles, eventPool } = require(path.join(CASES, 'event-pool'));
 const { snapshotOf, snapshotState, snapshotProblem } = require(path.join(CASES, 'study-snapshot'));
 
 const FLAGS = ['--check', '--from-git'];
@@ -44,8 +45,7 @@ const namedFor = (kase, code, file) => kase.case_id === path.basename(file, '.js
 
 // The loader's rule (backend/src/services/booth.js readEventCases): the event's pool.
 function currentCases() {
-  return events().flatMap((code) => eventPool(code, readdirSync(path.join(CASES, code)).filter((f) => f.endsWith('.json'))
-    .map((name) => ({ name, raw: JSON.parse(readFileSync(path.join(CASES, code, name), 'utf8')) }))).cases);
+  return events().flatMap((code) => eventPool(code, readEventFiles(CASES, code)).cases);
 }
 
 const TOP = fileURLToPath(new URL('../..', import.meta.url));

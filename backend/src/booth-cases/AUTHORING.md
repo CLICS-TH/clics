@@ -131,6 +131,42 @@ The build also re-runs ADR 0005's difficulty check on the table's own samples. A
 
 Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
 
+## The reply bank
+
+A tapped answer on a five-step case gets its reply from the case's reply bank at once, with no AI call (ADR 0011). The server then picks the next question variant and one option per tier from the next bank at random. A typed answer still gets a live AI reply.
+
+The bank sits beside its case at `<EVENT_CODE>/replies/<case_id>.json`, or `staging/<EVENT_CODE>/replies/<case_id>.json` for a staged case, and moves with it. A three-step case has none. A five-step case without a complete, reviewed bank is never drawn.
+
+```json
+{
+  "case_id": "<case_id>",
+  "replies": {
+    "<bank key>": { "<option id>": { "th": [Reply, Reply, Reply], "en": [Reply, Reply, Reply] } }
+  },
+  "safety_review": { "model": "", "date": "YYYY-MM-DD", "findings": "", "tree_sha256": "", "replies_sha256": "" }
+}
+```
+
+A bank key names a bank as the server does: `step1`, then `step2.B` through `step5.W`. A Reply is `{ "strength", "weigh", "safety" }`, the three fields the kiosk shows. Every question variant of a bank shares its option's three alternatives, so a reply comments on the chosen option's own words and never on the question's wording.
+
+The checker (`backend/src/booth-cases/reply-bank.js`) reports each of these as a problem:
+
+- A bank key or option of the case that has no entry, or an entry the case does not have.
+- An entry without exactly three distinct alternatives in each language.
+- An empty `strength` or `weigh`. Only `safety` may be `""`.
+- A field the server would change before showing it: over 115 characters, extra spacing, more than two `**bold**` runs, or a bold run that quotes anything but the vignette, the bank's questions or the chosen option's own label and line.
+- A Thai field with no Thai script, or an English field with some.
+- A field that names another option of the bank, by its whole label or by a Latin word of five letters or more from its label that the case does not already show.
+
+Write and check a bank from the repo root:
+
+```bash
+node scripts/booth/reply-bank.mjs sheet backend/src/booth-cases/<EVENT_CODE>/<case_id>.json   # what to write
+node scripts/booth/reply-bank.mjs check backend/src/booth-cases/<EVENT_CODE>/<case_id>.json   # its problems and hashes
+```
+
+`check` prints the two hashes the review must name. A fresh AI reviewer reads every reply, as for the case itself. Record the review under `safety_review`. Its findings name both hashes, as `tree sha256 <hash>` and `replies sha256 <hash>`, and `tree_sha256` and `replies_sha256` must equal them. Any edit to the case's tree or to a reply strands the bank until it is reviewed again.
+
 ## Moving a staged case into place
 
 A staged case goes live in one change, the way the ten five-step NFCME-2026 cases did (#386) and the re-authored `dka-young-adult` will (#476).
