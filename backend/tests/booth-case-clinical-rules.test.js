@@ -88,6 +88,23 @@ describe('dka-young-adult', () => {
       .map((o) => at(name, o)));
     expect(bad).toEqual([]);
   });
+
+  // Thai DM CPG 2566 pp.141-143 cuts insulin and adds dextrose once glucose reaches 250 mg/dL, so a running drip may
+  // stay at or above its rate without dextrose only where the stem shows glucose above 250. Fails closed: a variant
+  // whose glucose does not parse fails, since the visitor reading it cannot tell either.
+  test('where a best option keeps or raises the running insulin rate without dextrose, every variant states glucose above 250 mg/dL', () => {
+    const stepOf = (name) => Number(name.match(/^step(\d+)/)[1]);
+    const LOWERS = /0\.0[2-5]|halve|cut insulin|lower insulin|reduce insulin/i;
+    const keepsOrRaises = (o) => /insulin/i.test(text(o)) && !/dextrose/i.test(text(o)) && !LOWERS.test(text(o)) && !OFF_DRIP.test(text(o));
+    const all = banks(k);
+    // The drip starts in the first step whose best option gives insulin; from the next step on it is running.
+    const start = Math.min(...all.filter(([, b]) => b.options.some((o) => o.tier === 'best' && /insulin/i.test(text(o)))).map(([n]) => stepOf(n)));
+    const running = all.filter(([name, b]) => stepOf(name) > start && b.options.some((o) => o.tier === 'best' && keepsOrRaises(o)));
+    expect(running.length).toBeGreaterThan(0);
+    const bad = running.flatMap(([name, b]) => b.variants
+      .filter((v) => !(state(v).glucose > 250)).map((v) => `${name} ${v.id}: ${v.question.en}`));
+    expect(bad).toEqual([]);
+  });
 });
 
 test('melioidosis-farmer: with abscesses, no option above weaker ends the IV phase early or switches to oral', () => {
