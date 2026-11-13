@@ -1,19 +1,26 @@
 #!/usr/bin/env node
-// Proves the public vm1 origin before the front ends are pointed at it (deploy/vm1/README.md, cutover
-// step 2): /health/deep, the evaluator manifest against Railway's, CORS for both front-end origins, and,
-// with --stream, that one chat turn arrives as separate server-sent events and not as one buffered body.
+// Proves the public vm1 origin before the Vercel front ends redirect to it (deploy/vm1/README.md, cutover):
+// the backend's /health/deep under /api, the evaluator manifest against Railway's, the Portal and the
+// dashboard served from the same origin, and, with --stream, that one chat turn arrives as separate
+// server-sent events and not as one buffered body. No CORS row: the front ends call /api on their own origin.
 // Read-only unless --stream, which creates one PLE and spends one AI turn on SMOKE_PHYS_EMAIL/PW's account.
-//   node scripts/deploy/cutover-check.mjs [--base URL] [--railway URL] [--stream]
+//   node scripts/deploy/cutover-check.mjs [--site URL] [--base URL] [--railway URL] [--stream]
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const { VM1_ORIGIN, RAILWAY_ORIGIN, apiOrigin } = createRequire(import.meta.url)('../lib/api-origin.cjs');
+const { SITE_ORIGIN, VM1_API_BASE, RAILWAY_ORIGIN, apiOrigin } = createRequire(import.meta.url)('../lib/api-origin.cjs');
 
-export const FRONT_END_ORIGINS = ['https://physician-ui.vercel.app', 'https://audit-dashboard-rouge.vercel.app'];
+// The pages a signed-out visitor reaches first, each from its own server: the Portal's sign-in, and the
+// dashboard's under its base path (a 200 there means the /audit/ location reaches Next, not the Portal).
+export const SITE_PAGES = [['Portal /login', '/login'], ['dashboard /audit/login', '/audit/login']];
 
-export function corsVerdict(origin, headers) {
-  const got = headers.get('access-control-allow-origin');
-  return { ok: got === origin, detail: `allow-origin=${got ?? 'none'}` };
+export function pageVerdict(status, contentType) {
+  return { ok: status === 200 && /text\/html/.test(contentType || ''), detail: `HTTP ${status} ${contentType || 'no content-type'}` };
+}
+
+// A bare /audit must land on the dashboard's base path, not on the Portal's 404.
+export function auditRedirectVerdict(status, location) {
+  return { ok: [301, 308].includes(status) && /\/audit\/$/.test(location || ''), detail: `HTTP ${status} location=${location ?? 'none'}` };
 }
 
 export function healthVerdict(body) {
@@ -99,7 +106,8 @@ async function streamedTurn(base) {
 async function main() {
   const args = process.argv.slice(2);
   const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
-  const base = apiOrigin(opt('--base', process.env.CUTOVER_BASE || VM1_ORIGIN));
+  const site = String(opt('--site', SITE_ORIGIN)).replace(/\/+$/, '');
+  const base = apiOrigin(opt('--base', process.env.CUTOVER_BASE || VM1_API_BASE));
   const railway = apiOrigin(opt('--railway', RAILWAY_ORIGIN));
   const rows = [];
   const row = (name, v) => { rows.push({ name, ...v }); console.log(`${v.ok ? 'PASS' : 'FAIL'}  ${name}  ${v.detail}`); };
@@ -107,10 +115,12 @@ async function main() {
   const [vm1, rail] = await Promise.all([json(base + '/health/deep'), json(railway + '/health/deep')]);
   row('vm1 /health/deep', healthVerdict(vm1.body));
   row('evaluator manifest equals Railway', manifestVerdict(vm1.body, rail.body));
-  for (const origin of FRONT_END_ORIGINS) {
-    const r = await fetch(base + '/health', { method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Method': 'GET' } });
-    row(`CORS ${origin}`, corsVerdict(origin, r.headers));
+  for (const [name, p] of SITE_PAGES) {
+    const r = await fetch(site + p);
+    row(name, pageVerdict(r.status, r.headers.get('content-type')));
   }
+  const bare = await fetch(`${site}/audit`, { redirect: 'manual' });
+  row('bare /audit redirects to /audit/', auditRedirectVerdict(bare.status, bare.headers.get('location')));
   if (args.includes('--stream')) row('streamed chat turn is not buffered', await streamedTurn(base));
   else console.log('skip  streamed chat turn (run with --stream; it spends one AI turn)');
   process.exit(rows.every((r) => r.ok) ? 0 : 1);

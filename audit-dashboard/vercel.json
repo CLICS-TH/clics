@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "token"
+        }
+      ],
+      "destination": "https://clics.ccme.or.th/audit/:path*?token=",
+      "permanent": false
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://clics.ccme.or.th/audit/:path*",
+      "permanent": false
+    }
+  ]
+}
