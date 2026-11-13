@@ -428,18 +428,6 @@
               "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
               "en": "Gives broad IV cover."
             }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
-            },
-            "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
-            }
           }
         ],
         "default_trio": [
@@ -532,24 +520,12 @@
               "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
               "en": "Gives broad IV cover."
             }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
-            },
-            "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
-            }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "g"
+          "f"
         ]
       },
       "W": {
@@ -627,7 +603,7 @@
           },
           {
             "id": "g",
-            "tier": "weaker",
+            "tier": "reasonable",
             "label": {
               "th": "pred 5 วัน+levofloxacin",
               "en": "Pred 5 days + levofloxacin"
@@ -680,8 +656,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ลดยาพ่นเป็นทุก 4–6 ชม.",
-              "en": "Step nebulisers down to 4–6 hourly"
+              "th": "ลดยาพ่นเป็นทุก 2–4 ชม.",
+              "en": "Step nebulisers down to 2–4 hourly"
             },
             "line": {
               "th": "ลดความถี่เมื่อดีขึ้น ใจสั่นและมือสั่นน้อยลง",
@@ -1059,36 +1035,36 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "ใช้ NIV และส่งต่อ ICU",
-              "en": "NIV and refer to ICU"
+              "th": "แจ้ง ICU และประคองด้วย NIV",
+              "en": "Call ICU; NIV only as a bridge"
             },
             "line": {
-              "th": "NIV ลด CO2 คั่ง และ ICU พร้อมใส่ท่อเมื่อจำเป็น",
-              "en": "NIV lowers the CO2, and the ICU can intubate if needed."
+              "th": "NIV ประคองขณะทีม ICU เตรียมใส่ท่อ",
+              "en": "NIV holds him while the ICU team gets ready to intubate."
             }
           },
           {
             "id": "b",
             "tier": "reasonable",
             "label": {
-              "th": "แพทย์อาวุโสประเมิน แล้วส่ง ICU",
-              "en": "Senior doctor review, then ICU"
+              "th": "โทร ICU และแพทย์อาวุโสทันที",
+              "en": "Call ICU and a senior now"
             },
             "line": {
-              "th": "แพทย์อาวุโสกำหนดเพดานการรักษาก่อนติดต่อ ICU",
-              "en": "A senior review sets the ceiling of care before the ICU call."
+              "th": "ICU และแพทย์อาวุโสมาพร้อมกันตั้งแต่ต้น",
+              "en": "Brings the ICU team and a senior in together, at once."
             }
           },
           {
             "id": "c",
             "tier": "best",
             "label": {
-              "th": "ใส่ท่อช่วยหายใจแล้วส่ง ICU",
-              "en": "Intubate, then refer to ICU"
+              "th": "แจ้ง ICU และใส่ท่อช่วยหายใจ",
+              "en": "Call ICU and intubate now"
             },
             "line": {
-              "th": "ทางเดินหายใจปลอดภัยตลอดการส่งต่อ",
-              "en": "Secures his airway for the whole transfer."
+              "th": "ทางเดินหายใจปลอดภัยขณะ ICU เตรียมรับ",
+              "en": "Secures his airway while the ICU gets ready for him."
             }
           },
           {
@@ -1116,7 +1092,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewer claude-opus-5-5, which did not write the case, reviewed version 6 (five steps) against the Thai COPD service guideline (Thoracic Society of Thailand, Asthma Council and NHSO, 2010, the latest Thai edition that could be opened), the WHO COPD fact sheet (2026, silent on ventilation), GOLD 2026, BTS NIV Quality Standards 2018 and BTS/ICS AHRF 2016. Confirmed: prednisolone 40 mg for 5 days with amox-clav or doxycycline first line, O2 to 88-92% in every stem that gives oxygen, NIV at pH 7.28 with a gas by 1 hour, no NIV option delays the first repeat gas past 2 hours, and reveals show only tests every tier ordered. Fixed after review: the 4-hour gas option now keeps a 1-hour gas and adds IV magnesium as the weaker choice; every step-5 option after a weaker step 4 refers to ICU, fits paths with or without NIV and carries an escalation safety line, with intubation now best, a senior review before the ICU call reasonable, and a doubled steroid in place of the provincial-ward referral as weaker; step-4 drowsiness reads rousable with an escalation line. Remains: levofloxacin stays weaker; the intubation path into step 5 R stays loosely plotted. Tree sha256 1d1d3dab8d1c487e893beb7b4880af06e4f66bab2915c483f3437484fde6ab6f."
+      "findings": "Review of version 6 (five steps). Thai: Thoracic Society of Thailand COPD guideline 2565 (2022), chapter 6 on exacerbations, Tables 3-9 and Flowcharts 1-2, opened in full; no newer Thai edition was found. WHO: IMAI District Clinician Manual (WHO 2011), volume 2 section 10.6.5 COPD and volume 1 section 3.2, difficult breathing. Also BTS/ICS AHRF 2016 recommendations 23-30 and BTS NIV Quality Standards 2018. Fixed after checking the 2022 Thai guideline: levofloxacin, a Thai first-line respiratory quinolone, is now reasonable in step3.W and left out of step3.B and step3.R, whose reasonable slots are full; the step-4 nebuliser step-down reads 2-4 hourly; after NIV failure every option above weaker calls ICU first (NIV only as a bridge, a senior called with ICU, intubation with ICU), and every reply there carries the escalation line. Departures from the Thai text, with reasons: the Thai guideline targets SpO2 92-94%, but this patient retains CO2 (PaCO2 48, later 66), so the tree keeps 88-92% per BTS/ICS recommendations 23-24; Thai Table 7 lists drowsiness as an intubation trigger, while the tree keeps NIV best for a drowsy but rousable patient at pH 7.28 with intubation reasonable, per BTS/ICS recommendation 26, and the step-4 replies carry the escalation line. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: prednisolone 40 mg for 5 days; amox-clav or doxycycline best; CXR, ECG and ABG first; NIV at pH 7.28 with a repeat gas at 1 hour; no NIV option delays the first repeat gas past 2 hours; a doubled steroid weaker; inhaler technique, vaccines, rehab and review within 4 weeks at discharge; Thai and English agree. Remains, listed on #470: the magnesium reply wording, and the Thai step5.W a label leaving the bridge meaning to its line. Tree sha256 cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c."
     },
     "owner_waiver": {
       "date": "2026-11-03",
