@@ -6,7 +6,7 @@ const { supabase } = require('../lib/supabase');
 const { costUsd } = require('../lib/pricing');
 const { WEIGHTS } = require('./ple-gate');
 const { rimplChat } = require('./rimpl-client');
-const { TIERS, MAX_STEPS, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore } = require('../booth-cases/tree-schema');
+const { TIERS, MAX_STEPS, eventPool, tableScore } = require('../booth-cases/tree-schema');
 const { readStudyCase } = require('../booth-cases/study-snapshot');
 const {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
@@ -22,8 +22,6 @@ const BOOTH_SETTINGS = Object.freeze({
   ceilingUsd: 'booth_play_ceiling_usd',
   // The reply cache (#387). Not on the superadmin card: the owner switches it by SQL, after the calibration.
   replyCache: 'booth_reply_cache',
-  // On, only five-step plays rank (spec #370, #386 switches it on). Not on the superadmin card either: switched by SQL.
-  boardFiveSteps: 'booth_board_five_steps',
 });
 
 const REPLY_RESERVE_USD = 0.05;
@@ -97,35 +95,27 @@ const UNAVAILABLE = Object.freeze({ body: Object.freeze({ status: 'unavailable' 
 const PAST_STARTED = new Set(['not_started', 'not_found']);
 const usd = (x) => Math.round(x * 1e6) / 1e6;
 
-function readCase(file, id, code) {
-  let raw;
-  try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return { why: 'is not readable JSON' }; }
-  const problems = caseTreeProblems(raw);
-  if (problems.length) return { why: `has ${problems.length} problem(s), first ${problems[0]}` };
-  const kase = CaseTreeSchema.parse(raw);
-  if (kase.case_id !== id || kase.event_code !== code) return { why: 'is not named after its case_id and event folder' };
-  return isAdmitted(kase) ? { kase } : { why: 'is not admitted' };
-}
+const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return undefined; } };
 
-/** Pure but for the read: the admitted cases of one event under `dir`, by case_id. */
+/** Pure but for the read: one event's pool under `dir` (tree-schema eventPool). */
 function readEventCases(dir, code) {
-  let files;
-  try { files = fs.readdirSync(path.join(dir, code)).filter((f) => f.endsWith('.json')); } catch { return []; }
-  return files.flatMap((f) => {
-    const id = f.slice(0, -'.json'.length);
-    const { kase, why } = readCase(path.join(dir, code, f), id, code);
-    // Left-out cases are logged because a booth with none left reads only as 'misconfigured'.
-    if (why) console.warn(`[booth] case ${code}/${f} left out: it ${why}`);
-    return kase ? [kase] : [];
-  }).sort((a, b) => (a.case_id < b.case_id ? -1 : a.case_id > b.case_id ? 1 : 0));
+  let names;
+  try { names = fs.readdirSync(path.join(dir, code)).filter((f) => f.endsWith('.json')); } catch { return { steps: 0, cases: [] }; }
+  const { steps, cases, left } = eventPool(code, names.map((name) => ({ name, raw: readJson(path.join(dir, code, name)) })));
+  // Left-out cases are logged because a booth with none left reads only as 'misconfigured'.
+  for (const { name, why } of left) console.warn(`[booth] case ${code}/${name} left out: it ${why}`);
+  return { steps, cases };
 }
 
-function eventCases(code) {
-  if (typeof code !== 'string' || !SAFE_EVENT_CODE.test(code)) return [];
+const NO_POOL = Object.freeze({ steps: 0, cases: [] });
+
+function eventPoolOf(code) {
+  if (typeof code !== 'string' || !SAFE_EVENT_CODE.test(code)) return NO_POOL;
   const key = `${casesDir()}\0${code}`;
   if (!caseCache.has(key)) caseCache.set(key, readEventCases(casesDir(), code));
   return caseCache.get(key);
 }
+const eventCases = (code) => eventPoolOf(code).cases;
 
 // One app_settings row per case, so two superadmins switching different cases never overwrite each other.
 const caseKey = (code, id) => `booth_case_off:${code}:${id}`;
@@ -166,7 +156,7 @@ function boothEvent(rows) {
     closesAt: instant(rowText(rows, BOOTH_SETTINGS.closesAt)),
     ceilingUsd: Number.isFinite(ceiling) && ceiling > 0 ? ceiling : null,
     replyCache: Number(rows[BOOTH_SETTINGS.replyCache]?.value) === 1,
-    boardFiveSteps: Number(rows[BOOTH_SETTINGS.boardFiveSteps]?.value) === 1,
+    steps: eventPoolOf(code).steps,
   };
 }
 
@@ -337,11 +327,12 @@ const entry = (r) => ({ tag: r.tag, score: r.composite, at: r.scored_at });
 /** @returns {Board} */
 const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(entry), event: event.slice(0, BOARD_SIZE).map(entry) });
 
+/** The board ranks one scale (spec #370, #386): only plays of the event's step count, so the three-step plays made
+ *  before an event moved to five steps never rank against five-step ones. */
 async function readStandings(event, dayOf) {
-  let query = supabase.from('booth_plays').select('id, tag, composite, scored_at')
-    .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true);
-  if (event.boardFiveSteps) query = query.like('tier_path', '_'.repeat(5));
-  const { data, error } = await query.order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
+  const { data, error } = await supabase.from('booth_plays').select('id, tag, composite, scored_at')
+    .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true).like('tier_path', '_'.repeat(event.steps))
+    .order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
   if (error || !Array.isArray(data)) {
     console.error(`[booth] standings read failed for ${event.code}: ${error?.message ?? 'not a list'}`);
     return null;

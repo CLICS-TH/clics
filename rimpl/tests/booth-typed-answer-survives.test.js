@@ -12,28 +12,25 @@ jest.mock('../src/lib/supabase', () => ({
   supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
 }));
 
-const fs = require('fs');
-const path = require('path');
 const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
 const { chatRequest, bankAt } = require('../../backend/src/services/booth-dialogue');
 const { stripPii } = require('../src/services/pii-filter');
+const { CASES, bankEntries, reachableBanks } = require('./helpers/booth-cases');
 
-const CASES_DIR = path.join(__dirname, '../../backend/src/booth-cases/NFCME-2026');
 const ANSWERS = [
   'ให้ออกซิเจนและส่งตรวจเพิ่มเติม',
   'ส่งตรวจ CBC และ electrolyte',
   'ให้น้ำเกลือและยาปฏิชีวนะทันที',
   'คิดถึงภาวะช็อกจากการเสียเลือด',
 ];
-const L = ['B', 'R', 'W'];
-const PATHS = ['', ...L, ...L.flatMap((x) => L.map((y) => x + y))];
 
-// One play per (case, path, variant): every step typed, the earlier steps with the first variant of their bank.
-const PLAYS = fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort().flatMap((file) => {
-  const kase = JSON.parse(fs.readFileSync(path.join(CASES_DIR, file), 'utf8'));
-  return PATHS.flatMap((tierPath) => bankAt(kase, tierPath).variants.map((v) => {
+// One play per (case file, bank, variant), live and staged, down the first tier path that reaches the bank: every step
+// typed, the earlier steps with the first variant of their bank. Every bank, not every path: a bank's text is the same
+// on each path to it.
+const PLAYS = CASES.flatMap(({ file, kase }) => reachableBanks(kase).flatMap(({ key, tierPath, bank }) => bank.variants
+  .map((v) => {
     const steps = tierPath.length + 1;
     const variants = [...Array(steps - 1)].map((_, i) => bankAt(kase, tierPath.slice(0, i)).variants[0].id).concat(v.id);
     const answers = variants.map((_, i) => ({ text: ANSWERS[(i + tierPath.length + v.id.length) % ANSWERS.length] }));
@@ -44,18 +41,25 @@ const PLAYS = fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort(
       tierPath,
       unsorted: true,
     };
-    return [`${file} ${tierPath || '-'} ${v.id}`, kase, d];
-  }));
-});
+    return [`${file} ${key} ${v.id}`, kase, d];
+  })));
 
 beforeEach(() => {
   callAI.mockReset();
   callAI.mockResolvedValue({ text: '{}', tokenCount: 1, inputTokens: 1, outputTokens: 1, provider: 'local-tutor', model: 'm' });
 });
 
-test('every NFCME-2026 case and path is played', () => {
-  expect(new Set(PLAYS.map(([, kase]) => kase)).size).toBe(11);
-  expect(PLAYS.length).toBeGreaterThan(300);
+test('every variant of every bank in every case file is played', () => {
+  expect(CASES.some(({ file }) => file.startsWith('NFCME-2026/'))).toBe(true);
+  const played = new Map();
+  for (const [, kase, d] of PLAYS) {
+    const bank = bankAt(kase, d.tierPath);
+    played.set(bank, [...(played.get(bank) ?? []), d.asks.at(-1).variant]);
+  }
+  const variants = CASES.flatMap(({ file, kase }) => bankEntries(kase)
+    .flatMap(([at, bank]) => bank.variants.map((v) => ({ name: `${file} ${at} ${v.id}`, bank, id: v.id }))));
+  expect(variants.filter(({ bank, id }) => !played.get(bank)?.includes(id)).map(({ name }) => name)).toEqual([]);
+  expect(PLAYS).toHaveLength(variants.length);
 });
 
 // The physician turns the AI got, the last one without the sort block after the answer (services/booth.js withSort).
@@ -80,7 +84,7 @@ function typedPlay(kase, tierPath, variants, texts) {
     unsorted: true,
   };
 }
-const caseFile = (name) => JSON.parse(fs.readFileSync(path.join(CASES_DIR, name), 'utf8'));
+const caseFile = (name) => CASES.find(({ file }) => file === `NFCME-2026/${name}`).kase;
 
 // #401: the kept answer is exactly the answer text the AI saw. At step 1 the vignette comes first; a masked answer
 // under a question read together with it must not carry the question line (PR #407 round 2).
@@ -145,8 +149,8 @@ describe('accepted residual: an untitled name typed under a question that masks 
 // routes/chat.js reads a bank question apart from the answer only when the question masks on its own. Such a
 // question must give the answer no label context, or splitting it off would unmask a value master masks (#375).
 test('no question read apart from its answer ends in an identifier label', () => {
-  const questions = [...new Set(PLAYS.flatMap(([, kase, d]) => [...d.tierPath].map((_, i) => d.tierPath.slice(0, i)).concat(d.tierPath)
-    .flatMap((p) => bankAt(kase, p).variants.map((v) => v.question.th))))];
+  const questions = [...new Set(CASES.flatMap(({ kase }) => bankEntries(kase)
+    .flatMap(([, bank]) => bank.variants.flatMap((v) => [v.question.th, v.question.en]))))];
   const apart = questions.filter((q) => stripPii(q) !== q);
   expect(apart.length).toBeGreaterThan(0);
   for (const q of apart) {

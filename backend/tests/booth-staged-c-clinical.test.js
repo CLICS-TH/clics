@@ -1,12 +1,12 @@
 // Clinical rules the batch-C five-step cases (#385) must keep, from the spec #370 round-3 gate. The contract test
 // cannot judge clinical truth, so each rule here pins one finding the safety review missed, across every bank,
-// variant and option of the three staged cases.
+// variant and option of the three cases, now in the NFCME-2026 pool (#386).
 const fs = require('fs');
 const path = require('path');
 const { readReplies } = require('../../scripts/booth/path-table-sample');
 
-const STAGING = path.join(__dirname, '../src/booth-cases/staging/NFCME-2026');
-const REPLIES = path.join(__dirname, '../../scripts/booth/sample-replies/staging/NFCME-2026');
+const POOL = path.join(__dirname, '../src/booth-cases/NFCME-2026');
+const REPLIES = path.join(__dirname, '../../scripts/booth/sample-replies/NFCME-2026');
 const CASES = ['alcohol-pancreatitis', 'motorcycle-shock', 'sjs-ten-allopurinol'];
 
 const text = (o) => [o.label.en, o.label.th, o.line.en, o.line.th].join('\n');
@@ -39,7 +39,7 @@ const banksOf = (kase) => Object.entries(kase.banks).flatMap(([step, b]) =>
   (b.variants ? [[step, b]] : Object.entries(b).map(([tier, bank]) => [`${step}.${tier}`, bank])));
 
 test.each(CASES)('%s keeps the round-3 clinical rules in every bank', (id) => {
-  const kase = JSON.parse(fs.readFileSync(path.join(STAGING, `${id}.json`), 'utf8'));
+  const kase = JSON.parse(fs.readFileSync(path.join(POOL, `${id}.json`), 'utf8'));
   const replies = readReplies(kase, REPLIES);
   const broken = banksOf(kase).flatMap(([key, bank]) => bank.options.flatMap((o) =>
     RULES.filter((r) => r.applies(o) && !r.holds(o, replies[key]?.[o.id] ?? {}, bank))

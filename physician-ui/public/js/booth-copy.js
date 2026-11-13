@@ -62,7 +62,7 @@ export const REPLY_FIELDS = Object.freeze([
 
 export const COPY = Object.freeze({
   tapToStart: { th: 'แตะเพื่อเริ่ม', en: 'Tap to start' },
-  intro: { th: 'อ่านเคสสั้น ๆ ตอบสามขั้น แล้วดูคะแนนสาธิต', en: 'Read a short case, answer three steps, then see a demo score' },
+  intro: { th: 'อ่านเคสสั้น ๆ ตอบห้าขั้น แล้วดูคะแนนสาธิต', en: 'Read a short case, answer five steps, then see a demo score' },
   checking: { th: 'กำลังเชื่อมต่อ', en: 'Connecting' },
   closed: { th: 'ขณะนี้บูทปิดอยู่', en: 'The booth is closed right now' },
   offline: { th: 'ขณะนี้เชื่อมต่อ CLICS ไม่ได้', en: 'CLICS is offline right now' },

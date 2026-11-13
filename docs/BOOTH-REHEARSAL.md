@@ -8,6 +8,23 @@ Rehearsal plays are real `NFCME-2026` plays: they take the next tags and appear 
 like every other play (ADR 0010). `NFCME-2026` already holds the visitor plays of 3–4 Nov, and
 `purge-event.mjs --delete` removes every play of an event, so a rehearsal never runs it on `NFCME-2026`.
 
+## The five-step cutover (#386)
+
+From #386 on, `NFCME-2026` plays five steps. The event's step count is the largest among its case files, so moving the
+five-step trees into `backend/src/booth-cases/NFCME-2026/` is the cutover: the three-step `dka-young-adult` is left
+out until #476 re-authors it, and the board ranks only five-step plays. The three-step plays of 3–4 Nov stay in the
+table and keep their study snapshots; they no longer rank.
+
+- [ ] **The backend and Portal deploys wait for the owner's go-ahead, and go together.** The Portal ships the
+      kiosk's "five steps" intro and the five-step promo reel, so a Portal deploy over a three-step backend tells
+      visitors five steps for a three-step play. The backend also waits for every case it should deal to have #408's
+      path score table, a table verdict on that table's run, and a sandbox pass or a fresh owner waiver bound to its
+      five-step tree (`tree_sha256`). A case without them is left out; with none admitted the pool is empty and the
+      booth reads closed (`misconfigured`).
+      Before deploying: `cd backend && npx jest tests/booth-pool.test.js` passes. After deploying, open one booth
+      request and check the log has no `[booth] case NFCME-2026/... left out` line for a case you meant to deal
+      (the lines print on the first booth request, not at start-up).
+
 ## Before the freeze (by Sun 1 Nov 18:00, +07:00)
 
 Owner-gated production writes. Do them before the deploy freeze, not on the day.
@@ -76,7 +93,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 
 ## 3. Prod scores from the path score tables under 60 s, and replies come under 15 s
 
-- [ ] Play 10 times on the kiosk, all three steps each. Mix tapped choices with at least one "type my own". Every
+- [ ] Play 10 times on the kiosk, all five steps each. Mix tapped choices with at least one "type my own". Every
       play ends on a result card, none on the score-unavailable card.
 - [ ] Save the backend's booth lines to a file: Railway dashboard, backend, Logs, filter `[booth]`, or
       `railway logs --service backend --since 2h --filter '"[booth]"' > booth.log` (`--since` stops it
@@ -84,7 +101,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 - [ ] The score gate prints `score PASS`. It fails on fewer than 5 scored plays, any unavailable play, p95 at or
       over 60 s, or any provider other than `table`.
 - [ ] Read the reply gate: `reply PASS`, `reply FAIL` or `reply TOO FEW`. It needs at least 30 replies (10 plays
-      of 3 steps) and a reply p95 under 15 s. An empty reply (the AI failed or timed out, and the kiosk showed the
+      of 5 steps give 50) and a reply p95 under 15 s. An empty reply (the AI failed or timed out, and the kiosk showed the
       fallback question) counts, since the visitor waited for it. The last line says `PASS` only when both gates
       pass.
 - [ ] A reply FAIL or TOO FEW does not block opening. Record the reply p95. A FAIL makes streaming or a faster

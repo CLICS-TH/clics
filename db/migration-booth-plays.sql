@@ -18,9 +18,10 @@
 -- migration-booth-purge.sql, which reads the same advisory key.
 --
 -- #380 (spec #370) lets a play run five steps: tier_path up to five letters, replied_step up to 5, and d1-d7 one
--- decimal (a five-step case scores from a fitted table). It seeds booth_board_five_steps off. Apply it before
--- deploying the backend that plays five-step cases: the old checks refuse a fourth reply, a tier path past three
--- letters and a decimal domain, so such a play would answer unavailable.
+-- decimal (a five-step case scores from a fitted table). Apply it before deploying the backend that plays five-step
+-- cases: the old checks refuse a fourth reply, a tier path past three letters and a decimal domain, so such a play
+-- would answer unavailable. The board ranks only plays of the event's step count (#386), so the
+-- booth_board_five_steps row an earlier copy of this file seeded is read by nothing: one left in a database is harmless.
 --
 -- Switching the event on, until the superadmin booth card (#214) exists (times need an explicit offset):
 --   update public.app_settings set value = 1, updated_at = now() where key = 'booth_enabled';
@@ -172,6 +173,5 @@ insert into public.app_settings (key, value, value_text) values
   ('booth_enabled',          0, null),
   ('booth_opens_at',         0, null),
   ('booth_closes_at',        0, null),
-  ('booth_play_ceiling_usd', 3, null),
-  ('booth_board_five_steps', 0, null)
+  ('booth_play_ceiling_usd', 3, null)
 on conflict (key) do nothing;

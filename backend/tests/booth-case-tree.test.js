@@ -84,6 +84,10 @@ describe('a single edit to the fixture fails and names the field', () => {
     }, ['banks.step1.options[0].line.en: ', 'argues against']],
     ['an overclaim in the vignette', (k) => { k.vignette.en += ' Seen at a validated clinic.'; }, ['vignette.en: ', 'validated']],
     ['a duplicate option id', (k) => { k.banks.step3.RR.options[1].id = 'a'; }, ['banks.step3.RR.options[1].id: ', 'duplicate']],
+    // rimpl sends ids to the AI as written: an id has no room for an HN or a phone number (gate #370 on PR #482).
+    ['an option id holding an HN', (k) => { k.banks.step3.RR.options[1].id = 'hn1234567'; }, ['banks.step3.RR.options[1].id: ', 'at most one digit']],
+    ['a variant id holding a phone number', (k) => { k.banks.step3.RR.variants[1].id = 'v0812345678'; }, ['banks.step3.RR.variants[1].id: ', '/^v[1-3]$/']],
+    ['a variant id that is not v1 to v3', (k) => { k.banks.step1.variants[0].id = 'hn1234567'; }, ['banks.step1.variants[0].id: ', '/^v[1-3]$/']],
     ['a default trio with two options of one tier', (k) => {
       k.banks.step2.B.default_trio = ['a', 'b', 'c'];
     }, ['banks.step2.B.default_trio: ', 'one option per tier']],
@@ -223,8 +227,8 @@ describe('admission', () => {
     expect(isAdmitted(without(part))).toBe(false);
   });
 
-  const waived = (k) => ({ ...k, admission: { ...k.admission,
-    owner_waiver: { date: '2026-11-03', adr: '0005', reason: 'Owner waiver', sandbox_run_id: 'sbx-fixture' } } });
+  const waived = (k) => ({ ...k, admission: { ...k.admission, owner_waiver: { date: '2026-11-03', adr: '0005', reason: 'Owner waiver',
+    sandbox_run_id: 'sbx-fixture', tree_sha256: good.admission.sandbox.tree_sha256 } } });
 
   test('an owner waiver stands in for the sandbox run, never for the safety review', () => {
     expect(caseTreeProblems(waived(without('sandbox')))).toEqual([]);
@@ -270,16 +274,16 @@ describe('admission', () => {
     expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
   });
 
-  test('every NFCME-2026 case has its path score table, and only a case its run passed or the owner waived against that run is admitted', () => {
+  test('every NFCME-2026 case but dka-young-adult is a five-step tree whose safety review is bound to it, and none is admitted before #408 builds its table', () => {
+    const { treeSha } = require('../src/booth-cases/tree-sha');
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
     expect(cases).toHaveLength(11);
-    expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id)).toEqual([]);
-    // Run ptb-202611040911-a71a's re-check passed alcohol-pancreatitis only; the owner decides the ten others per case.
-    expect(cases.filter(isAdmitted).map((k) => k.case_id)).toEqual(['alcohol-pancreatitis']);
-    expect(cases.filter((k) => k.admission.table_check || k.admission.table_waiver).map((k) => k.case_id)).toEqual(['alcohol-pancreatitis']);
-    expect(cases.filter((k) => k.admission.sandbox).map((k) => k.case_id)).toEqual(['leptospirosis']);
-    expect(cases.filter((k) => k.admission.owner_waiver)).toHaveLength(10);
+    const five = cases.filter((k) => k.banks.step5);
+    expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual(['dka-young-adult']);
+    expect(five.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    expect(five.filter((k) => k.path_score_table || k.admission.sandbox || k.admission.owner_waiver).map((k) => k.case_id)).toEqual([]);
+    expect(cases.filter(isAdmitted).map((k) => k.case_id)).toEqual([]);
   });
 
   test('a case with no admission marker is valid but not admitted', () => {

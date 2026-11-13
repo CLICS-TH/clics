@@ -7,6 +7,7 @@ const os = require('os');
 const { spawn, spawnSync } = require('child_process');
 const { isValidAsk, evaluateRequest, bankKey } = require('../src/services/booth-dialogue');
 const { treeSha } = require('../src/booth-cases/tree-sha');
+const { stamped } = require('./helpers/booth-tree');
 const { sampleWalk, replyProblems, jobsFor, lockProblems } = require('../../scripts/booth/path-table-sample');
 const { PATHS, PATHS_BY_STEPS, worstCall } = require('../../scripts/booth/sandbox-play');
 const { costUsd } = require('../src/lib/pricing');
@@ -242,7 +243,7 @@ describe('the build runner', () => {
     fs.mkdirSync(dir);
     const replies = tmp();
     for (const kase of kases) {
-      fs.writeFileSync(path.join(dir, `${kase.case_id}.json`), `${JSON.stringify({ ...kase, event_code: build }, null, 2)}\n`);
+      fs.writeFileSync(path.join(dir, `${kase.case_id}.json`), `${JSON.stringify(stamped({ ...kase, event_code: build }), null, 2)}\n`);
       fs.writeFileSync(path.join(replies, `${kase.case_id}.json`), JSON.stringify({ case_id: kase.case_id, replies: repliesFor(kase) }));
     }
     const git = (...args) => spawnSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { cwd: dir });
@@ -612,6 +613,8 @@ describe('the build runner', () => {
     const res = run([]);
     expect(res.status).toBe(0);
     expect(res.stdout).toMatch(/Nothing spent/);
-    expect(res.stdout).not.toMatch(/: refused, it /);
+    // dka-young-adult is the three-step file, its review bound to no tree, until #476 re-authors it.
+    expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([
+      'dka-young-adult@5: refused, it has a safety review that names no tree (no tree_sha256)']);
   });
 });

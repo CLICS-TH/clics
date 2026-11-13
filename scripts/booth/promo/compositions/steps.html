@@ -12,7 +12,7 @@
     .steps-opt .th { white-space: nowrap; font-size: 46px; line-height: 1.4; font-weight: 700; color: var(--ink); }
     .steps-opt .en { white-space: nowrap; font-size: 34px; line-height: 1.25; font-weight: 500; color: var(--body); }
     #steps-finger { position: absolute; right: 48px; top: 4px; width: 128px; height: 128px; border-radius: 50%; background: var(--accent); border: 8px solid #fff; box-shadow: 0 12px 30px rgba(20, 20, 19, 0.3); }
-    #steps-bar { position: absolute; left: 110px; right: 110px; top: 1480px; display: flex; gap: 32px; }
+    #steps-bar { position: absolute; left: 110px; right: 110px; top: 1480px; display: flex; gap: 24px; }
     #steps-bar .seg { flex: 1; height: 96px; border-radius: 48px; background: var(--band); border: 3px solid var(--hairline); position: relative; overflow: hidden; }
     #steps-bar .fill { position: absolute; inset: 0; background: var(--accent); transform-origin: 0 50%; }
     #steps-bar .n { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 800; color: var(--ink); }
@@ -31,7 +31,7 @@
       </div>
     </div>
     <!-- A made-up example question, drawn in the booth's step style and labelled as such: the reel must never show
-         the admitted case's real options or its diagnosis. No booth case is a headache case. -->
+         the reel's case's real options or its diagnosis. No booth case is a headache case. -->
     <div id="steps-cardclip" class="clip" data-start="0" data-duration="4.5" data-track-index="3" data-layout-allow-overlap>
       <div id="steps-card">
         <span class="tag" lang="th">ตัวอย่างสมมติ <span class="e" lang="en">Made-up example</span></span>
@@ -48,6 +48,8 @@
       <div class="seg"><div class="fill" id="steps-f1"></div><span class="n" id="steps-n1">1</span></div>
       <div class="seg"><div class="fill" id="steps-f2"></div><span class="n" id="steps-n2">2</span></div>
       <div class="seg"><div class="fill" id="steps-f3"></div><span class="n" id="steps-n3">3</span></div>
+      <div class="seg"><div class="fill" id="steps-f4"></div><span class="n" id="steps-n4">4</span></div>
+      <div class="seg"><div class="fill" id="steps-f5"></div><span class="n" id="steps-n5">5</span></div>
     </div>
     <div id="steps-cap" class="clip" data-start="0" data-duration="4.5" data-track-index="5">
       <p class="th" lang="th"><span class="ln"><span id="steps-l2">แตะตัวเลือก หรือพิมพ์เอง</span></span></p>
@@ -65,13 +67,13 @@
     tl.to("#steps-finger", { scale: 0.78, duration: 0.1, ease: "power2.in" }, 1.45);
     tl.to("#steps-b", { borderColor: "#a9583e", backgroundColor: "#f6ece6", duration: 0.15, ease: "power2.out" }, 1.55);
     tl.to("#steps-finger", { scale: 1, opacity: 0, duration: 0.2, ease: "power2.out" }, 1.6);
-    ["1", "2", "3"].forEach((n, i) => {
-      const at = 1.65 + i * 0.6;
-      tl.fromTo(`#steps-f${n}`, { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power3.out" }, at);
-      tl.to(`#steps-n${n}`, { color: "#ffffff", duration: 0.1 }, at + 0.12);
+    // Five pills, one per step of a five-step case, all filled by 3.8 s so the full bar holds before the exit.
+    ["1", "2", "3", "4", "5"].forEach((n, i) => {
+      const at = 1.65 + i * 0.45;
+      tl.fromTo(`#steps-f${n}`, { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out" }, at);
+      tl.to(`#steps-n${n}`, { color: "#ffffff", duration: 0.1 }, at + 0.1);
+      if (i > 0) tl.to("#steps-card", { scale: 1.03, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }, at);
     });
-    tl.to("#steps-card", { scale: 1.03, duration: 0.15, ease: "power2.out", yoyo: true, repeat: 1 }, 2.25);
-    tl.to("#steps-card", { scale: 1.03, duration: 0.15, ease: "power2.out", yoyo: true, repeat: 1 }, 2.85);
     tl.to(["#steps-l1", "#steps-l1b", "#steps-e1", "#steps-l2", "#steps-e2"], { yPercent: -115, duration: 0.22, ease: "power3.in", stagger: 0.02 }, 4.22);
     tl.to("#steps-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 4.22);
     tl.to(["#steps-card", "#steps-bar"], { y: -1500, duration: 0.3, ease: "power3.in" }, 4.18);
