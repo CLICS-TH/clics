@@ -31,7 +31,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MIN_POOL, verdicts, summaryMarkdown } from './sandbox-verdict.mjs';
+import { MIN_POOL, stepCountProblem, verdicts, summaryMarkdown } from './sandbox-verdict.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -89,12 +89,10 @@ const opts = parseArgs(process.argv.slice(2));
 // Scripted-only runs (--persona-runs 0) are judged on the scripted groups alone.
 const groups = opts.personaRuns > 0 ? GROUPS : Object.keys(PATHS);
 const cases = loadCases(opts.cases, opts.only);
-const stepCounts = [...new Set(cases.map(stepCount))].sort();
-if (stepCounts.length > 1) fail(`the cases have ${stepCounts.join(' and ')} steps: a run judges one step count, so pick its cases with --case`);
-const steps = stepCounts[0];
+const steps = stepCount(cases[0]);
 let pool;
+let earlier;
 if (opts.pool) {
-  let earlier;
   try {
     earlier = JSON.parse(readFileSync(opts.pool, 'utf8'));
     pool = { medians: earlier.verdict.medians, pool_n: earlier.verdict.pool_n };
@@ -105,12 +103,11 @@ if (opts.pool) {
     fail(`--pool ${opts.pool} is from an incomplete run (${earlier.scored} of ${earlier.planned} plays scored`
       + `${earlier.stopped ? ', stopped at the cap' : ''}${earlier.over_cap ? ', over the cap' : ''}); use a complete run's report`);
   }
-  // A report from before #380 played three-step cases only.
-  const poolSteps = earlier.steps ?? 3;
-  if (poolSteps !== steps) fail(`--pool ${opts.pool} played ${poolSteps}-step cases and these have ${steps}: pool medians from the same step count`);
   const thin = groups.filter((g) => typeof pool.medians?.[g] !== 'number' || !(pool.pool_n?.[g] >= MIN_POOL));
   if (thin.length) fail(`--pool ${opts.pool} has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}`);
 }
+const stepProblem = stepCountProblem(cases.map(stepCount), opts.pool ? earlier : null);
+if (stepProblem) fail(stepProblem);
 const jobs = jobsFor(cases, { pathRuns: opts.pathRuns, personaRuns: opts.personaRuns });
 const est = estimate(jobs);
 console.log(`${cases.length} case(s): ${cases.map((k) => `${k.case_id}@${k.version}`).join(', ')}`);
