@@ -399,6 +399,97 @@ describe('adversarial — every digit script and dotted shape, on every surface 
 });
 
 // ===========================================================================
+// EVERY DECIMAL DIGIT SCRIPT, ASTRAL ONES TOO, AND YEAR-FIRST DOTTED DATES (#463) — the ASCII view read only BMP
+// digits, so a value in mathematical digits (two UTF-16 units each, as styled "bold" text pastes) passed every numeric
+// pass, and no pass took a dotted year-first date. Each value is built from an ASCII template by code-point offset, so
+// every script is the same synthetic value and no real one is written here.
+// ===========================================================================
+const DIGIT_SCRIPTS = [
+  ['ASCII', 0x30], ['Thai', 0x0e50], ['full-width', 0xff10], ['Arabic-Indic', 0x0660],
+  ['extended Arabic-Indic', 0x06f0], ['Devanagari', 0x0966], ['mathematical bold', 0x1d7ce],
+  ['mathematical sans-serif bold', 0x1d7ec], ['mathematical monospace', 0x1d7f6],
+];
+const inScript = (s, zero) => s.replace(/[0-9]/g, (d) => String.fromCodePoint(zero + Number(d)));
+const ANY_DIGIT_RE = /\p{Nd}/u;
+const DIGIT_FORM_TEMPLATES = [
+  ['slash date', 'นัด 11/12/2500 ค่ะ', 'DATE'],
+  ['ISO date', 'นัด 2500-12-11 ค่ะ', 'DATE'],
+  ['dotted date', 'นัด 11.12.2500 ค่ะ', 'DATE'],
+  ['dotted date with spaces', 'นัด 11. 12. 2500 ค่ะ', 'DATE'],
+  ['dotted year-first date', 'นัด 2500.12.11 ค่ะ', 'DATE'],
+  ['dotted year-first date, one-digit month and day', 'born 1999.1.2 in', 'DATE'],
+  ['Thai ward', 'อยู่ห้อง 123 ค่ะ', 'WARD'],
+  ['English ward', 'admitted to ward 1A today', 'WARD'],
+  ['house number', 'บ้านเลขที่ 12/3 ค่ะ', 'ADDR'],
+  ['หมู่', 'หมู่ที่ 1 ตำบล', 'ADDR'],
+  ['อายุ … ปี', 'อายุ 12 ปี', 'AGE'],
+  ['… ปี', 'ผู้ป่วยหญิง 12 ปี', 'AGE'],
+  ['years old', 'a 12 years old man', 'AGE'],
+  ['y/o', 'a 12 y/o man', 'AGE'],
+  ['age', 'age 12 man', 'AGE'],
+  ['HN', 'HN 1234567 มา', 'HN'],
+  ['MRN', 'MRN 1234567 มา', 'MRN'],
+  ['national ID', 'บัตร 1234567890123 ค่ะ', 'ID'],
+  ['dashed phone', 'โทร 012-345-6789 ค่ะ', 'PHONE'],
+  ['dotted phone', 'โทร 012.345.6789 ค่ะ', 'PHONE'],
+  ['+66 phone', 'โทร +66 12 345 6789 ค่ะ', 'PHONE'],
+];
+const DIGIT_FORMS = DIGIT_FORM_TEMPLATES.flatMap(([shape, tpl, cat]) =>
+  DIGIT_SCRIPTS.map(([script, zero]) => [`${shape} in ${script} digits`, inScript(tpl, zero), cat]));
+// Nothing of the value is left: no digit of any script outside a token, and the pass's own token is there.
+function expectNoDigitLeft(out, cat) {
+  expect(out.replace(/\[[A-Z]+-\d+\]/g, '')).not.toMatch(ANY_DIGIT_RE);
+  expect(out).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+}
+
+describe('adversarial — every decimal digit script and year-first dotted dates, on every surface (#463)', () => {
+  test.each(DIGIT_FORMS)('stripPii masks %s', (_label, input, cat) => expectNoDigitLeft(stripPii(input), cat));
+
+  test.each(DIGIT_FORMS)('POST /deidentify masks %s', async (_label, input, cat) => {
+    const res = await request(app).post('/deidentify').send({ messages: [{ role: 'user', content: `ผู้ป่วย ${input}` }] });
+    expect(res.status).toBe(200);
+    expectNoDigitLeft(res.body.messages[0].content, cat);
+  });
+
+  const bold = (s) => inScript(s, 0x1d7ce);
+  test('a phone in mathematical digits and in ASCII is one person: one token', () => {
+    expect(stripPii(`โทร 012-345-6789 หรือ ${bold('012-345-6789')}`)).toBe('โทร [PHONE-1] หรือ [PHONE-1]');
+  });
+
+  // Two-unit digits shift every later index of the view: each cut must still land on the original text.
+  test.each([
+    [`😀 โทร ${bold('012-345-6789')} 😀 ค่ะ`, '😀 โทร [PHONE-1] 😀 ค่ะ'],
+    [`โทร ${bold('012-345-6789')} HN 1234567 อายุ ${bold('12')} ปี`, 'โทร [PHONE-1] [HN-1] [AGE-1]'],
+    [`โทร ${bold('012-345-6789')} ${bold('2')} ครั้ง`, `โทร [PHONE-1] ${bold('2')} ครั้ง`],
+    [`Hb ${bold('12.5')} โทร ${bold('012.345.6789')} ค่ะ`, `Hb ${bold('12.5')} โทร [PHONE-1] ค่ะ`],
+  ])('%s cuts the original text at the right place', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+
+  // NEGATIVES — clinical numbers in every script survive byte-for-byte: unmasked digits keep their own script.
+  const CLINICAL = [
+    'BP 120/80 HR 88 RR 20',
+    'ให้ 0.5 mg 3 ครั้ง',
+    'Hb 12.5 g/dL Plt 250 K 3.5',
+    'GCS 15 NIHSS 4 ปวด 7/10',
+    'Cr 0.85 0.92 1.10',
+    'NSS 0.9% 1000 ml',
+    'เลข 02 123 456',
+    // Year-first dotted shapes that are no date: a version or section number, a 3-digit lead, a two-group decimal.
+    'version 2024.10.1',
+    'ข้อ 2500.1.2',
+    'Na 140.10.20',
+    'Plt 2500.12 x10^3',
+    'ref 2500.13.11',
+    'ref 2500.12.32',
+  ];
+  test.each(CLINICAL.flatMap((t) => DIGIT_SCRIPTS.map(([script, zero]) => [inScript(t, zero), script])))(
+    '%s (%s digits) survives byte-for-byte',
+    (text) => assertSurvives(text)
+  );
+});
+
+// ===========================================================================
 // ADDRESSES — บ้านเลขที่ / หมู่ / ตำบล / อำเภอ / จังหวัด
 // ===========================================================================
 describe('adversarial — Thai home address components', () => {
@@ -1352,6 +1443,25 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
     }
   );
 
+  // #463: every digit script, astral ones included, and year-first dotted dates, in the kept answer and on the wire.
+  test.each(DIGIT_FORMS)(
+    'a typed answer holding %s reaches neither the AI call nor answer_deidentified',
+    async (_label, value, cat) => {
+      const answer = `ผู้ป่วย ${value} มาตรวจ PCR ซ้ำ`;
+      const res = await request(app).post('/chat').send({
+        ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${answer}`,
+        booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: answer,
+      });
+      expect(res.status).toBe(200);
+      expectNoDigitLeft(res.body.answer_deidentified, cat);
+      // A short ASCII run ("12", "1") also sits in token names and the prompt, so on the wire only the value's runs of
+      // three or more digits, and every run in another script, are looked for.
+      const wire = JSON.stringify(callAI.mock.calls);
+      const runs = value.match(/\p{Nd}+/gu).filter((r) => /[^0-9]/.test(r) || r.length >= 3);
+      for (const digits of runs) expect(wire).not.toContain(digits);
+    }
+  );
+
   // The gate's case (#375): the label ends the question and the value is the whole answer. The message masks the two
   // together, so the kept answer must be the answer's part of the masked message, never the answer stripped alone.
   test.each([
@@ -1400,5 +1510,18 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
     }
     expect(res.body.answer_deidentified).toMatch(/^Call \[[A-Z]+-\d+\]$/);
     expect(wire).toContain('What would you do next?');
+  });
+});
+
+describe('booth label tail after an admission number in any digit script (#463)', () => {
+  const { maskLabelledTail } = require('../src/services/pii-filter');
+  test.each(DIGIT_SCRIPTS)('AN label with %s digits masks the name typed after it', (_script, zero) => {
+    const out = maskLabelledTail(`call AN ${inScript('123456', zero)} Dalton`, makeRegistry());
+    expect(out).not.toContain('Dalton');
+    expect(out).toMatch(/^call \[PII-\d+\]$/);
+  });
+  test('full-width label letters still open the tail', () => {
+    const out = maskLabelledTail('call ＨＮ １２３ Dalton', makeRegistry());
+    expect(out).not.toContain('Dalton');
   });
 });

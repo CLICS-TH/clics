@@ -337,20 +337,22 @@ const SHIELD_MAX_RUN = 256;
 // String#replace for a global regex, except the callback may consume only PART of a match by returning
 // [replacement, consumedLength]; scanning then resumes right after the consumed part. Iterative — the
 // shields above use it instead of re-scanning fragments recursively.
-// `view`, when given, is a same-length copy of `text` the regex runs on; the cut is made in `text`.
-function replaceResumable(text, re, fn, view = text) {
+// `view`, when given, is the copy of `text` the regex runs on; the cut is made in `text`. `at` maps view indexes to
+// `text`'s when the two differ in length (see asciiView); `used` counts view units.
+function replaceResumable(text, re, fn, view = text, at = null) {
   const rx = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`); // exec must advance
+  const orig = (i) => (at ? at[Math.min(i, at.length - 1)] : i);
   let out = '';
   let last = 0;
   let m;
   while ((m = rx.exec(view)) !== null) {
     const r = fn(m);
     const [rep, used] = Array.isArray(r) ? r : [r, m[0].length];
-    out += text.slice(last, m.index) + rep;
+    out += text.slice(orig(last), orig(m.index)) + rep;
     last = m.index + Math.max(1, used);
     rx.lastIndex = last;
   }
-  return out + text.slice(last);
+  return out + text.slice(orig(last));
 }
 
 // Thai nickname field: "ชื่อเล่น X". MUST be matched before the plain "ชื่อ"
@@ -461,6 +463,11 @@ const PHONE_SEP = '(?:\\s*\\.\\s*|[\\s-])';
 function dottedDateGuard(m) {
   const [d, mo] = m.split('.').map(Number);
   return d >= 1 && d <= 31 && mo >= 1 && mo <= 12;
+}
+// Year first: a Christian or Buddhist-era year, then a real month and day.
+function yearFirstDateGuard(m) {
+  const [y, mo, d] = m.split('.').map(Number);
+  return ((y >= 1900 && y <= 2099) || (y >= 2400 && y <= 2699)) && dottedDateGuard(`${d}.${mo}`);
 }
 // A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date.
 const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv])\s{0,3})`;
@@ -604,6 +611,12 @@ const PASSES = [
     re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4}\b`),
     cat: 'DATE',
     guard: dottedDateGuard,
+  },
+  // Dotted year-month-day (2026.10.20, 2569.1.2), under the same label and decimal rules.
+  {
+    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{4}\.\s?\d{1,2}\.\s?\d{1,2}\b`),
+    cat: 'DATE',
+    guard: yearFirstDateGuard,
   },
 
   // --- Ward ---
@@ -970,23 +983,37 @@ function applyGivenSurnamePass(text, token) {
   throw new Error('PII filter: surname search did not settle');
 }
 
-// The ASCII view a numeric pass reads: every BMP decimal digit (Thai ๐–๙, Arabic-Indic ٠–٩ and ۰–۹, full-width ０–９,
-// Lao, Devanagari …) as 0–9, and the full-width ASCII block (＋ － ． （ ） Ｈ Ｎ …) as its ASCII letter. One UTF-16 unit
-// each way, so the view is index-for-index the original: a pass matches on it and cuts the original, and text left
-// unmasked keeps its own digits. Unicode lays every decimal digit set out as a run of ten from zero.
+// The ASCII view a numeric pass reads: every decimal digit (Thai ๐–๙, Arabic-Indic ٠–٩ and ۰–۹, full-width ０–９,
+// Devanagari, the mathematical 𝟎–𝟗 of pasted "bold" text …) as 0–9, and the full-width ASCII block (＋ － ． （ ） Ｈ Ｎ …)
+// as its ASCII letter. A pass matches on the view and cuts the original, so text left unmasked keeps its own digits.
+// Unicode lays every decimal digit set out as a run of ten from zero, and none lies above U+1FFFF.
 const ASCII_VIEW = (() => {
   const map = new Map();
   let run = 0;
-  for (let c = 0x80; c <= 0xffff; c += 1) {
-    const ch = String.fromCharCode(c);
+  for (let c = 0x80; c <= 0x1ffff; c += 1) {
+    const ch = String.fromCodePoint(c);
     run = /\p{Nd}/u.test(ch) ? run + 1 : 0;
     if (run) map.set(ch, String.fromCharCode(0x30 + ((run - 1) % 10)));
   }
   for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
   return map;
 })();
-const ASCII_VIEW_RE = new RegExp(`[${[...ASCII_VIEW.keys()].join('').replace(/[\]\\^-]/g, '\\$&')}]`, 'g');
-const asciiView = (s) => s.replace(ASCII_VIEW_RE, (c) => ASCII_VIEW.get(c));
+const ASCII_VIEW_RE = new RegExp(`[${[...ASCII_VIEW.keys()].join('').replace(/[\]\\^-]/g, '\\$&')}]`, 'gu');
+// A digit above U+FFFF is two UTF-16 units in the text and one in the view, so past one the indexes part: `at` then
+// maps every view index, and the view's end, to the original's. It is null while the view is index-for-index.
+function asciiView(s) {
+  const view = s.replace(ASCII_VIEW_RE, (c) => ASCII_VIEW.get(c));
+  if (view.length === s.length) return { view, at: null };
+  const at = [];
+  for (let i = 0; i < s.length;) {
+    const c = String.fromCodePoint(s.codePointAt(i));
+    if (ASCII_VIEW.has(c)) at.push(i);
+    else for (let k = 0; k < c.length; k += 1) at.push(i + k);
+    i += c.length;
+  }
+  at.push(s.length);
+  return { view, at };
+}
 
 // The longest match of `re` that starts at `at`, is shorter than `len`, ends where a word or number ends (never
 // inside one, never before ".<digit>") and passes `guard`; null when there is none. The regex runs on the text cut
@@ -1020,12 +1047,12 @@ function applyPass(text, pass, token, hints) {
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
-  const view = cat === 'NAME' ? text : asciiView(text);
+  const { view, at } = cat === 'NAME' ? { view: text, at: null } : asciiView(text);
   return replaceResumable(text, re, (m) => {
     // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
     // every return that masks nothing must give back unchanged.
     const [seen, g1, g2, g3] = m;
-    const match = text.slice(m.index, m.index + seen.length);
+    const match = at ? text.slice(at[m.index], at[m.index + seen.length]) : text.slice(m.index, m.index + seen.length);
     if (guard && !guard(seen)) {
       // A loose run can take the next number too (โทร 081-234-5678 2 ครั้ง) and fail its guard as a whole: fall back
       // to the longest shorter match the guard accepts at the same start, so the identifier is still masked.
@@ -1122,7 +1149,7 @@ function applyPass(text, pass, token, hints) {
     }
 
     return token(cat, seen); // keyed by the ASCII view: both scripts of one number share a token
-  }, view);
+  }, view, at);
 }
 
 // Mask one string. If a registry is provided, tokens stay stable across all
@@ -1208,9 +1235,11 @@ const BOOTH_LABEL_RES = [
 // learnt, anywhere else in the call.
 function maskLabelledTail(answer, registry) {
   const text = answer.replace(ZERO_WIDTH_RE, '');
-  const starts = BOOTH_LABEL_RES.map((re) => text.search(re)).filter((i) => i >= 0);
+  const { view, at: map } = asciiView(text);
+  const starts = BOOTH_LABEL_RES.map((re) => view.search(re)).filter((i) => i >= 0);
   if (starts.length === 0) return text;
-  const at = Math.min(...starts);
+  const first = Math.min(...starts);
+  const at = map ? map[first] : first;
   return `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
 }
 
