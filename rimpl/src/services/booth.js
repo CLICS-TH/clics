@@ -23,6 +23,9 @@ const bankIn = (bank, language) => ({
 // The block goes after the (already de-identified) last user turn only, so it is never part of the history the
 // backend replays. A tapped answer gets the next step's BANK; a typed one gets SORT: the step's own bank as the
 // yardstick, then the next step's bank under each tier.
+// The bank text is not run through stripPii: it is vetted case text, never visitor input, and the filter over-masks it
+// (the pronoun คุณ reads as a name) and would garble the question the AI bridges to; tests/booth-case-text.test.js
+// scans every case file instead.
 function withBlock(messages, { bank, typed }, language) {
   const block = typed
     ? `SORT: ${JSON.stringify({

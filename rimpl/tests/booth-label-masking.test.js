@@ -13,19 +13,16 @@ jest.mock('../src/lib/supabase', () => ({
   supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
 }));
 
-const fs = require('fs');
-const path = require('path');
 const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
-const { chatRequest, bankAt } = require('../../backend/src/services/booth-dialogue');
-const { stripPii, maskLabelledTail, makeRegistry } = require('../src/services/pii-filter');
+const { chatRequest, bankAt, stepCount } = require('../../backend/src/services/booth-dialogue');
+const { tierPaths } = require('../../backend/src/booth-cases/tree-schema');
+const { maskLabelledTail, makeRegistry } = require('../src/services/pii-filter');
 const { LANGUAGES, labelRows } = require('./helpers/booth-labels');
+const { CASES } = require('./helpers/booth-cases');
 
-const CASES_DIR = path.join(__dirname, '../../backend/src/booth-cases/NFCME-2026');
-const CASES = fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort()
-  .map((f) => [f, JSON.parse(fs.readFileSync(path.join(CASES_DIR, f), 'utf8'))]);
-const kase = CASES.find(([f]) => f === 'adhf.json')[1];
+const kase = CASES.find(({ file }) => file === 'NFCME-2026/adhf.json').kase;
 const OTHER_ANSWERS = { th: ['ให้ยาขับปัสสาวะ', 'ให้ออกซิเจน'], en: ['Give a diuretic', 'Give oxygen'] };
 const NEUTRAL = { th: 'ให้ฟูโรซีไมด์', en: 'Give furosemide' };
 
@@ -84,7 +81,7 @@ function typedPlay(language, tierPath, texts) {
   };
 }
 
-const send = (d) => request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(kase, d) });
+const send = (d, k = kase) => request(app).post('/chat').send({ ple_id: 'x', ...chatRequest(k, d) });
 const userTurns = () => callAI.mock.calls[0][0].messages.filter((m) => m.role === 'user').map((m) => m.content);
 // The text inside every fence the AI was sent, in answer order.
 const fences = () => userTurns().flatMap((c) => [...c.matchAll(FENCE_RE)].map((m) => m[1]));
@@ -94,15 +91,15 @@ const outsideAnswers = () => JSON.stringify(callAI.mock.calls).replace(FENCE_RE,
 // Plants `typed` as the answer at `at` of `texts`. That answer reaches the AI and the kept answer as one token from its
 // label on, and the rest of the call is the call with an unlabelled answer in its place, so no value part reaches the AI
 // anywhere else and none became an alias masking text elsewhere.
-async function expectMasked(language, tierPath, texts, at, typed, before) {
+async function expectMasked(language, tierPath, texts, at, typed, before, k = kase) {
   const play = (answer) => typedPlay(language, tierPath, texts.map((t, i) => (i === at ? answer : t)));
-  const res = await send(play(typed));
+  const res = await send(play(typed), k);
   expect(res.status).toBe(200);
   expect(fences()[at]).toMatch(oneToken(before));
   if (at === texts.length - 1) expect(res.body.answer_deidentified).toMatch(oneToken(before));
   const masked = outsideAnswers();
   callAI.mockClear();
-  await send(play(NEUTRAL[language]));
+  await send(play(NEUTRAL[language]), k);
   expect(masked).toBe(outsideAnswers());
 }
 
@@ -119,6 +116,31 @@ describe.each(LANGUAGES)('%s look: a value typed behind its label is one token f
     callAI.mockClear();
     await expectMasked(lang, 'WB', [first, '', third], 1, `${label} ${value}`, '');
     expect(userTurns()).toHaveLength(3);
+  });
+});
+
+// What the AI is sent around a typed answer differs by case and step: the vignette, the step's question, and whether
+// that question masks on its own and is read apart from the answer (#406). Every step of every case file, live and
+// staged, is played once per language, down a tier path that differs from pair to pair, the label rows taken in turn.
+const STEPS = CASES.flatMap(({ file, kase: k }) => Array.from({ length: stepCount(k) }, (_, i) => [file, i + 1, k]));
+
+describe.each(LANGUAGES)('%s look: a labelled value typed at any step of any case is one token from the label on', (lang) => {
+  const rows = labelRows(lang);
+  const others = OTHER_ANSWERS[lang];
+  const plays = STEPS.map(([file, step, k], i) => {
+    const through = step < stepCount(k) ? step : step - 1;
+    const tierPath = tierPaths(through)[i % 3 ** through];
+    return [file, step, ...rows[i % rows.length], k, tierPath];
+  });
+
+  test.each(plays)('%s step %i: %s', async (_file, step, _kind, label, value, k, tierPath) => {
+    const texts = Array.from({ length: step }, (_, j) => others[j % others.length]);
+    await expectMasked(lang, tierPath.slice(0, step - 1), texts, step - 1, `${label} ${value}`, '', k);
+    if (step < stepCount(k)) {
+      callAI.mockClear();
+      await expectMasked(lang, tierPath, [...texts, others[step % others.length]], step - 1, `${label} ${value}`, '', k);
+      expect(userTurns()).toHaveLength(step + 1);
+    }
   });
 });
 
@@ -156,16 +178,4 @@ test.each(LANGUAGES)('%s look: a tapped option reaches the AI as written', async
 // lands, and these todos go with it. The English rows moved to #453 by owner ruling at the #370 gate.
 describe('#414: a question ending in the label masks the value typed under it', () => {
   for (const [kind, label, value] of labelRows('th')) test.todo(`#414 th: ${kind}, "${label}" ends the question, "${value}" typed under it`);
-});
-
-// Vetted English case text holds no PII, and routes/chat.js reads a question that masks on its own apart from its
-// answer (#406), so a rule that fires in case text would both corrupt the case and move that split.
-test('no vetted English case text masks as anything but an age', () => {
-  const texts = CASES.flatMap(([, k]) => {
-    const banks = [k.banks.step1, ...Object.values(k.banks.step2), ...Object.values(k.banks.step3)];
-    return [k.vignette.en, ...banks.flatMap((b) => [...b.variants.map((v) => v.question.en),
-      ...b.options.flatMap((o) => [o.label.en, o.line.en])])];
-  });
-  expect(texts.length).toBeGreaterThan(1000);
-  for (const t of texts) expect(stripPii(t).replace(/\[AGE-\d+\]/g, '')).not.toMatch(TOKEN);
 });
