@@ -1,9 +1,9 @@
 <template>
   <style>
     #root { position: absolute; inset: 0; }
-    #result-card { position: absolute; left: 60px; top: 600px; width: 960px; height: 560px; border-radius: 36px; overflow: hidden; background: #fff; border: 2px solid var(--hairline); box-shadow: 0 30px 70px rgba(20, 20, 19, 0.22); }
-    #result-zoom { position: absolute; inset: 0; }
-    #result-zoom img { position: absolute; left: -60px; top: -40px; width: 1080px; height: auto; display: block; }
+    #result-card { position: absolute; left: 60px; top: 600px; width: 960px; height: 576px; border-radius: 36px; overflow: hidden; background: #fff; border: 2px solid var(--hairline); box-shadow: 0 30px 70px rgba(20, 20, 19, 0.22); }
+    #result-zoom { position: absolute; inset: 24px 0 0; overflow: hidden; }
+    #result-zoom img { position: absolute; left: -60px; top: -98px; width: 1080px; height: auto; display: block; }
     #result-next { position: absolute; left: 108px; right: 108px; top: 1240px; text-align: center; }
     #result-next .th { font-size: 60px; line-height: 1.45; font-weight: 700; color: var(--ink); }
     #result-next .en { font-size: 42px; line-height: 1.3; font-weight: 500; color: var(--body); }
@@ -18,7 +18,8 @@
       </div>
     </div>
     <!-- The booth's own result card, captured by capture.mjs: Booth #042, the stub's one score, its QR redrawn to hold the Portal. The
-         window shows the card's full width (x 64-1016 of the capture) and ends in the gap above "Practise next". -->
+         window shows the card's full width (x 64-1016 of the capture), from just above Booth #042 (y 98) to the gap above
+         "Practise next" (y 650), so See the answers is whole. -->
     <div id="result-cardclip" class="clip" data-start="0" data-duration="4" data-track-index="3">
       <div id="result-card"><div id="result-zoom"><img src="assets/capture/result.png" alt="" /></div></div>
     </div>

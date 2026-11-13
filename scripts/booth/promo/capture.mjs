@@ -11,7 +11,7 @@ import { readFile, stat, mkdir, copyFile, rm, writeFile } from 'node:fs/promises
 import { join, extname, normalize, sep, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { installStub } from './stub.mjs';
+import { installStub, STEPS } from './stub.mjs';
 import { SERVED, REPO, PORTAL_URL } from './lock.mjs';
 
 const ROOT = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
@@ -58,8 +58,9 @@ try {
   await screen('vignette');
   await shot('vignette');
   await page.locator('[data-action="begin"]').tap();
-  const picks = [2, 3, 2];
-  for (let n = 0; n < 3; n++) {
+  // The option each step taps, by position; stub.mjs REPLIES answers these picks.
+  const picks = [2, 3, 2, 2, 2];
+  for (let n = 0; n < STEPS; n++) {
     await screen('step');
     await shot(`step${n + 1}`);
     const option = `.options > [data-option]:nth-child(${picks[n]})`;
@@ -69,7 +70,7 @@ try {
     await page.locator('[data-action="send"]').tap();
     await screen('reply');
     await shot(`reply${n + 1}`);
-    await page.locator(`[data-action="${n === 2 ? 'see-score' : 'next'}"]`).tap();
+    await page.locator(`[data-action="${n === STEPS - 1 ? 'see-score' : 'next'}"]`).tap();
   }
   await screen('scoring');
   await shot('scoring');
@@ -87,6 +88,8 @@ try {
     svg.setAttribute('viewBox', `0 0 ${n + 8} ${n + 8}`);
     svg.innerHTML = `<rect width="${n + 8}" height="${n + 8}" fill="#fff"/><path fill="#000" d="${d}"/>`;
   }, PORTAL_URL);
+  // The look switch is screen chrome over the card's top corner; its shadow would band the reel's card window.
+  await page.locator('[data-look-control]').evaluate((e) => { e.style.visibility = 'hidden'; });
   await shot('result');
   await page.evaluate(() => document.querySelector('[data-board]')?.scrollIntoView({ block: 'center' }));
   await shot('result-board');

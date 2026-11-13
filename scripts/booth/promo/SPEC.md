@@ -1,7 +1,7 @@
 # CLICS booth reel (#216, redesigned for the NFCME-2026 attract loop)
 
 GOAL:    the kiosk's screen saver. A passer-by sees, with no sound, what they will do at this screen (draw a case,
-         answer 3 steps, see a result card, keep the QR) and taps. Any tap on the loop starts a play; the tap
+         answer 5 steps, see a result card, keep the QR) and taps. Any tap on the loop starts a play; the tap
          prompt is the kiosk's own bar, not only the video's.
 OUTPUT:  HyperFrames, 1080 x 1920 portrait, 30 fps; also renders at 2160 x 3840 (PROMO_4K=1 render.sh). The kiosk
          ships the 1080 file.
@@ -24,8 +24,11 @@ FLOOR:   the loop shows the video at 0.8958 (1080 x 1720 stage), so nothing is a
 COPY:    only what is true now. The demo label, "คะแนนสาธิต: ไม่ใช่หน่วยกิต CME / Demo score: not CME credit" (the kiosk's
          DEMO_LABEL in booth-copy.js, word for word), sits on every frame where a score can be seen (result.html). No
          "validated" and no "On-premise" anywhere in the reel.
-CASE:    leptospirosis, the only admitted case. The reel shows only its teaser (draw.html, by hand; lock.mjs digests
-         it), never its options or its diagnosis. The answer scene is a made-up headache example, labelled so.
+CASE:    leptospirosis, one of the NFCME-2026 pool's five-step cases (#386). No pool case is admitted yet: each still
+         needs its path score table (#408) and its sandbox pass or owner waiver. The capture plays it through the
+         stub's five steps, so the result card is a five-step play's (domains to one decimal). The reel shows only its teaser
+         (draw.html, by hand; lock.mjs digests it), never its options or its diagnosis. The answer scene is a made-up
+         headache example, labelled so.
 SHOTS:
   0-4     hook. Frame 0: the flat ECG line. The accent beat fires, then the owner's headline slams in, line by
           line: "การเรียนรู้ที่แท้จริง / วัดจากกระบวนการคิด / ไม่ใช่เวลา", English under it.
@@ -33,7 +36,7 @@ SHOTS:
           "ไม่ต้องลงชื่อเข้าใช้ / No sign-in needed".
   6.5-10  1 draw (ink). Three card backs shuffle, the top one flips to the case teaser.
   10-14.5 2 "ฝึกวินิจฉัยผ่าน AI / Practise diagnosis with AI" (canvas). A made-up example step ("ตัวอย่างสมมติ / Made-up example", headache options) rises
-          tilted; a fingertip picks B; three step pills fill 1-2-3.
+          tilted; a fingertip picks B; five step pills fill 1-2-3-4-5.
           "แตะตัวเลือก หรือพิมพ์เอง / Tap a choice, or type your own".
   14.5-18.5 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
           "and what to practise next";
