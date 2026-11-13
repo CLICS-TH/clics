@@ -54,6 +54,32 @@ check_reconcile() {
   fi
 }
 
+# Local-only mode (ADR 0012, #428): CLICS_LOCAL_ONLY, read as rimpl/src/lib/provider-policy.js reads it
+# (trimmed, lower-cased; unset, blank, 0, false, off or no is off; anything else is on). rimpl is the process
+# that refuses commercial calls, so the mode is on only when rimpl.env has it on. The backend lists and
+# switches providers as if on when either file has it on (it reads rimpl's through GET /health/mode), so
+# on in backend.env alone would hide the commercial providers while rimpl still calls them: refused. More
+# than one line in either file is refused too. Prints on/off only.
+check_local_only() {
+  local f mode rimpl backend
+  for f in rimpl backend; do
+    mode=$(awk '
+      /^[[:space:]]*(export[[:space:]]+)?CLICS_LOCAL_ONLY[[:space:]]*=/ {
+        n++; v = $0; sub(/^[^=]*=/, "", v); gsub(/^[[:space:]]+|[[:space:]]+$/, "", v); v = tolower(v)
+      }
+      END {
+        if (n > 1) { print "many"; exit }
+        print (n == 0 || v == "" || v == "0" || v == "false" || v == "off" || v == "no") ? "off" : "on"
+      }' "$BASE/env/$f.env")
+    [ "$mode" != many ] || die "$f.env assigns CLICS_LOCAL_ONLY more than once; keep one line. Nothing was changed."
+    if [ "$f" = rimpl ]; then rimpl=$mode; else backend=$mode; fi
+  done
+  if [ "$backend" = on ] && [ "$rimpl" = off ]; then
+    die "backend.env turns local-only mode on (CLICS_LOCAL_ONLY) but rimpl.env does not: rimpl is the process that refuses commercial AI, so set it in rimpl.env too. Nothing was changed."
+  fi
+  log "local-only mode $rimpl (CLICS_LOCAL_ONLY: rimpl.env $rimpl, backend.env $backend)"
+}
+
 # The on-prem model block in rimpl.env is DECLARED and never ROUTED (#424), and its two instances are two
 # model artifacts (CCME R3). Refused: any provider-selecting name (AI_PROVIDER, AI_PROVIDER_<PURPOSE>,
 # EMBED_PROVIDER, SHADOW_EVAL_PROVIDER, CHAT_FAILOVER_PROVIDER) set to `local` or `local-tutor`, read as
