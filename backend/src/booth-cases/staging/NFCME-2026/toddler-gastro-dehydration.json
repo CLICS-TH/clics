@@ -739,8 +739,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ครบ 4 ชม. ดื่ม ORS ได้ครึ่งหนึ่ง ตายังโหลเล็กน้อย จะทำอะไร",
-              "en": "At 4 h she has taken half the ORS, eyes still a little sunken. Next step?"
+              "th": "4 ชม. ตื่นดี ดื่มเก่ง ตาโหลเล็กน้อย ได้ ORS ครึ่งหนึ่ง ทำอะไร",
+              "en": "At 4 h: alert, drinks eagerly, eyes a little sunken, half the ORS taken. Next?"
             }
           },
           {
@@ -824,15 +824,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "4 ชม. ยังตื่นดี อาเจียน ORS เกือบหมด ไม่มีปัสสาวะ ทำอะไร",
-              "en": "At 4 h she is alert, has vomited most of the ORS and passed no urine. Next?"
+              "th": "4 ชม. ตื่นดี กระหายน้ำ หนังคืนช้า อาเจียน ORS เกือบหมด",
+              "en": "At 4 h: alert and thirsty, pinch slow, has vomited most of the ORS. Next?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "4 ชม. ยังตื่นดี อาเจียนทุกครั้งที่ดื่ม ตาโหล ทำอะไรต่อ",
-              "en": "At 4 h she is alert, vomits every drink, eyes still sunken. What now?"
+              "th": "4 ชม. ตื่นดี ดื่มเก่ง หนังคืนช้า อาเจียนทุกครั้งที่ดื่ม ทำอะไร",
+              "en": "At 4 h: alert, drinks eagerly, vomits every drink, pinch slow. What now?"
             }
           }
         ],
@@ -1093,8 +1093,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "เช้าวันต่อมา ยังถ่ายเหลว ตาโหลเล็กน้อย ปัสสาวะน้อย ทำอะไร",
-              "en": "Next morning: loose stools go on, eyes a little sunken, little urine. Plan?"
+              "th": "เช้าวันต่อมา ตื่นดี ดื่มเก่ง ตาโหลเล็กน้อย ปัสสาวะน้อย ทำอะไร",
+              "en": "Next morning: alert, drinks eagerly, eyes a little sunken, little urine. Plan?"
             }
           },
           {
@@ -1167,7 +1167,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewers (claude-opus-5-5, none wrote the case), version 3, five steps: checked against the WHO diarrhoea treatment manual and IMCI Plans A/B/C, ESPGHAN 2014, NICE CG84 and Thai acute-diarrhoea and rational-drug-use guidance, all from recall. Confirmed: Plan B 75 mL/kg = 750 mL ORS over 4 h, Plan A 50-100 mL ORS per loose stool, zinc for 10-14 days, the IMCI 5-day review, no antidiarrhoeal agent, and every weaker option gives fluid. Fixed after review: the step-4 weaker-path stems now state she is alert, ruling out WHO severe dehydration, so nasogastric ORS and IV with sodium and glucose are best, IV with the antibiotic stopped and one ondansetron dose with a 1-hour recheck are reasonable, and IV with a stool culture is weaker; IV for an improving child moved to weaker; home dispositions now name ORS or Plan A; a sample reply no longer claims a stool culture confirms a viral cause. A second fresh reviewer re-checked every fix: no must-fix left. Tree sha256 8d2be729b2e0736d9fedf7562de42f86532ab3d562b6f954bc53fc569b447a1d."
+      "findings": "Fresh reviewer claude-opus-5-5, which did not write the case, checked version 3, five steps, against the Thai acute diarrhoea in children guideline (Thai Society of Pediatric Gastroenterology and Hepatology, 2019) and WHO The treatment of diarrhoea, 4th revision (2005), Table 1 and Plans A-C, with the WHO 2024 pneumonia and diarrhoea guideline. Confirmed: the vignette is some dehydration under the two-sign rule, with sunken eyes the only severe sign; Plan B 75 mL/kg = 750 mL over 4 h; Plan A 50-100 mL per loose stool; zinc 10-14 days; antibiotics only as weaker options. Being alert does not exclude severe dehydration, so the step-4.W, step-4.R v1 and step-5.W v1 stems now state signs of some dehydration (thirsty or drinks eagerly, slow skin pinch or a little sunken eyes), where NG or IV fluid fits. Remains: ondansetron rests on ESPGHAN 2014, not Thai or WHO text. Tree sha256 4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4."
     },
     "owner_waiver": {
       "date": "2026-11-03",

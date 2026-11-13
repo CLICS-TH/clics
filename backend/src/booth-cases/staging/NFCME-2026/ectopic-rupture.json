@@ -639,18 +639,6 @@
         ],
         "options": [
           {
-            "id": "anti_d",
-            "tier": "best",
-            "label": {
-              "th": "ตรวจ Rh ให้ anti-D หากเป็นลบ",
-              "en": "Check Rh; anti-D if negative"
-            },
-            "line": {
-              "th": "ป้องกันโรค Rh ในการตั้งครรภ์ครั้งต่อไป",
-              "en": "Protects a later pregnancy from Rh disease."
-            }
-          },
-          {
             "id": "mobilise",
             "tier": "best",
             "label": {
@@ -675,18 +663,6 @@
             }
           },
           {
-            "id": "daily_hb",
-            "tier": "weaker",
-            "label": {
-              "th": "ตรวจ Hb ทุกวัน 3 วัน",
-              "en": "Daily Hb checks for 3 days"
-            },
-            "line": {
-              "th": "เห็นแนวโน้มค่าเลือดหลังผ่าตัดได้ชัด",
-              "en": "Shows the trend in her blood count after surgery."
-            }
-          },
-          {
             "id": "iv_abx",
             "tier": "weaker",
             "label": {
@@ -697,12 +673,24 @@
               "th": "ป้องกันแผลติดเชื้อได้นานขึ้น",
               "en": "Gives longer cover against wound infection."
             }
+          },
+          {
+            "id": "anti_d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ Rh ให้ anti-D หากเป็นลบ",
+              "en": "Check Rh; anti-D if negative"
+            },
+            "line": {
+              "th": "มุ่งป้องกันโรค Rh ในการตั้งครรภ์ครั้งต่อไป",
+              "en": "Aims to protect a later pregnancy from Rh disease."
+            }
           }
         ],
         "default_trio": [
-          "anti_d",
+          "mobilise",
           "rpt_hb",
-          "daily_hb"
+          "anti_d"
         ]
       },
       "R": {
@@ -1114,7 +1102,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewers (claude-opus-5-5, none wrote the case), version 5, five steps: steps 3-5 checked against RCOG GTG 21, NICE NG126, ACOG PB 193, ATLS, NICE NG24 and NEWS2, all from recall. Confirmed: laparotomy with blood is best in shock and laparoscopic salpingectomy reasonable; every weaker step-3 option includes blood and surgery; a 3-week urine pregnancy test after salpingectomy is best and weekly serum hCG weaker; anti-D for an Rh-negative woman after surgery is best. Fixed after review: the unindicated top-up transfusion at Hb 9.6 replaced by daily Hb checks; the crystalloid bolus at symptomatic Hb 7.2 moved to weaker, with 2 units added as reasonable; the antipyretic option now sets 4-hourly vital signs; the step-3 variants that named no ectopic now carry the surgeon's suspicion, since step 3 no longer knows the step-1 diagnosis; hCG falls to negative, not zero. A second fresh reviewer re-checked every fix: no must-fix left. Tree sha256 62df976cc7bc2750297df52b06e9fc45fce9a2fcb358240e7e32f1d6ef501ded."
+      "findings": "Fresh reviewer claude-opus-5-5, which did not write the case, checked version 5, five steps, steps 3-5 and their sample replies in Thai and English. No Thai ectopic pregnancy guideline exists; the Thai source is RTCOG CPG OB 66-031 Induced Abortion (2023), no anti-D under 12 weeks. WHO: Abortion care guideline (2022) Rec 8, no anti-D before 12 weeks. Also NICE NG126 (updated June 2026) rec 1.18.1, NICE NG24 (2015) and NICE NG253 (2025). Confirmed: laparotomy with blood is best in shock, laparoscopic salpingectomy reasonable; every weaker step-3 option gives blood and surgery; one unit then reassess is best at symptomatic Hb 7.2; a 3-week urine pregnancy test is best, weekly hCG weaker; no stem reveals an unordered result. Fixed after review: anti-D at 7 weeks moved from best to weaker, in step4.B only, with the daily-Hb option removed to keep two weaker options; its line no longer claims protection and its reply names NICE 2026. Remains: ACOG 2024 scope for ectopic unconfirmed. Tree sha256 9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a."
     },
     "owner_waiver": {
       "date": "2026-11-03",

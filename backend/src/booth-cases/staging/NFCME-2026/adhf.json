@@ -721,7 +721,7 @@
             "id": "oral_switch",
             "tier": "weaker",
             "label": {
-              "th": "เปลี่ยนเป็นฟูโรซีไมด์ชนิดกิน",
+              "th": "เปลี่ยนเป็นฟูโรซีไมด์กินตอนนี้",
               "en": "Switch to oral furosemide now"
             },
             "line": {
@@ -891,8 +891,8 @@
             "id": "refer_now",
             "tier": "reasonable",
             "label": {
-              "th": "ประสานส่งต่อหอผู้ป่วยหนักด่วน",
-              "en": "Arrange an urgent ICU transfer"
+              "th": "ให้ออกซิเจน ส่งต่อ ICU ด่วน",
+              "en": "Oxygen and urgent ICU transfer"
             },
             "line": {
               "th": "อาจต้องใช้เครื่องช่วยหายใจซึ่ง ICU จังหวัดมีพร้อม",
@@ -937,15 +937,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "วันที่ 2 เลิกใช้ออกซิเจนได้ น้ำหนักลด 2 กก. แผนคืออะไร",
-              "en": "Day 2: off oxygen and 2 kg lighter. What is your plan?"
+              "th": "วันที่ 2 เลิก O2 น้ำหนักลด 2 กก. ขาหายบวม แผนคืออะไร",
+              "en": "Day 2: off oxygen, 2 kg lighter, legs no longer swollen. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "อาการดีขึ้นมากแล้ว คุณจะวางแผนจำหน่ายอย่างไร",
-              "en": "He is much better. How do you plan his discharge?"
+              "th": "ขาหายบวม หายใจสบาย จะวางแผนจำหน่ายอย่างไร",
+              "en": "Legs no longer swollen, breathing easily. How do you plan discharge?"
             }
           }
         ],
@@ -1060,15 +1060,15 @@
             }
           },
           {
-            "id": "dc_oral",
+            "id": "strict_fluid",
             "tier": "weaker",
             "label": {
-              "th": "กลับบ้านด้วยฟูโรซีไมด์กินขนาดสูง",
-              "en": "Home on higher-dose oral furosemide"
+              "th": "นอนต่อ จำกัดน้ำดื่ม 1 ลิตร",
+              "en": "Stay in, restrict fluid to 1 L"
             },
             "line": {
-              "th": "ยากินขนาดสูงช่วยขับน้ำต่อ และนัดดูใน 1 สัปดาห์",
-              "en": "A higher home dose keeps clearing fluid, with a check in 1 week."
+              "th": "ดื่มน้ำน้อยลงอาจช่วยให้ขาบวมยุบเร็วขึ้น",
+              "en": "Less fluid in may help the leg swelling settle faster."
             }
           },
           {
@@ -1099,7 +1099,7 @@
         "default_trio": [
           "ward_iv",
           "oral_ward",
-          "dc_oral"
+          "strict_fluid"
         ]
       },
       "W": {
@@ -1181,7 +1181,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewers (claude-opus-5-5, none wrote the case), version 5, five steps: all 13 banks checked against ESC 2021 HF and its 2023 update, AHA/ACC/HFSA 2022, Thai referral practice and WHO oxygen guidance, all from recall. Every step-3 to step-5 option gives oxygen or CPAP with IV furosemide or escalates care; the CPAP, urine-output, 2-hour spot urine sodium, echo-within-48 h and 1-2-week review thresholds are correct. Fixed after review: discharge home with persisting oedema (step5.R dc_oral) moved to weaker per the class I congestion check before discharge, with in-hospital oral furosemide added as reasonable; the step5.W ward option now raises the IV dose; step5.R v1 and the echo option fit a patient already transferred; the reservoir-mask, troponin and antibiotic wording made accurate and Thai and English aligned. A second fresh reviewer re-checked every fix: no must-fix left. Tree sha256 02beb63bc424ce98c59536ceed0b9c028c676be5a45c6e97dc3f697a3960b9cf."
+      "findings": "Fresh reviewer claude-opus-5-5, which did not write the case, checked version 5 (five steps) against the Heart Failure Council of Thailand 2019 Heart Failure Guideline: Acute Heart Failure (J Med Assoc Thai 2019;102:373-379, the latest Thai acute HF source), ESC 2021 HF guidelines and the ESC 2023 focused update. No WHO guideline covers in-hospital acute HF (HEARTS and WHO PEN 2020 are primary care). Confirmed: every step-3 option gives oxygen or CPAP with IV furosemide, and no later option leaves a hypoxic or congested patient without oxygen or diuretic or sends him home; CPAP at RR above 25 and SpO2 under 90%, the 2-hour diuretic response check and dose doubling, a nitrate with high SBP, and a 1-2-week review are correct; no stem reveals a test its path did not order; Thai and English agree. Fixed after review: discharge home with persisting oedema is gone, replaced by an in-hospital fluid limit; the step-5 discharge stems now state the oedema has cleared; the ICU transfer option names oxygen. Remains: the ESC dose-doubling figure was read from secondary copies. Tree sha256 9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8."
     },
     "owner_waiver": {
       "date": "2026-11-03",
