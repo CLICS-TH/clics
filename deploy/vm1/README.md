@@ -340,9 +340,10 @@ already passed the withholding check and is safe to paste into the issue.
 How long: on the DGX numbers (chat about 1 min a turn, decode-bound; evaluate p50 about 68 s) a full run
 takes about 1 to 1.5 hours. Latency is about 30 min (30 sequential chats), concurrency 30 to 45 min (80
 turns through `LOCAL_TUTOR_MAX_CONCURRENCY`, default 2), the rest a few minutes. At those numbers
-`latency` and `concurrency` fail, which is the finding the rows exist to report. Ten concurrent sessions
-also need `LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE` above its default 4: with 2 running and 4 queued, the rest
-are refused `queue_full` and counted as lost. Rehearse the rest quickly with
+`latency` and `concurrency` fail, which is the finding the rows exist to report. `rimpl.env.example`
+sets `LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE=8` (default 4) so the 2 running plus 8 queued admit the row's ten
+concurrent sessions; at the default, the rest are refused `queue_full` and counted as lost, so keep the
+line. Rehearse the rest quickly with
 `--only reachability,inference-shape,context,failure-down,local-only` (a few minutes). That rehearsal
 ends `verdict: PARTIAL` with exit 4 when its rows pass, listing latency, concurrency and the
 owner-gated rows under `rows_not_run`; the cutover still needs one full run that exits 0.
