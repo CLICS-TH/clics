@@ -19,7 +19,7 @@
  *
  * Env:
  *   DASH_URL      audit-dashboard origin (e.g. https://audit-dashboard-rouge.vercel.app)  [enables dashboard audit]
- *   BACKEND_URL   backend origin (e.g. https://clics.ccme.or.th)
+ *   BACKEND_URL   backend origin (default: scripts/lib/api-origin.cjs, i.e. CLICS_API_ORIGIN or vm1)
  *   SUPER_EMAIL/SUPER_PW, AUDITOR_EMAIL/AUDITOR_PW   role creds (throwaway demo creds in docs/deployment.md)
  *   AUDIT_JSON    optional path to also write the findings as JSON
  *
@@ -31,7 +31,9 @@ import { createServer } from 'node:http';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
+const { apiOrigin } = createRequire(import.meta.url)('../lib/api-origin.cjs');
 import { watchPageHealth, resolvedTheme } from './page-health.mjs';
 
 const PUI_ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
@@ -248,7 +250,7 @@ async function run() {
   server.close();
 
   // ---------- audit-dashboard (live; only if configured) ----------
-  const DASH = process.env.DASH_URL, BACKEND = process.env.BACKEND_URL;
+  const DASH = process.env.DASH_URL, BACKEND = process.env.BACKEND_URL || apiOrigin();
   const roleCfg = [
     { role: 'superadmin', email: process.env.SUPER_EMAIL, pw: process.env.SUPER_PW,
       paths: ['/home','/admin/overview','/admin/ples','/admin/users','/admin/invites','/admin/flagged','/admin/compensation','/admin/stats','/admin/icc','/ethics','/analyst'] },

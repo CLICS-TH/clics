@@ -6,12 +6,13 @@ work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
 > ## Current state — 2026-10-15
 >
-> **Production runs on vm1 (#426).** Backend and rimpl are the `clics` compose project on vm1 behind
-> `https://clics.ccme.or.th`; both front ends call that origin. Railway is the rollback for 7 days, then its
-> backend is stopped and `CLICS_CUTOVER_DONE=1` lets vm1 take the reconcile sweep. The owner records the
-> cutover date here. The paragraph below is the 2026-10-15 snapshot and predates the cutover.
+> **Production stays on Railway until the owner cuts over to vm1 (#426).** The repo is prepared: the Portal's
+> `config.js` and every script name `https://clics.ccme.or.th`, and `scripts/deploy/cutover-check.mjs` proves the
+> origin. Portal deploys are manual, so none ships that URL before the owner runs the runbook. After the
+> cutover Railway is the rollback for 7 days, then its backend is stopped and `CLICS_CUTOVER_DONE=1` lets vm1
+> take the reconcile sweep.
 >
-> **Production was live and healthy on 2026-10-15.** Every layer ran master `127226f6`'s code for its directory:
+> **Production is live and healthy (2026-10-15 snapshot).** Every layer runs master `127226f6`'s code for its directory:
 > physician-ui and audit-dashboard on Vercel, backend and rimpl on Railway, Supabase Postgres
 > (ap-northeast-1). `/health/deep` is `ok`, `model_lock` is up and unlocked, and rimpl's `manifest` row
 > warns by design, because production runs Claude while the manifest declares the on-prem target.

@@ -32,12 +32,26 @@ test('manifest: equal digests pass, a missing digest on either side fails', () =
   assert.equal(manifestVerdict(m(undefined), m(undefined)).ok, false);
 });
 
-test('stream: a buffered body (all frames at once) fails, a spread one passes', () => {
-  const frames = (ats) => ats.map((at) => ({ at, data: 'x' }));
-  assert.equal(streamVerdict('text/event-stream', frames([1200, 1201, 1202, 1203])).ok, false);
-  assert.equal(streamVerdict('text/event-stream', frames([800, 1000, 1400, 2100])).ok, true);
+test('stream: buffered or errored turns fail, an even spread passes', () => {
+  const ES = 'text/event-stream';
+  const frames = (ats) => ats.map((at) => ({ at, data: 'event: delta\ndata: {"t":"x"}' }));
+  assert.equal(streamVerdict(ES, frames([1200, 1201, 1202, 1203])).ok, false);
+  assert.equal(streamVerdict(ES, frames([800, 1000, 1400, 2100])).ok, true);
   assert.equal(streamVerdict('application/json', frames([0, 500, 900])).ok, false);
-  assert.equal(streamVerdict('text/event-stream', frames([0, 900])).ok, false);
+  assert.equal(streamVerdict(ES, frames([0, 900])).ok, false);
+  const even = frames(Array.from({ length: 50 }, (_, i) => (i * 5000) / 49));
+  assert.equal(streamVerdict(ES, even).ok, true);
+  const bursts = [];
+  for (const t of [0, 1500, 3000, 4500]) for (let i = 0; i < 150; i++) bursts.push({ at: t, data: 'd' });
+  assert.equal(streamVerdict(ES, bursts).ok, false, '4 bursts of 150 frames are chunk-buffered delivery');
+  const errored = [
+    { at: 0, data: 'event: status\ndata: {"phase":"thinking"}' },
+    { at: 200, data: 'event: delta\ndata: {"t":"x"}' },
+    { at: 400, data: 'event: done\ndata: {"status":502,"body":{"error":"x"}}' },
+  ];
+  assert.equal(streamVerdict(ES, errored).ok, false, 'a done frame with an error status fails');
+  errored[2].data = 'event: done\ndata: {"status":200,"body":{}}';
+  assert.equal(streamVerdict(ES, errored).ok, true);
 });
 
 test('api origin: one default (vm1), env override, trailing slash stripped', () => {

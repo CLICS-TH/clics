@@ -29,13 +29,40 @@ export function manifestVerdict(vm1, railway) {
   return { ok: !!a && a === b, detail: `vm1=${a ?? 'none'} railway=${b ?? 'none'}` };
 }
 
-// events: [{ at: ms since request, data: string }] for each SSE frame. A buffered response delivers every
-// frame in one read, so all `at` values collapse together; a streamed one spreads over the reply.
-export function streamVerdict(contentType, events, minSpreadMs = 300) {
+// events: [{ at: ms since request, data: frame text }] for each SSE frame. A buffered proxy delivers frames
+// in bursts (one flush, many frames), however long the reply took overall, so first-to-last spread alone
+// proves nothing. A frame counts as "bunched" when more than BUNCH_MAX frames share its 100 ms bucket.
+// The turn passes only when under half the frames are bunched, the reply spans MIN_SPREAD_MS, and the
+// closing `done` frame (when there is one) does not carry an error status.
+const BUCKET_MS = 100;
+const BUNCH_MAX = 8;
+const MIN_SPREAD_MS = 300;
+
+function doneStatus(events) {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const frame = String(events[i].data);
+    if (!/^event:\s*done\b/m.test(frame)) continue;
+    const m = frame.match(/^data:\s*(.*)$/m);
+    try { return Number(JSON.parse(m?.[1] ?? '').status); } catch { return NaN; }
+  }
+  return null;
+}
+
+export function streamVerdict(contentType, events) {
   if (!/text\/event-stream/.test(contentType || '')) return { ok: false, detail: `content-type=${contentType || 'none'}` };
   if (events.length < 3) return { ok: false, detail: `only ${events.length} event(s)` };
+  const status = doneStatus(events);
+  if (status !== null && !(status >= 200 && status < 400)) return { ok: false, detail: `done frame status=${status}` };
   const spread = events[events.length - 1].at - events[0].at;
-  return { ok: spread >= minSpreadMs, detail: `${events.length} events over ${Math.round(spread)} ms` };
+  const buckets = new Map();
+  for (const e of events) { const k = Math.floor(e.at / BUCKET_MS); buckets.set(k, (buckets.get(k) || 0) + 1); }
+  let bunched = 0;
+  for (const n of buckets.values()) if (n > BUNCH_MAX) bunched += n;
+  const share = bunched / events.length;
+  return {
+    ok: spread >= MIN_SPREAD_MS && share < 0.5,
+    detail: `${events.length} events over ${Math.round(spread)} ms, ${Math.round(share * 100)}% arrived in bursts`,
+  };
 }
 
 async function json(url, init) {

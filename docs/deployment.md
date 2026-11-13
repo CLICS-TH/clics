@@ -1,6 +1,6 @@
 # Deployment
 
-Deploys run from the **local working tree** (not GitHub). **Production runs on vm1** (the CME host): backend + RIMPL as the `clics` compose project behind `https://clics.ccme.or.th` ([ADR 0002](adr/0002-vm1-topology-b.md), runbook [`deploy/vm1/README.md`](../deploy/vm1/README.md)). Both front-ends are on **Vercel** and call that origin. Railway (project `CLICS-Pilot`) stays as the rollback for 7 days after the cutover and is then stopped.
+Deploys run from the **local working tree** (not GitHub). **Production stays on Railway until the owner runs the vm1 cutover** (ADR 0002, runbook [`deploy/vm1/README.md`](../deploy/vm1/README.md)). After it, backend + RIMPL run on vm1 as the `clics` compose project behind `https://clics.ccme.or.th`, Railway (project `CLICS-Pilot`) is the rollback for 7 days and is then stopped. Both front-ends are on **Vercel**.
 
 ## Live URLs
 
@@ -8,19 +8,19 @@ Deploys run from the **local working tree** (not GitHub). **Production runs on v
 |---------|-----|
 | Physician portal | https://physician-ui.vercel.app |
 | Audit dashboard (Admin / Superadmin / Auditor) | https://audit-dashboard-rouge.vercel.app |
-| Backend API (production) | https://clics.ccme.or.th (vm1) |
-| Backend API (rollback, until its day-7 stop) | https://backend-production-c12e4.up.railway.app |
-| RIMPL | internal-only, on vm1's docker network (no published port) |
+| Backend API (production) | https://backend-production-c12e4.up.railway.app |
+| Backend API on vm1 (after the owner's cutover) | https://clics.ccme.or.th |
+| RIMPL | internal-only: `rimpl.railway.internal:3003` today, vm1's docker network after the cutover |
 
-## vm1 (Topology B): production
+## vm1 (Topology B): prepared, cutover is the owner's
 
-Backend + RIMPL run as one Docker Compose project on vm1 ([ADR 0002](adr/0002-vm1-topology-b.md)) behind
-`https://clics.ccme.or.th`. Deploy, cutover and rollback are in [`deploy/vm1/README.md`](../deploy/vm1/README.md);
+Backend + RIMPL can run as one Docker Compose project on vm1 ([ADR 0002](adr/0002-vm1-topology-b.md)) behind
+`https://clics.ccme.or.th`. Until the owner runs the cutover, production is the Railway deployment below. Deploy, cutover and rollback are in [`deploy/vm1/README.md`](../deploy/vm1/README.md);
 the public origin is proven by `node scripts/deploy/cutover-check.mjs` (add `--stream` for the one-turn SSE check).
 The Portal's API URL is `physician-ui/public/js/config.js`; the dashboard's is `NEXT_PUBLIC_API_URL` on Vercel.
 Every script reads the API origin from `scripts/lib/api-origin.cjs` (override: `CLICS_API_ORIGIN`).
-Sign-in and the database stay in Supabase (Tokyo) until #427 and #432. The Railway commands below describe
-the rollback deployment, which keeps running unchanged for 7 days.
+Sign-in and the database stay in Supabase (Tokyo) until #427 and #432. The Railway commands below are today's
+deploy path and, after the cutover, the rollback, which keeps running unchanged for 7 days.
 
 ## Deploy commands (and the gotchas that break prod silently)
 

@@ -86,8 +86,8 @@ so the portal's `CLICS_DASHBOARD_URL` handoff works. Full setup details and conv
 |---------|-----|
 | Physician portal | https://physician-ui.vercel.app |
 | Audit dashboard | https://audit-dashboard-rouge.vercel.app |
-| Backend API | https://clics.ccme.or.th (vm1; Railway is the 7-day rollback) |
-| RIMPL | internal-only (vm1 docker network, no public port) |
+| Backend API | https://backend-production-c12e4.up.railway.app (moves to https://clics.ccme.or.th at the owner's vm1 cutover) |
+| RIMPL | internal-only (`rimpl.railway.internal:3003`, no public domain) |
 
 Deploys run from the **local working tree** (not GitHub) — see [`docs/deployment.md`](docs/deployment.md)
 for the exact commands and the two gotchas that break prod silently (Railway `--path-as-root`,
