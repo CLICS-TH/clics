@@ -87,7 +87,7 @@ test('the settings the sign-in paths rely on are pinned in compose, not left to 
     'GOTRUE_DISABLE_SIGNUP: "false"', 'GOTRUE_EXTERNAL_GOOGLE_ENABLED: "true"', 'GOTRUE_EXTERNAL_PHONE_ENABLED: "false"',
     'GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"', 'GOTRUE_MAILER_AUTOCONFIRM: "false"',
     'GOTRUE_SECURITY_MANUAL_LINKING_ENABLED: "false"', 'GOTRUE_JWT_ADMIN_ROLES: service_role', 'GOTRUE_JWT_AUD: authenticated',
-    'GOTRUE_LOG_LEVEL: warn', 'GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify', 'GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify',
+    'GOTRUE_LOG_LEVEL: fatal', 'GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify', 'GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify',
   ]) assert.ok(g.includes(want), `gotrue pins ${want}`);
   assert.ok(!/SKIP_NONCE_CHECK/.test(AUTH), 'the id_token nonce check stays on (ADR 0008)');
   for (const t of ['confirmation', 'magic_link']) {

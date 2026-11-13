@@ -10,6 +10,7 @@ backend has no host port.
 | `run.sh` | Drives it: `hermetic`, `vm1-env`, `vm1-up`, `vm1-paths`, `down` |
 | `docker-compose.rehearsal.yml` | Adds a throwaway `supabase/postgres` on **tmpfs**, mailpit, and takes the backend's host port away |
 | `auth-paths.mjs` | The replay. Runs in a one-off backend container on the rehearsal network |
+| `failure-probes.mjs` | `hermetic` only, after the replay: a failed mail send and one client's wrong codes and passwords (429 expected), then `run.sh` checks no auth container log names an address |
 
 ## What the replay proves
 
@@ -69,7 +70,10 @@ not otherwise allow. Keep the window short.
    Session pooler, which vm1 reaches over IPv4) into `/root/.supabase-db-url`, mode 600, with the password
    URL-encoded (Supabase's Connect panel does this). It is never typed on a command line or pasted into a
    chat. `run.sh` splits it into libpq variables, so it is not in any process's argv either.
-4. **Restore and start.** Size it first: the tmpfs is 2 GB by default (`REHEARSAL_DB_TMPFS=4g` raises it).
+4. **Restore and start.** Size it first: the tmpfs is 2 GB by default (`REHEARSAL_DB_TMPFS=4g` raises it), and
+   the db container's memory cap is 3 GB (`REHEARSAL_DB_MEM`), which must stay above the tmpfs and fit in
+   `free -m`. The container gets no swap, and `run.sh` stops before the restore unless the kernel enforces
+   that (`memory.swap.max` is 0), so the copy cannot reach vm1's disk through swap.
    ```bash
    rehearsal/run.sh vm1-up /opt/clics/rehearsal/env < /root/.supabase-db-url
    ```
@@ -96,7 +100,17 @@ not otherwise allow. Keep the window short.
    rehearsal/run.sh down /opt/clics/rehearsal/env && rm -rf /opt/clics/rehearsal /root/.supabase-db-url
    ```
 
-### Not covered by the replay
+### Not covered by the replay, and not run yet
+
+**Not run in #427 (PR #460).** Three things were not proven, so #427 stays open until each passes on vm1:
+
+- the Google paths: Google in-page with nonce, the Google redirect fallback, an invite accepted with Google,
+  and Link Google;
+- delivery through Resend's SMTP (on every rehearsal so far, mail went to mailpit only);
+- a sign-in with a real user's old password (step 5's `old-passwords.tsv` was never supplied; only a synthetic
+  bcrypt hash was carried over and verified).
+
+How each is run:
 
 These paths need Google and a browser on a public origin, so they are run by hand once the origin exists:
 Google in-page (id_token with nonce), the Google redirect fallback, an invite accepted with Google, and Link

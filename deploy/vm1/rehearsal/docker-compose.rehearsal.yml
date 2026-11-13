@@ -18,6 +18,12 @@ services:
     tmpfs:
       - /var/lib/postgresql/data:rw,size=${REHEARSAL_DB_TMPFS:-2g}
     shm_size: 256m
+    # tmpfs pages can be swapped out, and swap is disk. The memory cgroup holds the tmpfs and /dev/shm pages;
+    # memswap_limit equal to mem_limit gives it no swap at all, so a copy of production never reaches vm1's
+    # swap. Over the limit the container is killed, which loses the copy rather than spilling it. run.sh
+    # checks the kernel enforces it (memory.swap.max is 0) before any data is loaded.
+    mem_limit: ${REHEARSAL_DB_MEM:-3g}
+    memswap_limit: ${REHEARSAL_DB_MEM:-3g}
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
       interval: 5s

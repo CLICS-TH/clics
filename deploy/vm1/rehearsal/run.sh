@@ -29,8 +29,19 @@ set_role_passwords() {
     done | psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q'
 }
 
+# The db container must not swap (mem_limit = memswap_limit in docker-compose.rehearsal.yml): its tmpfs holds
+# the restored copy, and swap is disk. Read from the running container, before any data is loaded, so a kernel
+# that does not enforce the limit stops the rehearsal instead of trusting the compose text.
+assert_no_swap() {
+  local max
+  max=$(dc exec -T db cat /sys/fs/cgroup/memory.swap.max) || die "db has no cgroup v2 memory.swap.max: swap cannot be ruled out"
+  [ "$max" = 0 ] || die "db may swap (memory.swap.max is '$max'): a restored copy could reach vm1's disk"
+  log "db cannot swap (memory.swap.max 0)"
+}
+
 up_db() {
   dc up -d --wait --wait-timeout 180 db
+  assert_no_swap
   set_role_passwords
 }
 
@@ -51,6 +62,18 @@ load_schema() {
 paths() { # [extra docker run args...]
   dc run --rm --no-deps -T -v "$PWD/rehearsal/auth-paths.mjs:/paths.mjs:ro" \
     -e "API_EXTERNAL_URL=$(sed -n 's/^API_EXTERNAL_URL=//p' "$CLICS_ENV_DIR/gotrue.env")" "$@" backend node /paths.mjs
+}
+
+# Hermetic only, after the replay: GoTrue fails one mail send (mailpit is stopped) and refuses one client's
+# repeated wrong codes and passwords (failure-probes.mjs), then no auth container's log may name an address. Every replay account is @rehearsal.invalid, so this also covers every request the
+# replay made through supabase-gw (R5: json-file logs sit on vm1's disk).
+assert_logs_clean() {
+  dc stop mailpit >/dev/null 2>&1
+  dc run --rm --no-deps -T -v "$PWD/rehearsal/failure-probes.mjs:/failure-probes.mjs:ro" backend node /failure-probes.mjs
+  local hits
+  hits=$(dc logs --no-log-prefix gotrue postgrest supabase-gw 2>&1 | grep -c 'rehearsal\.invalid' || true)
+  [ "$hits" = 0 ] || die "the auth containers logged $hits line(s) naming a synthetic address (R5)"
+  log "no auth container log names an address"
 }
 
 # What a running rehearsal exposes (R1-R4, ADR 0007): no host port at all, GoTrue's included (its loopback
@@ -158,6 +181,7 @@ case "${1:-}" in
     up_stack schema
     assert_surface
     paths -e MAILPIT_URL=http://mailpit:8025
+    assert_logs_clean
     ;;
   vm1-env)
     # Fresh secrets for a rehearsal on vm1, as for the hermetic run: nothing is reused from production. The

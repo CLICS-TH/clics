@@ -276,6 +276,7 @@ jobs:
           node --check deploy/vm1/health-gate.cjs
           node --check deploy/vm1/auth-role-keys.cjs
           node --check deploy/vm1/rehearsal/auth-paths.mjs
+          node --check deploy/vm1/rehearsal/failure-probes.mjs
           bash -n deploy/vm1/rehearsal/run.sh
           shellcheck deploy/vm1/rehearsal/run.sh
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
