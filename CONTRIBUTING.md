@@ -27,10 +27,13 @@ terminals? Use the per-layer commands below. Locally the prod boot-checks are re
 | backend | `cd backend && npm run dev` | 3001 |
 | rimpl | `cd rimpl && npm run dev` | 3003 |
 | physician-ui | `cd physician-ui && npm run dev` | 3000 |
-| audit-dashboard | `cd audit-dashboard && npm run dev -- -p 3002` | 3002 |
+| audit-dashboard | `cd audit-dashboard && npm run dev -- -p 3002` | 3002 (under `/audit`) |
+| one origin | `npm run dev:one-origin` | 3080 |
 
 `npm run dev` is `node --watch` for backend/rimpl, `npx serve public` for physician-ui, and `next dev`
 for the dashboard (pass `-p 3002` — `next dev` defaults to 3000 and would collide with the portal).
+Open the app on `http://localhost:3080`: it routes `/` to the Portal, `/audit` to the dashboard and `/api`
+to the backend, as vm1's nginx does, and the staff handoff needs that shared origin.
 
 **Env vars by layer** (names only — values come from the Supabase project / team):
 

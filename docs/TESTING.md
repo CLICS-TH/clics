@@ -26,7 +26,7 @@ scripts/db/audit-chain-tamper-test.sh     # audit_log hash chain vs a THROWAWAY 
 ```
 
 > One-command local stack: `npm run dev` at the repo root boots all four layers together (backend 3001,
-> rimpl 3003, physician-ui 3000, dashboard 3002) via `concurrently` — see [CONTRIBUTING.md](../CONTRIBUTING.md).
+> rimpl 3003, physician-ui 3000, dashboard 3002, one-origin proxy 3080) via `concurrently` — see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 > Coverage thresholds are enforced only when jest runs with `--coverage` — backend / rimpl / audit-dashboard
 > each carry `coverageThreshold` floors in their `jest.config.js`. CI runs them with `--coverage`; locally,

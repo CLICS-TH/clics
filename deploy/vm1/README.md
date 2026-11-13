@@ -1,4 +1,4 @@
-# vm1 runbook: CLICS backend + rimpl on the CME host (Topology B)
+# vm1 runbook: CLICS on the CME host (Topology B)
 
 **Status: prepared, not live. Until the cutover below is run, production stays on Railway.** Nothing in
 this directory changes Railway, Vercel or DNS. The decision and its risks are in
@@ -8,12 +8,27 @@ vm1 is a **shared production host** (ccme.or.th, WordPress, superset, three othe
 is administered by the CME team. We own `/opt/clics` and the `clics` compose project, and nothing else on
 it.
 
+**One origin (#429).** Everything CLICS serves is on `https://clics.ccme.or.th`:
+
+| Path | Service | Loopback port |
+|---|---|---|
+| `/` | `portal`: physician-ui, static, in its own nginx | 3103 |
+| `/audit/` | `dashboard`: audit-dashboard, a Next standalone server with `basePath: '/audit'` | 3104 |
+| `/api/` | `backend` (nginx strips `/api`) | 3101 |
+| `/auth/v1/` | `gotrue`, once self-hosted sign-in is switched on | 3102 |
+
+The Portal and the dashboard share the origin, so they share `localStorage`: the dashboard reads the
+session the Portal's sign-in stored, and no token travels in a URL. The Vercel projects become redirects
+to this origin (cutover step 4).
+
 | File | What it is |
 |---|---|
-| `docker-compose.yml` | Project `clics`: `backend` (loopback port 3101) and `rimpl` (no host port), hardened |
+| `docker-compose.yml` | Project `clics`: `backend` (loopback 3101), `rimpl` (no host port), `portal` (loopback 3103) and `dashboard` (loopback 3104), all hardened |
+| `portal.Dockerfile`, `portal.nginx.conf` (+ `.dockerignore`) | The Portal image: `physician-ui/public` in nginx-unprivileged, with the clean URLs, `cle-*` redirects and headers `physician-ui/vercel.json` used to carry |
+| `dashboard.Dockerfile` (+ `.dockerignore`) | The dashboard image: `next build` with `NEXT_PUBLIC_API_URL=/api`, run as Next's standalone server |
 | `backend.Dockerfile` (+ `.dockerignore`) | The backend image. Deliberately **not** `backend/Dockerfile`, which Railway would detect |
 | `backend.env.example`, `rimpl.env.example` | Variable **names** only, each marked same / changes on vm1 / Railway-only |
-| `nginx/clics.ccme.or.th.conf` | The vhost CME installs: TLS, SSE-safe proxying to `127.0.0.1:3101` |
+| `nginx/clics.ccme.or.th.conf` | The vhost CME installs: TLS, and the one-origin routing above (the chat turn's SSE unbuffered) |
 | `deploy.sh` | Run on the Mac: ship a git ref over Tailscale SSH, build, gate, start, flip `current`; `--attach` re-follows the last activation |
 | `remote/*.sh` | The steps `deploy.sh` runs on vm1: preflight, launch (starts activate detached, then follows it), activate, attach. `lib.sh` is prepended to each |
 | `health-gate.cjs` | The two health gates, run inside the backend image on the compose network |
@@ -28,7 +43,8 @@ Rimpl is built from `rimpl/Dockerfile` unchanged.
 
 ```
 /opt/clics/
-  releases/<sha>/      one immutable release per commit (git archive of backend/ rimpl/ deploy/vm1/)
+  releases/<sha>/      one immutable release per commit (git archive of backend/ rimpl/ physician-ui/
+                       audit-dashboard/ deploy/vm1/)
   current -> releases/<sha>    the live release (moves only after both gates pass)
   previous -> releases/<sha>   the one before it
   env/                 owner clics, mode 700
@@ -70,7 +86,7 @@ names in `backend.env.example` and `rimpl.env.example`:
 - `IDENTITY_ENC_KEY` must be **byte-identical** to Railway's. It decrypts rows already in the database.
 - Keep `RECONCILE_INTERVAL_MS=0` in `backend.env`, as the example ships it (see *Parallel run*). A blank
   `RECONCILE_INTERVAL_MS=` is **not** 0: the backend reads it as every 6 hours. The preflight refuses a
-  blank, non-numeric or non-zero value until cutover step 5.
+  blank, non-numeric or non-zero value until cutover step 6.
 - Leave out `TS_AUTHKEY`, `LOCAL_AI_HTTP_PROXY`, `LOCAL_TUTOR_AI_HTTP_PROXY`, `PORT`, `NODE_ENV`, `RIMPL_URL` and every
   `RAILWAY_*`. The preflight refuses the first three.
 - Delete optional lines you do not need. A blank `NAME=` sets the variable to an empty string.
@@ -89,6 +105,11 @@ names in `backend.env.example` and `rimpl.env.example`:
    nginx -t && systemctl reload nginx
    ```
    `nginx -t` fails until the certificate paths are real. That is deliberate.
+   The site proxies four loopback ports (3101 backend, 3102 GoTrue, 3103 Portal, 3104 dashboard). If
+   the site is already installed from an earlier version of this file (which sent `/` to the backend),
+   CME replaces it with this one before cutover step 3. If a Vercel front end already calls
+   `https://clics.ccme.or.th` at its root (a deploy of #426's `config.js`), the swap breaks it, so make
+   the swap in the same sitting as step 4 instead.
 4. **SSH:** turn off password authentication on the public SSH port (key-only, or SSH only from the
    tailnet or LAN). This is CME's change. We do not make it.
 
@@ -137,8 +158,8 @@ What happens on vm1:
    env files exist at mode 600 owned by `clics`, the required names have values, each file has exactly
    one `INTERNAL_TOKEN=` line and the two lines are byte-identical, no Railway-only names, no purpose
    routed to an on-prem model and the evaluator and tutor distinct (see *On-prem model block*),
-   `RECONCILE_INTERVAL_MS` is an explicit 0 (or `CLICS_CUTOVER_DONE=1` is set), port 3101 free or
-   CLICS's own, the compose project name `clics` is not used by anyone else, and `current` (if any)
+   `RECONCILE_INTERVAL_MS` is an explicit 0 (or `CLICS_CUTOVER_DONE=1` is set), ports 3101, 3103 and
+   3104 free or CLICS's own, the compose project name `clics` is not used by anyone else, and `current` (if any)
    points at a release that is on the host.
 2. **upload**: the tarball is unpacked to `/opt/clics/releases/<sha>`. A sha already there is not
    unpacked again.
@@ -153,14 +174,16 @@ What happens on vm1:
    `/health/deep` is not 200, so a refused token (exit 3) is never mistaken for a degraded rimpl
    (exit 2). Only after exit 0 does the **backend** start: a deploy never makes a degraded rimpl
    `current`. **Gate 2**: `/health/deep` must say `service: backend`, rimpl up and Supabase up, and port
-   3101 must listen on loopback only. Then `current` flips.
+   3101 must listen on loopback only. Then the **portal** and **dashboard** start; each must answer
+   (`/login`, `/audit/login`) and listen on loopback only. Then `current` flips.
 5. **On a failure** the previously live release is put back in the same order: its rimpl, gate 1,
    then its backend. If its rimpl accepts the token but is **degraded** (gate 1 exit 2: Supabase, the
    Anthropic balance or a local box is down), its backend starts again, as it ran before this run, and
    the last log line reads `restored; rimpl degraded: <checks>`. The activation still reports failure.
    If its rimpl does not come up or does not accept the token, the backend is **stopped** and stays
    stopped, and the last log line says so. On a first deploy, CLICS's containers are stopped instead.
-   Nothing is ever removed (`down` is never run).
+   The Portal and the dashboard of the previous release are started again if it had them; if it did
+   not, this run's are stopped. Nothing is ever removed (`down` is never run).
 6. **A signal does not restore.** If the activation is stopped by a signal (`systemctl stop
    clics-activate-<run>`, or vm1 shutting down), it records exit 143 (TERM) or 129 (HUP), and its
    `status` and last log line say `interrupted by signal`. It does **not** put the previous release
@@ -178,59 +201,56 @@ Tailscale SSH in "check" mode may open a browser to re-authenticate on the first
 ## 4. Cutover (in this order)
 
 **Before:** the CME asks are done (`clics.ccme.or.th` resolves, the certificate is installed, the site
-is enabled), both env files are filled in, `RECONCILE_INTERVAL_MS=0` is set on vm1, and you are
-deploying the commit Railway runs.
+is enabled), all env files are filled in, `RECONCILE_INTERVAL_MS=0` is set on vm1, `ALLOWED_ORIGINS` and
+`SITE_URL` in `backend.env` are `https://clics.ccme.or.th`, and you are deploying the commit Railway runs.
 
-1. **Deploy beside Railway.** Run `deploy.sh`. Production is still Railway; nothing points at vm1 yet.
-   From this moment vm1's drain also claims queued evaluations, which is safe (see *Parallel run*).
+1. **Deploy beside Railway.** Run `deploy.sh`. Production is still Railway and the Vercel front ends;
+   nothing points at vm1 yet. From this moment vm1's drain also claims queued evaluations, which is safe
+   (see *Parallel run*).
 
-2. **Smoke the public origin.** One command runs the checks below (health, manifest equality with Railway,
-   CORS for both front-end origins); add `--stream` for the streamed turn:
+2. **Let the new origin sign people in (owner, in each console).** Add, do not replace, so the Vercel
+   origins keep working until step 4:
+   - **Google Cloud console**, the OAuth client: `https://clics.ccme.or.th` under *Authorized JavaScript
+     origins* (Google Identity Services checks the page's origin, ADR 0008), and
+     `https://clics.ccme.or.th/auth/callback` under *Authorized redirect URIs*.
+   - **Supabase**, Authentication → URL Configuration: `https://clics.ccme.or.th/**` under *Redirect
+     URLs*. Leave *Site URL* on the Vercel Portal until step 4.
+
+3. **Smoke the public origin.** One command checks the health, the manifest against Railway's, the
+   Portal's `/login` and the dashboard's `/audit/login` as HTML, and that a bare `/audit` redirects to
+   `/audit/`; add `--stream` for the streamed turn:
    ```bash
    node scripts/deploy/cutover-check.mjs
-   curl -s https://clics.ccme.or.th/health/deep | python3 -m json.tool
+   curl -s https://clics.ccme.or.th/api/health/deep | python3 -m json.tool
    ```
    It must show `"service": "backend"`, `checks.rimpl.status` `"up"` and `checks.supabase.status`
    `"up"`. Compare `checks.rimpl.deep.manifest.sha256` with Railway's
    (`curl -s https://backend-production-c12e4.up.railway.app/health/deep`). They must be equal, or the
-   two hosts are scoring with different evaluators. Check CORS for both front-end origins:
-   ```bash
-   curl -si -X OPTIONS -H 'Origin: https://physician-ui.vercel.app' https://clics.ccme.or.th/health | grep -i '^access-control-allow-origin'
-   curl -si -X OPTIONS -H 'Origin: https://audit-dashboard-rouge.vercel.app' https://clics.ccme.or.th/health | grep -i '^access-control-allow-origin'
-   ```
-   Each must echo its own origin. `node scripts/deploy/cutover-check.mjs --stream` (with `SMOKE_PHYS_EMAIL` and
-   `SMOKE_PHYS_PW`) runs one streamed chat turn on a test account. It costs one AI turn and creates one PLE, and
-   it is the only check that proves nginx is not buffering SSE: it fails when the frames arrive within 300 ms of each other.
+   two hosts are scoring with different evaluators. `node scripts/deploy/cutover-check.mjs --stream` (with
+   `SMOKE_PHYS_EMAIL` and `SMOKE_PHYS_PW`) runs one streamed chat turn on a test account. It costs one AI
+   turn and creates one PLE, and it is the only check that proves nginx is not buffering SSE: it fails when
+   the frames arrive within 300 ms of each other. Then sign in at `https://clics.ccme.or.th/login` with a
+   staff test account and open the dashboard from the Portal: it must open signed in.
 
-3. **Point the front ends at the new API.**
-   - **`ALLOWED_ORIGINS`: nothing to add.** It lists the origins of the *pages* that call the API (the two
-     Vercel apps), and those do not change. vm1's value must list both, as Railway's does, and step 2's
-     CORS check proves it. Add `https://clics.ccme.or.th` only if a front end is ever served from it.
-   - **physician-ui** reads `window.CLICS_API_URL` from `physician-ui/public/js/config.js:5`, a
-     hard-coded string (no env var). Change the non-local value from
-     `https://backend-production-c12e4.up.railway.app` to `https://clics.ccme.or.th` (merged by #426; **no Vercel
-     deploy of the Portal before step 2 passes**, because this line is what the next deploy ships), then
-     `cd physician-ui && vercel --prod --yes`.
-   - **audit-dashboard** reads `process.env.NEXT_PUBLIC_API_URL` (`audit-dashboard/lib/api.ts:1`), which
-     is inlined at **build** time, so a rebuild is required:
-     ```bash
-     cd audit-dashboard
-     vercel env rm NEXT_PUBLIC_API_URL production --yes
-     echo "https://clics.ccme.or.th" | vercel env add NEXT_PUBLIC_API_URL production
-     vercel --prod --yes
-     ```
-   Signed-in users do not have to sign in again. The CLICS token is a Supabase session token, and both
-   backends validate it against the same Supabase project.
+4. **Move the users (owner).** In one sitting:
+   - **Supabase** *Site URL*: `https://clics.ccme.or.th`.
+   - **Vercel**: deploy both projects from the commit that carries their redirect `vercel.json`
+     (`cd physician-ui && vercel --prod --yes`, then `cd audit-dashboard && vercel --prod --yes`). Every
+     Portal path goes to the same path here, query string included (an invite link is
+     `/invite.html?token=<invite>`); every dashboard path goes under `/audit/`, with any `?token=` blanked
+     (it was a session). Both redirects are temporary (307), so a rollback is not stuck in browser caches.
+   - Users sign in once more: `localStorage` belongs to an origin, so the Vercel sessions do not move.
 
-4. **Watch** for the first day:
-   - `curl -s https://clics.ccme.or.th/health/deep`. A `degraded` status names the failing check.
-   - On vm1: `docker logs --tail 200 -f clics-backend-1` and `docker logs --tail 200 -f clics-rimpl-1`.
+5. **Watch** for the first day:
+   - `curl -s https://clics.ccme.or.th/api/health/deep`. A `degraded` status names the failing check.
+   - On vm1: `docker logs --tail 200 -f clics-backend-1`, `clics-rimpl-1`, `clics-portal-1` and
+     `clics-dashboard-1`.
    - Chat replies stream word by word (if they arrive all at once, nginx is buffering). The evaluation
      queue drains. Logins do not hit "Too many login attempts" (if they do, every client shares one IP:
      see open question 3).
    - Railway's backend should go quiet apart from its drain and sweep ticks.
 
-5. **Keep Railway as the rollback for 7 days.** Do not stop it or change its variables. On day 7,
+6. **Keep Railway as the rollback for 7 days.** Do not stop it or change its variables. On day 7,
    stopping Railway is a separate step. Once Railway's backend is stopped, and only then, hand the
    reconcile sweep to vm1. In vm1's `backend.env`:
    - add the line `CLICS_CUTOVER_DONE=1` (read by the preflight only; it records that Railway's backend
@@ -251,16 +271,19 @@ VM1_HOST=VM1_TAILNET_NAME deploy/vm1/deploy.sh --rollback PREVIOUS_SHA
 `PREVIOUS_SHA` is in `/opt/clics/deploys.log`, or `readlink /opt/clics/previous`. Its images are reused
 if they still exist; otherwise they are rebuilt from the release directory.
 
-**Back to Railway (within the 7 days):** Railway was never changed, so only the front ends move back.
-1. In one commit, revert `physician-ui/public/js/config.js` to the Railway URL **and** set `VM1_ORIGIN` in `scripts/lib/api-origin.cjs` to the same URL (`scripts/deploy/cutover-check.test.mjs` fails when the two differ, and the smoke scripts would otherwise test vm1). Then run `vercel --prod --yes`.
-2. Set `NEXT_PUBLIC_API_URL` back to `https://backend-production-c12e4.up.railway.app` the same way as
-   above, and rebuild the dashboard.
+**Back to Vercel and Railway (within the 7 days):** Railway was never changed, so only the front ends move
+back, from a commit before #429 (the one Vercel ran before step 4).
+1. Deploy that commit to both Vercel projects (`vercel --prod --yes` in `physician-ui` and in
+   `audit-dashboard`). Its `vercel.json` files serve the apps again instead of redirecting, and its
+   `config.js` and the dashboard's `NEXT_PUBLIC_API_URL` point at Railway.
+2. Set Supabase's *Site URL* back to the Vercel Portal.
 3. vm1 may keep running (its drain is safe to leave on). If vm1 itself is the problem, stop it:
-   `docker stop clics-backend-1 clics-rimpl-1` (with `restart: unless-stopped`, they stay stopped).
+   `docker stop clics-backend-1 clics-rimpl-1 clics-portal-1 clics-dashboard-1` (with
+   `restart: unless-stopped`, they stay stopped).
 
-**Remove CLICS from vm1 entirely:** `docker rm -f clics-backend-1 clics-rimpl-1`,
-`docker network rm clics_clics`, `docker image rm` the `clics-*` images, `rm -rf /opt/clics`. Then ask
-CME to remove the nginx site, the certificate and the DNS record.
+**Remove CLICS from vm1 entirely:** `docker rm -f clics-backend-1 clics-rimpl-1 clics-portal-1
+clics-dashboard-1`, `docker network rm clics_clics`, `docker image rm` the `clics-*` images,
+`rm -rf /opt/clics`. Then ask CME to remove the nginx site, the certificate and the DNS record.
 
 ## On-prem model block (declared, never routed)
 
@@ -292,7 +315,7 @@ For each endpoint it prints `GET /models` status and whether the model is listed
 error text. Exit 0 means both answered 200 with a non-empty reply. Paste its output into the PR.
 
 `/health/deep` on vm1 must then show `service: backend`, `checks.rimpl.status` `up` and the same
-`checks.rimpl.deep.manifest.sha256` as Railway (cutover step 2). The sha is the build's manifest file,
+`checks.rimpl.deep.manifest.sha256` as Railway (cutover step 3). The sha is the build's manifest file,
 so the same commit gives the same sha on both hosts. A declared model that differs from the manifest's
 target shows under `manifest.drift`, which is expected until the manifest names it.
 
@@ -393,14 +416,14 @@ With neither file present it logs that sign-in is not configured, and the deploy
 | Task | Command (on vm1) |
 |---|---|
 | Status | `docker ps --filter label=com.docker.compose.project=clics` |
-| Logs | `docker logs --tail 200 -f clics-backend-1` (or `clics-rimpl-1`) |
+| Logs | `docker logs --tail 200 -f clics-backend-1` (or `clics-rimpl-1`, `clics-portal-1`, `clics-dashboard-1`) |
 | Change an env value | Edit `/opt/clics/env/*.env`, then `deploy.sh --rollback CURRENT_SHA` from the Mac (recreates the containers with both gates) |
 | Rotate `INTERNAL_TOKEN` | Write the same new value into **both** files, then `deploy.sh --rollback CURRENT_SHA`. The running backend is stopped before rimpl is recreated, and starts again only after gate 1. Editing one file alone is refused by the preflight, with nothing changed |
 | Follow the last activation | `deploy.sh --attach` from the Mac. On vm1: `/opt/clics/runs/latest/log`, and `status` once it has finished |
 | Backend left stopped by a failed restore | Only when rimpl did not come up or did not accept `INTERNAL_TOKEN`. Fix the env files, then `deploy.sh --rollback CURRENT_SHA`. Do not `docker start` it by hand: that skips gate 1 |
 | Restore ended `restored; rimpl degraded: <checks>` | The backend runs, against a rimpl with a dependency down. Fix that dependency (Supabase, the Anthropic balance, a local box), then `deploy.sh --rollback CURRENT_SHA` to re-activate |
 | Activation `interrupted by signal` | Nothing was restored. `docker ps --filter label=com.docker.compose.project=clics` shows what runs; then `deploy.sh --rollback` the sha `readlink /opt/clics/current` names |
-| Disk | Keep the two releases `current` and `previous` point at (`readlink -f /opt/clics/current /opt/clics/previous`): a failed activation restores `current` from its directory, and the preflight refuses to deploy while it is missing. Remove any other release by name: `rm -rf /opt/clics/releases/<sha>`, `docker image rm clics-backend:<sha> clics-rimpl:<sha>`. Old `runs/` directories can go too, except the one `runs/latest` points at while it runs |
+| Disk | Keep the two releases `current` and `previous` point at (`readlink -f /opt/clics/current /opt/clics/previous`): a failed activation restores `current` from its directory, and the preflight refuses to deploy while it is missing. Remove any other release by name: `rm -rf /opt/clics/releases/<sha>`, `docker image rm clics-backend:<sha> clics-rimpl:<sha> clics-portal:<sha> clics-dashboard:<sha>`. Old `runs/` directories can go too, except the one `runs/latest` points at while it runs |
 
 ## Parallel run (Railway and vm1 against one database)
 
@@ -410,10 +433,10 @@ Both backends run their evaluation drain and reconcile sweep in-process.
   `FOR UPDATE SKIP LOCKED` (`db/migration-local-ai-capacity.sql:38-66`), so the two drains claim
   disjoint rows. `UNIQUE(ple_id)` backs that up. Two drains can have twice as many evaluations in flight
   (`eval_drain_concurrency` is per process). Both rimpls must score with the same evaluator: compare
-  the manifest sha in step 2.
+  the manifest sha in cutover step 3.
 - **Only one reconcile sweep.** It re-runs tier-2 screening on sessions stuck at `ended` without a lease
   (`backend/src/services/reconcile.js:49-88`), so two sweeps could classify and meter one session twice.
-  vm1 runs with `RECONCILE_INTERVAL_MS=0` until Railway's backend is stopped (cutover step 5), and the
+  vm1 runs with `RECONCILE_INTERVAL_MS=0` until Railway's backend is stopped (cutover step 6), and the
   preflight enforces it: anything but an explicit `0` needs `CLICS_CUTOVER_DONE=1`.
 - Rate limits and the guest counters are in-process memory, so a client split across both backends
   could get up to twice its allowance during the switch. That is harmless at pilot scale.

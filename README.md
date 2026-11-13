@@ -70,14 +70,16 @@ cp audit-dashboard/.env.example  audit-dashboard/.env.local
 (cd backend && npm run dev)                    # :3001  REST API
 (cd rimpl   && npm run dev)                    # :3003  PII/AI middleware
 (cd physician-ui && npm run dev)               # :3000  static portal
-(cd audit-dashboard && npm run dev -- -p 3002) # :3002  dashboard (portal expects it here)
+(cd audit-dashboard && npm run dev -- -p 3002) # :3002  dashboard, under /audit
+node scripts/dev/one-origin.mjs               # :3080  all of it on one origin, as on vm1
 
-# 4. Open http://localhost:3000 and sign in with a demo account (creds in docs/deployment.md)
+# 4. Open http://localhost:3080 and sign in with a demo account (creds in docs/deployment.md)
 ```
 
-**Port map:** physician-ui `3000` · backend `3001` · audit-dashboard `3002` · rimpl `3003`.
-Note `next dev` defaults to `3000`, which collides with the portal — run the dashboard with `-p 3002`
-so the portal's `CLICS_DASHBOARD_URL` handoff works. Full setup details and conventions are in
+**Port map:** physician-ui `3000` · backend `3001` · audit-dashboard `3002` · rimpl `3003` · one origin `3080`.
+Note `next dev` defaults to `3000`, which collides with the portal — run the dashboard with `-p 3002`.
+The staff handoff to the dashboard shares the Portal's `localStorage`, so it works only on `:3080`
+(`/` Portal, `/audit` dashboard, `/api` backend), as on vm1. Full setup details and conventions are in
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Live URLs
