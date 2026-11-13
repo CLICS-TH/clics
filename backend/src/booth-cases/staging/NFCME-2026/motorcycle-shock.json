@@ -1,6 +1,6 @@
 {
   "case_id": "motorcycle-shock",
-  "version": "3",
+  "version": "4",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ที่โรงพยาบาลชุมชน ชายหนุ่มขี่จักรยานยนต์ถูกรถกระบะชน ตัวเย็นซีดและชีพจรเร็ว",
@@ -386,7 +386,7 @@
           },
           {
             "id": "d",
-            "tier": "reasonable",
+            "tier": "weaker",
             "label": {
               "th": "ให้เลือดจนความดันปกติ",
               "en": "Blood to a normal BP"
@@ -478,7 +478,7 @@
           },
           {
             "id": "d",
-            "tier": "reasonable",
+            "tier": "weaker",
             "label": {
               "th": "ให้เลือดจนความดันปกติ",
               "en": "Blood to a normal BP"
@@ -570,7 +570,7 @@
           },
           {
             "id": "d",
-            "tier": "reasonable",
+            "tier": "weaker",
             "label": {
               "th": "ให้เลือดจนความดันปกติ",
               "en": "Blood to a normal BP"

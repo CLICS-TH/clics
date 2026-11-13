@@ -1,6 +1,6 @@
 {
   "case_id": "sjs-ten-allopurinol",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 58 ปี มาโรงพยาบาลชุมชน มีไข้ แผลในปาก และผื่นลามมา 2 วัน",
@@ -535,24 +535,12 @@
               "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
               "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
             }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
-              "en": "Stop drug, IV antibiotics, to ICU"
-            },
-            "line": {
-              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
-              "en": "Some centres give antibiotics for fever during transfer."
-            }
           }
         ],
         "default_trio": [
           "b",
           "d",
-          "g"
+          "e"
         ]
       },
       "W": {
@@ -631,18 +619,6 @@
             "line": {
               "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
               "en": "Some centres give a short steroid course early in SJS/TEN."
-            }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "หยุดยา ยาฆ่าเชื้อ IV ส่ง ICU",
-              "en": "Stop drug, IV antibiotics, to ICU"
-            },
-            "line": {
-              "th": "บางแห่งให้ยาฆ่าเชื้อเมื่อมีไข้ระหว่างส่งตัว",
-              "en": "Some centres give antibiotics for fever during transfer."
             }
           }
         ],
@@ -785,12 +761,12 @@
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ป้ายยาปฏิชีวนะที่ตา",
-              "en": "Antibiotic eye ointment"
+              "th": "หยอดน้ำตาเทียมอย่างเดียว",
+              "en": "Lubricant eye drops alone"
             },
             "line": {
-              "th": "ยาปฏิชีวนะเฉพาะที่ช่วยกันตาแดงทั้งสองข้างจากการติดเชื้อ",
-              "en": "A topical antibiotic guards his red eyes against infection."
+              "th": "ช่วยให้ผิวตาชุ่มชื้นระหว่างเตรียมส่งตัว",
+              "en": "Keeps the eye surface moist while the transfer is arranged."
             }
           }
         ],
@@ -846,12 +822,12 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "ให้สารน้ำตามสูตรแผลไหม้",
-              "en": "Fluids by a burn formula"
+              "th": "ให้สารน้ำปรับตามปัสสาวะ",
+              "en": "Fluids titrated to urine output"
             },
             "line": {
-              "th": "สูตรแผลไหม้คำนวณปริมาณสารน้ำจากพื้นที่ผิวที่หลุด",
-              "en": "A burn formula sets the volume from the skin area lost."
+              "th": "ปรับอัตราสารน้ำตามปริมาณปัสสาวะทุกชั่วโมง",
+              "en": "Sets the drip rate by how much urine he passes each hour."
             }
           },
           {
