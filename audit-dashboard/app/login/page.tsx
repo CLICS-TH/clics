@@ -22,11 +22,13 @@ function redirectByRole(user: Pick<ClicsUser, 'role' | 'can_audit'>, router: Ret
   // role-aware /home, whose cards link into each workspace. A physician with
   // can_audit (dual-role "Special" user) enters straight at the auditor queue —
   // they arrive from the Portal's Auditor console link.
-  if (user.role === 'superadmin') router.push('/admin/overview');
-  else if (user.role === 'analyst') router.push('/analyst');
-  else if (user.role === 'ethics') router.push('/ethics');
-  else if (user.role === 'auditor' || user.role === 'admin') router.push('/home');
-  else if (user.role === 'physician' && user.can_audit) router.push('/auditor/queue');
+  // replace, not push: /login must not stay in history, or Back from the console lands here, finds the
+  // shared session and forwards again, so Back never reaches the Portal.
+  if (user.role === 'superadmin') router.replace('/admin/overview');
+  else if (user.role === 'analyst') router.replace('/analyst');
+  else if (user.role === 'ethics') router.replace('/ethics');
+  else if (user.role === 'auditor' || user.role === 'admin') router.replace('/home');
+  else if (user.role === 'physician' && user.can_audit) router.replace('/auditor/queue');
   else {
     // A physician without can_audit has no dashboard home: back to the Portal, which sends them to
     // /dashboard. The session is the Portal's too, so it is kept.
@@ -64,7 +66,7 @@ function LoginGate() {
             // lib/api.ts, without the base path). Only honor a same-origin path, never /login.
             let next: string | null = null;
             try { next = sessionStorage.getItem('clics_reauth_next'); sessionStorage.removeItem('clics_reauth_next'); } catch {}
-            if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/login')) router.push(next);
+            if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/login')) router.replace(next);
             else redirectByRole(res.user, router);
           } else {
             localStorage.removeItem('clics_token');

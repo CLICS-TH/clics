@@ -3,9 +3,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 
 let mockParams = new URLSearchParams();
-const mockPush = jest.fn();
+const mockRouterReplace = jest.fn();
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ replace: mockRouterReplace }),
   useSearchParams: () => mockParams,
 }));
 const mockApiFetch = jest.fn();
@@ -18,7 +18,7 @@ const replace = jest.fn();
 
 beforeEach(() => {
   replace.mockReset();
-  mockPush.mockReset();
+  mockRouterReplace.mockReset();
   mockApiFetch.mockReset();
   localStorage.clear();
   sessionStorage.clear();
@@ -56,7 +56,7 @@ it('validates the stored session and sends an admin to /home', async () => {
   mockApiFetch.mockResolvedValue({ user: { id: 'u', role: 'admin', full_name_th: '', full_name_en: '' } });
   render(<LoginPage />);
   expect(mockApiFetch).toHaveBeenCalledWith('/auth/me');
-  await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/home'));
+  await waitFor(() => expect(mockRouterReplace).toHaveBeenCalledWith('/home'));
   expect(JSON.parse(localStorage.getItem('clics_user') || '{}').role).toBe('admin');
   expect(replace).not.toHaveBeenCalled();
 });
@@ -99,7 +99,7 @@ it('returns a user bounced by an expiry to the page they were on', async () => {
   sessionStorage.setItem('clics_reauth_next', '/admin/ples?x=1');
   mockApiFetch.mockResolvedValue({ user: { id: 'u', role: 'admin', full_name_th: '', full_name_en: '' } });
   render(<LoginPage />);
-  await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/admin/ples?x=1'));
+  await waitFor(() => expect(mockRouterReplace).toHaveBeenCalledWith('/admin/ples?x=1'));
 });
 
 it('re-syncing the search params does not bounce a signing-in user to the Portal', () => {
