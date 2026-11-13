@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -205,9 +206,9 @@ export default function OverviewPage() {
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-heading text-xl text-foreground">Calibration — ICC(2,1)</h2>
-          <a href="/admin/icc" className="text-sm text-link underline-offset-4 hover:underline">
+          <Link href="/admin/icc" className="text-sm text-link underline-offset-4 hover:underline">
             ดูรายละเอียด / Open ICC dashboard →
-          </a>
+          </Link>
         </div>
         {!icc ? (
           <div className="grid gap-4 @min-[768px]:grid-cols-2">
@@ -564,7 +565,7 @@ export default function OverviewPage() {
       {/* ⑤ Onboarding pulse — pending invites (the request-access queue was retired). */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Onboarding</h2>
-        <a href="/admin/invites"
+        <Link href="/admin/invites"
           className="flex items-center justify-between rounded-xl border p-5 transition-colors hover:bg-secondary hover:border-primary/40">
           <div>
             <p className="text-sm font-medium">คำเชิญที่รอตอบรับ / Pending invites</p>
@@ -574,7 +575,7 @@ export default function OverviewPage() {
             ? <Skeleton className="h-8 w-12" />
             // text-coral-on-tint: bright --primary on its own /10 tint is 2.81:1, under even the 3:1 large-text bar.
             : <span className="rounded-full bg-primary/10 px-4 py-1.5 text-xl font-bold text-coral-on-tint tabular-nums">{pendingInvites.length}</span>}
-        </a>
+        </Link>
       </section>
     </div>
   );

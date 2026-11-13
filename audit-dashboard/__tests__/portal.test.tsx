@@ -35,7 +35,8 @@ afterEach(() => {
   Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
 });
 
-it('the bounce from a token-less dashboard visit', () => {
+it('the bounce from a dashboard visit without a session', () => {
+  localStorage.removeItem('clics_token');
   render(<LoginPage />);
   expect(replace).toHaveBeenCalledWith('https://portal.example.test/login');
 });

@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
@@ -46,12 +47,12 @@ export default function StatsPage() {
       />
       <div className="grid grid-cols-2 @min-[768px]:grid-cols-5 gap-4 mb-2">
         {cards.map(c => (
-          <a key={c.label} href={`/admin/ples${c.key ? `?status=${c.key}` : ''}`}
+          <Link key={c.label} href={`/admin/ples${c.key ? `?status=${c.key}` : ''}`}
             className="border rounded-xl p-4 text-center block hover:bg-secondary hover:border-primary/40 transition-colors cursor-pointer"
             title="คลิกเพื่อดูรายชื่อในหมวดนี้ / Click to explore this category">
             <p className="text-3xl font-bold text-primary">{c.value}</p>
             <p className="text-xs text-muted-foreground mt-1">{c.label}</p>
-          </a>
+          </Link>
         ))}
       </div>
       <p className="text-sm text-muted-foreground mb-8">

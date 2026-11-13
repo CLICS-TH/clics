@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
@@ -164,7 +165,7 @@ function AdminClesContent() {
               <p className="mt-3 text-xs text-muted-foreground">มอบหมาย / Assign</p>
               <div className="mt-1 flex items-center justify-between gap-2">
                 {assignControl(p)}
-                <a href={`/admin/ples/${p.id}`} className="text-xs underline text-link">ดูบทสนทนา / View</a>
+                <Link href={`/admin/ples/${p.id}`} className="text-xs underline text-link">ดูบทสนทนา / View</Link>
               </div>
             </div>
           ))}
@@ -189,7 +190,7 @@ function AdminClesContent() {
               <TableCell className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</TableCell>
               <TableCell className="px-4 py-3"><StatusBadge status={p.status} /></TableCell>
               <TableCell className="px-4 py-3">{assignControl(p)}</TableCell>
-              <TableCell className="px-4 py-3"><a href={`/admin/ples/${p.id}`} className="text-xs underline text-link">ดู / View</a></TableCell>
+              <TableCell className="px-4 py-3"><Link href={`/admin/ples/${p.id}`} className="text-xs underline text-link">ดู / View</Link></TableCell>
             </TableRow>
           ))}</TableBody>
         </Table>

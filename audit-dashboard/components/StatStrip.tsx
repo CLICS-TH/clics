@@ -2,6 +2,7 @@
 // hero (home) and the executive overview. Extracted verbatim from the overview's inline headline
 // cards so the two never drift. A card with `href` is a link that drills into its bucket; without
 // one it's static. `tone` recolors the big number (default = coral/primary).
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 export type Stat = {
@@ -40,14 +41,14 @@ export function StatStrip({
           </>
         );
         return s.href ? (
-          <a
+          <Link
             key={s.label}
             href={s.href}
             title={s.title ?? 'คลิกเพื่อดูรายการในหมวดนี้ / Click to explore this category'}
             className="group block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
           >
             {inner}
-          </a>
+          </Link>
         ) : (
           <div key={s.label} title={s.title} className="rounded-xl border p-5 text-center">
             {inner}

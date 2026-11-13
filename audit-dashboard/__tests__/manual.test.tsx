@@ -192,7 +192,7 @@ describe('block kinds the auditor manual does not currently use', () => {
     };
     render(<ManualPage />);
     // alt text, not a decorative image: a reader who cannot see it still learns what it showed.
-    expect(screen.getByAltText('หน้าเข้าสู่ระบบ')).toHaveAttribute('src', '/img/manual/login.png');
+    expect(screen.getByAltText('หน้าเข้าสู่ระบบ')).toHaveAttribute('src', '/audit/img/manual/login.png');
     expect(screen.getByText('คำบรรยายภาพ')).toBeInTheDocument();
     expect(screen.getByAltText('ไม่มีคำบรรยาย')).toBeInTheDocument();
   });
