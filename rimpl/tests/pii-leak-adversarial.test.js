@@ -301,7 +301,11 @@ const NUMERIC_SHAPES = [
   ['4-3-3 dotted groups', '0812.345.678', ['0812', '345', '678'], 'PHONE'],
   ['+66 then a dot, ungrouped', '+66.812345678', ['812345678', '5678'], 'PHONE'],
   ['2-digit dotted groups', 'โทร 081.234.56.78', ['081', '234', '56.78'], 'PHONE'],
-  ['numbered list then a dotted phone', '1. 081.234.5678', ['081', '5678'], 'PHONE'],
+  ['numbered list then a dotted phone', '1.081.234.5678', ['081', '5678'], 'PHONE'],
+  ['numbered list, a space, then a dotted phone', '1. 081.234.5678', ['081', '5678'], 'PHONE'],
+  ['numbered list then a plain phone', '1.0812345678', ['0812345678', '5678'], 'PHONE'],
+  ['numbered list then a slash date', '1.20/10/2569', ['20/10', '2569'], 'DATE'],
+  ['dotted date, one-digit day, two-digit year', 'วันเกิด 5.10.69', ['5.10.69'], 'DATE'],
   // A loose run that takes the next number fails its guard as a whole; the pass falls back to the phone alone (#461).
   ['dashed phone then a count', 'โทร 081-234-5678 2 ครั้ง', ['081', '234', '5678'], 'PHONE'],
   ['spaced phone then a time', 'โทร 081 234 5678 10 โมง', ['081', '234', '5678'], 'PHONE'],
@@ -375,6 +379,10 @@ describe('adversarial — every digit script and dotted shape, on every surface 
     // A section or version number is no dotted date.
     'หัวข้อ 1.2.10',
     'version 1.2.10',
+    'v1.2.10',
+    'ข้อ 3.4.15 ระบุ',
+    'Na 1.00 139.50 138.2',
+    'Na 1.00 139 138 140',
   ])('%s survives byte-for-byte', (text) => assertSurvives(text));
 });
 

@@ -457,17 +457,19 @@ function applyThAdminPass(text, token) {
 // A phone's group separator: a dot with any spaces around it, or one space or dash.
 const PHONE_SEP = '(?:\\s*\\.\\s*|[\\s-])';
 
-// A real day and month, and a four-digit year unless day and month are written with two digits each (20.10.69):
-// a section or version number (1.2.10) is no date.
+// A real day and month.
 function dottedDateGuard(m) {
-  const [d, mo, y] = m.split('.').map((p) => p.trim());
-  const real = +d >= 1 && +d <= 31 && +mo >= 1 && +mo <= 12;
-  return real && (y.length === 4 || (d.length === 2 && mo.length === 2));
+  const [d, mo] = m.split('.').map(Number);
+  return d >= 1 && d <= 31 && mo >= 1 && mo <= 12;
 }
+// A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date.
+const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv])\s*)`;
 
-// No phone or date starts right after "<digit>." or ends right before ".<digit>": it would be the tail or the head
-// of a decimal (Na 140.00 139.50, Hb 12.5. 11.2). Wrapped around every phone and date pattern below.
-const NOT_IN_DECIMAL = (src) => `(?<!\\d\\.)(?:${src})(?!\\.\\d)`;
+// No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
+// ".<digit>", and never right after "<digit>." when what follows reads as a decimal fraction, 1-8 digits not
+// followed by another '.', '/', '-' or digit. A numbered list item (1.081.234.5678, 1.0812345678, 1.20/10/2569)
+// is not a decimal and is still masked. Wrapped around every phone and date pattern below.
+const NOT_IN_DECIMAL = (src) => `(?!(?<=\\d\\.)\\d{1,8}(?![\\d./-]))(?:${src})(?!\\.\\d)`;
 const numericRe = (src, flags = 'g') => new RegExp(NOT_IN_DECIMAL(src), flags);
 
 // Each entry runs against the working text in order. `fn` receives (text, token).
@@ -593,8 +595,13 @@ const PASSES = [
   // --- Dates (kept stable category so repeated dates collapse) ---
   { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE' },
   { re: numericRe(String.raw`\b\d{4}-\d{2}-\d{2}\b`), cat: 'DATE' },
-  // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 20.10.69): see dottedDateGuard.
-  { re: numericRe(String.raw`\b\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4}\b`), cat: 'DATE', guard: dottedDateGuard },
+  // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
+  // section or version label.
+  {
+    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4}\b`),
+    cat: 'DATE',
+    guard: dottedDateGuard,
+  },
 
   // --- Ward ---
   // \b only on the English branch (it is ASCII-only and would never match before
