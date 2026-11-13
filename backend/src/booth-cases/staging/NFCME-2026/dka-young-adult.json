@@ -568,11 +568,11 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "ลดอินซูลินเหลือ 0.02–0.05",
+              "th": "ลดอินซูลิน 0.02–0.05/กก./ชม.",
               "en": "Cut insulin to 0.02–0.05 units/kg/h"
             },
             "line": {
-              "th": "น้ำตาลลงถึง 250 จึงให้เดกซ์โทรส 5% ร่วมด้วย",
+              "th": "ที่ 250 มก./ดล. ให้เดกซ์โทรส 5% คู่กับขนาดที่ลดลง",
               "en": "At 250 mg/dL, 5% dextrose runs alongside the lower rate."
             }
           },
@@ -918,15 +918,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "12 ชม. ต่อมา ซึมลง pH 7.12 คีโตนยังสูง ทำอย่างไร",
-              "en": "12 hours in: she is drowsier, pH 7.12, ketones still high. What now?"
+              "th": "12 ชม. ซึมลง น้ำตาล 320 pH 7.12 คีโตนยังสูง ทำอย่างไร",
+              "en": "12 hours in: drowsier, glucose 320 mg/dL, pH 7.12, ketones still high. What now?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "อาการแย่ลง ซึมมากขึ้นและหายใจหอบ ขั้นต่อไปคืออะไร",
-              "en": "She is getting worse, drowsier and breathing harder. Next step?"
+              "th": "อาการแย่ลง ซึมและหอบมากขึ้น น้ำตาล 320 ทำอย่างไรต่อ",
+              "en": "She is worse, drowsier and breathing harder, glucose 320 mg/dL. Next step?"
             }
           }
         ],
@@ -963,7 +963,7 @@
               "en": "Raise insulin 1 unit/h, then refer"
             },
             "line": {
-              "th": "ปรับทีละน้อยให้น้ำตาลและ K ค่อย ๆ ลดระหว่างส่งต่อ",
+              "th": "ปรับทีละน้อยให้น้ำตาลและ K คงที่ระหว่างส่งต่อ ICU",
               "en": "Small steps keep glucose and K steady on the way to ICU care."
             }
           },
@@ -992,7 +992,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewer (did not write the case) on 2026-11-13, five-step version 6, tree sha256 bfc04954a3dc26ea9a0972627f6985ead952c18b447ab86818349e9e5a96f24d. Checked all 13 banks against the 2024 ADA/EASD/JBDS/AACE/DTS hyperglycaemic crises consensus (Diabetologia 2024;67:1455), the JBDS practice it allows and WHO; the Thai 2023 CPG text could not be retrieved, so its K threshold is unconfirmed (the lines say \"safe K\"). Fixed before recording: step5.W option c kept a drowsier patient with pH 7.12 at the community hospital with hourly checks, against the consensus rule that altered mental status needs ICU care, and ranked above referral; it now raises insulin and refers her. step3.B option c (subcutaneous insulin) left later steps naming a drip that never ran; it is now bolus and drip. The step-3 b options referred her before the step-5 disposition; they are now a drip with hourly glucose. step4.B option b gave no Thai dose unit and the 2009 glucose target; it now halves insulin to 0.05 units/kg/h with glucose near 200 mg/dL. Thai venous pH and Thai units aligned. The K, dextrose, resolution and overlap thresholds, the tiers, path coherence, Thai/English parity and the sample replies check out."
+      "findings": "Fresh reviewer that did not write the case, 2026-11-13, five-step version 6, tree sha256 715b68fb063c8c2f735154d58bc8787d332cbc4e38ee2b4dd8a937b81dff2bac. Read in full: Thai CPG for Diabetes 2566 (2023, DAT/Endocrine Society/DMS/NHSO) ch.12: diagnosis p.138, severity p.140, K p.142 (insulin once K >3.3; KCl 20-30 mmol/L at 3.3-5.2), insulin cut to 0.02-0.05 units/kg/h with dextrose at glucose 250 p.141/143, resolution and IV-to-SC switch p.145; 2024 ADA/EASD/JBDS/AACE/DTS consensus (Diabetologia 2024;67:1455; Diabetes Care 2024): K >3.5, basal-bolus 1-2 h before stopping IV, ICU for altered mental status. WHO: HEARTS-D 2020 p.20 covers only primary-care referral on 0.9% saline; the Model Formulary 2008 gives no protocol and the 2013 pocket book is paediatric, so WHO has no adult inpatient DKA guidance. Checked all 13 banks for K, dextrose, resolution, overlap, ICU/referral, tiers, path fit, Thai/English parity and replies. Fixed: step-4 best options at glucose 240 now lower insulin per the Thai CPG; the fixed-rate 10% dextrose option is reasonable; step4.B a Thai label gains /kg/h; step5.W stems give glucose 320 so full-dose insulin fits every path; step5.W c Thai line keeps K steady. Fixes re-read and confirmed on this tree."
     },
     "owner_waiver": {
       "date": "2026-11-03",

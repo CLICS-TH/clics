@@ -468,8 +468,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ฉลากระบุออร์กาโนฟอสเฟต SpO2 เหลือ 89% จะรักษาอย่างไร",
-              "en": "The label says organophosphate; SpO2 is down to 89%. Your plan?"
+              "th": "ฉลากระบุออร์กาโนฟอสเฟต ยังน้ำลายไหลมาก จะรักษาอย่างไร",
+              "en": "The label says organophosphate; he is still drooling heavily. Your plan?"
             }
           },
           {
@@ -926,8 +926,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ทยอยลดอะโทรปีน ประเมินทุกครั้ง",
-              "en": "Wean atropine, check after each cut"
+              "th": "ทยอยลดอะโทรปีนในที่ที่มี ICU",
+              "en": "Wean atropine where ICU is at hand"
             },
             "line": {
               "th": "เสมหะอาจกลับมาเมื่อลดยา จึงประเมินทุกครั้งที่ลด",
@@ -1011,8 +1011,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ส่งต่อพร้อมยาหยดและพยาบาลดูแล",
-              "en": "Transfer with infusion, nurse escort"
+              "th": "ส่ง ICU พร้อมยาหยดและพยาบาล",
+              "en": "ICU transfer with drip, nurse escort"
             },
             "line": {
               "th": "เสมหะอาจกลับมาระหว่างทาง จึงต้องมีผู้ดูแลไปด้วย",
@@ -1062,8 +1062,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ผ่านไป 36 ชม. ยังต้องใช้อะโทรปีนขนาดสูงและเหนื่อยง่าย",
-              "en": "At 36 hours he needs high-dose atropine and tires easily. Plan?"
+              "th": "ครบ 36 ชม. ยังต้องใช้อะโทรปีนขนาดสูงคุมปอด จะทำอย่างไร",
+              "en": "At 36 hours he still needs high-dose atropine to control his chest. What now?"
             }
           }
         ],
@@ -1129,7 +1129,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewer, version 4, tree sha256 5225043d7b0454bb9be3a6c36b891a02b1b05ea442be7dafec5b6f2df07adc4d. Checked against the Eddleston 2008 Lancet protocol, Ramathibodi Poison Center protocol 40 (2022) and intermediate-syndrome literature (onset 24 to 96 h). No guideline giving a fixed discharge interval after atropine stops was found. Steps 3 to 5 match both protocols on atropine doubling every 5 min, endpoints, a 10-20% hourly infusion with hourly review, toxicity signs, oxime only once organophosphate is named, decontamination and airway. Fixed from this review: step-5 weaker-path options that kept a tiring, high-atropine patient at the community hospital now refer him on or call the 1367 poison centre, and the reasonable referral is to a provincial medical ward, below ICU transfer. Discharge became 48 h after atropine stops. The step-4 reasonable option re-boluses before a fixed drip. The oxime-without-airway option on the tiring path dropped to reasonable. Questions no longer name an infusion or a repeat flood a path did not produce. The bottle source is stated. Thai and English infusion text agree. No option omits atropine. Not changed: ICU referral at intubation in steps 3-4, since referral before the step-5 disposition makes the later options incoherent; judged not unsafe."
+      "findings": "Fresh reviewer that did not write the case, 2026-11-13, tree sha256 ef275414163ac98a3c665692054c82c63f50854ad8e851d01d5d4c42c9cc6b70. Sources fetched and read: Ramathibodi Poison Center protocol 40, Organophosphorus and Carbamate (updated 2022) and its NHSO pesticide poisoning notes (2021); WHO Clinical management of acute pesticide intoxication (2008); Eddleston et al., Lancet 2008. Checked every variant and option for facts, tiers, safety of weaker options, the airway and ICU rules on every path, and Thai-English parity: atropine 1.8-3 mg doubled every 5 min to a dry chest, 10-20% hourly infusion, oxime when atropine is needed, washing, intubation for flooding secretions, ICU-capable care for symptomatic patients. Fixed this round: the gate's airway and ICU findings, which the previous review had declined. Intubation options refer to ICU, step-5 best options arrange ICU-capable care while he needs atropine, keeping him here on an infusion is gone, and step-3 atropine-plus-oxime without airway is reasonable where he floods and grows drowsy. Step 3.R no longer drops SpO2 to 89%, and step 5.W no longer says he tires."
     },
     "owner_waiver": {
       "date": "2026-11-03",

@@ -18,7 +18,7 @@ const at = (name, o) => `${name} ${o.id} (${o.tier}): ${text(o)}`;
 
 describe('organophosphate', () => {
   const k = fiveStep('organophosphate');
-  const FAILING = /drowsier|tires|floods/i;
+  const FAILING = /drowsier|tires|floods|SpO2 8\d%/i;
   const AIRWAY = /intubat|ventilat|\bICU\b/i;
 
   test('a bank whose stem shows impending respiratory failure tiers best only options that protect the airway', () => {
