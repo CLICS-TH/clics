@@ -47,7 +47,7 @@ const plain = (s) => comparable(s.replaceAll('**', ''));
 // Whole numbers as written (7.15, 120, 3), so "12" is not found inside "120".
 const numbers = (s) => new Set(s.match(/\d+(?:[.,]\d+)*/g) ?? []);
 // Latin words of five letters or more, in either language's text (a Thai field names a drug or test in Latin too:
-// CPAP, NT-proBNP). Thai has no word-level rule: its word segments (และ, ให้, ส่ง) are too common to tell an option
+// NT-proBNP). Shorter acronyms (CPAP, NIV, ICU) are left to the safety review. Thai has no word-level rule: its word segments (และ, ให้, ส่ง) are too common to tell an option
 // apart, so a Thai field is held to the whole-label rule and the safety review.
 const COMMON = new Set(['acute', 'chronic', 'their', 'there', 'these', 'those', 'which', 'while', 'about', 'after', 'before', 'other', 'first', 'again', 'still', 'patient']);
 const latinWords = (s) => new Set(plain(s).match(/[a-z][a-z0-9-]{4,}/g)?.filter((w) => !COMMON.has(w)) ?? []);

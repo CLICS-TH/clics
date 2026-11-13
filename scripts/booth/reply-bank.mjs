@@ -16,7 +16,7 @@ import path from 'node:path';
 const require = createRequire(import.meta.url);
 const CASES = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../backend/src/booth-cases');
 const { treeSha } = require(path.join(CASES, 'tree-sha'));
-const { repliesSha, replyContentProblems, replyBankProblems } = require(path.join(CASES, 'reply-bank'));
+const { repliesSha, replyBankProblems } = require(path.join(CASES, 'reply-bank'));
 
 const [command, caseFile] = process.argv.slice(2);
 if (!['sheet', 'check'].includes(command) || !caseFile) {
@@ -42,12 +42,11 @@ if (command === 'sheet') {
   }
 } else {
   const file = read(replyFile);
-  const content = replyContentProblems(kase, file.replies ?? {});
   const all = replyBankProblems(kase, file);
+  const content = all.filter((p) => !p.startsWith('safety_review:'));
   for (const p of all) console.log(p);
   console.log(`tree sha256 ${treeSha(kase)}`);
-  if (file.replies) console.log(`replies sha256 ${repliesSha(file.replies)}`);
-  const reviewOnly = all.every((p) => p.startsWith('safety_review:'));
-  console.log(all.length === 0 ? 'ok' : reviewOnly && content.length === 0 ? 'content ok; review pending' : `${all.length} problem(s)`);
-  process.exit(reviewOnly && content.length === 0 ? 0 : 1);
+  if (file?.replies && typeof file.replies === 'object') console.log(`replies sha256 ${repliesSha(file.replies)}`);
+  console.log(all.length === 0 ? 'ok' : content.length === 0 ? 'content ok; review pending' : `${all.length} problem(s)`);
+  process.exit(content.length === 0 ? 0 : 1);
 }

@@ -154,7 +154,7 @@ The checker (`backend/src/booth-cases/reply-bank.js`) reports each of these as a
 - A bank key or option of the case that has no entry, or an entry the case does not have.
 - An entry without exactly three distinct alternatives in each language.
 - An empty `strength` or `weigh`. Only `safety` may be `""`.
-- A field the server would change before showing it: over 115 characters, extra spacing, more than two `**bold**` runs, or a bold run that quotes anything but the vignette, the bank's questions or the chosen option's own label and line.
+- A field the server would change before showing it: over 115 characters, extra spacing, more than two `**bold**` runs, or a bold run that quotes anything but the chosen option's own label and line (the server would also keep a run from the vignette or the question, but the bank holds itself to the option).
 - A Thai field with no Thai script, or an English field with some.
 - A field that names another option of the bank, by its whole label or by a Latin word of five letters or more from its label that the case does not already show.
 
