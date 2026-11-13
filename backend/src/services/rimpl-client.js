@@ -222,7 +222,7 @@ async function rimplDeidentify({ messages, patient_ref, chief_complaint }) {
 // and the persisted PII map, the auditor's view and the evaluator's input agree on every token. A
 // caller that omits it (the calibration harness) gets the transcript-only numbering, recorded as such
 // in provenance.deid. An older RIMPL ignores the key (its zod schemas strip unknown keys).
-async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 }, { timeoutMs = EVAL_TIMEOUT_MS } = {}) {
+async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256, identity_basis }, { timeoutMs = EVAL_TIMEOUT_MS } = {}) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
@@ -235,8 +235,11 @@ async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint,
     // hash, never a transcript or an identifier; rimpl stamps it on the score and sends it nowhere else.
     // An older rimpl strips the key (zod) and answers 200 anyway; services/ple-evaluation.js's echo check
     // then refuses to save the score and defers it, so deploy rimpl first.
+    // identity_basis: what names the evaluator under the lock in force ('weights_sha256' or
+    // 'model_id+system_fingerprint', services/model-lock.js LOCK_IDENTITY). Absent when unlocked, and
+    // echo-checked the same way.
     body: JSON.stringify({ ple_id, transcript, patient_ref, chief_complaint: chief_complaint ?? null, shadow, weights_sha256: weights_sha256 ?? null,
-      ...(lock_declaration_sha256 ? { lock_declaration_sha256 } : {}) }),
+      ...(lock_declaration_sha256 ? { lock_declaration_sha256 } : {}), ...(identity_basis ? { identity_basis } : {}) }),
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw await rimplError('/evaluate', res);

@@ -261,6 +261,9 @@ export const POST_ERROR_TITLE: Record<string, string> = {
   lock_not_applied: 'บันทึกค่าการล็อกไม่สำเร็จ / Not locked: the lock settings could not be written',
   audit_write_failed: 'บันทึก audit log ไม่สำเร็จ / Not locked: the audit entry could not be written',
   rollback_incomplete: 'ย้อนกลับได้ไม่ครบ ต้องแก้ไขด้วยมือ / Rollback incomplete: manual repair is needed',
+  declared_fingerprint_missing: 'model manifest ไม่ได้ระบุ system fingerprint ของผู้ให้คะแนน / Not locked: the manifest declares no system fingerprint for the evaluator',
+  fingerprint_not_observed: 'ยังไม่เห็น system fingerprint จากเซิร์ฟเวอร์ผู้ให้คะแนน / Not locked: the evaluator server has not reported a system fingerprint yet',
+  fingerprint_mismatch: 'system fingerprint ที่เซิร์ฟเวอร์รายงานไม่ตรงกับที่ประกาศ / Not locked: the server reports a different system fingerprint from the declared one',
 };
 export const POST_ERROR_FALLBACK = 'ล็อกไม่สำเร็จ / The lock was not applied';
 export const OUTCOME_UNKNOWN = 'ไม่ทราบผล / Outcome unknown';

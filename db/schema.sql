@@ -1035,7 +1035,8 @@ create policy "consents: oversight read" on public.consents for select using (
 );
 
 -- ===== Primary Evaluator Model Lock (see db/migration-evaluator-model-lock.sql, then
--- db/migration-evaluator-lock-manifest.sql) — one row per declaration, append-only in practice =====
+-- db/migration-evaluator-lock-manifest.sql, then db/migration-evaluator-lock-identity.sql) — one row per
+-- declaration, append-only in practice =====
 -- app_settings.evaluator_locked_at is the flag the provider switch consults; this is the record behind
 -- it. evaluator_sha256 binds the lock to the scoring instrument it froze (CCME R2): /health/deep degrades
 -- while locked if the live manifest's evaluator keys differ. manifest_sha256 + manifest record the whole
@@ -1046,7 +1047,7 @@ create table public.evaluator_model_lock (
   locked_by                uuid references public.professionals(id),
   provider                 text,
   model_version            text,
-  weights_sha256           text not null,
+  weights_sha256           text,           -- NULL exactly for a model-identity lock: it has no weights digest
   inference_engine         text not null,
   quantization             text,
   system_prompt_version    text not null,
@@ -1059,6 +1060,12 @@ create table public.evaluator_model_lock (
   manifest_sha256          text,           -- rimpl/src/model-manifest.json, as rimpl verified it
   manifest                 jsonb,          -- its EXPECTED half (code + declared), never the live view
   evaluator_sha256         text,           -- THE binding: evaluator-scoped digest (services/model-lock.js)
+  identity_basis           text not null default 'weights_sha256',   -- or 'model_id+system_fingerprint'
+  system_fingerprint       text,           -- the declared + observed fingerprint, model-identity locks only
+  constraint evaluator_model_lock_identity_basis check (
+    (identity_basis = 'weights_sha256' and weights_sha256 is not null)
+    or (identity_basis = 'model_id+system_fingerprint' and weights_sha256 is null
+        and model_version is not null and system_fingerprint is not null)),
   constraint evaluator_model_lock_manifest_sha256_hex check (manifest_sha256 is null or manifest_sha256 ~ '^[0-9a-f]{64}$'),
   constraint evaluator_model_lock_evaluator_sha256_hex check (evaluator_sha256 is null or evaluator_sha256 ~ '^[0-9a-f]{64}$'),
   constraint evaluator_model_lock_manifest_pair check ((manifest_sha256 is null) = (manifest is null))

@@ -29,9 +29,18 @@ const RUBRIC_VERSION = `pis7-weights-${sha8(JSON.stringify(WEIGHTS))}`;
 // and the human raters, who calibrate against the base rubric, can see which they are being compared to.
 // `addendum` defaults to the module's (lib/prompts.js); the parameter mirrors pis7PromptFor's so the
 // suffix can be tested before E2 turns it on.
-function promptVersionFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
-  if (provider !== 'local' || !addendum) return PROMPT_VERSION;
-  return `${PROMPT_VERSION}+local-${crypto.createHash('sha256').update(addendum).digest('hex').slice(0, 12)}`;
+//
+// `model` (ADR 0012, model identity): for 'local' only, the CONFIGURED evaluator model id is appended
+// as `@<model>`. CME cannot give a weights digest, so a lock names the evaluator by model id; with the
+// id in the label, rows scored by two different models never share a prompt label and are never pooled
+// into one verdict. Omitted (the model manifest, the calibration scripts) the label is model-free, and
+// the backend composes `@<declared model>` itself when it compares against the manifest.
+function promptVersionFor(provider, addendum = PIS7_LOCAL_ADDENDUM, model = null) {
+  if (provider !== 'local') return PROMPT_VERSION;
+  const base = addendum
+    ? `${PROMPT_VERSION}+local-${crypto.createHash('sha256').update(addendum).digest('hex').slice(0, 12)}`
+    : PROMPT_VERSION;
+  return model ? `${base}@${model}` : base;
 }
 
 // The tutor and discussion prompts are versioned the same way, so a stored message can say which

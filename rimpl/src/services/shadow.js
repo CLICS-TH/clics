@@ -125,7 +125,9 @@ function blankRow(pleId, provider, model) {
     // Provenance is stamped BEFORE the call, from the configured model, so a transport failure is
     // still attributable. Overwritten with the server-reported model on success.
     model_version: modelVersion(model),
-    prompt_version: promptVersionFor(provider),
+    // The configured model, as routes/evaluate.js stamps it, so a served row and its shadow row for
+    // the same evaluator carry the same label.
+    prompt_version: promptVersionFor(provider, undefined, model),
     rubric_version: RUBRIC_VERSION,
     d1: null, d2: null, d3: null, d4: null, d5: null, d6: null, d7: null,
     composite_score: null,

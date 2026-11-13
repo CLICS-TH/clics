@@ -118,6 +118,53 @@ describe('two prompt addenda are two candidates', () => {
   });
 });
 
+// ADR 0012 (model identity): two models served under ONE prompt label must not pool either. The Model
+// Lock asks for the verdict of the model the manifest declares, so the most recent group (another
+// model) cannot decide a lock on the declared one.
+describe('two model ids under one prompt_version', () => {
+  const A = 'CCME_LLM_v8.0+DeepSeek-V4.1-Flash-1017';
+  const B = 'CCME_LLM_v8.0+deepseek-v4-flash-dspark';
+  const PV = `${NEW}@shared-label`;
+  const MANY = Array.from({ length: 40 }, (_, i) => `q${i}`);
+  const HUMAN_MANY = MANY.map((_, i) => 30 + ((i * 37) % 60));
+  const A_SCORES = HUMAN_MANY.map((h, i) => h + ((i % 3) - 1));
+  const B_SCORES = HUMAN_MANY.map((_, i) => 30 + ((i * 53) % 60));
+  const twoModels = () => {
+    m.state.resolve = (table, kind) => {
+      if (kind !== 'list') return undefined;
+      if (table === 'app_settings') return [];
+      if (table === 'audit_scores') return MANY.map((id, i) => row(id, HUMAN_MANY[i], 3));
+      if (table === 'ai_evaluations') return MANY.map((id, i) => row(id, HUMAN_MANY[i], 3));
+      if (table === 'ples') return MANY.map((id) => ({ id, is_test: false }));
+      if (table === 'shadow_evaluations') {
+        return [
+          ...MANY.map((id, i) => shadow(id, A_SCORES[i], 3, PV, { model_version: A, evaluated_at: '2026-11-01T00:00:00Z' })),
+          ...MANY.map((id, i) => shadow(id, B_SCORES[i], 3, PV, { model_version: B, evaluated_at: '2026-11-10T00:00:00Z' })),
+        ];
+      }
+      return undefined;
+    };
+  };
+
+  test('control: the most recent model (B) decides without modelVersion; the declared model (A) decides with it, and the verdicts differ', async () => {
+    twoModels();
+    const before = await decisiveVerdict({ promptVersion: PV });
+    const after = await decisiveVerdict({ promptVersion: PV, modelVersion: A });
+    expect(before.candidate.model_version).toBe(B);
+    expect(after.candidate.model_version).toBe(A);
+    expect(before.verdict.state).toBe('fail');
+    expect(after.verdict.state).toBe('pass');
+    expect(after.verdict.icc).toBeCloseTo(iccTwoRater(A_SCORES.map((a, i) => ({ a, b: HUMAN_MANY[i] }))).icc, 10);
+  });
+
+  test('a declared model nobody scored under has no candidate, so it cannot pass', async () => {
+    twoModels();
+    const v = await decisiveVerdict({ promptVersion: PV, modelVersion: 'CCME_LLM_v8.0+never-served' });
+    expect(v.candidate).toBeNull();
+    expect(v.verdict.state).toBe('insufficient');
+  });
+});
+
 describe('the oversight screen names the prompt version it shows', () => {
   const app = express();
   app.use(express.json());
