@@ -514,8 +514,9 @@ const PASSES = [
     cat: 'ID',
     // Guard: only when the digits actually total 13 (the loose run above could
     // otherwise straddle unrelated numbers separated by spaces).
-    // A Thai national ID never starts with 0, so a run that does is two phones (081-234-5678 089-876-5432).
-    guard: (m) => m.replace(/\D/g, '').length === 13 && m[0] !== '0',
+    // A run that opens with a whole grouped phone (081-234-5678 089-876-5432) is two phones, not one ID; an ID
+    // in category 0 (0-1234-56789-12-3, 0123456789012) never groups that way.
+    guard: (m) => m.replace(/\D/g, '').length === 13 && !/^\(?0\d{1,2}\)?[\s-]+\d{3,4}[\s-]+\d{3,4}[\s-]/.test(m),
   },
 
   // HN (hospital number) explicit code field — kept as its own category since
@@ -550,7 +551,7 @@ const PASSES = [
   // number. The guard checks the national digit count (after stripping 66) so
   // it cannot latch onto an unrelated long number.
   {
-    re: numericRe(String.raw`(?<!\d)\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]{0,3}\d){6,9}`, '(?!\\d)'),
+    re: numericRe(String.raw`(?<!\d)\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]{0,8}\d){6,9}`, '(?!\\d)'),
     cat: 'PHONE',
     guard: (m) => {
       // national number: 8 digits (landline) or 9 (mobile); a written trunk 0
@@ -563,7 +564,7 @@ const PASSES = [
     // Thai national: leading 0 (possibly parenthesised "(081)"), then 8-9 more
     // digits, allowing space/dash/paren grouping. Guarded to 9-10 digits so it
     // never eats a longer run or a bare lab count (which has no leading 0).
-    re: numericRe(String.raw`(?<!\d)\(?0\d\)?(?:[\s()-]{0,3}\d){7,9}`, '(?!\\d)'),
+    re: numericRe(String.raw`(?<!\d)\(?0\d\)?(?:[\s()-]{0,8}\d){7,9}`, '(?!\\d)'),
     cat: 'PHONE',
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
@@ -991,7 +992,7 @@ const asciiView = (s) => s.replace(ASCII_VIEW_RE, (c) => ASCII_VIEW.get(c));
 // inside one, never before ".<digit>") and passes `guard`; null when there is none. The regex runs on the text cut
 // at each candidate end, so its own pattern still decides every shorter match; the cut point is checked against the
 // full text, which the cut hides from the regex's lookahead.
-const GUARD_FALLBACK_MAX = 64;
+const GUARD_FALLBACK_MAX = 128; // above the longest loose phone run (13 digits, gaps of up to 8)
 function longestGuarded(view, re, at, len, guard) {
   if (len > GUARD_FALLBACK_MAX) return null;
   const rx = new RegExp(re.source, re.flags.replace('g', '') + 'y');

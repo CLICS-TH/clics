@@ -314,6 +314,10 @@ const NUMERIC_SHAPES = [
   ['Thai-digit dashed phone then a count', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ ๒ ครั้ง', ['๐๘๑', '๒๓๔', '๕๖๗๘'], 'PHONE'],
   ['+66 glued to the area code, dotted', 'โทร +6681.234.5678', ['6681', '234', '5678'], 'PHONE'],
   ['two dashed phones in a row', 'โทร 081-234-5678 089-876-5432', ['5678', '089', '876-5432'], 'PHONE'],
+  ['phone with wide gaps between groups', 'โทร 081    234    5678', ['081', '234', '5678'], 'PHONE'],
+  // A Thai national ID in category 0 (no Thai nationality) starts with 0 and is still an ID.
+  ['category-0 national ID, dashed', 'บัตร 0-1234-56789-12-3', ['56789', '1234'], 'ID'],
+  ['category-00 national ID, plain', 'บัตร 0012345678901', ['0012345678901', '5678901'], 'ID'],
   ['full-width digits', '０８１-２３４-５６７８', ['０８１', '２３４', '５６７８'], 'PHONE'],
   ['full-width digits and dots', 'Tel.０８１．２３４．５６７８', ['０８１', '５６７８'], 'PHONE'],
   ['Arabic-Indic digits', '٠٨١٢٣٤٥٦٧٨', ['٠٨١٢٣٤٥٦٧٨', '٥٦٧٨'], 'PHONE'],
