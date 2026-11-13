@@ -66,6 +66,7 @@ flock -n 9 || die "another deploy is running on this host"
 check_internal_token
 check_reconcile
 check_model_block
+check_auth_env
 check_current_release
 cd "$BASE/releases/$SHA/deploy/vm1" || die "release $SHA is not unpacked on this host"
 CLICS_RELEASE=$SHA
