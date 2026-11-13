@@ -17,6 +17,7 @@ const KASE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-ca
 const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const RUNNER = path.join(__dirname, '..', '..', 'scripts', 'booth', 'build-path-tables.mjs');
 const LEDGER_TOOL = path.join(__dirname, '..', '..', 'scripts', 'booth', 'spend-ledger.mjs');
+const RESERVER = path.join(__dirname, 'fixtures', 'spend-reserver.mjs');
 const tierPaths = (length) => (length ? ['B', 'R', 'W'].flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)) : ['']);
 
 const bankFor = (prefix) => [KASE.banks.step1, KASE.banks.step2[prefix], KASE.banks.step3[prefix]][prefix.length];
@@ -277,6 +278,31 @@ describe('the build runner', () => {
     } finally {
       rimpl.close();
     }
+  }, 30_000);
+
+  test('eight processes reserving at once against one ledger are granted exactly what the cap holds, never more', async () => {
+    const home = homeWith();
+    const start = path.join(tmp(), 'start');
+    const [usd, k, procs] = [1, 12, 8];
+    const children = Array.from({ length: procs }, () => {
+      const child = spawn(process.execPath, [RESERVER, LEDGER_TOOL, start, String(usd), String(k * usd), String(2 * k)],
+        { env: { PATH: process.env.PATH, HOME: home } });
+      let out = '';
+      let err = '';
+      child.stderr.on('data', (b) => { err += b; });
+      const ready = new Promise((r) => { child.stdout.on('data', (b) => { out += b; if (out.includes('ready\n')) r(); }); child.on('close', r); });
+      const done = new Promise((r) => child.on('close', (status) => r({ status, out, err })));
+      return { ready, done };
+    });
+    await Promise.all(children.map((c) => c.ready));
+    fs.writeFileSync(start, '');
+    const results = await Promise.all(children.map((c) => c.done));
+    expect(results.map((r) => [r.status, r.err])).toEqual(results.map(() => [0, '']));
+    const granted = results.flatMap((r) => JSON.parse(r.out.split('\n')[1]));
+    const reserved = ledgerOf(home).filter((l) => l.kind === 'reserve').map((l) => l.id);
+    expect(granted).toHaveLength(k);
+    expect(reserved.sort()).toEqual([...granted].sort());
+    expect(spentIn(ledgerOf(home))).toBeLessThanOrEqual(k * usd);
   }, 30_000);
 
   test('--go with no spend ledger in HOME is refused before any request, naming where the ledger should be', async () => {
