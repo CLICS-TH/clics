@@ -1,0 +1,1153 @@
+{
+  "case_id": "organophosphate",
+  "version": "4",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชาวนาวัย 45 ปี อาเจียน เหงื่อท่วม และหอบเหนื่อยหลังกลับจากนา ที่โรงพยาบาลชุมชน",
+    "en": "At a community hospital: a 45-year-old farmer with vomiting, sweating and breathlessness after a day in the field"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 45 ปี อาชีพทำนา ถูกพามาโรงพยาบาลชุมชน 2 ชั่วโมงหลังพ่นยาฆ่าแมลงโดยไม่สวมถุงมือและหน้ากาก มีอาเจียน ถ่ายเหลว เหงื่อออกมาก น้ำลายไหล และหอบเหนื่อย ชีพจร 52 ครั้ง/นาที ความดัน 100/60 มม.ปรอท หายใจ 26 ครั้ง/นาที SpO2 91% ขณะหายใจอากาศปกติ รูม่านตาเล็กมาก ปอดมีเสียงวี้ดและกรอบแกรบทั้งสองข้าง กล้ามเนื้อแขนกระตุก ซึมเล็กน้อยแต่ตอบคำถามได้",
+    "en": "A fictional 45-year-old rice farmer is brought to a community hospital 2 hours after spraying insecticide without gloves or a mask. He has vomiting, diarrhoea, heavy sweating, drooling and shortness of breath. Pulse 52/min, BP 100/60 mmHg, respiratory rate 26/min, SpO2 91% on room air. Pupils are pinpoint, with wheeze and crackles in both lungs and twitching in the arm muscles. He is slightly drowsy but answers questions."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการทั้งหมดนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which diagnosis fits all these signs best?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ภาวะพิษออร์กาโนฟอสเฟต",
+            "en": "Organophosphate poisoning"
+          },
+          "line": {
+            "th": "รูม่านตาเล็ก น้ำลายไหล และกล้ามเนื้อกระตุกหลังพ่นยา",
+            "en": "Pinpoint pupils, drooling and twitching after spraying."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "วิกฤตโคลิเนอร์จิกจากยาฆ่าแมลง",
+            "en": "Cholinergic crisis from insecticide"
+          },
+          "line": {
+            "th": "อะเซทิลโคลีนคั่งอธิบายอาการทุกอย่างได้",
+            "en": "Excess acetylcholine explains every sign here."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "พิษสารคาร์บาเมต",
+            "en": "Carbamate poisoning"
+          },
+          "line": {
+            "th": "ยาฆ่าแมลงอีกกลุ่มที่ทำให้อาการแบบเดียวกัน",
+            "en": "Another insecticide class that causes the same signs."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "กระเพาะลำไส้อักเสบเฉียบพลัน",
+            "en": "Acute gastroenteritis"
+          },
+          "line": {
+            "th": "อาเจียนและถ่ายเหลวเกิดขึ้นเร็วในวันนี้",
+            "en": "Vomiting and diarrhoea came on fast today."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ภาวะเพลียแดด",
+            "en": "Heat exhaustion"
+          },
+          "line": {
+            "th": "เหงื่อออกมากหลังทำงานกลางแจ้งทั้งวัน",
+            "en": "Heavy sweating after a full day of outdoor work."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ขณะเริ่มรักษา จะส่งตรวจอะไรบ้าง",
+              "en": "As treatment starts, which tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้อะโทรปีนอยู่ จะส่งตรวจอะไรร่วมด้วย",
+              "en": "Atropine is running. Which tests go with it?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ECG และ SpO2 ข้างเตียง",
+              "en": "Bedside ECG and SpO2"
+            },
+            "line": {
+              "th": "วัดชีพจรช้าและออกซิเจนต่ำได้ทันที",
+              "en": "Measures the slow pulse and low oxygen at once."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือด เกลือแร่ ครีเอตินีน",
+              "en": "Blood gas, electrolytes, creatinine"
+            },
+            "line": {
+              "th": "ประเมินการหายใจล้มเหลวและการเสียน้ำ",
+              "en": "Gauges breathing failure and fluid loss."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "โคลีนเอสเทอเรสในพลาสมา",
+              "en": "Plasma cholinesterase level"
+            },
+            "line": {
+              "th": "ระดับต่ำช่วยสนับสนุนว่าได้รับสารพิษ",
+              "en": "A low level supports exposure to the poison."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจและเพาะเชื้ออุจจาระ",
+              "en": "Stool exam and culture"
+            },
+            "line": {
+              "th": "หาเชื้อที่เป็นสาเหตุของอาการถ่ายเหลว",
+              "en": "Looks for an infection behind the diarrhoea."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ปอด",
+              "en": "Chest X-ray"
+            },
+            "line": {
+              "th": "หาสาเหตุในปอดของเสียงวี้ด",
+              "en": "Looks for a lung cause of the wheeze."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้อะโทรปีนอยู่ จะส่งตรวจอะไรร่วมด้วย",
+              "en": "Atropine is running. Which tests go with it?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "ขณะเริ่มรักษา จะส่งตรวจอะไรบ้าง",
+              "en": "As treatment starts, which tests do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ECG และ SpO2 ข้างเตียง",
+              "en": "Bedside ECG and SpO2"
+            },
+            "line": {
+              "th": "วัดชีพจรช้าและออกซิเจนต่ำได้ทันที",
+              "en": "Measures the slow pulse and low oxygen at once."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือด เกลือแร่ ครีเอตินีน",
+              "en": "Blood gas, electrolytes, creatinine"
+            },
+            "line": {
+              "th": "ประเมินการหายใจล้มเหลวและการเสียน้ำ",
+              "en": "Gauges breathing failure and fluid loss."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "โคลีนเอสเทอเรสในพลาสมา",
+              "en": "Plasma cholinesterase level"
+            },
+            "line": {
+              "th": "ระดับต่ำช่วยสนับสนุนว่าได้รับสารพิษ",
+              "en": "A low level supports exposure to the poison."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจและเพาะเชื้ออุจจาระ",
+              "en": "Stool exam and culture"
+            },
+            "line": {
+              "th": "หาเชื้อที่เป็นสาเหตุของอาการถ่ายเหลว",
+              "en": "Looks for an infection behind the diarrhoea."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ปอด",
+              "en": "Chest X-ray"
+            },
+            "line": {
+              "th": "หาสาเหตุในปอดของเสียงวี้ด",
+              "en": "Looks for a lung cause of the wheeze."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ทีมให้อะโทรปีนแล้ว ชีพจรยัง 52 จะส่งตรวจอะไรเพิ่ม",
+              "en": "The team gave atropine; pulse is still 52/min. Which tests now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้อะโทรปีนอยู่ จะส่งตรวจอะไรร่วมด้วย",
+              "en": "Atropine is running. Which tests go with it?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ECG และ SpO2 ข้างเตียง",
+              "en": "Bedside ECG and SpO2"
+            },
+            "line": {
+              "th": "วัดชีพจรช้าและออกซิเจนต่ำได้ทันที",
+              "en": "Measures the slow pulse and low oxygen at once."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือด เกลือแร่ ครีเอตินีน",
+              "en": "Blood gas, electrolytes, creatinine"
+            },
+            "line": {
+              "th": "ประเมินการหายใจล้มเหลวและการเสียน้ำ",
+              "en": "Gauges breathing failure and fluid loss."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "โคลีนเอสเทอเรสในพลาสมา",
+              "en": "Plasma cholinesterase level"
+            },
+            "line": {
+              "th": "ระดับต่ำช่วยสนับสนุนว่าได้รับสารพิษ",
+              "en": "A low level supports exposure to the poison."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว",
+              "en": "Capillary blood glucose"
+            },
+            "line": {
+              "th": "หาน้ำตาลต่ำที่ทำให้ซึมและเหงื่อออก",
+              "en": "Finds low sugar behind drowsiness and sweating."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจและเพาะเชื้ออุจจาระ",
+              "en": "Stool exam and culture"
+            },
+            "line": {
+              "th": "หาเชื้อที่เป็นสาเหตุของอาการถ่ายเหลว",
+              "en": "Looks for an infection behind the diarrhoea."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "วัดอุณหภูมิแกนกาย",
+              "en": "Core temperature"
+            },
+            "line": {
+              "th": "หาภาวะจากความร้อนที่ทำให้เหงื่อออกมาก",
+              "en": "Looks for heat illness behind the sweating."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ฉลากขวดระบุออร์กาโนฟอสเฟต จะรักษาอย่างไร",
+              "en": "The bottle label says organophosphate. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ญาตินำขวดยามา เป็นออร์กาโนฟอสเฟต จะทำอะไรต่อ",
+              "en": "His family brings the bottle: an organophosphate. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะโทรปีน IV และพราลิดอกซีม",
+              "en": "IV atropine and pralidoxime"
+            },
+            "line": {
+              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
+              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะโทรปีน IV ทีมใส่ถุงมือล้างตัว",
+              "en": "IV atropine, gloved team washes him"
+            },
+            "line": {
+              "th": "ให้ O2 และอะโทรปีนจนปอดแห้ง ขณะถอดชุดล้างผิว",
+              "en": "Oxygen and atropine to a dry chest while he is stripped and washed."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV ปรับจนปอดแห้ง",
+              "en": "IV atropine titrated to a dry chest"
+            },
+            "line": {
+              "th": "เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
+              "en": "Doubles the dose every 5 minutes to a dry chest."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV กับ O2 ทางหน้ากาก",
+              "en": "IV atropine and oxygen by mask"
+            },
+            "line": {
+              "th": "แก้ชีพจรช้า เสมหะ และออกซิเจนต่ำไปพร้อมกัน",
+              "en": "Treats the slow pulse, secretions and low oxygen together."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
+              "en": "IV atropine and salbutamol nebuliser"
+            },
+            "line": {
+              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Opens the narrowed airways behind the wheeze."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และสารน้ำ IV",
+              "en": "IV atropine and IV fluids"
+            },
+            "line": {
+              "th": "ชดเชยน้ำที่เสียไปจากอาเจียนและถ่ายเหลว",
+              "en": "Replaces the fluid lost to vomiting and diarrhoea."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ฉลากระบุออร์กาโนฟอสเฟต SpO2 เหลือ 89% จะรักษาอย่างไร",
+              "en": "The label says organophosphate; SpO2 is down to 89%. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ญาตินำขวดมา เป็นออร์กาโนฟอสเฟต ชีพจร 48 จะทำอะไร",
+              "en": "His family brings the bottle: an organophosphate; pulse 48/min. Plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะโทรปีน IV และพราลิดอกซีม",
+              "en": "IV atropine and pralidoxime"
+            },
+            "line": {
+              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
+              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะโทรปีน IV ทีมใส่ถุงมือล้างตัว",
+              "en": "IV atropine, gloved team washes him"
+            },
+            "line": {
+              "th": "ให้ O2 และอะโทรปีนจนปอดแห้ง ขณะถอดชุดล้างผิว",
+              "en": "Oxygen and atropine to a dry chest while he is stripped and washed."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV ปรับจนปอดแห้ง",
+              "en": "IV atropine titrated to a dry chest"
+            },
+            "line": {
+              "th": "เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
+              "en": "Doubles the dose every 5 minutes to a dry chest."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV กับ O2 ทางหน้ากาก",
+              "en": "IV atropine and oxygen by mask"
+            },
+            "line": {
+              "th": "แก้ชีพจรช้า เสมหะ และออกซิเจนต่ำไปพร้อมกัน",
+              "en": "Treats the slow pulse, secretions and low oxygen together."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
+              "en": "IV atropine and salbutamol nebuliser"
+            },
+            "line": {
+              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Opens the narrowed airways behind the wheeze."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และสารน้ำ IV",
+              "en": "IV atropine and IV fluids"
+            },
+            "line": {
+              "th": "ชดเชยน้ำที่เสียไปจากอาเจียนและถ่ายเหลว",
+              "en": "Replaces the fluid lost to vomiting and diarrhoea."
+            }
+          }
+        ],
+        "default_trio": [
+          "b",
+          "d",
+          "f"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ฉลากระบุออร์กาโนฟอสเฟต เสมหะท่วมปอด ซึมลง SpO2 88%",
+              "en": "The label says organophosphate; his chest floods, he is drowsier, SpO2 88%."
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ญาตินำขวดมา เป็นออร์กาโนฟอสเฟต เสมหะเพิ่ม ซึมลง ทำอะไร",
+              "en": "His family brings the bottle: organophosphate; more secretions, drowsier. Plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ใส่ท่อช่วยหายใจ และอะโทรปีน IV",
+              "en": "Intubate, ventilate, IV atropine"
+            },
+            "line": {
+              "th": "ช่วยหายใจเมื่อเสมหะท่วมปอดและเริ่มซึมลง",
+              "en": "Secures the airway as secretions flood his lungs and he tires."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะโทรปีน IV และพราลิดอกซีม",
+              "en": "IV atropine and pralidoxime"
+            },
+            "line": {
+              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
+              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV ปรับจนปอดแห้ง",
+              "en": "IV atropine titrated to a dry chest"
+            },
+            "line": {
+              "th": "เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
+              "en": "Doubles the dose every 5 minutes to a dry chest."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV ทีมใส่ถุงมือล้างตัว",
+              "en": "IV atropine, gloved team washes him"
+            },
+            "line": {
+              "th": "ต้านอะเซทิลโคลีน ถอดชุดและล้างสารพิษบนผิว",
+              "en": "Blocks excess acetylcholine; strips and washes poison off the skin."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
+              "en": "IV atropine and salbutamol nebuliser"
+            },
+            "line": {
+              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Opens the narrowed airways behind the wheeze."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และสารน้ำ IV",
+              "en": "IV atropine and IV fluids"
+            },
+            "line": {
+              "th": "ชดเชยน้ำที่เสียไปจากอาเจียนและถ่ายเหลว",
+              "en": "Replaces the fluid lost to vomiting and diarrhoea."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชม.ต่อมา ปอดแห้ง ชีพจร 96 ความดัน 118/70 ทำอะไรต่อ",
+              "en": "1 hour on: chest dry, pulse 96/min, BP 118/70. What do you do now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ปอดและรักแร้แห้งแล้ว ชีพจร 92 จะดูแลต่ออย่างไร",
+              "en": "His chest and armpits are now dry, pulse 92/min. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "หยดอะโทรปีน ประเมินทุกชั่วโมง",
+              "en": "Atropine infusion, hourly review"
+            },
+            "line": {
+              "th": "หยด 10-20% ของขนาดรวมที่ทำให้ปอดแห้ง ต่อชั่วโมง",
+              "en": "Runs 10-20% of the total dose that dried his chest, per hour."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "หยดยาต่อ เฝ้าดูอาการยาเกิน",
+              "en": "Infusion, watch for atropine excess"
+            },
+            "line": {
+              "th": "สับสน ไข้ หรือลำไส้หยุดเคลื่อน ให้ลดขนาดยา",
+              "en": "Confusion, fever or absent bowel sounds mean cutting the dose."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยดอะโทรปีนอัตราคงที่",
+              "en": "Fixed-rate atropine infusion"
+            },
+            "line": {
+              "th": "อัตราเดียวตลอด พยาบาลดูแลได้ง่าย",
+              "en": "One set rate is simple for the ward to run."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้อะโทรปีนซ้ำเมื่อปอดกลับมาชื้น",
+              "en": "Atropine bolus when chest gets wet"
+            },
+            "line": {
+              "th": "เพิ่มยาทันทีที่เสมหะกลับมา",
+              "en": "Gives more atropine as soon as secretions return."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "2 ชม.ต่อมา ปอดกลับมีเสียงกรอบแกรบ ชีพจร 66 เหงื่อออก",
+              "en": "2 hours on: crackles are back, pulse 66/min, he is sweating. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 2 ชม. น้ำลายและเสมหะกลับมาอีก จะทำอะไรต่อ",
+              "en": "After 2 hours the drooling and secretions are back. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ไล่อะโทรปีนซ้ำ แล้วหยดต่อเนื่อง",
+              "en": "Re-atropinise, then an infusion"
+            },
+            "line": {
+              "th": "เพิ่มเท่าตัวจนปอดแห้ง แล้วหยด 10-20% ต่อชั่วโมง",
+              "en": "Doubles to a dry chest, then runs 10-20% of that dose an hour."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ไล่อะโทรปีนซ้ำ ร่วมพราลิดอกซีม",
+              "en": "Re-atropinise and add pralidoxime"
+            },
+            "line": {
+              "th": "ทำให้ปอดแห้ง ขณะออกซีมช่วยฟื้นเอนไซม์",
+              "en": "Dries the chest while the oxime reactivates the enzyme."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฉีดอะโทรปีนซ้ำ แล้วหยดอัตราคงที่",
+              "en": "Atropine bolus, then fixed-rate drip"
+            },
+            "line": {
+              "th": "ฉีดยาให้ปอดแห้ง แล้วใช้อัตราเดียวคุมต่อเนื่อง",
+              "en": "A bolus dries the chest; a steady rate holds it there."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
+              "en": "IV atropine and salbutamol nebuliser"
+            },
+            "line": {
+              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Opens the narrowed airways behind the wheeze."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และสารน้ำ IV",
+              "en": "IV atropine and IV fluids"
+            },
+            "line": {
+              "th": "ชดเชยน้ำที่เสียไปทางเหงื่อและถ่ายเหลว",
+              "en": "Replaces fluid lost to sweating and diarrhoea."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชม.ต่อมา เสมหะท่วมปอด ซึมลง SpO2 88% ทำอย่างไร",
+              "en": "An hour later his chest floods; he is drowsier, SpO2 88%. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เสมหะกลับมามาก เหนื่อยล้า ชีพจร 50 SpO2 87%",
+              "en": "Secretions surge back; he tires, pulse 50/min, SpO2 87%. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ใส่ท่อช่วยหายใจ และอะโทรปีน IV",
+              "en": "Intubate, ventilate, IV atropine"
+            },
+            "line": {
+              "th": "ช่วยหายใจเมื่อเสมหะท่วมปอดและเริ่มซึมลง",
+              "en": "Secures the airway as secretions flood his lungs and he tires."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV และพราลิดอกซีม",
+              "en": "IV atropine and pralidoxime"
+            },
+            "line": {
+              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
+              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะโทรปีน IV ปรับจนปอดแห้ง",
+              "en": "IV atropine titrated to a dry chest"
+            },
+            "line": {
+              "th": "เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
+              "en": "Doubles the dose every 5 minutes to a dry chest."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และดูดเสมหะบ่อย ๆ",
+              "en": "IV atropine and frequent suction"
+            },
+            "line": {
+              "th": "ดูดเสมหะที่คั่งในปากและคอออก",
+              "en": "Clears pooled secretions from his mouth and throat."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
+              "en": "IV atropine and salbutamol nebuliser"
+            },
+            "line": {
+              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Opens the narrowed airways behind the wheeze."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 หายใจเองได้ ปอดแห้งด้วยอะโทรปีนขนาดต่ำ",
+              "en": "Day 2: breathing on his own, chest dry on low-dose atropine. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ครบ 24 ชม. อาการคงที่ ใช้อะโทรปีนน้อยลงมาก",
+              "en": "At 24 hours he is stable on much less atropine. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "นอนเตียงเฝ้าระวังถึงวันที่ 4",
+              "en": "Stay in a monitored bed to day 4"
+            },
+            "line": {
+              "th": "ยังอาจอ่อนแรงที่คอและกล้ามเนื้อหายใจได้ถึงวันที่ 4",
+              "en": "Neck and breathing weakness can still appear up to day 4."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ทยอยลดอะโทรปีน ประเมินทุกครั้ง",
+              "en": "Wean atropine, check after each cut"
+            },
+            "line": {
+              "th": "เสมหะอาจกลับมาเมื่อลดยา จึงประเมินทุกครั้งที่ลด",
+              "en": "Secretions can return as the dose falls, so each step is checked."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำหน่ายหลังหยุดยาครบ 48 ชม.",
+              "en": "Discharge 48 h after atropine stops"
+            },
+            "line": {
+              "th": "อาการสงบสองวันหลังหยุดยา ลดโอกาสอาการกลับซ้ำ",
+              "en": "Two settled days off the drug lower the risk of relapse."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "สอนพ่นยาอย่างปลอดภัยก่อนกลับบ้าน",
+              "en": "Teach safe spraying before discharge"
+            },
+            "line": {
+              "th": "ถุงมือ หน้ากาก อาบน้ำหลังพ่น ป้องกันการสัมผัสซ้ำ",
+              "en": "Gloves, a mask and washing after work prevent the next exposure."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "นอน รพ. ตรวจโคลีนเอสเทอเรส",
+              "en": "Ward stay, cholinesterase checks"
+            },
+            "line": {
+              "th": "ติดตามระดับเอนไซม์ทุกวันระหว่างฟื้นตัว",
+              "en": "Tracks the enzyme each day as he recovers."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 ยังต้องใช้อะโทรปีน ลดยาทีไรเสมหะกลับมา",
+              "en": "Day 2: he still needs atropine; secretions return whenever it is cut. Plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 36 ชม. ยังต้องใช้อะโทรปีนคุมปอดให้แห้ง",
+              "en": "At 36 hours he still needs atropine to keep his chest dry. Plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลที่มี ICU",
+              "en": "Transfer to a hospital with an ICU"
+            },
+            "line": {
+              "th": "อาการที่ยืดเยื้อเพิ่มโอกาสต้องใช้เครื่องช่วยหายใจ",
+              "en": "A long course raises the chance he will need a ventilator."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อพร้อมยาหยดและพยาบาลดูแล",
+              "en": "Transfer with infusion, nurse escort"
+            },
+            "line": {
+              "th": "เสมหะอาจกลับมาระหว่างทาง จึงต้องมีผู้ดูแลไปด้วย",
+              "en": "Secretions can return on the road, so care travels with him."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ดูแลต่อที่นี่ อ่อนแรงเมื่อไรส่งต่อ",
+              "en": "Keep here on infusion; refer if weak"
+            },
+            "line": {
+              "th": "อยู่ใกล้ครอบครัว และส่งต่อทันทีเมื่อเริ่มอ่อนแรง",
+              "en": "Keeps him near family and moves him at the first weakness."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "นอน รพ. ตรวจโคลีนเอสเทอเรส",
+              "en": "Ward stay, cholinesterase checks"
+            },
+            "line": {
+              "th": "ติดตามระดับเอนไซม์ทุกวันระหว่างฟื้นตัว",
+              "en": "Tracks the enzyme each day as he recovers."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 ยังต้องใช้อะโทรปีนขนาดสูง ลดยาเสมหะก็กลับมา",
+              "en": "Day 2: he still needs high-dose atropine; any cut brings secretions back."
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 36 ชม. ยังต้องใช้อะโทรปีนขนาดสูงและเหนื่อยง่าย",
+              "en": "At 36 hours he needs high-dose atropine and tires easily. Plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลที่มี ICU",
+              "en": "Transfer to a hospital with an ICU"
+            },
+            "line": {
+              "th": "พิษรุนแรงและยืดเยื้ออาจต้องใช้เครื่องช่วยหายใจ",
+              "en": "Severe, prolonged poisoning may yet need a ventilator."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ล้างผิวและผม แล้วส่งต่อ ICU",
+              "en": "Wash skin and hair; refer to ICU"
+            },
+            "line": {
+              "th": "สารพิษที่ค้างบนผิวหรือผมทำให้เสมหะกลับมาได้",
+              "en": "Poison left on skin or hair can keep the secretions coming."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ส่งต่อหออายุรกรรม รพ.จังหวัด",
+              "en": "Refer to a provincial medical ward"
+            },
+            "line": {
+              "th": "หอผู้ป่วยโรงพยาบาลใหญ่มีแพทย์ประจำตลอดวัน",
+              "en": "A larger hospital ward has doctors on site day and night."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "โทรปรึกษาศูนย์พิษ 1367",
+              "en": "Phone the 1367 poison centre"
+            },
+            "line": {
+              "th": "ผู้เชี่ยวชาญช่วยแนะนำขนาดยาและที่ดูแลต่อ",
+              "en": "Specialists advise on the dose and where he should go."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-13",
+      "findings": "Fresh reviewer, version 4, tree sha256 5225043d7b0454bb9be3a6c36b891a02b1b05ea442be7dafec5b6f2df07adc4d. Checked against the Eddleston 2008 Lancet protocol, Ramathibodi Poison Center protocol 40 (2022) and intermediate-syndrome literature (onset 24 to 96 h). No guideline giving a fixed discharge interval after atropine stops was found. Steps 3 to 5 match both protocols on atropine doubling every 5 min, endpoints, a 10-20% hourly infusion with hourly review, toxicity signs, oxime only once organophosphate is named, decontamination and airway. Fixed from this review: step-5 weaker-path options that kept a tiring, high-atropine patient at the community hospital now refer him on or call the 1367 poison centre, and the reasonable referral is to a provincial medical ward, below ICU transfer. Discharge became 48 h after atropine stops. The step-4 reasonable option re-boluses before a fixed drip. The oxime-without-airway option on the tiring path dropped to reasonable. Questions no longer name an infusion or a repeat flood a path did not produce. The bottle source is stated. Thai and English infusion text agree. No option omits atropine. Not changed: ICU referral at intubation in steps 3-4, since referral before the step-5 disposition makes the later options incoherent; judged not unsafe."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
+    }
+  }
+}

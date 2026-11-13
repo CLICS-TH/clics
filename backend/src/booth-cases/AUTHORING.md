@@ -25,6 +25,7 @@ Put each case at `backend/src/booth-cases/<EVENT_CODE>/<case_id>.json`. There is
 - `case_id` uses lowercase letters, digits and hyphens, up to 32 characters. It equals the file name without `.json`.
 - `event_code` uses capital letters, digits and hyphens. It equals the folder name.
 - `version` is a non-empty string. Raise it whenever the case text changes, since each play records the version it used.
+- A five-step version of a case that still plays at three steps waits at `staging/<EVENT_CODE>/<case_id>.json`, with its sample replies at `scripts/booth/sample-replies/staging/<EVENT_CODE>/<case_id>.json`, until the cutover (#386) moves both into place in one change. The loader never reads `staging/`, so a staged case is never drawn. The contract test checks staged cases and their sample replies like any other. Build a staged case's table with `--cases backend/src/booth-cases/staging/<EVENT_CODE> --replies scripts/booth/sample-replies/staging/<EVENT_CODE>`.
 - Each admitted version keeps a study snapshot at `<EVENT_CODE>/versions/<case_id>@<version>.json`, written by `node scripts/booth/snapshot-case-versions.mjs`, so the auditor queue can still rebuild its plays. Snapshots are append-only: never edit or delete one.
 
 ## Tiers and banks
