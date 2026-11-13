@@ -32,7 +32,10 @@ Each line is one check in `auth-paths.mjs`. A run ends `SIGN-IN REPLAY: all pass
 11. Old passwords from the restored database still verify, when `old-passwords.tsv` is given.
 
 It creates only `@rehearsal.invalid` accounts and deletes them at the end. It prints no token, key or
-password.
+password. `professionals_single_superadmin` allows one superadmin, so on a restored copy the replay sets the
+existing superadmin's role to `analyst` for the run and puts it back at the end. This touches only the copy.
+The backend limits sign-in attempts per minute (a 429). To replay again within a minute, restart
+`clics-rehearsal-backend-1` first.
 
 ## Hermetic (CI, or a laptop with docker)
 

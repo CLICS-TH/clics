@@ -122,8 +122,16 @@ await step('ADR 0007: postgrest_exposure() lists nothing, and anon reads nothing
 // A superadmin to drive the admin routes, made the way db/set-superadmin-password.js expects one to exist.
 const superPw = pw();
 let superToken = null;
+// professionals_single_superadmin allows one superadmin, and a restored copy already has it: the replay
+// demotes that row to analyst (a role with no council, like superadmin) on the copy for the run, and the clean-up step puts it back.
+let heldSuperadmin = null;
 await step('email + password: the backend signs a superadmin in, and verifyJwt accepts the token', async () => {
   const u = await adminCreate('super', { password: superPw });
+  const existing = want(await call(REST, '/professionals?select=id&role=eq.superadmin'), 200, 'read the superadmin').json;
+  if (existing.length) {
+    heldSuperadmin = existing[0].id;
+    want(await call(REST, `/professionals?id=eq.${heldSuperadmin}`, { method: 'PATCH', body: { role: 'analyst' }, headers: { Prefer: 'return=minimal' } }), 204, 'hold the restored superadmin');
+  }
   await insertProfessional({ id: u.id, role: 'superadmin', full_name_th: 'ซ้อมระบบ', full_name_en: `Rehearsal Super ${RUN}`, status: 'active' });
   const r = want(await login(email('super'), superPw), 200, 'POST /auth/login');
   superToken = r.json.access_token;
@@ -244,7 +252,10 @@ await step('clean up the synthetic accounts', async () => {
     const r = await call(AUTH, `/admin/users/${id}`, { method: 'DELETE' });
     expect(r.status === 200 || r.status === 404, `delete ${id}: ${r.status}`);
   }
-  return `${created.length} removed`;
+  if (heldSuperadmin) {
+    want(await call(REST, `/professionals?id=eq.${heldSuperadmin}`, { method: 'PATCH', body: { role: 'superadmin' }, headers: { Prefer: 'return=minimal' } }), 204, 'restore the superadmin');
+  }
+  return `${created.length} removed${heldSuperadmin ? ', the restored superadmin put back' : ''}`;
 });
 
 console.log(failed ? `SIGN-IN REPLAY: ${failed} FAILED` : 'SIGN-IN REPLAY: all passed');
