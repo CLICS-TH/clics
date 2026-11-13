@@ -1,0 +1,1128 @@
+{
+  "case_id": "copd-exacerbation",
+  "version": "6",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
+    "en": "A 68-year-old man at a community hospital ER, more breathless and coughing for 3 days"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน มาห้องฉุกเฉิน รพ.ชุมชน เพราะ 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
+    "en": "A fictional 68-year-old fruit farmer smoked for 40 years, quit 2 years ago and uses an inhaler daily. He comes to a community hospital ER because for 3 days he has been more breathless, coughing up more sputum that has turned green. Temperature 37.8 °C, pulse 106, RR 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases, using his accessory muscles. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและผลตรวจนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "ครั้งนี้เขาหอบมากขึ้นจากอะไร",
+            "en": "What explains his worse breathing this time?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ปอดอุดกั้นเรื้อรังกำเริบ",
+            "en": "Acute exacerbation of COPD"
+          },
+          "line": {
+            "th": "หอบมากขึ้นและเสมหะเปลี่ยนในคนสูบบุหรี่นาน",
+            "en": "Worse breathing and changed sputum in a long-term smoker."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "COPD กำเริบจากการติดเชื้อ",
+            "en": "COPD flare triggered by infection"
+          },
+          "line": {
+            "th": "เสมหะมากขึ้นและเขียวขึ้นชี้ว่าติดเชื้อกระตุ้น",
+            "en": "More and greener sputum points to an infective trigger."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ปอดอักเสบติดเชื้อในชุมชน",
+            "en": "Community-acquired pneumonia"
+          },
+          "line": {
+            "th": "ไข้ต่ำ ๆ และเสมหะเขียวเข้าได้กับปอดอักเสบ",
+            "en": "Low fever and green sputum fit pneumonia."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "หัวใจล้มเหลวกำเริบ",
+            "en": "Acute heart failure"
+          },
+          "line": {
+            "th": "หอบเหนื่อยในผู้สูงอายุมักมาจากหัวใจ",
+            "en": "Breathlessness in older adults often comes from the heart."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "หอบหืดกำเริบ",
+            "en": "Acute asthma attack"
+          },
+          "line": {
+            "th": "เสียงวี้ดและหายใจออกยาวพบบ่อยในหอบหืด",
+            "en": "Wheeze and a long expiration are common in asthma."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ABG, CBC และเกลือแร่",
+              "en": "ABG, CBC and electrolytes"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง การติดเชื้อ และโพแทสเซียมต่ำ",
+              "en": "Checks CO2 retention, infection and low potassium."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และเพาะเชื้อเสมหะ",
+              "en": "ABG and sputum culture"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
+              "en": "Checks CO2 retention and looks for the germ in the sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ABG, CBC และ CRP",
+              "en": "ABG, CBC and CRP"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และช่วยตัดสินใจเรื่องยาปฏิชีวนะ",
+              "en": "Checks CO2 retention and helps decide on an antibiotic."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และเพาะเชื้อเสมหะ",
+              "en": "ABG and sputum culture"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
+              "en": "Checks CO2 retention and looks for the germ in the sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "SpO2 88% เริ่มพ่นยาและ O2 88–92% แล้ว ตรวจอะไร",
+              "en": "SpO2 88%; the inhaled drug and O2 to 88–92% have started. Which tests?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาขยายหลอดลมและให้ O2 88–92% แล้ว ตรวจอะไรก่อน",
+              "en": "Inhaled bronchodilator and O2 at 88–92% are running. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "CXR, ECG และ ABG",
+              "en": "Chest X-ray, ECG and ABG"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
+              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ก๊าซในเลือดแดงและเอกซเรย์ปอด",
+              "en": "Arterial blood gas and chest X-ray"
+            },
+            "line": {
+              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
+              "en": "Checks for CO2 retention and looks for pneumonia."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ABG และ NT-proBNP",
+              "en": "ABG and NT-proBNP"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และแยกหัวใจล้มเหลวจากโรคปอด",
+              "en": "Checks CO2 retention and tells heart failure from lung disease."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และ peak flow ข้างเตียง",
+              "en": "ABG and bedside peak flow"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และวัดการตีบของหลอดลมข้างเตียง",
+              "en": "Checks CO2 retention and measures airway narrowing at the bedside."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ABG และอัลตราซาวด์หัวใจ",
+              "en": "ABG and echocardiogram"
+            },
+            "line": {
+              "th": "ดู CO2 คั่ง และเห็นการบีบตัวของหัวใจ",
+              "en": "Checks CO2 retention and shows how well the heart pumps."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "B": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "CXR ไม่พบปอดอักเสบ pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "No pneumonia on CXR; pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
+              "en": "IV hydrocortisone + amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+amox-clav IV",
+              "en": "Pred 5 days + IV amox-clav"
+            },
+            "line": {
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "g"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
+            "id": "v1",
+            "question": {
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+amox-clav",
+              "en": "Pred 5 days + amox-clav"
+            },
+            "line": {
+              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
+              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
+            }
+          },
+          {
+            "id": "g",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 5 วัน+levofloxacin",
+              "en": "Pred 5 days + levofloxacin"
+            },
+            "line": {
+              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
+              "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "f"
+        ]
+      }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชม.ต่อมา พูดเป็นประโยค SpO2 91% (O2 88–92%) ต่อไป?",
+              "en": "An hour on he speaks in sentences, SpO2 91% on O2 to 88–92%. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ABG ซ้ำ pH 7.39 PaCO2 46 mmHg ดีขึ้นชัด ทำอะไรต่อ",
+              "en": "Repeat ABG pH 7.39, PaCO2 46 mmHg; he is clearly better. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "คงแผนเดิม คุม SpO2 88–92%",
+              "en": "Keep the plan, SpO2 at 88–92%"
+            },
+            "line": {
+              "th": "ตอบสนองดีแล้ว ให้ยาชุดเดิมต่อจนครบคอร์ส",
+              "en": "He is responding, so the same course runs on to its end."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ลดยาพ่นเป็นทุก 4–6 ชม.",
+              "en": "Step nebulisers down to 4–6 hourly"
+            },
+            "line": {
+              "th": "ลดความถี่เมื่อดีขึ้น ใจสั่นและมือสั่นน้อยลง",
+              "en": "Fewer doses as he improves mean less tremor and racing pulse."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ CBC และเกลือแร่",
+              "en": "Check CBC and electrolytes"
+            },
+            "line": {
+              "th": "ยาพ่นและสเตียรอยด์อาจทำให้โพแทสเซียมต่ำ",
+              "en": "Nebulisers and steroid can lower potassium."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้แมกนีเซียม IV เพิ่ม",
+              "en": "Add IV magnesium sulfate"
+            },
+            "line": {
+              "th": "แมกนีเซียมช่วยคลายกล้ามเนื้อหลอดลมเพิ่ม",
+              "en": "Magnesium relaxes airway muscle on top of the nebulisers."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เปลี่ยนยาฆ่าเชื้อเป็นแบบฉีด",
+              "en": "Switch the antibiotic to IV"
+            },
+            "line": {
+              "th": "ยาฉีดให้ระดับยาในเลือดแน่นอนกว่า",
+              "en": "An IV drug gives surer blood levels."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "2 ชม.ต่อมา ยังมีเสียงวี้ด SpO2 90% (O2 88–92%) ทำอะไร",
+              "en": "2 hours on he is still wheezy, SpO2 90% on O2 to 88–92%. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ABG ซ้ำ pH 7.36 PaCO2 50 mmHg ยังมีเสียงวี้ด ทำอะไรต่อ",
+              "en": "Repeat ABG pH 7.36, PaCO2 50 mmHg; he is still wheezy. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา SABA+SAMA ซ้ำ",
+              "en": "Repeat SABA + SAMA nebs"
+            },
+            "line": {
+              "th": "หลอดลมยังตีบ ยาขยายหลอดลมออกฤทธิ์สั้นได้ผลเร็ว",
+              "en": "More short-acting bronchodilator works fastest on tight airways."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจ ABG ซ้ำใน 1 ชม.",
+              "en": "Recheck the ABG in 1 hour"
+            },
+            "line": {
+              "th": "เห็น CO2 ที่สูงขึ้นได้เร็ว ก่อนผู้ป่วยหายใจล้า",
+              "en": "Shows a rising CO2 early, before he tires."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดหาสาเหตุอื่น",
+              "en": "Chest X-ray for another cause"
+            },
+            "line": {
+              "th": "ลมรั่วหรือปอดอักเสบทำให้ตอบสนองช้าได้",
+              "en": "An air leak or pneumonia can slow the response."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เปลี่ยนเป็น levofloxacin",
+              "en": "Switch to levofloxacin"
+            },
+            "line": {
+              "th": "ยาครอบคลุมเชื้อกว้างขึ้นตั้งแต่ตอนนี้",
+              "en": "A broader drug covers more bacteria from now on."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชม.ต่อมา ซึมลง pH 7.28 PaCO2 66 mmHg ทำอะไรต่อ",
+              "en": "An hour on he is drowsier; pH 7.28, PaCO2 66 mmHg. What do you do next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ซึมลงแต่ปลุกตื่น ABG pH 7.28 PaCO2 66 mmHg ทำอะไร",
+              "en": "Drowsier but rousable; ABG pH 7.28, PaCO2 66 mmHg. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เริ่ม NIV (BiPAP) ทันที",
+              "en": "Start NIV (BiPAP) now"
+            },
+            "line": {
+              "th": "pH 7.28 กับ CO2 ที่สูงขึ้นเป็นข้อบ่งชี้ของ NIV",
+              "en": "pH 7.28 with a rising CO2 is the indication for NIV."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "NIV และ ABG ซ้ำใน 1 ชม.",
+              "en": "NIV with a repeat ABG in 1 hour"
+            },
+            "line": {
+              "th": "ABG หลังเริ่ม NIV 1 ชม. บอกว่าได้ผลดีเพียงใด",
+              "en": "A gas an hour into NIV shows how well it is working."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใส่ท่อช่วยหายใจทันที",
+              "en": "Intubate and ventilate now"
+            },
+            "line": {
+              "th": "คุมการหายใจได้เต็มที่เมื่อผู้ป่วยซึมลง",
+              "en": "Takes full control of breathing as he grows drowsier."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เริ่ม NIV ตรวจก๊าซซ้ำใน 4 ชม.",
+              "en": "Start NIV, recheck gas in 4 hours"
+            },
+            "line": {
+              "th": "เริ่ม NIV ทันทีเพื่อแก้ CO2 ที่คั่ง",
+              "en": "Starts NIV at once for his rising CO2."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 4 SpO2 93% ขณะหายใจอากาศปกติ เดินได้ แผนกลับบ้าน?",
+              "en": "Day 4: SpO2 93% on room air, walking the ward. What is your discharge plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "อาการใกล้เคียงปกติเดิมแล้ว ก่อนกลับบ้านจะทำอะไร",
+              "en": "He is close to his usual self. What do you do before he goes home?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ทบทวนยาพ่นและวิธีพ่น",
+              "en": "Review his inhalers and technique"
+            },
+            "line": {
+              "th": "ยาพ่นออกฤทธิ์ยาวที่เหมาะและพ่นถูกวิธีลดการกำเริบ",
+              "en": "The right long-acting inhaler, used well, cuts the next flare."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "วัคซีน ฟื้นฟูปอด นัด 4 สัปดาห์",
+              "en": "Vaccines, rehab, review in 4 weeks"
+            },
+            "line": {
+              "th": "ลดการกำเริบซ้ำและพากลับไปทำสวนได้",
+              "en": "Cuts the next flare and gets him back to his orchard."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ยาพ่นบรรเทาอาการ นัด 4 สัปดาห์",
+              "en": "Reliever inhaler, review in 4 weeks"
+            },
+            "line": {
+              "th": "ยาพ่นบรรเทาอาการช่วยได้ทันทีเมื่อหอบที่บ้าน",
+              "en": "A reliever at home eases any breathless spell at once."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "จำหน่ายพร้อมสอนอาการเตือน",
+              "en": "Discharge with warning-sign advice"
+            },
+            "line": {
+              "th": "รู้อาการเตือนแล้วกลับมาโรงพยาบาลได้เร็ว",
+              "en": "Knowing the warning signs brings him back fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 3 ยังใช้ O2 2 ลิตร คุม 88–92% เดินแล้วเหนื่อย ทำอะไร",
+              "en": "Day 3: still on 2 L of O2 for 88–92%, breathless on walking. What do you do?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ดีขึ้นช้า ยังต้องใช้ O2 ให้ได้ 88–92% แผนต่อไปคืออะไร",
+              "en": "He improves slowly and still needs O2 for 88–92%. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดูแลต่อในหอผู้ป่วย ประเมินทุกวัน",
+              "en": "Ward care with daily review"
+            },
+            "line": {
+              "th": "ยังต้องใช้ออกซิเจน หอผู้ป่วยจึงเหมาะกับการฟื้นตัว",
+              "en": "He still needs oxygen, so ward care fits his pace."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดูแลในหอฯ เริ่มสอนพ่นยาวันนี้",
+              "en": "Ward care, inhaler teaching today"
+            },
+            "line": {
+              "th": "เตรียมกลับบ้านตั้งแต่วันนี้ช่วยให้กลับได้เร็วขึ้น",
+              "en": "Getting ready for home from today shortens his stay."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดและ CBC วันนี้",
+              "en": "Chest X-ray and CBC today"
+            },
+            "line": {
+              "th": "หาสาเหตุที่ทำให้ฟื้นตัวช้า เช่น ปอดอักเสบ",
+              "en": "Looks for a cause of the slow recovery, such as pneumonia."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลจังหวัด",
+              "en": "Refer to the provincial hospital"
+            },
+            "line": {
+              "th": "ทีมอายุรแพทย์ช่วยดูแลผู้ที่ฟื้นตัวช้า",
+              "en": "A physician team can manage a slow recovery."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ส่งต่อเข้า ICU รพ.จังหวัด",
+              "en": "Refer to a provincial ICU"
+            },
+            "line": {
+              "th": "ICU เฝ้าดูใกล้ชิดและจับอาการทรุดได้เร็ว",
+              "en": "An ICU watches closely and catches any slide early."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ต่อมาซึมลง pH 7.26 PaCO2 70 mmHg ดูแลที่ไหน",
+              "en": "He then turns drowsy; pH 7.26, PaCO2 70 mmHg. Where is he cared for?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ซึมลง pH 7.26 PaCO2 70 mmHg จะดูแลต่อที่ไหนอย่างไร",
+              "en": "He turns drowsy; pH 7.26, PaCO2 70 mmHg. Where and how is he cared for now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ใช้ NIV และส่งต่อ ICU",
+              "en": "NIV and refer to ICU"
+            },
+            "line": {
+              "th": "NIV ลด CO2 คั่ง และ ICU พร้อมใส่ท่อเมื่อจำเป็น",
+              "en": "NIV lowers the CO2, and the ICU can intubate if needed."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใช้ NIV ในเตียงดูแลใกล้ชิด",
+              "en": "NIV in a close-monitoring bed"
+            },
+            "line": {
+              "th": "เตียงที่เฝ้าดูได้ตลอดเหมาะกับการใช้ NIV",
+              "en": "A closely watched bed is the right place for NIV."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใส่ท่อช่วยหายใจแล้วส่ง ICU",
+              "en": "Intubate, then refer to ICU"
+            },
+            "line": {
+              "th": "ทางเดินหายใจปลอดภัยตลอดการส่งต่อ",
+              "en": "Secures his airway for the whole transfer."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ใช้ NIV ส่งต่อหอผู้ป่วย รพ.จังหวัด",
+              "en": "NIV, refer to a provincial ward"
+            },
+            "line": {
+              "th": "หอผู้ป่วย รพ.จังหวัดมีอายุรแพทย์ดูแลตลอดคืน",
+              "en": "A provincial ward has physicians on hand through the night."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-13",
+      "findings": "Fresh reviewers (claude-opus-5-5, none wrote the case), version 6, five steps: checked against GOLD 2025, the Thai COPD guideline, BTS/ICS NIV and BTS oxygen guidance, NICE NG115 and WHO COPD guidance, all from recall. Confirmed: prednisolone 40 mg for 5 days with amox-clav or doxycycline first line, O2 to 88-92% in every oxygen stem, NIV for pH 7.28 with a high PaCO2 and a 1-hour gas, intubation reasonable for a drowsier patient, and every reveal limited to tests its tier ordered. Fixed after review: the weaker step-4 option without NIV at pH 7.28 was unsafe by omission and now starts NIV with a later gas; step 5 after a weaker step 4 was reworded for a patient who may already be on NIV, with ward NIV replaced by a provincial-ward referral and close-monitoring NIV re-tiered reasonable; stems no longer assume a 1-hour gas or a climbing CO2 on every path; the 3-month review moved to 4 weeks. On the path already failing NIV, optimising NIV (reasonable) and a ward referral (weaker) stay defensible. A second fresh reviewer re-checked every fix: no must-fix left. Tree sha256 212744e6972e071fcad08173f8bf0768f3e61ed90c50705b52ad567fa8875072."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
+    }
+  }
+}
