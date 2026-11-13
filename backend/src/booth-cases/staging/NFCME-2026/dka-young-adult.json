@@ -1,0 +1,1005 @@
+{
+  "case_id": "dka-young-adult",
+  "version": "7",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "นักศึกษาหญิงอายุ 20 ปี มาโรงพยาบาลชุมชน อาเจียนและหอบเหนื่อยตั้งแต่เมื่อวาน",
+    "en": "A 20-year-old female student at a community hospital, vomiting and breathless since yesterday"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ หญิงอายุ 20 ปี นักศึกษามหาวิทยาลัย มาโรงพยาบาลชุมชนด้วยอาเจียนหลายครั้งและปวดท้องมา 1 วัน สองสัปดาห์ก่อนกระหายน้ำ ปัสสาวะบ่อย และน้ำหนักลด 4 กิโลกรัม อุณหภูมิ 37.2 องศาเซลเซียส ชีพจร 120 ครั้งต่อนาที ความดันโลหิต 100/62 มม.ปรอท หายใจลึกและเร็ว 30 ครั้งต่อนาที ปากแห้ง ลมหายใจมีกลิ่นผลไม้ ท้องกดเจ็บทั่วไปเล็กน้อย ซึมเล็กน้อยแต่ตอบคำถามได้",
+    "en": "A fictional 20-year-old university student comes to a community hospital with 1 day of repeated vomiting and abdominal pain. For 2 weeks she has been thirsty, passing urine often, and has lost 4 kg. Temperature 37.2 °C, pulse 120/min, BP 100/62 mmHg, deep rapid breathing at 30/min. Dry mouth, fruity breath and mild diffuse abdominal tenderness. She is drowsy but answers questions."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการทั้งหมดนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which condition best explains all of this?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "หายใจหอบลึกร่วมกับอาเจียน นึกถึงภาวะใด",
+            "en": "Deep breathing with vomiting. What do you suspect?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ภาวะกรดคีโตนจากเบาหวาน",
+            "en": "Diabetic ketoacidosis"
+          },
+          "line": {
+            "th": "กระหายน้ำ ปัสสาวะบ่อย ผอมลง หายใจหอบลึก เข้ากันได้ดี",
+            "en": "Thirst, polyuria, weight loss and deep breathing fit it."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "เบาหวานชนิดที่ 1 รายใหม่ มี DKA",
+            "en": "New type 1 diabetes with DKA"
+          },
+          "line": {
+            "th": "อายุน้อย ผอมลงเร็ว และมาด้วยภาวะกรดคีโตน",
+            "en": "Young, losing weight fast, and presenting with ketoacidosis."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ภาวะน้ำตาลสูงออสโมลาร์สูง",
+            "en": "Hyperosmolar hyperglycaemic state"
+          },
+          "line": {
+            "th": "กระหายน้ำ ปัสสาวะมาก และขาดน้ำชัดเจนเข้ากับภาวะนี้",
+            "en": "Thirst, heavy urine output and marked dehydration fit it."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "กระเพาะและลำไส้อักเสบเฉียบพลัน",
+            "en": "Acute gastroenteritis"
+          },
+          "line": {
+            "th": "อาเจียน ปวดท้อง และขาดน้ำพบบ่อยในโรคนี้",
+            "en": "Vomiting, abdominal pain and dehydration are common in it."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ไส้ติ่งอักเสบเฉียบพลัน",
+            "en": "Acute appendicitis"
+          },
+          "line": {
+            "th": "ปวดท้องและอาเจียนในคนหนุ่มสาวอาจเป็นไส้ติ่ง",
+            "en": "Abdominal pain and vomiting in a young adult can be appendicitis."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณสงสัย DKA จะส่งตรวจอะไรก่อน",
+              "en": "You suspect DKA. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรเพื่อยืนยันและประเมินความรุนแรง",
+              "en": "Which tests confirm it and gauge its severity?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, measures acidity and K."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนจากปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วอย่างเดียว",
+              "en": "Fingerstick glucose only"
+            },
+            "line": {
+              "th": "ตรวจง่ายที่สุด และบอกได้ทันทีว่าน้ำตาลสูง",
+              "en": "The simplest bedside test, showing high glucose at once."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณสงสัยภาวะน้ำตาลสูงวิกฤต จะตรวจอะไรก่อน",
+              "en": "You suspect a hyperglycaemic crisis. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรเพื่อแยก DKA กับ HHS",
+              "en": "Which tests tell DKA from HHS?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, measures acidity and K."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน ออสโมลาลิตี VBG K",
+              "en": "Glucose, ketone, osmolality, VBG, K"
+            },
+            "line": {
+              "th": "แยก DKA ออกจาก HHS และได้ค่า K ในคราวเดียว",
+              "en": "Tells DKA from HHS and measures K in one go."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วอย่างเดียว",
+              "en": "Fingerstick glucose only"
+            },
+            "line": {
+              "th": "ตรวจง่ายที่สุด และบอกได้ทันทีว่าน้ำตาลสูง",
+              "en": "The simplest bedside test, showing high glucose at once."
+            }
+          }
+        ],
+        "default_trio": [
+          "b",
+          "d",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ญาติเล่าว่าเธอดื่มน้ำและปัสสาวะบ่อยมาก ตรวจอะไรก่อน",
+              "en": "Her family says she drinks and urinates a lot. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ลมหายใจมีกลิ่นผลไม้ ควรส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Her breath smells fruity. Which tests come first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, measures acidity and K."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนจากปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้ว แถบตรวจปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงทันที ได้น้ำตาลในเลือดและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant: blood glucose plus urine ketones."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วและ CBC",
+              "en": "Fingerstick glucose and CBC"
+            },
+            "line": {
+              "th": "ดูน้ำตาลพร้อมหาการติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "en": "Checks glucose and looks for an infection that set this off."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "d",
+          "f"
+        ]
+      }
+    },
+    "step3": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. pH 7.15 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, K 4.6. How do you treat her?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "Saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "NSS K หยดอินซูลิน น้ำตาลทุก ชม.",
+              "en": "NSS, K, insulin drip, hourly glucose"
+            },
+            "line": {
+              "th": "สารน้ำ อินซูลิน 0.1 ยูนิต/กก./ชม. K น้ำตาลทุก ชม.",
+              "en": "Fluids, insulin 0.1 units/kg/h and K, with glucose checked hourly."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, K, insulin bolus, drip"
+            },
+            "line": {
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. แล้วหยด 0.1 ยูนิต/กก./ชม.",
+              "en": "A 0.1 units/kg bolus, then the drip at 0.1 units/kg/h."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS K และอินซูลินหยดขนาดต่ำ",
+              "en": "Saline, K, low-dose insulin drip"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
+              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลิน DTX ทุกชม.",
+              "en": "NSS, check K, insulin, hourly sugar"
+            },
+            "line": {
+              "th": "สารน้ำทันที อินซูลินเมื่อ K ปลอดภัย ตรวจน้ำตาลทุก ชม.",
+              "en": "Fluids now, insulin once K is safe, glucose checked hourly."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
+            },
+            "line": {
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาลปลายนิ้ว 450 ตรวจปัสสาวะเพิ่มพบคีโตน 3+ ทำอย่างไร",
+              "en": "Fingerstick glucose 450; a urine dipstick adds ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลิน DTX ทุกชม.",
+              "en": "NSS, check K, insulin, hourly sugar"
+            },
+            "line": {
+              "th": "สารน้ำทันที อินซูลินเมื่อ K ปลอดภัย ตรวจน้ำตาลทุก ชม.",
+              "en": "Fluids now, insulin once K is safe, glucose checked hourly."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K ฉีดอินซูลินนำแล้วหยด",
+              "en": "Saline, check K, insulin bolus, drip"
+            },
+            "line": {
+              "th": "ฉีดนำ 0.1 ยูนิต/กก. เมื่อ K ปลอดภัย แล้วหยดต่อ",
+              "en": "A 0.1 units/kg bolus once K is safe, then the drip."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินขนาดต่ำ",
+              "en": "Saline, check K, low-dose insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
+              "en": "Insulin at 0.05 units/kg/h once K is safe."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "4 ชม. ต่อมา น้ำตาล 240 คีโตนลดลง K 4.2 ทำอย่างไรต่อ",
+              "en": "4 hours in: glucose 240 mg/dL, ketones falling, K 4.2. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "หลังรักษา 4 ชม. น้ำตาล 240 คีโตนลดลง ขั้นต่อไปคืออะไร",
+              "en": "After 4 hours, glucose is 240 mg/dL and ketones are falling. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ลดอินซูลินลง ให้เดกซ์โทรส 5%",
+              "en": "Cut insulin, add 5% dextrose"
+            },
+            "line": {
+              "th": "ลดเหลือ 0.02–0.05 ยูนิต/กก./ชม. ที่น้ำตาล 250",
+              "en": "Down to 0.02–0.05 units/kg/h once glucose reaches 250 mg/dL."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มเดกซ์โทรส 5% ลดอินซูลินครึ่ง",
+              "en": "Add 5% dextrose, halve the insulin"
+            },
+            "line": {
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. น้ำตาลราว 200 มก./ดล.",
+              "en": "Insulin 0.05 units/kg/h holds glucose near 200 mg/dL."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มเดกซ์โทรส 10% คงอินซูลินเดิม",
+              "en": "Add 10% dextrose, same insulin rate"
+            },
+            "line": {
+              "th": "น้ำตาลต่ำกว่า 250 ให้เดกซ์โทรส อินซูลินล้างคีโตนต่อ",
+              "en": "Below 250, dextrose lets the insulin keep clearing ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้เดกซ์โทรส ดูคีโตนปัสสาวะ",
+              "en": "Add dextrose, follow urine ketones"
+            },
+            "line": {
+              "th": "แถบตรวจปัสสาวะราคาถูกและมีทุกหอผู้ป่วย",
+              "en": "A urine dipstick is cheap and on every ward."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "4 ชม. ต่อมา น้ำตาล 330 คีโตนลดลงช้า K 4.0 ทำอย่างไร",
+              "en": "4 hours in: glucose 330 mg/dL, ketones falling slowly, K 4.0. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 4 ชม. น้ำตาล 310 คีโตนลดลงน้อย K 4.0 ทำอย่างไร",
+              "en": "After 4 hours: glucose 310 mg/dL, ketones down only a little, K 4.0. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มอินซูลิน ตรวจซ้ำใน 1 ชม.",
+              "en": "Raise insulin, recheck in 1 hour"
+            },
+            "line": {
+              "th": "คีโตนควรลดชั่วโมงละ 0.5 mmol/L จึงเพิ่มอินซูลิน",
+              "en": "Ketones should fall 0.5 mmol/L an hour, so insulin goes up."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มอินซูลินและหาสาเหตุกระตุ้น",
+              "en": "Raise insulin and seek the trigger"
+            },
+            "line": {
+              "th": "การติดเชื้อทำให้ดื้ออินซูลิน จึงต้องรักษาต้นเหตุด้วย",
+              "en": "An infection can blunt insulin, so treat the cause as well."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มอินซูลิน เจาะเลือดซ้ำ 4 ชม.",
+              "en": "Raise insulin, recheck labs in 4 h"
+            },
+            "line": {
+              "th": "ปรับขนาดยาแล้ว จึงเจาะเลือดห่างขึ้นได้",
+              "en": "With the dose raised, blood draws can be spaced out."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS เพิ่มอีก 1 ลิตร",
+              "en": "Give another litre of saline"
+            },
+            "line": {
+              "th": "สารน้ำเพิ่มการไหลเวียน ช่วยให้อินซูลินออกฤทธิ์",
+              "en": "More fluid improves perfusion and helps insulin act."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "4 ชม. ต่อมา น้ำตาล 380 คีโตนแทบไม่ลด K 3.7 ทำอย่างไร",
+              "en": "4 hours in: glucose 380 mg/dL, ketones barely down, K 3.7. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่าน 4 ชม. น้ำตาล 350 pH เลือดดำ 7.16 K 3.7 ทำอะไร",
+              "en": "After 4 hours: glucose 350 mg/dL, venous pH 7.16, K fallen to 3.7. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อินซูลิน 0.1 ยูนิต/กก./ชม. +K",
+              "en": "Insulin 0.1 units/kg/h, more K"
+            },
+            "line": {
+              "th": "ขนาดเต็มช่วยล้างคีโตน และ K ที่เพิ่มช่วยกัน K ต่ำ",
+              "en": "The full dose clears ketones and extra K keeps K safe."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อินซูลินขนาดเต็ม เพิ่ม K หาสาเหตุ",
+              "en": "Full insulin, more K, seek a trigger"
+            },
+            "line": {
+              "th": "การตอบสนองช้าอาจมีการติดเชื้อซ่อนอยู่",
+              "en": "A slow response can hide an infection that needs treating."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มอินซูลิน 1 ยูนิต/ชม. และ K",
+              "en": "Raise insulin 1 unit/h, more K"
+            },
+            "line": {
+              "th": "ปรับทีละน้อยช่วยให้น้ำตาลและ K ลดลงช้า ๆ",
+              "en": "Small steps keep glucose and K from falling fast."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS อีก 1 ลิตรและเพิ่ม K",
+              "en": "Another litre of saline, more K"
+            },
+            "line": {
+              "th": "สารน้ำและ K เสริมฤทธิ์อินซูลินที่ให้อยู่",
+              "en": "Fluid and K support the insulin already running."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "pH 7.34 HCO3 18 น้ำตาล 180 กินดื่มได้ วางแผนอย่างไร",
+              "en": "pH 7.34, HCO3 18, glucose 180 mg/dL; she eats and drinks. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันที่ 2 HCO3 19 pH 7.35 น้ำตาล 170 กินดื่มได้ ทำอะไรต่อ",
+              "en": "Day 2: HCO3 19, pH 7.35, glucose 170 mg/dL; eating and drinking. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เบซัล-โบลัสก่อนหยุดหยด 2 ชม.",
+              "en": "Basal-bolus 2 h before stopping drip"
+            },
+            "line": {
+              "th": "ให้ทับซ้อนกัน 2 ชม. กันคีโตนกลับมาหลังหยุดหยด",
+              "en": "The 2-hour overlap keeps ketones from coming back."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เบซัล-โบลัส ให้ความรู้ นัดตรวจ",
+              "en": "Basal-bolus, education, follow-up"
+            },
+            "line": {
+              "th": "ฉีดอินซูลิน กฎวันป่วย และนัดตรวจภายใน 2 สัปดาห์",
+              "en": "Insulin, sick-day rules and a clinic visit within 2 weeks."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อินซูลินผสมสำเร็จวันละ 2 ครั้ง",
+              "en": "Premixed insulin twice a day"
+            },
+            "line": {
+              "th": "ฉีดวันละ 2 ครั้ง เริ่มง่ายและราคาถูก",
+              "en": "Two injections a day are simple and cheap to start."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "คงอินซูลินหยดต่ออีก 2 วัน",
+              "en": "Keep the insulin drip 2 more days"
+            },
+            "line": {
+              "th": "หยดต่อช่วยคุมน้ำตาลให้คงที่ระหว่างฟื้นตัว",
+              "en": "A longer drip keeps glucose steady while she recovers."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "pH 7.33 HCO3 17 น้ำตาล 190 กินดื่มได้ กลัวเข็ม ทำอย่างไร",
+              "en": "pH 7.33, HCO3 17, glucose 190 mg/dL; eats, drinks, fears needles. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "pH 7.34 HCO3 18 น้ำตาล 180 กินดื่มได้ กลัวเข็ม ทำอย่างไร",
+              "en": "pH 7.34, HCO3 18, glucose 180 mg/dL; eats, drinks, fears needles. Next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เบซัล-โบลัส สอนใช้ปากกาฉีด",
+              "en": "Basal-bolus, insulin pen teaching"
+            },
+            "line": {
+              "th": "ปากกาฉีดเข็มเล็ก ช่วยลดความกลัวและฉีดได้เอง",
+              "en": "A pen with a fine needle eases fear and lets her inject herself."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เบซัล-โบลัสก่อนหยุดหยด 2 ชม.",
+              "en": "Basal-bolus 2 h before stopping drip"
+            },
+            "line": {
+              "th": "ให้ทับซ้อนกัน 2 ชม. กันคีโตนกลับมาหลังหยุดหยด",
+              "en": "The 2-hour overlap keeps ketones from coming back."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อินซูลินผสมสำเร็จวันละ 2 ครั้ง",
+              "en": "Premixed insulin twice a day"
+            },
+            "line": {
+              "th": "ฉีดน้อยครั้งลง ช่วยให้ผู้ที่กลัวเข็มยอมรับได้",
+              "en": "Fewer injections may suit someone afraid of needles."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "คงอินซูลินหยดต่ออีก 2 วัน",
+              "en": "Keep the insulin drip 2 more days"
+            },
+            "line": {
+              "th": "ให้เวลาผู้ป่วยทำใจก่อนเริ่มฉีดยาเอง",
+              "en": "Gives her time to feel ready to inject herself."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "12 ชม. ซึมลง น้ำตาล 320 pH 7.12 K 3.9 ทำอย่างไร",
+              "en": "12 hours in: drowsier, glucose 320 mg/dL, pH 7.12, K 3.9. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แย่ลง ซึมและหอบมากขึ้น น้ำตาล 320 K 3.9 ทำอย่างไร",
+              "en": "Worse, drowsier, breathing harder; glucose 320 mg/dL, K 3.9. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อินซูลินขนาดเต็ม ส่งต่อ ICU",
+              "en": "Full-dose insulin, transfer to ICU"
+            },
+            "line": {
+              "th": "ซึมลงต้องเฝ้าใกล้ชิดและรักษาเต็มที่ในหอวิกฤต",
+              "en": "Worsening drowsiness needs full treatment and close ICU care."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "แก้อินซูลินและ K แล้วส่งต่อด่วน",
+              "en": "Fix insulin and K, refer urgently"
+            },
+            "line": {
+              "th": "แก้ขนาดยาก่อนเดินทาง ผู้ป่วยไปถึงในสภาพดีขึ้น",
+              "en": "Fixing the dose first means she travels in a safer state."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มอินซูลิน 1 ยูนิต/ชม. แล้วส่งต่อ",
+              "en": "Raise insulin 1 unit/h, then refer"
+            },
+            "line": {
+              "th": "ปรับทีละน้อยให้น้ำตาลและ K คงที่ระหว่างส่งต่อ ICU",
+              "en": "Small steps keep glucose and K steady on the way to ICU care."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลจังหวัด",
+              "en": "Refer to the provincial hospital"
+            },
+            "line": {
+              "th": "โรงพยาบาลใหญ่มีบุคลากรเฝ้าดูได้มากกว่า",
+              "en": "A larger hospital has more staff to watch her."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-13",
+      "findings": "Three fresh AI reviewers, none of which wrote the case or its edits, 2026-11-13; each opened the sources below itself and quoted them by page. Sources: Thai DM CPG 2566 (Diabetes Assoc. Thailand, 2023) ch.12 pp.140-143, 145; WHO SEARO IMAI District Clinician Manual vol.1, Jan 2021, pp.3.4-93 to 3.4-95; hyperglycaemic crises consensus, Diabetologia 2024;67:1455-79; JBDS 02 DKA pathway, Mar 2023. Review 1 read tree ded0bed616415da3ea27790093b26c6ab93c18122c51115187b7aeb86cbf7d04: no unsafe option; step5.W stems and step4.R v2 lacked K while options raise insulin; step4.B.a and step4.W.a Thai labels lacked ยูนิต; step4.R.a Thai line lacked mmol/L; step5.B/R stems omitted drinking. Edits after it: K 3.9 in both step5.W stems; K 4.0 in step4.R v2; step4.B.a dose moved to its line with ยูนิต; ยูนิต in the step4.W.a label; mmol/L in the step4.R.a Thai line; all four step5.B/R stems state she eats and drinks. Review 2 re-checked each edit: K 3.9/4.0 pass CPG p.142 (insulin only above K 3.3), WHO p.3.4-95 and consensus (>3.5); the cut to 0.02-0.05 units/kg/h at 250 matches CPG p.143; every step5.B/R variant meets CPG p.145 (glucose <=200-250 with pH>=7.3 and HCO3>=15), eats before SC insulin (p.145), and WHO p.3.4-95 (eats and drinks, glucose <216) with pH>=7.3 (p.3.4-93). It found step4.R v2 still gave no glucose. Edit after it: glucose 310 in step4.R v2; the step5.W.c sample reply drops pH 7.12, absent from step5.W v2. Review 3 re-checked both: 450 to 310 in 4 h is about 35 mg/dL/h, under CPG p.143's 50-75/h target, above its 250 cut, so raising insulin fits; WHO p.3.4-95 likewise raises the rate if glucose falls <50 mg/dL in an hour and cuts it only below 250; agrees with v1 (330); the reply fits both step5.W stems. All edits fit budget, Thai matches English; contract and clinical-rules tests pass (113). Tree at that review: 020826124def9d1df513c2a07ce09fb5338c7025673e25feadb863b6e8da6346. Gate #370 round 4 fix (commit 5ebe845f): step4.W v2 now states glucose 350 mg/dL (th+en). A gate reviewer that did not write the edit re-checked all step4.W tiers and the Thai/English parity at glucose 350 mg/dL, venous pH 7.16, K 3.7 against Thai DM CPG 2566 pp.141-145 and WHO SEARO IMAI 2021 §3.4.4, using the source quotes recorded above, and found no defect. Final tree sha256 efead070653aeb90076325229753afc6b30a9443875577933373dfc0731ef3fe, which supersedes 020826124def above.",
+      "tree_sha256": "efead070653aeb90076325229753afc6b30a9443875577933373dfc0731ef3fe"
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030849-b13f"
+    }
+  }
+}

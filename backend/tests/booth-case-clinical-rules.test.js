@@ -53,6 +53,60 @@ describe('organophosphate', () => {
   });
 });
 
+describe('dka-young-adult', () => {
+  const k = fiveStep('dka-young-adult');
+  const num = (q, re) => (q.match(re) ? Number(q.match(re)[1]) : null);
+  // Per variant, since the kiosk shows one variant: Thai DM CPG 2566 p.145 resolves DKA at glucose 250 mg/dL or below
+  // plus two of pH 7.3+, HCO3 15+, anion gap 12-; WHO SEARO IMAI 2021 p.3.4-95 stops IV insulin only once she eats and
+  // drinks, below 216 mg/dL.
+  const NOT_TAKING = /\b(not|no|cannot|can't|unable|npo|nil by mouth)\b[^.;]*\b(eat|drink)/i;
+  const state = (v) => {
+    const q = v.question.en;
+    const glucose = num(q, /glucose(?: is)? (\d+)\s*mg\/dL/i);
+    const pH = num(q, /pH (\d\.\d+)/);
+    const hco3 = num(q, /HCO3 (\d+)/);
+    const gap = num(q, /anion gap (\d+)/i);
+    const met = [pH !== null && pH >= 7.3, hco3 !== null && hco3 >= 15, gap !== null && gap <= 12].filter(Boolean).length;
+    const resolved = glucose !== null && glucose <= 250 && met >= 2;
+    const eatsAndDrinks = /\beat(s|ing)?\b/i.test(q) && /\bdrink(s|ing)?\b/i.test(q) && !NOT_TAKING.test(q);
+    return { glucose, resolved, offDrip: resolved && glucose < 216 && eatsAndDrinks };
+  };
+  const OFF_DRIP = /basal-bolus|premixed|subcutaneous|\bSC\b|glargine|insulin pen|insulin injections|stop[^.;|]{0,20}(drip|IV insulin)/i;
+
+  test('an option that stops the drip or starts subcutaneous insulin sits only where every variant meets both stop rules', () => {
+    const offered = banks(k).filter(([, b]) => b.options.some((o) => OFF_DRIP.test(text(o))));
+    expect(offered.length).toBeGreaterThan(0);
+    const bad = offered.flatMap(([name, b]) => b.variants.filter((v) => !state(v).offDrip).map((v) => `${name} ${v.id}: ${v.question.en}`));
+    expect(bad).toEqual([]);
+  });
+
+  test('under a variant still in ketoacidosis at glucose 250 mg/dL or below, every best option lowers the insulin rate', () => {
+    const low = banks(k).filter(([, b]) => b.variants.some((v) => !state(v).resolved && state(v).glucose !== null && state(v).glucose <= 250));
+    expect(low.length).toBeGreaterThan(0);
+    const bad = low.flatMap(([name, b]) => b.options
+      .filter((o) => o.tier === 'best' && (/same insulin rate|0\.1 units\/kg\/h/i.test(text(o)) || !/0\.0[2-5]|halve|cut insulin/i.test(text(o))))
+      .map((o) => at(name, o)));
+    expect(bad).toEqual([]);
+  });
+
+  // Thai DM CPG 2566 pp.141-143 cuts insulin and adds dextrose once glucose reaches 250 mg/dL, so a running drip may
+  // stay at or above its rate without dextrose only where the stem shows glucose above 250. Fails closed: a variant
+  // whose glucose does not parse fails, since the visitor reading it cannot tell either.
+  test('where a best option keeps or raises the running insulin rate without dextrose, every variant states glucose above 250 mg/dL', () => {
+    const stepOf = (name) => Number(name.match(/^step(\d+)/)[1]);
+    const LOWERS = /0\.0[2-5]|halve|cut insulin|lower insulin|reduce insulin/i;
+    const keepsOrRaises = (o) => /insulin/i.test(text(o)) && !/dextrose/i.test(text(o)) && !LOWERS.test(text(o)) && !OFF_DRIP.test(text(o));
+    const all = banks(k);
+    // The drip starts in the first step whose best option gives insulin; from the next step on it is running.
+    const start = Math.min(...all.filter(([, b]) => b.options.some((o) => o.tier === 'best' && /insulin/i.test(text(o)))).map(([n]) => stepOf(n)));
+    const running = all.filter(([name, b]) => stepOf(name) > start && b.options.some((o) => o.tier === 'best' && keepsOrRaises(o)));
+    expect(running.length).toBeGreaterThan(0);
+    const bad = running.flatMap(([name, b]) => b.variants
+      .filter((v) => !(state(v).glucose > 250)).map((v) => `${name} ${v.id}: ${v.question.en}`));
+    expect(bad).toEqual([]);
+  });
+});
+
 test('melioidosis-farmer: with abscesses, no option above weaker ends the IV phase early or switches to oral', () => {
   const k = fiveStep('melioidosis-farmer');
   const deep = banks(k).filter(([, b]) => /abscess/i.test(stems(b)));

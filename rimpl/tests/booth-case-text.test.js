@@ -25,6 +25,8 @@ const PINNED = [
   [[KHUN], 'NFCME-2026/alcohol-pancreatitis.json', 'banks.step4.B.variants[1].question.th', "ผ่านไป 48 ชม. อาการดีขึ้นชัดเจน คุณจะทำอย่างไรต่อ"],
   [[KHUN], 'NFCME-2026/alcohol-pancreatitis.json', 'banks.step4.R.variants[1].question.th', "ผ่านไป 48 ชม. ดีขึ้นช้า ยังเบื่ออาหาร คุณจะทำอย่างไร"],
   [[KHUN], 'NFCME-2026/dka-young-adult.json', 'banks.step2.B.variants[0].question.th', "คุณสงสัย DKA จะส่งตรวจอะไรก่อน"],
+  [[KHUN], 'staging/NFCME-2026/dka-young-adult.json', 'banks.step2.B.variants[0].question.th', "คุณสงสัย DKA จะส่งตรวจอะไรก่อน"],
+  [[KHUN], 'staging/NFCME-2026/dka-young-adult.json', 'banks.step2.R.variants[0].question.th', "คุณสงสัยภาวะน้ำตาลสูงวิกฤต จะตรวจอะไรก่อน"],
   [[KHUN], 'NFCME-2026/dka-young-adult.json', 'banks.step2.R.variants[0].question.th', "คุณสงสัยภาวะน้ำตาลสูงวิกฤต จะตรวจอะไรก่อน"],
   [[KHUN], 'NFCME-2026/ectopic-rupture.json', 'banks.step1.variants[2].question.th', "คุณคิดว่าอาการนี้เกิดจากอะไร"],
   [[KHUN], 'NFCME-2026/ectopic-rupture.json', 'banks.step4.W.variants[1].question.th', "วันที่ 2 มีไข้ขึ้นใหม่และอ่อนเพลีย คุณจะทำอะไรต่อ"],
