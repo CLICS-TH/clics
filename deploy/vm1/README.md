@@ -296,6 +296,53 @@ error text. Exit 0 means both answered 200 with a non-empty reply. Paste its out
 so the same commit gives the same sha on both hosts. A declared model that differs from the manifest's
 target shows under `manifest.drift`, which is expected until the manifest names it.
 
+## Readiness command
+
+The go/no-go for switching local-only mode on (ADR 0012, #431). One command, run inside the RIMPL
+container, measures every scripted row and prints pass or fail with its evidence:
+```bash
+docker exec "$(docker ps -q --filter label=com.docker.compose.project=clics --filter label=com.docker.compose.service=rimpl)" \
+  node scripts/readiness.js --out /tmp/readiness.json
+```
+`node scripts/readiness.js` is what `npm run readiness` runs; call it directly here, because the container's
+filesystem is read-only and its uid has no home for npm's cache. `/tmp` is the one writable path.
+It drives this RIMPL's own routes on a loopback port, with local-only on and routing pinned to the
+on-prem pair inside that one process (chat and discuss to `local-tutor`, evaluate and criteria to
+`local`). `app_settings` is not read for routing and no row is written: it is shared with Railway.
+A loopback stand-in takes anything addressed to Anthropic and the report counts it
+(`anthropic_requests`, which must be 0). Every prompt is a fictional case, `/evaluate` goes with
+`shadow:false`, and the only database access is a read of the SANDBOX council's longest transcript,
+whose text stays in the process.
+
+| Row | Passes when |
+|---|---|
+| `reachability` | each model answers `/models` naming its pinned id, and one chat with a non-empty reply |
+| `inference-shape` | chat (fast, and deep with thinking where the tutor supports it), criteria, discuss and evaluate each return content at their configured token ceiling. Control: a stand-in that answers empty must be reported as `empty_reply` |
+| `context` | for each model, the longest SANDBOX transcript plus its prompt, counted by the server (`usage.prompt_tokens`), is at most 80% of the window the server reports (`max_model_len`). No window, or no sandbox transcript, is a fail |
+| `failure-down` | with both endpoints refusing, and then answering 500, chat fails closed (`ai_unavailable`, no text) and evaluate answers a status the backend requeues, not one it sends to manual QA |
+| `local-only` | a child RIMPL with the mode on refuses a chat routed to anthropic, and refuses while its settings store cannot be read (a cold cache), with nothing reaching the stand-in |
+| `latency` | chat p95 < 15 s over 30 replies while a stand-in drain runs `/evaluate` back to back (`EVAL_DRAIN_CONCURRENCY` wide), and evaluate p95 <= 240 s over at least 10. p95 is nearest-rank, printed with n; fewer samples is a fail |
+| `concurrency` | 10 sessions of 8 growing turns each plus the drain: deadline misses (late past 15 s, or lost) at most 5% on the 95% Wilson upper bound, and no turn lost. 80 turns because a run with no miss passes 5% only from 73. Control: the same judge must pass a clean stub run and fail one with a delay past the deadline |
+| `decisive-icc`, `clinician-thai-read` | owner-gated, printed but not measured: candidate vs human ICC >= 0.75 (roadmap D18), and a clinician's recorded read of a Thai sample (QUALITY-GATES C-3) |
+
+`--only <id,...>` runs some rows; `--json` prints JSON; `--out <file>` writes the JSON. The sample
+and limit flags (`--chat-samples`, `--eval-samples`, `--chat-p95-ms`, `--eval-p95-ms`, `--sessions`,
+`--deadline-ms`) take effect, are printed, and fail their row when weaker than the ticket. `--verbose`
+sends the app's own log lines to stderr; they can name hosts, so never paste them.
+
+Exit codes: **0** every measured row passed (owner-gated rows do not count); **1** a row failed;
+**2** bad usage; **3** the report was withheld, printed as the one line
+`report withheld: contained <secret|host|address|fixture|transcript>`. A report that is printed has
+already passed that check and is safe to paste into the issue.
+
+How long: on the DGX numbers (chat about 1 min a turn, decode-bound; evaluate p50 about 68 s) a full run
+takes about 1 to 1.5 hours. Latency is about 30 min (30 sequential chats), concurrency 30 to 45 min (80
+turns through `LOCAL_TUTOR_MAX_CONCURRENCY`, default 2), the rest a few minutes. At those numbers
+`latency` and `concurrency` fail, which is the finding the rows exist to report. Ten concurrent sessions
+also need `LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE` above its default 4: with 2 running and 4 queued, the rest
+are refused `queue_full` and counted as lost. Rehearse the rest quickly with
+`--only reachability,inference-shape,context,failure-down,local-only` (a few minutes).
+
 ## Self-hosted sign-in (built, not switched on)
 
 `docker-compose.auth.yml` adds GoTrue and PostgREST to the `clics` project (#427, ADR 0012). Activation
