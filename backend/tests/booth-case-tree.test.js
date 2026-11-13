@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { TIERS, caseTreeProblems, isAdmitted, tableScore } = require('../src/booth-cases/tree-schema');
 const { compositeScore } = require('../src/services/ple-gate');
+const { replyProblems, readReplies } = require('../../scripts/booth/path-table-sample');
 
 const DIR = path.join(__dirname, '../src/booth-cases');
 const FIXTURE = path.join(__dirname, 'fixtures/booth-case-tree.json');
@@ -12,9 +13,14 @@ const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const naming = (...parts) => expect.arrayContaining([expect.stringMatching(
   new RegExp(parts.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')))]);
 
-const CASE_FILES = fs.readdirSync(DIR, { withFileTypes: true }).filter((d) => d.isDirectory())
-  .flatMap((d) => fs.readdirSync(path.join(DIR, d.name)).filter((f) => f.endsWith('.json'))
-    .map((f) => ({ name: `${d.name}/${f}`, file: path.join(DIR, d.name, f), event: d.name, id: f.replace(/\.json$/, '') })));
+const eventFiles = (dir, prefix = '') => fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory())
+  .flatMap((d) => fs.readdirSync(path.join(dir, d.name)).filter((f) => f.endsWith('.json'))
+    .map((f) => ({ name: `${prefix}${d.name}/${f}`, file: path.join(dir, d.name, f), event: d.name, id: f.replace(/\.json$/, '') })));
+// A five-step version waits in staging/<EVENT>/ until the cutover (#386) moves it into place. The loader reads only
+// <EVENT>/ folders, so a staged case is never drawn.
+const STAGING = path.join(DIR, 'staging');
+const STAGED = fs.existsSync(STAGING) ? eventFiles(STAGING, 'staging/') : [];
+const CASE_FILES = [...eventFiles(DIR), ...STAGED];
 
 // A case file must also be named after its case id and sit in its event's folder; the fixtures have no folder.
 test.each([{ name: 'the fixture', file: FIXTURE }, { name: 'the five-step fixture', file: FIXTURE5 }, ...CASE_FILES])('$name passes every shape and safety rule', ({ file, event, id }) => {
@@ -282,6 +288,19 @@ describe('admission', () => {
     expect(caseTreeProblems(k)).toEqual([]);
     expect(isAdmitted(k)).toBe(false);
   });
+});
+
+test('every staged case is a five-step tree whose staged sample replies the table build would take', () => {
+  const REPLIES = path.join(__dirname, '../../scripts/booth/sample-replies/staging');
+  const problems = STAGED.flatMap(({ name, file, event }) => {
+    const kase = read(file);
+    const steps = Object.keys(kase.banks).length;
+    if (steps !== 5) return [`${name}: has ${steps} steps`];
+    try {
+      return replyProblems(kase, readReplies(kase, path.join(REPLIES, event))).map((p) => `${name}: ${p}`);
+    } catch (err) { return [`${name}: ${err.message}`]; }
+  });
+  expect(problems).toEqual([]);
 });
 
 describe('the teaser budget the kiosk harness fits (scripts/booth/scenarios/draw.mjs)', () => {
