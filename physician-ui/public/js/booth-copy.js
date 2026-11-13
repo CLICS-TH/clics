@@ -124,8 +124,10 @@ export const scoreText = (composite) => String(Math.round(composite));
  *  (spec #370). */
 export const isDomainScore = (v) => Number.isFinite(v) && v >= 0 && v <= 5 && Math.round(v * 10) / 10 === v;
 
+// A five-step case scores from a fitted table (spec #370).
+const FITTED_STEPS = 5;
 /** A five-step play shows each domain to one decimal ("4.0 / 5"), so its seven rows read alike; any other play as sent. */
-export const domainText = (value, steps) => (steps === 5 ? value.toFixed(1) : String(value));
+export const domainText = (value, steps) => (steps === FITTED_STEPS ? value.toFixed(1) : String(value));
 
 export const fill = (bi, vars) => {
   const sub = (text) => text.replace(/\{(\w+)\}/g, (_, k) => String(vars[k]));

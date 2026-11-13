@@ -327,7 +327,7 @@ const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(e
 async function readStandings(event, dayOf) {
   let query = supabase.from('booth_plays').select('id, tag, composite, scored_at')
     .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true);
-  if (event.boardFiveSteps) query = query.like('tier_path', '_____');
+  if (event.boardFiveSteps) query = query.like('tier_path', '_'.repeat(5));
   const { data, error } = await query.order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
   if (error || !Array.isArray(data)) {
     console.error(`[booth] standings read failed for ${event.code}: ${error?.message ?? 'not a list'}`);

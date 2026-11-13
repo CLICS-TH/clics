@@ -62,16 +62,14 @@ alter table public.booth_plays add column if not exists ranked boolean not null 
 alter table public.booth_plays add column if not exists case_id text
   constraint booth_plays_case_id_check check (case_id ~ '^[a-z0-9][a-z0-9-]{0,31}$');
 alter table public.booth_plays add column if not exists case_version text;
-alter table public.booth_plays add column if not exists tier_path text
-  constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,5}$');
+alter table public.booth_plays add column if not exists tier_path text;
 
 -- #247: how many replies the play has had. A reply for step n claims it only from n - 1, so one step is answered
 -- once and a re-posted reply cannot draw the AI's tier for a typed answer again.
-alter table public.booth_plays add column if not exists replied_step smallint not null default 0
-  constraint booth_plays_replied_step_check check (replied_step between 0 and 5);
+alter table public.booth_plays add column if not exists replied_step smallint not null default 0;
 
--- #380: a table that existed before five-step plays keeps its three-step checks and whole domains through the adds
--- above, so they are replaced here. Converting smallint to numeric(2, 1) keeps every stored value.
+-- The tier_path and replied_step checks (#246, #247; #380 widened them to five steps) and d1-d7's one decimal (#380),
+-- set here so a table that existed before five-step plays gets them too. smallint to numeric(2, 1) keeps every value.
 alter table public.booth_plays drop constraint if exists booth_plays_tier_path_check;
 alter table public.booth_plays add constraint booth_plays_tier_path_check check (tier_path ~ '^[BRW]{0,5}$');
 alter table public.booth_plays drop constraint if exists booth_plays_replied_step_check;

@@ -9,7 +9,11 @@ const TIERS = Object.freeze([
 ]);
 const LETTERS = TIERS.map((t) => t.letter);
 /** Every tier path of `length` letters, B…B first and W…W last. */
-const tierPaths = (length) => (length === 0 ? [''] : LETTERS.flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)));
+const tierPaths = (length) => {
+  if (length === 0) return [''];
+  const rest = tierPaths(length - 1);
+  return LETTERS.flatMap((a) => rest.map((r) => a + r));
+};
 const LANGS = ['th', 'en'];
 
 const Id = z.string().regex(/^[a-z][a-z0-9_]{0,15}$/, 'must match /^[a-z][a-z0-9_]{0,15}$/');
@@ -68,9 +72,9 @@ const pathScoreTable = (steps, method, domain) => z.object({
     z.object(Object.fromEntries(Object.keys(WEIGHTS).map((k) => [k, domain]))).strict()]))).strict(),
 }).strict();
 
-/** A tree shape (spec #370): the banks of a case of `steps` steps, where step n's banks after step 1 are keyed by the
- *  last `keyLength(n)` tiers chosen, and its path score table, built by `method` with `domain` entries. A play's
- *  composite is the shape's `composite` of its table entry. */
+/** A tree shape (spec #370, ADR 0011). Three-step banks are keyed by every tier chosen so far and scored by a median
+ *  table; five-step banks by the previous tier alone (keying on the whole path would need 121 banks) and scored by a
+ *  fitted table, one decimal per domain and a whole composite. */
 const shape = (steps, { keyLength, method, domain, composite }) => Object.freeze({
   method,
   composite,
@@ -114,6 +118,10 @@ const CaseTreeSchema = z.object({
   // Optional in the file so a case can be checked before its table is built; isAdmitted requires it.
   path_score_table: z.union(Object.values(SHAPES).map((s) => s.table)).optional(),
 }).strict();
+
+// The case schema with its banks of one shape and its table of one shape, each pair built once, for caseTreeProblems.
+const SHAPED = Object.fromEntries(Object.entries(SHAPES).map(([steps, tree]) => [steps, Object.fromEntries(Object.entries(SHAPES)
+  .map(([tabled, table]) => [tabled, CaseTreeSchema.extend({ banks: tree.banks, path_score_table: table.table.optional() })]))]));
 
 const isAdmitted = (kase) => {
   const a = kase?.admission;
@@ -201,8 +209,7 @@ function caseTreeProblems(raw) {
   // Checked against the one shape each part picks, so a problem names its field, not the union's "Invalid input".
   const steps = treeSteps(raw?.banks);
   const tabled = tableSteps(raw?.path_score_table) ?? steps;
-  const parsed = CaseTreeSchema.extend({ banks: SHAPES[steps].banks, path_score_table: SHAPES[tabled].table.optional() })
-    .safeParse(raw);
+  const parsed = SHAPED[steps][tabled].safeParse(raw);
   if (!parsed.success) return parsed.error.issues.map((i) => `${issuePath(i.path)}: ${i.message}`);
   const kase = parsed.data;
   if (kase.path_score_table && tabled !== steps) {

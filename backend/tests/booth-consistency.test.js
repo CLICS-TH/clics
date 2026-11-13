@@ -40,12 +40,11 @@ test('the booth_plays.case_id CHECK is the case-file case_id rule', () => {
   expect(/check \(case_id ~ '([^']+)'\)/.exec(SQL)?.[1]).toBe(caseId.source);
 });
 
-// Each check is written twice: on the added column for a new table, and dropped and re-added for one that existed.
-test('tier_path holds up to MAX_STEPS tier letters and replied_step 0 to MAX_STEPS, in every place they are checked (#380)', () => {
+test('tier_path holds up to MAX_STEPS tier letters and replied_step 0 to MAX_STEPS, each checked once (#380)', () => {
   expect(MAX_STEPS).toBe(5);
   const all = (re) => [...SQL.matchAll(re)].map(([, x]) => x);
-  expect(all(/check \(tier_path ~ '([^']+)'\)/g)).toEqual(Array(2).fill(`^[BRW]{0,${MAX_STEPS}}$`));
-  expect(all(/check \(replied_step between (0 and \d+)\)/g)).toEqual(Array(2).fill(`0 and ${MAX_STEPS}`));
+  expect(all(/check \(tier_path ~ '([^']+)'\)/g)).toEqual([`^[BRW]{0,${MAX_STEPS}}$`]);
+  expect(all(/check \(replied_step between (0 and \d+)\)/g)).toEqual([`0 and ${MAX_STEPS}`]);
   for (const c of ['tier_path', 'replied_step']) {
     expect(SQL).toContain(`alter table public.booth_plays drop constraint if exists booth_plays_${c}_check;`);
   }
