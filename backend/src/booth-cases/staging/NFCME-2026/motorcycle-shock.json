@@ -385,18 +385,6 @@
             }
           },
           {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "ให้เลือดจนความดันปกติ",
-              "en": "Blood to a normal BP"
-            },
-            "line": {
-              "th": "ตั้งเป้าความดันปกติ พร้อม TXA และส่งต่อเพื่อผ่าตัด",
-              "en": "Aims for a normal pressure, with TXA and transfer for surgery."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
@@ -477,18 +465,6 @@
             }
           },
           {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "ให้เลือดจนความดันปกติ",
-              "en": "Blood to a normal BP"
-            },
-            "line": {
-              "th": "ตั้งเป้าความดันปกติ พร้อม TXA และส่งต่อเพื่อผ่าตัด",
-              "en": "Aims for a normal pressure, with TXA and transfer for surgery."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
@@ -566,18 +542,6 @@
             "line": {
               "th": "เพิ่มปริมาตรเร็ว พร้อม TXA และส่งต่อเพื่อผ่าตัด",
               "en": "Adds volume fast, with TXA and transfer for surgery."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "ให้เลือดจนความดันปกติ",
-              "en": "Blood to a normal BP"
-            },
-            "line": {
-              "th": "ตั้งเป้าความดันปกติ พร้อม TXA และส่งต่อเพื่อผ่าตัด",
-              "en": "Aims for a normal pressure, with TXA and transfer for surgery."
             }
           },
           {
@@ -769,7 +733,7 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "ให้ TXA 1 กรัม ใน 10 นาที",
+              "th": "ให้ TXA 1 กรัม IV ใน 10 นาที",
               "en": "TXA 1 g IV over 10 minutes"
             },
             "line": {
@@ -872,7 +836,7 @@
               "en": "Referral letter with results so far"
             },
             "line": {
-              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างแจ้งตามทีหลัง",
+              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
               "en": "The receiving team gets the story; pending results follow by phone."
             }
           },
@@ -945,7 +909,7 @@
               "en": "Referral letter with results so far"
             },
             "line": {
-              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างแจ้งตามทีหลัง",
+              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
               "en": "The receiving team gets the story; pending results follow by phone."
             }
           },
@@ -1018,7 +982,7 @@
               "en": "Referral letter with results so far"
             },
             "line": {
-              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างแจ้งตามทีหลัง",
+              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
               "en": "The receiving team gets the story; pending results follow by phone."
             }
           },

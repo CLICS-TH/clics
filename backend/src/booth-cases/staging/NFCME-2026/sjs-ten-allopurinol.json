@@ -742,7 +742,7 @@
             },
             "line": {
               "th": "สารน้ำทางหลอดเลือดทดแทนน้ำที่ดื่มเองได้น้อย",
-              "en": "Fluids by vein make up for what he is unable to drink."
+              "en": "Fluids by vein make up for how little he can drink."
             }
           },
           {
@@ -820,7 +820,7 @@
           },
           {
             "id": "c",
-            "tier": "reasonable",
+            "tier": "weaker",
             "label": {
               "th": "ให้สารน้ำปรับตามปัสสาวะ",
               "en": "Fluids titrated to urine output"
@@ -832,7 +832,7 @@
           },
           {
             "id": "d",
-            "tier": "weaker",
+            "tier": "reasonable",
             "label": {
               "th": "ให้น้ำเกลือ bolus ร่วมกับอัลบูมิน",
               "en": "Saline bolus plus albumin"
