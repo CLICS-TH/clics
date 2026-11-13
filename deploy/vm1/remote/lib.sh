@@ -117,13 +117,13 @@ check_model_block() {
 AUTH_GOTRUE_REQUIRED="GOTRUE_JWT_SECRET GOTRUE_DB_DATABASE_URL GOTRUE_SMTP_PASS GOTRUE_EXTERNAL_GOOGLE_SECRET API_EXTERNAL_URL GOTRUE_JWT_EXP GOTRUE_SITE_URL GOTRUE_URI_ALLOW_LIST GOTRUE_SMTP_HOST GOTRUE_SMTP_PORT GOTRUE_SMTP_USER GOTRUE_SMTP_ADMIN_EMAIL GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI"
 AUTH_POSTGREST_REQUIRED="PGRST_JWT_SECRET PGRST_DB_URI"
 auth_value_sha() { grep -E "^$2=" "$1" | sed "s/^$2=//" | sha256sum; }
-check_auth_env() { # [required]
+check_auth_env() {
   local f n g=$BASE/env/gotrue.env p=$BASE/env/postgrest.env
   for f in backend.env rimpl.env; do
     n=$(grep -oE '^[[:space:]]*(export[[:space:]]+)?(GOTRUE_[A-Z0-9_]*|PGRST_[A-Z0-9_]*|API_EXTERNAL_URL)[[:space:]]*=' "$BASE/env/$f" | head -n 1 | sed -E 's/^[[:space:]]*(export[[:space:]]+)?//; s/[[:space:]]*=$//' || true)
     [ -z "$n" ] || die "$f sets $n, a self-hosted sign-in name: it belongs in gotrue.env or postgrest.env only (R6). Delete it from $f. Nothing was changed."
   done
-  if [ ! -e "$g" ] && [ ! -e "$p" ] && [ "${1:-}" != required ]; then
+  if [ ! -e "$g" ] && [ ! -e "$p" ]; then
     log "self-hosted sign-in not configured on this host (no gotrue.env or postgrest.env); this deploy starts the backend and rimpl only"
     return 0
   fi
