@@ -15,7 +15,7 @@
  * fails to load, and on any request to a Google font host.
  *
  * Run: node scripts/responsive/responsive-smoke.mjs   (from repo root)
- * Override the dashboard target (optional, e.g. against a running dev server):  DASH_URL=http://localhost:3002/login
+ * Override the dashboard target (optional, e.g. against a running dev server):  DASH_URL=http://localhost:3002/audit/login
  */
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';

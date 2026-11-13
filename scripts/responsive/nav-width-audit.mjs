@@ -31,7 +31,7 @@
  * audit-dashboard/lib/client-store.ts, so the samples move when the constants do. A mis-calibration
  * is invisible anywhere except the band between "the model says inline" and "the row actually fits".
  *
- * Needs a BUILT dashboard on DASH_URL (default http://127.0.0.1:3002):
+ * Needs a BUILT dashboard on DASH_URL (default http://127.0.0.1:3002/audit, the base path included):
  *     cd audit-dashboard && npm run build && npx next start -p 3002
  *     node scripts/responsive/nav-width-audit.mjs
  *
@@ -50,7 +50,7 @@
 import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
-const DASH = process.env.DASH_URL || 'http://127.0.0.1:3002';
+const DASH = process.env.DASH_URL || 'http://127.0.0.1:3002/audit';
 const PATH = process.env.NAV_AUDIT_PATH || '/admin/integrity';
 const CALIBRATE = process.argv.includes('--calibrate');
 const API = ['http://localhost:3001', 'http://127.0.0.1:3001'];

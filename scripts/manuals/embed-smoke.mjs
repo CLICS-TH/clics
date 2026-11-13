@@ -9,7 +9,7 @@
  * every measurement we have.
  *
  *   node scripts/manuals/embed-smoke.mjs                         # portal only, hermetic
- *   DASH_URL=http://localhost:3111 node scripts/manuals/embed-smoke.mjs   # + the dashboard
+ *   DASH_URL=http://localhost:3111/audit node scripts/manuals/embed-smoke.mjs   # + the dashboard
  *
  * The dashboard half needs a running Next dev server, which is why this is NOT in the `manuals` CI
  * job (that one is deliberately hermetic and browserless). Run it before shipping a manual change.

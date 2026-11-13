@@ -238,7 +238,7 @@ jobs:
         run: npm run lint
         working-directory: audit-dashboard
 
-  # vm1 (Topology B, docs/adr/0002-vm1-topology-b.md): the compose project, both images, the nginx site
+  # vm1 (Topology B, docs/adr/0002-vm1-topology-b.md): the compose project, all four images, the nginx site
   # and deploy.sh. Nobody has Docker on the Mac these are written on, so THIS is where the images are
   # proven to build and the hardened containers (read-only, non-root, no capabilities) proven to boot.
   # Hermetic: the env files are dummies generated from the committed examples, every host in them is
@@ -280,11 +280,11 @@ jobs:
           bash -n deploy/vm1/rehearsal/run.sh
           shellcheck deploy/vm1/rehearsal/run.sh
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
-      - name: Guard tests (loopback-only backend, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
-        run: node --test scripts/deploy/*.test.mjs
+      - name: Guard tests (loopback-only ports, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
+        run: node --test scripts/deploy/*.test.mjs scripts/dev/*.test.mjs
       - name: Compose renders
         run: docker compose config -q
-      - name: Build both images
+      - name: Build the four images
         run: docker compose build
       - name: Boot the hardened containers
         run: docker compose up -d --wait --wait-timeout 120
@@ -293,6 +293,11 @@ jobs:
           set -euo pipefail
           curl -fsS --max-time 5 http://127.0.0.1:3101/health
           [ "$(docker compose port backend 3001)" = "127.0.0.1:3101" ]
+          # The front ends (#429): the Portal's sign-in and the dashboard's under its /audit base path.
+          curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:3103/login
+          curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:3104/audit/login
+          [ "$(docker compose port portal 8080)" = "127.0.0.1:3103" ]
+          [ "$(docker compose port dashboard 3000)" = "127.0.0.1:3104" ]
           # rimpl must have NO host binding. Not `docker compose port`: for a port the image EXPOSEs but
           # compose does not publish, it prints ":0", which looks like output. Read the bindings instead.
           rimpl_id="$(docker compose ps -q rimpl)"
@@ -300,13 +305,14 @@ jobs:
           [ -z "$bound" ] || { echo "::error::rimpl publishes host ports: $bound"; exit 1; }
           [ "$(docker inspect -f '{{len .HostConfig.PortBindings}}' "$rimpl_id")" = 0 ] \
             || { echo "::error::rimpl has port bindings"; exit 1; }
-          [ "$(docker compose exec -T backend id -u)" = 10001 ]
-          [ "$(docker compose exec -T rimpl id -u)" = 10001 ]
-          # Read-only root filesystem, both services. Docker's own flag first. Then a write that only a
-          # read-only root can refuse: /var/tmp is world-writable (1777) in both images, so the non-root
+          for svc in backend rimpl portal dashboard; do
+            [ "$(docker compose exec -T "$svc" id -u)" = 10001 ] || { echo "::error::$svc does not run as uid 10001"; exit 1; }
+          done
+          # Read-only root filesystem, every service. Docker's own flag first. Then a write that only a
+          # read-only root can refuse: /var/tmp is world-writable (1777) in every image, so the non-root
           # uid could write it on a writable root. (/app would refuse on permissions alone, proving
           # nothing.) The same write to the tmpfs /tmp must succeed, which proves the probe itself works.
-          for svc in backend rimpl; do
+          for svc in backend rimpl portal dashboard; do
             [ "$(docker inspect -f '{{.HostConfig.ReadonlyRootfs}}' "$(docker compose ps -q "$svc")")" = true ] \
               || { echo "::error::$svc does not run with a read-only root filesystem"; exit 1; }
             docker compose exec -T "$svc" sh -c 'touch /tmp/probe' || { echo "::error::$svc cannot write its tmpfs /tmp"; exit 1; }
@@ -402,8 +408,9 @@ jobs:
       # fetch. NavBar returns null signed-out and the page carries its own back link, so it renders
       # in full with zero secrets. `next build`, not `next dev`: dev CSS is not what ships, and the
       # gate navigates with waitUntil:'networkidle', which a dev server's HMR socket never settles.
-      # The URLs are the portal-browser harness's stub backend and static portal, both loopback, so
-      # no CI build can ever point a rendered page at prod; /manual never calls either.
+      # The API URL is the portal-browser harness's loopback stub backend, and the harness serves the
+      # Portal and proxies /audit to this server, so no CI build can ever point a rendered page at prod;
+      # /manual never calls either.
       - name: Install dashboard deps
         run: npm ci
         working-directory: audit-dashboard
@@ -413,7 +420,6 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_API_URL: http://localhost:3001
-          NEXT_PUBLIC_PORTAL_URL: http://localhost:3000
       - name: Serve the dashboard on :3002
         working-directory: audit-dashboard
         run: |
@@ -425,11 +431,11 @@ jobs:
       # Readiness, not a sleep: poll /manual and require the manual's own markup in the body, so a 200
       # error shell cannot satisfy it, then /login, the page the portal-browser harness opens first.
       # Bails the moment the server dies instead of burning the whole budget, and prints the server log.
-      - name: Wait for the dashboard (/manual and /login)
+      - name: Wait for the dashboard (/audit/manual and /audit/login)
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS --max-time 5 http://127.0.0.1:3002/manual | grep -q 'data-role="body"' \
-              && curl -fsS --max-time 5 -o /dev/null http://localhost:3002/login; then
+            if curl -fsS --max-time 5 http://127.0.0.1:3002/audit/manual | grep -q 'data-role="body"' \
+              && curl -fsS --max-time 5 -o /dev/null http://localhost:3002/audit/login; then
               echo "dashboard ready after ${i}s"
               exit 0
             fi
@@ -453,7 +459,7 @@ jobs:
       - name: manuals — Type-scale hierarchy across viewports (portal + dashboard)
         if: ${{ !cancelled() && env.RUN_MANUALS == 'true' }}
         env:
-          DASH_URL: http://127.0.0.1:3002
+          DASH_URL: http://127.0.0.1:3002/audit
           REQUIRE_DASH: '1'
         run: npm run test:manuals-scale
       # !cancelled(): a failing manuals check above still lets this one run, as the separate jobs did.

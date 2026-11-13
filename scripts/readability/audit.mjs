@@ -57,7 +57,7 @@
  * READABILITY_ONLY=/reset,/admin/flagged narrows a run while iterating; the full run is the gate.
  *
  * Run:  node scripts/readability/audit.mjs
- *       DASH_URL=http://localhost:3002 node scripts/readability/audit.mjs   (adds the dashboard)
+ *       DASH_URL=http://localhost:3002/audit node scripts/readability/audit.mjs   (adds the dashboard)
  *
  * Backend calls are answered from scripts/readability/fixtures.mjs — deliberately long Thai
  * content, never real data. Without it the dashboard renders its empty state and the audit

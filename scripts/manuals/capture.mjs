@@ -22,7 +22,7 @@
  *    script's warn-and-continue is what let the manual ship stale.
  *
  *   node scripts/manuals/capture.mjs                       # portal frames
- *   DASH_URL=http://127.0.0.1:3002 node scripts/manuals/capture.mjs   # + auditor frames
+ *   DASH_URL=http://127.0.0.1:3002/audit node scripts/manuals/capture.mjs   # + auditor frames
  *   node scripts/manuals/capture.mjs --check               # verify committed frames, write nothing
  *   node scripts/manuals/capture.mjs --set landing         # only the landing set (or --set manual)
  *
