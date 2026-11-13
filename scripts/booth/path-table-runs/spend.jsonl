@@ -1,2 +1,2 @@
-{"build":"NFCME-2026","run_id":"ptb-202611040711-lost","kind":"charge","usd":15.26,"note":"The first --go run: 891 samples scored, then stopped on the table-scale bug (760b9c4c) before its samples were saved. Spend summed from its log."}
-{"build":"NFCME-2026","run_id":"ptb-202611040911-a71a","kind":"charge","usd":15.23}
+{"build":"NFCME-2026","run_id":"ptb-202611040711-lost","kind":"charge","usd":15.26,"date":"2026-11-04","note":"The first --go run: 891 samples scored, then stopped on the table-scale bug (760b9c4c) before its samples were saved. Spend summed from its log."}
+{"build":"NFCME-2026","run_id":"ptb-202611040911-a71a","kind":"charge","usd":15.23,"date":"2026-11-04"}

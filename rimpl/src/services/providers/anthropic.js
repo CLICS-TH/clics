@@ -245,4 +245,4 @@ function servingCheck() {
   };
 }
 
-module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, EVAL_LATE_RETRY_MS, isRetryable, shouldRetry };
+module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, MAX_RETRIES, EVAL_LATE_RETRY_MS, isRetryable, shouldRetry };

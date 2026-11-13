@@ -8,13 +8,16 @@ const { spawn, spawnSync } = require('child_process');
 const { isValidAsk, evaluateRequest, bankKey } = require('../src/services/booth-dialogue');
 const { treeSha } = require('../src/booth-cases/tree-sha');
 const { sampleWalk, replyProblems, jobsFor, lockProblems } = require('../../scripts/booth/path-table-sample');
-const { PATHS, PATHS_BY_STEPS } = require('../../scripts/booth/sandbox-play');
+const { PATHS, PATHS_BY_STEPS, worstCall } = require('../../scripts/booth/sandbox-play');
+const { costUsd } = require('../src/lib/pricing');
 const MANIFEST = require('../../rimpl/src/model-manifest.json').expected.code;
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const KASE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8'));
 const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const RUNNER = path.join(__dirname, '..', '..', 'scripts', 'booth', 'build-path-tables.mjs');
+const LEDGER_TOOL = path.join(__dirname, '..', '..', 'scripts', 'booth', 'spend-ledger.mjs');
+const RESERVER = path.join(__dirname, 'fixtures', 'spend-reserver.mjs');
 const tierPaths = (length) => (length ? ['B', 'R', 'W'].flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)) : ['']);
 
 const bankFor = (prefix) => [KASE.banks.step1, KASE.banks.step2[prefix], KASE.banks.step3[prefix]][prefix.length];
@@ -162,21 +165,74 @@ describe('the locked evaluator', () => {
 });
 
 describe('the build runner', () => {
-  const run = (args) => spawnSync(process.execPath, [RUNNER, ...args], { encoding: 'utf8', env: { PATH: process.env.PATH } });
-
-  test('refuses --samples 2: a median needs an odd count', () => {
-    expect(run(['--samples', '2']).status).toBe(2);
-  });
-
   const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'ptb-'));
-  const runAsync = (args, env = {}) => new Promise((resolve) => {
-    const child = spawn(process.execPath, [RUNNER, ...args], { env: { PATH: process.env.PATH, ...env } });
+  // Every run gets a HOME of its own, so no test reads or writes this machine's spend ledger.
+  const envOf = (env) => ({ PATH: process.env.PATH, HOME: tmp(), ...env });
+  const run = (args, env = {}) => spawnSync(process.execPath, [RUNNER, ...args], { encoding: 'utf8', env: envOf(env) });
+
+  // The scripts a run loads from scripts/booth, and this repo's committed spend record, which no test may write.
+  const RUNNER_FILES = ['build-path-tables.mjs', 'spend-ledger.mjs', 'path-table.mjs', 'path-fit.mjs', 'sandbox-verdict.mjs',
+    'path-table-sample.js', 'sandbox-play.js'];
+  const RECORD = path.join(path.dirname(RUNNER), 'path-table-runs', 'spend.jsonl');
+  const recordAtStart = fs.readFileSync(RECORD, 'utf8');
+  afterAll(() => expect(fs.readFileSync(RECORD, 'utf8')).toBe(recordAtStart));
+  /** A throwaway checkout of the runner, committed in a git repo of its own: its scripts copied, backend and rimpl
+   *  linked, and `record` as its committed spend record. A --go run writes that record, never this repo's. */
+  function checkout(record = recordAtStart) {
+    // Its real path: spend-ledger.mjs runs init only when argv[1] is its own resolved path.
+    const root = fs.realpathSync(tmp());
+    const booth = path.join(root, 'scripts', 'booth');
+    fs.mkdirSync(path.join(booth, 'path-table-runs'), { recursive: true });
+    for (const f of RUNNER_FILES) fs.copyFileSync(path.join(path.dirname(RUNNER), f), path.join(booth, f));
+    for (const layer of ['backend', 'rimpl']) fs.symlinkSync(path.join(__dirname, '..', '..', layer), path.join(root, layer));
+    fs.writeFileSync(path.join(booth, 'path-table-runs', 'spend.jsonl'), record);
+    const git = (...args) => spawnSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { cwd: root, encoding: 'utf8' });
+    git('init', '-q');
+    git('add', '.');
+    git('commit', '-qm', 'checkout');
+    return { git, runner: path.join(booth, 'build-path-tables.mjs'), ledgerTool: path.join(booth, 'spend-ledger.mjs'),
+      record: path.join(booth, 'path-table-runs', 'spend.jsonl') };
+  }
+  let shared;
+  // The checkout every other --go run uses: its record collects their open and charge lines.
+  const sharedRunner = () => { shared ??= checkout(); return shared.runner; };
+  const initIn = (co, home) => spawnSync(process.execPath, [co.ledgerTool, 'init'], { encoding: 'utf8', env: { PATH: process.env.PATH, HOME: home } });
+
+  const runAsync = (args, env = {}, runner = sharedRunner()) => new Promise((resolve) => {
+    const child = spawn(process.execPath, [runner, ...args], { env: envOf(env) });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (b) => { stdout += b; });
     child.stderr.on('data', (b) => { stderr += b; });
     child.on('close', (status) => resolve({ status, stdout, stderr }));
   });
+
+  test.each([
+    ['--cap', '25.01', /--cap needs a number from 0\.01 to 25\b/],
+    ['--samples', '2', /--samples must be odd/],
+  ])('refuses %s %s: the cap is at most $25 and a median needs an odd count', (flag, v, why) => {
+    const res = run([flag, v]);
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(why);
+  });
+
+  const ledgerFile = (home) => path.join(home, '.clics', 'booth-spend', 'ledger.jsonl');
+  const INIT = { kind: 'init', at: '2026-11-13T00:00:00.000Z', seeded_from: 'test' };
+  /** A HOME whose spend ledger holds `lines` after its init line. */
+  const homeWith = (...lines) => {
+    const home = tmp();
+    fs.mkdirSync(path.dirname(ledgerFile(home)), { recursive: true });
+    fs.writeFileSync(ledgerFile(home), [INIT, ...lines].map((l) => `${JSON.stringify(l)}\n`).join(''));
+    return home;
+  };
+  const ledgerOf = (home) => (fs.existsSync(ledgerFile(home))
+    ? fs.readFileSync(ledgerFile(home), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)) : []);
+  // Spend as the cap counts it: each charge, and each reservation at its settled cost or, never settled, its worst case.
+  const spentIn = (lines) => {
+    const settled = new Map(lines.filter((l) => l.kind === 'settle').map((l) => [l.id, l.usd]));
+    return lines.reduce((acc, l) => acc + (l.kind === 'charge' ? l.usd : l.kind === 'reserve' ? (settled.get(l.id) ?? l.usd) : 0), 0);
+  };
+  const goEnv = (home, rimpl) => ({ HOME: home, INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url });
 
   /** A throwaway build: fixture cases under a fresh event code, committed in their own git repo (a safety review then
    *  reads the committed tree), with their sample replies. Nothing it writes is a tracked file of this repo. */
@@ -196,33 +252,266 @@ describe('the build runner', () => {
     return { build, dir, args: ['--cases', dir, '--replies', replies, '--out', tmp()] };
   }
 
-  /** A stub rimpl that records every request and answers each with a 500. */
-  async function stubRimpl() {
-    const calls = [];
-    const server = http.createServer((req, res) => {
-      calls.push(`${req.method} ${req.url}`);
+  /** A stub rimpl that records every request. GET /manifest answers `manifest` (default: `retries` provider retries,
+   *  200); POST /evaluate answers `answer` after `delayMs`, or never when it is null. `billed` is what the answered
+   *  calls cost at their reported tokens. */
+  async function stubRimpl({ retries = 0, answer = null, delayMs = 0, manifest } = {}) {
+    const stub = { calls: [], billed: 0 };
+    stub.server = http.createServer((req, res) => {
+      stub.calls.push(`${req.method} ${req.url}`);
       req.resume();
-      req.on('end', () => { res.statusCode = 500; res.end('{}'); });
+      req.on('end', () => {
+        res.setHeader('content-type', 'application/json');
+        if (req.url === '/manifest') {
+          const { status = 200, body = { provider_retries: { anthropic: retries } } } = manifest ?? {};
+          res.statusCode = status;
+          res.end(JSON.stringify(body));
+        } else if (answer) {
+          setTimeout(() => {
+            stub.billed += costUsd(answer.input_tokens, answer.output_tokens, answer.provider);
+            res.end(JSON.stringify(answer));
+          }, delayMs);
+        }
+      });
     });
-    await new Promise((r) => server.listen(0, '127.0.0.1', r));
-    return { calls, server, url: `http://127.0.0.1:${server.address().port}` };
+    await new Promise((r) => stub.server.listen(0, '127.0.0.1', r));
+    stub.url = `http://127.0.0.1:${stub.server.address().port}`;
+    stub.close = () => { stub.server.closeAllConnections(); stub.server.close(); };
+    return stub;
   }
 
-  test.each([
-    ['--go', []],
-    ['--go after the other flags', ['--samples', '3']],
-    ['--go with --from', ['--from', '/nonexistent.samples.jsonl']],
-  ])('%s sends no request to rimpl and is refused, naming #408', async (_name, extra) => {
+  /** Starts a --go run, waits for its first evaluate request and kills the run there, mid-call. */
+  async function killMidCall(args, home, rimpl, runner = sharedRunner()) {
+    const child = spawn(process.execPath, [runner, '--go', ...args], { env: envOf(goEnv(home, rimpl)) });
+    const exited = new Promise((r) => child.on('close', r));
+    for (let i = 0; i < 400 && !rimpl.calls.includes('POST /evaluate'); i += 1) await new Promise((r) => setTimeout(r, 25));
+    child.kill('SIGKILL');
+    await exited;
+  }
+
+  test('two runs at once share one cap: what rimpl billed them together, and the ledger, stay within it', async () => {
+    const home = homeWith();
     const { args } = throwawayBuild();
-    const rimpl = await stubRimpl();
+    // Each call bills $0.30 of its $0.33 worst case, so a $1.15 cap holds three.
+    const rimpl = await stubRimpl({ answer: locked({ input_tokens: 60_000, output_tokens: 8000 }), delayMs: 30 });
+    const cap = 1.15;
     try {
-      const res = await runAsync([...args, ...extra, '--go'], { INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url });
+      const [a, b] = await Promise.all([
+        runAsync([...args, '--go', '--cap', String(cap)], goEnv(home, rimpl)),
+        runAsync([...args, '--go', '--cap', String(cap), '--out', tmp()], goEnv(home, rimpl)),
+      ]);
+      expect(rimpl.billed).toBeLessThanOrEqual(cap);
+      expect(spentIn(ledgerOf(home))).toBeLessThanOrEqual(cap);
+      expect(rimpl.billed).toBeGreaterThan(cap / 2);
+      expect([a.status, b.status]).not.toContain(0);
+    } finally {
+      rimpl.close();
+    }
+  }, 30_000);
+
+  test('eight processes reserving at once against one ledger are granted exactly what the cap holds, never more', async () => {
+    const home = homeWith();
+    const start = path.join(tmp(), 'start');
+    const [usd, k, procs] = [1, 12, 8];
+    const children = Array.from({ length: procs }, () => {
+      const child = spawn(process.execPath, [RESERVER, LEDGER_TOOL, start, String(usd), String(k * usd), String(2 * k)],
+        { env: { PATH: process.env.PATH, HOME: home } });
+      let out = '';
+      let err = '';
+      child.stderr.on('data', (b) => { err += b; });
+      const ready = new Promise((r) => { child.stdout.on('data', (b) => { out += b; if (out.includes('ready\n')) r(); }); child.on('close', r); });
+      const done = new Promise((r) => child.on('close', (status) => r({ status, out, err })));
+      return { ready, done };
+    });
+    await Promise.all(children.map((c) => c.ready));
+    fs.writeFileSync(start, '');
+    const results = await Promise.all(children.map((c) => c.done));
+    expect(results.map((r) => [r.status, r.err])).toEqual(results.map(() => [0, '']));
+    const granted = results.flatMap((r) => JSON.parse(r.out.split('\n')[1]));
+    const reserved = ledgerOf(home).filter((l) => l.kind === 'reserve').map((l) => l.id);
+    expect(granted).toHaveLength(k);
+    expect(reserved.sort()).toEqual([...granted].sort());
+    expect(spentIn(ledgerOf(home))).toBeLessThanOrEqual(k * usd);
+  }, 30_000);
+
+  test('--go with no spend ledger in HOME is refused before any request, naming where the ledger should be', async () => {
+    const home = tmp();
+    const { args } = throwawayBuild();
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      const res = await runAsync([...args, '--go'], goEnv(home, rimpl));
       expect(rimpl.calls).toEqual([]);
       expect(res.status).toBe(2);
-      expect(res.stderr).toMatch(/Live table builds are off until #408/);
+      expect(res.stderr).toContain(`${ledgerFile(home)} does not exist`);
     } finally {
-      rimpl.server.close();
+      rimpl.close();
     }
+  });
+
+  test('a copy of a build under another event code sees its spend: once one has used the cap, the other gets no call', async () => {
+    const home = homeWith();
+    const [first, copy] = [throwawayBuild(), throwawayBuild()];
+    // Each call settles at $0.18, so one at a time a $1 cap stops the first build after four, at $0.72.
+    const rimpl = await stubRimpl({ answer: locked({ input_tokens: 40_000, output_tokens: 4000 }) });
+    try {
+      expect((await runAsync([...first.args, '--go', '--cap', '1', '--concurrency', '1'], goEnv(home, rimpl))).status).toBe(1);
+      const before = rimpl.calls.length;
+      const res = await runAsync([...copy.args, '--go', '--cap', '1'], goEnv(home, rimpl));
+      expect(rimpl.calls.length).toBe(before);
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/no room for a call's worst case/);
+    } finally {
+      rimpl.close();
+    }
+  });
+
+  test('the ledger is in HOME, not the checkout: a call reserved by a run killed in one case repo counts for a run from another', async () => {
+    const home = homeWith();
+    const [one, other] = [throwawayBuild(), throwawayBuild()];
+    const hung = await stubRimpl({ retries: 2 });
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      await killMidCall(one.args, home, hung);
+      // The killed call holds 3 × $0.33, so a $1.20 cap has no room for another $0.33.
+      const res = await runAsync([...other.args, '--go', '--cap', '1.2'], goEnv(home, rimpl));
+      expect(rimpl.calls).toEqual([]);
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/have spent \$0\.99 of the \$1\.2 cap/);
+    } finally {
+      hung.close();
+      rimpl.close();
+    }
+  }, 20_000);
+
+  test.each([
+    ['no bytes at all', '', /is empty/],
+    ['a first line that is not init', `${JSON.stringify({ kind: 'charge', run_id: 'r', usd: 1 })}\n`, /does not start with an init line/],
+    ['a line that does not parse', `${JSON.stringify(INIT)}\n{"kind":"charge",\n`, /line 2 is not JSON/],
+    ['a line of an unknown kind', `${JSON.stringify(INIT)}\n${JSON.stringify({ kind: 'refund', run_id: 'r', usd: 5 })}\n`, /line 2 is not an init, charge, reserve or settle line/],
+  ])('a ledger with %s refuses --go before any request', async (_name, text, why) => {
+    const home = homeWith();
+    fs.writeFileSync(ledgerFile(home), text);
+    const { args } = throwawayBuild();
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      const res = await runAsync([...args, '--go'], goEnv(home, rimpl));
+      expect(rimpl.calls).toEqual([]);
+      expect(res.status).toBe(2);
+      expect(res.stderr).toContain(ledgerFile(home));
+      expect(res.stderr).toMatch(why);
+    } finally {
+      rimpl.close();
+    }
+  });
+
+  test('a run killed mid-call leaves that call reserved at its worst case, from the retries rimpl reports', async () => {
+    const home = homeWith();
+    const { args } = throwawayBuild();
+    const rimpl = await stubRimpl({ retries: 2 });
+    try {
+      await killMidCall(args, home, rimpl);
+      expect(rimpl.calls).toEqual(['GET /manifest', 'POST /evaluate']);
+      expect(ledgerOf(home).slice(1).map(({ kind, usd }) => ({ kind, usd }))).toEqual([{ kind: 'reserve', usd: expect.closeTo(3 * worstCall('evaluate'), 6) }]);
+    } finally {
+      rimpl.close();
+    }
+  }, 20_000);
+
+  test('a probe scored by any model but the locked evaluator stops the build after that one call, settled and charged, and writes no table', async () => {
+    const home = homeWith();
+    const { dir, args } = throwawayBuild();
+    const out = args[args.indexOf('--out') + 1];
+    const rimpl = await stubRimpl({ answer: locked({ provenance: { ...locked().provenance, model: 'claude-opus-5-5' } }) });
+    const caseFile = path.join(dir, `${KASE.case_id}.json`);
+    const before = fs.readFileSync(caseFile, 'utf8');
+    try {
+      const res = await runAsync(['--go', ...args], goEnv(home, rimpl));
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/the probe was not scored by the locked evaluator: model claude-opus-5-5/);
+      expect(rimpl.calls).toEqual(['GET /manifest', 'POST /evaluate']);
+      expect(ledgerOf(home).slice(1).map((l) => l.kind)).toEqual(['reserve', 'settle']);
+      const record = fs.readFileSync(path.join(out, 'spend.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+      expect(record).toEqual([{ kind: 'charge', run_id: expect.stringMatching(/^ptb-/), usd: expect.closeTo(rimpl.billed, 6),
+        date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), build: expect.stringMatching(/^TST-/) }]);
+    } finally {
+      rimpl.close();
+      expect(fs.readFileSync(caseFile, 'utf8')).toBe(before);
+    }
+  });
+
+  test('a /manifest that is not a 200 is refused even when it reports provider_retries, before any evaluate call', async () => {
+    const { args } = throwawayBuild();
+    const rimpl = await stubRimpl({ answer: locked(), manifest: { status: 500, body: { provider_retries: { anthropic: 0 } } } });
+    try {
+      const res = await runAsync([...args, '--go'], goEnv(homeWith(), rimpl));
+      expect(rimpl.calls).toEqual(['GET /manifest']);
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/GET \/manifest answered 500/);
+    } finally {
+      rimpl.close();
+    }
+  });
+
+  test('init seeds the ledger with the committed record\'s $30.49, refuses to run twice, and so refuses every --go at the $25 cap', async () => {
+    const home = tmp();
+    const co = checkout();
+    const init = () => initIn(co, home);
+    expect(init().status).toBe(0);
+    expect(fs.existsSync(ledgerFile(home))).toBe(true);
+    const seeded = fs.readFileSync(ledgerFile(home), 'utf8');
+    expect(ledgerOf(home)[0]).toMatchObject({ kind: 'init', seeded_from: 'scripts/booth/path-table-runs/spend.jsonl' });
+    expect(spentIn(ledgerOf(home))).toBeCloseTo(30.49, 6);
+    const again = init();
+    expect(again.status).toBe(2);
+    expect(again.stderr).toMatch(/already exists/);
+    expect(fs.readFileSync(ledgerFile(home), 'utf8')).toBe(seeded);
+    expect(fs.readdirSync(path.dirname(ledgerFile(home)))).toEqual(['ledger.jsonl']);
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      const res = await runAsync([...throwawayBuild().args, '--go'], goEnv(home, rimpl));
+      expect(rimpl.calls).toEqual([]);
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/have spent \$30\.49 of the \$25 cap/);
+    } finally {
+      rimpl.close();
+    }
+  });
+
+  test('a fresh init over the committed record seeds at least what runs killed mid-call or sent to another --out spent', async () => {
+    const co = checkout(`${JSON.stringify({ kind: 'charge', run_id: 'ptb-earlier', usd: 1, date: '2026-11-01', build: 'TST' })}\n`);
+    const homeA = tmp();
+    expect(initIn(co, homeA).status).toBe(0);
+    const rimpl = await stubRimpl({ answer: locked() });
+    const hung = await stubRimpl({ retries: 2 });
+    try {
+      // Each throwaway build writes to an --out of its own, never the checkout's record folder.
+      await runAsync([...throwawayBuild().args, '--go', '--cap', '5'], goEnv(homeA, rimpl), co.runner);
+      expect(rimpl.calls).toContain('POST /evaluate');
+      await killMidCall([...throwawayBuild().args, '--cap', '5'], homeA, hung, co.runner);
+      expect(hung.calls).toEqual(['GET /manifest', 'POST /evaluate']);
+    } finally {
+      rimpl.close();
+      hung.close();
+    }
+    // The operator commits the record, then a new machine (a fresh HOME) inits from it.
+    co.git('commit', '-qam', 'record', '--allow-empty');
+    const homeB = tmp();
+    const res = initIn(co, homeB);
+    expect(res.stderr).toBe('');
+    expect(spentIn(ledgerOf(homeB))).toBeGreaterThanOrEqual(spentIn(ledgerOf(homeA)));
+  }, 60_000);
+
+  test.each([
+    ['truncated to its first run', (raw) => `${raw.split('\n')[0]}\n`],
+    ['with a charge edited down', (raw) => raw.replace('"usd":15.23', '"usd":0.23')],
+  ])('init refuses a working-tree record %s, since only the record at HEAD proves the spend, and creates no ledger', (_name, edit) => {
+    const co = checkout();
+    fs.writeFileSync(co.record, edit(fs.readFileSync(co.record, 'utf8')));
+    const home = tmp();
+    const res = initIn(co, home);
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(/differs from the record committed at HEAD/);
+    expect(fs.existsSync(ledgerFile(home))).toBe(false);
   });
 
   test('--from still builds a table from a saved run, spending nothing, into the throwaway case only', async () => {
@@ -234,9 +523,9 @@ describe('the build runner', () => {
     const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
       tree_sha256: treeSha(kase), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0.017, ...scored(locked()) }));
     fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
-    const rimpl = await stubRimpl();
+    const rimpl = await stubRimpl({ answer: locked() });
     try {
-      const res = await runAsync([...args, '--from', file], { INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url });
+      const res = await runAsync([...args, '--from', file], goEnv(tmp(), rimpl));
       expect(rimpl.calls).toEqual([]);
       expect([0, 1]).toContain(res.status);
       const built = JSON.parse(fs.readFileSync(caseFile, 'utf8'));
@@ -244,7 +533,7 @@ describe('the build runner', () => {
       expect(built.path_score_table.provenance).toMatchObject({ run_id: 'ptb-saved', tree_sha256: treeSha(kase) });
       expect(built.path_score_table.paths.BBB).toEqual(DOMAINS);
     } finally {
-      rimpl.server.close();
+      rimpl.close();
     }
   });
 
@@ -303,7 +592,7 @@ describe('the build runner', () => {
     const header = { run_id: 'ptb-over', date: '2026-11-09', build: 'NFCME-2026', cap_usd: 25, prior_usd: 24, samples: 3 };
     const sample = { case_id: 'adhf', tier_path_planned: 'BBB', sample: 1, tier_path: 'BBB', domains: DOMAINS, composite: 60, usd: 2, ...locked() };
     fs.writeFileSync(file, `${[header, sample].map((x) => JSON.stringify(x)).join('\n')}\n`);
-    const res = spawnSync(process.execPath, [RUNNER, '--case', 'adhf', '--from', file, '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH } });
+    const res = run(['--case', 'adhf', '--from', file, '--out', out]);
     expect(res.status).toBe(2);
     expect(res.stderr).toMatch(/went over its cap: \$24\.00 before it and \$2\.00 in it, over \$25/);
   });
@@ -314,7 +603,7 @@ describe('the build runner', () => {
     const header = { run_id: 'ptb-old', date: '2026-11-04', build: 'NFCME-2026', cap_usd: 25, prior_usd: 0, samples: 3 };
     const sample = { case_id: 'adhf', tier_path_planned: 'BBB', sample: 1, tier_path: 'BBB', domains: DOMAINS, composite: 60, usd: 0.017, ...locked() };
     fs.writeFileSync(file, `${[header, sample].map((x) => JSON.stringify(x)).join('\n')}\n`);
-    const res = spawnSync(process.execPath, [RUNNER, '--case', 'adhf', '--from', file, '--out', out], { encoding: 'utf8', env: { PATH: process.env.PATH } });
+    const res = run(['--case', 'adhf', '--from', file, '--out', out]);
     expect(res.status).toBe(2);
     expect(res.stderr).toMatch(/1 sample\(s\) were not scored on the current tree, first adhf BBB#1 on no recorded tree/);
   });
