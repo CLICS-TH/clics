@@ -7,6 +7,7 @@ const { supabase } = require('../lib/supabase');
 const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider, PROVIDERS } = require('../services/ai');
 const { internalAuth } = require('../lib/internal-auth');
 const modelManifest = require('../services/manifest');
+const { localOnly } = require('../lib/provider-policy');
 
 const router = Router();
 
@@ -106,6 +107,9 @@ router.get('/deep', async (_req, res) => {
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'rimpl',
+    // Local-only mode (CLICS_LOCAL_ONLY, ADR 0012): `on` means every non-local provider is refused before
+    // any call, so the owner can prove the no-commercial-AI promise at any moment.
+    local_only: localOnly() ? 'on' : 'off',
     ...(warnings.length ? { warnings } : {}),
     model: summaryModel(),
     providers: activeProviders(),
@@ -126,6 +130,13 @@ router.get('/deep', async (_req, res) => {
     manifest: manifest.block,
     checks,
   });
+});
+
+// Local-only mode alone, answered from memory with no provider probe: the backend reads it before it lists or
+// switches providers, so its superadmin surface agrees with the process that actually refuses the calls
+// (ADR 0012). Open like /deep, which already reports the same field.
+router.get('/mode', (_req, res) => {
+  res.json({ local_only: localOnly() ? 'on' : 'off' });
 });
 
 // Is a provider fit to serve, asked BEFORE switching to it — so it is asked about a provider that is

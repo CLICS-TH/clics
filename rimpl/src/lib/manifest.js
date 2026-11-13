@@ -236,6 +236,14 @@ function expectedCode() {
       default: POLICY.DEFAULT_PROVIDER,
       embed_default: POLICY.DEFAULT_EMBED_PROVIDER,
       resolution: 'app_settings.ai_provider_<purpose> -> AI_PROVIDER_<PURPOSE> -> AI_PROVIDER (EMBED_PROVIDER for embed) -> default',
+      // Local-only mode (ADR 0012): the rule, never the env value (the build runs under env -i).
+      local_only: {
+        env: POLICY.LOCAL_ONLY_ENV,
+        off_values: [...POLICY.LOCAL_ONLY_OFF_VALUES],
+        allowed: Object.keys(POLICY.LOCAL_INSTANCES),
+        default: POLICY.LOCAL_ONLY_DEFAULT_PROVIDER,
+        refuses: 'every non-local provider for every purpose (shadow, embed and CHAT_FAILOVER_PROVIDER included) before any request, and every purpose while app_settings is unread since start',
+      },
       local_env_prefix: Object.fromEntries(localInstances.map(([name, { envPrefix }]) => [name, envPrefix])),
     },
   };

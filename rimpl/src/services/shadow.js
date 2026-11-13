@@ -24,6 +24,7 @@ const { scoreWithConsistency } = require('./consistency');
 const { shadowConsistencyMode, maxSumDelta } = require('../lib/consistency-config');
 const { SHADOW_DECODING, shadowMaxTokens } = require('../lib/decoding');
 const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
+const { localOnly, isLocalProvider } = require('../lib/provider-policy');
 
 // Math.max(x, parseInt('auto',10)) is NaN, not x — Math.max PROPAGATES NaN, and a NaN maxTokens
 // serialises to `"max_tokens": null` on the wire (Anthropic 400s; an OpenAI-compatible server
@@ -92,6 +93,15 @@ function shadowTarget(servedProvider) {
     if (!refusedWarned.has(name)) {
       refusedWarned.add(name);
       console.warn(`[shadow] SHADOW_EVAL_PROVIDER="${name}" cannot be a shadow evaluator — it serves only ${PROVIDER_PURPOSES[name].join(', ')} — shadow disabled`);
+    }
+    return null;
+  }
+  // Local-only mode (ADR 0012, lib/provider-policy.js): a commercial shadow evaluator is refused before
+  // any request, quietly like the rule above. callProvider refuses it too, as the backstop.
+  if (localOnly() && !isLocalProvider(name)) {
+    if (!refusedWarned.has(`local-only:${name}`)) {
+      refusedWarned.add(`local-only:${name}`);
+      console.warn(`[shadow] SHADOW_EVAL_PROVIDER="${name}" is refused by local-only mode (CLICS_LOCAL_ONLY) — shadow disabled`);
     }
     return null;
   }

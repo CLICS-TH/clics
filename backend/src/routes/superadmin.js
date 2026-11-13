@@ -16,9 +16,9 @@ const retention = require('../services/retention');
 const booth = require('../services/booth');
 const boothAudits = require('../services/booth-audits');
 const { decryptJson } = require('../lib/crypto');
-const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
+const { probeRimplProvider, probeRimplDeep, fetchRimplLocalOnly } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
-const { AI_PROVIDER_CHOICES, evaluateClass } = require('../lib/ai-providers');
+const { AI_PROVIDER_CHOICES, evaluateClass, localOnly, isLocalProvider, providerChoices } = require('../lib/ai-providers');
 const { getTextSetting, getTextSettingStrict, minAuditorsPerPle } = require('../lib/settings');
 const {
   manifestForLock, expectedFor, manifestDiff, manifestMismatch, evaluatorDigest, lockSchemaStatus, lockInForce,
@@ -622,18 +622,35 @@ const AiProviderSchema = z.object({
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
 );
 
+// Local-only mode as the superadmin switch must see it (ADR 0012): ON when this process's CLICS_LOCAL_ONLY
+// is on OR rimpl reports its own on, and ON when rimpl's cannot be read. rimpl is the process that refuses
+// the calls, so a switch that trusted only this env would offer and store commercial routes rimpl refuses;
+// unknown counts as on because offering a commercial route by guess breaks the promise and refusing one
+// costs only a retry. Never rejects.
+async function localOnlyState() {
+  const backend = localOnly();
+  let rimpl;
+  try { rimpl = await fetchRimplLocalOnly(); } catch { rimpl = 'unknown'; }
+  return { on: backend || rimpl !== 'off', sources: { backend, rimpl } };
+}
+
 // The provider switch's state. The LOCK is read strictly (services/model-lock.js lockInForce): an
 // unreadable flag used to display as "unlocked", which offered the Lock button and enabled the evaluator
 // choices on a guess. Returns { body } or { error }.
 async function readAiProviders() {
-  const [providers, lock] = await Promise.all([
+  const [providers, lock, mode] = await Promise.all([
     Promise.all(AI_PURPOSES.map(async (p) => [p, await getTextSetting(`ai_provider_${p}`, AI_PROVIDER_DEFAULT[p])])),
     lockInForce(),
+    localOnlyState(),
   ]);
   if (lock.error) return { error: lock.error };
   return { body: {
     providers: Object.fromEntries(providers),
-    choices: AI_PROVIDER_CHOICES,
+    // Commercial providers are hidden while local-only mode is on in either process (localOnlyState).
+    choices: providerChoices(mode.on),
+    local_only: mode.on,
+    // Which process holds it: { backend: bool, rimpl: 'on' | 'off' | 'unknown' }.
+    local_only_sources: mode.sources,
     evaluator_locked_at: lock.locked_at,
     // Additive: whether the lock in force has a record behind it, and whether that record is bound to
     // the evaluator digest. A flag with neither is what the retired quick lock left behind.
@@ -1187,6 +1204,21 @@ router.patch('/ai-providers', async (req, res) => {
   // --- provider change -------------------------------------------------------------------------
   const name = String(provider).trim().toLowerCase();
   const allowed = AI_PROVIDER_CHOICES[purpose];
+  // Local-only mode (ADR 0012), on in either process or unreadable in rimpl (localOnlyState): a commercial
+  // provider is refused outright, before the evaluator guard, the readiness probe and the same-provider
+  // shortcut that skips it, and no typed phrase overrides it. Switching the mode off is an env change.
+  if (allowed.includes(name) && !isLocalProvider(name)) {
+    const mode = await localOnlyState();
+    if (mode.on) {
+      const where = mode.sources.rimpl === 'unknown' && !mode.sources.backend
+        ? 'RIMPL\'s local-only mode could not be read, so it counts as on'
+        : `Local-only mode is on (CLICS_LOCAL_ONLY: backend ${mode.sources.backend ? 'on' : 'off'}, RIMPL ${mode.sources.rimpl})`;
+      return res.status(409).json({
+        error: `${where}: "${name}" is a commercial provider and cannot serve ${purpose}. Choose an on-prem model.`,
+        code: 'local_only',
+      });
+    }
+  }
   if (!allowed.includes(name)) {
     return res.status(400).json({ error: `"${name}" cannot serve ${purpose}. Valid: ${allowed.join(', ')}`, code: 'invalid_provider' });
   }
@@ -1232,6 +1264,11 @@ router.patch('/ai-providers', async (req, res) => {
       verdict = await probeRimplProvider({ name, purpose });
     } catch (e) {
       verdict = { fit: false, code: 'probe_unreachable', reason: `could not reach RIMPL to probe "${name}": ${e.message}` };
+    }
+    // rimpl's own local-only refusal (its CLICS_LOCAL_ONLY may be on while this process's is not): the
+    // provider can never serve there, so the typed override would only store a route rimpl refuses.
+    if (verdict.code === 'local_only_refused') {
+      return res.status(409).json({ error: `"${name}" is refused by RIMPL's local-only mode: ${verdict.reason}`, code: 'local_only' });
     }
     if (!verdict.fit && confirm_unfit !== CONFIRM_UNFIT) {
       return res.status(409).json({

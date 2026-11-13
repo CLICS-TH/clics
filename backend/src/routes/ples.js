@@ -658,6 +658,16 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
         code: 'transcript_limit_reached', used: contextUsed, limit: cap.limit,
       });
     }
+    // Local-only mode (ADR 0012): the on-prem tutor is down (`ai_unavailable`), or rimpl refused a
+    // non-local provider before sending anything (`local_only_refused`). Fails closed like every branch
+    // here — refunded, claim released, nothing stored, so the turn is not counted — and the Portal puts
+    // the typed text back. rimpl sends neither code while the mode is off.
+    if (err.status === 503 && (err.code === 'ai_unavailable' || err.code === 'local_only_refused')) {
+      return out().status(503).json({
+        error: 'ระบบ AI ไม่พร้อมใช้งานชั่วคราว เซสชันของคุณบันทึกไว้แล้ว / AI temporarily unavailable, your session is saved.',
+        code: 'ai_unavailable',
+      });
+    }
     // The local model's interactive lane is full: transient, retry after the server's estimate. Not a
     // fail-over — CREC082 forbids sending a research transcript to a cloud API because the box is busy.
     if (err.status === 503) {

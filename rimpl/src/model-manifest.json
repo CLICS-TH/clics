@@ -241,6 +241,22 @@
           "local": "LOCAL_AI_",
           "local-tutor": "LOCAL_TUTOR_AI_"
         },
+        "local_only": {
+          "allowed": [
+            "local",
+            "local-tutor"
+          ],
+          "default": "local",
+          "env": "CLICS_LOCAL_ONLY",
+          "off_values": [
+            "",
+            "0",
+            "false",
+            "off",
+            "no"
+          ],
+          "refuses": "every non-local provider for every purpose (shadow, embed and CHAT_FAILOVER_PROVIDER included) before any request, and every purpose while app_settings is unread since start"
+        },
         "names": [
           "anthropic",
           "local",
@@ -349,5 +365,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "e2adc1bc028c9873eae65b6ab15e54ebc700a7f9fac215699f5b0bba98050f26"
+  "sha256": "0b7d1d2c8ffe190b6bd91a91c418eeb223aedbeaa9ab5f67ff73c1b072908a42"
 }
