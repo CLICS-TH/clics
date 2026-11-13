@@ -27,10 +27,10 @@ vm1               ^(deploy/|scripts/deploy/|backend/|rimpl/)
 manifest          ^(scripts/manifest/|rimpl/src/)
 pg                ^(scripts/db/|db/)
 calibration       ^(scripts/calibration/|rimpl/src/|backend/src/services/)
-manuals           ^(scripts/manuals/|docs/manuals/|physician-ui/public/|audit-dashboard/|rimpl/src/)
+manuals           ^(scripts/manuals/|docs/manuals/|physician-ui/public/|audit-dashboard/|rimpl/src/|backend/src/lib/pii-spans\.js$)
 portal_browser    ^(scripts/auth/|physician-ui/public/|audit-dashboard/)
 responsive        ^(scripts/(responsive|chat|booth)/|physician-ui/public/|backend/src/booth-cases/)
-booth_scripts     ^(scripts/booth/|rimpl/src/lib/booth-cache(\.js|-calibration\.json)$|backend/src/(services/ple-gate|booth-cases/tree-sha)\.js$|rimpl/src/services/pii-(filter|names\.th|clinical-words\.th)\.js$|rimpl/src/lib/provider-policy\.js$|backend/src/lib/pricing\.js$|scripts/manuals/lib/pii-gate\.mjs$)
+booth_scripts     ^(scripts/booth/|rimpl/src/lib/booth-cache(\.js|-calibration\.json)$|backend/src/(services/ple-gate|booth-cases/tree-sha)\.js$|rimpl/src/services/pii-(filter|names\.th|clinical-words\.th)\.js$|rimpl/src/lib/provider-policy\.js$|backend/src/lib/(pricing|pii-spans)\.js$|scripts/manuals/lib/pii-gate\.mjs$)
 '
 
 jobs=$(printf '%s\n' "$RULES" | awk 'NF == 2 && $1 != "ALL" { print $1 }')

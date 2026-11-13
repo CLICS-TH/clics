@@ -39,11 +39,14 @@ function makeSupabaseMock() {
   };
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], likes: [], payload: undefined };
+    const rec = {
+      table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], likes: [], orders: [], range: null,
+      limit: null, payload: undefined,
+    };
     state.queries.push(rec);
     const ctx = () => ({
       op: rec.op, eqs: rec.eqs, neqs: rec.neqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, likes: rec.likes,
-      payload: rec.payload, selectArgs: rec.selectArgs,
+      payload: rec.payload, selectArgs: rec.selectArgs, orders: rec.orders, range: rec.range, limit: rec.limit,
       id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
     });
     const self = {};
@@ -74,7 +77,10 @@ function makeSupabaseMock() {
     // ADDITIVE: record .like() (rec.likes) as [column, pattern] so a suite can assert a pattern filter was applied
     // and honour it in its resolve(). Suites that never call .like() are unaffected (rec.likes stays []).
     self.like = (c, pattern) => { rec.likes.push([c, pattern]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
+    self.order = (c, opts) => { rec.orders.push([c, opts]); return self; };
+    self.range = (from, to) => { rec.range = [from, to]; return self; };
+    self.limit = (n) => { rec.limit = n; return self; };
+    for (const fn of ['gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();

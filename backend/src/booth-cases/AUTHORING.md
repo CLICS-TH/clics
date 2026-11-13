@@ -25,6 +25,7 @@ Put each case at `backend/src/booth-cases/<EVENT_CODE>/<case_id>.json`. There is
 - `case_id` uses lowercase letters, digits and hyphens, up to 32 characters. It equals the file name without `.json`.
 - `event_code` uses capital letters, digits and hyphens. It equals the folder name.
 - `version` is a non-empty string. Raise it whenever the case text changes, since each play records the version it used.
+- Each admitted version keeps a study snapshot at `<EVENT_CODE>/versions/<case_id>@<version>.json`, written by `node scripts/booth/snapshot-case-versions.mjs`, so the auditor queue can still rebuild its plays. Snapshots are append-only: never edit or delete one.
 
 ## Tiers and banks
 

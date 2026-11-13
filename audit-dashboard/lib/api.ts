@@ -108,11 +108,12 @@ export async function apiDownload(path: string, filename: string): Promise<{ err
 // Paged fetch: returns the JSON array body plus the total row count from the
 // 'X-Total-Count' response header (see backend pagination contract). Falls back
 // to the page length when the header is missing/unparseable so callers can
-// still render. Mirrors apiFetch's 401 handling.
+// still render. Mirrors apiFetch's 401 handling. `failed` marks the empty page a
+// failure returns, so a caller can tell "could not load" from "nothing there".
 export async function apiFetchPaged<T>(
   path: string,
   options: RequestInit = {},
-): Promise<{ items: T[]; total: number }> {
+): Promise<{ items: T[]; total: number; failed?: true }> {
   const token = getToken();
   let res: Response;
   try {
@@ -127,7 +128,7 @@ export async function apiFetchPaged<T>(
   } catch {
     // Non-throwing contract (matches apiFetch): a network failure yields an empty page, not a reject
     // that strands the awaiting effect as an unhandled rejection.
-    return { items: [], total: 0 };
+    return { items: [], total: 0, failed: true };
   }
   if (res.status === 401 && typeof window !== 'undefined') {
     redirectToLogin();
@@ -138,7 +139,7 @@ export async function apiFetchPaged<T>(
   // through as `items`, list pages would crash on .map. Log it and return an empty page.
   if (!res.ok || !Array.isArray(body)) {
     console.error(`apiFetchPaged ${path} failed (status ${res.status})`, body);
-    return { items: [], total: 0 };
+    return { items: [], total: 0, failed: true };
   }
   const items = body as T[];
   const header = res.headers.get('X-Total-Count');

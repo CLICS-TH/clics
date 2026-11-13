@@ -7,6 +7,7 @@ const { costUsd } = require('../lib/pricing');
 const { WEIGHTS } = require('./ple-gate');
 const { rimplChat } = require('./rimpl-client');
 const { TIERS, MAX_STEPS, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore } = require('../booth-cases/tree-schema');
+const { readStudyCase } = require('../booth-cases/study-snapshot');
 const {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers,
@@ -206,6 +207,18 @@ async function playCase(playId, event) {
   if (!row) return { refused: 'not_found' };
   const kase = eventCases(event.code).find((k) => k.case_id === row.case_id);
   return kase && kase.version === row.case_version ? { kase } : UNAVAILABLE;
+}
+
+const studyCache = new Map();
+
+/** The study snapshot of one case version (#389), kept for every version ever admitted, so a play stays auditable
+ *  after its case moves on. null when there is none. */
+function studyCase(code, caseId, version) {
+  const key = [casesDir(), code, caseId, version].join('\0');
+  if (!studyCache.has(key)) {
+    studyCache.set(key, SAFE_EVENT_CODE.test(code) ? readStudyCase(casesDir(), code, caseId, version) : null);
+  }
+  return studyCache.get(key);
 }
 
 // One server secret, one key per use: a label of its own keeps a sort memo key from ever standing for a turn sig.
@@ -791,5 +804,5 @@ async function updateBoothSettings(input) {
 
 module.exports = {
   BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
-  scorePlay, boothSettings, updateBoothSettings,
+  scorePlay, boothSettings, updateBoothSettings, studyCase,
 };
