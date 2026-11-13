@@ -57,7 +57,8 @@ describe('dka-young-adult', () => {
   const k = fiveStep('dka-young-adult');
   const num = (q, re) => (q.match(re) ? Number(q.match(re)[1]) : null);
   // Per variant, since the kiosk shows one variant: Thai DM CPG 2566 p.145 resolves DKA at glucose 250 mg/dL or below
-  // plus two of pH 7.3+, HCO3 15+, anion gap 12-; WHO IMAI stops IV insulin only once she eats, below 216 mg/dL.
+  // plus two of pH 7.3+, HCO3 15+, anion gap 12-; WHO SEARO IMAI 2021 p.3.4-95 stops IV insulin only once she eats and
+  // drinks, below 216 mg/dL.
   const state = (v) => {
     const q = v.question.en;
     const glucose = num(q, /(\d+)\s*mg\/dL/);
@@ -66,7 +67,7 @@ describe('dka-young-adult', () => {
     const gap = num(q, /anion gap (\d+)/i);
     const met = [pH !== null && pH >= 7.3, hco3 !== null && hco3 >= 15, gap !== null && gap <= 12].filter(Boolean).length;
     const resolved = glucose !== null && glucose <= 250 && met >= 2;
-    return { glucose, resolved, offDrip: resolved && glucose < 216 && /\beat(s|ing)?\b/i.test(q) };
+    return { glucose, resolved, offDrip: resolved && glucose < 216 && /\beat(s|ing)?\b/i.test(q) && /\bdrink(s|ing)?\b/i.test(q) };
   };
   const OFF_DRIP = /basal-bolus|premixed|subcutaneous|insulin pen|stop(ping)? (the )?drip/i;
 

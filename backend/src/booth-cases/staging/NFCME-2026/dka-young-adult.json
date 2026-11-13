@@ -568,12 +568,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "ลดอินซูลิน 0.02–0.05/กก./ชม.",
-              "en": "Cut insulin to 0.02–0.05 units/kg/h"
+              "th": "ลดอินซูลินลง ให้เดกซ์โทรส 5%",
+              "en": "Cut insulin, add 5% dextrose"
             },
             "line": {
-              "th": "ที่ 250 มก./ดล. ให้เดกซ์โทรส 5% คู่กับขนาดที่ลดลง",
-              "en": "At 250 mg/dL, 5% dextrose runs alongside the lower rate."
+              "th": "ลดเหลือ 0.02–0.05 ยูนิต/กก./ชม. ที่น้ำตาล 250",
+              "en": "Down to 0.02–0.05 units/kg/h once glucose reaches 250 mg/dL."
             }
           },
           {
@@ -631,8 +631,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ผ่านไป 4 ชม. คีโตนลดลงเพียงเล็กน้อย ขั้นต่อไปคืออะไร",
-              "en": "After 4 hours, the ketones have fallen only a little. Next step?"
+              "th": "ผ่านไป 4 ชม. คีโตนลดลงน้อย K 4.0 ทำอย่างไรต่อ",
+              "en": "After 4 hours, ketones are down only a little, K 4.0. Next step?"
             }
           }
         ],
@@ -645,7 +645,7 @@
               "en": "Raise insulin, recheck in 1 hour"
             },
             "line": {
-              "th": "คีโตนควรลดชั่วโมงละ 0.5 จึงต้องเพิ่มอินซูลิน",
+              "th": "คีโตนควรลดชั่วโมงละ 0.5 mmol/L จึงเพิ่มอินซูลิน",
               "en": "Ketones should fall 0.5 mmol/L an hour, so insulin goes up."
             }
           },
@@ -714,7 +714,7 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "อินซูลิน 0.1/กก./ชม. เพิ่ม K",
+              "th": "อินซูลิน 0.1 ยูนิต/กก./ชม. +K",
               "en": "Insulin 0.1 units/kg/h, more K"
             },
             "line": {
@@ -772,15 +772,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "pH 7.34 HCO3 18 น้ำตาล 180 กินอาหารได้ วางแผนอย่างไร",
-              "en": "pH 7.34, HCO3 18, glucose 180 mg/dL, and she is eating. Your plan?"
+              "th": "pH 7.34 HCO3 18 น้ำตาล 180 กินดื่มได้ วางแผนอย่างไร",
+              "en": "pH 7.34, HCO3 18, glucose 180 mg/dL; she eats and drinks. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "วันที่ 2 HCO3 19 pH 7.35 น้ำตาล 170 กินได้ ทำอะไรต่อ",
-              "en": "Day 2: HCO3 19, pH 7.35, glucose 170 mg/dL, and she is eating. Next step?"
+              "th": "วันที่ 2 HCO3 19 pH 7.35 น้ำตาล 170 กินดื่มได้ ทำอะไรต่อ",
+              "en": "Day 2: HCO3 19, pH 7.35, glucose 170 mg/dL; eating and drinking. Next step?"
             }
           }
         ],
@@ -845,15 +845,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "pH 7.33 HCO3 17 น้ำตาล 190 กินได้ กลัวเข็ม ทำอย่างไร",
-              "en": "pH 7.33, HCO3 17, glucose 190 mg/dL; she eats and fears needles. Your plan?"
+              "th": "pH 7.33 HCO3 17 น้ำตาล 190 กินดื่มได้ กลัวเข็ม ทำอย่างไร",
+              "en": "pH 7.33, HCO3 17, glucose 190 mg/dL; eats, drinks, fears needles. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "pH 7.34 HCO3 18 น้ำตาล 180 กินได้ กลัวฉีดยา ทำอย่างไร",
-              "en": "pH 7.34, HCO3 18, glucose 180 mg/dL; eating, fears injections. Next?"
+              "th": "pH 7.34 HCO3 18 น้ำตาล 180 กินดื่มได้ กลัวเข็ม ทำอย่างไร",
+              "en": "pH 7.34, HCO3 18, glucose 180 mg/dL; eats, drinks, fears needles. Next?"
             }
           }
         ],
@@ -918,15 +918,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "12 ชม. ซึมลง น้ำตาล 320 pH 7.12 คีโตนยังสูง ทำอย่างไร",
-              "en": "12 hours in: drowsier, glucose 320 mg/dL, pH 7.12, ketones still high. What now?"
+              "th": "12 ชม. ซึมลง น้ำตาล 320 pH 7.12 K 3.9 ทำอย่างไร",
+              "en": "12 hours in: drowsier, glucose 320 mg/dL, pH 7.12, K 3.9. What now?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "อาการแย่ลง ซึมและหอบมากขึ้น น้ำตาล 320 ทำอย่างไรต่อ",
-              "en": "She is worse, drowsier and breathing harder, glucose 320 mg/dL. Next step?"
+              "th": "แย่ลง ซึมและหอบมากขึ้น น้ำตาล 320 K 3.9 ทำอย่างไร",
+              "en": "Worse, drowsier, breathing harder; glucose 320 mg/dL, K 3.9. Next step?"
             }
           }
         ],
