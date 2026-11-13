@@ -15,11 +15,15 @@ five-step trees into `backend/src/booth-cases/NFCME-2026/` is the cutover: the t
 out until #476 re-authors it, and the board ranks only five-step plays. The three-step plays of 3–4 Nov stay in the
 table and keep their study snapshots; they no longer rank.
 
-- [ ] **The backend deploy waits for the owner's go-ahead,** and for every case it should deal to have #408's path
-      score table, a table verdict on that table's run, and a sandbox pass or a fresh owner waiver bound to its
-      five-step tree (`tree_sha256`). Without them the pool is empty and the booth reads closed (`misconfigured`).
-      Check before deploying: `cd backend && npx jest tests/booth-pool.test.js` passes, and the deploy's log has no
-      `[booth] case NFCME-2026/... left out` line for a case you meant to deal.
+- [ ] **The backend and Portal deploys wait for the owner's go-ahead, and go together.** The Portal ships the
+      kiosk's "five steps" intro and the five-step promo reel, so a Portal deploy over a three-step backend tells
+      visitors five steps for a three-step play. The backend also waits for every case it should deal to have #408's
+      path score table, a table verdict on that table's run, and a sandbox pass or a fresh owner waiver bound to its
+      five-step tree (`tree_sha256`). A case without them is left out; with none admitted the pool is empty and the
+      booth reads closed (`misconfigured`).
+      Before deploying: `cd backend && npx jest tests/booth-pool.test.js` passes. After deploying, open one booth
+      request and check the log has no `[booth] case NFCME-2026/... left out` line for a case you meant to deal
+      (the lines print on the first booth request, not at start-up).
 
 ## Before the freeze (by Sun 1 Nov 18:00, +07:00)
 
