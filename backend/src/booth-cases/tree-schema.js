@@ -105,10 +105,10 @@ const CaseTreeSchema = z.object({
   vignette: Bilingual,
   banks: z.union(Object.values(SHAPES).map((s) => s.banks)),
   admission: z.object({
-    safety_review: z.object({ model: Text, date: CalendarDate, findings: Text }).strict().optional(),
-    sandbox: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
+    safety_review: z.object({ model: Text, date: CalendarDate, findings: Text, tree_sha256: Sha256.optional() }).strict().optional(),
+    sandbox: z.object({ run_id: Text, date: CalendarDate, tree_sha256: Sha256.optional() }).strict().optional(),
     // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
-    owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
+    owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text, tree_sha256: Sha256.optional() }).strict().optional(),
     // ADR 0005's difficulty check on the path score table's own samples: a pass, written by the table build, or the
     // owner's waiver of a fail. Each names the table run it judged, so a rebuilt table needs its own.
     table_check: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),

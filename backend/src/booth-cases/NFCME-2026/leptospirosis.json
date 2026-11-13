@@ -1,6 +1,6 @@
 {
   "case_id": "leptospirosis",
-  "version": "3",
+  "version": "4",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชาวนาอายุ 42 ปี มาโรงพยาบาลชุมชนด้วยไข้สูง ปวดศีรษะ และปวดน่องมา 3 วัน",
@@ -363,541 +363,24 @@
       }
     },
     "step3": {
-      "BB": {
+      "B": {
         "variants": [
           {
             "id": "v1",
             "question": {
-              "th": "แผนการรักษาของคุณคืออะไร",
-              "en": "What is your management plan?"
+              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
-              "en": "How do you treat him from today?"
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
             }
           },
           {
             "id": "v3",
-            "question": {
-              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
-              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
-            },
-            "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอนให้ดอกซีไซคลินกิน",
-              "en": "Admit for oral doxycycline"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
-              "en": "Covers both infections, with a watch on his course in hospital."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
-              "en": "IV penicillin plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
-              "en": "Admitted for IV treatment, with both infections covered."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "BR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "ชุดตรวจเร็วโรคฉี่หนูให้ผลบวก จะรักษาอย่างไร",
-              "en": "The Leptospira rapid test is positive. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "แผนการรักษาของคุณคืออะไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
-            },
-            "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอนให้ดอกซีไซคลินกิน",
-              "en": "Admit for oral doxycycline"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
-              "en": "Covers both infections, with a watch on his course in hospital."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
-              "en": "IV penicillin plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
-              "en": "Admitted for IV treatment, with both infections covered."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "BW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เกล็ดเลือด 110,000 ค่าไตปกติ จะรักษาอย่างไร",
-              "en": "Platelets 110,000, kidney tests normal. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
-              "en": "How do you treat him from today?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
-            },
-            "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอนให้ดอกซีไซคลินกิน",
-              "en": "Admit for oral doxycycline"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
-              "en": "Covers both infections, with a watch on his course in hospital."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
-              "en": "IV penicillin plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
-              "en": "Admitted for IV treatment, with both infections covered."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "RB": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "แผนการรักษาของคุณคืออะไร",
-              "en": "What is your management plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
-              "en": "How do you treat him from today?"
-            }
-          },
-          {
-            "id": "v3",
-            "question": {
-              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
-              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ยาตัวเดียวรักษาได้ทั้งสครับไทฟัสและโรคฉี่หนู",
-              "en": "One drug treats both scrub typhus and leptospirosis."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและสอนอาการเตือน",
-              "en": "Doxycycline and warning-sign advice"
-            },
-            "line": {
-              "th": "เริ่มยาและสอนให้สังเกตตาเหลืองหรือปัสสาวะน้อย",
-              "en": "Starts treatment and teaches him to spot jaundice or low urine."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "RR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "ชุดตรวจเร็วสครับไทฟัสให้ผลลบ จะรักษาอย่างไร",
-              "en": "The scrub typhus rapid test is negative. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
-              "en": "How do you treat him from today?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ยาตัวเดียวรักษาได้ทั้งสครับไทฟัสและโรคฉี่หนู",
-              "en": "One drug treats both scrub typhus and leptospirosis."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและสอนอาการเตือน",
-              "en": "Doxycycline and warning-sign advice"
-            },
-            "line": {
-              "th": "เริ่มยาและสอนให้สังเกตตาเหลืองหรือปัสสาวะน้อย",
-              "en": "Starts treatment and teaches him to spot jaundice or low urine."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "RW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เกล็ดเลือด 110,000 ค่าไตปกติ จะรักษาอย่างไร",
-              "en": "Platelets 110,000, kidney tests normal. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "แผนการรักษาของคุณคืออะไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ยาตัวเดียวรักษาได้ทั้งสครับไทฟัสและโรคฉี่หนู",
-              "en": "One drug treats both scrub typhus and leptospirosis."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและสอนอาการเตือน",
-              "en": "Doxycycline and warning-sign advice"
-            },
-            "line": {
-              "th": "เริ่มยาและสอนให้สังเกตตาเหลืองหรือปัสสาวะน้อย",
-              "en": "Starts treatment and teaches him to spot jaundice or low urine."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "WB": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ จะรักษาอย่างไร",
-              "en": "Platelets 110,000, kidney and liver tests normal. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
             "question": {
               "th": "เกล็ดเลือด 110,000 ค่าไตและตับปกติ ขั้นต่อไปคืออะไร",
               "en": "Platelets 110,000, kidney and liver tests normal. Next step?"
@@ -913,20 +396,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมโรคฉี่หนูและสครับไทฟัส พร้อมสอนอาการเตือน",
-              "en": "Covers leptospirosis and scrub typhus, with warning signs taught."
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูทุกวัน",
-              "en": "Doxycycline and daily review"
+              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
+              "en": "Doxycycline and review tomorrow"
             },
             "line": {
-              "th": "ให้พาราเซตามอลลดไข้และติดตามไข้เลือดออกทุกวัน",
-              "en": "Adds paracetamol for fever and checks for dengue daily."
+              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and explains the signs to return at once."
             }
           },
           {
@@ -984,104 +467,7 @@
           "e"
         ]
       },
-      "WR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "NS1 ให้ผลลบ เกล็ดเลือด 110,000 จะรักษาอย่างไร",
-              "en": "NS1 is negative, platelets 110,000. How do you treat him?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "แผนการรักษาของคุณคืออะไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินกิน 7 วัน",
-              "en": "Oral doxycycline for 7 days"
-            },
-            "line": {
-              "th": "ครอบคลุมโรคฉี่หนูและสครับไทฟัส พร้อมสอนอาการเตือน",
-              "en": "Covers leptospirosis and scrub typhus, with warning signs taught."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ดอกซีไซคลินและนัดดูทุกวัน",
-              "en": "Doxycycline and daily review"
-            },
-            "line": {
-              "th": "ให้พาราเซตามอลลดไข้และติดตามไข้เลือดออกทุกวัน",
-              "en": "Adds paracetamol for fever and checks for dengue daily."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "อะซิโทรมัยซินกิน 3 วัน",
-              "en": "Oral azithromycin for 3 days"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
-              "en": "Covers both infections with one dose a day."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอนให้ดอกซีไซคลินกิน",
-              "en": "Admit for oral doxycycline"
-            },
-            "line": {
-              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
-              "en": "Covers both infections, with a watch on his course in hospital."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
-              "en": "IV ceftriaxone plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
-              "en": "Admitted, covering both infections under a close watch."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
-              "en": "IV penicillin plus doxycycline"
-            },
-            "line": {
-              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
-              "en": "Admitted for IV treatment, with both infections covered."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "e"
-        ]
-      },
-      "WW": {
+      "R": {
         "variants": [
           {
             "id": "v1",
@@ -1107,20 +493,112 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมโรคฉี่หนูและสครับไทฟัส พร้อมสอนอาการเตือน",
-              "en": "Covers leptospirosis and scrub typhus, with warning signs taught."
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูทุกวัน",
-              "en": "Doxycycline and daily review"
+              "th": "ดอกซีไซคลินและสอนอาการเตือน",
+              "en": "Doxycycline and warning-sign advice"
             },
             "line": {
-              "th": "ให้พาราเซตามอลลดไข้และติดตามไข้เลือดออกทุกวัน",
-              "en": "Adds paracetamol for fever and checks for dengue daily."
+              "th": "เริ่มยาและสอนอาการเตือนที่ต้องกลับมาทันที",
+              "en": "Starts treatment and names the signs to return at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะซิโทรมัยซินกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรค กินวันละครั้ง",
+              "en": "Covers both infections with one dose a day."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
+            },
+            "line": {
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เกล็ดเลือด 110,000 ค่าไตปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney tests normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ผลเลือดวันนี้ เกล็ดเลือด 110,000 ค่าไตปกติ ทำอะไรต่อ",
+              "en": "Today's bloods: platelets 110,000, kidney tests normal. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินกิน 7 วัน",
+              "en": "Oral doxycycline for 7 days"
+            },
+            "line": {
+              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
+              "en": "Covers leptospirosis and scrub typhus in a mild case."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดอกซีไซคลินและตรวจตับวันนี้",
+              "en": "Doxycycline and liver tests today"
+            },
+            "line": {
+              "th": "เริ่มยาวันนี้และดูค่าตับให้ครบการประเมินความรุนแรง",
+              "en": "Starts treatment and completes the severity check with liver tests."
             }
           },
           {
@@ -1178,277 +656,468 @@
           "e"
         ]
       }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สองวันต่อมา ไข้หาย กินได้ ปวดน่องลดลง ทำอย่างไรต่อ",
+              "en": "Two days on: no fever, eating well, calves less sore. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 48 ชม. อาการดีขึ้นชัดเจน คุณจะทำอย่างไรต่อ",
+              "en": "After 48 hours he is clearly better. What do you do now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้ดอกซีไซคลินจนครบ 7 วัน",
+              "en": "Complete 7 days of doxycycline"
+            },
+            "line": {
+              "th": "อาการดีขึ้นแล้ว ให้ยาครบคอร์สเดิมก็เพียงพอ",
+              "en": "He is improving, so the planned course is enough."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้ยาครบและสอนอาการเตือน",
+              "en": "Finish the course with return advice"
+            },
+            "line": {
+              "th": "ครบการรักษาและบอกอาการที่ต้องกลับมาพบทันที",
+              "en": "Completes treatment and names the signs that need a visit at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ CBC และค่าไตซ้ำวันนี้",
+              "en": "Repeat CBC and kidney tests today"
+            },
+            "line": {
+              "th": "ดูว่าเกล็ดเลือดกลับขึ้นและไตยังปกติดี",
+              "en": "Shows whether platelets are rising and the kidneys stay normal."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ต่อยาดอกซีไซคลินเป็น 14 วัน",
+              "en": "Extend doxycycline to 14 days"
+            },
+            "line": {
+              "th": "ยานานขึ้นช่วยให้ผู้ป่วยบางรายมั่นใจ",
+              "en": "A longer course reassures some patients."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สองวันต่อมา ไข้ลดเหลือ 37.9 ยังปวดน่อง ทำอย่างไรต่อ",
+              "en": "Two days on: fever down to 37.9 °C, calves still sore. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 48 ชม. อาการดีขึ้นบ้าง คุณจะทำอย่างไรต่อ",
+              "en": "After 48 hours he is somewhat better. What do you do now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้ยาต่อและตรวจเลือดซ้ำวันนี้",
+              "en": "Continue and repeat bloods today"
+            },
+            "line": {
+              "th": "หายช้าจึงควรดูไต ตับ และเกล็ดเลือดอีกครั้ง",
+              "en": "A slow recovery calls for a fresh look at kidneys, liver, platelets."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้ยาต่อและนัดดูทุกวัน",
+              "en": "Continue and review him daily"
+            },
+            "line": {
+              "th": "ติดตามทุกวันช่วยจับตาเหลืองหรือปัสสาวะน้อยได้เร็ว",
+              "en": "Daily review catches jaundice or low urine early."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้ยาเดิมจนครบคอร์ส",
+              "en": "Finish the current course"
+            },
+            "line": {
+              "th": "อาการดีขึ้นบ้างแล้ว ให้ยาเดิมต่อก็อาจพอ",
+              "en": "He is improving, so the course in hand may be enough."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เพิ่มพาราเซตามอลทุก 6 ชม.",
+              "en": "Add paracetamol every 6 hours"
+            },
+            "line": {
+              "th": "คุมไข้ให้ผู้ป่วยกินและนอนได้ดีขึ้น",
+              "en": "Controls the fever so he can eat and sleep."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 ในหอผู้ป่วย ปัสสาวะลด ครีเอตินีน 2.1 ทำอะไรต่อ",
+              "en": "Day 2 in hospital: less urine, creatinine 2.1 mg/dL. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันที่ 2 ในโรงพยาบาล ยังมีไข้และปัสสาวะออกน้อย ทำอะไรต่อ",
+              "en": "Day 2 on the ward: still febrile and passing little urine. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้สารน้ำระวัง วัดปัสสาวะ ดู K",
+              "en": "Careful fluid, urine output and K"
+            },
+            "line": {
+              "th": "ให้สารน้ำอย่างระวังและติดตามปัสสาวะกับโพแทสเซียม",
+              "en": "Careful fluids with close tracking of urine output and potassium."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลที่ฟอกไตได้",
+              "en": "Refer to a hospital with dialysis"
+            },
+            "line": {
+              "th": "ปัสสาวะที่ลดลงอาจนำไปสู่การฟอกไตในเร็ววัน",
+              "en": "Falling urine output may soon need dialysis."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้น้ำเกลือและตรวจค่าไตซ้ำ",
+              "en": "IV saline and recheck creatinine"
+            },
+            "line": {
+              "th": "ให้สารน้ำและดูไตจากค่าครีเอตินีนครั้งถัดไป",
+              "en": "Gives fluid and reads the kidneys from the next creatinine."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "อัลตราซาวด์ไต",
+              "en": "Kidney ultrasound"
+            },
+            "line": {
+              "th": "หาการอุดกั้นที่อาจทำให้ปัสสาวะน้อยลง",
+              "en": "Looks for a blockage behind the falling urine output."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สองสัปดาห์ต่อมา หายดี ยาครบ ค่าไตปกติ วางแผนอย่างไร",
+              "en": "Two weeks on: he is well, treatment done, kidney tests normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "รักษาครบแล้วและกลับไปทำนาได้ แผนต่อไปคืออะไร",
+              "en": "Treatment is complete and he is back in the fields. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "จำหน่ายพร้อมสอนป้องกันโรค",
+              "en": "Discharge with prevention advice"
+            },
+            "line": {
+              "th": "สวมบูทและถุงมือเมื่อลุยน้ำช่วยลดการติดเชื้อซ้ำ",
+              "en": "Boots and gloves in flood water lower his risk next time."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "จำหน่ายและสอนอาการทางตา",
+              "en": "Discharge with eye warning signs"
+            },
+            "line": {
+              "th": "ม่านตาอักเสบอาจตามมาได้หลายสัปดาห์ถึงหลายเดือน",
+              "en": "Uveitis can follow leptospirosis weeks or months later."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "โทรติดตามอาการใน 1 สัปดาห์",
+              "en": "Phone follow-up in 1 week"
+            },
+            "line": {
+              "th": "โทรสั้น ๆ ช่วยเช็กการฟื้นตัวได้ประหยัด",
+              "en": "A short call checks his recovery at little cost."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจค่าไตทุกเดือนนาน 6 เดือน",
+              "en": "Monthly kidney tests for 6 months"
+            },
+            "line": {
+              "th": "ตรวจสม่ำเสมอช่วยให้ผู้ป่วยมั่นใจเรื่องไต",
+              "en": "Regular tests reassure him about his kidneys."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สิบวันต่อมา ไข้หาย ยังอ่อนเพลีย ยาครบแล้ว วางแผนอย่างไร",
+              "en": "Ten days on: no fever, still tired, course finished. What is your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไข้หายแล้ว ยังอ่อนเพลียอยู่ คุณจะติดตามอย่างไร",
+              "en": "The fever has gone and he is still tired. How will you follow him up?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจค่าไตและ CBC ใน 1 สัปดาห์",
+              "en": "Kidney tests and CBC in 1 week"
+            },
+            "line": {
+              "th": "ยืนยันว่าไตและเกล็ดเลือดฟื้นตัวเต็มที่",
+              "en": "Confirms the kidneys and platelets have fully recovered."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "นัดดูอาการพร้อมสอนอาการเตือน",
+              "en": "Clinic review and warning signs"
+            },
+            "line": {
+              "th": "นัดซ้ำและบอกอาการที่ต้องกลับมาก่อนนัด",
+              "en": "A booked visit, plus the signs that mean come back sooner."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "โทรติดตามอาการใน 1 สัปดาห์",
+              "en": "Phone follow-up in 1 week"
+            },
+            "line": {
+              "th": "โทรสั้น ๆ ช่วยเช็กการฟื้นตัวได้ประหยัด",
+              "en": "A short call checks his recovery at little cost."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ยาปฏิชีวนะต่ออีก 1 สัปดาห์",
+              "en": "Another week of antibiotics"
+            },
+            "line": {
+              "th": "ยาต่ออีกช่วงช่วยให้ผู้ป่วยบางรายมั่นใจ",
+              "en": "More antibiotic reassures some tired patients."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "หนึ่งสัปดาห์ต่อมา มีไข้ต่ำ ๆ และปัสสาวะออกน้อย ทำอย่างไร",
+              "en": "One week on: a low fever and he passes little urine. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "หนึ่งสัปดาห์ต่อมา ไข้กลับมาและวันนี้ปัสสาวะน้อย ทำอย่างไร",
+              "en": "A week later: fever is back and little urine today. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลที่ฟอกไตได้",
+              "en": "Refer to a hospital with dialysis"
+            },
+            "line": {
+              "th": "ไข้ร่วมกับไตที่แย่ลงอาจต้องฟอกไตและดูแลใกล้ชิด",
+              "en": "Fever with failing kidneys may need dialysis and close care."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "ดูแลในหอผู้ป่วย ตรวจไต เกลือแร่",
+              "en": "Ward care with kidney tests and K"
+            },
+            "line": {
+              "th": "ดูแลใกล้ชิดช่วยจับไตวายและเกลือแร่ผิดปกติได้เร็ว",
+              "en": "Close care catches kidney failure and potassium shifts early."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ดูแลในหอผู้ป่วยและให้สารน้ำ",
+              "en": "Ward care with IV fluid"
+            },
+            "line": {
+              "th": "ให้สารน้ำอย่างระวังแล้วดูการตอบสนองของปัสสาวะ",
+              "en": "A careful fluid trial shows whether the urine picks up."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ดูแลในหอผู้ป่วยและอัลตราซาวด์ไต",
+              "en": "Ward care and a kidney ultrasound"
+            },
+            "line": {
+              "th": "ดูไตและทางเดินปัสสาวะหาสาเหตุที่ปัสสาวะลดลง",
+              "en": "Looks at the kidneys and tract for why the urine has fallen."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจ K และ EKG ก่อนส่งต่อ",
+              "en": "Check K and ECG, refer for dialysis"
+            },
+            "line": {
+              "th": "หาโพแทสเซียมสูงที่อันตรายก่อนเดินทางไปฟอกไต",
+              "en": "Finds a dangerous potassium before the trip to dialysis."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
     }
   },
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-02",
-      "findings": "Three fresh reviews on 2026-11-02 against WHO/ILS 2003, WHO dengue 2009, Phimda 2007 and Suputtamongkol 2004 (the Thai DDC guideline could not be retrieved). Doxycycline-first is correct where leptospirosis and scrub typhus are co-endemic. Fixed before recording: amoxicillin and single-drug IV plans that left scrub typhus untreated (every step-3 plan now covers both); step-2 options without kidney tests, which also made two reasonable options worse than weaker ones; step-3 reveals of results their path never ordered; influenza routing into the dengue bank; warning-sign advice on the dengue paths; Thai/English parity in route words, drug names, test names and evidence verbs."
-    },
-    "sandbox": {
-      "run_id": "sbx-202611030715-1573",
-      "date": "2026-11-03"
-    }
-  },
-  "path_score_table": {
-    "provenance": {
-      "evaluator_model": "claude-sonnet-4-6",
-      "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
-      "decoding": {
-        "temperature": 0,
-        "max_tokens": 4096
-      },
-      "samples_per_path": 3,
-      "method": "median",
-      "run_id": "ptb-202611040911-a71a",
-      "date": "2026-11-04",
-      "tree_sha256": "d0f8f912a476fb9e2b38e668939c89fc42e8f04487684a65e247d6a5097e0a7b"
-    },
-    "paths": {
-      "BBB": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BBW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 2,
-        "d7": 3
-      },
-      "BRR": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 2,
-        "d7": 3
-      },
-      "BWR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 0,
-        "d7": 2
-      },
-      "RBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 0,
-        "d7": 2
-      },
-      "WBB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 0,
-        "d7": 2
-      },
-      "WWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      }
+      "date": "2026-11-13",
+      "findings": "Fresh reviewer that did not write the case, 2026-11-13, tree sha256 f581f8083a1e4f0bea03e0d3722d149f764566d1ec776ed68cc5a70fa9206b39. Sources read: Thai DDC leptospirosis screening, diagnosis and treatment guideline 2564 (2021), with the DDC disease page and DDC alert of 7 Aug 2567 (2024); WHO/ILS Human leptospirosis: guidance for diagnosis, surveillance and control (2003), treatment section, still cited by the WHO outbreak toolbox (Oct 2024); WHO SEARO leptospirosis fact sheet (2009). Checked every bank, variant and option. No DDC admission criterion is met (pulse 100, platelets 110,000, normal creatinine and bilirubin), so outpatient doxycycline 100 mg twice daily for 7 days is best and covers scrub typhus. Azithromycin 3 days, DDC's listed alternative, stays reasonable. IV penicillin or ceftriaxone plus doxycycline is DDC's inpatient regimen, weaker only as overtreatment. Oliguria and creatinine above 2 lead to referral, potassium checks and careful fluids, per DDC chart 3. Uveitis advice matches WHO late sequelae. Every stem fits every path into it, and Thai and English agree. Fixed: two sample replies doubted the evidence for azithromycin.",
+      "tree_sha256": "f581f8083a1e4f0bea03e0d3722d149f764566d1ec776ed68cc5a70fa9206b39"
     }
   }
 }
