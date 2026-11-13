@@ -12,6 +12,13 @@
 // A ledger comes into being only through `node scripts/booth/spend-ledger.mjs init`, seeded from the committed record
 // (scripts/booth/path-table-runs/spend.jsonl). A missing or empty ledger, or one that does not parse line by line,
 // refuses the run: it cannot prove the spend so far. Package-free, like the other booth scripts.
+//
+// The record is written by every --go run, whatever its --out: an `open` line before its first reservation, holding the
+// most the run may spend (its cap less the spend before it), and a `charge` line when it ends by itself. init counts an
+// open with no charge at its open amount, so a run killed, crashed or halted before its charge never seeds less than it
+// may have spent. init reads the record only when it is byte-identical to the record at HEAD: an edited, truncated or
+// older working copy cannot prove the spend so far.
+import { execFileSync } from 'node:child_process';
 import { appendFileSync, closeSync, fsyncSync, linkSync, mkdirSync, openSync, readFileSync, unlinkSync, writeSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -133,14 +140,54 @@ export function settle(id, cost) {
   });
 }
 
-/** Creates this machine's ledger: an init line, then every charge in the committed record. Refuses one that exists. */
+/** Appends `line` to `file` and flushes it to disk before returning, so a run killed right after still has it. */
+function appendDurably(file, line) {
+  const fd = openSync(file, 'a');
+  try { writeSync(fd, `${JSON.stringify(line)}\n`); fsyncSync(fd); } finally { closeSync(fd); }
+}
+
+/** Opens run `runId` in the committed record before its first reservation: `usd` is the most it may spend. */
+export function recordOpen({ runId, usd, date, build }, record = RECORD) {
+  appendDurably(record, { kind: 'open', run_id: runId, usd: r6(usd), date, build });
+}
+
+/** Charges run `runId`'s spend, as the ledger holds it, to the committed record, and to `copy` too when it is another
+ *  file (a run's --out). */
+export function recordCharge({ runId, usd, date, build }, copy = null, record = RECORD) {
+  const line = { kind: 'charge', run_id: runId, usd: r6(usd), date, build };
+  appendDurably(record, line);
+  if (copy && path.resolve(copy) !== path.resolve(record)) appendDurably(copy, line);
+}
+
+/** The record's bytes, refused unless they are the record committed at HEAD. */
+function committedRecord(record) {
+  const raw = readFileSync(record);
+  let head;
+  try {
+    head = execFileSync('git', ['show', `HEAD:./${path.basename(record)}`],
+      { cwd: path.dirname(record), maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    throw new Error(`${record} is not committed at HEAD, so it cannot prove the spend so far: commit it, then init`);
+  }
+  if (!raw.equals(head)) {
+    throw new Error(`${record} differs from the record committed at HEAD, so it cannot prove the spend so far: commit `
+      + 'the runs it adds, or restore it with git checkout, then init');
+  }
+  return raw.toString('utf8');
+}
+
+/** Creates this machine's ledger: an init line, then every charge in the committed record, and every run it opened
+ *  but never charged at its open amount. Refuses one that exists, and a record that differs from HEAD. */
 export function init(record = RECORD) {
-  const charges = readFileSync(record, 'utf8').split('\n').filter(Boolean).map((line, i) => {
+  const lines = committedRecord(record).split('\n').filter(Boolean).map((line, i) => {
     let l;
     try { l = JSON.parse(line); } catch { throw new Error(`${record} line ${i + 1} is not JSON`); }
-    if (l?.kind !== 'charge' || !SHAPES.charge(l)) throw new Error(`${record} line ${i + 1} is not a charge line`);
+    if (!['charge', 'open'].includes(l?.kind) || !SHAPES.charge(l)) throw new Error(`${record} line ${i + 1} is not a charge or open line`);
     return l;
   });
+  const charged = new Set(lines.filter((l) => l.kind === 'charge').map((l) => l.run_id));
+  const charges = lines.flatMap((l) => (l.kind === 'charge' ? [l]
+    : charged.has(l.run_id) ? [] : [{ ...l, kind: 'charge', unclosed_open: true }]));
   const ledger = ledgerPath();
   mkdirSync(path.dirname(ledger), { recursive: true });
   const head = { kind: 'init', at: new Date().toISOString(), seeded_from: path.relative(path.join(HERE, '..', '..'), record) };

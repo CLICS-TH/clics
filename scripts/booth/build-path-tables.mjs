@@ -29,8 +29,8 @@
  *   --cap <usd>       a lower cap on the same machine total, for this run (default and most CAP_USD)
  *   --samples n       samples per tier path (default 3, odd)
  *   --concurrency n   calls at once (default 3)
- *   --out <dir>       where the report, summary, samples and the run's charge line go (default
- *                     scripts/booth/path-table-runs); it never moves the ledger
+ *   --out <dir>       where the report, summary, samples and a copy of the run's charge line go (default
+ *                     scripts/booth/path-table-runs); it never moves the ledger or the committed record
  *   --go              spend: without it the script stops after the checks
  *   --from <jsonl>    build the tables from a saved run's samples, spending nothing
  *   --replies <dir>   the cases' sample replies (default scripts/booth/sample-replies/<event code>)
@@ -39,8 +39,10 @@
  * GET /manifest and POST /evaluate (shadow off). One probe call runs first: unless it was scored by the locked
  * evaluator (rimpl's model manifest: provider, model, prompt and decoding), the build stops there. Every sample is
  * appended to <out>/<run_id>.samples.jsonl as it lands, before its call is settled, so a run that stops for any reason
- * keeps what it paid for and --from finishes it. A run that ends by itself appends its spend to <out>/spend.jsonl as a
- * charge line, the committed record a later init reads.
+ * keeps what it paid for and --from finishes it. Whatever its --out, a run appends an open line to the committed record
+ * (scripts/booth/path-table-runs/spend.jsonl) before its first reservation, holding the most it may spend, and a run
+ * that ends by itself appends its spend there as a charge line (and to <out>/spend.jsonl). A later init counts an open
+ * with no charge at its open amount, so a killed or crashed run never seeds a machine below what it may have spent.
  *
  * --from refuses a run that went over the cap it ran under (its header's prior spend plus its own), a sample scored on
  * another tree, and a sample not scored by the locked evaluator. The build refuses to run with a database client
@@ -53,7 +55,7 @@ import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } f
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewedTree, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
-import { spent, reserve, settle } from './spend-ledger.mjs';
+import { spent, reserve, settle, recordOpen, recordCharge, RECORD } from './spend-ledger.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -227,7 +229,7 @@ if (opts.from) {
     provider_retries: retries, samples: opts.samples };
   mkdirSync(opts.out, { recursive: true });
   const savedPath = path.join(opts.out, `${runId}.samples.jsonl`);
-  const recordPath = path.join(opts.out, 'spend.jsonl');
+  const outRecord = path.join(opts.out, 'spend.jsonl');
   writeFileSync(savedPath, `${JSON.stringify(header)}\n`);
   console.log(`$${priorUsd.toFixed(2)} of the $${opts.cap} cap spent before this run. Samples are saved as they land to ${savedPath}`);
 
@@ -263,17 +265,23 @@ if (opts.from) {
     await Promise.all(Array.from({ length: concurrency }, worker));
     return results;
   };
-  /** Appends the run's spend, as the ledger holds it, to the committed record. */
+  /** Appends the run's spend, as the ledger holds it, to the committed record and its --out copy. */
   const charge = () => {
     const usd = spent(runId);
-    appendFileSync(recordPath, `${JSON.stringify({ kind: 'charge', run_id: runId, usd, date, build })}\n`);
+    recordCharge({ runId, usd, date, build }, outRecord);
     return usd;
   };
   const halt = () => {
     let note;
-    try { note = `$${charge().toFixed(2)} of it is charged in ${recordPath}`; } catch (err) { note = `its spend is not in ${recordPath}: ${err.message}`; }
+    try { note = `$${charge().toFixed(2)} of it is charged in ${RECORD}`; } catch (err) {
+      note = `its spend is not charged in ${RECORD}, so a later init counts it at its open amount: ${err.message}`;
+    }
     fail(`the build stopped on its spend ledger: ${halted}. Its samples are in ${savedPath}; ${note}`);
   };
+
+  // Before any reservation, the committed record learns the most this run may spend, whatever --out is: a run that
+  // never reaches its charge line is counted at that by a later init.
+  try { recordOpen({ runId, usd: opts.cap - priorUsd, date, build }); } catch (err) { fail(`the run could not be opened in ${RECORD}: ${err.message}`); }
 
   // The probe: one call on its own, so a wrong evaluator costs one call, not the build.
   const [first] = await scoreAll(jobs.slice(0, 1), 1);

@@ -169,8 +169,36 @@ describe('the build runner', () => {
   // Every run gets a HOME of its own, so no test reads or writes this machine's spend ledger.
   const envOf = (env) => ({ PATH: process.env.PATH, HOME: tmp(), ...env });
   const run = (args, env = {}) => spawnSync(process.execPath, [RUNNER, ...args], { encoding: 'utf8', env: envOf(env) });
-  const runAsync = (args, env = {}) => new Promise((resolve) => {
-    const child = spawn(process.execPath, [RUNNER, ...args], { env: envOf(env) });
+
+  // The scripts a run loads from scripts/booth, and this repo's committed spend record, which no test may write.
+  const RUNNER_FILES = ['build-path-tables.mjs', 'spend-ledger.mjs', 'path-table.mjs', 'path-fit.mjs', 'sandbox-verdict.mjs',
+    'path-table-sample.js', 'sandbox-play.js'];
+  const RECORD = path.join(path.dirname(RUNNER), 'path-table-runs', 'spend.jsonl');
+  const recordAtStart = fs.readFileSync(RECORD, 'utf8');
+  afterAll(() => expect(fs.readFileSync(RECORD, 'utf8')).toBe(recordAtStart));
+  /** A throwaway checkout of the runner, committed in a git repo of its own: its scripts copied, backend and rimpl
+   *  linked, and `record` as its committed spend record. A --go run writes that record, never this repo's. */
+  function checkout(record = recordAtStart) {
+    const root = tmp();
+    const booth = path.join(root, 'scripts', 'booth');
+    fs.mkdirSync(path.join(booth, 'path-table-runs'), { recursive: true });
+    for (const f of RUNNER_FILES) fs.copyFileSync(path.join(path.dirname(RUNNER), f), path.join(booth, f));
+    for (const layer of ['backend', 'rimpl']) fs.symlinkSync(path.join(__dirname, '..', '..', layer), path.join(root, layer));
+    fs.writeFileSync(path.join(booth, 'path-table-runs', 'spend.jsonl'), record);
+    const git = (...args) => spawnSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { cwd: root, encoding: 'utf8' });
+    git('init', '-q');
+    git('add', '.');
+    git('commit', '-qm', 'checkout');
+    return { git, runner: path.join(booth, 'build-path-tables.mjs'), ledgerTool: path.join(booth, 'spend-ledger.mjs'),
+      record: path.join(booth, 'path-table-runs', 'spend.jsonl') };
+  }
+  let shared;
+  // The checkout every other --go run uses: its record collects their open and charge lines.
+  const sharedRunner = () => { shared ??= checkout(); return shared.runner; };
+  const initIn = (co, home) => spawnSync(process.execPath, [co.ledgerTool, 'init'], { encoding: 'utf8', env: { PATH: process.env.PATH, HOME: home } });
+
+  const runAsync = (args, env = {}, runner = sharedRunner()) => new Promise((resolve) => {
+    const child = spawn(process.execPath, [runner, ...args], { env: envOf(env) });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (b) => { stdout += b; });
@@ -252,8 +280,8 @@ describe('the build runner', () => {
   }
 
   /** Starts a --go run, waits for its first evaluate request and kills the run there, mid-call. */
-  async function killMidCall(args, home, rimpl) {
-    const child = spawn(process.execPath, [RUNNER, '--go', ...args], { env: envOf(goEnv(home, rimpl)) });
+  async function killMidCall(args, home, rimpl, runner = sharedRunner()) {
+    const child = spawn(process.execPath, [runner, '--go', ...args], { env: envOf(goEnv(home, rimpl)) });
     const exited = new Promise((r) => child.on('close', r));
     for (let i = 0; i < 400 && !rimpl.calls.includes('POST /evaluate'); i += 1) await new Promise((r) => setTimeout(r, 25));
     child.kill('SIGKILL');
@@ -425,7 +453,8 @@ describe('the build runner', () => {
 
   test('init seeds the ledger with the committed record\'s $30.49, refuses to run twice, and so refuses every --go at the $25 cap', async () => {
     const home = tmp();
-    const init = () => spawnSync(process.execPath, [LEDGER_TOOL, 'init'], { encoding: 'utf8', env: { PATH: process.env.PATH, HOME: home } });
+    const co = checkout();
+    const init = () => initIn(co, home);
     expect(init().status).toBe(0);
     expect(fs.existsSync(ledgerFile(home))).toBe(true);
     const seeded = fs.readFileSync(ledgerFile(home), 'utf8');
@@ -445,6 +474,43 @@ describe('the build runner', () => {
     } finally {
       rimpl.close();
     }
+  });
+
+  test('a fresh init over the committed record seeds at least what runs killed mid-call or sent to another --out spent', async () => {
+    const co = checkout(`${JSON.stringify({ kind: 'charge', run_id: 'ptb-earlier', usd: 1, date: '2026-11-01', build: 'TST' })}\n`);
+    const homeA = tmp();
+    expect(initIn(co, homeA).status).toBe(0);
+    const rimpl = await stubRimpl({ answer: locked() });
+    const hung = await stubRimpl({ retries: 2 });
+    try {
+      // Each throwaway build writes to an --out of its own, never the checkout's record folder.
+      await runAsync([...throwawayBuild().args, '--go', '--cap', '5'], goEnv(homeA, rimpl), co.runner);
+      expect(rimpl.calls).toContain('POST /evaluate');
+      await killMidCall([...throwawayBuild().args, '--cap', '5'], homeA, hung, co.runner);
+      expect(hung.calls).toEqual(['GET /manifest', 'POST /evaluate']);
+    } finally {
+      rimpl.close();
+      hung.close();
+    }
+    // The operator commits the record, then a new machine (a fresh HOME) inits from it.
+    co.git('commit', '-qam', 'record', '--allow-empty');
+    const homeB = tmp();
+    const res = initIn(co, homeB);
+    expect(res.stderr).toBe('');
+    expect(spentIn(ledgerOf(homeB))).toBeGreaterThanOrEqual(spentIn(ledgerOf(homeA)));
+  }, 60_000);
+
+  test.each([
+    ['truncated to its first run', (raw) => `${raw.split('\n')[0]}\n`],
+    ['with a charge edited down', (raw) => raw.replace('"usd":15.23', '"usd":0.23')],
+  ])('init refuses a working-tree record %s, since only the record at HEAD proves the spend, and creates no ledger', (_name, edit) => {
+    const co = checkout();
+    fs.writeFileSync(co.record, edit(fs.readFileSync(co.record, 'utf8')));
+    const home = tmp();
+    const res = initIn(co, home);
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(/differs from the record committed at HEAD/);
+    expect(fs.existsSync(ledgerFile(home))).toBe(false);
   });
 
   test('--from still builds a table from a saved run, spending nothing, into the throwaway case only', async () => {
