@@ -70,7 +70,6 @@ test('the migrations seed exactly the BOOTH_SETTINGS keys, switched off, for an 
   expect(Object.keys(seeds).sort()).toEqual(Object.values(BOOTH_SETTINGS).sort());
   expect(seeds[BOOTH_SETTINGS.enabled].value).toBe(0);
   expect(seeds[BOOTH_SETTINGS.replyCache].value).toBe(0);
-  expect(seeds[BOOTH_SETTINGS.boardFiveSteps].value).toBe(0);
   expect(seeds[BOOTH_SETTINGS.ceilingUsd].value).toBe(3);
   const code = seeds[BOOTH_SETTINGS.code].text;
   expect(code).toBe('NFCME-2026');

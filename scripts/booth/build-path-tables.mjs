@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
- * Builds each booth case's path score table (#373, ADR 0009) from a saved run's samples: for every sampled tier path,
- * 3 sample transcripts walked with a random question variant and random same-tier options, the case's sample replies
- * as the AI's (scripts/booth/sample-replies), scored by the locked PIS-7 evaluator. A three-step case samples all 27
+ * Builds each booth case's path score table (#373, ADR 0009): for every sampled tier path, 3 sample transcripts walked
+ * with a random question variant and random same-tier options, the case's sample replies as the AI's
+ * (scripts/booth/sample-replies), scored by the locked PIS-7 evaluator through rimpl. A three-step case samples all 27
  * paths and each entry is the median per domain; a five-step case samples a balanced 27 of its 243 and a median (L1)
  * regression of each domain on step × tier fills all 243 (#381, scripts/booth/path-fit.mjs). A run builds cases of
  * one step count. A case gets a table only when its tree is byte-identical to the tree its safety review read (from
@@ -10,54 +10,74 @@
  * bumped. The report re-runs ADR 0005's difficulty check: on the scripted paths' samples for three steps, on their
  * fitted entries for five.
  *
- * LIVE BUILDS ARE OFF until #408 gives the build a spend cap that holds. This script sends no evaluator request: --go
- * is refused before anything else runs, and the only build is --from, from a saved run's samples, which spends nothing.
- * The samples of the runs already made (scripts/booth/path-table-runs/) and their spend record (spend.jsonl, $30.49)
- * stay as they are.
+ * The cap: CAP_USD is the ceiling on all path-table spend on this machine, over every run of every build, ever. It is
+ * counted in the machine's spend ledger (scripts/booth/spend-ledger.mjs, ~/.clics/booth-spend/ledger.jsonl, outside
+ * every checkout), which `node scripts/booth/spend-ledger.mjs init` creates once, seeded from the committed record
+ * (scripts/booth/path-table-runs/spend.jsonl). Each call is reserved there at its worst case (every attempt rimpl's
+ * provider may make, from GET /manifest provider_retries) before it starts, under the ledger's lock and against the
+ * whole ledger, so runs at once share the cap; it is settled at its reported tokens plus the worst case of every
+ * attempt rimpl retried, so a run killed mid-call stays charged its worst case. The first refused reservation stops
+ * the run, and a missing or unreadable ledger refuses --go. The owner opens a new budget by raising CAP_USD in a
+ * reviewed commit: until then the $30.49 already spent refuses every --go before any call.
  *
  *   node scripts/booth/build-path-tables.mjs                       # checks trees and replies, spends nothing
+ *   node --env-file=rimpl/.env scripts/booth/build-path-tables.mjs --go
  *   node scripts/booth/build-path-tables.mjs --from <samples.jsonl> # builds tables from a saved run, spends nothing
  *
  *   --cases <dir>     case folder (default backend/src/booth-cases/NFCME-2026)
  *   --case <id>       only this case (repeatable)
+ *   --cap <usd>       a lower cap on the same machine total, for this run (default and most CAP_USD)
  *   --samples n       samples per tier path (default 3, odd)
- *   --out <dir>       where the JSON report and summary go (default scripts/booth/path-table-runs)
- *   --from <jsonl>    build the tables from a saved run's samples
+ *   --concurrency n   calls at once (default 3)
+ *   --out <dir>       where the report, summary, samples and a copy of the run's charge line go (default
+ *                     scripts/booth/path-table-runs); it never moves the ledger or the committed record
+ *   --go              spend: without it the script stops after the checks
+ *   --from <jsonl>    build the tables from a saved run's samples, spending nothing
  *   --replies <dir>   the cases' sample replies (default scripts/booth/sample-replies/<event code>)
  *
+ * Env for --go: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl. Its only calls are rimpl's
+ * GET /manifest and POST /evaluate (shadow off). One probe call runs first: unless it was scored by the locked
+ * evaluator (rimpl's model manifest: provider, model, prompt and decoding), the build stops there. Every sample is
+ * appended to <out>/<run_id>.samples.jsonl as it lands, before its call is settled, so a run that stops for any reason
+ * keeps what it paid for and --from finishes it. Whatever its --out, a run appends an open line to the committed record
+ * (scripts/booth/path-table-runs/spend.jsonl) before its first reservation, holding the most it may spend, and a run
+ * that ends by itself appends its spend there as a charge line (and to <out>/spend.jsonl). A later init counts an open
+ * with no charge at its open amount, so a killed or crashed run never seeds a machine below what it may have spent.
+ *
  * --from refuses a run that went over the cap it ran under (its header's prior spend plus its own), a sample scored on
- * another tree, and a sample not scored by the locked evaluator (rimpl's model manifest: provider, model, prompt and
- * decoding). It refuses to run with a database client loaded.
- * Exit 0 when every case got a table and passes the re-check, 1 otherwise, 2 on a bad argument or setup.
+ * another tree, and a sample not scored by the locked evaluator. The build refuses to run with a database client
+ * loaded. Exit 0 when every case got a table and passes the re-check, 1 otherwise, 2 on a bad argument or setup.
  */
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewedTree, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
+import { spent, reserve, settle, recordOpen, recordCharge, RECORD } from './spend-ledger.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
-const { LOCKED, replyProblems, readReplies, jobsFor, lockProblems } = require('./path-table-sample.js');
-const { PATHS_BY_STEPS } = require('./sandbox-play.js');
+const { LOCKED, replyProblems, readReplies, jobsFor, lockProblems, failedUsd, scoreSample } = require('./path-table-sample.js');
+const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
+const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
+
+const CAP_USD = 25;
+// What an evaluate call cost on average in #264's sandbox runs (sandbox-play.js TYPICAL_TOKENS).
+const TYPICAL_EVALUATE = [4000, 405];
 
 const fail = (msg) => { console.error(msg); process.exit(2); };
-const LIVE_OFF = 'Live table builds are off until #408 gives the build a spend cap that holds: --go is refused and no evaluator '
-  + 'request was sent. --from <samples.jsonl> builds tables from a saved run, spending nothing.';
-
-// Refused before anything else runs, whatever else is passed: the build never reaches rimpl.
-if (process.argv.slice(2).includes('--go')) fail(LIVE_OFF);
 
 const DB_CLIENT = /[\\/](@supabase|pg|postgres)[\\/]|[\\/]lib[\\/]supabase\.js$/;
 const dbModules = Object.keys(require.cache).filter((m) => DB_CLIENT.test(m));
 if (dbModules.length) fail(`the build refuses to run with a database client loaded: ${dbModules[0]}`);
 
 function parseArgs(argv) {
-  const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], samples: 3,
-    out: path.join(HERE, 'path-table-runs'), from: null };
+  const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: CAP_USD, samples: 3,
+    concurrency: 3, out: path.join(HERE, 'path-table-runs'), go: false, from: null };
   const number = (flag, v, min, max = Infinity) => {
     const n = Number(v);
     if (!Number.isFinite(n) || n < min || n > max) fail(`${flag} needs a number from ${min} to ${max}`);
@@ -65,17 +85,21 @@ function parseArgs(argv) {
   };
   for (let i = 0; i < argv.length; i += 1) {
     const [flag, v] = [argv[i], argv[i + 1]];
+    if (flag === '--go') { opts.go = true; continue; }
     if (v === undefined) fail(`${flag} needs a value`);
     i += 1;
     if (flag === '--cases') opts.cases = path.resolve(v);
     else if (flag === '--case') opts.only.push(v);
+    else if (flag === '--cap') opts.cap = number(flag, v, 0.01, CAP_USD);
     else if (flag === '--samples') opts.samples = Math.floor(number(flag, v, 1));
+    else if (flag === '--concurrency') opts.concurrency = Math.floor(number(flag, v, 1));
     else if (flag === '--out') opts.out = path.resolve(v);
     else if (flag === '--replies') opts.replies = path.resolve(v);
     else if (flag === '--from') opts.from = path.resolve(v);
     else fail(`unknown argument ${flag}`);
   }
   if (opts.samples % 2 === 0) fail('--samples must be odd, so each median is a whole score');
+  if (opts.go && opts.from) fail('--go spends and --from builds from a saved run: pass one of them');
   return opts;
 }
 
@@ -132,7 +156,8 @@ for (const c of building) {
 }
 const jobs = jobsFor(building.map((c) => c.kase), opts.samples, () => plan.sampled)
   .map((job) => ({ ...job, replies: building.find((c) => c.kase === job.kase).replies }));
-console.log(`${building.length} case(s) to build, ${jobs.length} samples to read.`);
+console.log(`${building.length} case(s) to build, ${jobs.length} evaluator calls, about `
+  + `$${(jobs.length * costUsd(...TYPICAL_EVALUATE, 'anthropic')).toFixed(2)} typical.`);
 const treeOf = Object.fromEntries(building.map((c) => [c.kase.case_id, c.tree.tree_sha256]));
 const keyOf = (caseId, tierPath, sample) => `${caseId} ${tierPath} ${sample}`;
 
@@ -145,12 +170,8 @@ function readSaved(file) {
   return { header, samples };
 }
 
-if (!opts.from) {
-  console.log(`Nothing spent. ${LIVE_OFF}`);
-  process.exit(0);
-}
 let run;
-{
+if (opts.from) {
   const { header, samples } = readSaved(opts.from);
   if (header.samples !== opts.samples) fail(`--from ${opts.from} has ${header.samples} samples per path, not ${opts.samples}`);
   // The spend before the run plus the run's own, against the cap it ran under.
@@ -170,9 +191,125 @@ let run;
     spent_usd: Math.round(samples.reduce((acc, r) => acc + (r.usd ?? 0), 0) * 1e6) / 1e6,
     results: jobs.map((j) => byKey.get(keyOf(j.kase.case_id, j.tierPath, j.sample)) ?? { domains: null, error: 'not in the saved run' }),
   };
+} else {
+  if (!opts.go) {
+    console.log('Nothing spent. Add --go to spend, or --from <samples.jsonl> to build from a saved run.');
+    process.exit(0);
+  }
+  if (!jobs.length) fail('no case can be built');
+  const build = [...new Set(building.map((c) => c.kase.event_code))].join('+');
+  let priorUsd;
+  try { priorUsd = spent(); } catch (err) { fail(err.message); }
+  const roomFor = (worst) => {
+    if (priorUsd + worst <= opts.cap) return;
+    fail(`path-table builds on this machine have spent $${priorUsd.toFixed(2)} of the $${opts.cap} cap: no room for a call's `
+      + `worst case of $${worst.toFixed(2)}. The owner opens a new budget by raising CAP_USD in a reviewed commit.`);
+  };
+  // A call's worst case is at least one attempt's, so a spent cap is refused before rimpl is asked anything.
+  roomFor(failedUsd(0));
+  const rimplUrl = process.env.RIMPL_URL || 'http://localhost:3003';
+  const token = process.env.INTERNAL_TOKEN;
+  if (!token) fail('INTERNAL_TOKEN is not set (rimpl refuses calls without it)');
+  let rimpl;
+  try { rimpl = rimplCalls({ url: rimplUrl, token }); } catch (err) { fail(err.message); }
+  // The retries rimpl's provider makes after a failed attempt, each possibly billed: they set every call's worst case.
+  let retries;
+  try {
+    const res = await fetch(new URL('/manifest', rimplUrl), { headers: { 'x-internal-token': token }, signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) fail(`rimpl's GET /manifest answered ${res.status}`);
+    retries = (await res.json())?.provider_retries?.anthropic;
+  } catch (err) { fail(`rimpl's GET /manifest failed: ${err.message}`); }
+  if (!Number.isInteger(retries) || retries < 0) fail(`rimpl's GET /manifest reports no provider_retries.anthropic (got ${retries})`);
+  const worst = failedUsd(retries);
+  roomFor(worst);
+
+  const date = new Date().toISOString().slice(0, 10);
+  const runId = `ptb-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
+  const header = { run_id: runId, date, rimpl_url: rimplUrl, build, cap_usd: opts.cap, prior_usd: priorUsd,
+    provider_retries: retries, samples: opts.samples };
+  mkdirSync(opts.out, { recursive: true });
+  const savedPath = path.join(opts.out, `${runId}.samples.jsonl`);
+  const outRecord = path.join(opts.out, 'spend.jsonl');
+  writeFileSync(savedPath, `${JSON.stringify(header)}\n`);
+  console.log(`$${priorUsd.toFixed(2)} of the $${opts.cap} cap spent before this run. Samples are saved as they land to ${savedPath}`);
+
+  let stopped = false;
+  let halted = null;
+  let done = 0;
+  /** Scores `batch`, `concurrency` calls at a time, each reserved in the ledger at its worst case first. The first
+   *  refused reservation stops the run, and a ledger that fails halts it: that job and every later one stay unplayed. */
+  const scoreAll = async (batch, concurrency = opts.concurrency) => {
+    const results = batch.map(() => ({ skipped: 'cap' }));
+    let next = 0;
+    const worker = async () => {
+      while (next < batch.length && !stopped && !halted) {
+        const i = next;
+        next += 1;
+        const job = batch[i];
+        let id;
+        try { id = reserve({ runId, build, usd: worst, cap: opts.cap }); } catch (err) { halted = err.message; return; }
+        if (!id) { stopped = true; return; }
+        let r;
+        try {
+          r = await scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate, retries });
+        } catch (err) { r = { tier_path: job.tierPath, domains: null, error: err.message, usd: worst }; }
+        appendFileSync(savedPath, `${JSON.stringify({ case_id: job.kase.case_id, tier_path_planned: job.tierPath, sample: job.sample,
+          tree_sha256: treeOf[job.kase.case_id], ...r })}\n`);
+        results[i] = r;
+        done += 1;
+        console.log(`[${done}] ${job.kase.case_id} ${job.tierPath}#${job.sample} ${r.composite ?? `unscored (${r.error})`} $${r.usd}`);
+        // The sample is saved before it is settled: a settle that fails leaves the call at its worst case, never unpaid.
+        try { settle(id, r.usd); } catch (err) { halted = `${err.message}; that call stays reserved at its worst case`; }
+      }
+    };
+    await Promise.all(Array.from({ length: concurrency }, worker));
+    return results;
+  };
+  /** Appends the run's spend, as the ledger holds it, to the committed record and its --out copy. */
+  const charge = () => {
+    const usd = spent(runId);
+    recordCharge({ runId, usd, date, build }, outRecord);
+    return usd;
+  };
+  const halt = () => {
+    let note;
+    try { note = `$${charge().toFixed(2)} of it is charged in ${RECORD}`; } catch (err) {
+      note = `its spend is not charged in ${RECORD}, so a later init counts it at its open amount: ${err.message}`;
+    }
+    fail(`the build stopped on its spend ledger: ${halted}. Its samples are in ${savedPath}; ${note}`);
+  };
+
+  // Before any reservation, the committed record learns the most this run may spend, whatever --out is: a run that
+  // never reaches its charge line is counted at that by a later init.
+  try { recordOpen({ runId, usd: opts.cap - priorUsd, date, build }); } catch (err) { fail(`the run could not be opened in ${RECORD}: ${err.message}`); }
+
+  // The probe: one call on its own, so a wrong evaluator costs one call, not the build.
+  const [first] = await scoreAll(jobs.slice(0, 1), 1);
+  if (halted) halt();
+  if (first.skipped) fail(`path-table builds on this machine left no room under the $${opts.cap} cap for the probe call`);
+  const unlocked = first.domains ? lockProblems(first) : [`unscored (${first.error})`];
+  if (unlocked.length) {
+    let usd;
+    try { usd = charge(); } catch (err) { fail(err.message); }
+    fail(`the probe was not scored by the locked evaluator: ${unlocked.join('; ')}; $${usd} spent`);
+  }
+  const results = [first, ...await scoreAll(jobs.slice(1))];
+  if (halted) halt();
+  // One retry of each sample a call failed, while the cap allows.
+  const failed = results.map((r, i) => (r.domains || r.skipped ? null : i)).filter((i) => i != null);
+  if (failed.length && !stopped) {
+    const retry = await scoreAll(failed.map((i) => jobs[i]));
+    failed.forEach((i, k) => { if (!retry[k].skipped) results[i] = retry[k]; });
+    if (halted) halt();
+  }
+  let runUsd;
+  let total;
+  try { runUsd = charge(); total = spent(); } catch (err) { fail(err.message); }
+  run = { ...header, spent_usd: runUsd, stopped, over_cap: total > opts.cap, results };
 }
 
 const { results, run_id: runId, date } = run;
+const overCap = Boolean(run.over_cap);
 const scored = results.filter((r) => r.domains);
 // Every table must come from the locked evaluator, in one configuration.
 const configs = new Set(scored.map((r) => JSON.stringify([r.provider, r.model, r.prompt_version, r.config_fingerprint])));
@@ -186,7 +323,8 @@ if (!oneConfig) {
 const samplesOf = (id, p) => results.filter((r, i) => r.domains && jobs[i].kase.case_id === id && jobs[i].tierPath === p);
 const report = {
   run_id: runId, date, rimpl_url: run.rimpl_url, cap_usd: run.cap_usd, spent_usd: run.spent_usd,
-  samples: opts.samples, planned: jobs.length, scored: scored.length, finished_from: path.relative(ROOT, opts.from),
+  stopped: Boolean(run.stopped), over_cap: overCap, samples: opts.samples, planned: jobs.length, scored: scored.length,
+  ...(opts.from ? { finished_from: path.relative(ROOT, opts.from) } : {}),
   evaluator: { provider: first.provider, model: first.model, prompt_version: first.prompt_version, prompt_sha256: LOCKED.prompt_sha256, decoding: first.decoding },
   method: plan.method, scripted, sampled: plan.sampled,
   cases: {},
@@ -200,14 +338,17 @@ const built = Object.fromEntries(building.map((c) => {
     table: complete ? plan.build((p) => samplesOf(id, p).map((r) => r.domains)) : null,
   }];
 }));
-report.recheck = recheck(plan, built, { samples: opts.samples });
+report.recheck = recheck(plan, built, {
+  samples: opts.samples,
+  incomplete: run.stopped || overCap ? `${scored.length} of ${jobs.length} samples scored${run.stopped ? ', stopped at the cap' : ''}${overCap ? ', over the cap' : ''}` : undefined,
+});
 for (const c of cases) {
   const id = c.kase.case_id;
   if (c.tree.why) { report.cases[id] = { version: c.kase.version, why: c.tree.why, table: false }; continue; }
   const { table } = built[id];
   const paths = table?.paths ?? null;
   let why = !paths ? 'not every path is fully scored' : !oneConfig ? 'not one locked evaluator configuration'
-    : !/^\d+$/.test(c.kase.version) ? `version ${c.kase.version} is not a whole number` : null;
+    : overCap ? 'the build went over its cap' : !/^\d+$/.test(c.kase.version) ? `version ${c.kase.version} is not a whole number` : null;
   const version = why ? c.kase.version : String(Number(c.kase.version) + 1);
   if (!why) {
     // A pass admits the table (ADR 0005); a fail leaves the case out until the owner waives it against this run.

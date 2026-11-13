@@ -88,7 +88,7 @@ async function apiFetch(path, options = {}) {
   // A streamed reply (server-sent events): pieces go to onEvent, and the result is the final `done`
   // event's body — the same object a plain JSON answer would have been.
   if (onEvent && /text\/event-stream/i.test(res.headers.get('content-type') || '')) return readEventStream(res, onEvent);
-  // Guard the body parse: Railway edge 502/503 (and proxy error pages) return non-JSON HTML, which
+  // Guard the body parse: Proxy or host edge 502/503 (and proxy error pages) return non-JSON HTML, which
   // would throw here and leave the caller's awaited button dead/disabled. Return the { error } shape
   // callers already branch on.
   try {

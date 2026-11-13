@@ -1243,4 +1243,4 @@ function maskLabelledTail(answer, registry) {
   return `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
 }
 
-module.exports = { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry, maskLabelledTail };
+module.exports = { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry, maskLabelledTail, BOOTH_ID_LABELS };

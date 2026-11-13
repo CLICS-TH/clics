@@ -83,10 +83,15 @@ test('every name in the backend boot check is in backend.env.example, or set by 
   }
 });
 
-// The one value an example ships: RECONCILE_INTERVAL_MS=0. Blank would mean the 6-hourly default
+// The values the examples ship. RECONCILE_INTERVAL_MS=0: blank would mean the 6-hourly default
 // (`'' || 6h` in backend/src/index.js), i.e. the sweep ON beside Railway's.
-const SHIPPED_VALUES = { 'backend.env.example': ['RECONCILE_INTERVAL_MS=0'] };
-test('the env examples hold names only: no line assigns a value except RECONCILE_INTERVAL_MS=0', () => {
+// LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE=8: blank is the default 4, which refuses the readiness concurrency
+// row's sessions queue_full (see the test below).
+const SHIPPED_VALUES = {
+  'backend.env.example': ['RECONCILE_INTERVAL_MS=0'],
+  'rimpl.env.example': ['LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE=8'],
+};
+test('the env examples hold names only: no line assigns a value except the shipped ones', () => {
   for (const file of ['backend.env.example', 'rimpl.env.example']) {
     const allowed = SHIPPED_VALUES[file] || [];
     for (const line of read('deploy', 'vm1', file).split('\n')) {
@@ -97,6 +102,29 @@ test('the env examples hold names only: no line assigns a value except RECONCILE
   }
   assert.match(read('backend', 'src', 'index.js'), /parseInt\(process\.env\.RECONCILE_INTERVAL_MS \|\| /,
     'the backend still reads a blank RECONCILE_INTERVAL_MS as the default; if that changed, revisit the preflight check');
+});
+
+// #431: the readiness concurrency row drives `sessions` (ticket 10) concurrent chats through the tutor.
+// The tutor runs LOCAL_TUTOR_MAX_CONCURRENCY at once and queues LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE more;
+// anything past both is refused queue_full and the row counts it lost.
+test('rimpl.env.example queues enough tutor turns for the readiness row\'s concurrent sessions', () => {
+  const factory = read('rimpl', 'src', 'services', 'providers', 'local-factory.js');
+  const dflt = (knob) => {
+    const m = new RegExp('intEnv\\(`\\$\\{queuePrefix\\}' + knob + '`, (\\d+),').exec(factory);
+    assert.ok(m, `local-factory.js reads ${knob} with a default`);
+    return Number(m[1]);
+  };
+  const sessions = /sessions: \{ flag: '--sessions', ticket: (\d+),/.exec(read('rimpl', 'src', 'lib', 'readiness.js'));
+  assert.ok(sessions, 'rimpl/src/lib/readiness.js declares the --sessions ticket value');
+  const example = read('deploy', 'vm1', 'rimpl.env.example').split('\n');
+  const value = (name, fallback) => {
+    const line = example.find((l) => l.startsWith(`${name}=`));
+    return line && line !== `${name}=` ? Number(line.slice(name.length + 1)) : fallback;
+  };
+  const running = value('LOCAL_TUTOR_MAX_CONCURRENCY', dflt('MAX_CONCURRENCY'));
+  const queued = value('LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE', dflt('MAX_QUEUE_INTERACTIVE'));
+  assert.ok(running + queued >= Number(sessions[1]),
+    `${running} running + ${queued} queued admit fewer than the row's ${sessions[1]} sessions: the rest are refused queue_full`);
 });
 
 test('Railway-only names are never assigned in the vm1 examples', () => {

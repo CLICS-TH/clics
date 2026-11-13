@@ -136,6 +136,11 @@ which backend they target. Run them against demo accounts, ideally right after `
   never changes, that key). Env: `SMOKE_BASE`, `SMOKE_PHYSICIANS`, `SMOKE_PHYSICIAN_PW`, `SMOKE_SUPER_EMAIL`,
   `SMOKE_SUPER_PW`, `LOCAL_AI_BASE_URL`, `LOCAL_AI_MODEL` (never echoed). Prints ids, phases, latencies and
   token counts only. Runbook: [LOCAL-MODEL-ROADMAP](LOCAL-MODEL-ROADMAP.md).
+- `npm run readiness` (in `rimpl/`, `scripts/readiness.js`), run inside the RIMPL container on vm1: the
+  local-only cutover's scripted readiness rows (reachability, inference shape, context, down, local-only,
+  latency, concurrency), each pass or fail with its evidence, against the real on-prem models. Reads the
+  SANDBOX council's longest transcript and writes nothing. Its rows and exit codes:
+  [deploy/vm1/README.md](../deploy/vm1/README.md) "Readiness command". Hermetic tests: `rimpl/tests/readiness-*.test.js`.
 - `scripts/probe/screening-verdict.mjs` — **offline**, reads only score files (`model-agreement.mjs --out`
   + `repeat-consistency.mjs --out`) and prints the D18 verdict through the production `icc.js` code, the
   Σ\|Δ\| and JSON checks, the pairs-needed ladder and a `prompt-versions.md` row. Refuses a tuning-split

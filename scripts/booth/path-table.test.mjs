@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import pleGate from '../../backend/src/services/ple-gate.js';
 import { treeSha, reviewedTree, medianDomains, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
 import { PATH_GROUPS, verdicts } from './sandbox-verdict.mjs';
@@ -21,21 +22,74 @@ test('the tree hash ignores version, admission, the table and key order, and see
   assert.notEqual(treeSha(tree({ teaser: { th: 'ก', en: 'a ' } })), base);
 });
 
+// A review as recorded: its findings name the tree the reviewer read, and tree_sha256 copies that hash.
+const BOUND = { ...REVIEW, findings: `none. Tree sha256 ${treeSha(tree())}.`, tree_sha256: treeSha(tree()) };
+
 test('a tree unchanged since the commit that first holds its review keeps that review, at its hash', () => {
+  const waiver = { date: '2026-11-03', tree_sha256: BOUND.tree_sha256 };
   const history = [
     { commit: 'aaaaaaaa1', raw: tree({ teaser: { th: 'ข', en: 'b' } }) },
-    { commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: REVIEW } }) },
-    { commit: 'cccccccc3', raw: tree({ admission: { safety_review: REVIEW, owner_waiver: { date: '2026-11-03' } } }) },
+    { commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: BOUND } }) },
+    { commit: 'cccccccc3', raw: tree({ admission: { safety_review: BOUND, owner_waiver: waiver } }) },
   ];
-  const current = tree({ version: '2', admission: { safety_review: REVIEW, owner_waiver: { date: '2026-11-03' } } });
+  const current = tree({ version: '2', admission: { safety_review: BOUND, owner_waiver: waiver } });
   assert.deepEqual(reviewedTree(history, current), { tree_sha256: treeSha(history[1].raw), reviewed_commit: 'bbbbbbbb2' });
 });
 
-test('a tree edited after its review, a review no commit holds, and no review are each refused', () => {
-  const history = [{ commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: REVIEW } }) }];
-  assert.match(reviewedTree(history, tree({ banks: { step1: { x: 2 } }, admission: { safety_review: REVIEW } })).why, /changed its tree since the safety review in bbbbbbbb/);
-  assert.match(reviewedTree(history, tree({ admission: { safety_review: { ...REVIEW, date: '2026-11-04' } } })).why, /no commit holds/);
+test('a tree edited after its review, a review no commit holds, a review of no tree, and no review are each refused', () => {
+  const history = [{ commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: BOUND } }) }];
+  const otherFirst = [{ commit: 'bbbbbbbb2', raw: tree({ banks: { step1: { x: 2 } }, admission: { safety_review: BOUND } }) }];
+  assert.match(reviewedTree(otherFirst, tree({ admission: { safety_review: BOUND } })).why, /changed its tree since the safety review in bbbbbbbb/);
+  assert.match(reviewedTree(history, tree({ admission: { safety_review: { ...BOUND, date: '2026-11-04' } } })).why, /no commit holds/);
+  assert.match(reviewedTree([{ commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: REVIEW } }) }],
+    tree({ admission: { safety_review: REVIEW } })).why, /names no tree/);
   assert.match(reviewedTree(history, tree()).why, /no safety review/);
+});
+
+test('a tree edited in the commit that moves it into place, with its review copied unchanged, is refused (#468)', () => {
+  const staged = tree({ admission: { safety_review: BOUND } });
+  const moved = tree({ teaser: { th: 'ค', en: 'c' }, admission: { safety_review: BOUND } });
+  const history = [{ commit: 'aaaaaaaa1', raw: tree({ banks: { step1: { x: 0 } } }) }, { commit: 'dddddddd4', raw: moved }];
+  assert.notEqual(treeSha(moved), treeSha(staged));
+  assert.match(reviewedTree(history, moved).why, /safety review of another tree/);
+});
+
+// gate #370 on PR #482: a moved tree edited (leptospirosis step4.B option a, 7 days of doxycycline to 5) with its
+// tree_sha256 recomputed to match was accepted "as reviewed in" the edit commit. The reviewer's findings still name the
+// tree they read, so the recomputed field no longer matches them.
+const live = (id) => JSON.parse(readFileSync(new URL(`../../backend/src/booth-cases/NFCME-2026/${id}.json`, import.meta.url), 'utf8'));
+
+test('edit + recomputed tree_sha256, findings unchanged: refused', () => {
+  const reviewed = live('leptospirosis');
+  assert.deepEqual(reviewedTree([{ commit: 'aaaaaaaa1', raw: reviewed }], reviewed),
+    { tree_sha256: treeSha(reviewed), reviewed_commit: 'aaaaaaaa1' });
+  const edited = structuredClone(reviewed);
+  const option = edited.banks.step4.B.options[0];
+  assert.match(option.label.en, /7 days/);
+  option.label.en = option.label.en.replace('7 days', '5 days');
+  edited.admission.safety_review.tree_sha256 = treeSha(edited);
+  assert.equal(edited.admission.safety_review.findings, reviewed.admission.safety_review.findings);
+  const history = [{ commit: 'aaaaaaaa1', raw: reviewed }, { commit: 'eeeeeeee2', raw: edited }];
+  assert.match(reviewedTree(history, edited).why, /tree_sha256 that is not the tree its reviewer read/);
+});
+
+test('a review whose findings name no tree, or two, is refused, whatever its tree_sha256 says', () => {
+  const sha = treeSha(tree());
+  for (const findings of ['none', `Tree sha256 ${sha}. Also tree sha256 ${'a'.repeat(64)}.`]) {
+    const review = { ...REVIEW, findings, tree_sha256: sha };
+    const raw = tree({ admission: { safety_review: review } });
+    assert.match(reviewedTree([{ commit: 'bbbbbbbb2', raw }], raw).why, /findings name no tree/);
+  }
+});
+
+test('each live case whose review is bound to its tree names that tree in its findings; dka-young-adult stays refused', () => {
+  for (const id of ['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'ectopic-rupture', 'leptospirosis', 'melioidosis-farmer',
+    'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']) {
+    const raw = live(id);
+    assert.equal(reviewedTree([{ commit: 'aaaaaaaa1', raw }], raw).tree_sha256, treeSha(raw), id);
+  }
+  const dka = live('dka-young-adult');
+  assert.match(reviewedTree([{ commit: 'aaaaaaaa1', raw: dka }], dka).why, /names no tree/);
 });
 
 test('each table entry is the median per domain of its samples, taken domain by domain', () => {

@@ -16,6 +16,7 @@ const PROD_HOSTS = new Set([
   'physician-ui.vercel.app',
   'audit-dashboard-rouge.vercel.app',
   'backend-production-c12e4.up.railway.app',
+  'clics.ccme.or.th',
   'rimpl.railway.internal',
 ]);
 const REQUIRED_ENV = [

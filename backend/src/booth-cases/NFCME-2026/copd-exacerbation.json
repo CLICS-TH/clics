@@ -1,6 +1,6 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "5",
+  "version": "6",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
@@ -344,13 +344,13 @@
       }
     },
     "step3": {
-      "BB": {
+      "B": {
         "variants": [
           {
             "id": "v3",
             "question": {
-              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
-              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
+              "th": "CXR ไม่พบปอดอักเสบ pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "No pneumonia on CXR; pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
             }
           },
           {
@@ -394,6 +394,18 @@
             }
           },
           {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "pred 5 วัน+azithromycin",
+              "en": "Pred 5 days + azithromycin"
+            },
+            "line": {
+              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
+              "en": "A once-daily macrolide is easy to take."
+            }
+          },
+          {
             "id": "d",
             "tier": "reasonable",
             "label": {
@@ -424,13 +436,13 @@
           "f"
         ]
       },
-      "BR": {
+      "R": {
         "variants": [
           {
             "id": "v3",
             "question": {
-              "th": "pH 7.37 WBC 13,000/มม.³ K 3.6 มิลลิโมล/ล. ให้ยาอะไร",
-              "en": "pH 7.37, WBC 13,000/µL, K 3.6 mmol/L. Which drugs do you give?"
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
             }
           },
           {
@@ -462,6 +474,18 @@
             }
           },
           {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "pred 5 วัน+doxycycline",
+              "en": "Pred 5 days + doxycycline"
+            },
+            "line": {
+              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
+              "en": "Doxycycline twice a day covers the main bacteria."
+            }
+          },
+          {
             "id": "c",
             "tier": "reasonable",
             "label": {
@@ -486,25 +510,25 @@
             }
           },
           {
-            "id": "g",
+            "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
+              "th": "pred 5 วัน+ceftriaxone IV",
+              "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
+              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
+              "en": "Gives broad IV cover."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "g"
+          "f"
         ]
       },
-      "BW": {
+      "W": {
         "variants": [
           {
             "id": "v3",
@@ -579,7 +603,7 @@
           },
           {
             "id": "g",
-            "tier": "weaker",
+            "tier": "reasonable",
             "label": {
               "th": "pred 5 วัน+levofloxacin",
               "en": "Pred 5 days + levofloxacin"
@@ -595,28 +619,23 @@
           "c",
           "f"
         ]
-      },
-      "RB": {
+      }
+    },
+    "step4": {
+      "B": {
         "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
-              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
-            }
-          },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+              "th": "1 ชม.ต่อมา พูดเป็นประโยค SpO2 91% (O2 88–92%) ต่อไป?",
+              "en": "An hour on he speaks in sentences, SpO2 91% on O2 to 88–92%. Next step?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+              "th": "ABG ซ้ำ pH 7.39 PaCO2 46 mmHg ดีขึ้นชัด ทำอะไรต่อ",
+              "en": "Repeat ABG pH 7.39, PaCO2 46 mmHg; he is clearly better. What now?"
             }
           }
         ],
@@ -625,158 +644,389 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "pred 5 วัน+amox-clav",
-              "en": "Pred 5 days + amox-clav"
+              "th": "คงแผนเดิม คุม SpO2 88–92%",
+              "en": "Keep the plan, SpO2 at 88–92%"
             },
             "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+              "th": "ตอบสนองดีแล้ว ให้ยาชุดเดิมต่อจนครบคอร์ส",
+              "en": "He is responding, so the same course runs on to its end."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "pred 5 วัน+doxycycline",
-              "en": "Pred 5 days + doxycycline"
+              "th": "ลดยาพ่นเป็นทุก 2–4 ชม.",
+              "en": "Step nebulisers down to 2–4 hourly"
             },
             "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
+              "th": "ลดความถี่เมื่อดีขึ้น ใจสั่นและมือสั่นน้อยลง",
+              "en": "Fewer doses as he improves mean less tremor and racing pulse."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ CBC และเกลือแร่",
+              "en": "Check CBC and electrolytes"
+            },
+            "line": {
+              "th": "ยาพ่นและสเตียรอยด์อาจทำให้โพแทสเซียมต่ำ",
+              "en": "Nebulisers and steroid can lower potassium."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้แมกนีเซียม IV เพิ่ม",
+              "en": "Add IV magnesium sulfate"
+            },
+            "line": {
+              "th": "แมกนีเซียมช่วยคลายกล้ามเนื้อหลอดลมเพิ่ม",
+              "en": "Magnesium relaxes airway muscle on top of the nebulisers."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "เปลี่ยนยาฆ่าเชื้อเป็นแบบฉีด",
+              "en": "Switch the antibiotic to IV"
+            },
+            "line": {
+              "th": "ยาฉีดให้ระดับยาในเลือดแน่นอนกว่า",
+              "en": "An IV drug gives surer blood levels."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "2 ชม.ต่อมา ยังมีเสียงวี้ด SpO2 90% (O2 88–92%) ทำอะไร",
+              "en": "2 hours on he is still wheezy, SpO2 90% on O2 to 88–92%. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ABG ซ้ำ pH 7.36 PaCO2 50 mmHg ยังมีเสียงวี้ด ทำอะไรต่อ",
+              "en": "Repeat ABG pH 7.36, PaCO2 50 mmHg; he is still wheezy. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พ่นยา SABA+SAMA ซ้ำ",
+              "en": "Repeat SABA + SAMA nebs"
+            },
+            "line": {
+              "th": "หลอดลมยังตีบ ยาขยายหลอดลมออกฤทธิ์สั้นได้ผลเร็ว",
+              "en": "More short-acting bronchodilator works fastest on tight airways."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจ ABG ซ้ำใน 1 ชม.",
+              "en": "Recheck the ABG in 1 hour"
+            },
+            "line": {
+              "th": "เห็น CO2 ที่สูงขึ้นได้เร็ว ก่อนผู้ป่วยหายใจล้า",
+              "en": "Shows a rising CO2 early, before he tires."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดหาสาเหตุอื่น",
+              "en": "Chest X-ray for another cause"
+            },
+            "line": {
+              "th": "ลมรั่วหรือปอดอักเสบทำให้ตอบสนองช้าได้",
+              "en": "An air leak or pneumonia can slow the response."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "เปลี่ยนเป็น levofloxacin",
+              "en": "Switch to levofloxacin"
+            },
+            "line": {
+              "th": "ยาครอบคลุมเชื้อกว้างขึ้นตั้งแต่ตอนนี้",
+              "en": "A broader drug covers more bacteria from now on."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชม.ต่อมา ซึมลงแต่ปลุกตื่น pH 7.28 PaCO2 66 ทำอะไร",
+              "en": "An hour on, drowsier but rousable; pH 7.28, PaCO2 66 mmHg. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ซึมลงแต่ปลุกตื่น ABG pH 7.28 PaCO2 66 mmHg ทำอะไร",
+              "en": "Drowsier but rousable; ABG pH 7.28, PaCO2 66 mmHg. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เริ่ม NIV (BiPAP) ทันที",
+              "en": "Start NIV (BiPAP) now"
+            },
+            "line": {
+              "th": "pH 7.28 กับ CO2 ที่สูงขึ้นเป็นข้อบ่งชี้ของ NIV",
+              "en": "pH 7.28 with a rising CO2 is the indication for NIV."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "NIV และ ABG ซ้ำใน 1 ชม.",
+              "en": "NIV with a repeat ABG in 1 hour"
+            },
+            "line": {
+              "th": "ABG หลังเริ่ม NIV 1 ชม. บอกว่าได้ผลดีเพียงใด",
+              "en": "A gas an hour into NIV shows how well it is working."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใส่ท่อช่วยหายใจทันที",
+              "en": "Intubate and ventilate now"
+            },
+            "line": {
+              "th": "คุมการหายใจได้เต็มที่เมื่อผู้ป่วยซึมลง",
+              "en": "Takes full control of breathing as he grows drowsier."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "NIV ก๊าซ 1 ชม. เพิ่มแมกนีเซียม",
+              "en": "NIV, 1-h gas, add IV magnesium"
+            },
+            "line": {
+              "th": "เพิ่มแมกนีเซียมทางหลอดเลือดให้หลอดลมคลายตัว",
+              "en": "Adds IV magnesium to relax the airways further."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 4 SpO2 93% ขณะหายใจอากาศปกติ เดินได้ แผนกลับบ้าน?",
+              "en": "Day 4: SpO2 93% on room air, walking the ward. What is your discharge plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "อาการใกล้เคียงปกติเดิมแล้ว ก่อนกลับบ้านจะทำอะไร",
+              "en": "He is close to his usual self. What do you do before he goes home?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ทบทวนยาพ่นและวิธีพ่น",
+              "en": "Review his inhalers and technique"
+            },
+            "line": {
+              "th": "ยาพ่นออกฤทธิ์ยาวที่เหมาะและพ่นถูกวิธีลดการกำเริบ",
+              "en": "The right long-acting inhaler, used well, cuts the next flare."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "วัคซีน ฟื้นฟูปอด นัด 4 สัปดาห์",
+              "en": "Vaccines, rehab, review in 4 weeks"
+            },
+            "line": {
+              "th": "ลดการกำเริบซ้ำและพากลับไปทำสวนได้",
+              "en": "Cuts the next flare and gets him back to his orchard."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ยาพ่นบรรเทาอาการ นัด 4 สัปดาห์",
+              "en": "Reliever inhaler, review in 4 weeks"
+            },
+            "line": {
+              "th": "ยาพ่นบรรเทาอาการช่วยได้ทันทีเมื่อหอบที่บ้าน",
+              "en": "A reliever at home eases any breathless spell at once."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "จำหน่ายพร้อมสอนอาการเตือน",
+              "en": "Discharge with warning-sign advice"
+            },
+            "line": {
+              "th": "รู้อาการเตือนแล้วกลับมาโรงพยาบาลได้เร็ว",
+              "en": "Knowing the warning signs brings him back fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 3 ยังใช้ O2 2 ลิตร คุม 88–92% เดินแล้วเหนื่อย ทำอะไร",
+              "en": "Day 3: still on 2 L of O2 for 88–92%, breathless on walking. What do you do?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ดีขึ้นช้า ยังต้องใช้ O2 ให้ได้ 88–92% แผนต่อไปคืออะไร",
+              "en": "He improves slowly and still needs O2 for 88–92%. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ดูแลต่อในหอผู้ป่วย ประเมินทุกวัน",
+              "en": "Ward care with daily review"
+            },
+            "line": {
+              "th": "ยังต้องใช้ออกซิเจน หอผู้ป่วยจึงเหมาะกับการฟื้นตัว",
+              "en": "He still needs oxygen, so ward care fits his pace."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ดูแลในหอฯ เริ่มสอนพ่นยาวันนี้",
+              "en": "Ward care, inhaler teaching today"
+            },
+            "line": {
+              "th": "เตรียมกลับบ้านตั้งแต่วันนี้ช่วยให้กลับได้เร็วขึ้น",
+              "en": "Getting ready for home from today shortens his stay."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดและ CBC วันนี้",
+              "en": "Chest X-ray and CBC today"
+            },
+            "line": {
+              "th": "หาสาเหตุที่ทำให้ฟื้นตัวช้า เช่น ปอดอักเสบ",
+              "en": "Looks for a cause of the slow recovery, such as pneumonia."
             }
           },
           {
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
-              "en": "IV hydrocortisone + amox-clav"
+              "th": "ส่งต่อโรงพยาบาลจังหวัด",
+              "en": "Refer to the provincial hospital"
             },
             "line": {
-              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
-              "en": "Steroid into a vein, with amox-clav by mouth."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+ceftriaxone IV",
-              "en": "Pred 5 days + IV ceftriaxone"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "d",
-          "f"
-        ]
-      },
-      "RR": {
-        "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "pH 7.37 WBC 13,000/มม.³ CRP 60 มก./ล. ให้ยาอะไร",
-              "en": "pH 7.37, WBC 13,000/µL, CRP 60 mg/L. Which drugs do you give?"
-            }
-          },
-          {
-            "id": "v1",
-            "question": {
-              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "pred 5 วัน+amox-clav",
-              "en": "Pred 5 days + amox-clav"
-            },
-            "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "pred 5 วัน+azithromycin",
-              "en": "Pred 5 days + azithromycin"
-            },
-            "line": {
-              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
-              "en": "A once-daily macrolide is easy to take."
+              "th": "ทีมอายุรแพทย์ช่วยดูแลผู้ที่ฟื้นตัวช้า",
+              "en": "A physician team can manage a slow recovery."
             }
           },
           {
             "id": "e",
-            "tier": "reasonable",
-            "label": {
-              "th": "pred 5 วัน+amox-clav IV",
-              "en": "Pred 5 days + IV amox-clav"
-            },
-            "line": {
-              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
-              "en": "Steroid by mouth, with amox-clav into a vein."
-            }
-          },
-          {
-            "id": "g",
             "tier": "weaker",
             "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
+              "th": "ส่งต่อเข้า ICU รพ.จังหวัด",
+              "en": "Refer to a provincial ICU"
             },
             "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
+              "th": "ICU เฝ้าดูใกล้ชิดและจับอาการทรุดได้เร็ว",
+              "en": "An ICU watches closely and catches any slide early."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "g"
+          "e"
         ]
       },
-      "RW": {
+      "W": {
         "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
-              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
-            }
-          },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
+              "th": "ต่อมาซึมลง pH 7.26 PaCO2 70 mmHg ดูแลที่ไหน",
+              "en": "He then turns drowsy; pH 7.26, PaCO2 70 mmHg. Where is he cared for?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
+              "th": "ซึมลง pH 7.26 PaCO2 70 mmHg จะดูแลต่อที่ไหนอย่างไร",
+              "en": "He turns drowsy; pH 7.26, PaCO2 70 mmHg. Where and how is he cared for now?"
             }
           }
         ],
@@ -785,319 +1035,55 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "pred 5 วัน+amox-clav",
-              "en": "Pred 5 days + amox-clav"
+              "th": "แจ้ง ICU และประคองด้วย NIV",
+              "en": "Call ICU; NIV only as a bridge"
             },
             "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+              "th": "NIV ประคองขณะทีม ICU เตรียมใส่ท่อ",
+              "en": "NIV holds him while the ICU team gets ready to intubate."
             }
           },
           {
             "id": "b",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
-              "th": "pred 5 วัน+doxycycline",
-              "en": "Pred 5 days + doxycycline"
+              "th": "โทร ICU และแพทย์อาวุโสทันที",
+              "en": "Call ICU and a senior now"
             },
             "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
+              "th": "ICU และแพทย์อาวุโสมาพร้อมกันตั้งแต่ต้น",
+              "en": "Brings the ICU team and a senior in together, at once."
             }
           },
           {
             "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "pred 5 วัน+azithromycin",
-              "en": "Pred 5 days + azithromycin"
-            },
-            "line": {
-              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
-              "en": "A once-daily macrolide is easy to take."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+ceftriaxone IV",
-              "en": "Pred 5 days + IV ceftriaxone"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
-            }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
-            },
-            "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "f"
-        ]
-      },
-      "WB": {
-        "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
-              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
-            }
-          },
-          {
-            "id": "v1",
-            "question": {
-              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
             "tier": "best",
             "label": {
-              "th": "pred 5 วัน+amox-clav",
-              "en": "Pred 5 days + amox-clav"
+              "th": "แจ้ง ICU และใส่ท่อช่วยหายใจ",
+              "en": "Call ICU and intubate now"
             },
             "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "pred 5 วัน+doxycycline",
-              "en": "Pred 5 days + doxycycline"
-            },
-            "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
+              "th": "ทางเดินหายใจปลอดภัยขณะ ICU เตรียมรับ",
+              "en": "Secures his airway while the ICU gets ready for him."
             }
           },
           {
             "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "ไฮโดรคอร์ติโซน IV+amox-clav",
-              "en": "IV hydrocortisone + amox-clav"
-            },
-            "line": {
-              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
-              "en": "Steroid into a vein, with amox-clav by mouth."
-            }
-          },
-          {
-            "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "pred 5 วัน+ceftriaxone IV",
-              "en": "Pred 5 days + IV ceftriaxone"
+              "th": "NIV ส่ง ICU สเตียรอยด์เท่าตัว",
+              "en": "NIV to ICU, double the steroid"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
+              "th": "สเตียรอยด์ขนาดสูงหวังลดการอักเสบให้เร็วขึ้น",
+              "en": "A higher steroid dose aims to calm the airways faster."
             }
           }
         ],
         "default_trio": [
           "a",
-          "d",
-          "f"
-        ]
-      },
-      "WR": {
-        "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "pH 7.37 NT-proBNP ปกติ จะให้ยาอะไรเพิ่ม",
-              "en": "pH 7.37, NT-proBNP normal. Which drugs do you add?"
-            }
-          },
-          {
-            "id": "v1",
-            "question": {
-              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "pred 5 วัน+amox-clav",
-              "en": "Pred 5 days + amox-clav"
-            },
-            "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "pred 5 วัน+azithromycin",
-              "en": "Pred 5 days + azithromycin"
-            },
-            "line": {
-              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
-              "en": "A once-daily macrolide is easy to take."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "reasonable",
-            "label": {
-              "th": "pred 5 วัน+amox-clav IV",
-              "en": "Pred 5 days + IV amox-clav"
-            },
-            "line": {
-              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
-              "en": "Steroid by mouth, with amox-clav into a vein."
-            }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
-            },
-            "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "g"
-        ]
-      },
-      "WW": {
-        "variants": [
-          {
-            "id": "v3",
-            "question": {
-              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
-              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
-            }
-          },
-          {
-            "id": "v1",
-            "question": {
-              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "pred 5 วัน+amox-clav",
-              "en": "Pred 5 days + amox-clav"
-            },
-            "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "pred 5 วัน+doxycycline",
-              "en": "Pred 5 days + doxycycline"
-            },
-            "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
-            }
-          },
-          {
-            "id": "c",
-            "tier": "reasonable",
-            "label": {
-              "th": "pred 5 วัน+azithromycin",
-              "en": "Pred 5 days + azithromycin"
-            },
-            "line": {
-              "th": "ยากลุ่มแมคโครไลด์กินวันละครั้ง ใช้ง่าย",
-              "en": "A once-daily macrolide is easy to take."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+ceftriaxone IV",
-              "en": "Pred 5 days + IV ceftriaxone"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
-            }
-          },
-          {
-            "id": "g",
-            "tier": "weaker",
-            "label": {
-              "th": "pred 5 วัน+levofloxacin",
-              "en": "Pred 5 days + levofloxacin"
-            },
-            "line": {
-              "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
-              "en": "Levofloxacin covers respiratory bacteria broadly."
-            }
-          }
-        ],
-        "default_trio": [
-          "a",
-          "c",
-          "f"
+          "b",
+          "d"
         ]
       }
     }
@@ -1105,274 +1091,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-02",
-      "findings": "Re-run on version 4 against GOLD 2025, the Thai COPD guideline, WHO COPD guidance and the repo bank entry: prednisolone 40 mg for 5 days, first-line amox-clav or doxycycline, O2 at 88-92% stated in every oxygen stem, and an ABG on every step-2 option. Every option is safe, including by omission, and correctly tiered; every line matches the drugs and routes in its label; every reveal matches the tests ordered on its path; Thai and English agree. Fixed after this review: each step-3 path now reveals the blood gas (pH 7.37, no acidosis), the gas-only reveals give PaCO2 in mmHg, and the English peak-flow line says at the bedside, as the Thai does."
-    },
-    "owner_waiver": {
-      "date": "2026-11-03",
-      "adr": "0005",
-      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
-      "sandbox_run_id": "sbx-202611030632-80af"
-    }
-  },
-  "path_score_table": {
-    "provenance": {
-      "evaluator_model": "claude-sonnet-4-6",
-      "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
-      "decoding": {
-        "temperature": 0,
-        "max_tokens": 4096
-      },
-      "samples_per_path": 3,
-      "method": "median",
-      "run_id": "ptb-202611040911-a71a",
-      "date": "2026-11-04",
-      "tree_sha256": "c1162936585b1e454125d997b1c115748b07f708c1e20adaaf687aaa30672a25"
-    },
-    "paths": {
-      "BBB": {
-        "d1": 4,
-        "d2": 4,
-        "d3": 5,
-        "d4": 3,
-        "d5": 1,
-        "d6": 1,
-        "d7": 3
-      },
-      "BBR": {
-        "d1": 4,
-        "d2": 4,
-        "d3": 4,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "BBW": {
-        "d1": 4,
-        "d2": 4,
-        "d3": 4,
-        "d4": 3,
-        "d5": 1,
-        "d6": 1,
-        "d7": 3
-      },
-      "BRB": {
-        "d1": 4,
-        "d2": 4,
-        "d3": 4,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "BRR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWB": {
-        "d1": 4,
-        "d2": 4,
-        "d3": 4,
-        "d4": 3,
-        "d5": 1,
-        "d6": 1,
-        "d7": 3
-      },
-      "BWR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBB": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 4,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "WBR": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBW": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "WRW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWB": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWR": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWW": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      }
+      "date": "2026-11-13",
+      "findings": "Review of version 6 (five steps). Thai: Thoracic Society of Thailand COPD guideline 2565 (2022), chapter 6 on exacerbations, Tables 3-9 and Flowcharts 1-2, opened in full; no newer Thai edition was found. WHO: IMAI District Clinician Manual (WHO 2011), volume 2 section 10.6.5 COPD and volume 1 section 3.2, difficult breathing. Also BTS/ICS AHRF 2016 recommendations 23-30 and BTS NIV Quality Standards 2018. Fixed after checking the 2022 Thai guideline: levofloxacin, a Thai first-line respiratory quinolone, is now reasonable in step3.W and left out of step3.B and step3.R, whose reasonable slots are full; the step-4 nebuliser step-down reads 2-4 hourly; after NIV failure every option above weaker calls ICU first (NIV only as a bridge, a senior called with ICU, intubation with ICU), and every reply there carries the escalation line. Departures from the Thai text, with reasons: the Thai guideline targets SpO2 92-94%, but this patient retains CO2 (PaCO2 48, later 66), so the tree keeps 88-92% per BTS/ICS recommendations 23-24; Thai Table 7 lists drowsiness as an intubation trigger, while the tree keeps NIV best for a drowsy but rousable patient at pH 7.28 with intubation reasonable, per BTS/ICS recommendation 26, and the step-4 replies carry the escalation line. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: prednisolone 40 mg for 5 days; amox-clav or doxycycline best; CXR, ECG and ABG first; NIV at pH 7.28 with a repeat gas at 1 hour; no NIV option delays the first repeat gas past 2 hours; a doubled steroid weaker; inhaler technique, vaccines, rehab and review within 4 weeks at discharge; Thai and English agree. Remains, listed on #470: the magnesium reply wording, and the Thai step5.W a label leaving the bridge meaning to its line. Tree sha256 cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c.",
+      "tree_sha256": "cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c"
     }
   }
 }

@@ -16,14 +16,14 @@ event=${1:?usage: ci-select.sh <event> < changed-paths}
 # job "ALL": a change here selects every job (workflows, this script, the root manifest + lockfile).
 RULES='
 ALL               ^(\.github/|package\.json$|package-lock\.json$)
-backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|scripts/booth/open-dataset-step-keys\.json$|scripts/booth/path-table-sample\.js$|scripts/booth/sample-replies/|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
+backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|scripts/booth/open-dataset-step-keys\.json$|scripts/booth/path-table-sample\.js$|scripts/booth/(spend-ledger|build-path-tables|path-table|path-fit)\.mjs$|scripts/booth/sample-replies/|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
 license_verifier  ^license-verifier/
 rimpl             ^(rimpl/|backend/src/booth-cases/|backend/src/services/(booth-dialogue|ple-gate)\.js$)
 dashboard         ^(audit-dashboard/|physician-ui/public/|backend/src/|db/|rimpl/src/lib/)
 physician_ui      ^physician-ui/public/js/
 probe             ^(scripts/probe/|rimpl/src/|backend/src/services/)
 quality           ^(scripts/quality/|scripts/probe/|rimpl/src/)
-vm1               ^(deploy/|scripts/deploy/|backend/|rimpl/)
+vm1               ^(deploy/|scripts/deploy/|scripts/lib/|physician-ui/public/js/config\.js$|backend/|rimpl/)
 manifest          ^(scripts/manifest/|rimpl/src/)
 pg                ^(scripts/db/|db/)
 calibration       ^(scripts/calibration/|rimpl/src/|backend/src/services/)

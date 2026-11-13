@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const { randomBytes } = require('crypto');
 
-const BASE = process.env.PROVISION_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.PROVISION_BASE);
 const SUPER = {
   email: process.env.PROVISION_SUPERADMIN_EMAIL || 'superadmin@clics.th',
   password: process.env.PROVISION_SUPERADMIN_PW || 'ClicsSuper#2026r2',

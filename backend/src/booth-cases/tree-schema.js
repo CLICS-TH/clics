@@ -1,6 +1,6 @@
 const { z } = require('zod');
 const { WEIGHTS, compositeScore } = require('../services/ple-gate');
-const { treeSha } = require('./tree-sha');
+const { treeSha, reviewedSha } = require('./tree-sha');
 
 const TIERS = Object.freeze([
   Object.freeze({ name: 'best', letter: 'B' }),
@@ -16,21 +16,25 @@ const tierPaths = (length) => {
 };
 const LANGS = ['th', 'en'];
 
-const Id = z.string().regex(/^[a-z][a-z0-9_]{0,15}$/, 'must match /^[a-z][a-z0-9_]{0,15}$/');
+// rimpl sends variant and option ids to the AI as written (rimpl/src/services/booth.js bankIn), so an id holds no room
+// for an identifier: a variant is v1 to v3, and an option a short word of letters and underscores with at most one
+// digit (abx5, o2_iv, opd_2wk), never a number such as an HN or a phone (gate #370 on PR #482).
+const VariantId = z.string().regex(/^v[1-3]$/, 'must match /^v[1-3]$/');
+const OptionId = z.string().regex(/^(?=.{1,16}$)[a-z][a-z_]*(?:[0-9][a-z_]*)?$/, 'must be 1-16 letters and underscores, with at most one digit');
 const Text = z.string().trim().min(1);
 const Bilingual = z.object({ th: Text, en: Text }).strict();
 const CalendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD')
   .refine((s) => !Number.isNaN(Date.parse(s)) && new Date(s).toISOString().startsWith(s), 'is not a calendar date');
 
 const Bank = z.object({
-  variants: z.array(z.object({ id: Id, question: Bilingual }).strict()).min(2).max(3),
+  variants: z.array(z.object({ id: VariantId, question: Bilingual }).strict()).min(2).max(3),
   options: z.array(z.object({
-    id: Id,
+    id: OptionId,
     tier: z.enum(TIERS.map((t) => t.name)),
     label: Bilingual,
     line: Bilingual,
   }).strict()).min(3).max(6),
-  default_trio: z.array(Id).length(3),
+  default_trio: z.array(OptionId).length(3),
 }).strict().superRefine((bank, ctx) => {
   const issue = (path, message) => ctx.addIssue({ code: z.ZodIssueCode.custom, path, message });
   for (const list of ['variants', 'options']) {
@@ -105,10 +109,10 @@ const CaseTreeSchema = z.object({
   vignette: Bilingual,
   banks: z.union(Object.values(SHAPES).map((s) => s.banks)),
   admission: z.object({
-    safety_review: z.object({ model: Text, date: CalendarDate, findings: Text }).strict().optional(),
-    sandbox: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
+    safety_review: z.object({ model: Text, date: CalendarDate, findings: Text, tree_sha256: Sha256.optional() }).strict().optional(),
+    sandbox: z.object({ run_id: Text, date: CalendarDate, tree_sha256: Sha256.optional() }).strict().optional(),
     // The owner's waiver of the sandbox (ADR 0005): never of the safety review.
-    owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text }).strict().optional(),
+    owner_waiver: z.object({ date: CalendarDate, adr: z.literal('0005'), reason: Text, sandbox_run_id: Text, tree_sha256: Sha256.optional() }).strict().optional(),
     // ADR 0005's difficulty check on the path score table's own samples: a pass, written by the table build, or the
     // owner's waiver of a fail. Each names the table run it judged, so a rebuilt table needs its own.
     table_check: z.object({ run_id: Text, date: CalendarDate }).strict().optional(),
@@ -123,12 +127,50 @@ const CaseTreeSchema = z.object({
 const SHAPED = Object.fromEntries(Object.entries(SHAPES).map(([steps, tree]) => [steps, Object.fromEntries(Object.entries(SHAPES)
   .map(([tabled, table]) => [tabled, CaseTreeSchema.extend({ banks: tree.banks, path_score_table: table.table.optional() })]))]));
 
-const isAdmitted = (kase) => {
-  const a = kase?.admission;
-  const run = kase?.path_score_table?.provenance.run_id;
-  return Boolean(a?.safety_review && (a.sandbox || a.owner_waiver) && run
+/** Whether a case file may be dealt. Its safety review and its sandbox pass or owner waiver count only when bound to
+ *  this tree by its hash, so a record never vouches for a tree it did not judge (#468, #470); its table vouches by its
+ *  own run. The safety review's hash must also be the one its findings name (reviewedSha), so a tree_sha256 recomputed
+ *  after an edit admits nothing (#386). Read on the raw file, the bytes those hashes were taken of. */
+const isAdmitted = (raw) => {
+  const a = raw?.admission;
+  if (!a) return false;
+  const sha = treeSha(raw);
+  const bound = (record) => record?.tree_sha256 === sha;
+  const run = raw.path_score_table?.provenance.run_id;
+  return Boolean(bound(a.safety_review) && reviewedSha(a.safety_review.findings) === sha
+    && (bound(a.sandbox) || bound(a.owner_waiver)) && run
     && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
 };
+
+const STEP_WORD = { 3: 'three', 5: 'five' };
+
+/**
+ * One event's pool (spec #370, #386), pure. `files` are its case files as { name, raw }, raw undefined when the file is
+ * not readable JSON. The event's step count is the largest among its trees, admitted or not, so adding one five-step
+ * tree moves the whole event to five steps and the pool never mixes counts. The pool is its admitted cases of that
+ * count, parsed and sorted by case_id; every other file is left out with why.
+ * @returns {{ steps: number, cases: object[], left: { name: string, why: string }[] }}
+ */
+function eventPool(code, files) {
+  const steps = Math.max(0, ...files.filter((f) => f.raw).map((f) => treeSteps(f.raw.banks)));
+  const cases = [];
+  const left = [];
+  for (const { name, raw } of files) {
+    const why = (() => {
+      if (raw === undefined) return 'is not readable JSON';
+      const problems = caseTreeProblems(raw);
+      if (problems.length) return `has ${problems.length} problem(s), first ${problems[0]}`;
+      if (raw.case_id !== name.replace(/\.json$/, '') || raw.event_code !== code) return 'is not named after its case_id and event folder';
+      const own = treeSteps(raw.banks);
+      if (own !== steps) return `is a ${STEP_WORD[own]}-step case in a ${STEP_WORD[steps]}-step event`;
+      return isAdmitted(raw) ? null : 'is not admitted';
+    })();
+    if (why) left.push({ name, why });
+    else cases.push(CaseTreeSchema.parse(raw));
+  }
+  cases.sort((a, b) => (a.case_id < b.case_id ? -1 : a.case_id > b.case_id ? 1 : 0));
+  return { steps, cases, left };
+}
 
 /** A finished play's score, read from its case's path score table (ADR 0009): its tier path's domains, and their
  *  composite as the case's shape gives it. */
@@ -219,10 +261,15 @@ function caseTreeProblems(raw) {
   if (kase.path_score_table && kase.path_score_table.provenance.tree_sha256 !== treeSha(raw)) {
     return ['path_score_table.provenance.tree_sha256: is not this tree\'s hash: the tree changed after its table was built, so it needs a new safety review and table'];
   }
+  // The hash a safety review records is the mover's copy of the one its reviewer named in the findings (#386).
+  const review = kase.admission?.safety_review;
+  if (review?.tree_sha256 && reviewedSha(review.findings) !== review.tree_sha256) {
+    return ['admission.safety_review.tree_sha256: is not the tree its findings name ("tree sha256 <hash>"): a tree edited after its review needs a new review, not a new hash'];
+  }
   const bestLabels = kase.banks.step1.options.filter((o) => o.tier === 'best').map((o) => o.label);
   const ctx = { best: Object.fromEntries(LANGS.map((lang) => [lang, new Set(bestLabels.flatMap((l) => words[lang](l[lang])))])) };
   return fields(kase).flatMap((t) => RULES.filter((r) => r.applies.has(t.kind))
     .map((r) => r.test(t, ctx)).filter(Boolean).map((msg) => `${t.path}.${t.lang}: ${msg}`));
 }
 
-module.exports = { TIERS, MAX_STEPS, tierPaths, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore };
+module.exports = { TIERS, MAX_STEPS, tierPaths, CaseTreeSchema, caseTreeProblems, isAdmitted, eventPool, tableScore };

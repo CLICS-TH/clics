@@ -1,6 +1,6 @@
 {
   "case_id": "ectopic-rupture",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "หญิงวัย 28 ปี มาโรงพยาบาลชุมชน ปวดอุ้งเชิงกรานทันทีจนเป็นลม",
@@ -349,20 +349,27 @@
       }
     },
     "step3": {
-      "BB": {
+      "B": {
         "variants": [
           {
             "id": "v1",
             "question": {
-              "th": "ความดันลดเหลือ 82/50 แม้ให้สารน้ำ จะทำอย่างไร",
-              "en": "Her BP falls to 82/50 despite fluids. Your plan?"
+              "th": "ความดัน 82/50 ศัลยแพทย์สงสัยท้องนอกมดลูกแตก จะทำอย่างไร",
+              "en": "Her BP is 82/50 and the surgeon suspects a ruptured ectopic. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "เธอซีดลงและชีพจร 130 ขั้นต่อไปคืออะไร",
-              "en": "She looks paler and her pulse is 130. Next step?"
+              "th": "ยังช็อก ศัลยแพทย์สงสัยท้องนอกมดลูกแตก จะทำอย่างไร",
+              "en": "She is still in shock and the surgeon suspects a ruptured ectopic. Plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ชีพจร 130 ซีดลง ศัลยแพทย์สงสัยท้องนอกมดลูกแตก ทำอย่างไร",
+              "en": "Pulse 130, she looks paler, and the surgeon suspects a ruptured ectopic. Plan?"
             }
           }
         ],
@@ -414,78 +421,17 @@
               "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
               "en": "Gives longer cover against infection after surgery."
             }
-          }
-        ],
-        "default_trio": [
-          "operate",
-          "lap",
-          "abx5"
-        ]
-      },
-      "BR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "β-hCG 3,200 IU/L ความดันลดเหลือ 82/50 จะทำอย่างไร",
-              "en": "β-hCG is 3,200 IU/L and her BP falls to 82/50. Your plan?"
-            }
           },
           {
-            "id": "v2",
-            "question": {
-              "th": "β-hCG ผลบวก เธอซีดลงและชีพจร 130 ขั้นต่อไปคืออะไร",
-              "en": "β-hCG is positive. She looks paler, pulse 130. Next step?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "operate",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดและเปิดหน้าท้องทันที",
-              "en": "Blood and emergency laparotomy now"
-            },
-            "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
-            }
-          },
-          {
-            "id": "mtp",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดปริมาณมากและเปิดหน้าท้อง",
-              "en": "Massive transfusion and laparotomy"
-            },
-            "line": {
-              "th": "ทดแทนเลือดที่เสียไปขณะศัลยแพทย์ห้ามเลือด",
-              "en": "Replaces lost blood while the surgeon stops the bleeding."
-            }
-          },
-          {
-            "id": "lap",
-            "tier": "reasonable",
-            "label": {
-              "th": "ให้เลือดและตัดท่อนำไข่ผ่านกล้อง",
-              "en": "Blood and laparoscopic salpingectomy"
-            },
-            "line": {
-              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
-              "en": "Smaller wounds and a faster recovery with a skilled team."
-            }
-          },
-          {
-            "id": "abx5",
+            "id": "stay7",
             "tier": "weaker",
             "label": {
-              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
-              "en": "Blood, surgery, 5 days' antibiotics"
+              "th": "เลือด ผ่าตัด อยู่ รพ. 7 วัน",
+              "en": "Blood, surgery and a 7-day stay"
             },
             "line": {
-              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
-              "en": "Gives longer cover against infection after surgery."
+              "th": "อยู่โรงพยาบาลนาน ทีมได้ดูการฟื้นตัวใกล้ชิด",
+              "en": "A long stay lets the team watch her recovery closely."
             }
           }
         ],
@@ -495,80 +441,7 @@
           "abx5"
         ]
       },
-      "BW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "Hb 8.2 g/dL และความดันลดเหลือ 82/50 จะทำอย่างไร",
-              "en": "Hb is 8.2 g/dL and her BP falls to 82/50. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "Hb 8.2 g/dL เธอซีดลงและชีพจร 130 ขั้นต่อไปคืออะไร",
-              "en": "Hb is 8.2 g/dL. She looks paler, pulse 130. Next step?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "operate",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดและเปิดหน้าท้องทันที",
-              "en": "Blood and emergency laparotomy now"
-            },
-            "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
-            }
-          },
-          {
-            "id": "mtp",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดปริมาณมากและเปิดหน้าท้อง",
-              "en": "Massive transfusion and laparotomy"
-            },
-            "line": {
-              "th": "ทดแทนเลือดที่เสียไปขณะศัลยแพทย์ห้ามเลือด",
-              "en": "Replaces lost blood while the surgeon stops the bleeding."
-            }
-          },
-          {
-            "id": "lap",
-            "tier": "reasonable",
-            "label": {
-              "th": "ให้เลือดและตัดท่อนำไข่ผ่านกล้อง",
-              "en": "Blood and laparoscopic salpingectomy"
-            },
-            "line": {
-              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
-              "en": "Smaller wounds and a faster recovery with a skilled team."
-            }
-          },
-          {
-            "id": "abx5",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
-              "en": "Blood, surgery, 5 days' antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
-              "en": "Gives longer cover against infection after surgery."
-            }
-          }
-        ],
-        "default_trio": [
-          "operate",
-          "lap",
-          "abx5"
-        ]
-      },
-      "RB": {
+      "R": {
         "variants": [
           {
             "id": "v1",
@@ -580,227 +453,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ความดันลดเหลือ 82/50 แม้ให้สารน้ำ ขั้นต่อไปคืออะไร",
-              "en": "Her BP falls to 82/50 despite fluids. Next step?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "operate",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดและเปิดหน้าท้องทันที",
-              "en": "Blood and emergency laparotomy now"
-            },
-            "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
-            }
-          },
-          {
-            "id": "lap",
-            "tier": "reasonable",
-            "label": {
-              "th": "ให้เลือดและตัดท่อนำไข่ผ่านกล้อง",
-              "en": "Blood and laparoscopic salpingectomy"
-            },
-            "line": {
-              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
-              "en": "Smaller wounds and a faster recovery with a skilled team."
-            }
-          },
-          {
-            "id": "abx5",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
-              "en": "Blood, surgery, 5 days' antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
-              "en": "Gives longer cover against infection after surgery."
-            }
-          },
-          {
-            "id": "stay7",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด อยู่ รพ. 7 วัน",
-              "en": "Blood, surgery and a 7-day stay"
-            },
-            "line": {
-              "th": "อยู่โรงพยาบาลนาน ทีมได้ดูการฟื้นตัวใกล้ชิด",
-              "en": "A long stay lets the team watch her recovery closely."
-            }
-          }
-        ],
-        "default_trio": [
-          "operate",
-          "lap",
-          "stay7"
-        ]
-      },
-      "RR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "อัลตราซาวด์พบน้ำในช่องท้อง ความดัน 82/50 จะทำอย่างไร",
-              "en": "The scan shows free fluid and her BP is 82/50. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ศัลยแพทย์สงสัยท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
-              "en": "The surgeon suspects a ruptured ectopic. Next step?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "operate",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดและเปิดหน้าท้องทันที",
-              "en": "Blood and emergency laparotomy now"
-            },
-            "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
-            }
-          },
-          {
-            "id": "lap",
-            "tier": "reasonable",
-            "label": {
-              "th": "ให้เลือดและตัดท่อนำไข่ผ่านกล้อง",
-              "en": "Blood and laparoscopic salpingectomy"
-            },
-            "line": {
-              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
-              "en": "Smaller wounds and a faster recovery with a skilled team."
-            }
-          },
-          {
-            "id": "abx5",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
-              "en": "Blood, surgery, 5 days' antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
-              "en": "Gives longer cover against infection after surgery."
-            }
-          },
-          {
-            "id": "stay7",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด อยู่ รพ. 7 วัน",
-              "en": "Blood, surgery and a 7-day stay"
-            },
-            "line": {
-              "th": "อยู่โรงพยาบาลนาน ทีมได้ดูการฟื้นตัวใกล้ชิด",
-              "en": "A long stay lets the team watch her recovery closely."
-            }
-          }
-        ],
-        "default_trio": [
-          "operate",
-          "lap",
-          "stay7"
-        ]
-      },
-      "RW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "Hb 8.2 g/dL ศัลยแพทย์สงสัยท้องนอกมดลูกแตก จะทำอย่างไร",
-              "en": "Hb is 8.2 g/dL and the surgeon suspects a ruptured ectopic. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "Hb 8.2 g/dL และความดันลดเหลือ 82/50 ขั้นต่อไปคืออะไร",
-              "en": "Hb is 8.2 g/dL and her BP falls to 82/50. Next step?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "operate",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดและเปิดหน้าท้องทันที",
-              "en": "Blood and emergency laparotomy now"
-            },
-            "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
-            }
-          },
-          {
-            "id": "lap",
-            "tier": "reasonable",
-            "label": {
-              "th": "ให้เลือดและตัดท่อนำไข่ผ่านกล้อง",
-              "en": "Blood and laparoscopic salpingectomy"
-            },
-            "line": {
-              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
-              "en": "Smaller wounds and a faster recovery with a skilled team."
-            }
-          },
-          {
-            "id": "abx5",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
-              "en": "Blood, surgery, 5 days' antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
-              "en": "Gives longer cover against infection after surgery."
-            }
-          },
-          {
-            "id": "stay7",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด อยู่ รพ. 7 วัน",
-              "en": "Blood, surgery and a 7-day stay"
-            },
-            "line": {
-              "th": "อยู่โรงพยาบาลนาน ทีมได้ดูการฟื้นตัวใกล้ชิด",
-              "en": "A long stay lets the team watch her recovery closely."
-            }
-          }
-        ],
-        "default_trio": [
-          "operate",
-          "lap",
-          "stay7"
-        ]
-      },
-      "WB": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "ศัลยแพทย์ตรวจแล้วสงสัยท้องนอกมดลูกแตก จะทำอย่างไร",
-              "en": "The surgeon examines her and suspects a ruptured ectopic. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ความดัน 82/50 ศัลยแพทย์สงสัยท้องนอกมดลูก ขั้นต่อไปคืออะไร",
-              "en": "Her BP is 82/50 and the surgeon suspects an ectopic. Next step?"
+              "th": "ความดัน 82/50 ศัลยแพทย์สงสัยท้องนอกมดลูกแตก ทำอะไรต่อ",
+              "en": "Her BP is 82/50 and the surgeon suspects a ruptured ectopic. Next step?"
             }
           }
         ],
@@ -842,6 +496,18 @@
             }
           },
           {
+            "id": "abx5",
+            "tier": "weaker",
+            "label": {
+              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
+              "en": "Blood, surgery, 5 days' antibiotics"
+            },
+            "line": {
+              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
+              "en": "Gives longer cover against infection after surgery."
+            }
+          },
+          {
             "id": "stay7",
             "tier": "weaker",
             "label": {
@@ -860,7 +526,7 @@
           "stay7"
         ]
       },
-      "WR": {
+      "W": {
         "variants": [
           {
             "id": "v1",
@@ -875,75 +541,9 @@
               "th": "เธอซีดลง ศัลยแพทย์สงสัยท้องนอกมดลูกแตก ขั้นต่อไปคืออะไร",
               "en": "She looks paler and the surgeon suspects a ruptured ectopic. Next step?"
             }
-          }
-        ],
-        "options": [
-          {
-            "id": "operate",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดและเปิดหน้าท้องทันที",
-              "en": "Blood and emergency laparotomy now"
-            },
-            "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
-            }
           },
           {
-            "id": "mtp",
-            "tier": "best",
-            "label": {
-              "th": "ให้เลือดปริมาณมากและเปิดหน้าท้อง",
-              "en": "Massive transfusion and laparotomy"
-            },
-            "line": {
-              "th": "ทดแทนเลือดที่เสียไปขณะศัลยแพทย์ห้ามเลือด",
-              "en": "Replaces lost blood while the surgeon stops the bleeding."
-            }
-          },
-          {
-            "id": "lap",
-            "tier": "reasonable",
-            "label": {
-              "th": "ให้เลือดและตัดท่อนำไข่ผ่านกล้อง",
-              "en": "Blood and laparoscopic salpingectomy"
-            },
-            "line": {
-              "th": "แผลเล็กและฟื้นตัวเร็ว เมื่อทีมผ่าตัดชำนาญ",
-              "en": "Smaller wounds and a faster recovery with a skilled team."
-            }
-          },
-          {
-            "id": "stay7",
-            "tier": "weaker",
-            "label": {
-              "th": "เลือด ผ่าตัด อยู่ รพ. 7 วัน",
-              "en": "Blood, surgery and a 7-day stay"
-            },
-            "line": {
-              "th": "อยู่โรงพยาบาลนาน ทีมได้ดูการฟื้นตัวใกล้ชิด",
-              "en": "A long stay lets the team watch her recovery closely."
-            }
-          }
-        ],
-        "default_trio": [
-          "operate",
-          "lap",
-          "stay7"
-        ]
-      },
-      "WW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "น้ำตาลปกติ ศัลยแพทย์สงสัยท้องนอกมดลูกแตก จะทำอย่างไร",
-              "en": "Her glucose is normal and the surgeon suspects a ruptured ectopic. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
+            "id": "v3",
             "question": {
               "th": "ศัลยแพทย์ชี้ว่าท้องนอกมดลูกแตก ความดัน 82/50 จะทำอย่างไร",
               "en": "The surgeon calls it a ruptured ectopic, BP 82/50. Your plan?"
@@ -988,6 +588,18 @@
             }
           },
           {
+            "id": "abx5",
+            "tier": "weaker",
+            "label": {
+              "th": "เลือด ผ่าตัด และยาฆ่าเชื้อ 5 วัน",
+              "en": "Blood, surgery, 5 days' antibiotics"
+            },
+            "line": {
+              "th": "ครอบคลุมการติดเชื้อหลังผ่าตัดได้นานขึ้น",
+              "en": "Gives longer cover against infection after surgery."
+            }
+          },
+          {
             "id": "stay7",
             "tier": "weaker",
             "label": {
@@ -1006,279 +618,492 @@
           "stay7"
         ]
       }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "หลังผ่าตัด ชีพจร 86 ความดัน 114/72 Hb 9.6 ทำอะไรต่อ",
+              "en": "After surgery: pulse 86, BP 114/72, Hb 9.6 g/dL. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันแรกหลังผ่าตัด อาการคงที่ ท่อนำไข่ขวาปกติ ทำอะไรต่อ",
+              "en": "Day 1: she is stable and her right tube looked healthy. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "mobilise",
+            "tier": "best",
+            "label": {
+              "th": "ลุกเดิน กินอาหาร ยาแก้ปวดชนิดกิน",
+              "en": "Walking, diet and oral pain relief"
+            },
+            "line": {
+              "th": "ช่วยฟื้นตัวเร็วและลดความเสี่ยงลิ่มเลือด",
+              "en": "Speeds recovery and lowers the risk of clots."
+            }
+          },
+          {
+            "id": "rpt_hb",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ Hb ซ้ำบ่ายวันนี้",
+              "en": "Repeat Hb this afternoon"
+            },
+            "line": {
+              "th": "ค่าที่สองช่วยดูว่าเลือดหยุดแล้ว",
+              "en": "A second value helps show the bleeding has stopped."
+            }
+          },
+          {
+            "id": "iv_abx",
+            "tier": "weaker",
+            "label": {
+              "th": "ยาฆ่าเชื้อชนิดฉีด 5 วัน",
+              "en": "IV antibiotics for 5 days"
+            },
+            "line": {
+              "th": "ป้องกันแผลติดเชื้อได้นานขึ้น",
+              "en": "Gives longer cover against wound infection."
+            }
+          },
+          {
+            "id": "anti_d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ Rh ให้ anti-D หากเป็นลบ",
+              "en": "Check Rh; anti-D if negative"
+            },
+            "line": {
+              "th": "มุ่งป้องกันโรค Rh ในการตั้งครรภ์ครั้งต่อไป",
+              "en": "Aims to protect a later pregnancy from Rh disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "mobilise",
+          "rpt_hb",
+          "anti_d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "หลังผ่าตัด ชีพจร 106 ความดัน 102/64 Hb 7.2 ทำอะไรต่อ",
+              "en": "After surgery: pulse 106, BP 102/64, Hb 7.2 g/dL. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันแรก ลุกยืนแล้วหน้ามืด ชีพจร 106 Hb 7.2 จะทำอะไร",
+              "en": "Day 1: she feels faint on standing, pulse 106, Hb 7.2 g/dL. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "one_unit",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือด 1 ยูนิตแล้วประเมินซ้ำ",
+              "en": "Transfuse 1 unit, then reassess"
+            },
+            "line": {
+              "th": "แก้ภาวะซีดที่มีอาการด้วยเลือดน้อยที่สุด",
+              "en": "Treats symptomatic anaemia with the least blood needed."
+            }
+          },
+          {
+            "id": "scan_bleed",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจท้องและอัลตราซาวด์หาเลือด",
+              "en": "Examine and scan for fresh bleeding"
+            },
+            "line": {
+              "th": "หาเลือดออกใหม่ที่อาจต้องกลับไปผ่าตัด",
+              "en": "Finds bleeding that may need a return to theatre."
+            }
+          },
+          {
+            "id": "two_units",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้เลือด 2 ยูนิตแล้วประเมินซ้ำ",
+              "en": "Transfuse 2 units, then reassess"
+            },
+            "line": {
+              "th": "ทดแทนเลือดที่เสียไปได้มากขึ้นในรอบเดียว",
+              "en": "Replaces more of her lost blood in one round."
+            }
+          },
+          {
+            "id": "fluid",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้สารน้ำ 500 มล. แล้วตรวจซ้ำ",
+              "en": "500 mL fluid bolus and recheck"
+            },
+            "line": {
+              "th": "สารน้ำอาจช่วยเพิ่มความดันและลดชีพจร",
+              "en": "Fluid may lift her BP and slow her pulse."
+            }
+          },
+          {
+            "id": "three_units",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้เลือด 3 ยูนิตให้ Hb ถึง 10",
+              "en": "Three units to lift Hb to 10"
+            },
+            "line": {
+              "th": "เพิ่ม Hb ได้เร็วในคราวเดียว",
+              "en": "Restores her Hb quickly in one go."
+            }
+          }
+        ],
+        "default_trio": [
+          "one_unit",
+          "two_units",
+          "fluid"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 หลังผ่าตัด ไข้ 38.5 °C ชีพจร 108 ทำอะไรต่อ",
+              "en": "Day 2 after surgery: temperature 38.5 °C and pulse 108. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันที่ 2 มีไข้ขึ้นใหม่และอ่อนเพลีย คุณจะทำอะไรต่อ",
+              "en": "On day 2 she has a new fever and feels weak. What do you do now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "source",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจแผล ปอด ปัสสาวะ และน่อง",
+              "en": "Examine wound, chest, urine, calves"
+            },
+            "line": {
+              "th": "หาต้นเหตุของไข้หลังผ่าตัด",
+              "en": "Finds the source of a fever after surgery."
+            }
+          },
+          {
+            "id": "sepsis",
+            "tier": "best",
+            "label": {
+              "th": "แลคเตต เพาะเชื้อ และ Hb ทันที",
+              "en": "Lactate, cultures and Hb now"
+            },
+            "line": {
+              "th": "จับภาวะติดเชื้อหรือเลือดออกใหม่ได้เร็ว",
+              "en": "Catches sepsis or fresh bleeding early."
+            }
+          },
+          {
+            "id": "broad_abx",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้ยาฆ่าเชื้อฉีดออกฤทธิ์กว้างทันที",
+              "en": "Broad IV antibiotics now"
+            },
+            "line": {
+              "th": "รักษาการติดเชื้อที่น่าจะเป็นได้ทันที",
+              "en": "Treats a likely infection without loss of time."
+            }
+          },
+          {
+            "id": "para",
+            "tier": "weaker",
+            "label": {
+              "th": "ยาลดไข้ วัดสัญญาณชีพทุก 4 ชม.",
+              "en": "Antipyretic, vital signs every 4 h"
+            },
+            "line": {
+              "th": "ลดไข้และเฝ้าดูสัญญาณชีพต่อเนื่อง",
+              "en": "Brings the fever down and tracks her vital signs."
+            }
+          }
+        ],
+        "default_trio": [
+          "source",
+          "broad_abx",
+          "para"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 4 อาการดี กินได้ เดินได้ จะวางแผนจำหน่ายอย่างไร",
+              "en": "By day 4 she is well, eating and walking. What is your discharge plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "พร้อมกลับบ้านและถามเรื่องการตั้งครรภ์ครั้งหน้า แผนคืออะไร",
+              "en": "She is ready to go home and asks about a future pregnancy. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "counsel",
+            "tier": "best",
+            "label": {
+              "th": "อัลตราซาวด์เร็วในครรภ์หน้า",
+              "en": "Early scan in her next pregnancy"
+            },
+            "line": {
+              "th": "ยืนยันตำแหน่งการตั้งครรภ์ครั้งหน้าได้เร็ว",
+              "en": "Confirms early where a future pregnancy lies."
+            }
+          },
+          {
+            "id": "fu_upt",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจ UPT ซ้ำใน 3 สัปดาห์",
+              "en": "Urine pregnancy test in 3 weeks"
+            },
+            "line": {
+              "th": "ผลลบยืนยันว่าเนื้อเยื่อการตั้งครรภ์หมดแล้ว",
+              "en": "A negative test shows the pregnancy tissue is gone."
+            }
+          },
+          {
+            "id": "opd_2wk",
+            "tier": "reasonable",
+            "label": {
+              "th": "นัดตรวจที่คลินิกใน 2 สัปดาห์",
+              "en": "Clinic visit in 2 weeks"
+            },
+            "line": {
+              "th": "ดูแผลและดูว่าเธอปรับตัวได้อย่างไร",
+              "en": "Checks the wound and how she is coping."
+            }
+          },
+          {
+            "id": "serial_hcg",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ β-hCG ในเลือดทุกสัปดาห์",
+              "en": "Weekly serum β-hCG checks"
+            },
+            "line": {
+              "th": "ติดตามระดับฮอร์โมนจนผลเป็นลบ",
+              "en": "Tracks the hormone down to a negative result."
+            }
+          }
+        ],
+        "default_trio": [
+          "counsel",
+          "opd_2wk",
+          "serial_hcg"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 4 อาการดีขึ้น ยังอ่อนเพลีย จะวางแผนจำหน่ายอย่างไร",
+              "en": "By day 4 she is better and still tired. How do you plan her discharge?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันที่ 5 อาการดีขึ้นและอยากกลับบ้าน แผนของคุณคืออะไร",
+              "en": "On day 5 she is better and wants to go home. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "iron_fu",
+            "tier": "best",
+            "label": {
+              "th": "ธาตุเหล็กและนัดคลินิก 2 สัปดาห์",
+              "en": "Oral iron and clinic in 2 weeks"
+            },
+            "line": {
+              "th": "เสริมเลือดและติดตามการฟื้นตัว",
+              "en": "Rebuilds her blood and checks her recovery."
+            }
+          },
+          {
+            "id": "fu_upt",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจ UPT ซ้ำใน 3 สัปดาห์",
+              "en": "Urine pregnancy test in 3 weeks"
+            },
+            "line": {
+              "th": "ผลลบยืนยันว่าเนื้อเยื่อการตั้งครรภ์หมดแล้ว",
+              "en": "A negative test shows the pregnancy tissue is gone."
+            }
+          },
+          {
+            "id": "phone_fu",
+            "tier": "reasonable",
+            "label": {
+              "th": "โทรติดตามอาการใน 1 สัปดาห์",
+              "en": "Phone follow-up in 1 week"
+            },
+            "line": {
+              "th": "การโทรสั้น ๆ ช่วยเช็กการฟื้นตัวได้ประหยัด",
+              "en": "A short call checks her recovery at little cost."
+            }
+          },
+          {
+            "id": "serial_hcg",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ β-hCG ในเลือดทุกสัปดาห์",
+              "en": "Weekly serum β-hCG checks"
+            },
+            "line": {
+              "th": "ติดตามระดับฮอร์โมนจนผลเป็นลบ",
+              "en": "Tracks the hormone down to a negative result."
+            }
+          },
+          {
+            "id": "refer_prov",
+            "tier": "weaker",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลจังหวัด",
+              "en": "Refer to the provincial hospital"
+            },
+            "line": {
+              "th": "โรงพยาบาลใหญ่ช่วยติดตามผลได้ครบ",
+              "en": "A larger hospital can follow her up in full."
+            }
+          }
+        ],
+        "default_trio": [
+          "iron_fu",
+          "phone_fu",
+          "serial_hcg"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 6 พร้อมกลับบ้านและร้องไห้บ่อย แผนของคุณคืออะไร",
+              "en": "On day 6 she is ready to go home and often tearful. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอนนานขึ้น วันที่ 6 อาการดี เศร้าเรื่องเสียครรภ์ แผนคืออะไร",
+              "en": "After a longer stay she is well on day 6 and grieving. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "support",
+            "tier": "best",
+            "label": {
+              "th": "ดูแลจิตใจและให้ช่องทางติดต่อ",
+              "en": "Grief support and a way to reach us"
+            },
+            "line": {
+              "th": "การเสียครรภ์ต้องการเวลาและคนที่โทรหาได้",
+              "en": "Losing a pregnancy needs time and someone to call."
+            }
+          },
+          {
+            "id": "fu_upt",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจ UPT ซ้ำใน 3 สัปดาห์",
+              "en": "Urine pregnancy test in 3 weeks"
+            },
+            "line": {
+              "th": "ผลลบยืนยันว่าเนื้อเยื่อการตั้งครรภ์หมดแล้ว",
+              "en": "A negative test shows the pregnancy tissue is gone."
+            }
+          },
+          {
+            "id": "opd_2wk",
+            "tier": "reasonable",
+            "label": {
+              "th": "นัดตรวจที่คลินิกใน 2 สัปดาห์",
+              "en": "Clinic visit in 2 weeks"
+            },
+            "line": {
+              "th": "ดูแผลและดูว่าเธอปรับตัวได้อย่างไร",
+              "en": "Checks the wound and how she is coping."
+            }
+          },
+          {
+            "id": "psych_ref",
+            "tier": "weaker",
+            "label": {
+              "th": "ส่งพบจิตแพทย์ก่อนจำหน่าย",
+              "en": "Refer to psychiatry before discharge"
+            },
+            "line": {
+              "th": "ผู้เชี่ยวชาญช่วยประเมินอารมณ์เศร้าได้",
+              "en": "A specialist can assess her low mood."
+            }
+          },
+          {
+            "id": "serial_hcg",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ β-hCG ในเลือดทุกสัปดาห์",
+              "en": "Weekly serum β-hCG checks"
+            },
+            "line": {
+              "th": "ติดตามระดับฮอร์โมนจนผลเป็นลบ",
+              "en": "Tracks the hormone down to a negative result."
+            }
+          }
+        ],
+        "default_trio": [
+          "support",
+          "opd_2wk",
+          "psych_ref"
+        ]
+      }
     }
   },
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-03",
-      "findings": "Fresh reviewers, version 3, whole case checked against RCOG GTG 21, NICE NG126, ACOG PB 193 and ATLS. The revision relabels the best step-3 options 'operate' (all nine banks) and 'mtp' (BB, BR, BW, WB, WR, WW) from unspecified surgery to laparotomy, since in shock the quickest route, usually laparotomy, is best and laparoscopic salpingectomy is reasonable; a first re-check found 'mtp' still unspecified, and it was fixed. Questions reveal only what each path ordered, every weaker option includes blood and surgery, Thai and English match, and labels fit their budgets. No must-fix finding."
-    },
-    "owner_waiver": {
-      "date": "2026-11-03",
-      "adr": "0005",
-      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
-      "sandbox_run_id": "sbx-202611030849-b13f"
-    }
-  },
-  "path_score_table": {
-    "provenance": {
-      "evaluator_model": "claude-sonnet-4-6",
-      "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
-      "decoding": {
-        "temperature": 0,
-        "max_tokens": 4096
-      },
-      "samples_per_path": 3,
-      "method": "median",
-      "run_id": "ptb-202611040911-a71a",
-      "date": "2026-11-04",
-      "tree_sha256": "7955a9e7a9bbc137e48c47fd667a5854938022d050cd3839c210ef13393dab85"
-    },
-    "paths": {
-      "BBB": {
-        "d1": 4,
-        "d2": 4,
-        "d3": 4,
-        "d4": 3,
-        "d5": 1,
-        "d6": 1,
-        "d7": 3
-      },
-      "BBR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "BBW": {
-        "d1": 4,
-        "d2": 3,
-        "d3": 4,
-        "d4": 3,
-        "d5": 3,
-        "d6": 1,
-        "d7": 3
-      },
-      "BRB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 0,
-        "d7": 3
-      },
-      "BRR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 4,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 4,
-        "d4": 3,
-        "d5": 1,
-        "d6": 1,
-        "d7": 3
-      },
-      "RBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBW": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 0,
-        "d7": 2
-      },
-      "RRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBB": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWW": {
-        "d1": 2,
-        "d2": 1,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      }
+      "date": "2026-11-13",
+      "findings": "Review of version 5 (five steps). Thai: searched the RTCOG website (CPG volumes 3-5, by title), the Department of Medical Services and the Ministry of Public Health, and Thai and English web queries for an ectopic pregnancy guideline: none exists beyond one hospital fast-track pathway. Nearest Thai sources, opened: RTCOG CPG OB 69-043 Point-of-care ultrasound in obstetrics and gynecology (2026), Rec 1, which names ectopic pregnancy but covers diagnosis only; and RTCOG CPG OB 66-031 Induced abortion (2023), no anti-D under 12 weeks, which applies to ectopic pregnancy by analogy only. WHO: Managing complications in pregnancy and childbirth, 2nd edition (WHO 2017), pages S-7 to S-19 and P-129 to P-131: a ruptured ectopic with shock goes to immediate laparotomy without waiting for blood, salpingectomy, oral iron and a 4-week visit; page S-19 gives anti-D only where Rh-negative prevalence is high. Thai Rh(D)-negative prevalence is 0.2%, within the Thai range of 0.1-0.3% (ABO and Rhesus blood group distribution in blood donors, Khon Kaen University, Srinagarind Med J 2018, 62,201 donors), so the low-prevalence clause applies. Direct ectopic source: NICE NG126 (updated June 2026) rec 1.18.1, no anti-D up to 11+6 weeks; also NICE NG24 (updated 2026). WHO Abortion care guideline (2022) Rec 8 supports the anti-D tier by analogy only. RCOG GTG 21 (2016) could not be opened. Fixed after the first review: anti-D at 7 weeks moved from best to weaker, in step4.B only, with the daily-Hb option removed. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: laparotomy with blood is best in shock and laparoscopic salpingectomy reasonable (NG126 1.16.1); every weaker step-3 option gives blood and surgery; one unit then reassess fits NG24 1.6; a urine pregnancy test at 3 weeks is best and weekly hCG weaker (NG126 1.17.4-1.17.5); no stem reveals an unordered result; Thai and English agree. Remains, listed on #470: the step-3 reply should say surgery does not wait for blood; the one-unit line could say if no fresh bleeding; empty safety lines. Tree sha256 9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a.",
+      "tree_sha256": "9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a"
     }
   }
 }

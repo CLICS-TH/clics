@@ -52,47 +52,54 @@ poteto-agent writes the code. Repo agents join at fixed points:
 - review: after verify and before `gh pr create`, and in /jjstack:doublej. Sort what it finds by Ticket scope in Feature loop.
 - spec: during /jjstack:jjflow, ask it the domain-fact questions the grill needs.
 - verify: run it during verify, next to the verify skill.
-  The verify skill is `.claude/skills/verify-clics/` (read-only scope).
+The verify skill here is `.claude/skills/verify-clics/` (read-only scope). Booth Mode facts live in the `clics-booth` skill, preloaded by clics-frontend, clics-rimpl and clics-reviewer.
 
 | Agent | Role | Covers |
 |---|---|---|
-| clics-reviewer | review | every diff: bugs, security, PII leak, rubric drift, blinding, a11y/contrast, Thai type, tokens |
+| clics-reviewer | review | every diff: bugs, security, PII leak, rubric drift, blinding, a11y/contrast, Thai type, tokens, Booth Mode |
 | clics-explorer | spec | cross-layer "where/how/why" questions, doc-vs-code drift |
-| clics-rimpl | spec | `rimpl/`, `audit-dashboard/lib/pis7-rubric.ts`: PII, PIS-7 rubric, provider routing, calibration provenance |
-| clics-frontend | spec | `physician-ui/`, `audit-dashboard/`: portal + dashboard conventions |
+| clics-rimpl | spec | rimpl, PII, PIS-7 rubric, provider routing, calibration provenance, booth turns: `rimpl/`, `audit-dashboard/lib/pis7-rubric.ts` |
+| clics-frontend | spec | portal + dashboard conventions, booth kiosk: `physician-ui/`, `audit-dashboard/` |
 | clics-verifier | verify | hermetic suites, tsc, lint, responsive/readability gates |
 
 ## Learning loop
-After /jjstack:doublej, and whenever I correct an agent (a ticket session does not reflect: doublej sees what its review caught):
-1. Read and follow pstack's `reflect` skill on this session's transcript. Steps 2-4 decide where an approved edit lands and how it ships,
-   over reflect's `.cursor/skills` copies and its no-PR rule; its rule against editing under `plugins/cache/` still holds.
+/jjstack:doublej reflects once per spec, when the spec closes, and only when its gates left evidence (a FAIL, a fix round,
+a parked or BLOCKED PR, a correction from me). The same steps run whenever I correct an agent (a ticket session does not
+reflect: doublej sees what its review caught):
+1. Draft lessons from the record (the gate's state file and posted comments, or my correction), never from a whole transcript.
+   Steps 2-4 decide where a lesson lands and how it ships; nothing under `plugins/cache/` is edited.
 2. Agents propose lessons in their final reports and never write their own memory. Route a lesson about a
    repo agent's domain to that agent's memory in `.claude/agent-memory/<agent>/`; you, the parent, write it
-   once step 3's approval is in. Edit the agent file itself only when its role or scope changes.
+   on step 4's branch. Edit the agent file itself only when its role or scope changes.
    A lesson about how to gate, verify, fix or ship (not a domain fact) goes to `.claude/skills/lessons/`,
    one file per lesson, by jjstack's `lessons` skill; jjstack's own skills are never edited from here.
    A lesson that recurs, or that more than one agent needs, moves to the domain skill's `references/` and
    leaves memory in the same edit. A lesson that would push a file over the budgets in jjstack's
    agent-architecture standard lands in a `references/` file, with an index line.
 3. Prune as you add: read the whole file a lesson lands in and cut, in the same edit, lines it replaces
-   or contradicts, repeats, and lines stale against the code. Show the Accepted additions and cuts together
-   and wait for my approval before changing any file.
-4. Ship approved edits through review as one small `chore(agents): <lesson>` PR cut from origin/master, never on a ticket branch:
-   lessons on parallel ticket branches collide in the same `.claude/**` files. A lesson whose file an open PR also edits waits for that PR to merge.
-   **CLICS exception:** `.claude/` is gitignored here, so agent files and memory are local-only — apply approved edits in place, no PR, and back up `.claude/agents/` + `.claude/agent-memory/` before a batch edit.
+   or contradicts, repeats, and lines stale against the code. The PR body shows the additions and cuts together,
+   each as exact text: my merge is the approval.
+4. Ship them as one small `chore(agents): lessons from #<spec>` PR cut from origin/main, never on a ticket branch:
+   lessons on parallel ticket branches collide in the same `.claude/**` files. No gate reviews or merges that PR: I do.
+   A lesson whose file an open PR also edits waits for that PR to merge.
+   **CLICS exception:** `.claude/` is gitignored here, so agent files, skills and memory are local-only. There is no PR:
+   show the additions and cuts together as exact text, wait for my approval, back up `.claude/agents/`,
+   `.claude/agent-memory/` and `.claude/skills/` before a batch edit, then apply them in place.
+
 An agent that still has a `memory:` field can write into the checkout it runs in, despite step 2. After any
 repo-agent run, list each write under `.claude/agent-memory/` (path plus one line) in your reply, and ship it
-with the step-4 edits or hold it for my approval.
+with the step-4 PR or name it as held for me.
 
 A mistake made twice goes to /pstack:correct instead, which enforces it in the code.
 
 ## Feature loop
-1. /jjstack:jjflow <idea>: grill, spec issue, tickets
-2. Per ticket, new session: /pstack:poteto-mode implement #<ticket>
-3. After the round's PRs are open: /jjstack:doublej #<spec>
-4. Merge only what you pick in /jjstack:doublej
+1. /jjstack:jjflow <idea>: grill, spec issue, tickets. The grill is the only place I am asked: its last answers set the slices and the spec's `Merge:` line. jjflow then starts one session per ticket and one /jjstack:doublej gate for the spec.
+2. A ticket session runs /pstack:poteto-mode implement #<ticket> and ends at its PR. From there /jjstack:doublej owns CI, review threads and fixes.
+3. /jjstack:doublej #<spec> reviews each PR by its ticket's tier, fixes what fails (two rounds a ticket, then the PR is parked on an issue) and starts the tickets a merge unblocks.
+4. Merges follow the spec's `Merge:` line: `auto` merges the PRs the gate proved clean, `auto-partial` also those proved only on a stand-in (their unproven lines filed first); under `pick`, and for any PR that is not clean, I pick.
 Ticket scope: one ticket, one PR. Fix in that PR only what fails today against the ticket's acceptance criteria or a repo invariant. Hardening, a risk from some later edit, and any other finding, from any reviewer, go into one `needs-triage` issue that links the ticket, listed in the PR body; they wait for the next /jjstack:jjflow. A new session or PR starts only when I ask for one. A bug outside the ticket that cannot wait comes to me as a question, with its issue already filed. Judge "cannot wait" by naming every live path the bug or finding breaks, and whether it bites before the next /jjstack:jjflow round or a fixed field date. A broken sign-in, claim or token link always cannot wait.
 Lessons: see Learning loop. Repeated mistakes: /pstack:correct
+Canary (/jjstack:setup 2026-11-13): verify-clics caught a planted portal-back-links fault, after its sign-out check was fixed (`.claude/skills/verify-clics/CANARY.md`). The browser driver runs only outside the Bash sandbox, through its `excludedCommands` entry.
 
 ## Agent skills
 
@@ -112,7 +119,7 @@ See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
 
 ### Domain docs
 
-Single-context: [`CONTEXT.md`](CONTEXT.md) (the glossary) + [`docs/adr/`](docs/adr/) (ADRs 0001–0011).
+Single-context: [`GLOSSARY.md`](GLOSSARY.md) (the glossary) + [`docs/adr/`](docs/adr/) (ADRs 0001–0011).
 See [docs/agents/domain.md](docs/agents/domain.md).
 
 ## Documentation index

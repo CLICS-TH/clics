@@ -113,7 +113,7 @@
         return r.json();
       })
       .then(payload => {
-        // The portal and the backend deploy independently (Vercel / Railway), so a skew where one
+        // The portal and the backend deploy independently (Vercel / the API host), so a skew where one
         // is ahead of the other is normal and must not blank this page. Accept the old bare array.
         const rows = Array.isArray(payload) ? payload : (payload?.snapshots ?? []);
         const held = Array.isArray(payload) ? 0 : (payload?.held ?? 0);

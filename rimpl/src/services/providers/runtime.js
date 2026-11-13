@@ -226,7 +226,9 @@ function createRunner({
           // actually mean.
           lastOk = Date.now();
           lastError = null;
-          return out;
+          // The attempts before this one may each have been billed and are reported nowhere else, so a caller
+          // that pays for the call (the booth table build's spend cap) can count them.
+          return attempt && out && typeof out === 'object' ? { ...out, retriedAttempts: attempt } : out;
         } catch (err) {
           lastErr = err;
           // A caller that has hung up gets no retry: the work would be dead on arrival, and the slot

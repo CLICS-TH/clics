@@ -14,7 +14,7 @@ Every case is a common GP presentation in a fictional patient. A visitor answers
 4. Step 4 asks for the reassessment. The case moves on, with a response to treatment or a complication.
 5. Step 5 asks for the disposition.
 
-Cases written before spec #370 have three steps and stop after step 3. They still play. Write every new case with five.
+An event plays one step count: the largest among its case files, admitted or not (#386). A three-step case in a five-step event is never drawn, and the loader logs it as `is a three-step case in a five-step event`. The board ranks only plays of that count. NFCME-2026 is a five-step event, so write every new case with five.
 
 Each question offers three options, one from each tier. The AI picks which three. It never writes option text, so the kiosk shows your words exactly.
 
@@ -25,7 +25,7 @@ Put each case at `backend/src/booth-cases/<EVENT_CODE>/<case_id>.json`. There is
 - `case_id` uses lowercase letters, digits and hyphens, up to 32 characters. It equals the file name without `.json`.
 - `event_code` uses capital letters, digits and hyphens. It equals the folder name.
 - `version` is a non-empty string. Raise it whenever the case text changes, since each play records the version it used.
-- A five-step version of a case that still plays at three steps waits at `staging/<EVENT_CODE>/<case_id>.json`, with its sample replies at `scripts/booth/sample-replies/staging/<EVENT_CODE>/<case_id>.json`, until the cutover (#386) moves both into place in one change. The loader never reads `staging/`, so a staged case is never drawn. The contract test checks staged cases and their sample replies like any other. Build a staged case's table with `--cases backend/src/booth-cases/staging/<EVENT_CODE> --replies scripts/booth/sample-replies/staging/<EVENT_CODE>`.
+- A new version of a case can wait at `staging/<EVENT_CODE>/<case_id>.json`, with its sample replies at `scripts/booth/sample-replies/staging/<EVENT_CODE>/<case_id>.json`, until it is moved into place (see Moving a staged case into place). The loader never reads `staging/`, so a staged case is never drawn. The contract test checks staged cases and their sample replies like any other. Build a staged case's table with `--cases backend/src/booth-cases/staging/<EVENT_CODE> --replies scripts/booth/sample-replies/staging/<EVENT_CODE>`.
 - Each admitted version keeps a study snapshot at `<EVENT_CODE>/versions/<case_id>@<version>.json`, written by `node scripts/booth/snapshot-case-versions.mjs`, so the auditor queue can still rebuild its plays. Snapshots are append-only: never edit or delete one.
 
 ## Tiers and banks
@@ -97,15 +97,25 @@ A case is reviewed before it can be drawn.
 1. Ask a fresh AI reviewer that did not write the case to check it against current Thai and WHO guidance.
 2. The reviewer checks every question variant and option for wrong facts, unsafe options, tier mislabels and Thai and English that disagree.
 3. Fix every finding in the case PR.
-4. Record the review under `admission.safety_review` with the reviewer `model`, the `date` as `YYYY-MM-DD`, and a short `findings` summary.
+4. Record the review under `admission.safety_review` with the reviewer `model`, the `date` as `YYYY-MM-DD`, a short `findings` summary, and the `tree_sha256` of the tree the reviewer read. The reviewer names that tree in the findings too, as `tree sha256 <the 64-character hash>` (see "Moving a staged case into place").
 
-`admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id` and `date`. The script itself writes no case file. You do not write that part. Instead of `admission.sandbox`, the owner may add `admission.owner_waiver` (ADR 0005): its `date`, `adr` (`"0005"`), `reason` and the `sandbox_run_id` the case failed. A case needs `admission.safety_review` and one of the other two to be drawn. Without them it is valid but never drawn.
+`admission.sandbox` is added later, by hand, from a sandbox run (`scripts/booth/sandbox.mjs`) in which the case passed: its `run_id`, `date` and the `tree_sha256` of the tree the run played. The script itself writes no case file. You do not write that part. Instead of `admission.sandbox`, the owner may add `admission.owner_waiver` (ADR 0005): its `date`, `adr` (`"0005"`), `reason`, the `sandbox_run_id` the case failed and the `tree_sha256` of the tree it waives. A case needs `admission.safety_review` and one of the other two to be drawn. Without them it is valid but never drawn.
+
+Each of these three records counts only while its `tree_sha256` is the case's tree hash (#470). Any edit to the tree, every field but `version`, `admission` and `path_score_table`, changes the hash, and every record written before it stops counting. Print a case's hash from the repo root:
+
+```bash
+node -e "console.log(require('./backend/src/booth-cases/tree-sha').treeSha(require('./backend/src/booth-cases/<EVENT_CODE>/<case_id>.json')))"
+```
+
+The table build also refuses a case whose review names no tree or another one (`scripts/booth/path-table.mjs` `reviewedTree`), and so does the admission check when the findings do not name the review's `tree_sha256`.
 
 ## The path score table
 
 A play's demo score is read from the case's path score table (ADR 0009). The same tier path then scores the same every time, at once, with no evaluator call.
 
-The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. Live builds are off until #408 gives the build a spend cap that holds: the script sends no evaluator request, and builds a table only with `--from`, from a saved run's samples. A new case, or a case whose tree changed, waits for #408 to get a table. The table sits under `path_score_table` in two parts.
+The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. A live build (`--go`) spends against one cap for every path-table build on the machine, kept in a spend ledger outside the checkout (`scripts/booth/spend-ledger.mjs`, #408). The $30.49 already spent is past the $25 cap, so a new case, or a case whose tree changed, gets a table once the owner opens a new budget. `--from` builds a table from a saved run's samples and spends nothing. The table sits under `path_score_table` in two parts.
+
+Each machine creates its ledger once with `node scripts/booth/spend-ledger.mjs init`, seeded from the committed record `scripts/booth/path-table-runs/spend.jsonl`; init refuses a record that differs from the one at HEAD. Whatever its `--out`, every `--go` run writes an open line (the most it may spend) to that record before its first call and a charge line when it ends, and init counts an open with no charge at its open amount, so commit the record after every run.
 
 - `provenance` records how the table was built: the `evaluator_model`, the `prompt_sha256` of the evaluator prompt, the `decoding` (`temperature` and `max_tokens`), the `samples_per_path`, the `method` (`"median"` for a three-step case, `"median-regression"` for a five-step one, ADR 0009), the build `run_id`, the `date` as `YYYY-MM-DD`, and the `tree_sha256` of the case tree it was built from.
 - `paths` holds one entry for each tier path, `d1` to `d7`. A three-step table has 27, `BBB` through `WWW`, each domain a whole number from 0 to 5, the evaluator's own scale. A five-step table has 243, `BBBBB` through `WWWWW`, each domain from 0 to 5 with at most one decimal. The build samples 27 of the 243 paths and fits the rest (`scripts/booth/path-fit.mjs`).
@@ -120,6 +130,20 @@ The build also re-runs ADR 0005's difficulty check on the table's own samples. A
 - `admission.table_waiver` holds the owner's waiver of a failed re-check: its `date`, `adr` (`"0005"`), `reason` and the table `run_id` it waives.
 
 Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
+
+## Moving a staged case into place
+
+A staged case goes live in one change, the way the ten five-step NFCME-2026 cases did (#386) and the re-authored `dka-young-adult` will (#476).
+
+1. Move `staging/<EVENT_CODE>/<case_id>.json` over `<EVENT_CODE>/<case_id>.json`, and its sample replies over `scripts/booth/sample-replies/<EVENT_CODE>/<case_id>.json`. Change no tree field on the way: an edit needs a new review.
+2. Give the moved file a `version` above every version the live file ever had, so it never shares a study snapshot with an old one.
+3. Keep `admission.safety_review` as reviewed, with the `tree_sha256` of the tree the reviewer read. A review that recorded the hash only in its `findings` gets it promoted into `tree_sha256`. Check it equals the moved file's hash with the command above.
+
+   The findings must name that tree in one form, `tree sha256 <the 64-character hash>`, in any case of letters: the ten NFCME-2026 cases write `Tree sha256 <hash>.`, `Reviewed tree sha256 <hash>.` or `tree sha256 <hash>,`. `tree_sha256` counts only while it equals the one hash the findings name (`backend/src/booth-cases/tree-sha.js` `reviewedSha`). The mover writes `tree_sha256`, not the reviewer, so an edit with a recomputed `tree_sha256` is refused by the table build (`reviewedTree`), the contract test (`caseTreeProblems`) and the admission check (`isAdmitted`). Findings that name no hash, or two different ones, bind no tree. An edited tree needs a new review whose findings name the new hash; never rewrite the hash in the findings yourself.
+4. Drop every record bound to another tree: the old file's `sandbox`, `owner_waiver`, `table_check`, `table_waiver` and `path_score_table` judged the old tree and admit nothing now.
+5. Run the contract test and `node scripts/booth/build-path-tables.mjs`, which spends nothing. The moved case must print `as reviewed in <commit>`.
+
+The moved case is drawn only after it gets its own table (#408), a table verdict on that table's run, and a sandbox pass or owner waiver bound to its tree. Until then it is valid but never drawn. A three-step case moved into a five-step event, or the other way round, is never drawn either: re-author it to the event's step count first.
 
 ## Checking your case
 

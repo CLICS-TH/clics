@@ -10,7 +10,7 @@
  * De-identified, hypothetical case only (no patient PII) — matches the pilot rules.
  * Usage: node scripts/smoke/go-live-smoke.js   (BASE overridable via env)
  */
-const BASE = process.env.SMOKE_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.SMOKE_BASE);
 // Live demo cohort (throwaway — rotated before the real pilot per Track B).
 const PHYS = { email: process.env.SMOKE_PHYS_EMAIL || 'soakdoc01@example.com', password: process.env.SMOKE_PHYS_PW || 'SoakPass#2026' };
 const SUPER = { email: 'superadmin@clics.th', password: process.env.SMOKE_SUPER_PW || 'ClicsSuper#2026r2' };

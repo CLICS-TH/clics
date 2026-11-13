@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const CASES = fileURLToPath(new URL('../../backend/src/booth-cases', import.meta.url));
-const { CaseTreeSchema, caseTreeProblems, isAdmitted } = require(path.join(CASES, 'tree-schema'));
+const { CaseTreeSchema, eventPool } = require(path.join(CASES, 'tree-schema'));
 const { snapshotOf, snapshotState, snapshotProblem } = require(path.join(CASES, 'study-snapshot'));
 
 const FLAGS = ['--check', '--from-git'];
@@ -42,15 +42,10 @@ const EVENT_CODE = /^[A-Z0-9][A-Z0-9-]{0,31}$/;
 const events = () => readdirSync(CASES, { withFileTypes: true }).filter((d) => d.isDirectory() && EVENT_CODE.test(d.name)).map((d) => d.name);
 const namedFor = (kase, code, file) => kase.case_id === path.basename(file, '.json') && kase.event_code === code;
 
-// The loader's rule (backend/src/services/booth.js readCase): no problem, named after its case_id in its event's
-// folder, and isAdmitted.
+// The loader's rule (backend/src/services/booth.js readEventCases): the event's pool.
 function currentCases() {
-  return events().flatMap((code) => readdirSync(path.join(CASES, code)).filter((f) => f.endsWith('.json')).sort().flatMap((f) => {
-    const raw = JSON.parse(readFileSync(path.join(CASES, code, f), 'utf8'));
-    if (caseTreeProblems(raw).length) return [];
-    const kase = CaseTreeSchema.parse(raw);
-    return namedFor(kase, code, f) && isAdmitted(kase) ? [kase] : [];
-  }));
+  return events().flatMap((code) => eventPool(code, readdirSync(path.join(CASES, code)).filter((f) => f.endsWith('.json'))
+    .map((name) => ({ name, raw: JSON.parse(readFileSync(path.join(CASES, code, name), 'utf8')) }))).cases);
 }
 
 const TOP = fileURLToPath(new URL('../..', import.meta.url));

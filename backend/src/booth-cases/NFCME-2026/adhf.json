@@ -1,6 +1,6 @@
 {
   "case_id": "adhf",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี มาโรงพยาบาลชุมชน หอบเหนื่อยและนอนราบไม่ได้มา 5 วัน",
@@ -349,530 +349,13 @@
       }
     },
     "step3": {
-      "BB": {
+      "B": {
         "variants": [
           {
             "id": "v1",
             "question": {
               "th": "จะให้การรักษาอย่างไร",
               "en": "What is your management plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ตอนนี้จะเริ่มรักษาอย่างไร",
-              "en": "How do you start treatment now?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "nitrate",
-            "tier": "best",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "cpap",
-            "tier": "best",
-            "label": {
-              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
-              "en": "CPAP and IV furosemide"
-            },
-            "line": {
-              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
-            }
-          },
-          {
-            "id": "refer",
-            "tier": "reasonable",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
-              "en": "Oxygen, IV furosemide, then refer"
-            },
-            "line": {
-              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-              "en": "The provincial hospital has intensive care and a cardiologist."
-            }
-          },
-          {
-            "id": "abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
-              "en": "Oxygen, IV furosemide, antibiotic"
-            },
-            "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
-              "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "catheter",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
-              "en": "Oxygen, IV furosemide, catheter"
-            },
-            "line": {
-              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
-              "en": "A urinary catheter measures urine output every hour."
-            }
-          }
-        ],
-        "default_trio": [
-          "nitrate",
-          "refer",
-          "catheter"
-        ]
-      },
-      "BR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "จะให้การรักษาอย่างไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "nitrate",
-            "tier": "best",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "cpap",
-            "tier": "best",
-            "label": {
-              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
-              "en": "CPAP and IV furosemide"
-            },
-            "line": {
-              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
-            }
-          },
-          {
-            "id": "refer",
-            "tier": "reasonable",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
-              "en": "Oxygen, IV furosemide, then refer"
-            },
-            "line": {
-              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-              "en": "The provincial hospital has intensive care and a cardiologist."
-            }
-          },
-          {
-            "id": "abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
-              "en": "Oxygen, IV furosemide, antibiotic"
-            },
-            "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
-              "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "catheter",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
-              "en": "Oxygen, IV furosemide, catheter"
-            },
-            "line": {
-              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
-              "en": "A urinary catheter measures urine output every hour."
-            }
-          }
-        ],
-        "default_trio": [
-          "nitrate",
-          "refer",
-          "catheter"
-        ]
-      },
-      "BW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "จะให้การรักษาอย่างไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "nitrate",
-            "tier": "best",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "cpap",
-            "tier": "best",
-            "label": {
-              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
-              "en": "CPAP and IV furosemide"
-            },
-            "line": {
-              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
-            }
-          },
-          {
-            "id": "refer",
-            "tier": "reasonable",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
-              "en": "Oxygen, IV furosemide, then refer"
-            },
-            "line": {
-              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-              "en": "The provincial hospital has intensive care and a cardiologist."
-            }
-          },
-          {
-            "id": "abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
-              "en": "Oxygen, IV furosemide, antibiotic"
-            },
-            "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
-              "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "catheter",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
-              "en": "Oxygen, IV furosemide, catheter"
-            },
-            "line": {
-              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
-              "en": "A urinary catheter measures urine output every hour."
-            }
-          }
-        ],
-        "default_trio": [
-          "nitrate",
-          "refer",
-          "catheter"
-        ]
-      },
-      "RB": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ตอนนี้จะเริ่มรักษาอย่างไร",
-              "en": "How do you start treatment now?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "o2_iv",
-            "tier": "reasonable",
-            "label": {
-              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
-              "en": "Oxygen and IV furosemide"
-            },
-            "line": {
-              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
-              "en": "Corrects low oxygen and clears lung fluid fast."
-            }
-          },
-          {
-            "id": "nitrate",
-            "tier": "best",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "refer",
-            "tier": "reasonable",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
-              "en": "Oxygen, IV furosemide, then refer"
-            },
-            "line": {
-              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-              "en": "The provincial hospital has intensive care and a cardiologist."
-            }
-          },
-          {
-            "id": "abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
-              "en": "Oxygen, IV furosemide, antibiotic"
-            },
-            "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
-              "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "dual_abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
-              "en": "Oxygen, IV furosemide, 2 antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
-              "en": "Gives wider cover for a chest infection."
-            }
-          }
-        ],
-        "default_trio": [
-          "nitrate",
-          "refer",
-          "dual_abx"
-        ]
-      },
-      "RR": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "ตอนนี้จะเริ่มรักษาอย่างไร",
-              "en": "How do you start treatment now?"
-            }
-          },
-          {
-            "id": "v3",
-            "question": {
-              "th": "จะให้การรักษาอย่างไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "o2_iv",
-            "tier": "reasonable",
-            "label": {
-              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
-              "en": "Oxygen and IV furosemide"
-            },
-            "line": {
-              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
-              "en": "Corrects low oxygen and clears lung fluid fast."
-            }
-          },
-          {
-            "id": "nitrate",
-            "tier": "best",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "refer",
-            "tier": "reasonable",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
-              "en": "Oxygen, IV furosemide, then refer"
-            },
-            "line": {
-              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-              "en": "The provincial hospital has intensive care and a cardiologist."
-            }
-          },
-          {
-            "id": "abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
-              "en": "Oxygen, IV furosemide, antibiotic"
-            },
-            "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
-              "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "dual_abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
-              "en": "Oxygen, IV furosemide, 2 antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
-              "en": "Gives wider cover for a chest infection."
-            }
-          }
-        ],
-        "default_trio": [
-          "nitrate",
-          "refer",
-          "dual_abx"
-        ]
-      },
-      "RW": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
-            }
-          },
-          {
-            "id": "v2",
-            "question": {
-              "th": "จะให้การรักษาอย่างไร",
-              "en": "What is your management plan?"
-            }
-          }
-        ],
-        "options": [
-          {
-            "id": "o2_iv",
-            "tier": "reasonable",
-            "label": {
-              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
-              "en": "Oxygen and IV furosemide"
-            },
-            "line": {
-              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
-              "en": "Corrects low oxygen and clears lung fluid fast."
-            }
-          },
-          {
-            "id": "nitrate",
-            "tier": "best",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "refer",
-            "tier": "reasonable",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
-              "en": "Oxygen, IV furosemide, then refer"
-            },
-            "line": {
-              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-              "en": "The provincial hospital has intensive care and a cardiologist."
-            }
-          },
-          {
-            "id": "abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
-              "en": "Oxygen, IV furosemide, antibiotic"
-            },
-            "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
-              "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "dual_abx",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
-              "en": "Oxygen, IV furosemide, 2 antibiotics"
-            },
-            "line": {
-              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
-              "en": "Gives wider cover for a chest infection."
-            }
-          }
-        ],
-        "default_trio": [
-          "nitrate",
-          "refer",
-          "dual_abx"
-        ]
-      },
-      "WB": {
-        "variants": [
-          {
-            "id": "v1",
-            "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -885,12 +368,24 @@
           {
             "id": "v3",
             "question": {
-              "th": "จะให้การรักษาอย่างไร",
-              "en": "What is your management plan?"
+              "th": "ตอนนี้จะเริ่มรักษาอย่างไร",
+              "en": "How do you start treatment now?"
             }
           }
         ],
         "options": [
+          {
+            "id": "nitrate",
+            "tier": "best",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
+              "en": "Oxygen, IV furosemide, SL nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
+              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
+            }
+          },
           {
             "id": "cpap",
             "tier": "best",
@@ -928,18 +423,6 @@
             }
           },
           {
-            "id": "iprat",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ไอพราโทรเปียม",
-              "en": "Oxygen, IV furosemide, ipratropium"
-            },
-            "line": {
-              "th": "พ่นไอพราโทรเปียมขยายหลอดลมหากมีโรคปอดร่วม",
-              "en": "Ipratropium opens the airways if lung disease adds to this."
-            }
-          },
-          {
             "id": "abx",
             "tier": "weaker",
             "label": {
@@ -950,32 +433,63 @@
               "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
+          },
+          {
+            "id": "catheter",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
+              "en": "Oxygen, IV furosemide, catheter"
+            },
+            "line": {
+              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
+              "en": "A urinary catheter measures urine output every hour."
+            }
           }
         ],
         "default_trio": [
-          "cpap",
+          "nitrate",
           "refer",
-          "iprat"
+          "catheter"
         ]
       },
-      "WR": {
+      "R": {
         "variants": [
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
+              "th": "จะให้การรักษาอย่างไร",
+              "en": "What is your management plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ค่าไตและเกลือแร่ปกติ จะรักษาอย่างไร",
-              "en": "Kidney function and electrolytes are normal. Your plan?"
+              "th": "SpO2 89% หายใจ 28/นาที จะเริ่มรักษาอย่างไร",
+              "en": "With SpO2 89% and breathing at 28/min, how do you start treatment?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ตอนนี้จะเริ่มรักษาอย่างไร",
+              "en": "How do you start treatment now?"
             }
           }
         ],
         "options": [
+          {
+            "id": "nitrate",
+            "tier": "best",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
+              "en": "Oxygen, IV furosemide, SL nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
+              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
+            }
+          },
           {
             "id": "cpap",
             "tier": "best",
@@ -1013,18 +527,6 @@
             }
           },
           {
-            "id": "iprat",
-            "tier": "weaker",
-            "label": {
-              "th": "O2 ฟูโรซีไมด์ IV ไอพราโทรเปียม",
-              "en": "Oxygen, IV furosemide, ipratropium"
-            },
-            "line": {
-              "th": "พ่นไอพราโทรเปียมขยายหลอดลมหากมีโรคปอดร่วม",
-              "en": "Ipratropium opens the airways if lung disease adds to this."
-            }
-          },
-          {
             "id": "abx",
             "tier": "weaker",
             "label": {
@@ -1035,28 +537,40 @@
               "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
+          },
+          {
+            "id": "dual_abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
+              "en": "Oxygen, IV furosemide, 2 antibiotics"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
+              "en": "Gives wider cover for a chest infection."
+            }
           }
         ],
         "default_trio": [
-          "cpap",
+          "nitrate",
           "refer",
-          "iprat"
+          "dual_abx"
         ]
       },
-      "WW": {
+      "W": {
         "variants": [
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
+              "th": "จะให้การรักษาอย่างไร",
+              "en": "What is your management plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "จะให้การรักษาอย่างไร",
-              "en": "What is your management plan?"
+              "th": "ฟังได้เสียงกรอบแกรบที่ฐานปอดสองข้าง จะรักษาอย่างไร",
+              "en": "Crackles at both lung bases. Your plan?"
             }
           },
           {
@@ -1081,6 +595,18 @@
             }
           },
           {
+            "id": "nitrate",
+            "tier": "best",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
+              "en": "Oxygen, IV furosemide, SL nitrate"
+            },
+            "line": {
+              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
+              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
+            }
+          },
+          {
             "id": "o2_iv",
             "tier": "reasonable",
             "label": {
@@ -1135,279 +661,528 @@
           "iprat"
         ]
       }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "2 ชม. ต่อมา ปัสสาวะ 900 มล. SpO2 95% ทำอะไรต่อ",
+              "en": "2 hours on: 900 mL of urine and SpO2 95%. What next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "หายใจสบายขึ้นชัดเจนและปัสสาวะออกดี จะทำอย่างไรต่อ",
+              "en": "He breathes far more easily and passes plenty of urine. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "continue_iv",
+            "tier": "best",
+            "label": {
+              "th": "ให้ฟูโรซีไมด์ IV ต่อ ตรวจเลือดซ้ำ",
+              "en": "Continue IV furosemide, check bloods"
+            },
+            "line": {
+              "th": "ขับน้ำต่อเนื่อง พร้อมดูค่าไตและโพแทสเซียม",
+              "en": "Keeps clearing fluid while kidney function and potassium are watched."
+            }
+          },
+          {
+            "id": "serial_trop",
+            "tier": "best",
+            "label": {
+              "th": "ติดตามคลื่นหัวใจและโทรโปนิน",
+              "en": "Serial ECG and troponin"
+            },
+            "line": {
+              "th": "หาหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้นครั้งนี้",
+              "en": "Looks for heart ischaemia that may have set this off."
+            }
+          },
+          {
+            "id": "fluid_limit",
+            "tier": "reasonable",
+            "label": {
+              "th": "จำกัดน้ำดื่ม 1.5 ลิตรต่อวัน",
+              "en": "Limit fluids to 1.5 L a day"
+            },
+            "line": {
+              "th": "น้ำเข้าน้อยลงช่วยให้ปอดแห้งเร็วขึ้น",
+              "en": "Less fluid going in helps the lungs dry out."
+            }
+          },
+          {
+            "id": "oral_switch",
+            "tier": "weaker",
+            "label": {
+              "th": "เปลี่ยนเป็นฟูโรซีไมด์กินตอนนี้",
+              "en": "Switch to oral furosemide now"
+            },
+            "line": {
+              "th": "ยาเม็ดใช้ง่ายขึ้นเมื่อหายใจสบายแล้ว",
+              "en": "Tablets are simpler now that his breathing has eased."
+            }
+          },
+          {
+            "id": "repeat_cxr",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ปอดซ้ำตอนนี้",
+              "en": "Repeat the chest X-ray now"
+            },
+            "line": {
+              "th": "ดูว่าน้ำในปอดลดลงเพียงใด",
+              "en": "Shows how much of the lung fluid has cleared."
+            }
+          }
+        ],
+        "default_trio": [
+          "continue_iv",
+          "fluid_limit",
+          "oral_switch"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "2 ชม. ต่อมา ปัสสาวะ 150 มล. ความดัน 160/94 ทำอะไรต่อ",
+              "en": "2 hours on: 150 mL of urine, BP 160/94. What next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ดีขึ้นเล็กน้อย ปัสสาวะออกน้อย ความดันยังสูง ทำอย่างไรต่อ",
+              "en": "He is a little better, passes little urine and his BP is still high. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "double_dose",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มฟูโรซีไมด์ IV เป็น 2 เท่า",
+              "en": "Double the IV furosemide dose"
+            },
+            "line": {
+              "th": "ปัสสาวะออกน้อยหลังยาครั้งแรก จึงเพิ่มขนาดยา",
+              "en": "Little urine after the first dose calls for a doubled dose."
+            }
+          },
+          {
+            "id": "nitrate_add",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มไนเตรตลดความดัน",
+              "en": "Add a nitrate for the high BP"
+            },
+            "line": {
+              "th": "ความดันยังสูง ไนเตรตช่วยลดภาระหัวใจ",
+              "en": "His BP is still high, so a nitrate unloads the heart."
+            }
+          },
+          {
+            "id": "urine_na",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจโซเดียมในปัสสาวะ",
+              "en": "Check a spot urine sodium"
+            },
+            "line": {
+              "th": "โซเดียมต่ำยืนยันว่ายาขับปัสสาวะได้ผลน้อย",
+              "en": "A low urine sodium confirms a weak diuretic response."
+            }
+          },
+          {
+            "id": "add_thiazide",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มไฮโดรคลอโรไทอะไซด์",
+              "en": "Add hydrochlorothiazide"
+            },
+            "line": {
+              "th": "ยาขับปัสสาวะอีกกลุ่มช่วยขับเกลือเพิ่ม",
+              "en": "A second diuretic class blocks more salt uptake in the kidney."
+            }
+          },
+          {
+            "id": "same_dose",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ฟูโรซีไมด์ IV ขนาดเดิมซ้ำ",
+              "en": "Repeat the same IV furosemide dose"
+            },
+            "line": {
+              "th": "ยาอีกครั้งช่วยกระตุ้นการขับปัสสาวะต่อ",
+              "en": "A second equal dose gives the kidneys another push."
+            }
+          },
+          {
+            "id": "repeat_cxr",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ปอดซ้ำตอนนี้",
+              "en": "Repeat the chest X-ray now"
+            },
+            "line": {
+              "th": "ดูว่าน้ำในปอดลดลงเพียงใด",
+              "en": "Shows how much of the lung fluid has cleared."
+            }
+          }
+        ],
+        "default_trio": [
+          "double_dose",
+          "urine_na",
+          "same_dose"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชม. ต่อมา หอบหนักขึ้น SpO2 85% BP 172/100 ทำอะไร",
+              "en": "1 hour on: more breathless, SpO2 85%, BP 172/100. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ใช้กล้ามเนื้อคอช่วยหายใจ SpO2 86% BP 170/100 ทำอะไร",
+              "en": "He uses his neck muscles to breathe, SpO2 86%, BP 170/100. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "cpap_now",
+            "tier": "best",
+            "label": {
+              "th": "เริ่ม CPAP ทันที",
+              "en": "Start CPAP now"
+            },
+            "line": {
+              "th": "หายใจเร็วและ SpO2 ต่ำทั้งที่ให้ออกซิเจน ควรใช้ CPAP",
+              "en": "Fast breathing and low SpO2 on oxygen call for CPAP."
+            }
+          },
+          {
+            "id": "iv_nitrate",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มไนเตรตหยดทางหลอดเลือดดำ",
+              "en": "Start an IV nitrate infusion"
+            },
+            "line": {
+              "th": "ความดันสูงร่วมกับน้ำในปอด ไนเตรตช่วยได้เร็ว",
+              "en": "High BP with fluid in the lungs eases fast with a nitrate."
+            }
+          },
+          {
+            "id": "refer_now",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้ออกซิเจน ส่งต่อ ICU ด่วน",
+              "en": "Oxygen and urgent ICU transfer"
+            },
+            "line": {
+              "th": "อาจต้องใช้เครื่องช่วยหายใจซึ่ง ICU จังหวัดมีพร้อม",
+              "en": "He may need a ventilator, which the provincial ICU has."
+            }
+          },
+          {
+            "id": "double_dose",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มฟูโรซีไมด์ IV เป็น 2 เท่า",
+              "en": "Double the IV furosemide dose"
+            },
+            "line": {
+              "th": "ยาขนาดสูงขึ้นช่วยขับน้ำออกจากปอดได้มากขึ้น",
+              "en": "A bigger loop dose clears more fluid from the lungs."
+            }
+          },
+          {
+            "id": "reservoir",
+            "tier": "weaker",
+            "label": {
+              "th": "เปลี่ยนเป็นหน้ากากมีถุงสำรอง",
+              "en": "Switch to a reservoir mask"
+            },
+            "line": {
+              "th": "หน้ากากมีถุงสำรองให้ออกซิเจนเข้มข้นสูงขึ้นมาก",
+              "en": "A reservoir mask gives a much higher oxygen concentration."
+            }
+          }
+        ],
+        "default_trio": [
+          "cpap_now",
+          "refer_now",
+          "reservoir"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 2 เลิก O2 น้ำหนักลด 2 กก. ขาหายบวม แผนคืออะไร",
+              "en": "Day 2: off oxygen, 2 kg lighter, legs no longer swollen. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ขาหายบวม หายใจสบาย จะวางแผนจำหน่ายอย่างไร",
+              "en": "Legs no longer swollen, breathing easily. How do you plan discharge?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "echo_gdmt",
+            "tier": "best",
+            "label": {
+              "th": "เอคโค่หัวใจและเริ่มยา GDMT",
+              "en": "Echo, then start GDMT"
+            },
+            "line": {
+              "th": "ค่า EF บอกว่าควรเริ่มยากลุ่มใดก่อนกลับบ้าน",
+              "en": "The ejection fraction guides which drugs to start before discharge."
+            }
+          },
+          {
+            "id": "early_review",
+            "tier": "best",
+            "label": {
+              "th": "นัด 1-2 สัปดาห์ ชั่งน้ำหนักทุกวัน",
+              "en": "Review in 1-2 weeks, daily weights"
+            },
+            "line": {
+              "th": "ลดเค็ม ชั่งน้ำหนักทุกเช้า นัดเร็ว ช่วยลดการกลับมานอนซ้ำ",
+              "en": "Salt advice, a morning weight and an early visit cut readmissions."
+            }
+          },
+          {
+            "id": "old_tablets",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้ยาเดิมต่อร่วมกับฟูโรซีไมด์",
+              "en": "Restart old tablets plus furosemide"
+            },
+            "line": {
+              "th": "กลับไปใช้ยาที่เคยคุมอาการได้ และให้ยาขับน้ำ",
+              "en": "Restarts the drugs that once kept him well, plus a diuretic."
+            }
+          },
+          {
+            "id": "cardio_clinic",
+            "tier": "reasonable",
+            "label": {
+              "th": "ส่งพบอายุรแพทย์โรคหัวใจ",
+              "en": "Refer to a cardiology clinic"
+            },
+            "line": {
+              "th": "แพทย์โรคหัวใจช่วยปรับยาหลังกล้ามเนื้อหัวใจตาย",
+              "en": "A cardiologist can tailor his drugs after a heart attack."
+            }
+          },
+          {
+            "id": "cxr_dc",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ปอดซ้ำก่อนกลับบ้าน",
+              "en": "Repeat the X-ray before discharge"
+            },
+            "line": {
+              "th": "ภาพปอดที่ใสยืนยันว่าน้ำในปอดหายแล้ว",
+              "en": "A clear film confirms that the lung fluid has gone."
+            }
+          }
+        ],
+        "default_trio": [
+          "echo_gdmt",
+          "old_tablets",
+          "cxr_dc"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "วันที่ 3 อยู่หอผู้ป่วย หอบลดลง ขายังบวม วางแผนอย่างไร",
+              "en": "Day 3 on the ward: less breathless, legs still swollen. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ดีขึ้นช้ากว่าที่คาด ยังมีขาบวม จะวางแผนต่ออย่างไร",
+              "en": "He is improving slowly and his legs are still swollen. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "ward_iv",
+            "tier": "best",
+            "label": {
+              "th": "ให้ฟูโรซีไมด์ IV ต่อในหอผู้ป่วย",
+              "en": "Keep on IV furosemide on the ward"
+            },
+            "line": {
+              "th": "ขับน้ำที่เหลือก่อนกลับบ้าน ลดการกลับมานอนซ้ำ",
+              "en": "Clearing the remaining fluid first lowers the risk of readmission."
+            }
+          },
+          {
+            "id": "refer_echo",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจเอคโค่และปรึกษาแพทย์หัวใจ",
+              "en": "Echo and a cardiology review"
+            },
+            "line": {
+              "th": "ตอบสนองช้าจึงควรดูการทำงานของหัวใจให้ละเอียด",
+              "en": "A slow response is a reason to study heart function closely."
+            }
+          },
+          {
+            "id": "strict_fluid",
+            "tier": "weaker",
+            "label": {
+              "th": "นอนต่อ จำกัดน้ำดื่ม 1 ลิตร",
+              "en": "Stay in, restrict fluid to 1 L"
+            },
+            "line": {
+              "th": "ดื่มน้ำน้อยลงอาจช่วยให้ขาบวมยุบเร็วขึ้น",
+              "en": "Less fluid in may help the leg swelling settle faster."
+            }
+          },
+          {
+            "id": "oral_ward",
+            "tier": "reasonable",
+            "label": {
+              "th": "ฟูโรซีไมด์กิน นอนโรงพยาบาลต่อ",
+              "en": "Oral furosemide, stay in hospital"
+            },
+            "line": {
+              "th": "ปรับเป็นยากินขณะยังดูน้ำหนักและขาบวมในโรงพยาบาล",
+              "en": "Tablets start while weight and leg swelling are watched in hospital."
+            }
+          },
+          {
+            "id": "daily_cxr",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ปอดทุกวัน",
+              "en": "Daily chest X-rays"
+            },
+            "line": {
+              "th": "ภาพรายวันบอกว่าน้ำในปอดลดลงเร็วเพียงใด",
+              "en": "Daily films show how fast the lung fluid clears."
+            }
+          }
+        ],
+        "default_trio": [
+          "ward_iv",
+          "oral_ward",
+          "strict_fluid"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เช้าวันรุ่งขึ้น ยังหอบขณะพัก SpO2 91% วางแผนอย่างไร",
+              "en": "Next morning: still breathless at rest, SpO2 91%. What is your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "รักษามาทั้งคืน ยังหอบขณะพัก จะวางแผนต่ออย่างไร",
+              "en": "After a night of treatment he is still breathless at rest. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "transfer_ccu",
+            "tier": "best",
+            "label": {
+              "th": "ส่งต่อโรงพยาบาลที่มี CCU",
+              "en": "Transfer to a hospital with a CCU"
+            },
+            "line": {
+              "th": "หอบขณะพักทั้งที่รักษาแล้ว ต้องดูแลในหน่วยหัวใจวิกฤต",
+              "en": "Breathless at rest on treatment, he needs cardiac intensive care."
+            }
+          },
+          {
+            "id": "iv_up_transfer",
+            "tier": "best",
+            "label": {
+              "th": "เพิ่มฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Higher IV furosemide, then transfer"
+            },
+            "line": {
+              "th": "ขับน้ำต่อระหว่างนำส่งไปหน่วยดูแลหัวใจ",
+              "en": "Keeps clearing fluid on the way to cardiac care."
+            }
+          },
+          {
+            "id": "ward_iv_up",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพิ่มฟูโรซีไมด์ IV ในหอผู้ป่วย",
+              "en": "Higher IV furosemide on the ward"
+            },
+            "line": {
+              "th": "ยาขนาดสูงขึ้นช่วยขับน้ำที่ค้างในปอดได้มากขึ้น",
+              "en": "A higher dose clears more of the fluid still in his lungs."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "เพิ่มยาฆ่าเชื้อเผื่อปอดอักเสบ",
+              "en": "Add antibiotics in case of pneumonia"
+            },
+            "line": {
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจทำให้หายช้า",
+              "en": "Covers a chest infection that may be slowing his recovery."
+            }
+          }
+        ],
+        "default_trio": [
+          "transfer_ccu",
+          "ward_iv_up",
+          "abx"
+        ]
+      }
     }
   },
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-03",
-      "findings": "Fresh reviewer, version 3: checked the vignette, teaser and all 13 banks against ESC 2021 HF and its 2023 update, AHA/ACC/HFSA 2022 and WHO oxygen guidance. The revision moved oxygen plus IV furosemide to reasonable in RB, RR, RW, WB, WR and WW, where it had ranked above the same treatment plus a transfer; it is correct, and every default trio still has one option per tier. No option is unsafe: every step-3 choice gives oxygen or CPAP with IV furosemide. No fact, dose or threshold is wrong, Thai and English agree, and results shown in questions match their paths. No must-fix finding."
-    },
-    "owner_waiver": {
-      "date": "2026-11-03",
-      "adr": "0005",
-      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). Revised for the clinical defects the blind review found (#348) and safety-reviewed again; it failed the pre-registered run sbx-202611030849-b13f on the sandbox's noise bands.",
-      "sandbox_run_id": "sbx-202611030849-b13f"
-    }
-  },
-  "path_score_table": {
-    "provenance": {
-      "evaluator_model": "claude-sonnet-4-6",
-      "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
-      "decoding": {
-        "temperature": 0,
-        "max_tokens": 4096
-      },
-      "samples_per_path": 3,
-      "method": "median",
-      "run_id": "ptb-202611040911-a71a",
-      "date": "2026-11-04",
-      "tree_sha256": "369c1e96d44be354f2145c0ba5f22abff692c0dc4f2cf13693f145c09bca846d"
-    },
-    "paths": {
-      "BBB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BBR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 4,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 4,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BRW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "BWW": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 4,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 1,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "RWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 0,
-        "d7": 2
-      },
-      "WBB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBR": {
-        "d1": 3,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WBW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WRW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWB": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWR": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 3,
-        "d4": 2,
-        "d5": 1,
-        "d6": 1,
-        "d7": 2
-      },
-      "WWW": {
-        "d1": 2,
-        "d2": 2,
-        "d3": 2,
-        "d4": 2,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2
-      }
+      "date": "2026-11-13",
+      "findings": "Review of version 5 (five steps). Thai: Heart Failure Council of Thailand 2019 Heart Failure Guideline: Acute Heart Failure (J Med Assoc Thai 2019;102:373-379), Tables 3-10, opened in full; Thai and English searches found only the HFCT 2022 and 2023 focused updates, which cover chronic HFrEF and HFpEF drugs, so the 2019 part stays the current Thai acute HF source. WHO: IMAI District Clinician Manual, Hospital care for adolescents and adults (WHO 2011), volume 1 section 3.2.5, pages 118-124, acute pulmonary oedema (oxygen, IV furosemide, nitrate, reassessment), with its WHO South-East Asia edition (2021). Also ESC 2021 HF guidelines (Figure 13); the ESC 2023 focused update could not be opened. Fixed after the first review: discharge home with persisting oedema is gone, replaced by an in-hospital fluid limit; the step-5 discharge stems state the oedema has cleared; the ICU transfer option names oxygen. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: oxygen below SpO2 90% and CPAP at RR above 25 (HFCT Table 3); IV furosemide 20-40 mg, doubled for poor urine output (HFCT Table 4, WHO page 123, ESC Figure 13); a sublingual nitrate for high BP (WHO page 123); antibiotics only as weaker without fever; echo then disease-modifying drugs and a 1-2-week review; no path leaves him hypoxic or congested or sends him home congested; Thai and English agree. Remains, listed on #470: a thiazide offered before the loop dose is raised, invasive BP monitoring with IV nitrate, the reservoir-mask tier, empty safety lines. Tree sha256 9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8.",
+      "tree_sha256": "9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8"
     }
   }
 }
