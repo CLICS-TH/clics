@@ -1,20 +1,22 @@
 // The physician sandbox script (scripts/booth/sandbox.mjs, #252) apart from its booth-API parity, which
 // booth.test.js proves next to the API it mirrors.
 const fs = require('fs');
+const http = require('http');
 const os = require('os');
 const path = require('path');
-const { spawnSync } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const { tapping, personaChooser, playOnce, jobsFor, runPlays, rimplCalls, worstCall, PATHS } = require('../../scripts/booth/sandbox-play');
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
+const KASE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8'));
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'booth', 'sandbox.mjs');
 const EVAL_OK = { d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3, input_tokens: 20000, output_tokens: 2000, provider: 'anthropic' };
 const CHAT_OK = { reply: { strength: 'นึกถึง **ไข้** ก่อน', weigh: 'worth weighing', safety: '' }, pick: null,
   input_tokens: 3000, output_tokens: 200, provider: 'anthropic' };
 
-function fixtureDir() {
+function fixtureDir(kase = KASE) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-cases-'));
-  fs.writeFileSync(path.join(dir, `${KASE.case_id}.json`), JSON.stringify(KASE));
+  fs.writeFileSync(path.join(dir, `${kase.case_id}.json`), JSON.stringify(kase));
   return dir;
 }
 const sandbox = (args, { env = {}, node = [] } = {}) => spawnSync(process.execPath, [...node, SCRIPT, ...args], {
@@ -94,6 +96,21 @@ describe('playOnce', () => {
     expect(play.calls).toEqual([expect.objectContaining({ kind: 'persona', error: '401', usd: worstCall('persona') })]);
   });
 
+  test.each([[3, KASE], [5, KASE5]])('a persona plays all %i steps of its case and is told how many questions it has', async (steps, kase) => {
+    const ai = {
+      // The persona taps the first option it is offered.
+      persona: jest.fn(async ({ messages }) => ({ content: JSON.stringify({ choice: messages[0].content.match(/^- (\w+):/m)[1] }),
+        input_tokens: 1500, output_tokens: 100, provider: 'anthropic' })),
+      chat: jest.fn(async () => CHAT_OK),
+      evaluate: jest.fn(async () => EVAL_OK),
+    };
+    const play = await playOnce({ kase, choose: personaChooser('average', { random: () => 0.9 }), ai });
+    expect(ai.persona.mock.calls.map(([req]) => req.system)).toEqual(Array(steps).fill(expect.stringContaining(`playing a ${steps}-question clinical case`)));
+    expect(ai.chat).toHaveBeenCalledTimes(steps);
+    expect(play).toMatchObject({ fallbacks: 0, composite: 59 });
+    expect(play.tier_path).toHaveLength(steps);
+  });
+
   test('a second unusable persona answer abandons the play rather than score random taps', async () => {
     const ai = personaAi(['no idea', '{"choice": "not-offered"}']);
     const play = await playOnce({ kase: KASE, choose: personaChooser('average', { random: () => 0.9 }), ai });
@@ -122,6 +139,14 @@ describe('runPlays', () => {
     expect(play).toHaveBeenCalledTimes(3);
     expect(run.results.map((r) => r.skipped ?? 'played')).toEqual(['played', 'played', 'played', 'cap', 'cap', 'cap']);
     expect(run).toMatchObject({ spent_usd: 0.6, stopped: true, over_cap: false });
+  });
+
+  test('a play reserves a chat call per step of its own case: a five-step play does not fit where a three-step one does', async () => {
+    const [three] = jobsFor([KASE], { pathRuns: 1, personaRuns: 0 });
+    const [five] = jobsFor([KASE5], { pathRuns: 1, personaRuns: 0 });
+    const play = jest.fn(async () => ({ usd: 0 }));
+    const run = await runPlays([three, five], { capUsd: 4 * worstCall('chat') + worstCall('evaluate'), concurrency: 1, play });
+    expect(run.results.map((r) => r.skipped ?? 'played')).toEqual(['played', 'cap']);
   });
 
   test('a play that costs more than its worst case marks the run over the cap', async () => {
@@ -185,6 +210,41 @@ describe('sandbox.mjs', () => {
     const out = sandbox(['--cases', fixtureDir(), '--persona-runs', '0', '--pool', pool]);
     expect(out.status).toBe(2);
     expect(out.stderr).toMatch(/no median from 3 or more cases for weakest/);
+  });
+
+  /** A stub rimpl on a free local port: CHAT_OK to every /chat, EVAL_OK to every /evaluate. */
+  async function stubRimpl() {
+    const server = http.createServer((req, res) => {
+      req.resume();
+      req.on('end', () => res.end(JSON.stringify(req.url === '/evaluate' ? EVAL_OK : CHAT_OK)));
+    });
+    await new Promise((r) => server.listen(0, '127.0.0.1', r));
+    return { server, url: `http://127.0.0.1:${server.address().port}` };
+  }
+  const sandboxAsync = (args, env) => new Promise((resolve) => {
+    const child = spawn(process.execPath, [SCRIPT, ...args], { env: { PATH: process.env.PATH, ...env } });
+    let stderr = '';
+    child.stderr.on('data', (b) => { stderr += b; });
+    child.on('close', (status) => resolve({ status, stderr }));
+  });
+
+  test.each([
+    ['three', KASE, ['BBB', 'BRW', 'WWW']],
+    ['five', KASE5, ['BBBBB', 'BRWRR', 'WWWWW']],
+  ])('a %s-step case\'s scripted plays tap its own best, mixed and weakest paths', async (_, kase, [best, mixed, weakest]) => {
+    const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-out-'));
+    const rimpl = await stubRimpl();
+    try {
+      const out = await sandboxAsync(['--cases', fixtureDir(kase), '--persona-runs', '0', '--path-runs', '1', '--out', outDir, '--go'],
+        { INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url });
+      expect(out.stderr).toBe('');
+      const [json] = fs.readdirSync(outDir).filter((f) => f.endsWith('.json'));
+      const report = JSON.parse(fs.readFileSync(path.join(outDir, json), 'utf8'));
+      expect(report.plays.map((p) => [p.group, p.tier_path, p.composite]))
+        .toEqual([['best', best, 59], ['mixed', mixed, 59], ['weakest', weakest, 59]]);
+    } finally {
+      rimpl.server.close();
+    }
   });
 
   test('a cap below one play stops before any call and still writes the report', () => {

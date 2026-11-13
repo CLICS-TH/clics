@@ -2,7 +2,7 @@
 // A browser never sends the fragment, so the result is in no request and nothing is stored: the link keeps working
 // after the 30-day purge. The link is unsigned, so a hand-edited one shows whatever it says (a known limit of #244).
 // One import, booth-copy.js (itself import-free), so the harness can still load this file as a data: URL.
-import { TIERS, LOOKS, DEFAULT_LOOK } from './booth-copy.js';
+import { TIERS, LOOKS, DEFAULT_LOOK, isDomainScore } from './booth-copy.js';
 
 export const RESULT_PATH = '/booth-result';
 
@@ -15,8 +15,9 @@ const PATH = new RegExp(`^[${TIER_NAMES.map((n) => TIERS[n].letter).join('')}]{1
 /**
  * @typedef {{ score: number, domains: Record<string, number>, tag: number, date: string, teaser: { th: string, en: string },
  *   tiers: string[] | null, look: string }} KeptResult
- *   score 0-100 (whole), domains d1-d7 at 0-5, tag the booth tag, date YYYY-MM-DD in Bangkok, tiers each step's tier
- *   name (TIERS), null on a link made before tiers were kept (3-4 Nov) or when the score carried none. look the
+ *   score 0-100 (whole), domains d1-d7 at 0-5 (one decimal from a five-step play), tag the booth tag, date YYYY-MM-DD in
+ *   Bangkok, tiers each step's tier name (TIERS), one per step, so their count is the play's step count; null on a link
+ *   made before tiers were kept (3-4 Nov) or when the score carried none. look the
  *   kiosk's language look when the QR was drawn (LOOKS); a link made before looks (#377) reads as DEFAULT_LOOK.
  */
 
@@ -51,7 +52,7 @@ export function parseResultFragment(hash) {
     return null;
   }
   if (typeof o !== 'object' || o === null || !isScore(o.s, 100) || !Array.isArray(o.d) || o.d.length !== KEYS.length
-    || !o.d.every((v) => isScore(v, 5)) || !Number.isInteger(o.t) || o.t < 1 || !isDate(o.at) || !isText(o.th) || !isText(o.en)
+    || !o.d.every(isDomainScore) || !Number.isInteger(o.t) || o.t < 1 || !isDate(o.at) || !isText(o.th) || !isText(o.en)
     || ('p' in o && !(typeof o.p === 'string' && PATH.test(o.p))) || ('l' in o && !(typeof o.l === 'string' && Object.hasOwn(LOOKS, o.l)))) {
     return null;
   }

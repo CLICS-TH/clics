@@ -15,7 +15,7 @@ There is one file per case, at `<event_code>/<case_id>.json`.
 }
 ```
 
-A bank's key is `step1`, `step2.<tier>` or `step3.<tier><tier>`, the same tier letters as the case file's banks. Every option of every bank has one reply: the reply a physician gets after tapping that option.
+A bank's key is the case file's own bank key. A three-step case has `step1`, `step2.<tier>` and `step3.<tier><tier>`. A five-step case has `step1`, then `step2.<tier>` through `step5.<tier>`, each keyed on the tier of the step before. Every option of every bank has one reply: the reply a physician gets after tapping that option.
 
 Check a case's replies from the repo root. The check runs each reply through the booth API's own reply checks, so a reply passes only if the kiosk would show it unchanged.
 

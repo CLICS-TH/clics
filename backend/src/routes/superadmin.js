@@ -14,6 +14,7 @@ const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent, logEventStrict } = require('../lib/audit');
 const retention = require('../services/retention');
 const booth = require('../services/booth');
+const boothAudits = require('../services/booth-audits');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
@@ -554,9 +555,14 @@ router.patch('/usage-settings', async (req, res) => {
     standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils });
 });
 
+async function boothCard() {
+  const [body, audits] = await Promise.all([booth.boothSettings(), boothAudits.summary()]);
+  return body && { ...body, audits };
+}
+
 // Booth Mode event (#214): the switch, the window, the per-play ceiling, and the event's plays and spend.
 router.get('/booth', async (_req, res) => {
-  const body = await booth.boothSettings();
+  const body = await boothCard();
   if (!body) return res.status(502).json({ error: 'Could not read the booth settings — try again' });
   res.json(body);
 });
@@ -566,7 +572,7 @@ router.patch('/booth', async (req, res) => {
   if (result.refused === 'bad_request') return res.status(400).json({ error: result.error });
   if (result.refused) return res.status(502).json({ error: 'Could not save the booth settings — try again' });
   logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'booth_settings', metadata: result.changed });
-  const body = await booth.boothSettings();
+  const body = await boothCard();
   if (!body) return res.status(502).json({ error: 'Saved, but the booth settings could not be re-read — reload' });
   res.json(body);
 });

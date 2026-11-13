@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { ascii, TH_HONORIFIC_NAME, TH_LABELLED_NAME } from '../manuals/lib/pii-gate.mjs';
 import { bangkokTime } from './purge-summary.mjs';
 
 const require = createRequire(import.meta.url);
 const { stripPii, makeRegistry, primeRegistry } = require('../../rimpl/src/services/pii-filter.js');
+// The span rules are the backend's, so the auditor read of a play (#389) screens with this very scan.
+const { ascii, STARTS_WITH_PLACEHOLDER, HONORIFIC_SPAN, LABELLED_SPAN, spanMatches } = require('../../backend/src/lib/pii-spans.js');
 
 const DOMAINS = Object.freeze([
   ['d1', 'Clinical Question Intelligence'], ['d2', 'Reasoning Depth'], ['d3', 'Contextual Integration'],
@@ -37,10 +38,11 @@ export const PLAY_COLUMNS = Object.freeze([
   column('ranked', 'Whether the play was ranked on the booth\'s public board (true or false).'),
   column('tier_path', 'The tier of each answer, in step order: B best, R reasonable, W weaker but safe. A typed answer '
     + 'has the tier the AI sorted it into. Empty on a play that recorded none.'),
-  ...DOMAINS.map(([key, name]) => column(key, `PIS-7 domain ${key.slice(1)}, ${name}: a whole score from 0 to 5. Empty `
-    + 'unless the play was scored.')),
-  column('composite', 'The PIS-7 composite, 0 to 100, to 2 decimals: 20 x (0.15 d1 + 0.20 d2 + 0.15 d3 + 0.15 d4 + '
-    + '0.15 d5 + 0.10 d6 + 0.10 d7). Empty unless the play was scored.'),
+  ...DOMAINS.map(([key, name]) => column(key, `PIS-7 domain ${key.slice(1)}, ${name}: a score from 0 to 5, whole for a `
+    + 'three-step play and to one decimal for a five-step one (a fitted path score table). Empty unless the play was scored.')),
+  column('composite', 'The PIS-7 composite, 0 to 100: 20 x (0.15 d1 + 0.20 d2 + 0.15 d3 + 0.15 d4 + 0.15 d5 + 0.10 d6 + '
+    + '0.10 d7), to 2 decimals for a three-step play and rounded to a whole number for a five-step one. Empty unless the '
+    + 'play was scored.'),
   column('score_source', 'table: read from the case version\'s path score table; live: one live evaluator call on the '
     + 'play\'s dialogue; empty: recorded before the booth kept the score source.'),
   column('transcript', 'released: the play\'s dialogue is in transcripts.jsonl; withheld: a screen flagged the play\'s '
@@ -124,24 +126,9 @@ export const freeText = (row, reg = STEP_KEYS) => (row.steps ?? [])
 
 export const textSha = (strings) => createHash('sha256').update(JSON.stringify(strings)).digest('hex');
 
-const LONG_NUMBER = /(?<![0-9])[0-9](?:[-.\s]?[0-9]){5,}(?![0-9])/g;
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const PLACEHOLDER = /\[[A-Z]+-\d+\]/g;
-const STARTS_WITH_PLACEHOLDER = /^\[[A-Z]+-\d+\]/;
-// The manuals gate's name rules, widened to the words after the name, so a surname is part of the span.
-const HONORIFIC_SPAN = new RegExp(`${TH_HONORIFIC_NAME.source}(?:[ \\t]+[ก-ฮเ-ไ][ก-ฮะ-๎]+)?`, 'g');
-const LABELLED_SPAN = new RegExp(`${TH_LABELLED_NAME.source}(?:[ \\t]+[^\\s,;)]+){0,2}`, 'gi');
 const FLAGGED_TOKEN = '[FLAGGED]';
-
-/** The scan's own span rules, all read on Thai-digit-normalised text. aiReadRequest masks every span they match. */
-const SPAN_RULES = Object.freeze([
-  { rule: 'long-number', re: LONG_NUMBER },
-  { rule: 'email', re: EMAIL },
-  { rule: 'honorific-name', re: HONORIFIC_SPAN },
-  { rule: 'labelled-name', re: LABELLED_SPAN, keep: (m) => !STARTS_WITH_PLACEHOLDER.test(m[1]) },
-]);
-const spanMatches = (flat) => SPAN_RULES.flatMap(({ rule, re, keep = () => true }) =>
-  [...flat.matchAll(re)].filter(keep).map((m) => ({ rule, match: m[0], index: m.index })));
+// aiReadRequest masks every span the span rules (backend/src/lib/pii-spans.js) match.
 
 // Spans of different rules can overlap, so they are merged into disjoint ranges before any is replaced.
 function maskSpans(flat) {

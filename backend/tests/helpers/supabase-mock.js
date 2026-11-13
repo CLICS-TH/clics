@@ -13,7 +13,7 @@
 //   m.state.resolve = (table, kind, ctx) => ...;  // return a row | array | {data,error}
 //
 // kind: 'single' | 'maybeSingle' | 'list' (a select awaited directly) | 'insert' | 'update' | 'delete'
-// ctx : { op, eqs:[[col,val],...], payload, selectArgs, id(col='id') }
+// ctx : { op, eqs:[[col,val],...], likes:[[col,pattern],...], payload, selectArgs, id(col='id') }
 // professionals.single() filtered by the caller's own id auto-returns `state.caller` (so verifyJwt
 // works without the test having to special-case it); any other read falls through to `resolve`.
 // The double has no store_chat_turn() (db/migration-message-client-turn-id.sql), and says so the way
@@ -39,10 +39,14 @@ function makeSupabaseMock() {
   };
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], payload: undefined };
+    const rec = {
+      table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], likes: [], orders: [], range: null,
+      limit: null, payload: undefined,
+    };
     state.queries.push(rec);
     const ctx = () => ({
-      op: rec.op, eqs: rec.eqs, neqs: rec.neqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, payload: rec.payload, selectArgs: rec.selectArgs,
+      op: rec.op, eqs: rec.eqs, neqs: rec.neqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, likes: rec.likes,
+      payload: rec.payload, selectArgs: rec.selectArgs, orders: rec.orders, range: rec.range, limit: rec.limit,
       id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
     });
     const self = {};
@@ -70,7 +74,13 @@ function makeSupabaseMock() {
     // a silent no-op below, which made a "this query must NOT match X" property untestable. Still
     // chainable; suites that never read neqs are unaffected.
     self.neq = (c, v) => { rec.neqs.push([c, v]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
+    // ADDITIVE: record .like() (rec.likes) as [column, pattern] so a suite can assert a pattern filter was applied
+    // and honour it in its resolve(). Suites that never call .like() are unaffected (rec.likes stays []).
+    self.like = (c, pattern) => { rec.likes.push([c, pattern]); return self; };
+    self.order = (c, opts) => { rec.orders.push([c, opts]); return self; };
+    self.range = (from, to) => { rec.range = [from, to]; return self; };
+    self.limit = (n) => { rec.limit = n; return self; };
+    for (const fn of ['gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();
