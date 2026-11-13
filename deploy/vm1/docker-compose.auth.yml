@@ -1,0 +1,166 @@
+# Self-hosted sign-in for the `clics` compose project (#427, ADR 0012): GoTrue, PostgREST and the internal
+# gateway that gives the backend and rimpl one SUPABASE_URL for both.
+#
+# BUILT, NOT SWITCHED ON. deploy.sh's activation never loads this file, so a vm1 deploy starts exactly the
+# backend and rimpl it started before. The database move (#432) switches sign-in over; until then these
+# services run only in a rehearsal (deploy/vm1/rehearsal/). Always rendered together with the main file:
+#   docker compose -p clics -f docker-compose.yml -f docker-compose.auth.yml up -d gotrue postgrest supabase-gw
+#
+# What reaches what (ADR 0012, ADR 0007):
+#   * gotrue       loopback port 3102 only; the host's nginx publishes it at /auth/v1 and nothing else.
+#   * postgrest    NO host port and no nginx location, exactly as rimpl (R4).
+#   * supabase-gw  NO host port. http://supabase-gw:8080 is SUPABASE_URL for the backend and rimpl:
+#                  /auth/v1/ -> gotrue, /rest/v1/ -> postgrest, as supabase-js expects of one base URL.
+# All three are stateless (R5): the database is on the data host, and no volume is declared.
+#
+# Secrets (R6) live only in two env files a human writes on vm1, never in this file:
+#   gotrue.env     GOTRUE_JWT_SECRET, GOTRUE_DB_DATABASE_URL, GOTRUE_SMTP_PASS, GOTRUE_EXTERNAL_GOOGLE_SECRET, ...
+#   postgrest.env  PGRST_JWT_SECRET (the same value as GOTRUE_JWT_SECRET), PGRST_DB_URI
+# The preflight refuses either file missing, at the wrong mode or owner, or a secret placed in the wrong file
+# (remote/lib.sh, check_auth_env). The values that must not vary between hosts are pinned below, under
+# `environment:`, which docker compose applies over the env file.
+
+# A copy of x-hardened in docker-compose.yml: an anchor cannot cross files. scripts/deploy/vm1-auth.test.mjs
+# fails if the two blocks differ.
+x-hardened: &hardened
+  restart: unless-stopped
+  # tini as PID 1: forwards SIGTERM to node and reaps children. rimpl registers no SIGTERM handler,
+  # and node as PID 1 ignores a signal it does not handle, so without this every stop waits for the
+  # grace period and ends in SIGKILL.
+  init: true
+  # Non-root: the host's dedicated `clics` uid, not the image's `node` (uid 1000 may be a real login
+  # user on this host). No file in either image is written at runtime, so any uid can run them.
+  user: "${CLICS_UID:?set by deploy.sh to the uid of the clics user on the host}:${CLICS_GID:?set by deploy.sh to the gid of the clics user on the host}"
+  # Neither app writes to its filesystem (checked 2026-10-21: no fs writes in backend/src or
+  # rimpl/src). /tmp is the one writable path, for anything a dependency puts in os.tmpdir().
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  security_opt:
+    - no-new-privileges:true
+  # Both listen above 1024 and need no capability at all.
+  cap_drop:
+    - ALL
+  # Limits protect the host's other tenants from us. They do not reserve anything for us.
+  mem_limit: 1g
+  memswap_limit: 1g
+  cpus: 2.0
+  pids_limit: 256
+  # json-file with rotation: at most 5 x 10 MB per container on vm1's disk. The apps log ids and
+  # error messages, not transcripts.
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+  networks:
+    - clics
+
+services:
+  # GoTrue v2.197.0 is the release Supabase's own self-hosting compose pins (supabase/supabase docker/,
+  # read 2026-11-11). Kept on purpose: it serves the `app_metadata.providers` claim isGoogleSession reads,
+  # the id_token grant with a nonce (ADR 0008), automatic same-email linking and the email/signup/recovery
+  # OTP types. Change it only with a re-run of deploy/vm1/rehearsal/README.md.
+  gotrue:
+    <<: *hardened
+    image: supabase/gotrue:v2.197.0
+    env_file:
+      - ${CLICS_ENV_DIR:?set by deploy.sh to /opt/clics/env}/gotrue.env
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      PORT: "9999"
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      # Google self-signup creates the auth user through the id_token grant, so signup stays open at GoTrue.
+      # Email signup is closed in the backend (backend/src/routes/auth.js), and isGoogleSession refuses a
+      # session from any other provider.
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: "true"
+      # The invite's password path creates the user with email_confirm:false and confirms it with an OTP.
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      # Link Google relies on GoTrue linking a verified Google identity to the account with the same email.
+      GOTRUE_SECURITY_MANUAL_LINKING_ENABLED: "false"
+      # fatal: info lines of an auth event name the user's email, and so do error lines (a failed mail send
+      # logs the recipient as actor_username), and json-file logs sit on vm1's disk, which keeps no PII at
+      # rest (R5). fatal leaves start-up failures only. Sign-in history stays in auth.audit_log_entries, and a
+      # failed request still reaches its caller as an HTTP error.
+      GOTRUE_LOG_LEVEL: fatal
+      # GoTrue's own per-address limits (/token, /verify, mail sends) key on this header, which the host's nginx
+      # sets to the client address. Without it they key on the connecting address, which is always nginx.
+      # Calls from the backend through supabase-gw carry no such header and are limited by the backend.
+      GOTRUE_RATE_LIMIT_HEADER: X-Real-IP
+      # Mail links are built as API_EXTERNAL_URL (the public origin) + these paths. Without them GoTrue drops
+      # the /auth/v1 that nginx routes on, and every reset link lands on the backend as a 404.
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      # The hosted project's edited templates (docs/AUTH-SETUP.md): the two code mails carry {{ .Token }},
+      # which the Portal asks for. GoTrue fetches them from supabase-gw, which serves auth-templates/.
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://supabase-gw:8080/templates/confirmation.html
+      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://supabase-gw:8080/templates/magic_link.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://supabase-gw:8080/templates/recovery.html
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: "CLICS: รหัสยืนยันอีเมล / Email confirmation code"
+      GOTRUE_MAILER_SUBJECTS_MAGIC_LINK: "CLICS: รหัสเข้าสู่ระบบ / Sign-in code"
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: "CLICS: ตั้งรหัสผ่านใหม่ / Reset your password"
+    # Loopback only: nginx on the host is the only client from outside the project (R3, as the backend).
+    ports:
+      - "127.0.0.1:3102:9999"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9999/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 20s
+
+  # PostgREST v14.18, the release Supabase's self-hosting compose pins beside that GoTrue.
+  postgrest:
+    <<: *hardened
+    image: postgrest/postgrest:v14.18
+    env_file:
+      - ${CLICS_ENV_DIR:?set by deploy.sh to /opt/clics/env}/postgrest.env
+    environment:
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_ANON_ROLE: anon
+      # Supabase's default "max rows", which every list query in the backend was written against.
+      PGRST_DB_MAX_ROWS: "1000"
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      # The admin server answers `postgrest --ready` inside the container only.
+      PGRST_ADMIN_SERVER_HOST: 127.0.0.1
+      PGRST_ADMIN_SERVER_PORT: "3001"
+    healthcheck:
+      test: ["CMD", "postgrest", "--ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 20s
+
+  supabase-gw:
+    <<: *hardened
+    image: nginxinc/nginx-unprivileged:1.28.0-alpine
+    # The image's entrypoint scripts try to rewrite files under /etc/nginx; on a read-only root they skip.
+    environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: "1"
+    volumes:
+      - ./supabase-gw.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./auth-templates:/srv/auth-templates:ro
+    depends_on:
+      gotrue:
+        condition: service_healthy
+      postgrest:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/auth/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    stop_grace_period: 10s
