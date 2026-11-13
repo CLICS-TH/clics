@@ -53,9 +53,11 @@ describe('organophosphate', () => {
   });
 });
 
-test('dka-young-adult: at glucose 250 mg/dL or below, every best option lowers the insulin rate (Thai DM CPG 2566)', () => {
+// Once ketones clear, WHO IMAI 2021 p.3.4-95 and Thai CPG p.145 move her to subcutaneous insulin instead.
+test('dka-young-adult: while ketoacidosis persists at glucose 250 mg/dL or below, every best option lowers the insulin rate (Thai DM CPG 2566)', () => {
   const k = fiveStep('dka-young-adult');
-  const low = banks(k).filter(([, b]) => (stems(b).match(/\d+(?=\s*mg\/dL)/g) ?? []).some((n) => Number(n) <= 250));
+  const low = banks(k).filter(([, b]) => !/ketones (have )?cleared|DKA has resolved/i.test(stems(b))
+    && (stems(b).match(/\d+(?=\s*mg\/dL)/g) ?? []).some((n) => Number(n) <= 250));
   expect(low.length).toBeGreaterThan(0);
   const bad = low.flatMap(([name, b]) => b.options
     .filter((o) => o.tier === 'best' && (/same insulin rate|0\.1 units\/kg\/h/i.test(text(o)) || !/0\.0[2-5]|halve|cut insulin/i.test(text(o))))

@@ -432,8 +432,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "NSS K หยดอินซูลิน น้ำตาลทุก ชม.",
-              "en": "NSS, K, insulin drip, hourly glucose"
+              "th": "NSS ตรวจ K อินซูลิน DTX ทุกชม.",
+              "en": "NSS, check K, insulin, hourly sugar"
             },
             "line": {
               "th": "สารน้ำทันที อินซูลินเมื่อ K ปลอดภัย ตรวจน้ำตาลทุก ชม.",
@@ -505,8 +505,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "NSS K หยดอินซูลิน น้ำตาลทุก ชม.",
-              "en": "NSS, K, insulin drip, hourly glucose"
+              "th": "NSS ตรวจ K อินซูลิน DTX ทุกชม.",
+              "en": "NSS, check K, insulin, hourly sugar"
             },
             "line": {
               "th": "สารน้ำทันที อินซูลินเมื่อ K ปลอดภัย ตรวจน้ำตาลทุก ชม.",
@@ -772,8 +772,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "คีโตนหมดแล้ว pH 7.34 เริ่มกินได้ จะวางแผนต่ออย่างไร",
-              "en": "Ketones have cleared, pH is 7.34 and she is eating. What is your plan?"
+              "th": "คีโตนหมด pH 7.34 น้ำตาล 180 กินได้ จะวางแผนต่ออย่างไร",
+              "en": "Ketones cleared, pH 7.34, glucose 180 mg/dL, and she is eating. Your plan?"
             }
           },
           {
@@ -852,8 +852,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "วันที่ 2 คีโตนหมดแล้ว ผู้ป่วยกังวลเรื่องฉีดยา ทำอย่างไรต่อ",
-              "en": "On day 2 the ketones have cleared and she worries about injections. Next?"
+              "th": "วันที่ 2 คีโตนหมด pH 7.34 น้ำตาล 180 กลัวฉีดยา ทำอย่างไร",
+              "en": "Day 2: ketones cleared, pH 7.34, glucose 180 mg/dL; she fears injections. Next?"
             }
           }
         ],
@@ -992,7 +992,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-13",
-      "findings": "Fresh reviewer that did not write the case, 2026-11-13, five-step version 6, tree sha256 715b68fb063c8c2f735154d58bc8787d332cbc4e38ee2b4dd8a937b81dff2bac. Read in full: Thai CPG for Diabetes 2566 (2023, DAT/Endocrine Society/DMS/NHSO) ch.12: diagnosis p.138, severity p.140, K p.142 (insulin once K >3.3; KCl 20-30 mmol/L at 3.3-5.2), insulin cut to 0.02-0.05 units/kg/h with dextrose at glucose 250 p.141/143, resolution and IV-to-SC switch p.145; 2024 ADA/EASD/JBDS/AACE/DTS consensus (Diabetologia 2024;67:1455; Diabetes Care 2024): K >3.5, basal-bolus 1-2 h before stopping IV, ICU for altered mental status. WHO: HEARTS-D 2020 p.20 covers only primary-care referral on 0.9% saline; the Model Formulary 2008 gives no protocol and the 2013 pocket book is paediatric, so WHO has no adult inpatient DKA guidance. Checked all 13 banks for K, dextrose, resolution, overlap, ICU/referral, tiers, path fit, Thai/English parity and replies. Fixed: step-4 best options at glucose 240 now lower insulin per the Thai CPG; the fixed-rate 10% dextrose option is reasonable; step4.B a Thai label gains /kg/h; step5.W stems give glucose 320 so full-dose insulin fits every path; step5.W c Thai line keeps K steady. Fixes re-read and confirmed on this tree."
+      "findings": "Fresh reviewer that did not write the case, 2026-11-13, five-step version 6, tree sha256 ab2f198d126c310a1c2d94ca7be13568581199d6f6b1b6d7b3db8d2b5aafc9e0. Read in full: WHO SEARO IMAI District Clinician Manual 2021 vol.1 section 3.4.4 pp.3.4-92 to 3.4-95 (first litre NS without K; K 20 mmol/L at 3.3-5.3 once urine flows, no insulin until K >3.3, p.3.4-94; IV insulin 0.15 U/kg bolus then 0.1 U/kg/h, cut to 0.05 with 5% dextrose in 0.45% NS below 250 mg/dL, hourly glucose, stop IV insulin when eating, no acidosis and glucose <216, p.3.4-95); Thai CPG 2566 ch.12 pp.138-145; 2024 ADA/EASD/JBDS/AACE/DTS consensus. WHO and Thai differ on the bolus (WHO routine, Thai one of three methods, consensus only if IV access is late), the cut (WHO 0.05, Thai 0.02-0.05) and stop criteria; tiers judged by the Thai CPG, and WHO shows no option unsafe, so the bolus and fixed-rate 10% dextrose options stay reasonable. Checked all 13 banks for K, fluids, dextrose, monitoring, resolution, overlap, ICU/referral, tiers, path fit, Thai/English parity and replies. Fixed: step3.R and step3.W option b labels now check K before K is given; step5.B v1 and step5.R v2 stems give pH and glucose 180, so stopping the drip meets WHO p.3.4-95 and Thai p.145. Fixes re-read and confirmed on this tree."
     },
     "owner_waiver": {
       "date": "2026-11-03",
