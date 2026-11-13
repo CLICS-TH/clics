@@ -261,16 +261,84 @@ describe('adversarial — Thai-digit and dotted identifiers (#440)', () => {
     'platelet ๒๕๐๐๐๐',
     'Cr 1.05 2.10 3.20 4.1',
     'K 3.5 Na 135 Cl 100',
-    'วันที่ 05.12.2569',
     'NSS 0.9% 1000 ml',
     // A run a numeric pass matches but its guard rejects is put back as written, never as its ASCII view.
     'เลข ๐๒ ๑๒๓ ๔๕๖',
     'เลข ๐๑๒๓๔๕๖๗๘๙๐๑',
-    // Phone-shaped dotted groups that only the dotted pass's lookarounds reject: after a dot, before a decimal,
-    // before a fifth digit.
-    'ref 1.081.234.5678',
+    // Phone-shaped dotted groups that only the dotted pass's lookarounds reject: before a decimal, before a fifth digit.
     'ref 081.234.5678.9',
     'ref 081.234.56789',
+    // Decimal runs that open with 0 or carry dots are not phones or dates (#440 round 2).
+    'Cr 0.85 0.92 1.10 1.25 1.30',
+    'Hb 10.5 12.3 11.8',
+    'pH 7.35 pCO2 40.2 HCO3 22.1',
+    'Wt 66.5 kg HR 120 bpm',
+    'dose 1.5.2 mg',
+  ])('%s survives byte-for-byte', (text) => assertSurvives(text));
+});
+
+// ===========================================================================
+// EVERY DIGIT SCRIPT, EVERY NUMERIC PASS, EVERY DOTTED SHAPE (#440 round 2) — the Thai-digit view reached only the
+// ID / HN / MRN / PHONE passes, full-width and Arabic-Indic digits reached none, and the dotted-phone pass refused a
+// number after a dot, a two-group or 4-3-3 number and a dot with a space beside it. Each shape runs through the three
+// surfaces that strip PII: stripPii, POST /deidentify (the auditor's copy) and the booth's kept answer.
+// ===========================================================================
+const NUMERIC_SHAPES = [
+  ['dotted phone after a Thai label and dot', 'โทร.081.234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['dotted phone after an English label and dot', 'Tel.081.234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['dot then space', '081. 234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['space then dot', '081 .234.5678', ['081', '234', '5678'], 'PHONE'],
+  ['two dotted groups, mobile', '081.2345678', ['081', '2345678'], 'PHONE'],
+  ['two dotted groups, landline', '02.1234567', ['1234567'], 'PHONE'],
+  ['4-3-3 dotted groups', '0812.345.678', ['0812', '345', '678'], 'PHONE'],
+  ['+66 then a dot, ungrouped', '+66.812345678', ['812345678', '5678'], 'PHONE'],
+  ['numbered list then a dotted phone', '1.081.234.5678', ['081', '5678'], 'PHONE'],
+  ['full-width digits', '０８１-２３４-５６７８', ['０８１', '２３４', '５６７８'], 'PHONE'],
+  ['full-width digits and dots', 'Tel.０８１．２３４．５６７８', ['０８１', '５６７８'], 'PHONE'],
+  ['Arabic-Indic digits', '٠٨١٢٣٤٥٦٧٨', ['٠٨١٢٣٤٥٦٧٨', '٥٦٧٨'], 'PHONE'],
+  ['Persian digits', '۰۸۱۲۳۴۵۶۷۸', ['۰۸۱۲۳۴۵۶۷۸', '۵۶۷۸'], 'PHONE'],
+  ['full-width HN', 'ＨＮ １２３４５６７', ['１２３４５６７'], 'HN'],
+  ['Thai-digit date', 'วันที่ ๑๒/๐๕/๒๕๖๙', ['๑๒/๐๕', '๒๕๖๙'], 'DATE'],
+  ['Thai-digit ISO date', 'วันที่ ๒๕๖๙-๐๕-๑๒', ['๒๕๖๙-๐๕'], 'DATE'],
+  ['dotted date', 'นัด 20.10.2026', ['20.10', '2026'], 'DATE'],
+  ['dotted Buddhist-era date', 'วันที่ 05.12.2569', ['05.12', '2569'], 'DATE'],
+  ['Thai-digit dotted date', 'วันที่ ๒๐.๑๐.๒๕๖๙', ['๒๐.๑๐', '๒๕๖๙'], 'DATE'],
+  ['Thai-digit house number', 'บ้านเลขที่ ๙๙/๑', ['๙๙/๑'], 'ADDR'],
+  ['Thai-digit หมู่', 'หมู่ที่ ๕ ตำบล', ['๕'], 'ADDR'],
+  ['Thai-digit อายุ … ปี', 'อายุ ๔๕ ปี', ['๔๕'], 'AGE'],
+  ['Thai-digit … ปี', 'ผู้ป่วยหญิง ๖๒ ปี', ['๖๒'], 'AGE'],
+  ['Thai-digit อายุ', 'อายุ ๗๑', ['๗๑'], 'AGE'],
+  ['Arabic-Indic อายุ', 'อายุ ٤٥ ปี', ['٤٥'], 'AGE'],
+];
+
+describe('adversarial — every digit script and dotted shape, on every surface (#440 round 2)', () => {
+  test.each(NUMERIC_SHAPES)('stripPii masks %s', (_label, input, leaked, cat) => {
+    assertScrubbed(input, leaked);
+    expect(scrubbedOut).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  test.each(NUMERIC_SHAPES)('POST /deidentify masks %s', async (_label, input, leaked, cat) => {
+    const res = await request(app).post('/deidentify').send({ messages: [{ role: 'user', content: `ผู้ป่วย ${input} ค่ะ` }] });
+    expect(res.status).toBe(200);
+    const out = res.body.messages[0].content;
+    for (const frag of leaked) expect(out).not.toContain(frag);
+    expect(out).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  test('a phone in three digit scripts is one person: one token', () => {
+    expect(stripPii('โทร 081-234-5678 หรือ ０８１-２３４-５６７８ หรือ ٠٨١-٢٣٤-٥٦٧٨')).toBe('โทร [PHONE-1] หรือ [PHONE-1] หรือ [PHONE-1]');
+  });
+
+  // The dotted pass took a lot number before round 2; it must take no more of it than that.
+  test('a phone-shaped lot number is masked no wider than before', () => {
+    expect(stripPii('lot 012.345.6789X')).toBe('lot [PHONE-1]X');
+  });
+
+  test.each([
+    'BP ๑๒๐/๘๐ HR ๘๘',
+    'BP ١٢٠/٨٠ HR ٨٨',
+    'BP １２０/８０ HR ８８',
+    'ให้ ๐.๕ mg ๓ ครั้ง',
   ])('%s survives byte-for-byte', (text) => assertSurvives(text));
 });
 
@@ -1208,6 +1276,25 @@ describe('adversarial — a booth typed answer carrying a name and a phone', () 
     }
     expect(res.body.answer_deidentified).toBe('โทรหาผู้ป่วยที่ [PHONE-1] มาตรวจ PCR ซ้ำ');
   });
+
+  // #440 round 2: every digit script and dotted shape is masked in the kept answer and on the wire too.
+  test.each(NUMERIC_SHAPES)(
+    'a typed answer holding %s reaches neither the AI call nor answer_deidentified',
+    async (_label, value, leaked, cat) => {
+      const answer = `ผู้ป่วย ${value} มาตรวจ PCR ซ้ำ`;
+      const res = await request(app).post('/chat').send({
+        ple_id: 'x', language: 'th', booth_mode: true, history: [], message: `คุณจะส่งตรวจอะไรต่อ\n${answer}`,
+        booth_typed: { current: BANK, next: { best: BANK, reasonable: BANK, weaker: BANK } }, booth_answer: answer,
+      });
+      expect(res.status).toBe(200);
+      const wire = JSON.stringify(callAI.mock.calls);
+      for (const frag of leaked) {
+        expect(wire).not.toContain(frag);
+        expect(res.body.answer_deidentified).not.toContain(frag);
+      }
+      expect(res.body.answer_deidentified).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+    }
+  );
 
   // The gate's case (#375): the label ends the question and the value is the whole answer. The message masks the two
   // together, so the kept answer must be the answer's part of the masked message, never the answer stripped alone.

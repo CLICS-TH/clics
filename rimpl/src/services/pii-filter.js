@@ -454,6 +454,14 @@ function applyThAdminPass(text, token) {
   });
 }
 
+// A phone's group separator: a dot with any spaces around it, or one space or dash.
+const PHONE_SEP = '(?:\\s*\\.\\s*|[\\s-])';
+
+function dottedDateGuard(m) {
+  const [d, mo] = m.split('.').map(Number);
+  return d >= 1 && d <= 31 && mo >= 1 && mo <= 12;
+}
+
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
   // --- Structured identifiers FIRST (longest / most specific) ---
@@ -486,13 +494,13 @@ const PASSES = [
     guard: lineIdGuard,
   },
 
-  // The ID / HN / MRN / PHONE passes set `thaiDigits`: they match ๐–๙ as 0–9 (#440; see applyPass).
+  // Every pass from here on that is not a NAME pass reads the ASCII view of the text: ๐–๙, ٠–٩, ０–９ and every
+  // other decimal digit as 0–9, and full-width ＋－．（） as +-.() (#440; see asciiView and applyPass).
 
   // Thai national ID: 13 digits, with or without the X-XXXX-XXXXX-XX-X dashes.
   {
     re: /\b\d(?:[\s-]?\d){12}\b/g,
     cat: 'ID',
-    thaiDigits: true,
     // Guard: only when the digits actually total 13 (the loose run above could
     // otherwise straddle unrelated numbers separated by spaces).
     guard: (m) => (m.replace(/\D/g, '').length === 13),
@@ -505,7 +513,6 @@ const PASSES = [
   {
     re: /\bHN\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
     cat: 'HN',
-    thaiDigits: true,
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
@@ -515,7 +522,6 @@ const PASSES = [
   {
     re: /\b(?:MRN|AN)\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
     cat: 'MRN',
-    thaiDigits: true,
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
@@ -534,7 +540,6 @@ const PASSES = [
   {
     re: /\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]*\d){6,9}/g,
     cat: 'PHONE',
-    thaiDigits: true,
     guard: (m) => {
       // national number: 8 digits (landline) or 9 (mobile); a written trunk 0
       // adds one (10). Accept 8-10 after stripping the leading 66.
@@ -548,19 +553,23 @@ const PASSES = [
     // never eats a longer run or a bare lab count (which has no leading 0).
     re: /\(?0\d\)?(?:[\s()-]*\d){7,9}/g,
     cat: 'PHONE',
-    thaiDigits: true,
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 9 && d <= 10;
     },
   },
-  // Dot-separated, national or +66 (081.234.5678, 02.123.4567, +66.81.234.5678). Its own pass so '.' never
-  // joins the loose runs above: three groups, not after a digit or dot and not before a decimal, so a lab
-  // list (Cr 1.05 2.10) or a dotted date (05.12.2569) is no phone. Only a match holding a dot counts.
+  // Dotted groups, national or +66 (081.234.5678, 081.2345678, 0812.345.678, 02.1234567, +66.812345678,
+  // 081. 234.5678), after any label or punctuation (โทร.081…, Tel.081…). Its own pass so '.' never joins the loose
+  // runs above. A national number opens with 0 and one to three digits and every later group holds three or more,
+  // so a lab list (Cr 0.85 0.92 1.10) or a dotted date (05.12.2569) is no phone; it never starts inside a number or
+  // stops before a decimal. Only a match holding a dot counts: the passes above own every undotted form.
   {
-    re: /(?<![\d.])(?:\+?66[\s.-]?(?:\(0\)[\s.-]?)?\d{1,2}|\(?0\d{1,2}\)?)[\s.-]\d{3,4}[\s.-]\d{3,4}(?!\.?\d)/g,
+    re: new RegExp(
+      `(?<!\\d)(?:\\+?66${PHONE_SEP}(?:\\(0\\)${PHONE_SEP}?)?\\d(?:${PHONE_SEP}?\\d){7,9}` +
+        `|\\(?0\\d{1,3}\\)?(?:${PHONE_SEP}\\d{3,7}){1,2})(?!\\.?\\d)`,
+      'g'
+    ),
     cat: 'PHONE',
-    thaiDigits: true,
     guard: (m) => {
       if (!m.includes('.')) return false;
       const intl = /^\+?66/.test(m);
@@ -572,6 +581,8 @@ const PASSES = [
   // --- Dates (kept stable category so repeated dates collapse) ---
   { re: /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g, cat: 'DATE' },
   { re: /\b\d{4}-\d{2}-\d{2}\b/g, cat: 'DATE' },
+  // Dotted day.month.year (20.10.2026, 05.12.2569): a real day and month, so a version or lab run is no date.
+  { re: /\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, cat: 'DATE', guard: dottedDateGuard },
 
   // --- Ward ---
   // \b only on the English branch (it is ASCII-only and would never match before
@@ -937,14 +948,27 @@ function applyGivenSurnamePass(text, token) {
   throw new Error('PII filter: surname search did not settle');
 }
 
-// Thai digits ๐–๙ (U+0E50–U+0E59) as ASCII 0–9. One UTF-16 unit each way, so the copy is index-for-index the
-// original: a numeric pass matches on it and cuts the original, and text left unmasked keeps its Thai digits.
-const THAI_DIGIT_RE = /[๐-๙]/g;
-const asciiDigits = (s) => s.replace(THAI_DIGIT_RE, (c) => String.fromCharCode(c.charCodeAt(0) - 0x0E50 + 0x30));
+// The ASCII view a numeric pass reads: every BMP decimal digit (Thai ๐–๙, Arabic-Indic ٠–٩ and ۰–۹, full-width ０–９,
+// Lao, Devanagari …) as 0–9, and the full-width ASCII block (＋ － ． （ ） Ｈ Ｎ …) as its ASCII letter. One UTF-16 unit
+// each way, so the view is index-for-index the original: a pass matches on it and cuts the original, and text left
+// unmasked keeps its own digits. Unicode lays every decimal digit set out as a run of ten from zero.
+const ASCII_VIEW = (() => {
+  const map = new Map();
+  let run = 0;
+  for (let c = 0x80; c <= 0xffff; c += 1) {
+    const ch = String.fromCharCode(c);
+    run = /\p{Nd}/u.test(ch) ? run + 1 : 0;
+    if (run) map.set(ch, String.fromCharCode(0x30 + ((run - 1) % 10)));
+  }
+  for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
+  return map;
+})();
+const ASCII_VIEW_RE = new RegExp(`[${[...ASCII_VIEW.keys()].join('').replace(/[\]\\^-]/g, '\\$&')}]`, 'g');
+const asciiView = (s) => s.replace(ASCII_VIEW_RE, (c) => ASCII_VIEW.get(c));
 
 // Apply one pass, threading the shared registry so tokens are stable per call.
 function applyPass(text, pass, token, hints) {
-  const { re, cat, guard, kind, thaiDigits } = pass;
+  const { re, cat, guard, kind } = pass;
 
   if (kind === 'bare-name') return applyBareNamePass(text, token);
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
@@ -957,7 +981,7 @@ function applyPass(text, pass, token, hints) {
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
   return replaceResumable(text, re, (m) => {
-    // `seen` is what the regex read (the ASCII view on a thaiDigits pass); `match` is the original text, which
+    // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
     // every return that masks nothing must give back unchanged.
     const [seen, g1, g2, g3] = m;
     const match = text.slice(m.index, m.index + seen.length);
@@ -1052,7 +1076,7 @@ function applyPass(text, pass, token, hints) {
     }
 
     return token(cat, seen); // keyed by the ASCII view: both scripts of one number share a token
-  }, thaiDigits ? asciiDigits(text) : text);
+  }, cat === 'NAME' ? text : asciiView(text));
 }
 
 // Mask one string. If a registry is provided, tokens stay stable across all
