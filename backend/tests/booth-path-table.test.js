@@ -177,8 +177,13 @@ describe('the build runner', () => {
     child.on('close', (status) => resolve({ status, stdout, stderr }));
   });
 
-  test.each([['--cap', '25.01'], ['--samples', '2']])('refuses %s %s: the cap is at most $25 and a median needs an odd count', (flag, v) => {
-    expect(run([flag, v]).status).toBe(2);
+  test.each([
+    ['--cap', '25.01', /--cap needs a number from 0\.01 to 25\b/],
+    ['--samples', '2', /--samples must be odd/],
+  ])('refuses %s %s: the cap is at most $25 and a median needs an odd count', (flag, v, why) => {
+    const res = run([flag, v]);
+    expect(res.status).toBe(2);
+    expect(res.stderr).toMatch(why);
   });
 
   const ledgerFile = (home) => path.join(home, '.clics', 'booth-spend', 'ledger.jsonl');
