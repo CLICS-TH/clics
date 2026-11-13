@@ -301,7 +301,14 @@ const NUMERIC_SHAPES = [
   ['4-3-3 dotted groups', '0812.345.678', ['0812', '345', '678'], 'PHONE'],
   ['+66 then a dot, ungrouped', '+66.812345678', ['812345678', '5678'], 'PHONE'],
   ['2-digit dotted groups', 'โทร 081.234.56.78', ['081', '234', '56.78'], 'PHONE'],
-  ['numbered list then a dotted phone', '1.081.234.5678', ['081', '5678'], 'PHONE'],
+  ['numbered list then a dotted phone', '1. 081.234.5678', ['081', '5678'], 'PHONE'],
+  // A loose run that takes the next number fails its guard as a whole; the pass falls back to the phone alone (#461).
+  ['dashed phone then a count', 'โทร 081-234-5678 2 ครั้ง', ['081', '234', '5678'], 'PHONE'],
+  ['spaced phone then a time', 'โทร 081 234 5678 10 โมง', ['081', '234', '5678'], 'PHONE'],
+  ['plain phone then a count', 'โทร 0812345678 2 ครั้ง', ['0812345678', '5678'], 'PHONE'],
+  ['dotted phone then hours', 'โทร 081.234.5678 24 ชั่วโมง', ['081', '234', '5678'], 'PHONE'],
+  ['Thai-digit dashed phone then a count', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ ๒ ครั้ง', ['๐๘๑', '๒๓๔', '๕๖๗๘'], 'PHONE'],
+  ['+66 glued to the area code, dotted', 'โทร +6681.234.5678', ['6681', '234', '5678'], 'PHONE'],
   ['full-width digits', '０８１-２３４-５６７８', ['０８１', '２３４', '５６７８'], 'PHONE'],
   ['full-width digits and dots', 'Tel.０８１．２３４．５６７８', ['０８１', '５６７８'], 'PHONE'],
   ['Arabic-Indic digits', '٠٨١٢٣٤٥٦٧٨', ['٠٨١٢٣٤٥٦٧٨', '٥٦٧٨'], 'PHONE'],
@@ -335,6 +342,18 @@ describe('adversarial — every digit script and dotted shape, on every surface 
     expect(out).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
   });
 
+  // The number after a phone is clinical (a count, a time) and stays; only the phone is masked.
+  test.each([
+    ['โทร 081-234-5678 2 ครั้ง', 'โทร [PHONE-1] 2 ครั้ง'],
+    ['โทร 081 234 5678 10 โมง', 'โทร [PHONE-1] 10 โมง'],
+    ['โทร 0812345678 2 ครั้ง', 'โทร [PHONE-1] 2 ครั้ง'],
+    ['โทร 081.234.5678 24 ชั่วโมง', 'โทร [PHONE-1] 24 ชั่วโมง'],
+    ['เบอร์ 081-234-5678 ติดต่อได้ 24 ชม.', 'เบอร์ [PHONE-1] ติดต่อได้ 24 ชม.'],
+    ['call 081-234-5678 at 9', 'call [PHONE-1] at 9'],
+  ])('%s keeps the number after the phone', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+
   test('a phone in three digit scripts is one person: one token', () => {
     expect(stripPii('โทร 081-234-5678 หรือ ０８１-２３４-５６７８ หรือ ٠٨١-٢٣٤-٥٦٧٨')).toBe('โทร [PHONE-1] หรือ [PHONE-1] หรือ [PHONE-1]');
   });
@@ -349,6 +368,13 @@ describe('adversarial — every digit script and dotted shape, on every surface 
     'BP ١٢٠/٨٠ HR ٨٨',
     'BP １２０/８０ HR ８８',
     'ให้ ๐.๕ mg ๓ ครั้ง',
+    // No phone or date starts right after "<digit>." or ends right before ".<digit>" (round 2).
+    'Na 140.00 139.50 138 mmol/L',
+    'Hb 12.5. 11.2 g/dL on repeat',
+    'BMI 22.5. 24.3',
+    // A section or version number is no dotted date.
+    'หัวข้อ 1.2.10',
+    'version 1.2.10',
   ])('%s survives byte-for-byte', (text) => assertSurvives(text));
 });
 
