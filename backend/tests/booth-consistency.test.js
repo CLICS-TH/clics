@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { BOOTH_SETTINGS, SAFE_EVENT_CODE } = require('../src/services/booth');
 const { schemaFromSql } = require('./helpers/sql-schema');
-const { CaseTreeSchema } = require('../src/booth-cases/tree-schema');
+const { CaseTreeSchema, MAX_STEPS } = require('../src/booth-cases/tree-schema');
 const { LOOK_LANGUAGE } = require('../src/services/booth-dialogue');
 
 const MIGRATION = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-plays.sql'), 'utf8');
@@ -35,10 +35,27 @@ test('the case-file name guard is the booth_plays.event_code CHECK', () => {
   expect(SAFE_EVENT_CODE.source).toBe(check[1]);
 });
 
-test('the booth_plays.case_id CHECK is the case-file case_id rule, and tier_path holds up to three tier letters', () => {
+test('the booth_plays.case_id CHECK is the case-file case_id rule', () => {
   const caseId = CaseTreeSchema.shape.case_id._def.checks.find((c) => c.kind === 'regex').regex;
   expect(/check \(case_id ~ '([^']+)'\)/.exec(SQL)?.[1]).toBe(caseId.source);
-  expect(/check \(tier_path ~ '([^']+)'\)/.exec(SQL)?.[1]).toBe('^[BRW]{0,3}$');
+});
+
+test('tier_path holds up to MAX_STEPS tier letters and replied_step 0 to MAX_STEPS, each checked once (#380)', () => {
+  expect(MAX_STEPS).toBe(5);
+  const all = (re) => [...SQL.matchAll(re)].map(([, x]) => x);
+  expect(all(/check \(tier_path ~ '([^']+)'\)/g)).toEqual([`^[BRW]{0,${MAX_STEPS}}$`]);
+  expect(all(/check \(replied_step between (0 and \d+)\)/g)).toEqual([`0 and ${MAX_STEPS}`]);
+  for (const c of ['tier_path', 'replied_step']) {
+    expect(SQL).toContain(`alter table public.booth_plays drop constraint if exists booth_plays_${c}_check;`);
+  }
+});
+
+test('d1..d7 hold one decimal from 0 to 5, a five-step play\'s fitted domains, on a new table and an existing one (#380)', () => {
+  for (const d of ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7']) {
+    expect(SQL).toContain(`${d} numeric(2, 1) check (${d} between 0 and 5),`);
+    expect(SQL).toContain(`alter column ${d} type numeric(2, 1)`);
+  }
+  expect(SQL).not.toMatch(/\bd[1-7] smallint\b/);
 });
 
 test('the migrations seed exactly the BOOTH_SETTINGS keys, switched off, for an event that has a case file', () => {
@@ -53,6 +70,7 @@ test('the migrations seed exactly the BOOTH_SETTINGS keys, switched off, for an 
   expect(Object.keys(seeds).sort()).toEqual(Object.values(BOOTH_SETTINGS).sort());
   expect(seeds[BOOTH_SETTINGS.enabled].value).toBe(0);
   expect(seeds[BOOTH_SETTINGS.replyCache].value).toBe(0);
+  expect(seeds[BOOTH_SETTINGS.boardFiveSteps].value).toBe(0);
   expect(seeds[BOOTH_SETTINGS.ceilingUsd].value).toBe(3);
   const code = seeds[BOOTH_SETTINGS.code].text;
   expect(code).toBe('NFCME-2026');
@@ -93,6 +111,33 @@ test('booth_sort_memos holds a key, a tier letter and a time: no text column, RL
   expect(memo).toContain('revoke all on function public.booth_sort_memo(text, text) from public, anon, authenticated;');
   expect(memo).toContain('grant execute on function public.booth_sort_memo(text, text) to service_role;');
   expect(memo).not.toMatch(/grant [^;]* on (table )?public\.booth_sort_memos/i);
+});
+
+test('booth_audits holds a play, an auditor, seven scores and a time: no text column (#389)', () => {
+  expect([...(schemaFromSql().booth_audits ?? [])].sort()).toEqual(['play_id', 'auditor_id', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7',
+    'created_at'].sort());
+});
+
+test('booth_audits is one audit per auditor per play, RLS on, insert-only for the service role, and purged with its play or its auditor', () => {
+  const audits = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-audits.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  expect(audits).toContain('constraint booth_audits_pkey primary key (play_id, auditor_id)');
+  expect(audits).toMatch(/play_id\s+uuid not null references public\.booth_plays\(id\) on delete cascade,/);
+  expect(audits).toMatch(/auditor_id\s+uuid not null references public\.professionals\(id\) on delete cascade,/);
+  for (const d of ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7']) expect(audits).toMatch(new RegExp(`${d}\\s+smallint not null check \\(${d} between 0 and 5\\),`));
+  expect(audits).toContain('alter table public.booth_audits enable row level security;');
+  expect(audits).toContain('revoke all on table public.booth_audits from public, anon, authenticated, service_role;');
+  expect(audits).not.toMatch(/create policy/i);
+  expect([...audits.matchAll(/grant ([^;]*) on (?:table )?public\.booth_audits to ([^;]*);/gi)].map(([, what, to]) => [what, to]))
+    .toEqual([['select, insert', 'service_role']]);
+});
+
+test('every column the booth audits service reads exists', () => {
+  const { BLIND_COLUMNS, REVEAL_COLUMNS, AUDIT_COLUMNS } = require('../src/services/booth-audits');
+  const schema = schemaFromSql();
+  const missing = (table, list) => list.split(',').map((c) => c.trim()).filter((c) => !schema[table].has(c));
+  expect(missing('booth_plays', BLIND_COLUMNS)).toEqual([]);
+  expect(missing('booth_plays', REVEAL_COLUMNS)).toEqual([]);
+  expect(missing('booth_audits', AUDIT_COLUMNS)).toEqual([]);
 });
 
 test('booth_reply_cache holds no answer text, keeps only B or R and no safety reply, RLS on, read and appended by service_role only', () => {

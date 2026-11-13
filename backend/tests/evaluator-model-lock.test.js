@@ -24,6 +24,8 @@ jest.mock('../src/services/rimpl-client', () => ({
   fetchRimplManifest: jest.fn(),
   probeRimplProvider: async () => ({ fit: true }),
   probeRimplDeep: jest.fn(async () => ({ body: {} })),
+  // rimpl's local-only mode is off here, so the switch reaches the lock checks this suite is about.
+  fetchRimplLocalOnly: async () => 'off',
 }));
 
 const request = require('supertest');

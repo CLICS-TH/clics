@@ -172,7 +172,9 @@ test('no IPv4 literal other than 127.0.0.1 / 0.0.0.0, and no tailnet domain, und
   const allowed = new Set(['127.0.0.1', '0.0.0.0']);
   for (const f of filesUnder(VM1)) {
     const text = readFileSync(f, 'utf8');
-    for (const m of text.matchAll(/(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])/g)) {
+    // An image tag can look like an address (supabase/postgres:17.6.1.136); `image:` lines name no host.
+    const hosts = text.split('\n').filter((l) => !/^\s*image:\s*[\w./-]+:[\w.-]+\s*$/.test(l)).join('\n');
+    for (const m of hosts.matchAll(/(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])/g)) {
       assert.ok(allowed.has(m[0]), `${path.relative(ROOT, f)} contains the IPv4 literal ${m[0]}`);
     }
     assert.ok(!/\.ts\.net\b/i.test(text), `${path.relative(ROOT, f)} names a tailnet domain`);
@@ -186,7 +188,7 @@ test('nginx, compose and deploy.sh agree on the loopback port; backend trusts ex
   assert.ok(upstream, 'nginx upstream is a loopback address');
   assert.equal(upstream[1], '3101');
   assert.match(read('deploy', 'vm1', 'deploy.sh'), /^HOST_PORT=3101$/m);
-  assert.ok(!/proxy_pass\s+http:\/\/(?!clics_backend\b)/.test(nginx), 'nginx proxies only to the backend upstream');
+  assert.ok(!/proxy_pass\s+http:\/\/(?!clics_backend\b|clics_gotrue\/)/.test(nginx), 'nginx proxies only to the backend and, at /auth/v1, GoTrue (vm1-auth.test.mjs)');
   assert.match(nginx, /proxy_read_timeout\s+(\d+)s;/);
   assert.ok(Number(/proxy_read_timeout\s+(\d+)s;/.exec(nginx)[1]) >= 180);
   assert.match(nginx, /client_max_body_size 1m;/);

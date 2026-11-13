@@ -335,7 +335,7 @@ export default function AuditorScorePage() {
                   <h3 className="font-sans text-base font-medium mb-1">{onePeer
                     ? 'เทียบกับผู้ประเมินอีกคน / vs the other auditor'
                     : <>เทียบกับค่าเฉลี่ยผู้ประเมินคนอื่น / vs Other auditors <span className="font-normal text-muted-foreground">· n={data.peer_n}</span></>}</h3>
-                  <Pis7Radar peer={data.peer_avg} human={scores} peerLabel={onePeer ? 'อีกคน / Other' : undefined} />
+                  <Pis7Radar peer={data.peer_avg} human={scores} label={onePeer ? 'อีกคน / Other' : undefined} />
                   <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.peer_avg, scores, onePeer ? { th: 'ผู้ประเมินอีกคน', en: 'the other auditor' } : { th: 'ค่าเฉลี่ยผู้ประเมิน', en: 'the auditor average' })}</p>
                 </div>
               )}

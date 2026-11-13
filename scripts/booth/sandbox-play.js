@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
-const { STEPS, LETTER, bankAt, firstAsk, replyText, chatRequest, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { LETTER, bankAt, stepCount, firstAsk, replyText, chatRequest, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
 const { ScoreSchema } = require(path.join(SRC, 'lib', 'schemas'));
 const { compositeScore, WEIGHTS } = require(path.join(SRC, 'services', 'ple-gate'));
 const { costUsd } = require(path.join(SRC, 'lib', 'pricing'));
@@ -60,8 +60,8 @@ function personaRequest({ persona, kase, bank, ask, d, typing }) {
   const soFar = d.answers.map((a, i) => `Q: ${asked(d.asks[i], i)}\nYou: ${said(a, i)}\nTutor: ${replyText(d.replies[i]) || '(no reply)'}`);
   const question = bank.variants.find((v) => v.id === ask.variant).question;
   return {
-    system: `You are ${PERSONAS[persona]}, playing a 3-question clinical case at a medical forum booth. Answer as that `
-      + 'physician would, with that level of skill. Reply with one JSON object and nothing else.',
+    system: `You are ${PERSONAS[persona]}, playing a ${stepCount(kase)}-question clinical case at a medical forum booth. `
+      + 'Answer as that physician would, with that level of skill. Reply with one JSON object and nothing else.',
     messages: [{
       role: 'user',
       content: [
@@ -141,7 +141,7 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
     usd: Math.round(calls.reduce((acc, c) => acc + c.usd, 0) * 1e6) / 1e6,
   });
   let d = { answers: [], replies: [], asks: [start], tierPath: '' };
-  for (let step = 0; step < STEPS; step += 1) {
+  for (let step = 0; step < stepCount(kase); step += 1) {
     const bank = bankAt(kase, d.tierPath);
     const ask = d.asks[step];
     const answer = await choose({
@@ -169,9 +169,10 @@ function jobsFor(cases, { pathRuns = 3, personaRuns = 3 } = {}) {
   ]);
 }
 
-const worstPlay = (job) => STEPS * worstCall('chat') + worstCall('evaluate') + (job.persona ? STEPS * worstCall('persona') : 0);
+const playCost = (call) => (job) => stepCount(job.kase) * (call('chat') + (job.persona ? call('persona') : 0)) + call('evaluate');
+const worstPlay = playCost(worstCall);
 const typicalCall = (kind) => costUsd(...TYPICAL_TOKENS[kind], 'anthropic');
-const typicalPlay = (job) => STEPS * typicalCall('chat') + typicalCall('evaluate') + (job.persona ? STEPS * typicalCall('persona') : 0);
+const typicalPlay = playCost(typicalCall);
 const sum = (jobs, f) => Math.round(jobs.reduce((acc, j) => acc + f(j), 0) * 100) / 100;
 
 /** What the plays would cost: typically, and at the worst case every call could bill. */

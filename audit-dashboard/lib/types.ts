@@ -393,7 +393,25 @@ export interface BoothSettings {
   scored: number | null;
   spend_usd: number | null;
   cases: BoothCase[];
+  audits: BoothAuditSummary | null;
 }
+
+export type Pis7Scores = Record<'d1' | 'd2' | 'd3' | 'd4' | 'd5' | 'd6' | 'd7', number>;
+export interface BoothStudyPlay {
+  id: string;
+  played_on: string;
+  case: { case_id: string; teaser: { th: string; en: string } };
+}
+export interface BoothQueueItem extends BoothStudyPlay { audited: boolean }
+export interface BoothTurn { role: 'physician' | 'assistant'; content: string }
+export type BoothStudy =
+  | { state: 'blind'; play: BoothStudyPlay; messages: BoothTurn[] }
+  | {
+      state: 'revealed'; play: BoothStudyPlay; messages: BoothTurn[];
+      audit: Pis7Scores & { composite: number; created_at: string };
+      demo: Pis7Scores & { composite: number };
+    };
+export interface BoothAuditSummary { audits: number; auditors: number; plays: number; mean_gap: Pis7Scores | null }
 
 // GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the overview page, the users
 // page and the Local AI capacity card, so a setting cannot be typed three different ways. The $ budget

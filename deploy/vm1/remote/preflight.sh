@@ -29,6 +29,8 @@ for n in RIMPL_URL PORT NODE_ENV; do
 done
 check_reconcile
 check_model_block
+check_local_only
+check_auth_env
 # The loopback port is free, or held by CLICS's own backend.
 if [ -n "$(ss -Hltn "sport = :$PORT")" ]; then
   [ -n "$(docker ps -q --filter "label=com.docker.compose.project=$PROJECT" --filter label=com.docker.compose.service=backend)" ] \

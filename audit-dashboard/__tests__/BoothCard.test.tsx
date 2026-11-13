@@ -10,8 +10,8 @@ const toast = jest.fn();
 jest.mock('@/lib/api', () => ({ apiFetch: (...a: unknown[]) => apiFetch(...a) }));
 jest.mock('@/components/Overlays', () => ({ toast: (...a: unknown[]) => toast(...a) }));
 
-import { BoothCard, toBangkokInput, fromBangkokInput } from '@/components/BoothCard';
-import type { BoothCase, BoothSettings } from '@/lib/types';
+import { BoothCard, toBangkokInput, fromBangkokInput, signedGap } from '@/components/BoothCard';
+import type { BoothAuditSummary, BoothCase, BoothSettings } from '@/lib/types';
 
 const CASE: BoothCase = {
   case_id: 'cap-adult', teaser: { th: 'ชายวัย 52 ปี มีไข้และไอมา 3 วัน', en: 'A 52-year-old man with fever and cough for 3 days' },
@@ -19,7 +19,7 @@ const CASE: BoothCase = {
 };
 const BOOTH: BoothSettings = {
   event_code: 'NFCME-2026', enabled: false, opens_at: '2026-11-03T08:00:00+07:00', closes_at: '2026-11-04T18:00:00+07:00',
-  ceiling_usd: 3, state: 'off', plays: 12, scored: 9, spend_usd: 4.2, cases: [CASE],
+  ceiling_usd: 3, state: 'off', plays: 12, scored: 9, spend_usd: 4.2, cases: [CASE], audits: null,
 };
 
 function wire(get: unknown = BOOTH, patch: (body: Record<string, unknown>) => unknown = (b) => ({ ...BOOTH, ...b })) {
@@ -150,7 +150,7 @@ describe('BoothCard', () => {
     wire({ ...BOOTH, plays: null, scored: null, spend_usd: null });
     render(<BoothCard />);
     await loaded();
-    expect(screen.getAllByText('—')).toHaveLength(3);
+    expect(within(screen.getByRole('group', { name: 'Booth totals' })).getAllByText('—')).toHaveLength(3);
   });
 
   it('lists each admitted case with its teaser, version, admission date, plays and switch', async () => {
@@ -195,5 +195,58 @@ describe('BoothCard', () => {
     render(<BoothCard />);
     expect(await screen.findByText(/Could not read the booth settings/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Booth event switch' })).not.toBeInTheDocument();
+  });
+});
+
+describe('BoothCard case-study audits', () => {
+  const AUDITS: BoothAuditSummary = {
+    audits: 42, auditors: 9, plays: 30,
+    mean_gap: { d1: 0.4, d2: -0.17, d3: 0, d4: 0.62, d5: -0.5, d6: 0.1, d7: -0.05 },
+  };
+  const block = async () => { await loaded(); return within(screen.getByRole('group', { name: 'Booth audits' })); };
+
+  it('prints a gap signed, and zero without a sign', () => {
+    expect(signedGap(0.4)).toBe('+0.4');
+    expect(signedGap(-0.2)).toBe('-0.2');
+    expect(signedGap(0)).toBe('0');
+    expect(signedGap(-0)).toBe('0');
+    expect(signedGap(-0.001)).toBe('0');
+  });
+
+  it('shows the counts over all events and seven signed gaps named by domain', async () => {
+    wire({ ...BOOTH, audits: AUDITS });
+    render(<BoothCard />);
+    const g = await block();
+    expect(g.getByText(/all events/)).toBeInTheDocument();
+    expect(g.getByTestId('booth-audit-counts')).toHaveTextContent('42 ผลประเมิน / audits · 9 ผู้ประเมิน / auditors · 30 การเล่น / plays');
+    const cells = g.getAllByRole('definition').map((dd) => dd.textContent);
+    expect(cells).toEqual(['+0.4', '-0.17', '0', '+0.62', '-0.5', '+0.1', '-0.05']);
+    const terms = g.getAllByRole('term');
+    expect(terms.map((dt) => dt.textContent)).toEqual(['CQI', 'RD', 'CI', 'II', 'CA', 'RS', 'ALPS']);
+    expect(terms[0]).toHaveAttribute('title', 'Clinical Question Intelligence');
+    expect(g.getByText(/\+ means auditors score above the table/)).toBeInTheDocument();
+  });
+
+  it('says "no audits yet" when nobody has audited, and shows no gaps', async () => {
+    wire({ ...BOOTH, audits: { audits: 0, auditors: 0, plays: 0, mean_gap: null } });
+    render(<BoothCard />);
+    const g = await block();
+    expect(g.getByText(/No audits yet/)).toBeInTheDocument();
+    expect(g.queryAllByRole('definition')).toHaveLength(0);
+  });
+
+  it('shows "—" when the audits could not be read, and the rest of the card still loads', async () => {
+    render(<BoothCard />);
+    const g = await block();
+    expect(g.getByText('—')).toBeInTheDocument();
+    expect(g.queryByTestId('booth-audit-counts')).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Booth totals' })).toBeInTheDocument();
+  });
+
+  it('keeps the audits block after a PATCH, from the echo', async () => {
+    wire({ ...BOOTH, audits: AUDITS }, (b) => ({ ...BOOTH, ...b, audits: { ...AUDITS, audits: 43 } }));
+    render(<BoothCard />);
+    fireEvent.click(await loaded());
+    await waitFor(() => expect(screen.getByTestId('booth-audit-counts')).toHaveTextContent('43 ผลประเมิน / audits'));
   });
 });

@@ -39,6 +39,8 @@ const CLOSES = '2026-11-04T18:00:00+07:00';
 let settings;
 let plays;
 let playsError;
+let auditRows;
+let auditsError;
 
 function seed() {
   settings = new Map([
@@ -56,7 +58,12 @@ function seed() {
     { event_code: 'OTHER-2026', case_id: kase.case_id, status: 'scored', spend_usd: 9 },
   ];
   playsError = null;
+  auditRows = [];
+  auditsError = null;
 }
+
+// PostgREST answers at most this many rows a request, whatever range is asked for.
+const MAX_ROWS = 1000;
 
 function resolve(table, kind, ctx) {
   if (table === 'app_settings' && kind === 'list') {
@@ -72,8 +79,15 @@ function resolve(table, kind, ctx) {
     const code = ctx.id('event_code');
     return plays.filter((p) => p.event_code === code);
   }
+  if (table === 'booth_audits' && kind === 'list') {
+    if (auditsError) return { data: null, error: auditsError };
+    const [from, to] = ctx.range ?? [0, Infinity];
+    return auditRows.slice(from, Math.min(to + 1, from + MAX_ROWS));
+  }
   return undefined;
 }
+
+const NO_AUDITS = { audits: 0, auditors: 0, plays: 0, mean_gap: null };
 
 const as = (caller) => {
   m.state.caller = caller;
@@ -96,7 +110,7 @@ describe('GET /admin/booth', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       event_code: 'NFCME-2026', enabled: false, opens_at: null, closes_at: null, ceiling_usd: 3, state: 'off',
-      plays: 4, scored: 2, spend_usd: 1, cases: [listed()],
+      plays: 4, scored: 2, spend_usd: 1, cases: [listed()], audits: NO_AUDITS,
     });
   });
 
@@ -269,6 +283,55 @@ describe('PATCH /admin/booth', () => {
     const res = await as(SUPERADMIN).patch({ opens_at: null });
     expect(res.status).toBe(200);
     expect(res.body.opens_at).toBeNull();
+  });
+});
+
+describe('the booth audits line (#389)', () => {
+  const scores = (d) => Object.fromEntries(d.map((v, i) => [`d${i + 1}`, v]));
+  const audit = (play, auditor, d, demo) => ({ play_id: play, auditor_id: auditor, ...scores(d), booth_plays: scores(demo) });
+
+  it('counts audits, auditors and plays, and gives the signed mean gap to each play\'s demo score', async () => {
+    const p1 = [4, 4, 3, 3, 3, 4, 3];
+    const p2 = [2.5, 3.5, 3, 4, 2, 3, 4.5];
+    auditRows = [
+      audit('play-1', 'aud-1', [3, 4, 2, 3, 4, 3, 2], p1),
+      audit('play-1', 'aud-2', [5, 3, 3, 2, 4, 4, 3], p1),
+      audit('play-2', 'aud-1', [3, 3, 4, 4, 1, 3, 5], p2),
+    ];
+    const res = await as(SUPERADMIN).get();
+    expect(res.status).toBe(200);
+    expect(res.body.audits).toEqual({
+      audits: 3, auditors: 2, plays: 2,
+      mean_gap: { d1: 0.17, d2: -0.5, d3: 0, d4: -0.33, d5: 0.33, d6: -0.33, d7: -0.17 },
+    });
+  });
+
+  it('reads every audit, past the first page PostgREST answers', async () => {
+    const zeros = [0, 0, 0, 0, 0, 0, 0];
+    auditRows = [
+      ...Array.from({ length: MAX_ROWS }, (_, i) => audit('play-1', `aud-${i}`, zeros, zeros)),
+      ...Array.from({ length: 3 }, (_, i) => audit('play-2', `aud-${i}`, [5, 0, 0, 0, 0, 0, 0], zeros)),
+    ];
+    const res = await as(SUPERADMIN).get();
+    expect(res.body.audits).toEqual({
+      audits: 1003, auditors: 1000, plays: 2, mean_gap: { ...scores(zeros), d1: 0.01 },
+    });
+  });
+
+  it('reports audits it cannot read as null, and still serves the rest of the card', async () => {
+    auditsError = { code: '42P01', message: 'relation "public.booth_audits" does not exist' };
+    const res = await as(SUPERADMIN).get();
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ event_code: 'NFCME-2026', plays: 4, scored: 2, cases: [listed()], audits: null });
+  });
+
+  it('echoes the audits line after a PATCH, with every key the GET returns', async () => {
+    auditRows = [audit('play-1', 'aud-1', [3, 3, 3, 3, 3, 3, 3], [4, 4, 4, 4, 4, 4, 4])];
+    const read = await as(SUPERADMIN).get();
+    const saved = await as(SUPERADMIN).patch({ ceiling_usd: 2 });
+    expect(saved.status).toBe(200);
+    expect(Object.keys(saved.body).sort()).toEqual(Object.keys(read.body).sort());
+    expect(saved.body.audits).toEqual({ audits: 1, auditors: 1, plays: 1, mean_gap: scores([-1, -1, -1, -1, -1, -1, -1]) });
   });
 });
 

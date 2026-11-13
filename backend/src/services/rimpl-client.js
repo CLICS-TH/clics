@@ -289,6 +289,18 @@ async function probeRimplProvider({ name, purpose = 'chat', timeoutMs = PROVIDER
   return res.json();
 }
 
+// rimpl's local-only mode ('on' | 'off'), from GET /health/mode: memory only, no provider probe. THROWS on
+// a network error, a timeout, a non-2xx (an older rimpl answers 404) or any other answer, so the caller
+// can fail closed (routes/superadmin.js localOnlyState).
+const MODE_TIMEOUT_MS = parseInt(process.env.RIMPL_MODE_TIMEOUT_MS || '2500', 10);
+async function fetchRimplLocalOnly({ timeoutMs = MODE_TIMEOUT_MS } = {}) {
+  const res = await fetch(`${RIMPL_URL}/health/mode`, { signal: AbortSignal.timeout(timeoutMs) });
+  if (!res.ok) throw new Error(`RIMPL /health/mode returned ${res.status}`);
+  const mode = (await res.json())?.local_only;
+  if (mode !== 'on' && mode !== 'off') throw new Error(`RIMPL /health/mode returned local_only=${JSON.stringify(mode)}`);
+  return mode;
+}
+
 // The model manifest (CCME R2): rimpl's GET /manifest, behind the internal token. Returns the parsed
 // body, { manifest, sha256, claimed_sha256, file, code_match, live, drift }, and THROWS on anything
 // else: network error, timeout, non-2xx (an older rimpl answers 404), or a body that is not a JSON
@@ -308,4 +320,4 @@ async function fetchRimplManifest({ timeoutMs = MANIFEST_TIMEOUT_MS } = {}) {
   return body;
 }
 
-module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, fetchRimplManifest, DEFAULT_PROVIDER };
+module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, fetchRimplLocalOnly, fetchRimplManifest, DEFAULT_PROVIDER };

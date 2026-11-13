@@ -312,6 +312,17 @@ describe('a cold settings cache (store unreachable since boot) refuses every pur
   });
 });
 
+// The backend reads this before it lists or switches providers (backend routes/superadmin.js localOnlyState).
+describe('GET /health/mode', () => {
+  test.each([[undefined, 'off'], ['0', 'off'], ['1', 'on'], ['yes', 'on']])('CLICS_LOCAL_ONLY=%s -> local_only %s, with no provider probed and no token', async (v, want) => {
+    setMode(v);
+    const res = await request(app).get('/health/mode');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ local_only: want });
+    expect(mockAnthropic.ready).not.toHaveBeenCalled();
+  });
+});
+
 describe('GET /health/deep', () => {
   test('reports local_only: off by default, and the mode changes nothing about a cloud-routed box', async () => {
     process.env.ANTHROPIC_API_KEY = 'sk-test';
