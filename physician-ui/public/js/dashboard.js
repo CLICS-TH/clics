@@ -206,8 +206,7 @@ async function renderHeroStats() {
     a.className = 'btn btn-ghost';
     a.style.cssText = 'font-size:12px;padding:6px 12px;';
     a.textContent = 'ตรวจประเมิน / Auditor console →';
-    a.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002')
-      + '/login?token=' + encodeURIComponent(localStorage.getItem('clics_token'));
+    a.href = (window.CLICS_DASHBOARD_URL || '/audit') + '/login';
     slot.replaceChildren(a);
   }
   function renderPending() {

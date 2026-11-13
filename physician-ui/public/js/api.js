@@ -37,9 +37,8 @@ function expireSession(msg = 'เซสชันหมดอายุ — กร
 }
 window.expireSession = expireSession;
 
-// The one Sign out for every Portal page. It leaves through the dashboard's /login?logout=1, which
-// clears that origin's copy of the handed-over token and returns to the Portal's sign-in: this
-// origin cannot reach the dashboard's storage, and a session left there would let Forward reopen it.
+// The one Sign out for every Portal page. The dashboard shares this origin's storage, so the wipe
+// signs it out too.
 // The revoke starts before the wipe (apiFetch reads the token synchronously) and gets a short wait,
 // so a slow or failing backend never keeps the session.
 async function clicsSignOut() {
@@ -49,7 +48,7 @@ async function clicsSignOut() {
   await Promise.race([Promise.resolve(revoke).catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
   // A 401 on the revoke runs expireSession, whose "session expired" notice is wrong after a Sign out.
   try { sessionStorage.removeItem('clics_auth_msg'); } catch {}
-  location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?logout=1');
+  location.replace('/login');
 }
 window.clicsSignOut = clicsSignOut;
 
