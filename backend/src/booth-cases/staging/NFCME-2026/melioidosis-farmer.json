@@ -652,12 +652,12 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "ครบยาฉีด 14 วันแล้วต่อยากิน",
-              "en": "Finish 14 days IV, then go oral"
+              "th": "ให้ยาฉีดต่อ ปรึกษาอายุรแพทย์",
+              "en": "Keep IV drug, ask an internist"
             },
             "line": {
-              "th": "ไข้ลงและกินได้ดี จึงให้ยาฉีดตามแผนเดิม",
-              "en": "He is afebrile and eating, so the planned IV course stands."
+              "th": "อายุรแพทย์ช่วยกำหนดระยะยาฉีดสำหรับฝีในม้าม",
+              "en": "An internist sets how long the IV phase runs for the abscesses."
             }
           },
           {

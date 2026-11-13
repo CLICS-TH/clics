@@ -568,12 +568,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "เพิ่มเดกซ์โทรส 10% คงอินซูลินเดิม",
-              "en": "Add 10% dextrose, same insulin rate"
+              "th": "ลดอินซูลินเหลือ 0.02–0.05",
+              "en": "Cut insulin to 0.02–0.05 units/kg/h"
             },
             "line": {
-              "th": "น้ำตาลต่ำกว่า 250 ให้เดกซ์โทรส อินซูลินล้างคีโตนต่อ",
-              "en": "Below 250, dextrose lets the insulin keep clearing ketones."
+              "th": "น้ำตาลลงถึง 250 จึงให้เดกซ์โทรส 5% ร่วมด้วย",
+              "en": "At 250 mg/dL, 5% dextrose runs alongside the lower rate."
             }
           },
           {
@@ -592,12 +592,12 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "เดกซ์โทรส ตรวจเลือดซ้ำ 4 ชม.",
-              "en": "Add dextrose, recheck labs in 4 h"
+              "th": "เพิ่มเดกซ์โทรส 10% คงอินซูลินเดิม",
+              "en": "Add 10% dextrose, same insulin rate"
             },
             "line": {
-              "th": "แนวโน้มดีอยู่ จึงเจาะเลือดห่างขึ้นได้",
-              "en": "The trend is good, so blood draws can be spaced out."
+              "th": "น้ำตาลต่ำกว่า 250 ให้เดกซ์โทรส อินซูลินล้างคีโตนต่อ",
+              "en": "Below 250, dextrose lets the insulin keep clearing ketones."
             }
           },
           {

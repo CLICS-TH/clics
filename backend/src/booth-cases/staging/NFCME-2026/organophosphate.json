@@ -582,17 +582,17 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "ใส่ท่อช่วยหายใจ และอะโทรปีน IV",
-              "en": "Intubate, ventilate, IV atropine"
+              "th": "ใส่ท่อหายใจ ให้อะโทรปีน ส่ง ICU",
+              "en": "Intubate, atropine, refer to ICU"
             },
             "line": {
-              "th": "ช่วยหายใจเมื่อเสมหะท่วมปอดและเริ่มซึมลง",
-              "en": "Secures the airway as secretions flood his lungs and he tires."
+              "th": "คุมทางเดินหายใจที่เสมหะท่วม แล้วส่งดูแลใน ICU",
+              "en": "Secures the flooding airway, then moves him to ICU care."
             }
           },
           {
             "id": "b",
-            "tier": "best",
+            "tier": "reasonable",
             "label": {
               "th": "อะโทรปีน IV และพราลิดอกซีม",
               "en": "IV atropine and pralidoxime"
@@ -616,7 +616,7 @@
           },
           {
             "id": "d",
-            "tier": "reasonable",
+            "tier": "weaker",
             "label": {
               "th": "อะโทรปีน IV ทีมใส่ถุงมือล้างตัว",
               "en": "IV atropine, gloved team washes him"
@@ -636,18 +636,6 @@
             "line": {
               "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
               "en": "Opens the narrowed airways behind the wheeze."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "อะโทรปีน IV และสารน้ำ IV",
-              "en": "IV atropine and IV fluids"
-            },
-            "line": {
-              "th": "ชดเชยน้ำที่เสียไปจากอาเจียนและถ่ายเหลว",
-              "en": "Replaces the fluid lost to vomiting and diarrhoea."
             }
           }
         ],
@@ -839,12 +827,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "ใส่ท่อช่วยหายใจ และอะโทรปีน IV",
-              "en": "Intubate, ventilate, IV atropine"
+              "th": "ใส่ท่อหายใจ ให้อะโทรปีน ส่ง ICU",
+              "en": "Intubate, atropine, refer to ICU"
             },
             "line": {
-              "th": "ช่วยหายใจเมื่อเสมหะท่วมปอดและเริ่มซึมลง",
-              "en": "Secures the airway as secretions flood his lungs and he tires."
+              "th": "คุมทางเดินหายใจที่เสมหะท่วม แล้วส่งดูแลใน ICU",
+              "en": "Secures the flooding airway, then moves him to ICU care."
             }
           },
           {
@@ -926,8 +914,8 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "นอนเตียงเฝ้าระวังถึงวันที่ 4",
-              "en": "Stay in a monitored bed to day 4"
+              "th": "เฝ้าถึงวันที่ 4 ในที่ที่มี ICU",
+              "en": "Watch to day 4 where ICU is at hand"
             },
             "line": {
               "th": "ยังอาจอ่อนแรงที่คอและกล้ามเนื้อหายใจได้ถึงวันที่ 4",
@@ -1035,12 +1023,12 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "ดูแลต่อที่นี่ อ่อนแรงเมื่อไรส่งต่อ",
-              "en": "Keep here on infusion; refer if weak"
+              "th": "ส่งต่อหออายุรกรรม รพ.จังหวัด",
+              "en": "Refer to a provincial medical ward"
             },
             "line": {
-              "th": "อยู่ใกล้ครอบครัว และส่งต่อทันทีเมื่อเริ่มอ่อนแรง",
-              "en": "Keeps him near family and moves him at the first weakness."
+              "th": "หอผู้ป่วยโรงพยาบาลใหญ่มีแพทย์ประจำตลอดวัน",
+              "en": "A larger hospital ward has doctors on site day and night."
             }
           },
           {
