@@ -15,13 +15,15 @@
  *   --concurrency n   plays at once (default 3)
  *   --out <dir>       where the JSON report and summary go (default scripts/booth/sandbox-runs)
  *   --pool <json>     judge against an earlier report's pool medians (each pooled from 3 or more complete cases),
- *                     to rerun a few cases; the report must not have stopped at or spent over its cap
+ *                     to rerun a few cases; the report must not have stopped at or spent over its cap, and must
+ *                     have played the same step count
  *   --go              spend: without it the script stops after the estimate
  *
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
  * It writes no database row and never calls the booth API: its only calls are rimpl's /chat and /evaluate (with
  * shadow off) and the persona model, and it refuses to run with a database client loaded.
  * An unscored play fails its own case only; a run stopped at the cap or spent over it passes no case.
+ * A run plays one step count: three-step and five-step composites sit on different scales, so one pool would fail both.
  * Exit 0 when every case passes, 1 when one fails, 2 on a bad argument or setup.
  */
 import { createRequire } from 'node:module';
@@ -86,6 +88,10 @@ function loadCases(dir, only) {
 const opts = parseArgs(process.argv.slice(2));
 // Scripted-only runs (--persona-runs 0) are judged on the scripted groups alone.
 const groups = opts.personaRuns > 0 ? GROUPS : Object.keys(PATHS);
+const cases = loadCases(opts.cases, opts.only);
+const stepCounts = [...new Set(cases.map(stepCount))].sort();
+if (stepCounts.length > 1) fail(`the cases have ${stepCounts.join(' and ')} steps: a run judges one step count, so pick its cases with --case`);
+const steps = stepCounts[0];
 let pool;
 if (opts.pool) {
   let earlier;
@@ -99,10 +105,12 @@ if (opts.pool) {
     fail(`--pool ${opts.pool} is from an incomplete run (${earlier.scored} of ${earlier.planned} plays scored`
       + `${earlier.stopped ? ', stopped at the cap' : ''}${earlier.over_cap ? ', over the cap' : ''}); use a complete run's report`);
   }
+  // A report from before #380 played three-step cases only.
+  const poolSteps = earlier.steps ?? 3;
+  if (poolSteps !== steps) fail(`--pool ${opts.pool} played ${poolSteps}-step cases and these have ${steps}: pool medians from the same step count`);
   const thin = groups.filter((g) => typeof pool.medians?.[g] !== 'number' || !(pool.pool_n?.[g] >= MIN_POOL));
   if (thin.length) fail(`--pool ${opts.pool} has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}`);
 }
-const cases = loadCases(opts.cases, opts.only);
 const jobs = jobsFor(cases, { pathRuns: opts.pathRuns, personaRuns: opts.personaRuns });
 const est = estimate(jobs);
 console.log(`${cases.length} case(s): ${cases.map((k) => `${k.case_id}@${k.version}`).join(', ')}`);
@@ -126,7 +134,7 @@ const { results, spent_usd, stopped, over_cap } = await runPlays(jobs, {
   capUsd: opts.cap,
   concurrency: opts.concurrency,
   play: (job) => playOnce({ kase: job.kase, ai,
-    choose: job.persona ? personaChooser(job.group) : tapping(PATHS_BY_STEPS[stepCount(job.kase)][job.group]) }),
+    choose: job.persona ? personaChooser(job.group) : tapping(PATHS_BY_STEPS[steps][job.group]) }),
   onDone: (job, r) => {
     done += 1;
     console.log(`[${done}/${jobs.length}] ${job.kase.case_id} ${job.group}#${job.run} ${r.tier_path ?? ''} `
@@ -145,6 +153,7 @@ const report = {
   persona_model: ANTHROPIC_MODEL,
   path_runs: opts.pathRuns,
   persona_runs: opts.personaRuns,
+  steps,
   cap_usd: opts.cap,
   spent_usd,
   stopped,
