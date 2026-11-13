@@ -21,7 +21,9 @@ function replyFor(system) {
 const bytes = (s) => Buffer.byteLength(String(s ?? ''), 'utf8');
 
 function startFakeOpenAI({ model = 'fake-model', maxModelLen = 32768 } = {}) {
-  const state = { mode: 'ok', delayMs: 0, requests: 0, maxModelLen };
+  // showContext: the context_length an Ollama-style /api/show reports (null: no such route).
+  // promptTokens: a fixed usage.prompt_tokens instead of bytes / 4.
+  const state = { mode: 'ok', delayMs: 0, requests: 0, maxModelLen, showContext: null, promptTokens: null };
   const server = http.createServer((req, res) => {
     const chunks = [];
     req.on('data', (c) => chunks.push(c));
@@ -34,6 +36,9 @@ function startFakeOpenAI({ model = 'fake-model', maxModelLen = 32768 } = {}) {
       if (req.method === 'GET' && req.url === '/v1/models') {
         return send(200, { object: 'list', data: [{ id: model, object: 'model', ...(state.maxModelLen ? { max_model_len: state.maxModelLen } : {}) }] });
       }
+      if (req.method === 'POST' && req.url === '/api/show' && state.showContext) {
+        return send(200, { model_info: { 'llama.context_length': state.showContext } });
+      }
       if (req.method !== 'POST' || req.url !== '/v1/chat/completions') return send(404, { error: 'not found' });
       state.requests += 1;
       if (state.delayMs) await new Promise((r) => setTimeout(r, state.delayMs));
@@ -43,7 +48,7 @@ function startFakeOpenAI({ model = 'fake-model', maxModelLen = 32768 } = {}) {
       const messages = Array.isArray(body.messages) ? body.messages : [];
       const system = messages.find((m) => m.role === 'system')?.content || '';
       const content = state.mode === 'empty' ? '' : replyFor(String(system));
-      const promptTokens = Math.ceil(messages.reduce((n, m) => n + bytes(m.content), 0) / 4);
+      const promptTokens = state.promptTokens ?? Math.ceil(messages.reduce((n, m) => n + bytes(m.content), 0) / 4);
       send(200, {
         id: 'fake', object: 'chat.completion', model,
         choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }],

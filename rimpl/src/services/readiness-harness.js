@@ -136,14 +136,14 @@ function instanceApi(provider) {
         return { ok: false, reason: errorReason(e), ms: Date.now() - t0 };
       }
     },
-    // The server's own window for the pinned model: vLLM's /models max_model_len, else Ollama's /api/show.
+    // The window the server enforces for the pinned model: vLLM's /models max_model_len and nothing else.
+    // Not servedContext(): Ollama's /api/show context_length is the trained maximum, not the served num_ctx.
     async window() {
       try {
         const m = await provider.servedModel();
         if (m.maxModelLen) return { tokens: m.maxModelLen, source: 'models_max_model_len' };
-      } catch { /* fall through to the native API */ }
-      const n = await provider.servedContext();
-      return n ? { tokens: n, source: 'ollama_show' } : { tokens: null, source: null };
+      } catch { /* unreadable or unlisted: unreported */ }
+      return { tokens: null, source: null };
     },
     // The server's count of a prompt: one generated token, usage.prompt_tokens read back.
     async promptTokens({ systemPrompt, messages }) {

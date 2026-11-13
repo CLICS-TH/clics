@@ -318,7 +318,7 @@ whose text stays in the process.
 |---|---|
 | `reachability` | each model answers `/models` naming its pinned id, and one chat with a non-empty reply |
 | `inference-shape` | chat (fast, and deep with thinking where the tutor supports it), criteria, discuss and evaluate each return content at their configured token ceiling. Control: a stand-in that answers empty must be reported as `empty_reply` |
-| `context` | for each model, the longest SANDBOX transcript plus its prompt, counted by the server (`usage.prompt_tokens`), is at most 80% of the window the server reports (`max_model_len`). No window, or no sandbox transcript, is a fail |
+| `context` | for each model, the longest SANDBOX transcript plus its prompt, counted by the server (`usage.prompt_tokens`), is at most 80% of the window vLLM reports as `max_model_len` on `/models`. Nothing else counts as the window: Ollama's `/api/show` context length is the model's trained maximum, not the `num_ctx` it serves, so an Ollama endpoint cannot be judged here and fails as `window_not_reported`. No sandbox transcript is a fail too |
 | `failure-down` | with both endpoints refusing, and then answering 500, chat fails closed (`ai_unavailable`, no text) and evaluate answers a status the backend requeues, not one it sends to manual QA |
 | `local-only` | a child RIMPL with the mode on refuses a chat routed to anthropic, and refuses while its settings store cannot be read (a cold cache), with nothing reaching the stand-in |
 | `latency` | chat p95 < 15 s over 30 replies while a stand-in drain runs `/evaluate` back to back (`EVAL_DRAIN_CONCURRENCY` wide), and evaluate p95 <= 240 s over at least 10. p95 is nearest-rank, printed with n; fewer samples is a fail |

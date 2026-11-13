@@ -93,6 +93,24 @@ test('reachability fails, by enum, when the evaluator does not serve its pinned 
   }
 });
 
+test('an Ollama-style trained context is not a served window: the context row fails as unreported', async () => {
+  // A prompt at 92% of a 32768 window, on a server whose /models carries no max_model_len and whose
+  // /api/show reports the model's trained 131072. Judged against 131072 it would pass at 23%.
+  Object.assign(evaluator.state, { maxModelLen: null, showContext: 131072, promptTokens: 30000 });
+  const harness = await openHarness({ opts: R.resolveOptions({}) });
+  try {
+    const report = await R.runReadiness(harness.ctx, { only: ['context'] });
+    const row = report.rows[0];
+    expect(row.status).toBe('fail');
+    expect(row.evidence.local).toMatchObject({ prompt_tokens: 30000, window_tokens: null, window_source: null, reason: 'window_not_reported' });
+    expect(row.evidence['local-tutor'].reason).toBe('ok');
+    expect(report.verdict).toBe('NO-GO');
+  } finally {
+    await harness.close();
+    Object.assign(evaluator.state, { maxModelLen: 32768, showContext: null, promptTokens: null });
+  }
+});
+
 test('the sandbox loader reads the longest transcript of the SANDBOX council only, and writes nothing', async () => {
   const { createClient } = require('@supabase/supabase-js');
   const sb = createClient(db.url, 'harness-service-role-key');

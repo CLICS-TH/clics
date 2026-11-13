@@ -405,6 +405,9 @@ async function checkContext(ctx) {
     const window = await inst.window();
     const counted = await inst.promptTokens(PROMPT_FOR[name](sandbox.transcript));
     const tokens = counted.tokens;
+    // Only vLLM's /models max_model_len is the window the server enforces. Ollama's /api/show
+    // context_length is the model's trained maximum, not the num_ctx it serves, so an Ollama endpoint
+    // cannot be judged here and fails as unreported.
     const reason = window.tokens == null ? 'window_not_reported'
       : !(tokens > 0) ? counted.reason || 'usage_not_reported'
         : tokens > CONTEXT_SHARE * window.tokens ? 'over_share' : 'ok';
