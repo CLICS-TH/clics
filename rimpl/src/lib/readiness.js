@@ -507,10 +507,15 @@ async function runReadiness(ctx, { only = null, onProgress = () => {} } = {}) {
   }
   const measured = rows.filter((r) => r.status !== 'owner-gated');
   const failed = measured.filter((r) => r.status === 'fail').map((r) => r.id);
+  // A GO is the cutover's go-ahead, so only a run of every row can give one. A selection that passes
+  // is PARTIAL and names what it left out; a failure anywhere is still NO-GO.
+  const rowsNotRun = ROW_IDS.filter((id) => !pick(id));
+  const verdict = failed.length ? 'NO-GO' : rowsNotRun.length ? 'PARTIAL' : measured.length ? 'GO' : 'NO-GO';
   return {
     schema: 'clics-readiness/1',
-    verdict: measured.length && !failed.length ? 'GO' : 'NO-GO',
+    verdict,
     failed,
+    rows_not_run: rowsNotRun,
     anthropic_requests: ctx.anthropicRequests(),
     duration_s: Math.round((ctx.now() - startedAt) / 1000),
     options: ctx.opts,
@@ -518,7 +523,8 @@ async function runReadiness(ctx, { only = null, onProgress = () => {} } = {}) {
   };
 }
 
-const exitCodeFor = (report) => (report.verdict === 'GO' ? 0 : 1);
+const EXIT_FOR_VERDICT = { GO: 0, 'NO-GO': 1, PARTIAL: 4 };
+const exitCodeFor = (report) => EXIT_FOR_VERDICT[report.verdict] ?? 1;
 
 function flatten(obj, prefix = '') {
   return Object.entries(obj).flatMap(([k, v]) => (v && typeof v === 'object' && !Array.isArray(v)
@@ -530,6 +536,7 @@ function formatText(report) {
   const lines = [
     'CLICS readiness, vm1 cutover (#431)',
     `verdict: ${report.verdict}${report.failed.length ? ` (failed: ${report.failed.join(', ')})` : ''}`,
+    ...(report.rows_not_run.length ? [`rows_not_run: ${report.rows_not_run.join(', ')}`] : []),
     `anthropic_requests: ${report.anthropic_requests}   duration_s: ${report.duration_s}`,
     `options: ${flatten(report.options).join(' ')}`,
     '',

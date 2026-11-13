@@ -66,6 +66,22 @@ test('a full run against healthy models exits 0 with every measured row passing 
   expect(db.state.writes).toBe(writesBefore);
 });
 
+test('a passing --only selection is PARTIAL, never GO: exit 4, rows not run listed in text and JSON', async () => {
+  const notRun = 'inference-shape, context, failure-down, local-only, latency, concurrency, decisive-icc, clinician-thai-read';
+  const text = await runCli(['--only', 'reachability']);
+  expect(text.code).toBe(4);
+  expect(text.stdout).toContain('verdict: PARTIAL');
+  expect(text.stdout).toContain(`rows_not_run: ${notRun}`);
+  expect(text.stdout).not.toContain('verdict: GO');
+
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'readiness-')), 'partial.json');
+  const json = await runCli(['--only', 'reachability', '--json', '--out', out]);
+  expect(json.code).toBe(4);
+  for (const report of [JSON.parse(json.stdout), JSON.parse(fs.readFileSync(out, 'utf8'))]) {
+    expect(report).toMatchObject({ verdict: 'PARTIAL', failed: [], rows_not_run: notRun.split(', ') });
+  }
+});
+
 test('with the default tutor queue, ten sessions lose turns to queue_full and the run exits 1', async () => {
   const { code, stdout } = await runCli(['--only', 'concurrency', '--json'], { LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE: '' });
   expect(code).toBe(1);

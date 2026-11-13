@@ -50,7 +50,9 @@ test('every in-process row passes against healthy loopback models, and the run l
 
   const failed = report.rows.filter((r) => r.status === 'fail');
   expect(failed.map((r) => [r.id, r.evidence])).toEqual([]);
-  expect(report.verdict).toBe('GO');
+  // local-only and clinician-thai-read were not run, so every pass here is still not a GO.
+  expect(report.verdict).toBe('PARTIAL');
+  expect(report.rows_not_run).toEqual(['local-only', 'clinician-thai-read']);
   expect(report.anthropic_requests).toBe(0);
   expect(report.rows.find((r) => r.id === 'reachability').evidence.local).toMatchObject({ models_status: 'up', model: 'fake-evaluator', chat_ok: true });
   expect(report.rows.find((r) => r.id === 'context').evidence.local.window_source).toBe('models_max_model_len');

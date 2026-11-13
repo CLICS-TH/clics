@@ -8,7 +8,8 @@
 const fs = require('fs');
 const lib = require('../src/lib/readiness');
 
-const EXIT = { go: 0, noGo: 1, usage: 2, withheld: 3 };
+// 4: an --only selection that passed. Only a full run can be a GO.
+const EXIT = { go: 0, noGo: 1, usage: 2, withheld: 3, partial: 4 };
 
 const USAGE = `usage: npm run readiness -- [options]
   --only <id,...>        rows to run (${lib.ROW_IDS.join(', ')})
@@ -16,7 +17,8 @@ const USAGE = `usage: npm run readiness -- [options]
   --out <file>           also write the JSON report to <file>
   --verbose              send the app's own log lines to stderr
 ${Object.entries(lib.OPTIONS).map(([name, o]) => `  ${o.flag} <n>`.padEnd(25) + `default ${lib.ticketValue(name)}`).join('\n')}
-exit: 0 every measured row passed, 1 a row failed, 2 bad usage, 3 report withheld`;
+exit: 0 a full run, every measured row passed; 1 a row failed; 2 bad usage; 3 report withheld;
+      4 an --only selection passed (PARTIAL, never a GO)`;
 
 function parseArgs(argv) {
   const out = { overrides: {}, only: null, json: false, out: null, verbose: false, help: false };
@@ -87,7 +89,7 @@ async function main(argv) {
   }
   if (args.out) fs.writeFileSync(args.out, json);
   process.stdout.write(text);
-  return lib.exitCodeFor(report) === 0 ? EXIT.go : EXIT.noGo;
+  return lib.exitCodeFor(report);
 }
 
 if (require.main === module) {

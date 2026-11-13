@@ -169,7 +169,7 @@ describe('context', () => {
     let row = await run('context', ctx);
     expect(row.evidence.local.reason).toBe('window_not_reported');
     expect(row.evidence['local-tutor'].reason).toBe('over_share');
-    ctx.instances.local.window = async () => ({ tokens: 32768, source: 'ollama_show' });
+    ctx.instances.local.window = async () => ({ tokens: 32768, source: 'models_max_model_len' });
     ctx.instances.local.promptTokens = async () => ({ tokens: null, reason: 'refused_too_large' });
     row = await run('context', ctx);
     expect(row.evidence.local.reason).toBe('refused_too_large');
@@ -199,20 +199,60 @@ test('local-only fails when anything reaches the Anthropic stand-in', async () =
   expect(row.evidence.routed_to_anthropic.anthropic_requests).toBe(1);
 });
 
+// Every row passes: the stand-in endpoints answer as a healthy RIMPL does when they are empty or down.
+function passingCtx() {
+  let endpoint = null;
+  return fakeCtx({
+    post: async (path) => {
+      if (endpoint === 'empty') return { status: 503, body: { code: 'empty_reply' }, ms: 1 };
+      if (endpoint) return path === '/chat' ? { status: 503, body: { code: 'ai_unavailable' }, ms: 1 } : { status: 500, body: {}, ms: 1 };
+      return { status: 200, body: localReply(path), ms: 1 };
+    },
+    withEndpoint: async (kind, fn) => { endpoint = kind; try { return await fn(); } finally { endpoint = null; } },
+    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+    now: () => Date.now(),
+  });
+}
+
 describe('runReadiness and the report', () => {
-  test('owner-gated rows print and do not change the verdict', async () => {
-    const report = await R.runReadiness(fakeCtx(), { only: ['reachability', 'decisive-icc', 'clinician-thai-read'] });
-    expect(report.verdict).toBe('GO');
+  test('a full run with every measured row passing is GO, exit 0, and owner-gated rows print without deciding it', async () => {
+    const report = await R.runReadiness(passingCtx());
+    expect(report.rows.filter((r) => r.status === 'fail')).toEqual([]);
+    expect(report).toMatchObject({ verdict: 'GO', failed: [], rows_not_run: [] });
     expect(R.exitCodeFor(report)).toBe(0);
     const text = R.formatText(report);
+    expect(text).toContain('verdict: GO');
+    expect(text).not.toContain('rows_not_run');
     expect(text).toContain('[OWNER-GATED] decisive-icc');
     expect(text).toContain('[OWNER-GATED] clinician-thai-read');
     expect(text.match(/owner-gated, not measured here/g)).toHaveLength(2);
   });
 
+  test('a passing --only selection is PARTIAL, exit 4, and names the rows it did not run', async () => {
+    const report = await R.runReadiness(passingCtx(), { only: ['reachability', 'decisive-icc'] });
+    expect(report.verdict).toBe('PARTIAL');
+    expect(R.exitCodeFor(report)).toBe(4);
+    const notRun = ['inference-shape', 'context', 'failure-down', 'local-only', 'latency', 'concurrency', 'clinician-thai-read'];
+    expect(report.rows_not_run).toEqual(notRun);
+    expect(JSON.parse(JSON.stringify(report)).rows_not_run).toEqual(notRun);
+    const text = R.formatText(report);
+    expect(text).toContain('verdict: PARTIAL');
+    expect(text).toContain(`rows_not_run: ${notRun.join(', ')}`);
+    expect(text).not.toContain('verdict: GO');
+  });
+
+  test('a failure in a selection is NO-GO, exit 1, not PARTIAL', async () => {
+    const ctx = passingCtx();
+    ctx.instances.local.chatOnce = async () => ({ ok: false, reason: 'timeout', ms: 1 });
+    const report = await R.runReadiness(ctx, { only: ['reachability'] });
+    expect(report.verdict).toBe('NO-GO');
+    expect(R.exitCodeFor(report)).toBe(1);
+  });
+
   test('only owner-gated rows is not a GO: nothing was measured', async () => {
     const report = await R.runReadiness(fakeCtx(), { only: ['decisive-icc'] });
-    expect(report.verdict).toBe('NO-GO');
+    expect(report.verdict).toBe('PARTIAL');
+    expect(R.exitCodeFor(report)).not.toBe(0);
   });
 
   test('a crashing check is a failed row, not a crashed run', async () => {

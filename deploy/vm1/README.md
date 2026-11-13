@@ -330,10 +330,12 @@ and limit flags (`--chat-samples`, `--eval-samples`, `--chat-p95-ms`, `--eval-p9
 `--deadline-ms`) take effect, are printed, and fail their row when weaker than the ticket. `--verbose`
 sends the app's own log lines to stderr; they can name hosts, so never paste them.
 
-Exit codes: **0** every measured row passed (owner-gated rows do not count); **1** a row failed;
-**2** bad usage; **3** the report was withheld, printed as the one line
-`report withheld: contained <secret|host|address|fixture|transcript>`. A report that is printed has
-already passed that check and is safe to paste into the issue.
+Exit codes: **0** `verdict: GO`, a full run with every measured row passing (owner-gated rows do not
+count); **1** `NO-GO`, a row failed; **2** bad usage; **3** the report was withheld, printed as the one
+line `report withheld: contained <secret|host|address|fixture|transcript>`; **4** `verdict: PARTIAL`,
+an `--only` selection whose rows all passed. A PARTIAL report lists `rows_not_run` (in the text and
+the JSON) and is never a go-ahead: only a run of every row can be. A report that is printed has
+already passed the withholding check and is safe to paste into the issue.
 
 How long: on the DGX numbers (chat about 1 min a turn, decode-bound; evaluate p50 about 68 s) a full run
 takes about 1 to 1.5 hours. Latency is about 30 min (30 sequential chats), concurrency 30 to 45 min (80
@@ -341,7 +343,9 @@ turns through `LOCAL_TUTOR_MAX_CONCURRENCY`, default 2), the rest a few minutes.
 `latency` and `concurrency` fail, which is the finding the rows exist to report. Ten concurrent sessions
 also need `LOCAL_TUTOR_MAX_QUEUE_INTERACTIVE` above its default 4: with 2 running and 4 queued, the rest
 are refused `queue_full` and counted as lost. Rehearse the rest quickly with
-`--only reachability,inference-shape,context,failure-down,local-only` (a few minutes).
+`--only reachability,inference-shape,context,failure-down,local-only` (a few minutes). That rehearsal
+ends `verdict: PARTIAL` with exit 4 when its rows pass, listing latency, concurrency and the
+owner-gated rows under `rows_not_run`; the cutover still needs one full run that exits 0.
 
 ## Self-hosted sign-in (built, not switched on)
 
