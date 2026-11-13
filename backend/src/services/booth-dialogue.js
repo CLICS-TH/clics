@@ -350,7 +350,9 @@ const StoredLookSchema = z.enum(Object.keys(LOOK_LANGUAGE)).nullable();
  * keep no look, so after a mid-play switch the replies before it are in the other language. Typed answers read as
  * their de-identified copy, unfenced. rimpl's write-time filter misses some shapes (a dotted phone, #449), so every
  * free text of the play (typed answers, replies, bridges) is screened again with the open dataset's span rules
- * (lib/pii-spans): a play with a finding is withheld as 'flagged', never shown or masked here.
+ * (lib/pii-spans): a play with a finding is withheld as 'flagged', never shown or masked here. So is any Thai digit:
+ * rimpl's own rules (a date, an age, a ward) read \d, which a Thai digit never matched at write time. Each text is
+ * screened as the auditor sees it, bold markers removed, so a marker cannot split a span.
  * @param {object} kase
  * @param {unknown} steps
  * @param {unknown} look  booth_plays.language_look
@@ -363,7 +365,8 @@ function studyTranscript(kase, steps, look) {
   const records = parsed.data;
   if (records.some((s) => s.typed === null)) return { why: 'no_deidentified_copy' };
   const freeText = records.flatMap((s) => [s.typed ?? '', s.bridge, ...REPLY_FIELDS.map((k) => s.reply[k])]);
-  if (freeText.some((t) => spanMatches(ascii(t)).length > 0)) return { why: 'flagged' };
+  const flagged = (text) => { const t = text.replaceAll('**', ''); return ascii(t) !== t || spanMatches(t).length > 0; };
+  if (freeText.some(flagged)) return { why: 'flagged' };
   const tierPath = records.map((s) => LETTER[s.tier]).join('');
   const asks = records.map(({ variant, bridge, options }) => ({ variant, bridge, options }));
   const fits = records.every((s, i) => {

@@ -329,6 +329,7 @@ describe('free text the write-time filter missed (gate #370 round 2)', () => {
   ])('%s withholds the play', async (_name, steps) => {
     const play = seedPlay({ steps });
     expect((await as(AUDITOR).queue()).body).toEqual([]);
+    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=0 dropped no_snapshot=0 no_deidentified_copy=0 malformed=0 flagged=1');
     expect((await as(AUDITOR).study(play.id)).status).toBe(404);
   });
 });

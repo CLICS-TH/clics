@@ -160,6 +160,8 @@ test.each([
   ['a dotted phone typed', at(1, (s) => ({ ...s, typed: 'โทร.081.234.5678 ครับ' }))],
   ['a reply field naming someone', at(0, (s) => ({ ...s, reply: { ...s.reply, weigh: 'ถามนางสาวมาลี ใจดี' } }))],
   ['a bridge with an email', at(2, (s) => ({ ...s, bridge: 'ส่งผลไปที่ a.b@example.org' }))],
+  ['an unlabelled Thai-digit date, which rimpl\'s \\d rules never saw', at(1, (s) => ({ ...s, typed: 'นัดวันที่ ๑๒/๐๓/๒๕๖๙' }))],
+  ['a phone split by bold markers in a reply', at(0, (s) => ({ ...s, reply: { ...s.reply, safety: 'โทร 081.**234**.5678' } }))],
 ])('%s is withheld as flagged', (_name, steps) => {
   expect(studyTranscript(KASE, steps, null)).toEqual({ why: 'flagged' });
 });
