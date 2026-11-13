@@ -13,7 +13,7 @@ const PER_PAGE = 50;
 const PAGE = 1000;
 const PlayId = z.string().uuid();
 const PageNumber = z.string().regex(/^[1-9][0-9]{0,5}$/).default('1').transform(Number);
-const DROP_REASONS = ['no_snapshot', 'no_deidentified_copy', 'malformed'];
+const DROP_REASONS = ['no_snapshot', 'no_deidentified_copy', 'malformed', 'flagged'];
 const AuditSchema = z.object(Object.fromEntries(DOMAINS.map((k) => [k, z.number().int().min(0).max(5)]))).strict();
 
 /**

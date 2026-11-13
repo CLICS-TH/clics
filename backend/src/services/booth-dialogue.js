@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const { z } = require('zod');
 const { TIERS } = require('../booth-cases/tree-schema');
+const { ascii, spanMatches } = require('../lib/pii-spans');
 
 const STEPS = 3;
 const BRIDGE_MAX_CHARS = 120;
@@ -347,11 +348,13 @@ const StoredLookSchema = z.enum(Object.keys(LOOK_LANGUAGE)).nullable();
  * played on (a case file or a study snapshot), whatever that version's number of steps. The case text is in the
  * primary language of the look the play was scored in, the language its replies came in (#377). The step records
  * keep no look, so after a mid-play switch the replies before it are in the other language. Typed answers read as
- * their de-identified copy, unfenced.
+ * their de-identified copy, unfenced. rimpl's write-time filter misses some shapes (a dotted phone, #449), so every
+ * free text of the play (typed answers, replies, bridges) is screened again with the open dataset's span rules
+ * (lib/pii-spans): a play with a finding is withheld as 'flagged', never shown or masked here.
  * @param {object} kase
  * @param {unknown} steps
  * @param {unknown} look  booth_plays.language_look
- * @returns {{ messages: { role: 'physician' | 'assistant', content: string }[] } | { why: 'malformed' | 'no_deidentified_copy' }}
+ * @returns {{ messages: { role: 'physician' | 'assistant', content: string }[] } | { why: 'malformed' | 'no_deidentified_copy' | 'flagged' }}
  */
 function studyTranscript(kase, steps, look) {
   const stored = StoredLookSchema.safeParse(look);
@@ -359,6 +362,8 @@ function studyTranscript(kase, steps, look) {
   if (!stored.success || !parsed.success) return { why: 'malformed' };
   const records = parsed.data;
   if (records.some((s) => s.typed === null)) return { why: 'no_deidentified_copy' };
+  const freeText = records.flatMap((s) => [s.typed ?? '', s.bridge, ...REPLY_FIELDS.map((k) => s.reply[k])]);
+  if (freeText.some((t) => spanMatches(ascii(t)).length > 0)) return { why: 'flagged' };
   const tierPath = records.map((s) => LETTER[s.tier]).join('');
   const asks = records.map(({ variant, bridge, options }) => ({ variant, bridge, options }));
   const fits = records.every((s, i) => {

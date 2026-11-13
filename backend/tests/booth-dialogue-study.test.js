@@ -154,3 +154,17 @@ test.each([['an unknown look', 'fr'], ['a look in the wrong case', 'EN'], ['no l
     expect(studyTranscript(KASE, STEPS, look)).toEqual({ why: 'malformed' });
   },
 );
+
+// Gate #370 round 2: rimpl's write-time filter misses some shapes (#449), so the read screens again.
+test.each([
+  ['a dotted phone typed', at(1, (s) => ({ ...s, typed: 'โทร.081.234.5678 ครับ' }))],
+  ['a reply field naming someone', at(0, (s) => ({ ...s, reply: { ...s.reply, weigh: 'ถามนางสาวมาลี ใจดี' } }))],
+  ['a bridge with an email', at(2, (s) => ({ ...s, bridge: 'ส่งผลไปที่ a.b@example.org' }))],
+])('%s is withheld as flagged', (_name, steps) => {
+  expect(studyTranscript(KASE, steps, null)).toEqual({ why: 'flagged' });
+});
+
+test('the filter\'s own masks and ordinary clinical numbers are not flagged', () => {
+  const steps = at(1, (s) => ({ ...s, typed: 'โทร [PHONE-1] ชื่อ [NAME-1] BP 128/78 SpO2 95% ให้ 1,000 ml' }));
+  expect(studyTranscript(KASE, steps, null).messages).toHaveLength(6);
+});

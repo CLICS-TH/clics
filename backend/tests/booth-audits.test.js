@@ -260,13 +260,13 @@ describe('the queue', () => {
     const res = await as(AUDITOR).queue();
     expect(res.body.map((p) => p.id)).toEqual(kept.reverse().map((r) => r.id));
     expect(res.headers['x-total-count']).toBe('3');
-    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=3 dropped no_snapshot=1 no_deidentified_copy=1 malformed=1');
+    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=3 dropped no_snapshot=1 no_deidentified_copy=1 malformed=1 flagged=0');
   });
 
   test('a queue load that drops nothing still logs its count', async () => {
     seedPlay();
     await as(AUDITOR).queue();
-    expect(console.info).toHaveBeenCalledWith('[booth-audits] queue auditable=1 dropped no_snapshot=0 no_deidentified_copy=0 malformed=0');
+    expect(console.info).toHaveBeenCalledWith('[booth-audits] queue auditable=1 dropped no_snapshot=0 no_deidentified_copy=0 malformed=0 flagged=0');
   });
 
   test.each(['0', '-1', '1.5', 'two', ''])('refuses page %p with 400 before any booth read', async (page) => {
@@ -302,6 +302,34 @@ describe('the queue', () => {
     const res = await as(AUDITOR).queue();
     expect(res.status).toBe(502);
     expect(res.body).toEqual({ error: 'Could not load the booth case studies — try again' });
+  });
+});
+
+describe('free text the write-time filter missed (gate #370 round 2)', () => {
+  // A dotted phone number passes rimpl's pii-filter (#449), so it reached booth_plays.steps as typed.
+  const PHONE = 'โทร.081.234.5678 ครับ';
+  const withTyped = (typed) => STEPS.map((s, i) => (i === 1 ? { ...s, typed } : s));
+
+  test('a play whose typed answer holds a phone the filter missed is withheld from the queue and the study', async () => {
+    const leaky = seedPlay({ steps: withTyped(PHONE), scored_at: '2026-11-20T04:00:00.000Z' });
+    const masked = seedPlay({ steps: withTyped('โทร. [PHONE-1] ครับ'), scored_at: '2026-11-20T03:00:00.000Z' });
+    const queue = await as(AUDITOR).queue();
+    expect([queue.body, queue.headers['x-total-count']]).toEqual([[listed(masked)], '1']);
+    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=1 dropped no_snapshot=0 no_deidentified_copy=0 malformed=0 flagged=1');
+    const study = await as(AUDITOR).study(leaky.id);
+    expect(study.status).toBe(404);
+    expect(JSON.stringify(study.body)).not.toContain('5678');
+    expect((await as(AUDITOR).study(masked.id)).body.messages[2].content).toContain('[PHONE-1]');
+  });
+
+  test.each([
+    ['a Thai-digit phone typed', withTyped('เบอร์ ๐๘๑ ๒๓๔ ๕๖๗๘')],
+    ['an email in a reply', STEPS.map((s, i) => (i === 0 ? { ...s, reply: { ...s.reply, safety: 'ติดต่อ somchai@example.com' } } : s))],
+    ['an honorific name in a bridge', STEPS.map((s, i) => (i === 2 ? { ...s, bridge: 'ถามนายสมชายต่อ' } : s))],
+  ])('%s withholds the play', async (_name, steps) => {
+    const play = seedPlay({ steps });
+    expect((await as(AUDITOR).queue()).body).toEqual([]);
+    expect((await as(AUDITOR).study(play.id)).status).toBe(404);
   });
 });
 
@@ -355,7 +383,7 @@ describe('the language the visitor saw (#377)', () => {
     const play = seedPlay({ language_look: 'fr' });
     const res = await as(AUDITOR).queue();
     expect([res.body, res.headers['x-total-count']]).toEqual([[], '0']);
-    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=0 dropped no_snapshot=0 no_deidentified_copy=0 malformed=1');
+    expect(console.warn).toHaveBeenCalledWith('[booth-audits] queue auditable=0 dropped no_snapshot=0 no_deidentified_copy=0 malformed=1 flagged=0');
     expect((await as(AUDITOR).study(play.id)).status).toBe(404);
   });
 });
