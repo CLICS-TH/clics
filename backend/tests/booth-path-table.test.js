@@ -179,7 +179,8 @@ describe('the build runner', () => {
   /** A throwaway checkout of the runner, committed in a git repo of its own: its scripts copied, backend and rimpl
    *  linked, and `record` as its committed spend record. A --go run writes that record, never this repo's. */
   function checkout(record = recordAtStart) {
-    const root = tmp();
+    // Its real path: spend-ledger.mjs runs init only when argv[1] is its own resolved path.
+    const root = fs.realpathSync(tmp());
     const booth = path.join(root, 'scripts', 'booth');
     fs.mkdirSync(path.join(booth, 'path-table-runs'), { recursive: true });
     for (const f of RUNNER_FILES) fs.copyFileSync(path.join(path.dirname(RUNNER), f), path.join(booth, f));
