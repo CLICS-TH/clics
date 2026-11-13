@@ -16,6 +16,20 @@ export const GAP_ALPHA = 0.05;
 // Fewer cases than this make a median that is mostly the case itself: a band check against it proves nothing.
 export const MIN_POOL = 3;
 
+/**
+ * A run judges one step count (#380): three-step and five-step composites sit on different scales, so a pool of both
+ * fails every case. Returns why the run is refused, or null. A pooled report from before #380 played three steps.
+ * @param {number[]} caseSteps each case's step count
+ * @param {{ steps?: number } | null} [poolReport] the --pool report, if any
+ */
+export function stepCountProblem(caseSteps, poolReport) {
+  const counts = [...new Set(caseSteps)].sort();
+  if (counts.length > 1) return `the cases have ${counts.join(' and ')} steps: a run judges one step count, so pick its cases with --case`;
+  const poolSteps = poolReport ? poolReport.steps ?? 3 : counts[0];
+  if (poolSteps !== counts[0]) return `the --pool report played ${poolSteps}-step cases and these have ${counts[0]}: pool medians from the same step count`;
+  return null;
+}
+
 const sigmaOf = (g) => (PATH_GROUPS.includes(g) ? SIGMA.path : SIGMA.persona);
 
 // Abramowitz and Stegun 7.1.26 (error under 1.5e-7), inverted by bisection: the standard normal quantile.

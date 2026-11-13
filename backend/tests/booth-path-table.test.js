@@ -5,23 +5,29 @@ const path = require('path');
 const http = require('http');
 const os = require('os');
 const { spawn, spawnSync } = require('child_process');
-const { isValidAsk, evaluateRequest } = require('../src/services/booth-dialogue');
+const { isValidAsk, evaluateRequest, bankKey } = require('../src/services/booth-dialogue');
 const { treeSha } = require('../src/booth-cases/tree-sha');
-const { TIER_PATHS, bankKey, sampleWalk, replyProblems, jobsFor, lockProblems } = require('../../scripts/booth/path-table-sample');
+const { sampleWalk, replyProblems, jobsFor, lockProblems } = require('../../scripts/booth/path-table-sample');
 const { PATHS, PATHS_BY_STEPS } = require('../../scripts/booth/sandbox-play');
 const MANIFEST = require('../../rimpl/src/model-manifest.json').expected.code;
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
+const KASE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8'));
 const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const RUNNER = path.join(__dirname, '..', '..', 'scripts', 'booth', 'build-path-tables.mjs');
-const PREFIXES = ['', 'B', 'R', 'W', 'BB', 'BR', 'BW', 'RB', 'RR', 'RW', 'WB', 'WR', 'WW'];
+const tierPaths = (length) => (length ? ['B', 'R', 'W'].flatMap((a) => tierPaths(length - 1).map((rest) => a + rest)) : ['']);
 
 const bankFor = (prefix) => [KASE.banks.step1, KASE.banks.step2[prefix], KASE.banks.step3[prefix]][prefix.length];
 const option = (prefix, id) => bankFor(prefix).options.find((o) => o.id === id);
-// A reply per option of every bank, bolding a phrase of the option's own Thai label.
-const REPLIES = Object.fromEntries(PREFIXES.map((p) => [bankKey(p), Object.fromEntries(bankFor(p).options.map((o) => [o.id, {
-  strength: `เลือก **${o.label.th.slice(0, 6)}** โดยมีเหตุผล ${o.id}`, weigh: `ควรชั่งน้ำหนักข้อมูลเพิ่ม ${p || "ก"}`, safety: '',
+// A sample reply file names each bank as the case file lays it out: step1, then step<n>.<key> for each keyed bank.
+const banksOf = (kase) => Object.entries(kase.banks).flatMap(([step, level]) =>
+  (level.variants ? [[step, level]] : Object.entries(level).map(([key, bank]) => [`${step}.${key}`, bank])));
+// A reply per option of every bank, bolding a phrase of the option's own Thai label and naming its bank.
+const repliesFor = (kase) => Object.fromEntries(banksOf(kase).map(([key, bank]) => [key, Object.fromEntries(bank.options.map((o) => [o.id, {
+  strength: `เลือก **${o.label.th.slice(0, 6)}** โดยมีเหตุผล ${o.id}`, weigh: `ควรชั่งน้ำหนักข้อมูลเพิ่ม ${key}`, safety: '',
 }]))]));
+const REPLIES = repliesFor(KASE);
+const REPLIES5 = repliesFor(KASE5);
 const replyText = (r) => [r.strength, r.weigh, r.safety].map((s) => s.replaceAll('**', '')).filter(Boolean).join(' ');
 
 describe('a sample walk', () => {
@@ -34,7 +40,21 @@ describe('a sample walk', () => {
       expect(ask.options).toContain(d.answers[i].choice);
       expect(LETTER[option(prefix, d.answers[i].choice).tier]).toBe(tierPath[i]);
     });
-    expect(d.replies).toEqual(d.answers.map((a, i) => REPLIES[bankKey(tierPath.slice(0, i))][a.choice]));
+    expect(d.replies).toEqual(d.answers.map((a, i) => REPLIES[bankKey(KASE, tierPath.slice(0, i))][a.choice]));
+  });
+
+  test.each(['BBBBB', 'WRBWB', 'RWWRB'])('five steps: %s taps the path\'s tier at each of five steps, from the bank keyed on the previous tier', (tierPath) => {
+    const d = sampleWalk(KASE5, REPLIES5, tierPath);
+    expect(d.tierPath).toBe(tierPath);
+    expect(d.answers).toHaveLength(5);
+    d.asks.forEach((ask, i) => {
+      const [key, bank] = i ? [`step${i + 1}.${tierPath[i - 1]}`, KASE5.banks[`step${i + 1}`][tierPath[i - 1]]] : ['step1', KASE5.banks.step1];
+      const chosen = bank.options.find((o) => o.id === d.answers[i].choice);
+      expect(isValidAsk(bank, ask)).toBe(true);
+      expect(ask.options).toContain(chosen.id);
+      expect(LETTER[chosen.tier]).toBe(tierPath[i]);
+      expect(d.replies[i]).toEqual(REPLIES5[key][chosen.id]);
+    });
   });
 
   test('variants and same-tier options are drawn at random: 60 walks of one path see more than one of each', () => {
@@ -58,17 +78,17 @@ describe('a sample walk', () => {
       const asked = b.variants.find((v) => transcript[2 * i].content.includes(v.question.th));
       expect(chosen.tier).toBe(['reasonable', 'best', 'weaker'][i]);
       turns.push({ role: 'physician', content: `${i === 0 ? `${KASE.vignette.th}\n\n` : ''}${asked.question.th}\n${said}` });
-      turns.push({ role: 'assistant', content: replyText(REPLIES[bankKey(prefix)][chosen.id]) });
+      turns.push({ role: 'assistant', content: replyText(REPLIES[bankKey(KASE, prefix)][chosen.id]) });
       prefix += LETTER[chosen.tier];
     }
     expect(rest).toEqual({ transcript: turns, patient_ref: null, chief_complaint: KASE.vignette.th, shadow: false });
   });
 
-  test('every tier path is sampled the given number of times per case', () => {
-    expect(TIER_PATHS).toHaveLength(27);
-    const jobs = jobsFor([KASE], 3);
-    expect(jobs).toHaveLength(81);
-    expect(new Set(jobs.map((j) => `${j.tierPath}#${j.sample}`)).size).toBe(81);
+  test.each([['three', KASE, 3, 27], ['five', KASE5, 5, 243]])('every tier path of a %s-step case is sampled the given number of times', (_, kase, steps, paths) => {
+    const jobs = jobsFor([kase], 3);
+    expect(jobs).toHaveLength(3 * paths);
+    expect(new Set(jobs.map((j) => j.tierPath))).toEqual(new Set(tierPaths(steps)));
+    expect(new Set(jobs.map((j) => `${j.tierPath}#${j.sample}`)).size).toBe(3 * paths);
   });
 
   test('a build samples only the paths its table plan names', () => {
@@ -96,6 +116,14 @@ describe('sample reply checks', () => {
   test('a missing reply is named by bank and option', () => {
     const { [someId]: _gone, ...rest } = REPLIES['step3.BR'];
     expect(replyProblems(KASE, { ...REPLIES, 'step3.BR': rest })).toEqual([`step3.BR ${someId}: no reply`]);
+  });
+
+  test('five steps: replies on every option of its 13 banks pass, and a missing one is named by its previous-tier bank', () => {
+    expect(Object.keys(REPLIES5)).toHaveLength(13);
+    expect(replyProblems(KASE5, REPLIES5)).toEqual([]);
+    const id = KASE5.banks.step4.R.options[0].id;
+    const { [id]: _gone, ...rest } = REPLIES5['step4.R'];
+    expect(replyProblems(KASE5, { ...REPLIES5, 'step4.R': rest })).toEqual([`step4.R ${id}: no reply`]);
   });
 
   test('a bold run naming an option the visitor did not choose is refused, since the booth would strip it', () => {
@@ -150,19 +178,21 @@ describe('the build runner', () => {
     child.on('close', (status) => resolve({ status, stdout, stderr }));
   });
 
-  /** A throwaway build: the fixture case under a fresh event code, committed in its own git repo (its safety review
-   *  then reads the committed tree), with its sample replies. Nothing it writes is a tracked file of this repo. */
-  function throwawayBuild() {
+  /** A throwaway build: fixture cases under a fresh event code, committed in their own git repo (a safety review then
+   *  reads the committed tree), with their sample replies. Nothing it writes is a tracked file of this repo. */
+  function throwawayBuild(kases = [KASE]) {
     const build = `TST-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
     const dir = path.join(tmp(), build);
     fs.mkdirSync(dir);
-    fs.writeFileSync(path.join(dir, `${KASE.case_id}.json`), `${JSON.stringify({ ...KASE, event_code: build }, null, 2)}\n`);
+    const replies = tmp();
+    for (const kase of kases) {
+      fs.writeFileSync(path.join(dir, `${kase.case_id}.json`), `${JSON.stringify({ ...kase, event_code: build }, null, 2)}\n`);
+      fs.writeFileSync(path.join(replies, `${kase.case_id}.json`), JSON.stringify({ case_id: kase.case_id, replies: repliesFor(kase) }));
+    }
     const git = (...args) => spawnSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { cwd: dir });
     git('init', '-q');
     git('add', '.');
     git('commit', '-qm', 'case');
-    const replies = tmp();
-    fs.writeFileSync(path.join(replies, `${KASE.case_id}.json`), JSON.stringify({ case_id: KASE.case_id, replies: REPLIES }));
     return { build, dir, args: ['--cases', dir, '--replies', replies, '--out', tmp()] };
   }
 
@@ -230,8 +260,41 @@ describe('the build runner', () => {
     fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
     expect([0, 1]).toContain(run([...args, '--from', file]).status);
     const report = JSON.parse(fs.readFileSync(path.join(out, 'ptb-method.json'), 'utf8'));
-    expect(report).toMatchObject({ method: 'median', scripted: PATHS, sampled: TIER_PATHS });
+    expect(report).toMatchObject({ method: 'median', scripted: PATHS, sampled: tierPaths(3) });
     expect(JSON.parse(fs.readFileSync(caseFile, 'utf8')).path_score_table.provenance.method).toBe('median');
+  });
+
+  test('--from builds a five-step case\'s fitted table of all 243 paths from the 27 its plan samples', () => {
+    const { dir, args } = throwawayBuild([KASE5]);
+    const caseFile = path.join(dir, `${KASE5.case_id}.json`);
+    const kase = JSON.parse(fs.readFileSync(caseFile, 'utf8'));
+    const out = args[args.indexOf('--out') + 1];
+    const file = path.join(out, 'run.samples.jsonl');
+    const header = { run_id: 'ptb-five', date: '2026-11-11', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
+    // A saved sample on every path, so whichever 27 the plan samples are all there.
+    const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
+      tree_sha256: treeSha(kase), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
+    fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
+    const res = run([...args, '--from', file]);
+    expect([0, 1]).toContain(res.status);
+    const report = JSON.parse(fs.readFileSync(path.join(out, 'ptb-five.json'), 'utf8'));
+    expect(report).toMatchObject({ method: 'median-regression', scripted: PATHS_BY_STEPS[5] });
+    expect(report.sampled).toHaveLength(27);
+    expect(report.sampled).toEqual(expect.arrayContaining(Object.values(PATHS_BY_STEPS[5])));
+    const built = JSON.parse(fs.readFileSync(caseFile, 'utf8'));
+    expect(built.version).toBe(String(Number(kase.version) + 1));
+    expect(built.path_score_table.provenance).toMatchObject({ method: 'median-regression', run_id: 'ptb-five', tree_sha256: treeSha(kase) });
+    expect(Object.keys(built.path_score_table.paths)).toHaveLength(243);
+    expect(built.path_score_table.paths.WRBWB).toEqual(DOMAINS);
+  });
+
+  test('refuses a run of cases with different step counts, and builds either count once --case picks it', () => {
+    const { args } = throwawayBuild([KASE, KASE5]);
+    const mixed = run(args);
+    expect(mixed.status).toBe(2);
+    expect(mixed.stderr).toMatch(/have (3 and 5|5 and 3) steps: a run builds one step count/);
+    expect(run([...args, '--case', KASE.case_id]).status).toBe(0);
+    expect(run([...args, '--case', KASE5.case_id]).status).toBe(0);
   });
 
   test('--from refuses a run that went over the cap it ran under', () => {

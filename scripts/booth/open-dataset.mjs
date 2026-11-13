@@ -38,10 +38,11 @@ export const PLAY_COLUMNS = Object.freeze([
   column('ranked', 'Whether the play was ranked on the booth\'s public board (true or false).'),
   column('tier_path', 'The tier of each answer, in step order: B best, R reasonable, W weaker but safe. A typed answer '
     + 'has the tier the AI sorted it into. Empty on a play that recorded none.'),
-  ...DOMAINS.map(([key, name]) => column(key, `PIS-7 domain ${key.slice(1)}, ${name}: a whole score from 0 to 5. Empty `
-    + 'unless the play was scored.')),
-  column('composite', 'The PIS-7 composite, 0 to 100, to 2 decimals: 20 x (0.15 d1 + 0.20 d2 + 0.15 d3 + 0.15 d4 + '
-    + '0.15 d5 + 0.10 d6 + 0.10 d7). Empty unless the play was scored.'),
+  ...DOMAINS.map(([key, name]) => column(key, `PIS-7 domain ${key.slice(1)}, ${name}: a score from 0 to 5, whole for a `
+    + 'three-step play and to one decimal for a five-step one (a fitted path score table). Empty unless the play was scored.')),
+  column('composite', 'The PIS-7 composite, 0 to 100: 20 x (0.15 d1 + 0.20 d2 + 0.15 d3 + 0.15 d4 + 0.15 d5 + 0.10 d6 + '
+    + '0.10 d7), to 2 decimals for a three-step play and rounded to a whole number for a five-step one. Empty unless the '
+    + 'play was scored.'),
   column('score_source', 'table: read from the case version\'s path score table; live: one live evaluator call on the '
     + 'play\'s dialogue; empty: recorded before the booth kept the score source.'),
   column('transcript', 'released: the play\'s dialogue is in transcripts.jsonl; withheld: a screen flagged the play\'s '

@@ -337,12 +337,13 @@ const SHIELD_MAX_RUN = 256;
 // String#replace for a global regex, except the callback may consume only PART of a match by returning
 // [replacement, consumedLength]; scanning then resumes right after the consumed part. Iterative — the
 // shields above use it instead of re-scanning fragments recursively.
-function replaceResumable(text, re, fn) {
+// `view`, when given, is a same-length copy of `text` the regex runs on; the cut is made in `text`.
+function replaceResumable(text, re, fn, view = text) {
   const rx = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`); // exec must advance
   let out = '';
   let last = 0;
   let m;
-  while ((m = rx.exec(text)) !== null) {
+  while ((m = rx.exec(view)) !== null) {
     const r = fn(m);
     const [rep, used] = Array.isArray(r) ? r : [r, m[0].length];
     out += text.slice(last, m.index) + rep;
@@ -453,6 +454,25 @@ function applyThAdminPass(text, token) {
   });
 }
 
+// A phone's group separator: a dot with any spaces around it, or one space or dash.
+const PHONE_SEP = '(?:\\s*\\.\\s*|[\\s-])';
+
+// A real day and month.
+function dottedDateGuard(m) {
+  const [d, mo] = m.split('.').map(Number);
+  return d >= 1 && d <= 31 && mo >= 1 && mo <= 12;
+}
+// A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date.
+const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv])\s{0,3})`;
+
+// No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
+// ".<digit>", and never right after "<digit>." when what follows reads as a decimal fraction, 1-8 digits not
+// followed by another '.', '/', '-' or digit. A numbered list item (1.081.234.5678, 1.0812345678, 1.20/10/2569)
+// is not a decimal and is still masked. Wrapped around every phone and date pattern below. A loose undotted phone run
+// ends where its digits end instead (`tail` (?!\d)): backing off before ".<digit>" would leave its last digit in clear.
+const NOT_IN_DECIMAL = (src, tail = '(?!\\.\\d)') => `(?!(?<=\\d\\.)\\d{1,8}(?![\\d./-]))(?:${src})${tail}`;
+const numericRe = (src, tail) => new RegExp(NOT_IN_DECIMAL(src, tail), 'g');
+
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
   // --- Structured identifiers FIRST (longest / most specific) ---
@@ -485,13 +505,18 @@ const PASSES = [
     guard: lineIdGuard,
   },
 
+  // Every pass from here on that is not a NAME pass reads the ASCII view of the text: ๐–๙, ٠–٩, ０–９ and every
+  // other decimal digit as 0–9, and full-width ＋－．（） as +-.() (#440; see asciiView and applyPass).
+
   // Thai national ID: 13 digits, with or without the X-XXXX-XXXXX-XX-X dashes.
   {
     re: /\b\d(?:[\s-]?\d){12}\b/g,
     cat: 'ID',
     // Guard: only when the digits actually total 13 (the loose run above could
     // otherwise straddle unrelated numbers separated by spaces).
-    guard: (m) => (m.replace(/\D/g, '').length === 13),
+    // A run that opens with a whole grouped phone (081-234-5678 089-876-5432) is two phones, not one ID; an ID
+    // in category 0 (0-1234-56789-12-3, 0123456789012) never groups that way.
+    guard: (m) => m.replace(/\D/g, '').length === 13 && !/^\(?0\d{1,2}\)?[\s-]+\d{3,4}[\s-]+\d{3,4}[\s-]/.test(m),
   },
 
   // HN (hospital number) explicit code field — kept as its own category since
@@ -526,7 +551,7 @@ const PASSES = [
   // number. The guard checks the national digit count (after stripping 66) so
   // it cannot latch onto an unrelated long number.
   {
-    re: /\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]*\d){6,9}/g,
+    re: numericRe(String.raw`(?<!\d)\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]{0,8}\d){6,9}`, '(?!\\d)'),
     cat: 'PHONE',
     guard: (m) => {
       // national number: 8 digits (landline) or 9 (mobile); a written trunk 0
@@ -539,17 +564,47 @@ const PASSES = [
     // Thai national: leading 0 (possibly parenthesised "(081)"), then 8-9 more
     // digits, allowing space/dash/paren grouping. Guarded to 9-10 digits so it
     // never eats a longer run or a bare lab count (which has no leading 0).
-    re: /\(?0\d\)?(?:[\s()-]*\d){7,9}/g,
+    re: numericRe(String.raw`(?<!\d)\(?0\d\)?(?:[\s()-]{0,8}\d){7,9}`, '(?!\\d)'),
     cat: 'PHONE',
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;
       return d >= 9 && d <= 10;
     },
   },
+  // Dotted groups, national or +66 (081.234.5678, 081.2345678, 0812.345.678, 02.1234567, +66.812345678,
+  // 081. 234.5678), after any label or punctuation (โทร.081…, Tel.081…). Its own pass so '.' never joins the loose
+  // runs above. A national number opens with 0 and one to three more digits, then groups of two or more (081.234.56.78);
+  // a +66 number (+66.81…, +6681.234…) takes groups of three or four after its one- or two-digit area code, so a lab
+  // list (Cr 0.85 0.92 1.10, Cr 0.66 0.70 0.81) or a dotted date (05.12.2569) is no phone; no match starts inside a
+  // number or a decimal or stops before one. Only a match holding a dot counts: the passes above own every undotted
+  // form.
+  {
+    re: new RegExp(
+      NOT_IN_DECIMAL(
+        `(?<!\\d)(?:\\+?66${PHONE_SEP}?(?:\\(0\\)${PHONE_SEP}?)?\\d{1,2}(?:${PHONE_SEP}?\\d{3,4}){1,2}` +
+          `|\\(?0\\d{1,3}\\)?(?:${PHONE_SEP}\\d{2,7}){1,3})(?!\\d)`
+      ),
+      'g'
+    ),
+    cat: 'PHONE',
+    guard: (m) => {
+      if (!m.includes('.')) return false;
+      const intl = /^\+?66/.test(m);
+      const nat = m.replace(/\D/g, '').slice(intl ? 2 : 0);
+      return nat.length >= (intl ? 8 : 9) && nat.length <= 10; // the same counts as the two passes above
+    },
+  },
 
   // --- Dates (kept stable category so repeated dates collapse) ---
-  { re: /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g, cat: 'DATE' },
-  { re: /\b\d{4}-\d{2}-\d{2}\b/g, cat: 'DATE' },
+  { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE' },
+  { re: numericRe(String.raw`\b\d{4}-\d{2}-\d{2}\b`), cat: 'DATE' },
+  // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
+  // section or version label.
+  {
+    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4}\b`),
+    cat: 'DATE',
+    guard: dottedDateGuard,
+  },
 
   // --- Ward ---
   // \b only on the English branch (it is ASCII-only and would never match before
@@ -915,6 +970,42 @@ function applyGivenSurnamePass(text, token) {
   throw new Error('PII filter: surname search did not settle');
 }
 
+// The ASCII view a numeric pass reads: every BMP decimal digit (Thai ๐–๙, Arabic-Indic ٠–٩ and ۰–۹, full-width ０–９,
+// Lao, Devanagari …) as 0–9, and the full-width ASCII block (＋ － ． （ ） Ｈ Ｎ …) as its ASCII letter. One UTF-16 unit
+// each way, so the view is index-for-index the original: a pass matches on it and cuts the original, and text left
+// unmasked keeps its own digits. Unicode lays every decimal digit set out as a run of ten from zero.
+const ASCII_VIEW = (() => {
+  const map = new Map();
+  let run = 0;
+  for (let c = 0x80; c <= 0xffff; c += 1) {
+    const ch = String.fromCharCode(c);
+    run = /\p{Nd}/u.test(ch) ? run + 1 : 0;
+    if (run) map.set(ch, String.fromCharCode(0x30 + ((run - 1) % 10)));
+  }
+  for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
+  return map;
+})();
+const ASCII_VIEW_RE = new RegExp(`[${[...ASCII_VIEW.keys()].join('').replace(/[\]\\^-]/g, '\\$&')}]`, 'g');
+const asciiView = (s) => s.replace(ASCII_VIEW_RE, (c) => ASCII_VIEW.get(c));
+
+// The longest match of `re` that starts at `at`, is shorter than `len`, ends where a word or number ends (never
+// inside one, never before ".<digit>") and passes `guard`; null when there is none. The regex runs on the text cut
+// at each candidate end, so its own pattern still decides every shorter match; the cut point is checked against the
+// full text, which the cut hides from the regex's lookahead.
+const GUARD_FALLBACK_MAX = 128; // above the longest loose phone run (13 digits, gaps of up to 8)
+function longestGuarded(view, re, at, len, guard) {
+  if (len > GUARD_FALLBACK_MAX) return null;
+  const rx = new RegExp(re.source, re.flags.replace('g', '') + 'y');
+  for (let e = len - 1; e > 0; e -= 1) {
+    const next = view.slice(at + e, at + e + 2);
+    if (/^[A-Za-z0-9]|^\.\d/.test(next)) continue;
+    rx.lastIndex = at;
+    const m = rx.exec(view.slice(0, at + e));
+    if (m && m[0].length === e && guard(m[0])) return m[0];
+  }
+  return null;
+}
+
 // Apply one pass, threading the shared registry so tokens are stable per call.
 function applyPass(text, pass, token, hints) {
   const { re, cat, guard, kind } = pass;
@@ -929,9 +1020,18 @@ function applyPass(text, pass, token, hints) {
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
+  const view = cat === 'NAME' ? text : asciiView(text);
   return replaceResumable(text, re, (m) => {
-    const [match, g1, g2, g3] = m;
-    if (guard && !guard(match)) return match;
+    // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
+    // every return that masks nothing must give back unchanged.
+    const [seen, g1, g2, g3] = m;
+    const match = text.slice(m.index, m.index + seen.length);
+    if (guard && !guard(seen)) {
+      // A loose run can take the next number too (โทร 081-234-5678 2 ครั้ง) and fail its guard as a whole: fall back
+      // to the longest shorter match the guard accepts at the same start, so the identifier is still masked.
+      const shorter = cat === 'NAME' ? null : longestGuarded(view, re, m.index, seen.length, guard);
+      return shorter ? [token(cat, shorter), shorter.length] : match;
+    }
 
     if (cat === 'NAME') {
       if (kind === 'th-nickname' || kind === 'en-nickname') {
@@ -1021,8 +1121,8 @@ function applyPass(text, pass, token, hints) {
       return title + ' ' + tok;
     }
 
-    return token(cat, match);
-  });
+    return token(cat, seen); // keyed by the ASCII view: both scripts of one number share a token
+  }, view);
 }
 
 // Mask one string. If a registry is provided, tokens stay stable across all

@@ -9,7 +9,6 @@ const { z } = require('zod');
 const { TIERS } = require('../booth-cases/tree-schema');
 const { ascii, spanMatches } = require('../lib/pii-spans');
 
-const STEPS = 3;
 const BRIDGE_MAX_CHARS = 120;
 const ANSWER_MAX_CHARS = 500;
 // rimpl's tokens can run longer than the words they replace ("นายก" -> "นาย[NAME-1]").
@@ -252,12 +251,13 @@ const TIER_NAMES = TIERS.map((t) => t.name);
 /** The AI's tier for a typed answer as a letter. Anything but a tier it was given (unclear, unsafe, none) is weaker. */
 const sortedTier = (name) => LETTER[TIER_NAMES.includes(name) ? name : 'weaker'];
 
-/** What rimpl needs to sort a typed answer to step n: that step's bank, and for n < 3 the next step's bank per tier.
- *  With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step taken. */
+/** What rimpl needs to sort a typed answer to step n: that step's bank, and before the last step the next step's bank
+ *  per tier. With a memo every tier holds the memo tier's bank, so whatever tier the AI says, its pick fits the step
+ *  taken. */
 function typedBanks(kase, tierPath, n, memo) {
   return {
     current: bankForAi(bankAt(kase, tierPath)),
-    ...(n < STEPS ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
+    ...(n < stepCount(kase) ? { next: Object.fromEntries(TIERS.map(({ name, letter }) => [name, bankForAi(bankAt(kase, tierPath + (memo ?? letter)))])) } : {}),
   };
 }
 
@@ -275,7 +275,7 @@ function chatRequest(kase, d) {
   const history = dialogueTurns(kase, d, true, language);
   const { content: message } = history.pop();
   const forAi = d.unsorted ? { booth_typed: typedBanks(kase, d.tierPath, n, d.memo), booth_answer: d.answers[n - 1].text }
-    : n < STEPS ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
+    : n < stepCount(kase) ? { booth_bank: bankForAi(bankAt(kase, d.tierPath)) } : {};
   return { history, message, language, booth_mode: true, ...forAi };
 }
 
@@ -292,7 +292,7 @@ function chatOutcome(kase, d, res) {
   const reply = checkedReply(res?.reply, quotesFor(kase, d));
   const typed = d.unsorted ? (d.memo ?? sortedTier(res?.tier)) : null;
   const tierPath = typed ? d.tierPath + typed : d.tierPath;
-  const bank = n < STEPS ? bankAt(kase, tierPath) : null;
+  const bank = n < stepCount(kase) ? bankAt(kase, tierPath) : null;
   const ask = bank && (hasReply(reply) ? askFromPick(bank, res.pick) : fallbackAsk(bank));
   const answers = typed
     ? [...d.answers.slice(0, -1), { ...d.answers[n - 1], tier: typed, deidentified: deidentifiedOf(res) }] : d.answers;
@@ -397,7 +397,7 @@ function studyTranscript(kase, steps, look) {
 }
 
 module.exports = {
-  STEPS, BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
+  BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
+  LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, stepCount, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
   replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
 };

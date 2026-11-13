@@ -57,7 +57,12 @@ function casesDir(...cases) {
 const edited = (fn) => { const k = structuredClone(KASE); fn(k); return k; };
 const FIXTURE_DIR = casesDir(KASE);
 
-const bankFor = (kase, tierPath) => [kase.banks.step1, kase.banks.step2[tierPath], kase.banks.step3[tierPath]][tierPath.length];
+/** The bank after `tierPath` as the case layouts are specified: step 1's one bank, then keyed on every tier so far
+ *  (three steps) or on the previous tier alone (five steps, spec #370). */
+const bankFor = (kase, tierPath) => {
+  const level = kase.banks[`step${tierPath.length + 1}`];
+  return tierPath === '' ? level : level[kase.banks.step5 ? tierPath.slice(-1) : tierPath];
+};
 const bank = (tierPath) => bankFor(KASE, tierPath);
 
 function eventSettings({ code = EVENT, enabled = 1, opensAt = iso(-HOUR), closesAt = iso(HOUR), ceiling = 3 } = {}) {
@@ -92,8 +97,11 @@ let countError;
 let cacheRows;
 let cacheFault;
 
+// A SQL LIKE pattern: _ is any one character, % any run, the rest literal. A null column never matches.
+const likeOf = (pattern) => new RegExp(`^${pattern.replace(/[^\w%]/g, '\\$&').replace(/_/g, '.').replace(/%/g, '.*')}$`);
 const matches = (row, ctx) => ctx.eqs.every(([c, v]) => row[c] === v)
-  && ctx.iss.every(([c, v]) => (v === null ? row[c] == null : row[c] === v));
+  && ctx.iss.every(([c, v]) => (v === null ? row[c] == null : row[c] === v))
+  && ctx.likes.every(([c, pattern]) => typeof row[c] === 'string' && likeOf(pattern).test(row[c]));
 
 function scoreComplete(r) {
   const scored = r.status === 'scored';
@@ -229,12 +237,12 @@ afterEach(() => {
 async function begin(kase = KASE) {
   const res = await post('/booth/plays', { case_id: kase.case_id });
   expect(res.status).toBe(201);
-  return { id: res.body.play_id, next: res.body.next, path: '', started: res.body,
+  return { id: res.body.play_id, kase, next: res.body.next, path: '', started: res.body,
     d: { answers: [], replies: [], asks: [res.body.next.ask], sigs: [res.body.sig] } };
 }
 
 /** An offered option of the given tier, from what the kiosk shows. */
-const offered = (p, tier) => p.next.options.find((o) => bank(p.path).options.find((x) => x.id === o.id).tier === tier).id;
+const offered = (p, tier) => p.next.options.find((o) => bankFor(p.kase, p.path).options.find((x) => x.id === o.id).tier === tier).id;
 
 /** The letter the AI sorted the last typed answer into, read from the mocked call: the kiosk never sees it. */
 async function sortedLetter() {
@@ -248,7 +256,7 @@ async function answer(p, given) {
   const body = { ...p.d, answers: [...p.d.answers, a] };
   const res = await post(`/booth/plays/${p.id}/reply`, body);
   if (res.status === 200 && res.body.status === 'replied') {
-    p.path += 'choice' in a ? LETTER[bank(p.path).options.find((o) => o.id === a.choice).tier] : await sortedLetter();
+    p.path += 'choice' in a ? LETTER[bankFor(p.kase, p.path).options.find((o) => o.id === a.choice).tier] : await sortedLetter();
     const kept = typeof res.body.deidentified === 'string' ? { ...a, deidentified: res.body.deidentified } : a;
     p.d = { answers: [...p.d.answers, kept], replies: [...p.d.replies, res.body.reply],
       asks: res.body.next ? [...p.d.asks, res.body.next.ask] : p.d.asks, sigs: [...p.d.sigs, res.body.reply_sig] };
@@ -257,8 +265,8 @@ async function answer(p, given) {
   return res;
 }
 
-async function walked(given = ['best', 'best', 'best']) {
-  const p = await begin();
+async function walked(given = ['best', 'best', 'best'], kase = KASE) {
+  const p = await begin(kase);
   for (const g of given) expect((await answer(p, g)).body.status).toBe('replied');
   return p;
 }
@@ -297,7 +305,7 @@ const TIER_NAME = Object.fromEntries(Object.entries(LETTER).map(([name, letter])
 /** What the score must show per step, read from the case file: the answer's tier, and each offered option's in order. */
 const stepsOf = (p) => p.d.asks.map((ask, i) => ({
   tier: TIER_NAME[p.path[i]],
-  options: ask.options.map((id) => ({ id, tier: bank(p.path.slice(0, i)).options.find((o) => o.id === id).tier })),
+  options: ask.options.map((id) => ({ id, tier: bankFor(p.kase, p.path.slice(0, i)).options.find((o) => o.id === id).tier })),
 }));
 const expectFallback = (b, next) => {
   expect(next.ask.variant).toBe(b.variants[0].id);
@@ -384,7 +392,7 @@ describe('POST /booth/plays', () => {
     rpcOverride.booth_start_play = () => ({ data: [{ play_id: playId, play_tag: 42 }], error: null });
     const res = await post('/booth/plays', { case_id: KASE.case_id });
     expect(res.status).toBe(201);
-    expect(res.body).toEqual({ play_id: playId, tag: 42, answer_max_chars: 500, case: { vignette: KASE.vignette },
+    expect(res.body).toEqual({ play_id: playId, tag: 42, step_count: 3, answer_max_chars: 500, case: { vignette: KASE.vignette },
       next: shown(bank(''), res.body.next.ask), sig: expect.any(String) });
     const { ask } = res.body.next;
     expect(ask.bridge).toBe('');
@@ -2522,6 +2530,121 @@ describe('the board (#212)', () => {
     expect(res.body).toMatchObject({ status: 'scored', composite: 100, rank_today: null, rank_event: null, board: null });
     expect(logged).toHaveBeenCalledWith(`[booth] standings read failed for ${EVENT}: boom`);
     logged.mockRestore();
+  });
+});
+
+describe('a five-step play (#380, spec #370: five steps on a tree keyed on the previous tier)', () => {
+  const TABLE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table-5.json'), 'utf8'));
+  const KASE5 = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8')), path_score_table: TABLE5 };
+  const BOTH_DIR = casesDir(KASE, KASE5);
+  const ai = (b) => ({ variants: b.variants, options: b.options });
+  const BOARD_FIVE = { key: 'booth_board_five_steps', value: 1, value_text: null };
+  const standingsReads = () => m.all('booth_plays', 'select').filter((q) => q.selectArgs[0] === 'id, tag, composite, scored_at');
+
+  beforeEach(() => { process.env.BOOTH_CASES_DIR = BOTH_DIR; });
+
+  test('starts with steps 5, asks each next step from its bank keyed on the previous tier, stops asking after step 5, and scores the fitted table entry', async () => {
+    const p = await begin(KASE5);
+    expect(p.started.step_count).toBe(5);
+    for (const [i, given] of ['best', 'reasonable', 'weaker', 'reasonable', 'best'].entries()) {
+      const res = await answer(p, given);
+      expect(res.body.status).toBe('replied');
+      const sent = rimplChat.mock.calls[i][0];
+      if (i < 4) {
+        const next = KASE5.banks[`step${i + 2}`][p.path.at(-1)];
+        expect(sent.booth_bank).toEqual(ai(next));
+        expect(res.body.next).toEqual(shown(next, res.body.next.ask));
+        expect(tiersOf(next, res.body.next.ask.options)).toEqual(ONE_PER_TIER);
+      } else {
+        expect(sent).not.toHaveProperty('booth_bank');
+        expect(res.body).not.toHaveProperty('next');
+      }
+    }
+    expect(p.path).toBe('BRWRB');
+    expect(plays.get(p.id).replied_step).toBe(5);
+
+    const domains = TABLE5.paths.BRWRB;
+    expect(Object.values(domains).some((v) => !Number.isInteger(v))).toBe(true);
+    const composite = Math.round(compositeScore(domains));
+    expect(composite).not.toBe(compositeScore(domains));
+    const { body } = await score(p);
+    expect(body).toMatchObject({ status: 'scored', composite, domains, rank_event: 1 });
+    expect(body.steps).toEqual(stepsOf(p));
+    expect(body.steps.map((s) => s.tier)).toEqual(['best', 'reasonable', 'weaker', 'reasonable', 'best']);
+    expect(plays.get(p.id)).toMatchObject({ status: 'scored', ...domains, composite, tier_path: 'BRWRB', replied_step: 5 });
+    expect(plays.get(p.id).steps).toHaveLength(5);
+  });
+
+  test.each([['best', 'B'], ['reasonable', 'R'], ['weaker', 'W']])('a typed answer at step 4 is sorted with the step-5 bank of each tier, keyed on one letter; sorted %s, step 5 asks from step5.%s', async (tier, letter) => {
+    sorting(tier);
+    const p = await walked(['best', 'reasonable', 'weaker'], KASE5);
+    await answer(p, { text: 'my own words' });
+    expect(rimplChat.mock.calls[3][0].booth_typed).toEqual({
+      current: ai(KASE5.banks.step4.W),
+      next: { best: ai(KASE5.banks.step5.B), reasonable: ai(KASE5.banks.step5.R), weaker: ai(KASE5.banks.step5.W) },
+    });
+    expect(p.path).toBe(`BRW${letter}`);
+    expect(p.next).toEqual(shown(KASE5.banks.step5[letter], p.next.ask));
+    await answer(p, 'best');
+    expect((await score(p)).body).toMatchObject({ status: 'scored', domains: TABLE5.paths[`BRW${letter}B`] });
+  });
+
+  test('the three-step case beside it still starts with steps 3 and scores its own table', async () => {
+    const p = await walked(['best', 'reasonable', 'weaker']);
+    expect(p.started.step_count).toBe(3);
+    expect((await score(p)).body).toMatchObject({ status: 'scored', composite: compositeScore(TABLE.paths.BRW), domains: TABLE.paths.BRW });
+    expect(plays.get(p.id)).toMatchObject({ tier_path: 'BRW', replied_step: 3 });
+  });
+
+  test('a fourth answer posted to a three-step play answers 400, never a 500, and claims no step', async () => {
+    const p = await walked(['best', 'best', 'best']);
+    const res = await post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [...p.d.answers, { text: 'a fourth answer' }],
+      asks: [...p.d.asks, p.d.asks[2]] });
+    expect(res.status).toBe(400);
+    expect(rimplChat).toHaveBeenCalledTimes(3);
+    expect(plays.get(p.id)).toMatchObject({ status: 'started', replied_step: 3 });
+  });
+
+  test('a score of a five-step play after three answers answers 400 and leaves it started', async () => {
+    const p = await walked(['best', 'best', 'best'], KASE5);
+    expect((await score(p)).status).toBe(400);
+    expect((await score(p, { ...p.d, asks: p.d.asks.slice(0, 3) })).status).toBe(400);
+    expect(plays.get(p.id)).toMatchObject({ status: 'started', composite: null, replied_step: 3 });
+  });
+
+  describe('the board switch (booth_board_five_steps)', () => {
+    const seedScored = (tag, composite, tierPath) => seedPlay({ ...SCORED, tag, composite, tier_path: tierPath });
+
+    test('off, as seeded, every ranked play ranks whatever its step count, and no standings read filters on the tier path', async () => {
+      seedScored(1, 99, 'BBB');
+      seedScored(2, 98, 'BBBBB');
+      const three = await walked(['best', 'reasonable', 'weaker']);
+      const five = await walked(['best', 'reasonable', 'weaker', 'reasonable', 'best'], KASE5);
+      expect((await score(three)).body.rank_event).not.toBeNull();
+      expect((await score(five)).body.rank_event).not.toBeNull();
+      const board = (await get('/booth/board')).body.board.event.map((e) => e.tag);
+      expect(board.sort()).toEqual([1, 2, plays.get(three.id).tag, plays.get(five.id).tag].sort());
+      expect(standingsReads().length).toBeGreaterThan(0);
+      for (const read of standingsReads()) expect(read.likes).toEqual([]);
+    });
+
+    test('on, the board, today\'s rank and the event rank count five-step plays only: a three-step play gets no rank, a five-step one does', async () => {
+      settings = { rows: [...eventSettings(), BOARD_FIVE] };
+      seedScored(1, 99, 'BBB');
+      seedScored(2, 50, 'WWWWW');
+      const three = await walked(['best', 'best', 'best']);
+      const five = await walked(['best', 'reasonable', 'weaker', 'reasonable', 'best'], KASE5);
+      const threeScore = (await score(three)).body;
+      expect(threeScore).toMatchObject({ status: 'scored', composite: 100, rank_today: null, rank_event: null });
+      expect(threeScore.board.event.map((e) => e.tag)).toEqual([2]);
+      const fiveScore = (await score(five)).body;
+      expect(fiveScore).toMatchObject({ status: 'scored', rank_today: 1, rank_event: 1 });
+      expect(fiveScore.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
+      expect((await get('/booth/board')).body.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
+      expect(standingsReads()).toHaveLength(3);
+      for (const read of standingsReads()) expect(read.likes).toEqual([['tier_path', '_____']]);
+      expect(plays.get(three.id)).toMatchObject({ status: 'scored', ranked: true, tier_path: 'BBB' });
+    });
   });
 });
 

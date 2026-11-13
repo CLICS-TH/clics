@@ -37,7 +37,7 @@ function resultView(r) {
           el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(r.score)),
           el('span', { class: 'result-outof' }, '/ 100'))),
       radar(r.domains),
-      ...domainSections(r.domains)),
+      ...domainSections(r.domains, r.tiers?.length ?? null)),
     r.tiers ? tierList(r.tiers) : null,
     tryClics(),
     demoLabel(),

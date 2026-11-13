@@ -1,10 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-const { TIERS, caseTreeProblems, isAdmitted } = require('../src/booth-cases/tree-schema');
+const { TIERS, caseTreeProblems, isAdmitted, tableScore } = require('../src/booth-cases/tree-schema');
+const { compositeScore } = require('../src/services/ple-gate');
 
 const DIR = path.join(__dirname, '../src/booth-cases');
 const FIXTURE = path.join(__dirname, 'fixtures/booth-case-tree.json');
 const TABLE = path.join(__dirname, 'fixtures/booth-path-score-table.json');
+const FIXTURE5 = path.join(__dirname, 'fixtures/booth-case-tree-5.json');
+const TABLE5 = path.join(__dirname, 'fixtures/booth-path-score-table-5.json');
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const naming = (...parts) => expect.arrayContaining([expect.stringMatching(
   new RegExp(parts.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')))]);
@@ -13,8 +16,8 @@ const CASE_FILES = fs.readdirSync(DIR, { withFileTypes: true }).filter((d) => d.
   .flatMap((d) => fs.readdirSync(path.join(DIR, d.name)).filter((f) => f.endsWith('.json'))
     .map((f) => ({ name: `${d.name}/${f}`, file: path.join(DIR, d.name, f), event: d.name, id: f.replace(/\.json$/, '') })));
 
-// A case file must also be named after its case id and sit in its event's folder; the fixture has no folder.
-test.each([{ name: 'the fixture', file: FIXTURE }, ...CASE_FILES])('$name passes every shape and safety rule', ({ file, event, id }) => {
+// A case file must also be named after its case id and sit in its event's folder; the fixtures have no folder.
+test.each([{ name: 'the fixture', file: FIXTURE }, { name: 'the five-step fixture', file: FIXTURE5 }, ...CASE_FILES])('$name passes every shape and safety rule', ({ file, event, id }) => {
   const kase = read(file);
   expect({ problems: caseTreeProblems(kase), case_id: kase.case_id, event_code: kase.event_code })
     .toEqual({ problems: [], case_id: id ?? kase.case_id, event_code: event ?? kase.event_code });
@@ -132,6 +135,60 @@ describe('the path score table (ADR 0009)', () => {
     expect(caseTreeProblems(k)).toEqual([]);
     k.banks.step1.options[0].line.th += ' ค่ะ';
     expect(caseTreeProblems(k)).toEqual([expect.stringMatching(/^path_score_table\.provenance\.tree_sha256: is not this tree's hash/)]);
+  });
+});
+
+describe('the five-step shape (spec #370): 13 banks keyed on the previous tier, a fitted table at one decimal', () => {
+  const tree = read(FIXTURE5);
+  const tabled = { ...tree, path_score_table: read(TABLE5) };
+  const edited = (base, fn) => { const k = structuredClone(base); fn(k); return caseTreeProblems(k); };
+
+  test('the fixture passes with and without its table, and with it is admitted', () => {
+    expect([caseTreeProblems(tree), caseTreeProblems(tabled), isAdmitted(tabled)]).toEqual([[], [], true]);
+  });
+
+  test.each([
+    ['a missing step-5 bank', (k) => { delete k.banks.step5.W; }, ['banks.step5.W: ', 'Required']],
+    ['a missing step 5', (k) => { delete k.banks.step5; }, ['banks.step5: ', 'Required']],
+    ['a step-3 bank keyed by two tiers', (k) => { k.banks.step3.BR = k.banks.step3.B; }, ['banks.step3: ', "'BR'"]],
+    ['a step-4 bank with no weaker option', (k) => {
+      k.banks.step4.R.options = k.banks.step4.R.options.filter((o) => o.tier !== 'weaker');
+    }, ['banks.step4.R.options: ', 'weaker']],
+    ['an over-budget English line at step 4', (k) => {
+      k.banks.step4.R.options[1].line.en = `${'x'.repeat(66)} long`;
+    }, ['banks.step4.R.options[1].line.en: ', 'limit 70']],
+    ['a withholding label at step 5', (k) => {
+      k.banks.step5.B.options[0].label.en = 'Defer the repeat X-ray';
+    }, ['banks.step5.B.options[0].label.en: ', 'withholding']],
+  ])('%s fails and names its field', (_name, fn, parts) => {
+    expect(edited(tree, fn)).toEqual(naming(...parts));
+  });
+
+  test.each([
+    ['method median', (t) => { t.provenance.method = 'median'; }, ['path_score_table.provenance.method: ', 'median-regression']],
+    ['a two-decimal domain', (t) => { t.paths.BRWRR.d5 = 2.65; }, ['path_score_table.paths.BRWRR.d5: ', 'one decimal']],
+    ['a domain over 5', (t) => { t.paths.BRWRR.d3 = 5.1; }, ['path_score_table.paths.BRWRR.d3: ', '5']],
+    ['a domain under 0', (t) => { t.paths.WWWWW.d6 = -0.1; }, ['path_score_table.paths.WWWWW.d6: ', '0']],
+    ['a missing path', (t) => { delete t.paths.RRRRW; }, ['path_score_table.paths.RRRRW: ', 'Required']],
+  ])('a five-step table with %s fails and names its field', (_name, fn, parts) => {
+    expect(edited(tabled, (k) => fn(k.path_score_table))).toEqual(naming(...parts));
+  });
+
+  test('a table of the other shape fails on the table, whichever way round', () => {
+    expect(caseTreeProblems({ ...tree, path_score_table: read(TABLE) }))
+      .toEqual([expect.stringMatching(/^path_score_table: is a 3-step table .* on a 5-step tree$/)]);
+    expect(caseTreeProblems({ ...read(FIXTURE), path_score_table: read(TABLE5) }))
+      .toEqual([expect.stringMatching(/^path_score_table: is a 5-step table .* on a 3-step tree$/)]);
+  });
+
+  test('a play scores its tier path\'s table entry: one-decimal domains and a whole composite at five steps', () => {
+    const { paths } = tabled.path_score_table;
+    const fivePath = Object.keys(paths).find((p) => Object.values(paths[p]).some((v) => !Number.isInteger(v)));
+    expect(tableScore(tabled, fivePath))
+      .toEqual({ domains: paths[fivePath], composite: Math.round(compositeScore(paths[fivePath])) });
+    const three = { ...read(FIXTURE), path_score_table: read(TABLE) };
+    const { BRW } = three.path_score_table.paths;
+    expect(tableScore(three, 'BRW')).toEqual({ domains: BRW, composite: compositeScore(BRW) });
   });
 });
 

@@ -24,7 +24,12 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
 const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
-const TREE = JSON.parse(await readFile(fileURLToPath(new URL('../../backend/tests/fixtures/booth-case-tree.json', import.meta.url)), 'utf8'));
+const fixture = async (name) => JSON.parse(await readFile(fileURLToPath(new URL(`../../backend/tests/fixtures/${name}`, import.meta.url)), 'utf8'));
+const TREE = await fixture('booth-case-tree.json');
+/** The five-step fixture (spec #370): cap-adult-5, whose banks after step 1 are keyed by the previous tier, and its
+ *  fitted path score table, whose domains carry one decimal. */
+const TREE5 = await fixture('booth-case-tree-5.json');
+const TABLE5 = await fixture('booth-path-score-table-5.json');
 // The server's reply limits, read from its source: CI runs this without the backend's dependencies.
 const DIALOGUE = await readFile(fileURLToPath(new URL('../../backend/src/services/booth-dialogue.js', import.meta.url)), 'utf8');
 const serverConst = (name) => Number(new RegExp(`\\bconst ${name} = (\\d+);`).exec(DIALOGUE)?.[1]);
@@ -46,7 +51,7 @@ const FLOOR = { textPx: 28, optionLabelPx: 32, tapPx: 80, contrast: 4.5, thaiLea
 const DESIGNED_SCROLLERS = [
   ['.case-text', 'a case\'s vignette can be longer than its card: read in full on its own screen, then peeking above the step sheet'],
   ['.result-more', 'the five other domains sit under Practise next and the leaderboard button; the card\'s head (score, QR, radar) stays put'],
-  ['.reveal-steps', 'three steps of question, answer and best option outgrow one screen in a two-language look; the title and Close stay put'],
+  ['.reveal-steps', 'the steps\' questions, answers and best options outgrow one screen in a two-language look; the title and Close stay put'],
 ];
 
 /** In a one-language look, text the booth wrote holds no word of the other language, except these. Text whose nearest
@@ -97,7 +102,17 @@ function startServer() {
 }
 
 const TIER_LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
-const bankFor = (tree, path) => (path.length === 0 ? tree.banks.step1 : tree.banks[`step${path.length + 1}`][path]);
+/** A tree's step count, read from its own bank keys (backend booth-dialogue.js stepCount). */
+const stepCount = (tree) => Object.keys(tree.banks).filter((k) => /^step[1-9][0-9]*$/.test(k)).length;
+/** The bank the step after `path` draws from (backend booth-dialogue.js bankEntry): step 1's one bank, then the bank
+ *  keyed by the whole path so far (three steps) or by the previous tier (five steps). */
+function bankFor(tree, path) {
+  const level = tree.banks[`step${path.length + 1}`];
+  return path.length === 0 ? level : level[Object.hasOwn(level, path) ? path : path.slice(-1)];
+}
+/** Every bank of a tree as [name, bank], named as the reply cache keys it: step1, then step<n>.<key>. */
+const banksOf = (tree) => Object.entries(tree.banks).flatMap(([step, level]) => (Array.isArray(level.variants)
+  ? [[step, level]] : Object.entries(level).map(([key, bank]) => [`${step}.${key}`, bank])));
 
 /** The tier the stub sorts a typed answer into; best, so a typed answer steers away from the weaker branch. */
 const TYPED_TIER = 'B';
@@ -142,19 +157,17 @@ function bankWorstNext(bank, bridge = LONG_BRIDGE) {
 }
 
 let trees;
-/** [name, tree] of the fixture and of every case file in backend/src/booth-cases/<EVENT>/. Read once per run, so a
- *  case file that lands on master is checked without a harness edit. */
+/** [name, tree] of the two fixtures and of every case file in backend/src/booth-cases/<EVENT>/. Read once per run, so
+ *  a case file that lands on master is checked without a harness edit. */
 const caseTrees = () => (trees ??= (async () => {
   const files = (await readdir(CASES, { recursive: true })).filter((f) => /^[^/]+\/[^/]+\.json$/.test(f)).sort();
-  return [['fixture', TREE], ...await Promise.all(files.map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8'))]))];
+  return [['fixture', TREE], ['fixture-5', TREE5], ...await Promise.all(files.map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8'))]))];
 })());
 
 /** Every bank of caseTrees() as its worst Next, with identical Nexts kept once. */
 async function caseBankNexts(bridge = LONG_BRIDGE) {
   const seen = new Set();
-  return (await caseTrees()).flatMap(([file, tree]) => Object.entries({ step1: tree.banks.step1,
-    ...Object.fromEntries(Object.entries(tree.banks.step2).map(([p, b]) => [`step2.${p}`, b])),
-    ...Object.fromEntries(Object.entries(tree.banks.step3).map(([p, b]) => [`step3.${p}`, b])) })
+  return (await caseTrees()).flatMap(([file, tree]) => banksOf(tree)
     .map(([at, bank]) => ({ name: `${file} ${at}`, next: bankWorstNext(bank, bridge) })))
     .filter(({ next }) => { const key = JSON.stringify(next); return !seen.has(key) && seen.add(key); });
 }
@@ -163,7 +176,7 @@ const textLen = (b) => b.th.length + b.en.length;
 /** A Next of the longest texts of `trees` (question and the three longest options, any bank) for the fit checks.
  *  `size` ranks the options: label and line on a step screen, the label alone where only the label shows. */
 function longestNext(trees, { bridge = LONG_BRIDGE, size = (o) => textLen(o.label) + textLen(o.line) } = {}) {
-  const banks = trees.flatMap((t) => [t.banks.step1, ...Object.values(t.banks.step2), ...Object.values(t.banks.step3)]);
+  const banks = trees.flatMap((t) => banksOf(t).map(([, bank]) => bank));
   const question = banks.flatMap((b) => b.variants).sort((a, b) => textLen(b.question) - textLen(a.question))[0].question;
   const seen = new Set();
   const options = banks.flatMap((b) => b.options).sort((a, b) => size(b) - size(a))
@@ -181,20 +194,26 @@ const REPLY = (n) => ({
 const SIG = (n) => `sig-${n}`;
 /** The de-identified copy of typed answer n, which its reply carries and the kiosk posts back (ADR 0010). */
 const DEIDENTIFIED = (n) => `de-identified answer ${n}`;
-const START = { play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: KASE, next: nextFor(TREE, ''), sig: SIG(0) };
+/** What a start answers on `tree`: the play, its vignette, step 1's Next, the first sig and the case's step count. */
+const startFor = (tree) => ({ play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: { vignette: tree.vignette }, next: nextFor(tree, ''), sig: SIG(0),
+  step_count: stepCount(tree) });
+const START = startFor(TREE);
 /** What a draw answers: the case id and its teaser, nothing else of the case. */
 const drawOf = (tree) => ({ case_id: tree.case_id, teaser: tree.teaser });
 const DRAW = drawOf(TREE);
-/** The default reply to answer n: reply n, its sig, DEIDENTIFIED(n) for a typed answer, and (after answers 1 and 2)
- *  the Next for the path walked. */
-function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length) } = {}) {
+/** The default reply to answer n on `tree`: reply n, its sig, DEIDENTIFIED(n) for a typed answer, and (before the
+ *  case's last answer) the Next for the path walked. */
+function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length), tree = TREE } = {}) {
   const n = answers.length;
   return {
     status: 'replied', reply, reply_sig: SIG(n), ...(n > 0 && 'text' in answers[n - 1] ? { deidentified: DEIDENTIFIED(n) } : {}),
-    ...(n < 3 ? { next: nextFor(TREE, pathOf(TREE, answers), bridge) } : {}),
+    ...(n < stepCount(tree) ? { next: nextFor(tree, pathOf(tree, answers), bridge) } : {}),
   };
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
+/** The score the server reads from a fitted table (ADR 0009) for the path `answers` walked: that entry's one-decimal
+ *  domains, and a whole composite as five-step plays send it (the stub's own, not the entry's weighted one). */
+const tableScore = (tree, table, { answers = [] } = {}) => ({ domains: table.paths[pathOf(tree, answers)], composite: Math.round(SCORED.composite) });
 const TIER_NAME = Object.fromEntries(Object.entries(TIER_LETTER).map(([name, letter]) => [letter, name]));
 /** The score response's `steps`, as the server builds them (booth-dialogue stepTiers): per posted ask, the tier the
  *  answer took and each offered option's tier from its bank. */
@@ -205,35 +224,36 @@ function stepsFor(tree, { answers = [], asks = [] } = {}) {
     return { tier: TIER_NAME[path[i]], options: ask.options.map((id) => ({ id, tier: bank.options.find((o) => o.id === id)?.tier ?? 'weaker' })) };
   });
 }
-/** The default score answer to a score call: SCORED with the call's steps, `over` merged on top. */
-const scoredFor = (call, over = {}) => ({ status: 200, body: { ...SCORED, steps: stepsFor(TREE, call.body ?? {}), ...over } });
+/** The default score answer to a score call on `tree`: SCORED with the call's steps, `over` merged on top. */
+const scoredFor = (call, over = {}, tree = TREE) => ({ status: 200, body: { ...SCORED, steps: stepsFor(tree, call.body ?? {}), ...over } });
 
 /**
- * A fresh stub per kiosk. Default routes:
+ * A fresh stub per kiosk, playing `tree` (default the three-step fixture backend/tests/fixtures/booth-case-tree.json;
+ * TREE5 is the five-step one). Default routes:
  *   'GET /booth/status'            { open: true, event_code }
- *   'POST /booth/draw'             DRAW: { case_id, teaser } of the fixture case
- *   'POST /booth/plays'            START: { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig };
- *                                  400 bad_request unless the body names a case_id
+ *   'POST /booth/draw'             drawOf(tree): { case_id, teaser }
+ *   'POST /booth/plays'            startFor(tree): { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig,
+ *                                  step_count: the tree's step count }; 400 bad_request unless the body names a case_id
  *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), DEIDENTIFIED(n) for
- *                                  a typed answer n, next for the tier path walked (n < 3)
- * The case is backend/tests/fixtures/booth-case-tree.json.
+ *                                  a typed answer n, next for the tier path walked (n < the tree's step count)
  *   'GET /booth/board'             { board: { today: [], event: [] } }
- *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted
+ *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted; with a `table`
+ *                                  (TABLE5), the domains of the walked path's entry and a whole composite
  * opts.routes merges over these: key -> (call, calls) => ({ status, body }) | 'abort'. Unknown keys answer 404.
  * stub.hold(key) returns release(): matching requests wait until released. stub.calls records every request as
  * { key, path, body, headers }; stub.of(key) filters it.
  */
-function makeStub({ routes = {} } = {}) {
+function makeStub({ tree = TREE, table: scores = null, routes = {} } = {}) {
   const calls = [];
   const holds = new Map();
   const table = {
-    'GET /booth/status': () => ({ status: 200, body: { open: true, event_code: TREE.event_code } }),
-    'POST /booth/draw': () => ({ status: 200, body: DRAW }),
+    'GET /booth/status': () => ({ status: 200, body: { open: true, event_code: tree.event_code } }),
+    'POST /booth/draw': () => ({ status: 200, body: drawOf(tree) }),
     'POST /booth/plays': (call) => (typeof call.body?.case_id === 'string'
-      ? { status: 201, body: START } : { status: 400, body: { error: 'That answer could not be read.', reason: 'bad_request' } }),
-    'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: replyBody(call.body?.answers ?? []) }),
+      ? { status: 201, body: startFor(tree) } : { status: 400, body: { error: 'That answer could not be read.', reason: 'bad_request' } }),
+    'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: replyBody(call.body?.answers ?? [], { tree }) }),
     'GET /booth/board': () => ({ status: 200, body: { board: { today: [], event: [] } } }),
-    'POST /booth/plays/:id/score': (call) => scoredFor(call),
+    'POST /booth/plays/:id/score': (call) => scoredFor(call, scores ? tableScore(tree, scores, call.body ?? {}) : {}, tree),
     ...routes,
   };
   return {
@@ -675,7 +695,7 @@ async function shot(page, name, { fullPage = false } = {}) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY, SERVER_LOOKS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
+const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY, SERVER_LOOKS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, TREE5, TABLE5, stepCount, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {
