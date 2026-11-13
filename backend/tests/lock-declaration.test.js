@@ -29,7 +29,10 @@ const { rimplEvaluate } = require('../src/services/rimpl-client');
 
 const W = 'a'.repeat(64);
 const MSHA = 'f'.repeat(64);
-const PV = 'pis7-prompt-59561c29+local-c5ffe572aa81';
+// The local evaluator's label: the manifest's model-free label plus `@<declared model>` (rimpl
+// versions.js promptVersionFor), which is what its rows are stamped with and what a lock declares.
+const PV_LABEL = 'pis7-prompt-59561c29+local-c5ffe572aa81';
+const PV = `${PV_LABEL}@qwen-2.5-72b`;
 const RV = 'pis7-weights-08b0cb1a';
 const MV = 'CCME_LLM_v8.0+qwen-2.5-72b';
 
@@ -127,13 +130,52 @@ describe('lockDeclarationDigest: what a post-lock score carries', () => {
   });
 });
 
+// ---- the identity basis (ADR 0012): v1 for a weights lock, unchanged; v2 for a model-identity lock ----
+describe('lockDeclarationDigest by identity basis', () => {
+  // A v1 record as it stood before identity_basis existed, with its digest as a literal: the sha256 of the
+  // hand-written v1 payload above, for the model-free prompt label that record declared.
+  const V1_RECORD = Object.freeze({ ...RECORD, evaluator_prompt_version: PV_LABEL });
+  const V1_DIGEST = '24946448595635e8c454d5a6101769c5ed3120251f297f920798ef2ec9fe9093';
+  const FP = 'vllm-0.22.0-tp2-0123abcd';
+  const ID_RECORD = Object.freeze({ ...RECORD, identity_basis: 'model_id+system_fingerprint', weights_sha256: null, system_fingerprint: FP });
+
+  test('a weights_sha256 record digests to the value it had before the basis existed, with or without the new columns', () => {
+    expect(lockDeclarationDigest(V1_RECORD)).toBe(V1_DIGEST);
+    expect(lockDeclarationDigest({ ...V1_RECORD, identity_basis: 'weights_sha256', system_fingerprint: null })).toBe(V1_DIGEST);
+  });
+
+  test('a model-identity record is the v2 tagged canonical JSON: v1\'s fields plus the basis and the fingerprint', () => {
+    const payload = '{"declaration":{'
+      + '"decoding":{"max_tokens":1500,"seed":7,"temperature":0,"top_p":1},'
+      + '"environment":{"cuda":"12.4","os":"ubuntu 24.04","vllm":"0.21.1"},'
+      + `"evaluator_prompt_version":"${PV}","identity_basis":"model_id+system_fingerprint","inference_engine":"vllm 0.21.1",`
+      + `"model_version":"${MV}","provider":"local","quantization":"bf16","rubric_version":"${RV}",`
+      + `"system_fingerprint":"${FP}","system_prompt_version":"sys-v3","weights_sha256":null},"v":"clics-lock-declaration/v2"}`;
+    expect(lockDeclarationDigest(ID_RECORD)).toBe(crypto.createHash('sha256').update(payload, 'utf8').digest('hex'));
+  });
+
+  test('a different fingerprint or model id is a different v2 digest', () => {
+    const d = lockDeclarationDigest(ID_RECORD);
+    expect(lockDeclarationDigest({ ...ID_RECORD, system_fingerprint: 'vllm-0.22.1-tp2-ffff' })).not.toBe(d);
+    expect(lockDeclarationDigest({ ...ID_RECORD, model_version: 'CCME_LLM_v8.0+other' })).not.toBe(d);
+  });
+
+  test('the same declared fields under the two bases never share a digest', () => {
+    expect(lockDeclarationDigest(ID_RECORD)).not.toBe(lockDeclarationDigest({ ...ID_RECORD, identity_basis: 'weights_sha256' }));
+  });
+
+  test('an unknown basis is refused rather than digested under a guess', () => {
+    expect(() => lockDeclarationDigest({ ...RECORD, identity_basis: 'vibes' })).toThrow(TypeError);
+  });
+});
+
 // ---- the fetch double: rimpl's GET /manifest and POST /evaluate ------------------------------------
 
 const EXPECTED = {
   code: {
     anthropic: { model: 'claude-sonnet-4-6', model_version: 'CCME_LLM_v8.0+claude-sonnet-4-6' },
     model_version_prefix: 'CCME_LLM_v8.0+',
-    evaluator: { prompt_version: { anthropic: 'pis7-prompt-59561c29', local: PV }, rubric_version: RV },
+    evaluator: { prompt_version: { anthropic: 'pis7-prompt-59561c29', local: PV_LABEL }, rubric_version: RV },
     decoding: { evaluate: { max_tokens: { default: 1500, env: 'EVAL_MAX_TOKENS' }, temperature: 0 } },
     consistency: { evaluate: { mode: { default: 'off', env: 'EVAL_CONSISTENCY', applies_to: 'local' } } },
     providers: { allowed: { evaluate: ['anthropic', 'local'] } },
@@ -241,7 +283,7 @@ const evaluate = (pleId) => triggerEvaluation(pleId, [{ role: 'physician', conte
 let rimplIsCurrent = true;
 const rimplProvenance = (body) => ({
   weights_sha256: body.weights_sha256 ?? null, locked: !!body.weights_sha256,
-  ...(rimplIsCurrent ? { lock_declaration_sha256: body.lock_declaration_sha256 ?? null } : {}),
+  ...(rimplIsCurrent ? { lock_declaration_sha256: body.lock_declaration_sha256 ?? null, identity_basis: body.identity_basis ?? null } : {}),
 });
 const lastEvaluateBody = () => evaluateBodies().at(-1);
 
@@ -336,6 +378,40 @@ describe('from POST /admin/evaluator-lock to the /evaluate request body', () => 
     await evaluate('ple-relocked');
     expect(lastEvaluateBody().lock_declaration_sha256).toBe(first);
   });
+
+  describe('a model_id+system_fingerprint lock', () => {
+    const FP = 'vllm-0.22.0-tp2-0123abcd';
+    beforeEach(() => {
+      const expected = { ...EXPECTED, declared: { ...EXPECTED.declared, local: { ...EXPECTED.declared.local, system_fingerprint: FP } } };
+      global.fetch = jest.fn(async (url, init) => (String(url).endsWith('/manifest')
+        ? respond({ manifest: { schema: 'clics-model-manifest/v1', expected, sha256: MSHA }, sha256: MSHA, claimed_sha256: MSHA,
+          file: 'present', code_match: true, live: { last_seen: { local: { model: 'qwen-2.5-72b', engine: 'vllm', runtime: FP } } }, drift: [] })
+        : respond({ ...SCORE, provenance: rimplProvenance(JSON.parse(init.body)) })));
+    });
+    const { weights_sha256: _w, ...noDigest } = DECLARATION;
+
+    test('declared with no digest: the evaluation sends the basis, null weights and the v2 digest of the record, and the score is saved', async () => {
+      const r = await declare({ ...noDigest, identity_basis: 'model_id+system_fingerprint' });
+      expect(r.status).toBe(200);
+      expect(db.locks[0]).toMatchObject({ identity_basis: 'model_id+system_fingerprint', weights_sha256: null, system_fingerprint: FP, model_version: MV });
+      expect(db.settings.evaluator_weights_sha256).toBeNull();
+      expect(r.body.lock_declaration_sha256).toBe(lockDeclarationDigest(db.locks[0]));
+      await evaluate('ple-id');
+      expect(lastEvaluateBody()).toMatchObject({ weights_sha256: null, identity_basis: 'model_id+system_fingerprint',
+        lock_declaration_sha256: r.body.lock_declaration_sha256 });
+      expect(db.saved).toHaveLength(1);
+    });
+
+    test('a weights lock over the same declaration carries a different digest and sends no basis', async () => {
+      const byId = (await declare({ ...noDigest, identity_basis: 'model_id+system_fingerprint' })).body.lock_declaration_sha256;
+      const byWeights = await declare({ ...DECLARATION, confirm_relock: 'REPLACE THE LOCK' });
+      expect(byWeights.status).toBe(200);
+      expect(byWeights.body.lock_declaration_sha256).not.toBe(byId);
+      await evaluate('ple-w');
+      expect(lastEvaluateBody()).toMatchObject({ weights_sha256: W });
+      expect(lastEvaluateBody()).not.toHaveProperty('identity_basis');
+    });
+  });
 });
 
 // ---- evaluationLockStamp: every way the read can fail is a refusal, never "unlocked" ----------------
@@ -365,7 +441,7 @@ describe('evaluationLockStamp fails closed', () => {
 
   test('both settings come from ONE statement, and the record is looked up by the flag', async () => {
     m.state.resolve = (table) => (table === 'app_settings' ? settingsRows(LOCKED) : { ...RECORD, locked_at: LOCKED.evaluator_locked_at });
-    expect(await evaluationLockStamp()).toEqual({ weights_sha256: W, lock_declaration_sha256: lockDeclarationDigest(RECORD) });
+    expect(await evaluationLockStamp()).toEqual({ weights_sha256: W, lock_declaration_sha256: lockDeclarationDigest(RECORD), identity_basis: null });
     const settingsReads = m.all('app_settings');
     expect(settingsReads).toHaveLength(1);
     expect(settingsReads[0].ins).toEqual([['key', ['evaluator_locked_at', 'evaluator_weights_sha256']]]);

@@ -2,7 +2,8 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry, maskLabelledTail } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
-const { callAI, providerSupportsThinking, supportsThinking } = require('../services/ai');
+const { callAI, providerSupportsThinking, supportsThinking, isProviderDown } = require('../services/ai');
+const { localOnly } = require('../lib/provider-policy');
 const { routeTurn } = require('../services/router');
 const { hasCitation, extractSocraticQuestion, extractReferences, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { chatSystemPrompt, EVIDENCE_RETRY_PROMPT } = require('../lib/prompts');
@@ -710,6 +711,12 @@ router.post('/', async (req, res) => {
     // Once a stream is open the error becomes its final event, with the status and body it would
     // have had (lib/sse.js out()).
     const out = sse ? sse.out() : res;
+    // Local-only mode (ADR 0012): the on-prem tutor being down fails CLOSED with its own code, never a
+    // generic 500 and never a fail-over (services/ai.js refuses a commercial target). The backend reads
+    // `ai_unavailable` as "nothing stored, nothing charged, keep the typed text". Mode off: unchanged.
+    if (localOnly() && isProviderDown(err)) {
+      return out.status(503).json({ error: 'AI temporarily unavailable. Your session is saved.', code: 'ai_unavailable' });
+    }
     sendAiError(out, err, 'AI service temporarily unavailable. Please try again.');
     if (sse?.open && isAborted(err) && !res.writableEnded) res.end();
   }

@@ -1,0 +1,1023 @@
+{
+  "case_id": "motorcycle-shock",
+  "version": "4",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ที่โรงพยาบาลชุมชน ชายหนุ่มขี่จักรยานยนต์ถูกรถกระบะชน ตัวเย็นซีดและชีพจรเร็ว",
+    "en": "At a community hospital, a young motorcycle rider hit by a pickup truck, cold and pale with a racing pulse"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 24 ปี สวมหมวกกันน็อกขี่จักรยานยนต์ถูกรถกระบะชน กู้ภัยนำส่ง รพ.ชุมชนใน 30 นาที พูดได้ รู้ตัวดีแต่กระสับกระส่าย หายใจ 26 ครั้ง/นาที SpO2 96% ขณะหายใจอากาศปกติ ชีพจร 128 ครั้ง/นาที ความดัน 86/60 มม.ปรอท มือเย็นซีด capillary refill 4 วินาที เสียงหายใจเท่ากัน ชายโครงซ้ายล่างฟกช้ำ กดเจ็บท้องซ้ายบน เชิงกรานกดไม่เจ็บ ปลายแขนซ้ายผิดรูป",
+    "en": "A fictional 24-year-old man was riding a motorcycle, wearing a helmet, when a pickup truck hit him. Rescue staff bring him to a community hospital within 30 minutes. He is talking and alert but restless. RR 26/min, SpO2 96% on air, pulse 128/min, BP 86/60 mmHg. Cold, pale hands and capillary refill of 4 s. Equal breath sounds. Bruised left lower ribs, a tender left upper abdomen, a non-tender pelvis and a deformed left forearm."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อะไรอธิบายความดันต่ำของเขาได้ดีที่สุด",
+            "en": "What best explains his low blood pressure?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ช็อกจากเลือดออกในช่องท้อง",
+            "en": "Haemorrhagic shock, abdominal source"
+          },
+          "line": {
+            "th": "ชีพจรเร็ว ความดันต่ำ และกดเจ็บท้องซ้ายบนเข้ากันดี",
+            "en": "Fast pulse, low pressure and a tender left upper abdomen fit."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "ม้ามบาดเจ็บจากอุบัติเหตุ",
+            "en": "Traumatic splenic injury"
+          },
+          "line": {
+            "th": "ชายโครงซ้ายฟกช้ำและกดเจ็บท้องซ้ายบนชี้ไปที่ม้าม",
+            "en": "Left rib bruising and a tender left upper abdomen point to the spleen."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ช็อกจากเสียเลือด ไม่ทราบตำแหน่ง",
+            "en": "Blood-loss shock, source unclear"
+          },
+          "line": {
+            "th": "ภาวะช็อกในผู้บาดเจ็บส่วนใหญ่เกิดจากการเสียเลือด",
+            "en": "Most shock after injury comes from blood loss."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "ลมในช่องเยื่อหุ้มปอดชนิดมีแรงดัน",
+            "en": "Tension pneumothorax"
+          },
+          "line": {
+            "th": "ชนแรงที่ชายโครงร่วมกับความดันต่ำทำให้นึกถึงภาวะนี้",
+            "en": "A hard blow to the ribs with low pressure brings it to mind."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ช็อกจากไขสันหลังบาดเจ็บ",
+            "en": "Neurogenic shock, spinal injury"
+          },
+          "line": {
+            "th": "อุบัติเหตุจักรยานยนต์ทำให้ไขสันหลังบาดเจ็บได้",
+            "en": "A motorcycle crash can injure the spinal cord."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สงสัยเลือดออกในช่องท้อง ระหว่างกู้ชีพจะส่งตรวจอะไรก่อน",
+              "en": "You suspect abdominal bleeding. While you resuscitate, which test first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ระหว่างกู้ชีพในห้องฉุกเฉิน จะส่งตรวจอะไรก่อน",
+              "en": "While you resuscitate in the emergency room, which test first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อัลตราซาวด์ FAST ข้างเตียง",
+              "en": "Bedside FAST ultrasound"
+            },
+            "line": {
+              "th": "เห็นของเหลวในช่องท้องได้เร็วที่ข้างเตียง",
+              "en": "Shows fluid in the abdomen quickly at the bedside."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจหมู่เลือดและจองเลือด",
+              "en": "Group and crossmatch blood"
+            },
+            "line": {
+              "th": "ส่งตรวจตอนนี้ ระหว่างนั้นให้เลือดหมู่โอได้ทันที",
+              "en": "Sends the match now while group O blood starts at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดและเชิงกราน",
+              "en": "Chest and pelvic X-rays"
+            },
+            "line": {
+              "th": "หาเลือดออกในช่องอกและเชิงกรานได้ในห้องฉุกเฉิน",
+              "en": "Looks for bleeding into the chest and pelvis in the emergency room."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจปัสสาวะหาเลือด",
+              "en": "Urinalysis for blood"
+            },
+            "line": {
+              "th": "เลือดในปัสสาวะชี้ว่าไตอาจบาดเจ็บร่วมด้วย",
+              "en": "Blood in the urine may point to a kidney injury as well."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ความดันยังต่ำ ระหว่างกู้ชีพจะส่งตรวจอะไรก่อน",
+              "en": "His pressure is still low. While you resuscitate, which test first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ระหว่างกู้ชีพ จะส่งตรวจอะไรเป็นอย่างแรก",
+              "en": "While you resuscitate him, which test comes first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อัลตราซาวด์ FAST ข้างเตียง",
+              "en": "Bedside FAST ultrasound"
+            },
+            "line": {
+              "th": "เห็นของเหลวในช่องท้องได้เร็วที่ข้างเตียง",
+              "en": "Shows fluid in the abdomen quickly at the bedside."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจหมู่เลือดและจองเลือด",
+              "en": "Group and crossmatch blood"
+            },
+            "line": {
+              "th": "ส่งตรวจตอนนี้ ระหว่างนั้นให้เลือดหมู่โอได้ทันที",
+              "en": "Sends the match now while group O blood starts at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดและเชิงกราน",
+              "en": "Chest and pelvic X-rays"
+            },
+            "line": {
+              "th": "หาเลือดออกในช่องอกและเชิงกรานได้ในห้องฉุกเฉิน",
+              "en": "Looks for bleeding into the chest and pelvis in the emergency room."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจความสมบูรณ์ของเลือด",
+              "en": "Complete blood count"
+            },
+            "line": {
+              "th": "ได้ค่าฮีโมโกลบินตั้งต้นไว้เทียบกับครั้งต่อไป",
+              "en": "Gives a baseline haemoglobin to compare with later."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เสียงหายใจเท่ากัน หลอดลมอยู่กลาง ระหว่างกู้ชีพตรวจอะไรก่อน",
+              "en": "Equal breath sounds, trachea central. While you resuscitate, which test first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผิวเย็นซีด ชีพจรเร็ว ระหว่างกู้ชีพจะส่งตรวจอะไรก่อน",
+              "en": "Cold, pale skin and a fast pulse. While you resuscitate, which test first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อัลตราซาวด์ eFAST อกและท้อง",
+              "en": "eFAST of the chest and abdomen"
+            },
+            "line": {
+              "th": "ดูทั้งลมในช่องอกและของเหลวในช่องท้องที่ข้างเตียง",
+              "en": "Checks the chest for air and the abdomen for fluid at the bedside."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจหมู่เลือดและจองเลือด",
+              "en": "Group and crossmatch blood"
+            },
+            "line": {
+              "th": "ส่งตรวจตอนนี้ ระหว่างนั้นให้เลือดหมู่โอได้ทันที",
+              "en": "Sends the match now while group O blood starts at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดและเชิงกราน",
+              "en": "Chest and pelvic X-rays"
+            },
+            "line": {
+              "th": "หาเลือดออกในช่องอกและเชิงกรานได้ในห้องฉุกเฉิน",
+              "en": "Looks for bleeding into the chest and pelvis in the emergency room."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจความสมบูรณ์ของเลือด",
+              "en": "Complete blood count"
+            },
+            "line": {
+              "th": "ได้ค่าฮีโมโกลบินตั้งต้นไว้เทียบกับครั้งต่อไป",
+              "en": "Gives a baseline haemoglobin to compare with later."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจปัสสาวะหาเลือด",
+              "en": "Urinalysis for blood"
+            },
+            "line": {
+              "th": "เลือดในปัสสาวะชี้ว่าไตอาจบาดเจ็บร่วมด้วย",
+              "en": "Blood in the urine may point to a kidney injury as well."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ความดันลดเหลือ 82/56 ชีพจร 132 คุณจะรักษาอย่างไร",
+              "en": "His BP falls to 82/56 and his pulse is 132. What is your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ท้องซ้ายบนกดเจ็บมากขึ้น แผนการรักษาของคุณคืออะไร",
+              "en": "The left upper abdomen is more tender. What is your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดและ TXA แล้วส่งต่อด่วน",
+              "en": "Blood and TXA, then urgent transfer"
+            },
+            "line": {
+              "th": "ทดแทนเลือด ลดเลือดออก และถึงมือศัลยแพทย์เร็ว",
+              "en": "Replaces blood, slows bleeding and reaches a surgeon fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดจนความดันตัวบนราว 90",
+              "en": "Blood to a systolic BP near 90"
+            },
+            "line": {
+              "th": "พอให้เลือดไปเลี้ยงอวัยวะ พร้อม TXA และส่งต่อเพื่อผ่าตัด",
+              "en": "Enough to feed the organs, with TXA and transfer for surgery."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 1 ลิตร แล้วให้เลือด",
+              "en": "Saline 1 L, then blood"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรเร็ว พร้อม TXA และส่งต่อเพื่อผ่าตัด",
+              "en": "Adds volume fast, with TXA and transfer for surgery."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้เลือดและส่งต่อด่วน",
+              "en": "Blood and urgent transfer"
+            },
+            "line": {
+              "th": "การให้เลือดและการผ่าตัดคือหัวใจของการรักษานี้",
+              "en": "Blood and surgery are the heart of this treatment."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์ปกติ ความดันลดเหลือ 82/56 จะทำอะไรต่อ",
+              "en": "The X-rays are clear and BP falls to 82/56. What next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เอกซเรย์ปกติ ท้องซ้ายบนกดเจ็บมากขึ้น คุณจะรักษาอย่างไร",
+              "en": "The X-rays are clear and the left upper abdomen is more tender. Your plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "เอกซเรย์อกและเชิงกรานปกติ ท้องซ้ายบนกดเจ็บ ทำอะไรต่อ",
+              "en": "Chest and pelvic X-rays are normal; the left upper abdomen is tender. Next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดและ TXA แล้วส่งต่อด่วน",
+              "en": "Blood and TXA, then urgent transfer"
+            },
+            "line": {
+              "th": "ทดแทนเลือด ลดเลือดออก และถึงมือศัลยแพทย์เร็ว",
+              "en": "Replaces blood, slows bleeding and reaches a surgeon fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดจนความดันตัวบนราว 90",
+              "en": "Blood to a systolic BP near 90"
+            },
+            "line": {
+              "th": "พอให้เลือดไปเลี้ยงอวัยวะ พร้อม TXA และส่งต่อเพื่อผ่าตัด",
+              "en": "Enough to feed the organs, with TXA and transfer for surgery."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 1 ลิตร แล้วให้เลือด",
+              "en": "Saline 1 L, then blood"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรเร็ว พร้อม TXA และส่งต่อเพื่อผ่าตัด",
+              "en": "Adds volume fast, with TXA and transfer for surgery."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้เลือดและส่งต่อด่วน",
+              "en": "Blood and urgent transfer"
+            },
+            "line": {
+              "th": "การให้เลือดและการผ่าตัดคือหัวใจของการรักษานี้",
+              "en": "Blood and surgery are the heart of this treatment."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผลตรวจเบื้องต้นปกติ ความดันลดเหลือ 82/56 จะทำอะไรต่อ",
+              "en": "The first tests are normal and BP falls to 82/56. What next?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลตรวจเบื้องต้นปกติ ชีพจร 130 คุณจะรักษาอย่างไร",
+              "en": "The first tests are normal and his pulse is 130. What is your plan?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ผลตรวจเบื้องต้นปกติ ท้องซ้ายบนกดเจ็บ จะทำอะไรต่อ",
+              "en": "The first tests are normal and the left upper abdomen is tender. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดและ TXA แล้วส่งต่อด่วน",
+              "en": "Blood and TXA, then urgent transfer"
+            },
+            "line": {
+              "th": "ทดแทนเลือด ลดเลือดออก และถึงมือศัลยแพทย์เร็ว",
+              "en": "Replaces blood, slows bleeding and reaches a surgeon fast."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดจนความดันตัวบนราว 90",
+              "en": "Blood to a systolic BP near 90"
+            },
+            "line": {
+              "th": "พอให้เลือดไปเลี้ยงอวัยวะ พร้อม TXA และส่งต่อเพื่อผ่าตัด",
+              "en": "Enough to feed the organs, with TXA and transfer for surgery."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำเกลือ 1 ลิตร แล้วให้เลือด",
+              "en": "Saline 1 L, then blood"
+            },
+            "line": {
+              "th": "เพิ่มปริมาตรเร็ว พร้อม TXA และส่งต่อเพื่อผ่าตัด",
+              "en": "Adds volume fast, with TXA and transfer for surgery."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้เลือดและส่งต่อด่วน",
+              "en": "Blood and urgent transfer"
+            },
+            "line": {
+              "th": "การให้เลือดและการผ่าตัดคือหัวใจของการรักษานี้",
+              "en": "Blood and surgery are the heart of this treatment."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "หลังให้เลือด 2 ยูนิต ความดัน 94/62 ชีพจร 108 ทำอะไรต่อ",
+              "en": "After two units of blood, BP is 94/62 and pulse 108. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผู้ป่วยสงบลง ความดัน 94/62 ขณะประสานส่งต่อ ทำอะไรต่อ",
+              "en": "He is calmer, BP 94/62, as the referral is arranged. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "วัดสัญญาณชีพซ้ำทุก 5 นาที",
+              "en": "Recheck vital signs every 5 minutes"
+            },
+            "line": {
+              "th": "จับความดันที่ตกซ้ำได้เร็วระหว่างเตรียมส่งต่อ",
+              "en": "Catches a fresh fall in pressure early as the transfer is set up."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "FAST ข้างเตียง วัดปริมาณปัสสาวะ",
+              "en": "Bedside FAST, measure urine output"
+            },
+            "line": {
+              "th": "ดูทั้งของเหลวในท้องและเลือดที่ไปเลี้ยงไต",
+              "en": "Checks the abdominal fluid and the blood reaching the kidneys."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ดามแขนซ้ายและคลำชีพจรปลายแขน",
+              "en": "Splint the left arm, check its pulse"
+            },
+            "line": {
+              "th": "ป้องกันหลอดเลือดและเส้นประสาทก่อนเดินทาง",
+              "en": "Protects the vessels and nerves before the journey."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจฮีโมโกลบินซ้ำตอนนี้",
+              "en": "Repeat haemoglobin now"
+            },
+            "line": {
+              "th": "ได้ตัวเลขไว้ติดตามการเสียเลือด",
+              "en": "Gives a number to track the blood loss."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ความดันขึ้นแล้วตกเหลือ 84/56 ใน 20 นาที ทำอะไรต่อ",
+              "en": "BP rose, then fell to 84/56 within 20 minutes. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "หลังกู้ชีพช่วงแรก ชีพจรกลับขึ้นไป 130 ขั้นต่อไปคืออะไร",
+              "en": "After the first resuscitation, his pulse climbs back to 130. Next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดเพิ่มและเร่งส่งต่อ",
+              "en": "More blood, hasten the transfer"
+            },
+            "line": {
+              "th": "เลือดยังออกอยู่ ต้องถึงมือศัลยแพทย์ให้เร็วที่สุด",
+              "en": "He is still bleeding and needs a surgeon as fast as possible."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้แค่เลือด เป้าความดันตัวบน 90",
+              "en": "Blood only, target systolic BP 90"
+            },
+            "line": {
+              "th": "ลดการเจือจางเลือดและพอให้อวัยวะได้เลือด",
+              "en": "Limits dilution and keeps just enough pressure for the organs."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ทำ FAST ข้างเตียงตอนนี้",
+              "en": "Bedside FAST now"
+            },
+            "line": {
+              "th": "ดูว่าตอนนี้มีของเหลวในช่องท้องมากเพียงใด",
+              "en": "Shows how much fluid is in the abdomen now."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจฮีโมโกลบินซ้ำตอนนี้",
+              "en": "Repeat haemoglobin now"
+            },
+            "line": {
+              "th": "ได้ตัวเลขไว้ติดตามการเสียเลือด",
+              "en": "Gives a number to track the blood loss."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "1 ชั่วโมงหลังเกิดเหตุ ให้เลือดแล้ว ความดัน 88/58 ทำอะไรต่อ",
+              "en": "An hour after the crash, blood is running and BP is 88/58. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ให้เลือดอยู่ ชีพจรยังคง 124 คุณจะทำอะไรต่อ",
+              "en": "Blood is running and his pulse stays at 124. What do you do next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้ TXA 1 กรัม IV ใน 10 นาที",
+              "en": "TXA 1 g IV over 10 minutes"
+            },
+            "line": {
+              "th": "ยิ่งให้เร็วยิ่งดีภายใน 3 ชม. ลดการตายจากเลือดออก",
+              "en": "Best given early, within 3 hours; it cuts deaths from bleeding."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้เลือดเพิ่มและเร่งส่งต่อ",
+              "en": "More blood, hasten the transfer"
+            },
+            "line": {
+              "th": "เลือดยังออกอยู่ ต้องถึงมือศัลยแพทย์ให้เร็วที่สุด",
+              "en": "He is still bleeding and needs a surgeon as fast as possible."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ทำ FAST ข้างเตียงตอนนี้",
+              "en": "Bedside FAST now"
+            },
+            "line": {
+              "th": "ดูว่าตอนนี้มีของเหลวในช่องท้องมากเพียงใด",
+              "en": "Shows how much fluid is in the abdomen now."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจฮีโมโกลบินซ้ำตอนนี้",
+              "en": "Repeat haemoglobin now"
+            },
+            "line": {
+              "th": "ได้ตัวเลขไว้ติดตามการเสียเลือด",
+              "en": "Gives a number to track the blood loss."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ตอนนี้ความดัน 94/62 รพ.จังหวัดรับตัวแล้ว จะส่งอย่างไร",
+              "en": "BP is now 94/62 and the provincial hospital accepts him. How do you send him?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ปลายทางตอบรับการส่งต่อ ผู้ป่วยคงที่ จะส่งตัวอย่างไร",
+              "en": "The referral is accepted and he is steady. How do you send him?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พยาบาลนำส่ง ให้เลือดตลอดทาง",
+              "en": "Nurse escort, blood running"
+            },
+            "line": {
+              "th": "ผู้นำส่งที่ผ่านการอบรมให้เลือดและเฝ้าอาการตลอดทาง",
+              "en": "A trained escort keeps blood going and watches him all the way."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "โทรแจ้งศัลยแพทย์ปลายทาง",
+              "en": "Phone the receiving surgeon"
+            },
+            "line": {
+              "th": "ทีมปลายทางเตรียมห้องผ่าตัดได้ก่อนผู้ป่วยถึง",
+              "en": "The team can ready theatre before he arrives."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใบส่งตัวพร้อมผลที่มีอยู่",
+              "en": "Referral letter with results so far"
+            },
+            "line": {
+              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
+              "en": "The receiving team gets the story; pending results follow by phone."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ขอให้ปลายทางเอกซเรย์ปลายแขน",
+              "en": "Ask them to X-ray the forearm"
+            },
+            "line": {
+              "th": "ศัลยแพทย์กระดูกวางแผนรักษาแขนที่หักได้",
+              "en": "The orthopaedic surgeons can plan care for the broken arm."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ความดันตัวบนขึ้นลง 86-94 ปลายทางรับตัวแล้ว จะส่งอย่างไร",
+              "en": "His systolic BP drifts between 86 and 94. The referral is accepted. Plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "รพ.จังหวัดตอบรับการส่งต่อ จะส่งตัวอย่างไร",
+              "en": "The provincial hospital accepts him. How do you send him?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "พยาบาลนำส่ง ให้เลือดตลอดทาง",
+              "en": "Nurse escort, blood running"
+            },
+            "line": {
+              "th": "ผู้นำส่งที่ผ่านการอบรมให้เลือดและเฝ้าอาการตลอดทาง",
+              "en": "A trained escort keeps blood going and watches him all the way."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "โทรแจ้งศัลยแพทย์ปลายทาง",
+              "en": "Phone the receiving surgeon"
+            },
+            "line": {
+              "th": "ทีมปลายทางเตรียมห้องผ่าตัดได้ก่อนผู้ป่วยถึง",
+              "en": "The team can ready theatre before he arrives."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใบส่งตัวพร้อมผลที่มีอยู่",
+              "en": "Referral letter with results so far"
+            },
+            "line": {
+              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
+              "en": "The receiving team gets the story; pending results follow by phone."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ขอให้ปลายทางเอกซเรย์ปลายแขน",
+              "en": "Ask them to X-ray the forearm"
+            },
+            "line": {
+              "th": "ศัลยแพทย์กระดูกวางแผนรักษาแขนที่หักได้",
+              "en": "The orthopaedic surgeons can plan care for the broken arm."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ความดัน 84/56 รพ.จังหวัดรับตัวแล้ว คุณจะทำอะไร",
+              "en": "BP is 84/56 and the provincial hospital accepts him. What now?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ชีพจร 126 ขณะที่ปลายทางตอบรับ จะส่งตัวอย่างไร",
+              "en": "His pulse is 126 as the referral is accepted. How do you send him?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ออกทันที พร้อมเลือดและพยาบาล",
+              "en": "Leave now, blood and nurse escort"
+            },
+            "line": {
+              "th": "ต้องผ่าตัดหยุดเลือด ทุกนาทีจึงสำคัญ",
+              "en": "He needs surgery to stop this bleeding, so every minute counts."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "โทรแจ้งศัลยแพทย์ปลายทาง",
+              "en": "Phone the receiving surgeon"
+            },
+            "line": {
+              "th": "ทีมปลายทางเตรียมห้องผ่าตัดได้ก่อนผู้ป่วยถึง",
+              "en": "The team can ready theatre before he arrives."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ใบส่งตัวพร้อมผลที่มีอยู่",
+              "en": "Referral letter with results so far"
+            },
+            "line": {
+              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
+              "en": "The receiving team gets the story; pending results follow by phone."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ขอให้ปลายทางเอกซเรย์ปลายแขน",
+              "en": "Ask them to X-ray the forearm"
+            },
+            "line": {
+              "th": "ศัลยแพทย์กระดูกวางแผนรักษาแขนที่หักได้",
+              "en": "The orthopaedic surgeons can plan care for the broken arm."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-13",
+      "findings": "Two fresh claude-opus-5-5 reviewers, neither of which wrote the case, checked every bank of five-step version 4 against sources opened on the web: the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023, Rec 1/9/13/15/23), CRASH-2 (Lancet 2010; timing analysis Lancet 2011), WHO-ICRC Basic Emergency Care 2018, ATLS 10th ed. (2018) and 11th ed. (2025) summaries, Woodward and Alsabri (Cureus 2021), and Thai sources (Thai J Emerg Med 2022; Clin Crit Care 2026 TXA review). Round 3 removed \"Blood to a normal BP\" from all three step-3 banks: before bleeding control, with no head injury, the target is a systolic of 80-90 (European guideline 2023, Rec 13), and the option also gave TXA ahead of step4.W's TXA dose. The no-TXA option's replies now name the missing TXA; the Thai step-5 referral line and step-4 TXA label match the English. The confirm reviewer found no must-fix: no unsafe option, tiers hold, and TXA is loaded once on every path, always within 3 hours. Open (#468): the vignette does not state normal leg movement (spinal injury), the step4.R \"Blood only\" label, one step4.W Thai tense, one reply's Thai grammar. No Royal College of Surgeons of Thailand or Thai MoPH trauma or referral standard could be found online. Reviewed tree sha256 49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18."
+    },
+    "owner_waiver": {
+      "date": "2026-11-03",
+      "adr": "0005",
+      "reason": "The owner chose to admit the ten NFCME-2026 cases the sandbox did not admit (option A). The blind clinical review (#348) found no clinical defect; it failed run sbx-202611030632-80af on the sandbox's noise bands.",
+      "sandbox_run_id": "sbx-202611030632-80af"
+    }
+  }
+}

@@ -43,8 +43,10 @@ let mockAttempts = 0;
 let mockFailFirst = 0;     // how many leading calls should throw
 let mockRejectStatus = null; // status to attach to the rejection (for the deterministic-skip test)
 // The provenance rimpl answers with, from the payload it was sent. Default: a CURRENT rimpl, which stamps
-// back both lock digests it received. A test swaps it to play an older rimpl; undefined omits the key.
-const mockEcho = (p) => ({ weights_sha256: p.weights_sha256 ?? null, lock_declaration_sha256: p.lock_declaration_sha256 ?? null, locked: !!p.weights_sha256 });
+// back both lock digests and the identity basis it received. A test swaps it to play an older rimpl;
+// undefined omits the key.
+const mockEcho = (p) => ({ weights_sha256: p.weights_sha256 ?? null, lock_declaration_sha256: p.lock_declaration_sha256 ?? null,
+  identity_basis: p.identity_basis ?? null, locked: !!(p.weights_sha256 || p.lock_declaration_sha256) });
 let mockProvenance = mockEcho;
 jest.mock('../src/services/rimpl-client', () => ({
   rimplEvaluate: jest.fn((payload) => {
@@ -147,14 +149,14 @@ describe('the lock state is read strictly', () => {
     lockIt();
     await triggerEvaluation('ple-locked', [{ role: 'physician', content: 'x' }], 'doc1');
     expect(rimplEvaluate).toHaveBeenCalledWith(expect.objectContaining({
-      weights_sha256: 'a'.repeat(64), lock_declaration_sha256: lockDeclarationDigest(RECORD),
+      weights_sha256: 'a'.repeat(64), lock_declaration_sha256: lockDeclarationDigest(RECORD), identity_basis: null,
     }));
     expect(lockDeclarationDigest(RECORD)).toMatch(/^[0-9a-f]{64}$/);
   });
 
   test('no lock (never locked, or unlocked) sends weights null and no declaration — the honest "not locked"', async () => {
     await triggerEvaluation('ple-unlocked', [{ role: 'physician', content: 'x' }], 'doc1');
-    expect(rimplEvaluate).toHaveBeenCalledWith(expect.objectContaining({ weights_sha256: null, lock_declaration_sha256: null }));
+    expect(rimplEvaluate).toHaveBeenCalledWith(expect.objectContaining({ weights_sha256: null, lock_declaration_sha256: null, identity_basis: null }));
   });
 
   test('a digest left behind with no flag is not a lock: no declaration is sent (and none is looked up)', async () => {
@@ -279,7 +281,8 @@ describe('the lock state is read strictly', () => {
 
     test('the echo is compared case-insensitively (hex is the same digest in either case)', async () => {
       lockIt();
-      mockProvenance = (p) => ({ weights_sha256: p.weights_sha256.toUpperCase(), lock_declaration_sha256: p.lock_declaration_sha256.toUpperCase() });
+      mockProvenance = (p) => ({ weights_sha256: p.weights_sha256.toUpperCase(), lock_declaration_sha256: p.lock_declaration_sha256.toUpperCase(),
+        identity_basis: p.identity_basis });
       await triggerEvaluation('ple-upper', [{ role: 'physician', content: 'x' }], 'doc1');
       expectSaved();
     });
@@ -295,6 +298,58 @@ describe('the lock state is read strictly', () => {
       mockLockSettings = { evaluator_weights_sha256: 'a'.repeat(64) };
       mockProvenance = (p) => ({ ...mockEcho(p), weights_sha256: null });
       await expectNotSaved('ple-stale-unechoed', 'lock_weights_not_stamped');
+    });
+  });
+
+  // ---- a model-identity lock (ADR 0012): no weights digest, named by model id + system fingerprint ----
+  describe('a model_id+system_fingerprint lock', () => {
+    const FP = 'vllm-0.22.0-tp2-0123abcd';
+    const ID_RECORD = { ...RECORD, identity_basis: 'model_id+system_fingerprint', weights_sha256: null, system_fingerprint: FP };
+    const lockById = () => {
+      mockLockSettings = { evaluator_locked_at: LOCKED_AT, evaluator_weights_sha256: null };
+      mockLockRecord = ID_RECORD;
+    };
+    beforeEach(() => { jest.spyOn(console, 'error').mockImplementation(() => {}); });
+    afterEach(() => { console.error.mockRestore(); });
+
+    test('null weights in record and setting are consistent: it scores, sending the basis and the v2 declaration digest, and saves', async () => {
+      lockById();
+      await triggerEvaluation('ple-id', [{ role: 'physician', content: 'x' }], 'doc1');
+      expect(rimplEvaluate).toHaveBeenCalledWith(expect.objectContaining({
+        weights_sha256: null, identity_basis: 'model_id+system_fingerprint', lock_declaration_sha256: lockDeclarationDigest(ID_RECORD),
+      }));
+      expect(lockDeclarationDigest(ID_RECORD)).not.toBe(lockDeclarationDigest({ ...ID_RECORD, system_fingerprint: 'vllm-other' }));
+      const saved = mockInserts.find((i) => i.table === 'ai_evaluations');
+      expect(saved.row.provenance).toMatchObject({ identity_basis: 'model_id+system_fingerprint', locked: true, weights_sha256: null });
+    });
+
+    test('a setting that carries a digest the identity record does not: DEFERS lock_state_inconsistent', async () => {
+      lockById();
+      mockLockSettings = { ...mockLockSettings, evaluator_weights_sha256: 'a'.repeat(64) };
+      await expectDeferred('ple-id-mismatch', 'lock_state_inconsistent');
+    });
+
+    test('a record with an unknown identity_basis DEFERS lock_state_inconsistent', async () => {
+      lockById();
+      mockLockRecord = { ...ID_RECORD, identity_basis: 'vibes' };
+      await expectDeferred('ple-id-unknown', 'lock_state_inconsistent');
+    });
+
+    test('a rimpl that drops identity_basis: not saved, 503 lock_identity_not_stamped', async () => {
+      lockById();
+      mockProvenance = (p) => ({ weights_sha256: null, lock_declaration_sha256: p.lock_declaration_sha256, locked: true });
+      const err = await triggerEvaluation('ple-id-old', [{ role: 'physician', content: 'x' }], 'doc1').catch((e) => e);
+      expect(err.status).toBe(503);
+      expect(err.code).toBe('lock_identity_not_stamped');
+      expect(mockInserts).toHaveLength(0);
+    });
+
+    test('a weights lock sends no basis, so a rimpl without the field still scores it', async () => {
+      lockIt();
+      mockProvenance = (p) => ({ weights_sha256: p.weights_sha256, lock_declaration_sha256: p.lock_declaration_sha256, locked: true });
+      await triggerEvaluation('ple-w-old', [{ role: 'physician', content: 'x' }], 'doc1');
+      expect(rimplEvaluate).toHaveBeenLastCalledWith(expect.objectContaining({ identity_basis: null }));
+      expect(mockInserts.some((i) => i.table === 'ai_evaluations')).toBe(true);
     });
   });
 });

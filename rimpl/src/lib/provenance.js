@@ -74,6 +74,10 @@ function configFingerprint(p) {
     // lock is in force (services/model-lock.js lockDeclarationDigest), so an unlocked or pre-lock row
     // hashes byte-identically to before (tests/provenance-lock-declaration.test.js pins master's values).
     ...(p.lock_declaration_sha256 ? { lock_declaration_sha256: p.lock_declaration_sha256 } : {}),
+    // What the lock in force names the evaluator by (ADR 0012), by the same rule: a lock by weights
+    // digest and a lock by model id + server fingerprint are different claims about the same model, so
+    // their scores must not share a fingerprint. Sent only while locked, so every other row hashes as before.
+    ...(p.identity_basis ? { identity_basis: p.identity_basis } : {}),
   });
   return createHash('sha256').update(canonical).digest('hex').slice(0, 16);
 }
@@ -82,18 +86,21 @@ function configFingerprint(p) {
  * Build the provenance block recorded alongside a PIS-7 score.
  *
  * `weightsSha256` is the DECLARED checksum from the Model Lock Record (app_settings, forwarded by
- * the backend). Null means the evaluator has not been locked yet — which is itself the honest
- * answer, and is exactly what a reviewer asking "was this score produced under the locked
- * configuration?" needs to see.
+ * the backend). Null means no digest was declared: either no lock is in force, or the lock names the
+ * evaluator by model identity instead (ADR 0012), which `lock_declaration_sha256` and `identity_basis`
+ * then say. `locked` reads both.
  *
  * `lockDeclarationSha256` is the backend's digest over the whole declared Model Lock Record (weights,
  * engine, quantization, environment, prompt and rubric versions, decoding). Null = no lock in force.
  * Opaque here: rimpl cannot recompute it, it only carries it into the score and its fingerprint.
+ *
+ * `identityBasis` is how the lock in force identifies the evaluator: 'weights_sha256', or
+ * 'model_id+system_fingerprint' when CME can give no weights digest (ADR 0012). Null = no lock in force.
  */
 function buildProvenance({
   provider, model, promptVersion, rubricVersion,
   temperature, maxTokens, topP, seed, numCtx,
-  weightsSha256 = null, lockDeclarationSha256 = null, engine = null, quantization = null, runtime = null,
+  weightsSha256 = null, lockDeclarationSha256 = null, identityBasis = null, engine = null, quantization = null, runtime = null,
   consistency = null,
   deid = null,
 }) {
@@ -113,10 +120,12 @@ function buildProvenance({
     // Declared: filled from the Model Lock Record. Null until the evaluator is locked.
     weights_sha256: weightsSha256 || null,
     lock_declaration_sha256: lockDeclarationSha256 || null,
+    identity_basis: identityBasis || null,
     engine: engine || null,
     quantization: quantization || null,
     runtime: runtime || null,
-    locked: !!weightsSha256,
+    // A lock by model identity carries no weights digest, but its declaration digest still proves a lock.
+    locked: !!(weightsSha256 || lockDeclarationSha256),
     // How several calls were reconciled into this score (services/consistency.js) — present only when
     // the evaluation ran that way. Numbers and fixed-vocabulary strings; never model text.
     ...(consistency ? { consistency } : {}),

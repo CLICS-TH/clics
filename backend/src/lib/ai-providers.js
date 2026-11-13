@@ -33,4 +33,23 @@ function evaluateClass(provider) {
   return AI_PROVIDER_CHOICES.evaluate.includes(String(provider ?? '').trim().toLowerCase());
 }
 
-module.exports = { AI_PROVIDER_CHOICES, evaluateClass };
+// LOCAL-ONLY MODE (ADR 0012, #428): CLICS_LOCAL_ONLY, read the way rimpl reads it
+// (rimpl/src/lib/provider-policy.js localOnly): unset/blank or an explicit off spelling is off, ANY other
+// value is on. This reads THIS process's variable only. rimpl is the guard (it refuses a commercial provider
+// before any call, whatever this list says), and the mode may be set on rimpl alone, so the superadmin
+// switch takes the mode as on when EITHER process has it on, or when rimpl's cannot be read
+// (routes/superadmin.js localOnlyState). Read per call, so a test or a restart sees the current env.
+const LOCAL_ONLY_OFF_VALUES = ['', '0', 'false', 'off', 'no'];
+const LOCAL_PROVIDERS = ['local', 'local-tutor'];
+function localOnly() {
+  return !LOCAL_ONLY_OFF_VALUES.includes(String(process.env.CLICS_LOCAL_ONLY ?? '').trim().toLowerCase());
+}
+const isLocalProvider = (provider) => LOCAL_PROVIDERS.includes(String(provider ?? '').trim().toLowerCase());
+
+// What the switch offers: every choice with the mode off, the on-prem ones with it on.
+function providerChoices(on) {
+  if (!on) return AI_PROVIDER_CHOICES;
+  return Object.fromEntries(Object.entries(AI_PROVIDER_CHOICES).map(([purpose, list]) => [purpose, list.filter(isLocalProvider)]));
+}
+
+module.exports = { AI_PROVIDER_CHOICES, evaluateClass, localOnly, isLocalProvider, providerChoices };

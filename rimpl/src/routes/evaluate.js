@@ -12,6 +12,7 @@ const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
 const { fireShadowEvaluation } = require('../services/shadow');
+const localEvaluator = require('../services/providers/local');
 const { requestSignal } = require('../lib/request-signal');
 const { sendAiError, logAiError, isQueueFull } = require('../lib/ai-errors');
 
@@ -39,7 +40,7 @@ const EvalSchema = z.object({
   // older backend, the calibration harness) the numbering is the transcript-only one, as before.
   chief_complaint: z.string().max(MAX_TURN_CHARS).nullish(),
   // The DECLARED weights checksum from the Model Lock Record, forwarded by the backend from
-  // app_settings. Absent = the evaluator is not locked yet, which the score then says on its face.
+  // app_settings. Absent = no digest declared: unlocked, or locked by model identity (identity_basis below).
   weights_sha256: z.string().trim().max(128).nullish(),
   // The digest of the WHOLE declaration behind the lock in force (backend services/model-lock.js
   // lockDeclarationDigest): weights, engine, quantization, environment, prompt/rubric versions,
@@ -47,6 +48,8 @@ const EvalSchema = z.object({
   // anything else is a bug upstream and a 400 (deterministic, so the backend routes it to a human) is
   // the right answer, never a score stamped with a value nobody can match to a lock record.
   lock_declaration_sha256: z.string().regex(/^[0-9a-f]{64}$/, 'expected a lowercase SHA-256 hex digest').nullish(),
+  // What the lock in force identifies the evaluator by (ADR 0012; lib/provenance.js). Sent only while locked.
+  identity_basis: z.enum(['weights_sha256', 'model_id+system_fingerprint']).nullish(),
   // Opt OUT of the shadow evaluation. Default true (shadow runs when SHADOW_EVAL_PROVIDER is set).
   // scripts/calibration/calibrate.js sets this false: --mode rescore re-scores the REAL cohort
   // through this route, which would otherwise overwrite the pilot's accumulated shadow rows with
@@ -58,7 +61,7 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 } = parsed.data;
+  const { ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256, identity_basis } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   // Assigned INSIDE the try below: a de-identification failure must answer 500 (fail closed, nothing
   // sent anywhere), never escape as an unhandled rejection that takes the whole process down.
@@ -87,7 +90,9 @@ router.post('/', async (req, res) => {
     provider = await resolveProviderName('evaluate');
     const mode = consistencyModeFor(provider);
     const systemPrompt = pis7PromptFor(provider);
-    const promptVersion = promptVersionFor(provider);
+    // The CONFIGURED evaluator id (what the local provider sends), not the one the server reports: a
+    // label must be known before the call so services/shadow.js blankRow stamps the same one.
+    const promptVersion = promptVersionFor(provider, undefined, provider === 'local' ? localEvaluator.model() : null);
 
     // The raw replies, kept for the 502 diagnostics (first = the billed call, last = the one that
     // failed to parse). services/consistency.js itself carries no model text.
@@ -195,6 +200,7 @@ router.post('/', async (req, res) => {
         temperature: EVAL_DECODING.temperature, maxTokens: first?.maxTokens ?? EVAL_DECODING.maxTokens, numCtx,
         weightsSha256: weights_sha256 ?? null,
         lockDeclarationSha256: lock_declaration_sha256 ?? null,
+        identityBasis: identity_basis ?? null,
         engine, quantization, runtime,
         consistency,
         deid,

@@ -1,6 +1,6 @@
 // PIS-7 evaluation persistence, shared by the physician /end flow and the admin approve flow.
 const { supabase } = require('../lib/supabase');
-const { lockDeclarationDigest, LOCK_DECLARATION_FIELDS } = require('./model-lock');
+const { lockDeclarationDigest, identityBasisOf, LOCK_IDENTITY } = require('./model-lock');
 const { compositeScore } = require('./ple-gate');
 const { rimplEvaluate, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
@@ -56,21 +56,24 @@ async function persistEvaluation(pleId, physicianId, result) {
 const EVALUATION_LOCK_KEYS = Object.freeze(['evaluator_locked_at', 'evaluator_weights_sha256']);
 const settingText = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const lower = (v) => (typeof v === 'string' && v ? v.toLowerCase() : null);
-// The record's declared fields (services/model-lock.js LOCK_DECLARATION_FIELDS), which are all in
-// db/migration-evaluator-model-lock.sql: this read does not need the manifest migration.
-const LOCK_DECLARATION_COLS = ['id', 'locked_at', ...LOCK_DECLARATION_FIELDS].join(', ');
+// The whole record: a model-identity lock digests identity_basis and system_fingerprint too, and '*'
+// still reads a record on a database without db/migration-evaluator-lock-identity.sql (every such
+// record is a weights_sha256 lock), so a lock in force keeps scoring while that migration is pending.
+const LOCK_RECORD_COLS = '*';
 
 /**
- * What an evaluation is stamped with: { weights_sha256, lock_declaration_sha256 }, or { error, code }
- * when it must not run. Never throws.
+ * What an evaluation is stamped with: { weights_sha256, lock_declaration_sha256, identity_basis }, or
+ * { error, code } when it must not run. Never throws.
  *
- *   no evaluator_locked_at       unlocked: lock_declaration_sha256 null, weights_sha256 as the setting
- *                                reads (an unlock clears both)
- *   locked, record consistent    the digest of the record the flag points at
+ *   no evaluator_locked_at       unlocked: lock_declaration_sha256 and identity_basis null,
+ *                                weights_sha256 as the setting reads (an unlock clears both)
+ *   locked, record consistent    the digest of the record the flag points at, and its identity_basis. A
+ *                                model_id+system_fingerprint lock has no weights digest: null in the
+ *                                record and in the setting
  *   otherwise, an error:         lock_state_unreadable (the settings), lock_record_unreadable (the record,
  *                                including an unmigrated table), lock_record_missing (no record behind the
  *                                flag: a hand-set lock), lock_state_inconsistent (the record's
- *                                weights_sha256 is not the one in force)
+ *                                weights_sha256 is not the one in force, or its identity_basis is unknown)
  * triggerEvaluation below DEFERS on an error. A post-lock score without its declaration
  * fingerprints the same as one under any other declaration over the same weights, and a score is written
  * once per PLE and never re-stamped.
@@ -87,11 +90,11 @@ async function evaluationLockStamp() {
   const by = Object.fromEntries(rows.map((r) => [r?.key, settingText(r?.value_text)]));
   const lockedAt = by.evaluator_locked_at ?? null;
   const weights = by.evaluator_weights_sha256 ?? null;
-  if (!lockedAt) return { weights_sha256: weights, lock_declaration_sha256: null };
+  if (!lockedAt) return { weights_sha256: weights, lock_declaration_sha256: null, identity_basis: null };
 
   let record = null;
   try {
-    ({ data: record, error } = await supabase.from('evaluator_model_lock').select(LOCK_DECLARATION_COLS)
+    ({ data: record, error } = await supabase.from('evaluator_model_lock').select(LOCK_RECORD_COLS)
       .eq('locked_at', lockedAt).order('locked_at', { ascending: false }).limit(1).maybeSingle());
   } catch (e) {
     error = { message: e?.message || String(e) };
@@ -101,7 +104,14 @@ async function evaluationLockStamp() {
   if (lower(record.weights_sha256) !== lower(weights)) {
     return { error: `the lock record's weights_sha256 is not the one in force (evaluator_locked_at ${lockedAt})`, code: 'lock_state_inconsistent' };
   }
-  return { weights_sha256: weights, lock_declaration_sha256: lockDeclarationDigest(record) };
+  const identity_basis = identityBasisOf(record);
+  if (!LOCK_IDENTITY[identity_basis]) {
+    return { error: `the lock record's identity_basis is unknown (evaluator_locked_at ${lockedAt})`, code: 'lock_state_inconsistent' };
+  }
+  // Only a model-identity lock sends its basis: a weights lock's request, and its score's fingerprint,
+  // stay what they were, and a rimpl that predates the field still scores under it.
+  return { weights_sha256: weights, lock_declaration_sha256: lockDeclarationDigest(record),
+    identity_basis: identity_basis === 'weights_sha256' ? null : identity_basis };
 }
 
 // Why an evaluation was deferred, by evaluationLockStamp's code, for the thrown error and the drain's log.
@@ -126,6 +136,7 @@ const LOCK_DEFER_REASON = Object.freeze({
 // to manual QA otherwise. Unlocked, nothing is sent, nothing is checked, and the score is saved as before.
 const LOCK_ECHO = Object.freeze([
   ['lock_declaration_sha256', 'lock_declaration_not_stamped'],
+  ['identity_basis', 'lock_identity_not_stamped'],
   ['weights_sha256', 'lock_weights_not_stamped'],
 ]);
 function unstampedLockField(provenance, sent) {
@@ -188,12 +199,12 @@ async function triggerEvaluation(pleId, transcript, physicianId, patientRef, { a
     e.code = lock.code;
     throw e;
   }
-  const { weights_sha256, lock_declaration_sha256 } = lock;
+  const { weights_sha256, lock_declaration_sha256, identity_basis } = lock;
   const result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, chief_complaint: chiefComplaint ?? null,
-    weights_sha256, lock_declaration_sha256 }, attempts);
+    weights_sha256, lock_declaration_sha256, identity_basis }, attempts);
   // Saved only if rimpl stamped back what it was sent (unstampedLockField above). Thrown BEFORE the
   // persist and the meter: nothing is written, so the next attempt scores the PLE afresh.
-  const unstamped = unstampedLockField(result?.provenance, { weights_sha256, lock_declaration_sha256 });
+  const unstamped = unstampedLockField(result?.provenance, { weights_sha256, lock_declaration_sha256, identity_basis });
   if (unstamped) {
     console.error(`[ple-evaluation] PLE ${pleId}: rimpl did not stamp ${unstamped.field} on the score `
       + `(sent ${short(unstamped.sent)}, got ${short(unstamped.got)}). Most likely a rimpl older than this backend `

@@ -12,7 +12,7 @@
 //   evaluatorDigest()      THE scope of the lock: a digest over the evaluator part of the manifest only
 //   evaluatorDriftKeys()   which of rimpl's LIVE drift keys fall in that scope (an env override the
 //                          expected-half digest cannot see): blocks a lock, degrades one in force
-//   lockSchemaStatus()     whether db/migration-evaluator-lock-manifest.sql has been applied
+//   lockSchemaStatus()     which of the lock record's migrations (LOCK_SCHEMA) are still to apply
 //   lockInForce()          the lock the flag points at, and what was frozen on it
 //   lockDeclarationDigest() a digest over a lock record's DECLARED fields, carried by every post-lock score
 //                          (read back for each evaluation by services/ple-evaluation.js evaluationLockStamp)
@@ -37,15 +37,25 @@ const { fetchRimplManifest } = require('./rimpl-client');
 const { isMissingRelation } = require('./agreement');
 
 const SHA256 = /^[0-9a-f]{64}$/;
+const str = (v) => (typeof v === 'string' && v ? v : null);
 // A frozen copy larger than this is not a manifest anyone wrote by hand or by build.mjs. Refusing it
 // keeps a misbehaving rimpl from writing an arbitrarily large blob into the study record.
 const MAX_EXPECTED_BYTES = 256 * 1024;
 
 const LOCK_MIGRATION = 'db/migration-evaluator-model-lock.sql';
 const MANIFEST_MIGRATION = 'db/migration-evaluator-lock-manifest.sql';
-// The columns migration-evaluator-lock-manifest.sql adds. Probed before a lock is written, so an
-// unmigrated database answers with what to apply instead of a 500 halfway through.
+const IDENTITY_MIGRATION = 'db/migration-evaluator-lock-identity.sql';
 const MANIFEST_COLS = 'id, manifest_sha256, manifest, evaluator_sha256';
+// The lock record's migrations in apply order, each with columns that exist only once it is applied
+// (the first creates the table: any probe reports it missing). Probed before a lock is written, so an
+// unmigrated database answers with what to apply instead of a 500 halfway through.
+const LOCK_SCHEMA = Object.freeze([
+  { file: LOCK_MIGRATION, cols: null },
+  { file: MANIFEST_MIGRATION, cols: MANIFEST_COLS },
+  { file: IDENTITY_MIGRATION, cols: 'id, identity_basis, system_fingerprint' },
+]);
+// The migrations still to apply when `file` is the first one missing.
+const pendingFrom = (file) => LOCK_SCHEMA.slice(Math.max(0, LOCK_SCHEMA.findIndex((m) => m.file === file))).map((m) => m.file);
 
 // ---- error bodies ------------------------------------------------------------------------------
 const LOCK_STATE_UNREADABLE = Object.freeze({
@@ -88,9 +98,10 @@ const evaluatorLocked = (lockedAt) => ({
     + `The PIS-7 evaluator was locked on ${lockedAt} and cannot be changed while the pilot is running. Unlock it first if this is deliberate.`,
 });
 
-function gateNotPassed(verdict, { promptVersion, noCandidate }) {
+function gateNotPassed(verdict, { promptVersion, modelVersion, noCandidate }) {
+  const model = modelVersion ? { th: ` และ model_version "${modelVersion}"`, en: ` and model_version "${modelVersion}"` } : { th: '', en: '' };
   const none = noCandidate
-    ? { th: ` ไม่มีคะแนนของผู้ท้าชิงที่ใช้ prompt_version "${promptVersion}"`, en: ` No candidate scores were recorded under prompt_version "${promptVersion}".` }
+    ? { th: ` ไม่มีคะแนนของผู้ท้าชิงที่ใช้ prompt_version "${promptVersion}"${model.th}`, en: ` No candidate scores were recorded under prompt_version "${promptVersion}"${model.en}.` }
     : { th: '', en: '' };
   return {
     error: `โมเดลผู้ท้าชิงยังไม่ผ่านเกณฑ์ตัดสินเทียบกับผู้ตรวจ (${verdict.state}) จึงยังล็อกไม่ได้${none.th} / `
@@ -112,8 +123,8 @@ const candidateNotServing = (candidate, serving) => ({
   serving_provider: serving,
 });
 
-function migrationRequired({ tableMissing }) {
-  const files = tableMissing ? [LOCK_MIGRATION, MANIFEST_MIGRATION] : [MANIFEST_MIGRATION];
+// `files`: the migrations still to apply, in order (lockSchemaStatus().pending).
+function migrationRequired(files) {
   return {
     error: `ฐานข้อมูลยังไม่พร้อมสำหรับการล็อกที่ผูกกับ model manifest ต้องรัน ${files.join(' แล้ว ')} ก่อน / `
       + `The database is not ready for a manifest-bound lock: apply ${files.join(', then ')} first.`,
@@ -172,7 +183,12 @@ function judgeManifest(r) {
   // values differ, never what they are. The values can be operator- or server-supplied strings. A key
   // that is not a plain dotted name is kept as a placeholder (driftKeysOf), so it still counts.
   const drift_keys = driftKeysOf(r.drift);
-  return { ok: true, sha256: sha, expected, file, code_match: true, drift_keys };
+  // The system_fingerprint each on-prem instance last answered with (rimpl services/manifest.js
+  // live.last_seen[name].runtime), null where none has been observed since rimpl booted. INTERNAL: a
+  // server's own string, compared by a model-identity lock and never put in a response body or a log.
+  const lastSeen = r.live?.last_seen && typeof r.live.last_seen === 'object' ? r.live.last_seen : {};
+  const observed_fingerprints = Object.fromEntries(Object.entries(lastSeen).map(([name, seen]) => [name, str(seen?.runtime)]));
+  return { ok: true, sha256: sha, expected, file, code_match: true, drift_keys, observed_fingerprints };
 }
 
 /**
@@ -206,13 +222,15 @@ async function cachedLiveManifest({ timeoutMs, now = Date.now() } = {}) {
 }
 function resetManifestCache() { manifestCache = null; }
 
-const str = (v) => (typeof v === 'string' && v ? v : null);
-
 /**
  * What the manifest says an evaluator provider is stamped with. Null where the manifest names
  * nothing, which a diff reads as a mismatch — an expectation the manifest does not state cannot be met.
  *
- *   prompt_version     expected.code.evaluator.prompt_version[provider]
+ *   prompt_version     anthropic: expected.code.evaluator.prompt_version.anthropic
+ *                      on-prem:   expected.code.evaluator.prompt_version[provider] + '@' +
+ *                                 expected.declared[provider].model (rimpl versions.js promptVersionFor
+ *                                 stamps the served model id on the label, so two models never share
+ *                                 one; the manifest keeps the label model-free)
  *   rubric_version     expected.code.evaluator.rubric_version
  *   model_version      anthropic: expected.code.anthropic.model_version
  *                      on-prem:   expected.code.model_version_prefix + expected.declared[provider].model
@@ -224,9 +242,9 @@ const str = (v) => (typeof v === 'string' && v ? v : null);
  */
 function expectedFor(expected, provider) {
   const code = expected?.code ?? {};
-  const prompt_version = str(code.evaluator?.prompt_version?.[provider]);
+  const label = str(code.evaluator?.prompt_version?.[provider]);
   const rubric_version = str(code.evaluator?.rubric_version);
-  let model_version = null, model_path;
+  let prompt_version = label, model_version = null, model_path, prompt_path = `expected.code.evaluator.prompt_version.${provider}`;
   if (provider === 'anthropic') {
     model_version = str(code.anthropic?.model_version);
     model_path = 'expected.code.anthropic.model_version';
@@ -235,6 +253,8 @@ function expectedFor(expected, provider) {
     const prefix = typeof code.model_version_prefix === 'string' ? code.model_version_prefix : null;
     model_version = model && prefix != null ? `${prefix}${model}` : null;
     model_path = `expected.code.model_version_prefix + expected.declared.${provider}.model`;
+    prompt_version = label && model ? `${label}@${model}` : null;
+    prompt_path = `expected.code.evaluator.prompt_version.${provider} + '@' + expected.declared.${provider}.model`;
   }
   const decl = expected?.declared?.[provider];
   const decoding = code.decoding?.evaluate && typeof code.decoding.evaluate === 'object' ? code.decoding.evaluate : null;
@@ -244,7 +264,7 @@ function expectedFor(expected, provider) {
     decoding,
     declared: decl && typeof decl === 'object' ? { engine: str(decl.engine), model: str(decl.model) } : null,
     paths: {
-      prompt_version: `expected.code.evaluator.prompt_version.${provider}`,
+      prompt_version: prompt_path,
       rubric_version: 'expected.code.evaluator.rubric_version',
       model_version: model_path,
       provider: 'expected.declared.providers.evaluate',
@@ -513,22 +533,25 @@ const evaluatorLiveDrift = (keys, provider) => ({
 // ---- schema ------------------------------------------------------------------------------------
 
 /**
- * Has migration-evaluator-lock-manifest.sql been applied? Returns { ok: true }, or
- * { ok: false, missing: true, tableMissing } for an unmigrated database (a known state, not a fault),
- * or { ok: false, error } for anything else.
+ * Have the lock record's migrations (LOCK_SCHEMA) all been applied? Returns { ok: true }, or
+ * { ok: false, missing: true, pending } for an unmigrated database (a known state, not a fault), with
+ * `pending` the files still to apply in order, or { ok: false, error } for anything else.
  */
 async function lockSchemaStatus() {
-  let error;
-  try {
-    ({ error } = await supabase.from('evaluator_model_lock').select(MANIFEST_COLS).limit(1));
-  } catch (e) {
-    return { ok: false, error: { message: e?.message || String(e) } };
+  for (const { file, cols } of LOCK_SCHEMA.filter((m) => m.cols)) {
+    let error;
+    try {
+      ({ error } = await supabase.from('evaluator_model_lock').select(cols).limit(1));
+    } catch (e) {
+      return { ok: false, error: { message: e?.message || String(e) } };
+    }
+    if (!error) continue;
+    if (isMissingColumnOrTable(error)) {
+      return { ok: false, missing: true, pending: pendingFrom(isMissingTable(error) ? LOCK_MIGRATION : file), error };
+    }
+    return { ok: false, error };
   }
-  if (!error) return { ok: true };
-  if (isMissingColumnOrTable(error)) {
-    return { ok: false, missing: true, tableMissing: isMissingTable(error), error };
-  }
-  return { ok: false, error };
+  return { ok: true };
 }
 
 // PostgREST: PGRST205 (no such table), PGRST204 (no such column in an insert payload); Postgres:
@@ -597,7 +620,9 @@ const lower = (v) => (typeof v === 'string' && v ? v.toLowerCase() : null);
 // rimpl's build: its evaluator part is what each score already measures (prompt, rubric, decoding,
 // consistency) and what /health/deep compares against evaluator_sha256.
 // Changing the field set or the payload means a new tag: a digest can only be recomputed by the version
-// it was taken under.
+// it was taken under. v1 is the weights_sha256 basis, unchanged since it shipped. v2 is the
+// model_id+system_fingerprint basis (ADR 0012): v1's fields plus the basis and the fingerprint, since
+// with no weights digest the fingerprint is what names the build.
 const LOCK_DECLARATION_VERSION = 'clics-lock-declaration/v1';
 const LOCK_DECLARATION_FIELDS = Object.freeze([
   'weights_sha256', 'inference_engine', 'quantization', 'environment',
@@ -605,10 +630,68 @@ const LOCK_DECLARATION_FIELDS = Object.freeze([
   'provider', 'model_version',
 ]);
 
+// ---- the lock's identity: what names the evaluator a lock froze -----------------------------------
+//
+// A tagged union keyed by identity_basis (the column db/migration-evaluator-lock-identity.sql adds; a
+// record without it is a weights_sha256 lock). Per basis: the declaration digest's tag and fields, and
+// `resolve`, which turns the candidate and the judged manifest into the columns the record stores
+// beyond the declaration, or a 409 body when the basis cannot be met.
+//   weights_sha256               a 64-hex digest someone with filesystem access declared
+//   model_id+system_fingerprint  NO weights digest exists (CME cannot give one): the versioned model id
+//                                (the candidate's measured model_version) plus the system_fingerprint the
+//                                manifest DECLARES, which rimpl must also have observed, unchanged
+const IDENTITY_BASES = Object.freeze(['weights_sha256', 'model_id+system_fingerprint']);
+const DEFAULT_IDENTITY_BASIS = 'weights_sha256';
+const identityBasisOf = (record) => record?.identity_basis ?? DEFAULT_IDENTITY_BASIS;
+
+const fingerprintRefusal = (code, th, en, provider) => ({
+  ok: false,
+  body: {
+    error: `${th} จึงล็อกด้วยรหัสโมเดลและ system fingerprint ไม่ได้ / ${en}, so the evaluator cannot be locked by model id and system fingerprint.`,
+    code, provider: provider ?? null,
+  },
+});
+
+const LOCK_IDENTITY = Object.freeze({
+  weights_sha256: {
+    digest: { version: LOCK_DECLARATION_VERSION, fields: LOCK_DECLARATION_FIELDS },
+    resolve: () => ({ ok: true, columns: {} }),
+  },
+  'model_id+system_fingerprint': {
+    digest: { version: 'clics-lock-declaration/v2', fields: Object.freeze([...LOCK_DECLARATION_FIELDS, 'identity_basis', 'system_fingerprint']) },
+    resolve: ({ provider, expected, observed }) => {
+      const declared = str(expected?.declared?.[provider]?.system_fingerprint);
+      if (!declared) {
+        return fingerprintRefusal('declared_fingerprint_missing',
+          `model manifest ไม่ได้ประกาศ system fingerprint ของ ${provider} (declared.${provider}.system_fingerprint เป็น null) ให้บันทึกค่าที่สังเกตได้ลงในไฟล์ declared สร้าง manifest ใหม่ และ deploy RIMPL ก่อน`,
+          `The model manifest declares no system fingerprint for ${provider} (declared.${provider}.system_fingerprint is null). Record the observed value in the declared file, regenerate the manifest and redeploy RIMPL first`,
+          provider);
+      }
+      const seen = str(observed?.[provider]);
+      if (!seen) {
+        return fingerprintRefusal('fingerprint_not_observed',
+          `RIMPL ยังไม่เห็น system fingerprint จาก ${provider} นับตั้งแต่เริ่มทำงาน ให้มีการให้คะแนนผ่าน ${provider} อย่างน้อยหนึ่งครั้งก่อน`,
+          `RIMPL has not observed a system fingerprint from ${provider} since it started. Let ${provider} serve at least one call first`,
+          provider);
+      }
+      if (seen !== declared) {
+        return fingerprintRefusal('fingerprint_mismatch',
+          `system fingerprint ที่ ${provider} ตอบกลับมาไม่ตรงกับค่าที่ประกาศใน model manifest`,
+          `The system fingerprint ${provider} answers with is not the one the model manifest declares`,
+          provider);
+      }
+      return { ok: true, columns: { system_fingerprint: declared } };
+    },
+  },
+});
+
 function lockDeclarationDigest(record) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) throw new TypeError('lockDeclarationDigest needs a lock record');
-  const declaration = Object.fromEntries(LOCK_DECLARATION_FIELDS.map((k) => [k, record[k] ?? null]));
-  return crypto.createHash('sha256').update(canonicalJson({ v: LOCK_DECLARATION_VERSION, declaration }), 'utf8').digest('hex');
+  const identity = LOCK_IDENTITY[identityBasisOf(record)];
+  if (!identity) throw new TypeError(`lockDeclarationDigest: unknown identity_basis "${record.identity_basis}"`);
+  const { version, fields } = identity.digest;
+  const declaration = Object.fromEntries(fields.map((k) => [k, record[k] ?? null]));
+  return crypto.createHash('sha256').update(canonicalJson({ v: version, declaration }), 'utf8').digest('hex');
 }
 
 /**
@@ -665,10 +748,11 @@ module.exports = {
   manifestForLock, judgeManifest, cachedLiveManifest, resetManifestCache, expectedFor, manifestDiff, manifestMismatch,
   evaluatorScope, evaluatorDigest, canonicalJson, EVALUATOR_SCOPE_VERSION, lockSchemaStatus, lockInForce, modelLockCheck,
   lockDeclarationDigest, LOCK_DECLARATION_VERSION, LOCK_DECLARATION_FIELDS,
+  LOCK_IDENTITY, IDENTITY_BASES, DEFAULT_IDENTITY_BASIS, identityBasisOf,
   isEvaluatorDriftKey, evaluatorDriftKeys, evaluatorLiveDrift, consistencyGoverns,
   driftKeyRules, driftKeysOf, DRIFT_IN, DRIFT_OUT, MALFORMED_DRIFT_KEY,
   migrationRequired, isMissingColumnOrTable, isMissingTable,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
-  MANIFEST_COLS, LOCK_MIGRATION, MANIFEST_MIGRATION, MANIFEST_CACHE_MS,
+  MANIFEST_COLS, LOCK_SCHEMA, LOCK_MIGRATION, MANIFEST_MIGRATION, IDENTITY_MIGRATION, pendingFrom, MANIFEST_CACHE_MS,
 };

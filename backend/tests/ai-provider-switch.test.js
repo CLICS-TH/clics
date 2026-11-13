@@ -29,7 +29,17 @@ const mockProbe = jest.fn(async (args) => {
   if (mockProbeThrows) throw new Error(mockProbeThrows);
   return { provider: args.name, purpose: args.purpose, ...mockVerdict };
 });
-jest.mock('../src/services/rimpl-client', () => ({ probeRimplProvider: (...a) => mockProbe(...a) }));
+// RIMPL's own local-only mode (GET /health/mode). Default 'off', so every case above this one sees
+// only this process's CLICS_LOCAL_ONLY; an Error value makes the read fail.
+let mockRimplMode = 'off';
+const mockModeRead = jest.fn(async () => {
+  if (mockRimplMode instanceof Error) throw mockRimplMode;
+  return mockRimplMode;
+});
+jest.mock('../src/services/rimpl-client', () => ({
+  probeRimplProvider: (...a) => mockProbe(...a),
+  fetchRimplLocalOnly: (...a) => mockModeRead(...a),
+}));
 
 jest.mock('../src/lib/supabase', () => {
   const settingChain = () => {
@@ -73,6 +83,8 @@ beforeEach(() => {
   mockProbe.mockClear();
   mockProbeThrows = null;
   mockVerdict = { fit: true, code: null, reason: null };
+  mockRimplMode = 'off';
+  mockModeRead.mockClear();
 });
 
 const patch = (body) => auth(request(app).patch('/admin/ai-providers')).send(body);
@@ -326,5 +338,130 @@ describe('local-tutor', () => {
   test('the defaults are unchanged: nothing routes to the tutor until someone picks it', async () => {
     const r = await auth(request(app).get('/admin/ai-providers'));
     expect(Object.values(r.body.providers)).not.toContain('local-tutor');
+  });
+});
+
+// Local-only mode (#428, ADR 0012): CLICS_LOCAL_ONLY hides the commercial providers and refuses a write
+// naming one, with no typed phrase to override it. Mode off is the control: the same requests succeed.
+describe('local-only mode', () => {
+  const saved = process.env.CLICS_LOCAL_ONLY;
+  afterEach(() => { if (saved === undefined) delete process.env.CLICS_LOCAL_ONLY; else process.env.CLICS_LOCAL_ONLY = saved; });
+
+  test('off (control): every choice is offered and local_only reads false', async () => {
+    delete process.env.CLICS_LOCAL_ONLY;
+    const r = await auth(request(app).get('/admin/ai-providers'));
+    expect(r.body.local_only).toBe(false);
+    expect(r.body.choices.chat).toContain('anthropic');
+    expect(r.body.choices.embed).toContain('openai');
+  });
+
+  test('on: the switch offers only the on-prem models', async () => {
+    process.env.CLICS_LOCAL_ONLY = '1';
+    const r = await auth(request(app).get('/admin/ai-providers'));
+    expect(r.status).toBe(200);
+    expect(r.body.local_only).toBe(true);
+    expect(r.body.choices).toEqual({
+      chat: ['local', 'local-tutor'], evaluate: ['local'], criteria: ['local'], discuss: ['local', 'local-tutor'], embed: ['local'],
+    });
+  });
+
+  test.each([
+    ['chat', 'anthropic', {}],
+    ['evaluate', 'anthropic', { confirm: 'CHANGE EVALUATOR', confirm_unfit: 'SWITCH ANYWAY' }],
+    ['embed', 'openai', { confirm_unfit: 'SWITCH ANYWAY' }],
+  ])('on: %s -> %s is refused 409 local_only before any probe or write, typed phrases or not', async (purpose, provider, extra) => {
+    process.env.CLICS_LOCAL_ONLY = '1';
+    mockSettings[`ai_provider_${purpose}`] = 'local';
+    const r = await patch({ purpose, provider, ...extra });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('local_only');
+    expect(mockProbe).not.toHaveBeenCalled();
+    expect(mockUpserts).toHaveLength(0);
+  });
+
+  test('off (control): chat -> anthropic from local is applied', async () => {
+    delete process.env.CLICS_LOCAL_ONLY;
+    mockSettings.ai_provider_chat = 'local';
+    const r = await patch({ purpose: 'chat', provider: 'anthropic' });
+    expect(r.status).toBe(200);
+    expect(mockSettings.ai_provider_chat).toBe('anthropic');
+  });
+
+  test('on: an on-prem model still switches normally', async () => {
+    process.env.CLICS_LOCAL_ONLY = '1';
+    const r = await patch({ purpose: 'chat', provider: 'local-tutor' });
+    expect(r.status).toBe(200);
+    expect(mockSettings.ai_provider_chat).toBe('local-tutor');
+  });
+
+  test('RIMPL\'s own local-only refusal cannot be overridden by SWITCH ANYWAY, even with this process\'s mode off', async () => {
+    delete process.env.CLICS_LOCAL_ONLY;
+    mockSettings.ai_provider_chat = 'local';
+    mockVerdict = { fit: false, code: 'local_only_refused', reason: 'local-only mode (CLICS_LOCAL_ONLY) refuses "anthropic"' };
+    const r = await patch({ purpose: 'chat', provider: 'anthropic', confirm_unfit: 'SWITCH ANYWAY' });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('local_only');
+    expect(mockUpserts).toHaveLength(0);
+  });
+
+  // The mode may be set on rimpl alone (it is rimpl's env that refuses calls). The superadmin surface must
+  // then agree with rimpl, not with this process's env: the list, the switch for every purpose (embed
+  // included), and the same-provider write that skips the readiness probe.
+  describe('set on rimpl only (this process\'s CLICS_LOCAL_ONLY unset)', () => {
+    beforeEach(() => { delete process.env.CLICS_LOCAL_ONLY; mockRimplMode = 'on'; });
+
+    test('the list hides every commercial provider and reads local_only true, naming rimpl as the source', async () => {
+      const r = await auth(request(app).get('/admin/ai-providers'));
+      expect(r.status).toBe(200);
+      expect(r.body.local_only).toBe(true);
+      expect(r.body.local_only_sources).toEqual({ backend: false, rimpl: 'on' });
+      expect(r.body.choices).toEqual({
+        chat: ['local', 'local-tutor'], evaluate: ['local'], criteria: ['local'], discuss: ['local', 'local-tutor'], embed: ['local'],
+      });
+    });
+
+    test.each([
+      ['chat', 'anthropic', {}],
+      ['evaluate', 'anthropic', { confirm: 'CHANGE EVALUATOR', confirm_unfit: 'SWITCH ANYWAY' }],
+      ['criteria', 'anthropic', {}],
+      ['discuss', 'anthropic', {}],
+      ['embed', 'openai', { confirm_unfit: 'SWITCH ANYWAY' }],
+    ])('%s -> %s is refused 409 local_only before any probe or write', async (purpose, provider, extra) => {
+      mockSettings[`ai_provider_${purpose}`] = 'local';
+      const r = await patch({ purpose, provider, ...extra });
+      expect(r.status).toBe(409);
+      expect(r.body.code).toBe('local_only');
+      expect(mockProbe).not.toHaveBeenCalled();
+      expect(mockUpserts).toHaveLength(0);
+    });
+
+    test('a write naming the provider the purpose already uses (no probe on that path) is refused too', async () => {
+      mockSettings.ai_provider_chat = 'anthropic';
+      const r = await patch({ purpose: 'chat', provider: 'anthropic' });
+      expect(r.status).toBe(409);
+      expect(r.body.code).toBe('local_only');
+      expect(mockUpserts).toHaveLength(0);
+    });
+
+    test('an on-prem model still switches normally', async () => {
+      const r = await patch({ purpose: 'chat', provider: 'local-tutor' });
+      expect(r.status).toBe(200);
+      expect(mockSettings.ai_provider_chat).toBe('local-tutor');
+    });
+  });
+
+  test('rimpl\'s mode unreadable: fails closed (commercial hidden and refused), and says rimpl is unknown', async () => {
+    delete process.env.CLICS_LOCAL_ONLY;
+    mockRimplMode = new Error('connect ECONNREFUSED');
+    const list = await auth(request(app).get('/admin/ai-providers'));
+    expect(list.status).toBe(200);
+    expect(list.body.local_only).toBe(true);
+    expect(list.body.local_only_sources).toEqual({ backend: false, rimpl: 'unknown' });
+    expect(list.body.choices.chat).not.toContain('anthropic');
+    mockSettings.ai_provider_chat = 'local';
+    const w = await patch({ purpose: 'chat', provider: 'anthropic', confirm_unfit: 'SWITCH ANYWAY' });
+    expect(w.status).toBe(409);
+    expect(w.body.code).toBe('local_only');
+    expect(mockUpserts).toHaveLength(0);
   });
 });

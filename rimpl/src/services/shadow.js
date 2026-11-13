@@ -24,6 +24,7 @@ const { scoreWithConsistency } = require('./consistency');
 const { shadowConsistencyMode, maxSumDelta } = require('../lib/consistency-config');
 const { SHADOW_DECODING, shadowMaxTokens } = require('../lib/decoding');
 const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
+const { localOnly, isLocalProvider } = require('../lib/provider-policy');
 
 // Math.max(x, parseInt('auto',10)) is NaN, not x — Math.max PROPAGATES NaN, and a NaN maxTokens
 // serialises to `"max_tokens": null` on the wire (Anthropic 400s; an OpenAI-compatible server
@@ -95,6 +96,15 @@ function shadowTarget(servedProvider) {
     }
     return null;
   }
+  // Local-only mode (ADR 0012, lib/provider-policy.js): a commercial shadow evaluator is refused before
+  // any request, quietly like the rule above. callProvider refuses it too, as the backstop.
+  if (localOnly() && !isLocalProvider(name)) {
+    if (!refusedWarned.has(`local-only:${name}`)) {
+      refusedWarned.add(`local-only:${name}`);
+      console.warn(`[shadow] SHADOW_EVAL_PROVIDER="${name}" is refused by local-only mode (CLICS_LOCAL_ONLY) — shadow disabled`);
+    }
+    return null;
+  }
   // Shadowing the model that already served is pure waste: same model, same prompt, no comparison.
   if (name === (servedProvider || providerNameFor('evaluate'))) return null;
   return name;
@@ -115,7 +125,9 @@ function blankRow(pleId, provider, model) {
     // Provenance is stamped BEFORE the call, from the configured model, so a transport failure is
     // still attributable. Overwritten with the server-reported model on success.
     model_version: modelVersion(model),
-    prompt_version: promptVersionFor(provider),
+    // The configured model, as routes/evaluate.js stamps it, so a served row and its shadow row for
+    // the same evaluator carry the same label.
+    prompt_version: promptVersionFor(provider, undefined, model),
     rubric_version: RUBRIC_VERSION,
     d1: null, d2: null, d3: null, d4: null, d5: null, d6: null, d7: null,
     composite_score: null,
