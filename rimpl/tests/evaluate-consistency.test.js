@@ -74,6 +74,15 @@ describe('the incumbent (anthropic) path is unchanged', () => {
     expect(res.body.model_version).toBe('CCME_LLM_v8.0+claude-sonnet-4-6');
   });
 
+  test('a provider call that was retried reports its failed attempts as retried_attempts; an unretried one adds no key', async () => {
+    resolveProviderName.mockResolvedValue('anthropic');
+    callAI.mockResolvedValueOnce({ ...anthropic(), retriedAttempts: 2 });
+    const res = await post();
+    expect(res.status).toBe(200);
+    expect(res.body.retried_attempts).toBe(2);
+    expect(Object.keys(res.body)).toEqual([...HISTORICAL_KEYS, 'retried_attempts']);
+  });
+
   test('an unparseable reply is a 502 after ONE call — no re-ask on the incumbent, even with EVAL_JSON_RETRIES=2', async () => {
     process.env.EVAL_JSON_RETRIES = '2';
     resolveProviderName.mockResolvedValue('anthropic');
