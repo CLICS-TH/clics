@@ -11,8 +11,9 @@ const { compositeScore } = pleGate;
 export { treeSha };
 
 /**
- * Whether a case's tree is the one its safety review read. The review read the tree of the first commit that holds
- * that review (the review is recorded in the case's PR, after its fixes), so the current tree must hash the same.
+ * Whether a case's tree is the one its safety review read. The review names that tree by its hash, so a tree edited in
+ * the commit that copies the review in (a move from staging, #468) is refused. The review also read the tree of the
+ * first commit that holds it (the review is recorded in the case's PR, after its fixes), so that tree must hash the same.
  * @param {{ commit: string, raw: object }[]} history the case file at each commit that touched it, oldest first
  * @param {object} current the case file as it is now
  * @returns {{ tree_sha256: string, reviewed_commit: string } | { why: string }}
@@ -20,6 +21,8 @@ export { treeSha };
 export function reviewedTree(history, current) {
   const review = current?.admission?.safety_review;
   if (!review) return { why: 'has no safety review' };
+  if (!review.tree_sha256) return { why: 'has a safety review that names no tree (no tree_sha256)' };
+  if (review.tree_sha256 !== treeSha(current)) return { why: 'has a safety review of another tree (its tree_sha256 is not this tree\'s hash)' };
   const reviewed = history.find((v) => canonical(v.raw?.admission?.safety_review) === canonical(review));
   if (!reviewed) return { why: 'has a safety review that no commit holds' };
   const sha = treeSha(reviewed.raw);

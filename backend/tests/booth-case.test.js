@@ -28,13 +28,13 @@ beforeEach(() => { m.reset(); jest.spyOn(console, 'warn').mockImplementation(() 
 afterEach(() => { jest.restoreAllMocks(); delete process.env.BOOTH_CASES_DIR; });
 
 test('an admitted case in its event folder, named after its case_id, is loaded with its path score table', () => {
-  expect(readEventCases(casesDir({ [at(FIXTURE)]: FIXTURE }), EVENT)).toEqual([FIXTURE]);
+  expect(readEventCases(casesDir({ [at(FIXTURE)]: FIXTURE }), EVENT).cases).toEqual([FIXTURE]);
 });
 
 test('the event\'s cases come back ordered by case_id, whatever the folder order', () => {
   const second = edited((k) => { k.case_id = 'b-case'; });
   const first = edited((k) => { k.case_id = 'a-case'; });
-  const loaded = readEventCases(casesDir({ [at(second)]: second, [at(first)]: first }), EVENT);
+  const loaded = readEventCases(casesDir({ [at(second)]: second, [at(first)]: first }), EVENT).cases;
   expect(loaded.map((k) => k.case_id)).toEqual(['a-case', 'b-case']);
 });
 
@@ -57,7 +57,7 @@ test.each([
   }],
 ])('a case with %s is left out', (_name, fn) => {
   const k = edited(fn);
-  expect(readEventCases(casesDir({ [at(FIXTURE)]: k }), EVENT)).toEqual([]);
+  expect(readEventCases(casesDir({ [at(FIXTURE)]: k }), EVENT).cases).toEqual([]);
 });
 
 test.each([
@@ -66,7 +66,7 @@ test.each([
   ['a file that is not JSON', { [at(FIXTURE)]: '{ "case_id": ' }],
   ['no folder for the event', {}],
 ])('%s is left out', (_name, files, code = EVENT) => {
-  expect(readEventCases(casesDir(files), code)).toEqual([]);
+  expect(readEventCases(casesDir(files), code).cases).toEqual([]);
 });
 
 describe('GET /booth/status reads the served case', () => {

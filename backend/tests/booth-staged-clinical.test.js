@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Clinical rules the batch B safety gate (#384) found broken. The contract test cannot judge clinical truth, so each
-// rule here reads the staged trees and replies for one defect the review let through.
-const CASES = path.join(__dirname, '../src/booth-cases/staging/NFCME-2026');
-const REPLIES = path.join(__dirname, '../../scripts/booth/sample-replies/staging/NFCME-2026');
+// rule here reads the batch's trees and replies, now in the NFCME-2026 pool (#386), for one defect the review let through.
+const CASES = path.join(__dirname, '../src/booth-cases/NFCME-2026');
+const REPLIES = path.join(__dirname, '../../scripts/booth/sample-replies/NFCME-2026');
 const BATCH_B = ['adhf', 'copd-exacerbation', 'ectopic-rupture', 'toddler-gastro-dehydration'];
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const staged = BATCH_B.map((id) => ({

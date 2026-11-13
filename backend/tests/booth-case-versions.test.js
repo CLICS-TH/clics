@@ -17,14 +17,21 @@ const SNAPSHOTS = EVENTS.flatMap((code) => {
   return fs.existsSync(dir) ? fs.readdirSync(dir).map((f) => path.join(dir, f)) : [];
 });
 
-test('the event folders hold admitted cases and snapshots to check', () => {
+// The NFCME-2026 pool holds no admitted case between the five-step move (#386) and its tables (#408), so the snapshot
+// check below may read none; the snapshots of every version played before the move stay and are checked here.
+test('the event folders keep the snapshot of every NFCME-2026 version admitted before the five-step move', () => {
   expect(EVENTS).toContain('NFCME-2026');
-  expect(EVENTS.flatMap((code) => readEventCases(DIR, code)).length).toBeGreaterThan(0);
-  expect(SNAPSHOTS.length).toBeGreaterThan(0);
+  const before = { adhf: [3, 4], 'alcohol-pancreatitis': [2, 3], 'copd-exacerbation': [4, 5], 'dka-young-adult': [4, 5],
+    'ectopic-rupture': [3, 4], leptospirosis: [2, 3], 'melioidosis-farmer': [2, 3], 'motorcycle-shock': [1, 2],
+    organophosphate: [2, 3], 'sjs-ten-allopurinol': [2, 3], 'toddler-gastro-dehydration': [1, 2] };
+  const kept = new Set(SNAPSHOTS.map((f) => path.relative(DIR, f)));
+  const lost = Object.entries(before).flatMap(([id, versions]) => versions.map((v) => `NFCME-2026/versions/${id}@${v}.json`))
+    .filter((f) => !kept.has(f));
+  expect(lost).toEqual([]);
 });
 
 test('every admitted case version has a study snapshot that is exactly its case file\'s', () => {
-  const problems = EVENTS.flatMap((code) => readEventCases(DIR, code).flatMap((kase) => {
+  const problems = EVENTS.flatMap((code) => readEventCases(DIR, code).cases.flatMap((kase) => {
     const { state } = snapshotState(DIR, kase);
     return state === 'kept' ? [] : [snapshotProblem(kase, state)];
   }));

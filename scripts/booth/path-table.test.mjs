@@ -21,21 +21,35 @@ test('the tree hash ignores version, admission, the table and key order, and see
   assert.notEqual(treeSha(tree({ teaser: { th: 'ก', en: 'a ' } })), base);
 });
 
+const BOUND = { ...REVIEW, tree_sha256: treeSha(tree()) };
+
 test('a tree unchanged since the commit that first holds its review keeps that review, at its hash', () => {
+  const waiver = { date: '2026-11-03', tree_sha256: BOUND.tree_sha256 };
   const history = [
     { commit: 'aaaaaaaa1', raw: tree({ teaser: { th: 'ข', en: 'b' } }) },
-    { commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: REVIEW } }) },
-    { commit: 'cccccccc3', raw: tree({ admission: { safety_review: REVIEW, owner_waiver: { date: '2026-11-03' } } }) },
+    { commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: BOUND } }) },
+    { commit: 'cccccccc3', raw: tree({ admission: { safety_review: BOUND, owner_waiver: waiver } }) },
   ];
-  const current = tree({ version: '2', admission: { safety_review: REVIEW, owner_waiver: { date: '2026-11-03' } } });
+  const current = tree({ version: '2', admission: { safety_review: BOUND, owner_waiver: waiver } });
   assert.deepEqual(reviewedTree(history, current), { tree_sha256: treeSha(history[1].raw), reviewed_commit: 'bbbbbbbb2' });
 });
 
-test('a tree edited after its review, a review no commit holds, and no review are each refused', () => {
-  const history = [{ commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: REVIEW } }) }];
-  assert.match(reviewedTree(history, tree({ banks: { step1: { x: 2 } }, admission: { safety_review: REVIEW } })).why, /changed its tree since the safety review in bbbbbbbb/);
-  assert.match(reviewedTree(history, tree({ admission: { safety_review: { ...REVIEW, date: '2026-11-04' } } })).why, /no commit holds/);
+test('a tree edited after its review, a review no commit holds, a review of no tree, and no review are each refused', () => {
+  const history = [{ commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: BOUND } }) }];
+  const otherFirst = [{ commit: 'bbbbbbbb2', raw: tree({ banks: { step1: { x: 2 } }, admission: { safety_review: BOUND } }) }];
+  assert.match(reviewedTree(otherFirst, tree({ admission: { safety_review: BOUND } })).why, /changed its tree since the safety review in bbbbbbbb/);
+  assert.match(reviewedTree(history, tree({ admission: { safety_review: { ...BOUND, date: '2026-11-04' } } })).why, /no commit holds/);
+  assert.match(reviewedTree([{ commit: 'bbbbbbbb2', raw: tree({ admission: { safety_review: REVIEW } }) }],
+    tree({ admission: { safety_review: REVIEW } })).why, /names no tree/);
   assert.match(reviewedTree(history, tree()).why, /no safety review/);
+});
+
+test('a tree edited in the commit that moves it into place, with its review copied unchanged, is refused (#468)', () => {
+  const staged = tree({ admission: { safety_review: BOUND } });
+  const moved = tree({ teaser: { th: 'ค', en: 'c' }, admission: { safety_review: BOUND } });
+  const history = [{ commit: 'aaaaaaaa1', raw: tree({ banks: { step1: { x: 0 } } }) }, { commit: 'dddddddd4', raw: moved }];
+  assert.notEqual(treeSha(moved), treeSha(staged));
+  assert.match(reviewedTree(history, moved).why, /safety review of another tree/);
 });
 
 test('each table entry is the median per domain of its samples, taken domain by domain', () => {

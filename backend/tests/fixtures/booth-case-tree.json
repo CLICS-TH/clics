@@ -1057,11 +1057,13 @@
     "safety_review": {
       "model": "fixture",
       "date": "2026-10-29",
-      "findings": "Test fixture. No safety review was run."
+      "findings": "Test fixture. No safety review was run.",
+      "tree_sha256": "84ba875c419c7ebecdd29f4a77bc3d1e62e008940a30c3c4d841f20c08e823dc"
     },
     "sandbox": {
       "run_id": "fixture",
-      "date": "2026-10-29"
+      "date": "2026-10-29",
+      "tree_sha256": "84ba875c419c7ebecdd29f4a77bc3d1e62e008940a30c3c4d841f20c08e823dc"
     },
     "table_check": {
       "run_id": "fixture",

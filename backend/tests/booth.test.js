@@ -119,7 +119,8 @@ function seedPlay(over = {}) {
   plays.set(row.id, row);
   return row;
 }
-const SCORED = { status: 'scored', composite: 59, d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3, scored_at: iso(-60_000), ranked: true };
+const SCORED = { status: 'scored', composite: 59, d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3, scored_at: iso(-60_000), ranked: true,
+  tier_path: 'BBB' };
 
 function fakeRpc(name, args) {
   rpcCalls.push([name, args]);
@@ -2538,7 +2539,6 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
   const KASE5 = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8')), path_score_table: TABLE5 };
   const BOTH_DIR = casesDir(KASE, KASE5);
   const ai = (b) => ({ variants: b.variants, options: b.options });
-  const BOARD_FIVE = { key: 'booth_board_five_steps', value: 1, value_text: null };
   const standingsReads = () => m.all('booth_plays', 'select').filter((q) => q.selectArgs[0] === 'id, tag, composite, scored_at');
 
   beforeEach(() => { process.env.BOOTH_CASES_DIR = BOTH_DIR; });
@@ -2589,7 +2589,8 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
     expect((await score(p)).body).toMatchObject({ status: 'scored', domains: TABLE5.paths[`BRW${letter}B`] });
   });
 
-  test('the three-step case beside it still starts with steps 3 and scores its own table', async () => {
+  test('a three-step case in a three-step event still starts with steps 3 and scores its own table', async () => {
+    process.env.BOOTH_CASES_DIR = FIXTURE_DIR;
     const p = await walked(['best', 'reasonable', 'weaker']);
     expect(p.started.step_count).toBe(3);
     expect((await score(p)).body).toMatchObject({ status: 'scored', composite: compositeScore(TABLE.paths.BRW), domains: TABLE.paths.BRW });
@@ -2597,6 +2598,7 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
   });
 
   test('a fourth answer posted to a three-step play answers 400, never a 500, and claims no step', async () => {
+    process.env.BOOTH_CASES_DIR = FIXTURE_DIR;
     const p = await walked(['best', 'best', 'best']);
     const res = await post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [...p.d.answers, { text: 'a fourth answer' }],
       asks: [...p.d.asks, p.d.asks[2]] });
@@ -2612,38 +2614,42 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
     expect(plays.get(p.id)).toMatchObject({ status: 'started', composite: null, replied_step: 3 });
   });
 
-  describe('the board switch (booth_board_five_steps)', () => {
+  test('the pool never mixes step counts: with a five-step tree in the folder, the five-step case is live and the three-step one is out', async () => {
+    process.env.BOOTH_CASES_DIR = casesDir(KASE, KASE5);
+    const draw = await post('/booth/draw', { seen: [] });
+    expect(draw.body).toMatchObject({ case_id: KASE5.case_id, live: 1 });
+    expect((await post('/booth/draw', { seen: [KASE5.case_id] })).body).toMatchObject({ case_id: KASE5.case_id, live: 1 });
+    const off = await post('/booth/plays', { case_id: KASE.case_id });
+    expect(off.status).toBe(409);
+    expect(off.body.reason).toBe('case_off');
+    expect((await begin(KASE5)).started.step_count).toBe(5);
+    expect(console.warn).toHaveBeenCalledWith(
+      `[booth] case ${EVENT}/${KASE.case_id}.json left out: it is a three-step case in a five-step event`);
+  });
+
+  describe('the board ranks one scale: plays of the event\'s step count only (#386)', () => {
     const seedScored = (tag, composite, tierPath) => seedPlay({ ...SCORED, tag, composite, tier_path: tierPath });
 
-    test('off, as seeded, every ranked play ranks whatever its step count, and no standings read filters on the tier path', async () => {
-      seedScored(1, 99, 'BBB');
-      seedScored(2, 98, 'BBBBB');
-      const three = await walked(['best', 'reasonable', 'weaker']);
-      const five = await walked(['best', 'reasonable', 'weaker', 'reasonable', 'best'], KASE5);
-      expect((await score(three)).body.rank_event).not.toBeNull();
-      expect((await score(five)).body.rank_event).not.toBeNull();
-      const board = (await get('/booth/board')).body.board.event.map((e) => e.tag);
-      expect(board.sort()).toEqual([1, 2, plays.get(three.id).tag, plays.get(five.id).tag].sort());
-      expect(standingsReads().length).toBeGreaterThan(0);
-      for (const read of standingsReads()) expect(read.likes).toEqual([]);
-    });
-
-    test('on, the board, today\'s rank and the event rank count five-step plays only: a three-step play gets no rank, a five-step one does', async () => {
-      settings = { rows: [...eventSettings(), BOARD_FIVE] };
+    test('in a five-step event a three-step play never ranks: the board, today\'s rank and the event rank count five-step plays', async () => {
       seedScored(1, 99, 'BBB');
       seedScored(2, 50, 'WWWWW');
-      const three = await walked(['best', 'best', 'best']);
       const five = await walked(['best', 'reasonable', 'weaker', 'reasonable', 'best'], KASE5);
-      const threeScore = (await score(three)).body;
-      expect(threeScore).toMatchObject({ status: 'scored', composite: 100, rank_today: null, rank_event: null });
-      expect(threeScore.board.event.map((e) => e.tag)).toEqual([2]);
       const fiveScore = (await score(five)).body;
       expect(fiveScore).toMatchObject({ status: 'scored', rank_today: 1, rank_event: 1 });
       expect(fiveScore.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
       expect((await get('/booth/board')).body.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
-      expect(standingsReads()).toHaveLength(3);
+      expect(standingsReads()).toHaveLength(2);
       for (const read of standingsReads()) expect(read.likes).toEqual([['tier_path', '_____']]);
-      expect(plays.get(three.id)).toMatchObject({ status: 'scored', ranked: true, tier_path: 'BBB' });
+    });
+
+    test('in a three-step event only three-step plays rank', async () => {
+      process.env.BOOTH_CASES_DIR = FIXTURE_DIR;
+      seedScored(1, 99, 'BBBBB');
+      seedScored(2, 50, 'WWW');
+      const three = await walked(['best', 'best', 'best']);
+      expect((await score(three)).body).toMatchObject({ status: 'scored', composite: 100, rank_event: 1 });
+      expect((await get('/booth/board')).body.board.event.map((e) => e.tag)).toEqual([plays.get(three.id).tag, 2]);
+      for (const read of standingsReads()) expect(read.likes).toEqual([['tier_path', '___']]);
     });
   });
 });
