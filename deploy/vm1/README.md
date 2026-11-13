@@ -184,8 +184,10 @@ deploying the commit Railway runs.
 1. **Deploy beside Railway.** Run `deploy.sh`. Production is still Railway; nothing points at vm1 yet.
    From this moment vm1's drain also claims queued evaluations, which is safe (see *Parallel run*).
 
-2. **Smoke the public origin:**
+2. **Smoke the public origin.** One command runs the checks below (health, manifest equality with Railway,
+   CORS for both front-end origins); add `--stream` for the streamed turn:
    ```bash
+   node scripts/deploy/cutover-check.mjs
    curl -s https://clics.ccme.or.th/health/deep | python3 -m json.tool
    ```
    It must show `"service": "backend"`, `checks.rimpl.status` `"up"` and `checks.supabase.status`
@@ -196,8 +198,9 @@ deploying the commit Railway runs.
    curl -si -X OPTIONS -H 'Origin: https://physician-ui.vercel.app' https://clics.ccme.or.th/health | grep -i '^access-control-allow-origin'
    curl -si -X OPTIONS -H 'Origin: https://audit-dashboard-rouge.vercel.app' https://clics.ccme.or.th/health | grep -i '^access-control-allow-origin'
    ```
-   Each must echo its own origin. Optionally, run one streamed chat turn with a test account against
-   the new origin. It costs one AI turn, and it is the only check that proves nginx is not buffering SSE.
+   Each must echo its own origin. `node scripts/deploy/cutover-check.mjs --stream` (with `SMOKE_PHYS_EMAIL` and
+   `SMOKE_PHYS_PW`) runs one streamed chat turn on a test account. It costs one AI turn and creates one PLE, and
+   it is the only check that proves nginx is not buffering SSE: it fails when the frames arrive within 300 ms of each other.
 
 3. **Point the front ends at the new API.**
    - **`ALLOWED_ORIGINS`: nothing to add.** It lists the origins of the *pages* that call the API (the two
@@ -205,7 +208,8 @@ deploying the commit Railway runs.
      CORS check proves it. Add `https://clics.ccme.or.th` only if a front end is ever served from it.
    - **physician-ui** reads `window.CLICS_API_URL` from `physician-ui/public/js/config.js:5`, a
      hard-coded string (no env var). Change the non-local value from
-     `https://backend-production-c12e4.up.railway.app` to `https://clics.ccme.or.th`, merge, then
+     `https://backend-production-c12e4.up.railway.app` to `https://clics.ccme.or.th` (merged by #426; **no Vercel
+     deploy of the Portal before step 2 passes**, because this line is what the next deploy ships), then
      `cd physician-ui && vercel --prod --yes`.
    - **audit-dashboard** reads `process.env.NEXT_PUBLIC_API_URL` (`audit-dashboard/lib/api.ts:1`), which
      is inlined at **build** time, so a rebuild is required:
@@ -248,7 +252,7 @@ VM1_HOST=VM1_TAILNET_NAME deploy/vm1/deploy.sh --rollback PREVIOUS_SHA
 if they still exist; otherwise they are rebuilt from the release directory.
 
 **Back to Railway (within the 7 days):** Railway was never changed, so only the front ends move back.
-1. Revert `physician-ui/public/js/config.js` to the Railway URL and run `vercel --prod --yes`.
+1. In one commit, revert `physician-ui/public/js/config.js` to the Railway URL **and** set `VM1_ORIGIN` in `scripts/lib/api-origin.cjs` to the same URL (`scripts/deploy/cutover-check.test.mjs` fails when the two differ, and the smoke scripts would otherwise test vm1). Then run `vercel --prod --yes`.
 2. Set `NEXT_PUBLIC_API_URL` back to `https://backend-production-c12e4.up.railway.app` the same way as
    above, and rebuild the dashboard.
 3. vm1 may keep running (its drain is safe to leave on). If vm1 itself is the problem, stop it:

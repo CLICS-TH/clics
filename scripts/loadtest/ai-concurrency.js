@@ -3,7 +3,7 @@
 // behaves under true concurrency: successes, errors (502 = RIMPL/Claude failure or rate-limit), latency.
 // Hard budget cap. ~$0.065/call (observed lower, ~$0.045). User cap 2026-06-11: ≤ $2.
 //   cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/loadtest/ai-concurrency.js
-const BASE = 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin();
 const CONCURRENCY = 28;          // simultaneous AI chats (= cap, so the fan-out is never pre-truncated)
 const MAX_AI_CALLS = 28;         // hard budget cap: 28 × $0.065 = $1.82 < $2
 const COST_PER_CALL = 0.065;

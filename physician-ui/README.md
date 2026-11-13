@@ -71,4 +71,4 @@ The booth's idle screen (`/booth`) plays the files listed in `public/booth-loop/
   with no Tap-to-try: a play needs the server to start and to score, so none starts until the network is back.
 - Deploy before the event freeze: the booth only sees files that are live on Vercel.
 
-Deploy: `vercel --prod --yes`. See [../docs/deployment.md](../docs/deployment.md).
+Deploy: `vercel --prod --yes`. `public/js/config.js` names the vm1 API origin, so deploy only after `node scripts/deploy/cutover-check.mjs` passes. See [../docs/deployment.md](../docs/deployment.md).

@@ -12,7 +12,7 @@ Conventions used below:
 
 ```bash
 BASE=http://localhost:3001                       # or the deployed backend:
-# BASE=https://backend-production-c12e4.up.railway.app
+# BASE=https://clics.ccme.or.th
 EMAIL=you+ple1@yourdomain.test                   # an inbox YOU can read
 ```
 

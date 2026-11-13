@@ -11,7 +11,7 @@
 // (weak -> tier-1 fail; average -> tier-2 flag; good/top -> evaluated). Writes /tmp/soak-results.json.
 
 const fs = require('fs');
-const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.SOAK_BASE);
 const PW = 'SoakPass#2026';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 

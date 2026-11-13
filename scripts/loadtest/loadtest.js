@@ -7,7 +7,7 @@
 // (~$0.03-0.05 each) so total Claude spend stays well under $1. Phases A-C are free read/auth.
 // Phase D uses GUEST mode (hits Claude, writes ZERO DB rows — no data pollution).
 
-const BASE = process.env.CLICS_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.CLICS_BASE);
 const PW_R2 = { sa: 'ClicsSuper#2026r2', ad: 'ClicsAdmin#2026r2' };
 const SOAK = 'SoakPass#2026';
 const LEVELS = [50, 100, 150, 200];      // concurrency levels to sweep
