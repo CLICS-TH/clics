@@ -9,7 +9,7 @@
  *
  * Usage: node scripts/smoke/role-chain-smoke.js
  */
-const BASE = process.env.SMOKE_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.SMOKE_BASE);
 const SUPER = { email: 'superadmin@clics.th', password: process.env.SMOKE_SUPER_PW || 'ClicsSuper#2026r2' };
 const ADMIN = { email: 'admin@clics.th', password: process.env.SMOKE_ADMIN_PW || 'ClicsAdmin#2026r2' };
 const AUDITOR = { email: process.env.SMOKE_AUD_EMAIL || 'soakaud1@example.com', password: process.env.SMOKE_AUD_PW || 'SoakPass#2026' };

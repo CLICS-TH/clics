@@ -9,7 +9,7 @@ const { computeICC21 } = require('../../backend/src/services/icc');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false, autoRefreshToken: false } });
 
-const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.SOAK_BASE);
 const PW = 'SoakPass#2026';
 async function api(method, path, { token, body } = {}) {
   const res = await fetch(BASE + path, {

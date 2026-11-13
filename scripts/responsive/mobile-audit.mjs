@@ -19,7 +19,7 @@
  *
  * Env:
  *   DASH_URL      audit-dashboard origin (e.g. https://audit-dashboard-rouge.vercel.app)  [enables dashboard audit]
- *   BACKEND_URL   backend origin (e.g. https://backend-production-c12e4.up.railway.app)
+ *   BACKEND_URL   backend origin (e.g. https://clics.ccme.or.th)
  *   SUPER_EMAIL/SUPER_PW, AUDITOR_EMAIL/AUDITOR_PW   role creds (throwaway demo creds in docs/deployment.md)
  *   AUDIT_JSON    optional path to also write the findings as JSON
  *

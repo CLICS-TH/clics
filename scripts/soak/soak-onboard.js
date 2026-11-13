@@ -5,7 +5,7 @@
 // Writes /tmp/soak-personas.json with creds + tiers + ids for the soak workflow.
 const fs = require('fs');
 // SOAK_BASE/SOAK_COUNCIL let the soak run against a non-prod stack (e.g. local backend + scaletest DB).
-const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin(process.env.SOAK_BASE);
 const COUNCIL_CODE = process.env.SOAK_COUNCIL || 'TMC';
 const PW = 'SoakPass#2026';
 

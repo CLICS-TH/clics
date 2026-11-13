@@ -47,7 +47,7 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
 - [ ] **The pre-freeze section is all ticked.** Rerun its two read-only checks: they still pass.
 - [ ] **Railway logged in.** `railway whoami` prints the owner's account (the CLI was logged out on 28 Oct). A
       rollback on the day needs it.
-- [ ] **Backend is the backend.** `curl -s https://backend-production-c12e4.up.railway.app/health/deep` reports
+- [ ] **Backend is the backend.** `curl -s https://clics.ccme.or.th/health/deep` reports
       `"service":"backend"`.
 - [ ] **Kiosk launcher installed.** `scripts/booth/kiosk/booth-kiosk.cmd` is on the desktop and in `shell:startup`
       (see `scripts/booth/kiosk/README.md`).

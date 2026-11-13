@@ -6,7 +6,7 @@
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const s = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-const BASE = 'https://backend-production-c12e4.up.railway.app';
+const BASE = require('../lib/api-origin.cjs').apiOrigin();
 const N = 120;                 // accounts to provision (aim to clear 100 distinct tokens)
 const PW = 'LoadTest#2026';
 const DOMAIN = 'clics.test';
