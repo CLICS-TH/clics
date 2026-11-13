@@ -463,14 +463,15 @@ function dottedDateGuard(m) {
   return d >= 1 && d <= 31 && mo >= 1 && mo <= 12;
 }
 // A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date.
-const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv])\s*)`;
+const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv])\s{0,3})`;
 
 // No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
 // ".<digit>", and never right after "<digit>." when what follows reads as a decimal fraction, 1-8 digits not
 // followed by another '.', '/', '-' or digit. A numbered list item (1.081.234.5678, 1.0812345678, 1.20/10/2569)
-// is not a decimal and is still masked. Wrapped around every phone and date pattern below.
-const NOT_IN_DECIMAL = (src) => `(?!(?<=\\d\\.)\\d{1,8}(?![\\d./-]))(?:${src})(?!\\.\\d)`;
-const numericRe = (src, flags = 'g') => new RegExp(NOT_IN_DECIMAL(src), flags);
+// is not a decimal and is still masked. Wrapped around every phone and date pattern below. A loose undotted phone run
+// ends where its digits end instead (`tail` (?!\d)): backing off before ".<digit>" would leave its last digit in clear.
+const NOT_IN_DECIMAL = (src, tail = '(?!\\.\\d)') => `(?!(?<=\\d\\.)\\d{1,8}(?![\\d./-]))(?:${src})${tail}`;
+const numericRe = (src, tail) => new RegExp(NOT_IN_DECIMAL(src, tail), 'g');
 
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
@@ -513,7 +514,8 @@ const PASSES = [
     cat: 'ID',
     // Guard: only when the digits actually total 13 (the loose run above could
     // otherwise straddle unrelated numbers separated by spaces).
-    guard: (m) => (m.replace(/\D/g, '').length === 13),
+    // A Thai national ID never starts with 0, so a run that does is two phones (081-234-5678 089-876-5432).
+    guard: (m) => m.replace(/\D/g, '').length === 13 && m[0] !== '0',
   },
 
   // HN (hospital number) explicit code field — kept as its own category since
@@ -548,7 +550,7 @@ const PASSES = [
   // number. The guard checks the national digit count (after stripping 66) so
   // it cannot latch onto an unrelated long number.
   {
-    re: numericRe(String.raw`(?<!\d)\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]*\d){6,9}`),
+    re: numericRe(String.raw`(?<!\d)\+?66[\s-]?(?:\(0\)[\s-]?)?\d(?:[\s()-]{0,3}\d){6,9}`, '(?!\\d)'),
     cat: 'PHONE',
     guard: (m) => {
       // national number: 8 digits (landline) or 9 (mobile); a written trunk 0
@@ -561,7 +563,7 @@ const PASSES = [
     // Thai national: leading 0 (possibly parenthesised "(081)"), then 8-9 more
     // digits, allowing space/dash/paren grouping. Guarded to 9-10 digits so it
     // never eats a longer run or a bare lab count (which has no leading 0).
-    re: numericRe(String.raw`(?<!\d)\(?0\d\)?(?:[\s()-]*\d){7,9}`),
+    re: numericRe(String.raw`(?<!\d)\(?0\d\)?(?:[\s()-]{0,3}\d){7,9}`, '(?!\\d)'),
     cat: 'PHONE',
     guard: (m) => {
       const d = m.replace(/\D/g, '').length;

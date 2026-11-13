@@ -313,6 +313,7 @@ const NUMERIC_SHAPES = [
   ['dotted phone then hours', 'โทร 081.234.5678 24 ชั่วโมง', ['081', '234', '5678'], 'PHONE'],
   ['Thai-digit dashed phone then a count', 'โทร ๐๘๑-๒๓๔-๕๖๗๘ ๒ ครั้ง', ['๐๘๑', '๒๓๔', '๕๖๗๘'], 'PHONE'],
   ['+66 glued to the area code, dotted', 'โทร +6681.234.5678', ['6681', '234', '5678'], 'PHONE'],
+  ['two dashed phones in a row', 'โทร 081-234-5678 089-876-5432', ['5678', '089', '876-5432'], 'PHONE'],
   ['full-width digits', '０８１-２３４-５６７８', ['０８１', '２３４', '５６７８'], 'PHONE'],
   ['full-width digits and dots', 'Tel.０８１．２３４．５６７８', ['０８１', '５６７８'], 'PHONE'],
   ['Arabic-Indic digits', '٠٨١٢٣٤٥٦٧٨', ['٠٨١٢٣٤٥٦٧٨', '٥٦٧٨'], 'PHONE'],
@@ -354,6 +355,13 @@ describe('adversarial — every digit script and dotted shape, on every surface 
     ['โทร 081.234.5678 24 ชั่วโมง', 'โทร [PHONE-1] 24 ชั่วโมง'],
     ['เบอร์ 081-234-5678 ติดต่อได้ 24 ชม.', 'เบอร์ [PHONE-1] ติดต่อได้ 24 ชม.'],
     ['call 081-234-5678 at 9', 'call [PHONE-1] at 9'],
+    // A phone before ".<digit>" is masked whole; it never backs off and leaves its last digit in clear.
+    ['โทร 0812345678.5', 'โทร [PHONE-1].5'],
+    ['081-234-5678.2', '[PHONE-1].2'],
+    ['+66812345678.5', '[PHONE-1].5'],
+    ['โทร 081-234-5678 089-876-5432', 'โทร [PHONE-1] [PHONE-2]'],
+    [`โทร 0812345678${' '.repeat(60)}3 ครั้ง`, `โทร [PHONE-1]${' '.repeat(60)}3 ครั้ง`],
+    [`โทร 0812345678${'\n'.repeat(55)}2`, `โทร [PHONE-1]${'\n'.repeat(55)}2`],
   ])('%s keeps the number after the phone', (input, expected) => {
     expect(stripPii(input)).toBe(expected);
   });
