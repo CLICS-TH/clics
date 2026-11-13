@@ -157,10 +157,12 @@ function bankWorstNext(bank, bridge = LONG_BRIDGE) {
 }
 
 let trees;
-/** [name, tree] of the two fixtures and of every case file in backend/src/booth-cases/<EVENT>/. Read once per run, so
- *  a case file that lands on master is checked without a harness edit. */
+// A case file at backend/src/booth-cases/<EVENT>/, or staged at staging/<EVENT>/ until its cutover (#386).
+const CASE_FILE = /^(staging\/)?[^/]+\/[^/]+\.json$/;
+/** [name, tree] of the two fixtures and of every case file, staged ones included. Read once per run, so a case file
+ *  that lands on master is checked without a harness edit. */
 const caseTrees = () => (trees ??= (async () => {
-  const files = (await readdir(CASES, { recursive: true })).filter((f) => /^[^/]+\/[^/]+\.json$/.test(f)).sort();
+  const files = (await readdir(CASES, { recursive: true })).filter((f) => CASE_FILE.test(f)).sort();
   return [['fixture', TREE], ['fixture-5', TREE5], ...await Promise.all(files.map(async (f) => [f, JSON.parse(await readFile(join(CASES, f), 'utf8'))]))];
 })());
 
@@ -649,7 +651,7 @@ async function scanSources() {
     ['physician-ui/public/booth*.html', ROOT, (f) => /^booth.*\.html$/.test(f)],
     ['physician-ui/public/css/booth*.css', join(ROOT, 'css'), (f) => /^booth.*\.css$/.test(f)],
     ['physician-ui/public/js/booth-*.js', join(ROOT, 'js'), (f) => /^booth-.*\.js$/.test(f)],
-    ['backend/src/booth-cases/*/*.json', CASES, (f) => /^[^/]+\/[^/]+\.json$/.test(f)],
+    ['backend/src/booth-cases/{,staging/}*/*.json', CASES, (f) => CASE_FILE.test(f)],
   ];
   for (const [glob, dir, match] of groups) {
     const files = (await readdir(dir, { recursive: true })).filter(match).sort();
