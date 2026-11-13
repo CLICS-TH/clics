@@ -274,6 +274,14 @@ describe('adversarial — Thai-digit and dotted identifiers (#440)', () => {
     'pH 7.35 pCO2 40.2 HCO3 22.1',
     'Wt 66.5 kg HR 120 bpm',
     'dose 1.5.2 mg',
+    // A decimal ending in 66 then a spaced list is no +66 phone (round-2 review).
+    'Cr 0.66 0.70 0.81 0.92 mg/dL',
+    'Cr 1.66 2.10 3.20 4.10 5.00',
+    'Wt 66.2 65.8 65.1 64.9 kg',
+    'Hct 0.66 0.61 0.58 0.55',
+    'pH 7.66 7.70 7.81 7.92',
+    'K 3.66 4.1 4.0 3.8 3.9 4.2',
+    'ค่า Cr ๐.๖๖ ๐.๗๐ ๐.๘๑ ๐.๙๒',
   ])('%s survives byte-for-byte', (text) => assertSurvives(text));
 });
 
@@ -292,6 +300,7 @@ const NUMERIC_SHAPES = [
   ['two dotted groups, landline', '02.1234567', ['1234567'], 'PHONE'],
   ['4-3-3 dotted groups', '0812.345.678', ['0812', '345', '678'], 'PHONE'],
   ['+66 then a dot, ungrouped', '+66.812345678', ['812345678', '5678'], 'PHONE'],
+  ['2-digit dotted groups', 'โทร 081.234.56.78', ['081', '234', '56.78'], 'PHONE'],
   ['numbered list then a dotted phone', '1.081.234.5678', ['081', '5678'], 'PHONE'],
   ['full-width digits', '０８１-２３４-５６７８', ['０８１', '２３４', '５６７８'], 'PHONE'],
   ['full-width digits and dots', 'Tel.０８１．２３４．５６７８', ['０８１', '５６７８'], 'PHONE'],
@@ -301,6 +310,7 @@ const NUMERIC_SHAPES = [
   ['Thai-digit date', 'วันที่ ๑๒/๐๕/๒๕๖๙', ['๑๒/๐๕', '๒๕๖๙'], 'DATE'],
   ['Thai-digit ISO date', 'วันที่ ๒๕๖๙-๐๕-๑๒', ['๒๕๖๙-๐๕'], 'DATE'],
   ['dotted date', 'นัด 20.10.2026', ['20.10', '2026'], 'DATE'],
+  ['dotted date with spaces', 'นัด 20. 10. 2026', ['2026'], 'DATE'],
   ['dotted Buddhist-era date', 'วันที่ 05.12.2569', ['05.12', '2569'], 'DATE'],
   ['Thai-digit dotted date', 'วันที่ ๒๐.๑๐.๒๕๖๙', ['๒๐.๑๐', '๒๕๖๙'], 'DATE'],
   ['Thai-digit house number', 'บ้านเลขที่ ๙๙/๑', ['๙๙/๑'], 'ADDR'],

@@ -560,13 +560,15 @@ const PASSES = [
   },
   // Dotted groups, national or +66 (081.234.5678, 081.2345678, 0812.345.678, 02.1234567, +66.812345678,
   // 081. 234.5678), after any label or punctuation (โทร.081…, Tel.081…). Its own pass so '.' never joins the loose
-  // runs above. A national number opens with 0 and one to three digits and every later group holds three or more,
-  // so a lab list (Cr 0.85 0.92 1.10) or a dotted date (05.12.2569) is no phone; it never starts inside a number or
-  // stops before a decimal. Only a match holding a dot counts: the passes above own every undotted form.
+  // runs above. A national number opens with 0 and one to three more digits, then groups of two or more (081.234.56.78);
+  // a +66 number takes groups of three or four after its one- or two-digit area code and never follows a decimal, so
+  // a lab list (Cr 0.85 0.92 1.10, Cr 0.66 0.70 0.81) or a dotted date (05.12.2569) is no phone; no match starts
+  // inside a number or stops before a decimal. Only a match holding a dot counts: the passes above own every
+  // undotted form.
   {
     re: new RegExp(
-      `(?<!\\d)(?:\\+?66${PHONE_SEP}(?:\\(0\\)${PHONE_SEP}?)?\\d(?:${PHONE_SEP}?\\d){7,9}` +
-        `|\\(?0\\d{1,3}\\)?(?:${PHONE_SEP}\\d{3,7}){1,2})(?!\\.?\\d)`,
+      `(?<!\\d)(?:(?<!\\d\\.)\\+?66${PHONE_SEP}(?:\\(0\\)${PHONE_SEP}?)?\\d{1,2}(?:${PHONE_SEP}?\\d{3,4}){1,2}` +
+        `|\\(?0\\d{1,3}\\)?(?:${PHONE_SEP}\\d{2,7}){1,3})(?!\\.?\\d)`,
       'g'
     ),
     cat: 'PHONE',
@@ -581,8 +583,8 @@ const PASSES = [
   // --- Dates (kept stable category so repeated dates collapse) ---
   { re: /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g, cat: 'DATE' },
   { re: /\b\d{4}-\d{2}-\d{2}\b/g, cat: 'DATE' },
-  // Dotted day.month.year (20.10.2026, 05.12.2569): a real day and month, so a version or lab run is no date.
-  { re: /\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, cat: 'DATE', guard: dottedDateGuard },
+  // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026): a real day and month, so a lab run is no date.
+  { re: /\b\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4}\b/g, cat: 'DATE', guard: dottedDateGuard },
 
   // --- Ward ---
   // \b only on the English branch (it is ASCII-only and would never match before
