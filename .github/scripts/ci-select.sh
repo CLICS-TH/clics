@@ -16,7 +16,7 @@ event=${1:?usage: ci-select.sh <event> < changed-paths}
 # job "ALL": a change here selects every job (workflows, this script, the root manifest + lockfile).
 RULES='
 ALL               ^(\.github/|package\.json$|package-lock\.json$)
-backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|scripts/booth/open-dataset-step-keys\.json$|scripts/booth/path-table-sample\.js$|scripts/booth/sample-replies/|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
+backend           ^(backend/|rimpl/src/|rimpl/tests/helpers/|db/|scripts/booth/sandbox|scripts/booth/open-dataset-step-keys\.json$|scripts/booth/path-table-sample\.js$|scripts/booth/(spend-ledger|build-path-tables|path-table|path-fit)\.mjs$|scripts/booth/sample-replies/|audit-dashboard/(app|components|lib)/|physician-ui/public/js/)
 license_verifier  ^license-verifier/
 rimpl             ^(rimpl/|backend/src/booth-cases/|backend/src/services/(booth-dialogue|ple-gate)\.js$)
 dashboard         ^(audit-dashboard/|physician-ui/public/|backend/src/|db/|rimpl/src/lib/)
