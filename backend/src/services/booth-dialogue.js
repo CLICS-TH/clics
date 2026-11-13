@@ -339,6 +339,17 @@ const StepRecordSchema = z.object({
   typed: z.string().nullable().optional(),
 }).refine((s) => (s.choice === undefined) !== (s.typed === undefined), { message: 'needs exactly one of choice and typed' });
 
+// Six or more numerals with nothing but non-letters between them, in any script: a phone or an id however it is
+// written (slashes, brackets, dashes of any kind, spaces of any width, zero-width or bidi marks, full-width or
+// Arabic-Indic digits). A class guard: every non-letter is dropped before the run is measured, so a new separator
+// needs no edit. It also catches a lab value of six digits (150000); the owner accepts that (gate #370 round 3).
+const LONG_DIGIT_RUN = /\p{N}{6,}/u;
+const longDigitRun = (text) => LONG_DIGIT_RUN.test(text.replace(/[^\p{L}\p{N}]/gu, ''));
+const flaggedForAuditor = (content) => {
+  const t = content.replaceAll('**', '');
+  return ascii(t) !== t || longDigitRun(t) || spanMatches(t).length > 0;
+};
+
 // booth_plays.language_look: a look, or null for a play scored before #377 (the kiosk then showed th+en). undefined
 // is refused, so a read that left the column out drops its plays loudly instead of showing them in Thai.
 const StoredLookSchema = z.enum(Object.keys(LOOK_LANGUAGE)).nullable();
@@ -348,11 +359,13 @@ const StoredLookSchema = z.enum(Object.keys(LOOK_LANGUAGE)).nullable();
  * played on (a case file or a study snapshot), whatever that version's number of steps. The case text is in the
  * primary language of the look the play was scored in, the language its replies came in (#377). The step records
  * keep no look, so after a mid-play switch the replies before it are in the other language. Typed answers read as
- * their de-identified copy, unfenced. rimpl's write-time filter misses some shapes (a dotted phone, #449), so every
- * free text of the play (typed answers, replies, bridges) is screened again with the open dataset's span rules
- * (lib/pii-spans): a play with a finding is withheld as 'flagged', never shown or masked here. So is any Thai digit:
- * rimpl's own rules (a date, an age, a ward) read \d, which a Thai digit never matched at write time. Each text is
- * screened as the auditor sees it, bold markers removed, so a marker cannot split a span.
+ * their de-identified copy, unfenced. rimpl's write-time filter misses some shapes (a dotted or slashed phone, #449,
+ * #451), so each message is screened again as it is returned, after the join, bold markers removed: a play with a
+ * finding is withheld as 'flagged', never shown or masked here. The case's own text (vignette, question, a tapped
+ * option) is cut first: it is fixed and reviewed, and a lab value in it (leptospirosis' platelets, 110,000) would
+ * otherwise withhold every play through its bank. A finding is a span of the open dataset's
+ * rules (lib/pii-spans), any Thai digit (rimpl's own rules read \d, which a Thai digit never matched at write time),
+ * or a long digit run (longDigitRun).
  * @param {object} kase
  * @param {unknown} steps
  * @param {unknown} look  booth_plays.language_look
@@ -364,9 +377,6 @@ function studyTranscript(kase, steps, look) {
   if (!stored.success || !parsed.success) return { why: 'malformed' };
   const records = parsed.data;
   if (records.some((s) => s.typed === null)) return { why: 'no_deidentified_copy' };
-  const freeText = records.flatMap((s) => [s.typed ?? '', s.bridge, ...REPLY_FIELDS.map((k) => s.reply[k])]);
-  const flagged = (text) => { const t = text.replaceAll('**', ''); return ascii(t) !== t || spanMatches(t).length > 0; };
-  if (freeText.some(flagged)) return { why: 'flagged' };
   const tierPath = records.map((s) => LETTER[s.tier]).join('');
   const asks = records.map(({ variant, bridge, options }) => ({ variant, bridge, options }));
   const fits = records.every((s, i) => {
@@ -377,7 +387,11 @@ function studyTranscript(kase, steps, look) {
   if (!fits) return { why: 'malformed' };
   const answers = records.map((s) => (s.choice === undefined ? { text: s.typed } : { choice: s.choice }));
   const language = LOOK_LANGUAGE[stored.data ?? DEFAULT_LOOK];
-  return { messages: dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false, language) };
+  const messages = dialogueTurns(kase, { answers, replies: records.map((s) => s.reply), asks, tierPath }, false, language);
+  // Each message as returned, less the case's own text: an assistant turn whole (replies and the next bridge, joined),
+  // a physician turn's typed answer (what follows the case's question). A tapped turn is all case text.
+  const shown = [...messages.filter((m) => m.role === 'assistant').map((m) => m.content), ...answers.flatMap((a) => a.text ?? [])];
+  return shown.some(flaggedForAuditor) ? { why: 'flagged' } : { messages };
 }
 
 module.exports = {

@@ -159,9 +159,27 @@ test.each([['an unknown look', 'fr'], ['a look in the wrong case', 'EN'], ['no l
 test.each([
   ['a dotted phone typed', at(1, (s) => ({ ...s, typed: 'โทร.081.234.5678 ครับ' }))],
   ['a reply field naming someone', at(0, (s) => ({ ...s, reply: { ...s.reply, weigh: 'ถามนางสาวมาลี ใจดี' } }))],
-  ['a bridge with an email', at(2, (s) => ({ ...s, bridge: 'ส่งผลไปที่ a.b@example.org' }))],
+  // A bridge is one sentence (isValidAsk), so an email's dots make it malformed before the screen reads it.
+  ['a reply with an email', at(2, (s) => ({ ...s, reply: { ...s.reply, strength: 'ส่งผลไปที่ a.b@example.org' } }))],
   ['an unlabelled Thai-digit date, which rimpl\'s \\d rules never saw', at(1, (s) => ({ ...s, typed: 'นัดวันที่ ๑๒/๐๓/๒๕๖๙' }))],
   ['a phone split by bold markers in a reply', at(0, (s) => ({ ...s, reply: { ...s.reply, safety: 'โทร 081.**234**.5678' } }))],
+])('%s is withheld as flagged', (_name, steps) => {
+  expect(studyTranscript(KASE, steps, null)).toEqual({ why: 'flagged' });
+});
+
+// Gate #370 round 3: the read screen is a class guard on each message as the auditor sees it, after the join, so
+// a long digit run withholds the play whatever its digit script and whatever sits between the digits.
+const reply = (i, fields) => at(i, (s) => ({ ...s, reply: { ...s.reply, ...fields } }));
+test.each([
+  ['a slash phone typed, which passes stripPii (#451)', at(1, (s) => ({ ...s, typed: 'โทร 081/234/5678' }))],
+  ['a phone split across the three reply fields', reply(0, { strength: 'โทร 081', weigh: '234', safety: '5678' })],
+  ['a phone split between a reply and the next bridge', at(1, (s) => ({ ...s, bridge: '45678 ครับ' })).map((s, i) =>
+    (i === 0 ? { ...s, reply: { ...s.reply, safety: 'โทร 08123' } } : s))],
+  ['a full-width phone typed', at(1, (s) => ({ ...s, typed: 'โทร ０８１２３４５６７８' }))],
+  ['an Arabic-Indic phone typed', at(1, (s) => ({ ...s, typed: 'โทร ٠٨١٢٣٤٥٦٧٨' }))],
+  ['a phone split by zero-width spaces', at(1, (s) => ({ ...s, typed: 'โทร 081\u200B234\u200B5678' }))],
+  ['a phone split by bidi marks and a wide space', at(1, (s) => ({ ...s, typed: 'โทร 081\u200E\u3000234\u2060(5678)' }))],
+  ['a bracketed phone in a bridge', at(2, (s) => ({ ...s, bridge: 'โทร (081) 234–5678' }))],
 ])('%s is withheld as flagged', (_name, steps) => {
   expect(studyTranscript(KASE, steps, null)).toEqual({ why: 'flagged' });
 });

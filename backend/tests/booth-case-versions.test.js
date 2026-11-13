@@ -60,3 +60,20 @@ test.each(SNAPSHOTS.map((f) => [path.relative(DIR, f), f]))('%s is a study snaps
     expect(physician[0].content.startsWith(`${kase.vignette[LOOK_LANGUAGE[look ?? 'th+en']]}\n\n`)).toBe(true);
   }
 });
+
+// The auditor's screen cuts the case's own text (gate #370 round 3): a lab value in it, such as leptospirosis'
+// platelets (110,000), would otherwise withhold every play through its bank. A tapped play along every tier path of
+// every snapshot rebuilds, in every look.
+const pathsOf = (n) => (n === 0 ? [''] : pathsOf(n - 1).flatMap((p) => LETTERS.map((l) => p + l)));
+test.each(SNAPSHOTS.map((f) => [path.relative(DIR, f), f]))('%s rebuilds a tapped play along every tier path', (_name, file) => {
+  const { event_code: code, case_id: id, version, banks } = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const kase = readStudyCase(DIR, code, id, version);
+  const withheld = pathsOf(Object.keys(banks).length).flatMap((tierPath) => {
+    const steps = stepRecords(walk(kase, tierPath));
+    return [null, ...Object.keys(LOOK_LANGUAGE)].flatMap((look) => {
+      const rebuilt = studyTranscript(kase, steps, look);
+      return rebuilt.messages ? [] : [`${tierPath} ${look}: ${rebuilt.why}`];
+    });
+  });
+  expect(withheld).toEqual([]);
+});

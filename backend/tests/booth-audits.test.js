@@ -326,6 +326,12 @@ describe('free text the write-time filter missed (gate #370 round 2)', () => {
     ['a Thai-digit phone typed', withTyped('เบอร์ ๐๘๑ ๒๓๔ ๕๖๗๘')],
     ['an email in a reply', STEPS.map((s, i) => (i === 0 ? { ...s, reply: { ...s.reply, safety: 'ติดต่อ somchai@example.com' } } : s))],
     ['an honorific name in a bridge', STEPS.map((s, i) => (i === 2 ? { ...s, bridge: 'ถามนายสมชายต่อ' } : s))],
+    // Gate #370 round 3: the screen reads each message as the auditor sees it, whatever the digits and separators.
+    ['a slash phone typed', withTyped('โทร 081/234/5678')],
+    ['a phone split across the reply fields', STEPS.map((s, i) =>
+      (i === 0 ? { ...s, reply: { strength: 'โทร 081', weigh: '234', safety: '5678' } } : s))],
+    ['a full-width phone typed', withTyped('โทร ０８１２３４５６７８')],
+    ['a phone split by zero-width spaces', withTyped('โทร 081\u200B234\u200B5678')],
   ])('%s withholds the play', async (_name, steps) => {
     const play = seedPlay({ steps });
     expect((await as(AUDITOR).queue()).body).toEqual([]);
