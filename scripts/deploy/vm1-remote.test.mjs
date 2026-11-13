@@ -40,6 +40,7 @@ case "$*" in
   "ps -q "*"service=backend"*) printf '%s' "\${STUB_PS_BACKEND:-}"; exit 0 ;;
   "ps "*) printf '%s' "\${STUB_PS:-}"; exit 0 ;;
   "image inspect"*) [ "\${STUB_IMAGES:-0}" = 1 ]; exit $? ;;
+  *"config --services"*) printf '%b' "\${STUB_SERVICES:-}"; exit 0 ;;
   "inspect -f"*) printf '%s' "\${STUB_BACKEND_ENV:-}"; exit 0 ;;
 esac
 if [ -n "\${STUB_GATE_RIMPL:-}" ]; then
@@ -64,8 +65,11 @@ exit 0
   ss: `#!/usr/bin/env bash
 printf '%s' "\${STUB_SS:-}"
 `,
+  // STUB_CURL_FAIL: a pattern whose curl alone fails, as one front end not answering.
   curl: `#!/usr/bin/env bash
-echo "curl $*" >> "$STUB_LOG"; exit "\${STUB_CURL_EXIT:-0}"
+echo "curl $*" >> "$STUB_LOG"
+if [ -n "\${STUB_CURL_FAIL:-}" ]; then case "$*" in *"$STUB_CURL_FAIL"*) exit 22 ;; esac; fi
+exit "\${STUB_CURL_EXIT:-0}"
 `,
   // STUB_FLOCK_BUSY=1: another deploy holds /opt/clics/.deploy.lock.
   flock: `#!/usr/bin/env bash
@@ -179,7 +183,8 @@ const lastLine = (out) => out.trim().split('\n').at(-1);
 
 // compose calls that start something
 const UP = 'up -d --no-deps --wait --wait-timeout 180';
-const serviceLessUp = (calls) => calls.filter((c) => / compose .* up( |$)/.test(c) && !/ up .* (rimpl|backend)$/.test(c));
+const serviceLessUp = (calls) => calls.filter((c) => / compose .* up( |$)/.test(c) && !/ up .* (rimpl|backend|portal dashboard)$/.test(c));
+const frontUp = (calls) => calls.filter((c) => / compose .* up .* portal dashboard$/.test(c));
 const backendUp = (calls) => calls.filter((c) => / compose .* up .* backend$/.test(c));
 const neverDown = (calls) => assert.ok(!calls.some((c) => / down( |$)/.test(c)), `restore never runs down:\n${calls.join('\n')}`);
 const noTokenPrinted = (text) => {
@@ -187,12 +192,13 @@ const noTokenPrinted = (text) => {
 };
 
 // ---- activate --------------------------------------------------------------------------------------
-test('activate: build, rimpl, token gate, backend, backend gate, THEN current flips', () => {
+test('activate: build, rimpl, token gate, backend, backend gate, the front ends, THEN current flips', () => {
   const h = host();
   try {
     const r = remote(h, 'activate');
     assert.equal(r.status, 0, r.out);
-    const idx = order(r.calls, ['build --pull', `${UP} rimpl`, 'node /gate.cjs rimpl', `${UP} backend`, 'curl -fsS', 'node /gate.cjs backend']);
+    const idx = order(r.calls, ['build --pull', `${UP} rimpl`, 'node /gate.cjs rimpl', `${UP} backend`, 'curl -fsS',
+      'node /gate.cjs backend', `${UP} portal dashboard`, 'http://127.0.0.1:3103/login', 'http://127.0.0.1:3104/audit/login']);
     assert.ok(idx.every((i) => i >= 0), `every step ran: ${JSON.stringify(idx)}\n${r.calls.join('\n')}`);
     assert.deepEqual([...idx].sort((a, b) => a - b), idx, 'in that order');
     for (const c of r.calls.filter((x) => / compose /.test(x))) {
@@ -231,6 +237,40 @@ test('activate: a failed backend gate restores the live release rimpl -> gate ->
     assert.deepEqual(serviceLessUp(r.calls), []);
     neverDown(r.calls);
     assert.match(lastLine(r.out), new RegExp(`gate 2 .* failed for a{40}\\. ${PREV}, the release that was live before this run, is running`));
+    assert.equal(current(h), `releases/${PREV}`);
+  } finally { cleanup(h); }
+});
+
+// #429: the front ends come up after gate 2. A failing one rolls the whole release back; a previous release
+// that predates them has no compose service to restore, so this run's are stopped by label.
+test('activate: a dashboard that does not answer rolls back, and stops the front ends the previous release lacks', () => {
+  const h = host({ releases: [SHA, PREV], current: PREV });
+  try {
+    const r = remote(h, 'activate', 'deploy', { STUB_CURL_FAIL: '/audit/login', STUB_PS: 'f00d\n' });
+    assert.notEqual(r.status, 0);
+    assert.match(r.out, /the dashboard is not answering on 127\.0\.0\.1:3104/);
+    const fromPrev = r.calls.filter((c) => c.startsWith(`docker[${PREV}/deploy/vm1|${PREV}]`));
+    assert.ok(order(fromPrev, [`${UP} rimpl`, 'node /gate.cjs rimpl', `${UP} backend`]).every((i) => i >= 0), r.calls.join('\n'));
+    assert.deepEqual(frontUp(fromPrev), [], `${PREV} has no front ends to start`);
+    assert.equal(r.calls.filter((c) => c.endsWith('stop f00d')).length, 2, `the portal and dashboard containers are stopped:\n${r.calls.join('\n')}`);
+    assert.deepEqual(serviceLessUp(r.calls), []);
+    neverDown(r.calls);
+    assert.match(r.out, /had no Portal or dashboard service here, so this run's are stopped/);
+    assert.equal(current(h), `releases/${PREV}`);
+  } finally { cleanup(h); }
+});
+
+test('activate: a failed front end restores the previous release\'s own Portal and dashboard', () => {
+  const h = host({ releases: [SHA, PREV], current: PREV });
+  try {
+    const r = remote(h, 'activate', 'deploy', { STUB_CURL_FAIL: '3103/login', STUB_SERVICES: 'rimpl\\nbackend\\nportal\\ndashboard\\n' });
+    assert.notEqual(r.status, 0);
+    assert.match(r.out, /the Portal is not answering on 127\.0\.0\.1:3103/);
+    const fromPrev = r.calls.filter((c) => c.startsWith(`docker[${PREV}/deploy/vm1|${PREV}]`));
+    const idx = order(fromPrev, [`${UP} backend`, `${UP} portal dashboard`]);
+    assert.ok(idx.every((i) => i >= 0) && idx[0] < idx[1], `${PREV}'s backend, then its front ends:\n${r.calls.join('\n')}`);
+    assert.ok(!r.calls.some((c) => / stop [0-9a-f]+$/.test(c)), 'nothing stopped by label');
+    assert.match(r.out, new RegExp(`the Portal and the dashboard of ${PREV} are running`));
     assert.equal(current(h), `releases/${PREV}`);
   } finally { cleanup(h); }
 });
@@ -446,6 +486,7 @@ test('preflight passes on a well-formed host and refuses the things that must st
     [{ rimplExtra: 'TS_AUTHKEY=tskey-x\n' }, {}, /rimpl\.env sets TS_AUTHKEY/],
     [{ rimplExtra: 'LOCAL_AI_HTTP_PROXY=http://127.0.0.1:1055\n' }, {}, /rimpl\.env sets LOCAL_AI_HTTP_PROXY/],
     [{}, { STUB_SS: 'LISTEN 0 4096 127.0.0.1:3101 0.0.0.0:*\n' }, /in use by something that is not CLICS/],
+    [{}, { STUB_SS: 'LISTEN 0 4096 127.0.0.1:3103 0.0.0.0:*\n', STUB_PS_BACKEND: 'c0ffee\n' }, /port 3103 is in use by something that is not CLICS's portal/],
     [{}, { STUB_PS: '/srv/other-team/compose\n' }, /already runs from \/srv\/other-team/],
     [{}, { STUB_ARCH: 'aarch64' }, /amd64/],
     [{}, { STUB_NO_CLICS: '1' }, /user clics does not exist/],

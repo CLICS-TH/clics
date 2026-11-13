@@ -36,6 +36,13 @@ if [ -n "$(ss -Hltn "sport = :$PORT")" ]; then
   [ -n "$(docker ps -q --filter "label=com.docker.compose.project=$PROJECT" --filter label=com.docker.compose.service=backend)" ] \
     || die "port $PORT is in use by something that is not CLICS"
 fi
+# The front ends' loopback ports: free, or held by CLICS's own Portal and dashboard.
+for svc_port in portal:$PORTAL_PORT dashboard:$DASHBOARD_PORT; do
+  if [ -n "$(ss -Hltn "sport = :${svc_port#*:}")" ]; then
+    [ -n "$(docker ps -q --filter "label=com.docker.compose.project=$PROJECT" --filter "label=com.docker.compose.service=${svc_port%%:*}")" ] \
+      || die "port ${svc_port#*:} is in use by something that is not CLICS's ${svc_port%%:*}"
+  fi
+done
 # The compose project name is ours: every container labelled with it must come from $BASE/releases.
 dirs=$(docker ps -a --filter "label=com.docker.compose.project=$PROJECT" --format '{{.Label "com.docker.compose.project.working_dir"}}' | sort -u)
 while IFS= read -r wd; do

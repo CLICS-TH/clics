@@ -11,6 +11,10 @@ die() { echo "[vm1] ERROR: $*" >&2; exit 1; }
 # Not every step uses every argument (attach uses none of SHA, MODE, RUN).
 # shellcheck disable=SC2034
 BASE=$1 PROJECT=$2 PORT=$3 SHA=$4 MODE=$5 RUN=${6:-}
+# The front ends' loopback ports (#429): docker-compose.yml publishes them and the host nginx proxies to them
+# (scripts/deploy/vm1.test.mjs checks the three agree).
+# shellcheck disable=SC2034
+PORTAL_PORT=3103 DASHBOARD_PORT=3104
 
 # ---- env checks: run by preflight, and again by activate before it changes anything -----------------
 # Nothing here prints an env value or puts one on a command line.

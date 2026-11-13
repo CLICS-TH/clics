@@ -2,7 +2,7 @@
 // other script suites: `node --test scripts/deploy/*.test.mjs`.
 //
 // vm1 is a SHARED production host, so the properties checked here are requirements from ADR 0002, not
-// style: the backend is published on loopback only, rimpl is not published at all, no IP literal or
+// style: the backend and the two front ends are published on loopback only, rimpl is not published at all, no IP literal or
 // tailnet domain is committed under deploy/vm1/, nginx does not switch HTTP/2 on for the host's other
 // sites, and nothing appears at backend/Dockerfile (Railway would switch the live backend's builder).
 // deploy.sh and health-gate.cjs are exercised against fakes: no docker, no network beyond loopback, no
@@ -137,31 +137,40 @@ test('Railway-only names are never assigned in the vm1 examples', () => {
   }
 });
 
-// ---- 2. what the host can see: loopback backend, unpublished rimpl ----------------------------------
-test('compose publishes the backend on 127.0.0.1 only, and nothing for rimpl', () => {
-  const backendPorts = listUnder(serviceBlock('backend'), 'ports');
-  assert.deepEqual(backendPorts, ['127.0.0.1:3101:3001']);
+// ---- 2. what the host can see: loopback backend and front ends, unpublished rimpl --------------------
+const PUBLISHED = { backend: '127.0.0.1:3101:3001', portal: '127.0.0.1:3103:8080', dashboard: '127.0.0.1:3104:3000' };
+test('compose publishes the backend, the Portal and the dashboard on 127.0.0.1 only, and nothing for rimpl', () => {
+  for (const [svc, port] of Object.entries(PUBLISHED)) assert.deepEqual(listUnder(serviceBlock(svc), 'ports'), [port], svc);
   const rimpl = serviceBlock('rimpl');
   assert.equal(listUnder(rimpl, 'ports'), null, 'rimpl must not publish a port');
   assert.ok(!rimpl.some((l) => /^\s{4}(ports|expose):/.test(l)), 'rimpl has no ports/expose key');
-  // The only ports: key in the whole file is the backend's (an anchor or another service cannot add one).
-  assert.equal(meaningful(COMPOSE).filter((l) => /^\s*ports:/.test(l)).length, 1);
+  // The only ports: keys in the whole file are those three (an anchor or another service cannot add one).
+  assert.equal(meaningful(COMPOSE).filter((l) => /^\s*ports:/.test(l)).length, 3);
   for (const forbidden of [/network_mode:/, /privileged:\s*true/, /\bpid:\s*host/, /docker\.sock/, /cap_add:/]) {
     assert.ok(!meaningful(COMPOSE).some((l) => forbidden.test(l)), `compose must not contain ${forbidden}`);
   }
 });
 
-test('compose carries the ADR 0002 hardening on both services', () => {
+test('compose carries the ADR 0002 hardening on every service', () => {
   const anchor = topBlock('x-hardened');
   for (const want of ['  read_only: true', '  init: true', '  restart: unless-stopped', '    - no-new-privileges:true',
     '    - ALL', '  mem_limit: 1g', '    driver: json-file', '      max-size: "10m"']) {
     assert.ok(anchor.includes(want), `x-hardened lacks: ${want.trim()}`);
   }
   assert.ok(anchor.some((l) => /^ {2}user: "\$\{CLICS_UID:\?/.test(l)), 'containers run as the host clics uid');
-  for (const svc of ['backend', 'rimpl']) {
+  for (const svc of ['backend', 'rimpl', 'portal', 'dashboard']) {
     assert.ok(serviceBlock(svc).includes('    <<: *hardened'), `${svc} merges x-hardened`);
-    assert.ok(!serviceBlock(svc).some((l) => /^\s{4}(user|read_only|security_opt|cap_drop|mem_limit):/.test(l)),
+    assert.ok(!serviceBlock(svc).some((l) => /^\s{4}(user|read_only|security_opt|cap_drop|tmpfs|init|restart|logging|networks):/.test(l)),
       `${svc} must not override a hardening key`);
+    assert.ok(serviceBlock(svc).some((l) => /^ {4}healthcheck:/.test(l)), `${svc} has a healthcheck`);
+  }
+  for (const svc of ['backend', 'rimpl']) {
+    assert.ok(!serviceBlock(svc).some((l) => /^\s{4}mem_limit:/.test(l)), `${svc} keeps the anchor's memory limit`);
+  }
+  // The front ends may only tighten the anchor's limits.
+  for (const svc of ['portal', 'dashboard']) {
+    const mem = serviceBlock(svc).find((l) => /^ {4}mem_limit:/.test(l));
+    assert.ok(mem && /^ {4}mem_limit: (\d+)m$/.test(mem) && Number(/(\d+)m$/.exec(mem)[1]) <= 1024, `${svc} mem_limit ${mem}`);
   }
   assert.ok(serviceBlock('backend').includes('      RIMPL_URL: http://rimpl:3003'));
 });
@@ -177,6 +186,24 @@ test('the backend image is built from deploy/vm1, rimpl from rimpl/Dockerfile un
   assert.match(df, /^FROM node:22-slim$/m);
   assert.match(df, /^RUN npm ci --omit=dev/m);
   assert.match(df, /^USER node$/m);
+  const p = serviceBlock('portal');
+  assert.ok(p.includes('      context: ../..'));
+  assert.ok(p.includes('      dockerfile: deploy/vm1/portal.Dockerfile'));
+  const pdf = read('deploy', 'vm1', 'portal.Dockerfile');
+  assert.match(pdf, /^FROM nginxinc\/nginx-unprivileged:\d+\.\d+\.\d+-alpine$/m, 'the Portal image is pinned to an exact nginx version');
+  assert.match(pdf, /^COPY deploy\/vm1\/portal\.nginx\.conf \/etc\/nginx\/nginx\.conf$/m);
+  assert.match(pdf, /^COPY physician-ui\/public \/usr\/share\/nginx\/html$/m);
+  assert.deepEqual(read('deploy', 'vm1', 'portal.Dockerfile.dockerignore').trim().split('\n'),
+    ['*', '!physician-ui/public', '!deploy/vm1/portal.nginx.conf'], 'the repository-root context lets in the Portal files only');
+  const d = serviceBlock('dashboard');
+  assert.ok(d.includes('      context: ../../audit-dashboard'));
+  assert.ok(d.includes('      dockerfile: ../deploy/vm1/dashboard.Dockerfile'));
+  const ddf = read('deploy', 'vm1', 'dashboard.Dockerfile');
+  assert.match(ddf, /NEXT_PUBLIC_API_URL=\/api/);
+  assert.match(ddf, /NEXT_PUBLIC_PORTAL_URL= /);
+  assert.match(ddf, /NEXT_TELEMETRY_DISABLED=1/);
+  assert.match(ddf, /^USER node$/m);
+  assert.match(ddf, /^CMD \["node", "server\.js"\]$/m);
   // The same start command as backend/package.json.
   const start = JSON.parse(read('backend', 'package.json')).scripts.start;
   assert.equal(start, 'node src/index.js');
@@ -209,14 +236,28 @@ test('no IPv4 literal other than 127.0.0.1 / 0.0.0.0, and no tailnet domain, und
   }
 });
 
-// ---- 5. the three places that name the backend's loopback port agree --------------------------------
+// ---- 5. the places that name each loopback port agree --------------------------------------------------
+const upstreamPort = (nginx, name) => {
+  const m = new RegExp(`upstream ${name} \\{[^}]*?server 127\\.0\\.0\\.1:(\\d+);`).exec(nginx);
+  assert.ok(m, `nginx has a loopback upstream ${name}`);
+  return m[1];
+};
 test('nginx, compose and deploy.sh agree on the loopback port; backend trusts exactly one proxy hop', () => {
   const nginx = read('deploy', 'vm1', 'nginx', 'clics.ccme.or.th.conf');
   const upstream = /^\s*server 127\.0\.0\.1:(\d+);/m.exec(nginx);
   assert.ok(upstream, 'nginx upstream is a loopback address');
   assert.equal(upstream[1], '3101');
+  assert.equal(upstreamPort(nginx, 'clics_backend'), '3101');
   assert.match(read('deploy', 'vm1', 'deploy.sh'), /^HOST_PORT=3101$/m);
-  assert.ok(!/proxy_pass\s+http:\/\/(?!clics_backend\b|clics_gotrue\/)/.test(nginx), 'nginx proxies only to the backend and, at /auth/v1, GoTrue (vm1-auth.test.mjs)');
+  // The front ends' ports: compose publishes them, nginx proxies to them, activate and preflight check them.
+  const lib = read('deploy', 'vm1', 'remote', 'lib.sh');
+  for (const [svc, upstreamName, libName] of [['portal', 'clics_portal', 'PORTAL_PORT'], ['dashboard', 'clics_dashboard', 'DASHBOARD_PORT']]) {
+    const host = PUBLISHED[svc].split(':')[1];
+    assert.equal(upstreamPort(nginx, upstreamName), host, `nginx ${upstreamName} = compose ${svc}`);
+    assert.match(lib, new RegExp(`\\b${libName}=${host}\\b`), `lib.sh ${libName} = compose ${svc}`);
+  }
+  assert.ok(!/proxy_pass\s+http:\/\/(?!clics_backend\/?;|clics_gotrue\/;|clics_portal;|clics_dashboard;)/.test(nginx),
+    'nginx proxies only to the backend, GoTrue at /auth/v1 (vm1-auth.test.mjs), the dashboard and the Portal');
   assert.match(nginx, /proxy_read_timeout\s+(\d+)s;/);
   assert.ok(Number(/proxy_read_timeout\s+(\d+)s;/.exec(nginx)[1]) >= 180);
   assert.match(nginx, /client_max_body_size 1m;/);
@@ -230,6 +271,40 @@ test('nginx, compose and deploy.sh agree on the loopback port; backend trusts ex
   assert.match(read('backend', 'src', 'index.js'), /app\.set\('trust proxy', 1\)/);
 });
 
+// #429: one origin. The SSE route keeps its unbuffered location under the /api prefix.
+test('nginx serves one origin: /api stripped to the backend, /audit kept for the dashboard, / to the Portal', () => {
+  const nginx = meaningful(read('deploy', 'vm1', 'nginx', 'clics.ccme.or.th.conf')).join('\n');
+  // The TLS server block comes after the port-80 one, which has its own `location /`.
+  const tls = nginx.slice(nginx.indexOf('listen 443'));
+  const loc = (head) => {
+    const i = tls.indexOf(`    location ${head} {`);
+    assert.ok(i >= 0, `nginx has location ${head}`);
+    return tls.slice(i, tls.indexOf('\n    }', i));
+  };
+  assert.match(loc('/api/'), /proxy_pass http:\/\/clics_backend\/;/);
+  const sse = loc('~ ^/api/ples/[^/]+/message$');
+  assert.match(sse, /rewrite \^\/api\(\/\.\*\)\$ \$1 break;/);
+  assert.match(sse, /proxy_buffering off;/);
+  assert.match(sse, /proxy_pass http:\/\/clics_backend;/);
+  assert.match(loc('= /audit'), /return 301 \/audit\/\$is_args\$args;/);
+  assert.match(loc('/audit/'), /proxy_pass http:\/\/clics_dashboard;/);
+  assert.match(loc('/'), /proxy_pass http:\/\/clics_portal;/);
+  assert.ok(!/location ~ \^\/ples/.test(nginx), 'the backend answers under /api only');
+  // The Portal's own nginx carries what physician-ui/vercel.json did before it became a redirect to this
+  // origin: clean URLs, the cle-* redirects, the headers.
+  const portal = read('deploy', 'vm1', 'portal.nginx.conf');
+  for (const [key, value] of [
+    ['X-Content-Type-Options', 'nosniff'], ['X-Frame-Options', 'DENY'],
+    ['Referrer-Policy', 'strict-origin-when-cross-origin'],
+    ['Content-Security-Policy', "object-src 'none'; base-uri 'self'; frame-ancestors 'none'"],
+  ]) assert.ok(portal.includes(`add_header ${key} "${value}" always;`), `portal.nginx.conf sends ${key}`);
+  assert.match(portal, /add_header Cache-Control "public, max-age=31536000, immutable";/);
+  assert.match(portal, /location ~ \^\/cle-\(chat\|new\|reflect\|result\)\(\\\.html\)\?\$ \{/);
+  assert.match(portal, /return 302 \/ple-\$1\$is_args\$args;/);
+  assert.match(portal, /try_files \$uri \$uri\.html \$uri\/index\.html =404;/);
+  assert.match(portal, /^pid \/tmp\/nginx\.pid;$/m);
+});
+
 // ---- 6. docker's own rendering, where docker exists (CI) ----------------------------------------------
 const hasDocker = spawnSync('docker', ['compose', 'version'], { encoding: 'utf8' }).status === 0;
 test('docker compose config renders the same guarantees', { skip: !hasDocker && 'docker not installed here; CI runs it' }, () => {
@@ -240,13 +315,15 @@ test('docker compose config renders the same guarantees', { skip: !hasDocker && 
   });
   assert.equal(r.status, 0, r.stderr);
   const cfg = JSON.parse(r.stdout);
-  const { backend, rimpl } = cfg.services;
+  const { backend, rimpl, portal, dashboard } = cfg.services;
   assert.equal(rimpl.ports, undefined, 'rimpl publishes nothing');
-  assert.equal(backend.ports.length, 1);
-  assert.equal(backend.ports[0].host_ip, '127.0.0.1');
-  assert.equal(String(backend.ports[0].published), '3101');
-  assert.equal(backend.ports[0].target, 3001);
-  for (const s of [backend, rimpl]) {
+  for (const [svc, [published, target]] of [[backend, ['3101', 3001]], [portal, ['3103', 8080]], [dashboard, ['3104', 3000]]]) {
+    assert.equal(svc.ports.length, 1);
+    assert.equal(svc.ports[0].host_ip, '127.0.0.1');
+    assert.equal(String(svc.ports[0].published), published);
+    assert.equal(svc.ports[0].target, target);
+  }
+  for (const s of [backend, rimpl, portal, dashboard]) {
     assert.equal(s.read_only, true);
     assert.equal(s.user, '10001:10001');
     assert.ok(s.security_opt.includes('no-new-privileges:true'));
@@ -367,7 +444,8 @@ test('gate backend: requires service "backend", rimpl up and Supabase up; other 
 
 // ---- 8. deploy.sh against a fake Tailscale CLI, in a throwaway repo ------------------------------------
 // The fake records each invocation's argv and stdin and never contacts anything. The throwaway repo holds
-// deploy/vm1 as committed here plus stub backend/ and rimpl/ trees, so a real `git archive` runs.
+// deploy/vm1 as committed here plus stub backend/, rimpl/, physician-ui/ and audit-dashboard/ trees, so a
+// real `git archive` runs.
 function fakeRepo({ trackedEnv = false } = {}) {
   const dir = scratch('repo');
   const repo = path.join(dir, 'repo');
@@ -385,6 +463,11 @@ function fakeRepo({ trackedEnv = false } = {}) {
   mkdirSync(path.join(repo, 'rimpl', 'src'), { recursive: true });
   writeFileSync(path.join(repo, 'rimpl', 'Dockerfile'), 'FROM node:22-slim\n');
   writeFileSync(path.join(repo, 'rimpl', 'src', 'index.js'), '// stub\n');
+  // git archive fails on a pathspec that matches nothing, so the front ends need a file each.
+  mkdirSync(path.join(repo, 'physician-ui', 'public'), { recursive: true });
+  writeFileSync(path.join(repo, 'physician-ui', 'public', 'index.html'), '<!-- stub -->\n');
+  mkdirSync(path.join(repo, 'audit-dashboard'), { recursive: true });
+  writeFileSync(path.join(repo, 'audit-dashboard', 'package.json'), '{}\n');
   if (trackedEnv) writeFileSync(path.join(repo, 'rimpl', '.env'), 'SECRET=x\n');
   const git = (...args) => {
     const r = spawnSync('git', ['-C', repo, ...args], { encoding: 'utf8' });
@@ -491,6 +574,8 @@ test('deploy.sh ships tracked code only, stages and launches the activation, and
     assert.ok(files.includes('deploy/vm1/docker-compose.yml'));
     assert.ok(files.includes('backend/src/index.js'));
     assert.ok(files.includes('rimpl/Dockerfile'));
+    assert.ok(files.includes('physician-ui/public/index.html'), 'the Portal ships');
+    assert.ok(files.includes('audit-dashboard/package.json'), 'the dashboard ships');
     assert.ok(!files.includes('deploy/vm1/backend.env'), 'an untracked env file never ships');
     assert.deepEqual(files.filter((f) => /(^|\/)(\.env|[^/]*\.env|\.env\.[^/]*)$/.test(f) && !f.endsWith('.env.example')), []);
     assert.ok(!up.stdin.includes(Buffer.from('do-not-ship')));

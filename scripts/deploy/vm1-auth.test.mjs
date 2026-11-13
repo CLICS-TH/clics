@@ -120,7 +120,9 @@ test('the env examples hold names only, list every name the preflight requires, 
 test('nginx: GoTrue at /auth/v1 only (its admin API refused), and no path to PostgREST or supabase-gw', () => {
   assert.match(NGINX, /upstream clics_gotrue \{\s*server 127\.0\.0\.1:3102;/, 'the GoTrue upstream is the compose loopback port');
   const proxied = [...NGINX.matchAll(/^\s*proxy_pass\s+([^;]+);/gm)].map((m) => m[1]);
-  assert.deepEqual([...new Set(proxied)].sort(), ['http://clics_backend', 'http://clics_gotrue/'], 'nginx proxies to the backend and GoTrue only');
+  assert.deepEqual([...new Set(proxied)].sort(),
+    ['http://clics_backend', 'http://clics_backend/', 'http://clics_dashboard', 'http://clics_gotrue/', 'http://clics_portal'],
+    'nginx proxies to the backend (/api), GoTrue (/auth/v1), the dashboard (/audit) and the Portal (/) only');
   assert.match(NGINX, /location \/auth\/v1\/ \{[^}]*proxy_pass http:\/\/clics_gotrue\/;[^}]*\}/, 'GoTrue is proxied from /auth/v1/, prefix stripped');
   // A plain prefix, so the regex refusal below is consulted (a ^~ prefix would skip it).
   assert.ok(!/location \^~ \/auth/.test(NGINX), 'no ^~ on an /auth location');
