@@ -34,6 +34,32 @@ test('host nginx: every access log uses a format without the query string or Ref
   for (const l of errors) assert.match(l, /\s(crit|alert|emerg);$/, `"${l}": an upstream error carries the request line`);
 });
 
+// Each `server { ... }` block, by brace depth. A block without its own access_log or error_log inherits the
+// shared nginx's http-level ones, whose stock format writes the whole request line.
+function serverBlocks(text) {
+  const body = meaningful(text).join('\n');
+  const out = [];
+  for (const m of body.matchAll(/^\s*server\s*\{/gm)) {
+    let depth = 0, i = m.index + m[0].length - 1;
+    for (; i < body.length; i++) { if (body[i] === '{') depth++; else if (body[i] === '}' && --depth === 0) break; }
+    out.push(body.slice(m.index, i + 1));
+  }
+  return out;
+}
+
+test('every nginx server block under deploy/vm1 sets its own path-only (or no) access log and a crit error log', () => {
+  const blocks = [...serverBlocks(NGINX).map((b) => ['clics.ccme.or.th.conf', b]), ...serverBlocks(GW).map((b) => ['supabase-gw.conf', b])];
+  assert.equal(blocks.length, 3, 'two host servers (80, 443) and the gateway');
+  for (const [file, b] of blocks) {
+    const listen = /listen ([^;]+);/.exec(b)?.[1];
+    // Directives at the server's own level: nested location blocks removed first.
+    let own = b.slice(b.indexOf('{') + 1, -1);
+    while (/\{[^{}]*\}/.test(own)) own = own.replace(/\{[^{}]*\}/g, '');
+    assert.match(own, /^\s*access_log\s+(off|\S+\s+clics_noquery);$/m, `${file} server on ${listen} sets its own access_log (off or clics_noquery)`);
+    assert.match(own, /^\s*error_log\s+\S+\s+crit;$/m, `${file} server on ${listen} sets its own error_log at crit`);
+  }
+});
+
 test('host nginx: /auth/v1/token and /verify are rate-limited per client address, other GoTrue paths are not', () => {
   const map = /map \$uri \$clics_auth_limit_key \{([^}]*)\}/.exec(NGINX);
   assert.ok(map, 'a map keys the limit on the path');
@@ -95,9 +121,14 @@ test('host nginx, run: the logs hold no token, name or Referer, and /token and /
     for i in $(seq 1 5); do echo "token $(code "$B/auth/v1/token?grant_type=password")"; done
     for i in $(seq 1 25); do echo "user $(code "$B/auth/v1/user")"; done
     echo "search $(code "$B/admin/professionals?q=${NAME}")"
-    echo ---LOGS---; cat /var/log/nginx/clics.access.log /var/log/nginx/clics.error.log`;
+    echo "plain $(code "http://127.0.0.1/auth/v1/verify?token=${TOKEN}&type=recovery")"
+    echo "plain $(code "http://127.0.0.1/rest/v1/professionals?name=${NAME}")"
+    echo ---LOGS---; cat /var/log/nginx/clics.access.log /var/log/nginx/clics.error.log /var/log/nginx/stock.access.log /var/log/nginx/stock.error.log 2>&1`;
   const out = docker(['run', '--rm', '-i', '--entrypoint', 'sh', 'nginx:1.18.0-alpine', '-c', script],
-    `pid /tmp/nginx.pid;\nevents {}\nhttp {\n${site}\n}\n`);
+    // A stock shared nginx: an http-level access log in the combined format (the whole request line) and a
+    // main error log, which any server block without its own directives inherits.
+    `pid /tmp/nginx.pid;\nerror_log /var/log/nginx/stock.error.log notice;\nevents {}\nhttp {\n` +
+    `access_log /var/log/nginx/stock.access.log combined;\n${site}\n}\n`);
   const verify = statuses(out, 'verify');
   assert.equal(verify.length, 25, out);
   assert.equal(verify[0], '502', 'the first /verify reaches the (absent) GoTrue: the control');
@@ -105,9 +136,11 @@ test('host nginx, run: the logs hold no token, name or Referer, and /token and /
   assert.ok(statuses(out, 'token').every((s) => s === '429'), 'the bucket is per address and shared with /token');
   assert.ok(statuses(out, 'user').every((s) => s === '502'), '/user is not limited');
   assert.deepEqual(statuses(out, 'search'), ['502']);
-    const logs = out.split('---LOGS---')[1];
-    assert.match(logs, /GET \/auth\/v1\/verify HTTP\/1\.1" 502/, 'the access log has the request, path only: the control');
+  assert.deepEqual(statuses(out, 'plain'), ['301', '301'], 'the port-80 server answered both: the control');
+  const logs = out.split('---LOGS---')[1];
   for (const secret of [TOKEN, NAME, REF]) assert.ok(!logs.includes(secret), `the host nginx logs hold ${secret}:\n${logs}`);
+  assert.match(logs, /GET \/auth\/v1\/verify HTTP\/1\.1" 502/, 'the access log has the request, path only: the control');
+  assert.match(logs, /GET \/rest\/v1\/professionals HTTP\/1\.1" 301/, 'the port-80 request is logged, path only: the control');
 });
 
 test('supabase-gw, run: a PostgREST filter and a GoTrue token never reach its log', { skip: SKIP }, () => {
