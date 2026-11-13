@@ -9,7 +9,8 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "jest --runInBand",
-    "test:ci": "jest --runInBand"
+    "test:ci": "jest --runInBand",
+    "readiness": "node scripts/readiness.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

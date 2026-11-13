@@ -734,6 +734,20 @@ function createLocalProvider({
     }
   }
 
+  // The pinned model's own /models entry: its id and the context window the server reports for it
+  // (vLLM's `max_model_len`), maxModelLen null when the entry carries none. For the readiness command's
+  // context check (lib/readiness.js), which must compare against the SERVER's window, not a configured one.
+  // Throws when /models cannot be read or does not list the model.
+  async function servedModel() {
+    const { baseUrl, model, apiKey } = cfg();
+    const probeMs = Math.max(200, parseInt(process.env.HEALTH_PROBE_TIMEOUT_MS || '2000', 10));
+    const data = await httpJson(`${baseUrl}/models`, { timeoutMs: probeMs, apiKey, proxyUrl: proxyUrl(), label });
+    const entry = (data?.data || []).find((m) => m?.id === model);
+    if (!entry) throw Object.assign(new Error(`${label}: /models does not list the configured model`), { code: 'model_not_listed' });
+    const n = Number(entry.max_model_len);
+    return { id: entry.id, maxModelLen: Number.isInteger(n) && n > 0 ? n : null };
+  }
+
   // Readiness for /health/deep: GET /models. Cheap, no generation, zero cost. Never throws.
   async function ready() {
     const { baseUrl, model, apiKey } = cfg();
@@ -816,7 +830,7 @@ function createLocalProvider({
     ...(embeddings ? { embed } : {}),
     model: () => cfg().model,
     ...(embeddings ? { embedModel: () => cfg().embedModel } : {}),
-    ready, servedContext,
+    ready, servedContext, servedModel,
     // Queue depth plus the learnt prompt-size calibration, so /health/deep shows the ratio the backstop
     // would use before anyone sets <prefix>MAX_PROMPT_TOKENS.
     stats: () => ({ ...getRunner().stats(), prompt_calibration: promptCalibration() }),

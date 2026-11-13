@@ -15,6 +15,7 @@ npm install
 cp .env.example .env      # SUPABASE_*, ANTHROPIC_API_KEY, INTERNAL_TOKEN (must match backend), PORT
 npm run dev               # node --watch, port 3003  (npm start for no-watch)
 npm test                  # jest --runInBand — includes adversarial PII-leak tests
+npm run readiness         # vm1 cutover go/no-go against the on-prem models; see ../deploy/vm1/README.md "Readiness command"
 ```
 
 Every request must carry the `x-internal-token` shared secret (matched against the backend's
