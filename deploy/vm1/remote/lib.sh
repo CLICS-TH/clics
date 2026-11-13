@@ -1,7 +1,8 @@
 # shellcheck shell=bash
-# SC2317 ("command appears to be unreachable") is disabled file-wide: this library is prepended to every
-# step, and each step calls only some of its functions, so the rest always look unreachable to the linter.
-# shellcheck disable=SC2317
+# SC2317 ("command appears to be unreachable") and SC2329 ("function is never invoked", ShellCheck 0.11+) are
+# disabled file-wide: this library is prepended to every step, and each step calls only some of its functions,
+# so the rest always look unused to the linter.
+# shellcheck disable=SC2317,SC2329
 # Prepended by deploy/vm1/deploy.sh to every remote step. Steps run as `bash -s -- BASE PROJECT PORT SHA
 # MODE RUN` inside `{ ... } </dev/null`; activate runs the same text from runs/<RUN>/activate.sh, detached
 # (see launch.sh). Not executed on its own. CI lints each step as sent: lib.sh + <step>.sh.
