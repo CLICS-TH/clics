@@ -53,6 +53,40 @@ describe('organophosphate', () => {
   });
 });
 
+describe('dka-young-adult', () => {
+  const k = fiveStep('dka-young-adult');
+  const num = (q, re) => (q.match(re) ? Number(q.match(re)[1]) : null);
+  // Per variant, since the kiosk shows one variant: Thai DM CPG 2566 p.145 resolves DKA at glucose 250 mg/dL or below
+  // plus two of pH 7.3+, HCO3 15+, anion gap 12-; WHO IMAI stops IV insulin only once she eats, below 216 mg/dL.
+  const state = (v) => {
+    const q = v.question.en;
+    const glucose = num(q, /(\d+)\s*mg\/dL/);
+    const pH = num(q, /pH (\d\.\d+)/);
+    const hco3 = num(q, /HCO3 (\d+)/);
+    const gap = num(q, /anion gap (\d+)/i);
+    const met = [pH !== null && pH >= 7.3, hco3 !== null && hco3 >= 15, gap !== null && gap <= 12].filter(Boolean).length;
+    const resolved = glucose !== null && glucose <= 250 && met >= 2;
+    return { glucose, resolved, offDrip: resolved && glucose < 216 && /\beat(s|ing)?\b/i.test(q) };
+  };
+  const OFF_DRIP = /basal-bolus|premixed|subcutaneous|insulin pen|stop(ping)? (the )?drip/i;
+
+  test('an option that stops the drip or starts subcutaneous insulin sits only where every variant meets both stop rules', () => {
+    const offered = banks(k).filter(([, b]) => b.options.some((o) => OFF_DRIP.test(text(o))));
+    expect(offered.length).toBeGreaterThan(0);
+    const bad = offered.flatMap(([name, b]) => b.variants.filter((v) => !state(v).offDrip).map((v) => `${name} ${v.id}: ${v.question.en}`));
+    expect(bad).toEqual([]);
+  });
+
+  test('under a variant still in ketoacidosis at glucose 250 mg/dL or below, every best option lowers the insulin rate', () => {
+    const low = banks(k).filter(([, b]) => b.variants.some((v) => !state(v).resolved && state(v).glucose !== null && state(v).glucose <= 250));
+    expect(low.length).toBeGreaterThan(0);
+    const bad = low.flatMap(([name, b]) => b.options
+      .filter((o) => o.tier === 'best' && (/same insulin rate|0\.1 units\/kg\/h/i.test(text(o)) || !/0\.0[2-5]|halve|cut insulin/i.test(text(o))))
+      .map((o) => at(name, o)));
+    expect(bad).toEqual([]);
+  });
+});
+
 test('melioidosis-farmer: with abscesses, no option above weaker ends the IV phase early or switches to oral', () => {
   const k = fiveStep('melioidosis-farmer');
   const deep = banks(k).filter(([, b]) => /abscess/i.test(stems(b)));
