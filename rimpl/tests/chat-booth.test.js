@@ -17,6 +17,8 @@ const { ragLookup } = require('../src/services/rag');
 const { QueueFullError } = require('../src/services/providers/runtime');
 const P = require('../src/lib/prompts');
 const { BOOTH_MAX_TOKENS, CHAT_MAX_TOKENS } = require('../src/lib/turn-limits');
+const { BOOTH_ID_LABELS } = require('../src/services/pii-filter');
+const { fenced } = require('../../backend/src/services/booth-dialogue');
 
 const BOOTH_PROMPT = P.chatSystemPrompt({ booth: true });
 const r = (text, extra = {}) => ({ text, tokenCount: 20, inputTokens: 12, outputTokens: 8, provider: 'local-tutor', model: 'qwen-tutor', ...extra });
@@ -390,6 +392,43 @@ describe('the typed answer comes back de-identified for the backend to keep (#37
     const res = await send({ ...typedTurn, booth_answer: 'ก'.repeat(601) });
     expect(res.status).toBe(400);
     expect(callAI).not.toHaveBeenCalled();
+  });
+});
+
+// The shape the backend sends since #400 (booth-dialogue.js `fenced`): the question, the note line, then ⟦answer⟧.
+describe('a fenced typed answer reaches neither the AI nor answer_deidentified with a raw value (#474)', () => {
+  const fencedTurn = (answer) => ({
+    language: 'th', message: `คุณจะส่งตรวจอะไร\n${fenced(answer)}`, booth_mode: true, booth_typed: TYPED, booth_answer: answer,
+  });
+  const expectNoRaw = (res, raws) => {
+    expect(res.status).toBe(200);
+    const payload = JSON.stringify(callAI.mock.calls);
+    for (const raw of raws) {
+      expect(payload).not.toContain(raw);
+      expect(res.body.answer_deidentified).not.toContain(raw);
+    }
+  };
+
+  // No label in it, so stripPii alone masks the identifiers and the clinical words stay.
+  test('the unlabelled answer: every identifier masked, the clinical words kept', async () => {
+    callAI.mockResolvedValue(r(typedJson()));
+    const ANSWER = `ส่ง ${RAW.phone} ${RAW.cid} มาตรวจ PCR`;
+    const res = await send(fencedTurn(ANSWER));
+    expectNoRaw(res, [RAW.phone, '5678', RAW.cid]);
+    expect(res.body.answer_deidentified).toContain('[PHONE-1]');
+    expect(res.body.answer_deidentified).toContain('มาตรวจ PCR');
+    expect(call(0).messages.at(-1).content).toContain(`⟦${res.body.answer_deidentified}⟧`);
+  });
+
+  // One row per BOOTH_ID_LABELS entry: a synthetic value, outside every gazetteer, typed behind the label.
+  const VALUE = { en: ['Dalton', 'Prewitt', '4471'], th: ['พรรณราย', 'ทองเปลว', '4471'] };
+  const LEAD = { en: 'Give oxygen now.', th: 'ให้ออกซิเจนก่อน' };
+  const rows = ['en', 'th'].flatMap((lang) => BOOTH_ID_LABELS[lang].map((label) => [lang, label]));
+  test.each(rows)('%s label %j', async (lang, label) => {
+    callAI.mockResolvedValue(r(typedJson()));
+    const res = await send(fencedTurn(`${LEAD[lang]} ${label} ${VALUE[lang].join(' ')}`));
+    expectNoRaw(res, VALUE[lang]);
+    expect(res.body.answer_deidentified).toContain(LEAD[lang]);
   });
 });
 
