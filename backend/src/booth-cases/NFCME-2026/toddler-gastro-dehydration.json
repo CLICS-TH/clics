@@ -1,6 +1,6 @@
 {
   "case_id": "toddler-gastro-dehydration",
-  "version": "3",
+  "version": "4",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "เด็กหญิงวัยขวบครึ่ง อาเจียนและถ่ายเหลวมา 2 วัน แม่พามาโรงพยาบาลชุมชน",
@@ -739,15 +739,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "4 ชม. ตื่นดี ดื่มเก่ง ตาโหลเล็กน้อย ได้ ORS ครึ่งหนึ่ง ทำอะไร",
-              "en": "At 4 h: alert, drinks eagerly, eyes a little sunken, half the ORS taken. Next?"
+              "th": "4 ชม. ตื่นดี ดื่มเก่ง ตาโหลเล็กน้อย อาเจียน ORS บางจิบ",
+              "en": "At 4 h: alert, drinks eagerly, eyes a little sunken, vomits some ORS sips."
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ประเมินซ้ำที่ 4 ชม. ดีขึ้นบ้าง ยังขาดน้ำเล็กน้อย จะทำอะไรต่อ",
-              "en": "At the 4-hour recheck she is better, still slightly dehydrated. What now?"
+              "th": "4 ชม. ตื่นดี ดื่มเก่ง ยังขาดน้ำเล็กน้อย อาเจียน ORS บางจิบ",
+              "en": "At 4 h: alert, drinks eagerly, still slightly dehydrated, vomits some ORS."
             }
           }
         ],
@@ -824,15 +824,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "4 ชม. ตื่นดี กระหายน้ำ หนังคืนช้า อาเจียน ORS เกือบหมด",
-              "en": "At 4 h: alert and thirsty, pinch slow, has vomited most of the ORS. Next?"
+              "th": "4 ชม. ได้ยาปฏิชีวนะ ตาโหล หนังคืนช้า อาเจียน ORS แทบหมด",
+              "en": "At 4 h on the antibiotic: sunken eyes, pinch slow, vomited most of the ORS."
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "4 ชม. ตื่นดี ดื่มเก่ง หนังคืนช้า อาเจียนทุกครั้งที่ดื่ม ทำอะไร",
-              "en": "At 4 h: alert, drinks eagerly, vomits every drink, pinch slow. What now?"
+              "th": "4 ชม. ได้ยาปฏิชีวนะ ดื่มเก่ง อาเจียนทุกครั้งที่ดื่ม หนังคืนช้า",
+              "en": "At 4 h on the antibiotic: drinks eagerly, vomits every drink, pinch slow."
             }
           }
         ],
@@ -1061,8 +1061,8 @@
             "id": "recheck",
             "tier": "reasonable",
             "label": {
-              "th": "กลับบ้าน ORS นัดตรวจพรุ่งนี้",
-              "en": "Home on ORS, recheck tomorrow"
+              "th": "กลับบ้านดื่ม ORS นัดดูพรุ่งนี้",
+              "en": "Home on ORS, review tomorrow"
             },
             "line": {
               "th": "นัดพรุ่งนี้ช่วยจับได้เร็ว หากกลับไปขาดน้ำอีก",
@@ -1166,9 +1166,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Review of version 3 (five steps). Thai: Clinical practice guideline for acute diarrhea in children (Thai Society of Pediatric Gastroenterology and Hepatology with the Royal College of Pediatricians of Thailand, 2019), pages 6-10, 17, 23-24, 30-31 and Table 5, opened in full; the society lists no newer edition. WHO: The treatment of diarrhoea, a manual for physicians and other senior health workers, 4th revision (WHO 2005), Table 1, Plans A-C and the sections on antimicrobials, NG and IV fluid, zinc and electrolytes; and the WHO guideline on management of pneumonia and diarrhoea in children up to 10 years of age (2024), recommendations 1a-6. Fixed after the first review: the step-4.W, step-4.R v1 and step-5.W v1 stems state signs of some dehydration. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: each stem's dehydration class by the WHO two-sign rule; Plan B 750 mL over 4 h (75 mL/kg) and Plan A 50-100 mL per loose stool; NG or IV Ringer's lactate when she vomits most of the ORS; antibiotics weaker in every bank (WHO 2024 recommendation 1a, Thai page 9); no antidiarrhoeal; one ondansetron dose reasonable as the Thai guideline allows (page 31), though WHO 2005 finds no benefit. Remains, listed on #470: the Thai guideline gives zinc only to malnourished or zinc-deficient children and 100 mL/kg for moderate dehydration, where the tree follows WHO; the follow-up timing; the routine sodium tier; empty safety lines. Tree sha256 4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4.",
-      "tree_sha256": "4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4"
+      "date": "2026-11-14",
+      "findings": "Fresh review by a non-author of version 4 (five steps), with a fresh re-check by the same non-author of the final tree after its two fixes: every question variant and option of all 13 banks, Thai and English. #495 changes: both step4.W stems say she is on the antibiotic (step4.W follows a weaker step 3, and the only weaker step-3 option is ORS plus an oral antibiotic), both step4.R stems state she vomits some ORS, and the step5.R recheck label now reads \"Home on ORS, review tomorrow\" / \"กลับบ้านดื่ม ORS นัดดูพรุ่งนี้\". step4.W v1 reads \"4 ชม. ได้ยาปฏิชีวนะ ตาโหล หนังคืนช้า อาเจียน ORS แทบหมด\" / \"At 4 h on the antibiotic: sunken eyes, pinch slow, vomited most of the ORS.\", restoring two signs of some dehydration after a first draft left one. Sources opened: WHO 2005, The treatment of diarrhoea, 4th rev. (IRIS): Table 1 some dehydration at two or more of restless, sunken eyes, thirsty or drinks eagerly, slow skin pinch; §4.3.2 if the child vomits wait 5-10 min then give ORS more slowly; §4.3.3 repeat Plan B if some dehydration remains at 4 h; §4.3.6 NG ORS or IV Ringer's lactate for frequent severe vomiting; Plan A 50-100 mL per stool under 2; §2.6 and §10.1 no routine antimicrobials. WHO 2024 guideline on pneumonia and diarrhoea in children (IRIS): rec 1a against antibiotics in acute watery diarrhoea, 3a zinc, 5 low-osmolarity ORS. The Thai paediatric acute diarrhoea guideline (2019) could not be opened, so the ondansetron tier rests on the earlier review's reading. Every step-4 stem shows two dehydration signs or names the class. step4.R: repeat Plan B and spoon feeding best, NG reasonable, IV and antibiotic weaker and safe. step4.W: IV with sodium and glucose and NG best, IV with stopping the antibiotic reasonable, one ondansetron dose reasonable, IV with stool culture weaker and safe. No unsafe option, no withholding wording, Thai and English agree. MUST-FIX: none. Reviewed tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef.",
+      "tree_sha256": "b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef"
     }
   }
 }

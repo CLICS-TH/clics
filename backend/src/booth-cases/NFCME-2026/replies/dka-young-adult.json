@@ -42,12 +42,12 @@
         "th": [
           {
             "strength": "บอกทั้งโรคพื้นฐานและภาวะวิกฤต โดยอาศัย**อายุน้อย**และน้ำหนักที่ลดเร็ว",
-            "weigh": "ชนิดของเบาหวานตอนนี้ยังเป็นการวินิจฉัยเบื้องต้น มักยืนยันได้เมื่อติดตามต่อ",
+            "weigh": "อายุ 20 ปีและผอมลง ชนิดที่ 1 เป็นไปได้มากสุด แต่ชนิดที่ 2 ก็เกิด DKA ได้ จึงยืนยันชนิดภายหลัง",
             "safety": ""
           },
           {
             "strength": "มองเห็นโรคที่ซ่อนอยู่หลังภาวะฉุกเฉิน ช่วยวางแผนดูแลระยะยาวต่อได้",
-            "weigh": "การมาด้วยภาวะกรดคีโตนสนับสนุนชนิดที่ 1 แต่ควรยืนยันชนิดอีกครั้งเมื่อติดตามอาการ",
+            "weigh": "ยังไม่ระบุชนิดของเบาหวาน เพราะชนิดที่ 2 บางรายก็มาด้วย DKA ได้ การติดตามจะช่วยยืนยัน",
             "safety": ""
           },
           {
@@ -59,12 +59,12 @@
         "en": [
           {
             "strength": "It names the disease behind the crisis, drawing on her youth and **losing weight fast**.",
-            "weigh": "The diabetes type is a working label at this stage and is usually confirmed over the following weeks.",
+            "weigh": "At 20 with weight loss, type 1 is most likely, but DKA also occurs in type 2, so the type is settled later.",
             "safety": ""
           },
           {
             "strength": "Seeing a new diagnosis behind the emergency opens the door to the long-term care she will need.",
-            "weigh": "Ketoacidosis at presentation supports the label, though the type is usually settled on follow-up.",
+            "weigh": "The type stays open for now, since ketosis-prone type 2 can also present with DKA; follow-up settles it.",
             "safety": ""
           },
           {
@@ -1073,7 +1073,7 @@
             "safety": ""
           },
           {
-            "strength": "ใช้เกณฑ์ชัดเจนที่**น้ำตาล 250** ในการปรับแผนการรักษา",
+            "strength": "ใช้เกณฑ์ชัดเจนที่**น้ำตาล 250** มก./ดล. ในการปรับแผนการรักษา",
             "weigh": "ขณะที่ยังให้อินซูลินและสารน้ำอยู่ ยังควรเฝ้าดู K ต่อไป",
             "safety": ""
           }
@@ -1104,7 +1104,7 @@
             "safety": ""
           },
           {
-            "strength": "ตั้งเป้า**น้ำตาลราว 200** ชัดเจน ทำให้ปรับการหยดยาได้ง่าย",
+            "strength": "ตั้งเป้า**น้ำตาลราว 200** มก./ดล. ชัดเจน ทำให้ปรับการหยดยาได้ง่าย",
             "weigh": "K ยังลดลงได้อีกขณะให้อินซูลิน จึงควรตรวจซ้ำต่อไป",
             "safety": ""
           },
@@ -1145,7 +1145,7 @@
             "safety": ""
           },
           {
-            "strength": "ให้เดกซ์โทรสเมื่อ**น้ำตาลต่ำกว่า 250** มองน้ำตาลเป็นเชื้อเพลิงที่อินซูลินต้องใช้",
+            "strength": "ให้เดกซ์โทรสเมื่อน้ำตาล**ต่ำกว่า 250 มก./ดล.** มองน้ำตาลเป็นเชื้อเพลิงที่อินซูลินต้องใช้",
             "weigh": "เมื่อมีเดกซ์โทรสหยดร่วมด้วย ปริมาณสารน้ำรวมจะเพิ่มขึ้น ควรนับยอดรวมไว้",
             "safety": ""
           }
@@ -1162,7 +1162,7 @@
             "safety": ""
           },
           {
-            "strength": "Adding dextrose **below 250** treats glucose as the fuel insulin needs, not the target.",
+            "strength": "Adding dextrose **below 250 mg/dL** treats glucose as the fuel insulin needs, not the target.",
             "weigh": "Fluid volume adds up with dextrose running too, so her total intake is worth tallying.",
             "safety": ""
           }
@@ -1428,7 +1428,7 @@
         "th": [
           {
             "strength": "**ปรับทีละน้อย** ช่วยคุมไม่ให้น้ำตาลและ K ลดเร็ว พร้อมเติม K ไปด้วย",
-            "weigh": "ภาวะกรดยังค้างหลัง 4 ชม. การเพิ่มทีละ 1 ยูนิต/ชม. อาจต้องใช้อีกหลายชั่วโมงจึงเห็นผล",
+            "weigh": "ภาวะกรดยังค้างหลัง 4 ชม. การเพิ่มทีละน้อยอาจต้องใช้อีกหลายชั่วโมงจึงเห็นผล",
             "safety": ""
           },
           {
@@ -1445,7 +1445,7 @@
         "en": [
           {
             "strength": "**Small steps** limit how fast glucose and K fall, with K added alongside.",
-            "weigh": "With acidosis still present after 4 hours, a 1 unit/h step may take several more hours to show.",
+            "weigh": "With acidosis still present after 4 hours, small rises may take several more hours to show an effect.",
             "safety": ""
           },
           {
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Independent AI reviewer (did not write these replies), 2026-11-14. Sources opened: hyperglycaemic crises consensus, Diabetologia 2024;67:1455-79 (full text: fixed-rate 0.1 U/kg/h, bolus 0.1 U/kg, 5-10% dextrose and cut to 0.05 U/kg/h below 250 mg/dL, glucose near 200, K replacement below 5.0, insulin held below 3.5, K 2 h after insulin then 4-hourly, volume expansion lowers K, saline hyperchloraemic acidosis, urine ketones under- then over-estimate, POCT BOHB less accurate at >=5, calculated effective osmolality for HHS, abdominal pain should settle with acidosis, resolution pH>=7.3 or HCO3>=18, basal-bolus started 1-2 h before stopping IV insulin, weight-based 0.5-0.6 U/kg/day, follow-up 2-4 weeks); JBDS 02 DKA single-page pathway, Mar 2023 (partial text: FRIII 0.1 U/kg/h, check pump and line when ketones and glucose do not fall as expected, 10% dextrose 125 ml/h below 14 mmol/L, optional cut to 0.05). Thai DM CPG 2566 and WHO SEARO IMAI 2021 were not reachable online; their thresholds were taken from the page quotes in the case's own admission review (insulin only above K 3.3, cut to 0.02-0.05 at 250, WHO raise rate if glucose falls <50 mg/dL/h). Read all 13 banks, every option, all 3 alternatives, Thai and English, against every question variant: clinical truth, safety (no reply reassures about a harmful step or delays needed treatment; no option here needs a safety line, matching the case review's no-unsafe-option finding), no leak (no grading, ranking, best/correct wording, later-step preview, or test/drug/diagnosis outside the chosen option), fit, Thai naturalness and parity. The earlier requested edits read right: numbers only some variants show are gone; step4.R.d[1] weigh (volume expansion can lower K 4.0) matches the consensus; step3.R/W.d[0] weigh is true; step4.W a[0] strength, c[0], d[0], d[2] weigh fit both stems. Non-blocking notes for a later pass: step4.W.a[2] strength and c[1] strength still say slow ketone clearance, an inference (not a stated fact) under v2's pH 7.16; step4.W.b[1] and d[0] say the falling K, which v1 does not state; step3.B.d.en[0] weigh says half the usual rate (Thai only half rate; better to cite the option's own 0.05); step3.R/W.d[0] weigh is true at any rate, en[1]/en[2] make the rate-specific point better; step4.R.d.en[2] strength says checks where the option gives fluid (Thai: attends to); step5.W a[1], b[1], c[1] weigh ask for K checks during the journey, which an ambulance can rarely do; small Thai/English parity drifts: step1.c[1] weigh (Thai adds slowly over days), step1.d[2] strength (Thai omits young adult), step4.B.a[0] weigh (Thai omits only), step4.B.d[0] weigh (for a day vs Thai a long time), step5.B.c[1] strength (English adds in a Thai setting). Mechanical check: content ok; review pending. Tree sha256 efead070653aeb90076325229753afc6b30a9443875577933373dfc0731ef3fe. Replies sha256 5a40e2819127f9935a1cf0752df3b05824e597f70a5ec255ba8013c90d3c24bb.",
-    "tree_sha256": "efead070653aeb90076325229753afc6b30a9443875577933373dfc0731ef3fe",
-    "replies_sha256": "5a40e2819127f9935a1cf0752df3b05824e597f70a5ec255ba8013c90d3c24bb"
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every variant of its bank, with the sources of the case review (Diabetologia 2024 consensus, JBDS 02 2023; Thai CPG and WHO not opened). Clinical truth holds: glucose falls faster than acidosis clears; initial K can hide a total-body deficit and insulin, fluid and correcting acidosis lower it; urine ketones lag; a bolus adds little once 0.1 U/kg/h runs; check the pump and line before raising the rate; a 2 h overlap prevents rebound ketosis; large saline volumes add an acid load. Rewritten replies are correct: step1 b says type 1 is likeliest at 20 with weight loss but ketosis-prone type 2 can present with DKA, so the type is settled at follow-up; step4.W c says small rises may take hours to show; step4.B c says dextrose below 250 mg/dL lets insulin keep working; step4.B a/b Thai carry ยูนิต/กก./ชม. and มก./ดล. step5.W c replies cite only K 3.9, which both stems give, and warn that small steps may not turn the trend before arrival. No ranking or grading, no later-step preview, no treatment beyond the chosen option, no other option named; bold runs quote only the option's own label or line; each reply fits every variant. Thai reads naturally and matches the English, with minor non-blocking asymmetries. MUST-FIX: none. Tree sha256 4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a. Replies sha256 3a2886d63cef3872515ef37f6e53afc2794b4f8ca42a4338880291123a78cfbd.",
+    "tree_sha256": "4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a",
+    "replies_sha256": "3a2886d63cef3872515ef37f6e53afc2794b4f8ca42a4338880291123a78cfbd"
   }
 }

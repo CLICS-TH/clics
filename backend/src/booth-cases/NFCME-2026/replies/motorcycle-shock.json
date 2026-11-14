@@ -485,7 +485,7 @@
           },
           {
             "strength": "ขยายการตรวจไปที่ช่องอก ครอบคลุมทั้งสองช่องในการตรวจข้างเตียงครั้งเดียว",
-            "weigh": "เสียงหายใจเท่ากันและหลอดลมอยู่กลาง ภาพช่องอกจึงอาจเพิ่มข้อมูลน้อยกว่าภาพช่องท้อง",
+            "weigh": "เสียงหายใจเท่ากัน ภาพช่องอกจึงอาจเพิ่มข้อมูลน้อยกว่าภาพช่องท้อง",
             "safety": ""
           },
           {
@@ -1104,7 +1104,7 @@
             "safety": ""
           },
           {
-            "strength": "ถือว่าอาการที่ดีขึ้นยังไม่แน่นอน และเฝ้าดูใกล้ชิดระหว่างประสานส่งต่อ",
+            "strength": "ถือว่าอาการที่ดีขึ้นยังไม่แน่นอน และเฝ้าดูใกล้ชิดจนกว่าจะแก้ที่ต้นเหตุได้",
             "weigh": "การวัดถี่จะมีประโยชน์เมื่อมีคนที่ได้รับมอบหมายลงมือทันทีที่ความดันตก",
             "safety": ""
           },
@@ -1121,7 +1121,7 @@
             "safety": ""
           },
           {
-            "strength": "You treat the improvement as provisional and watch closely while the transfer is arranged.",
+            "strength": "You treat the improvement as provisional and watch closely until the source is dealt with.",
             "weigh": "Readings every 5 minutes help only if someone is named to act on a fall.",
             "safety": ""
           },
@@ -1388,42 +1388,6 @@
       }
     },
     "step4.W": {
-      "a": {
-        "th": [
-          {
-            "strength": "ให้ **TXA 1 กรัม IV** ขณะยังอยู่ในช่วง 3 ชั่วโมง ช่วยลดการตายจากเลือดออก",
-            "weigh": "TXA ชะลอการสลายลิ่มเลือด แต่ไม่ได้หยุดจุดที่เลือดออกเอง",
-            "safety": ""
-          },
-          {
-            "strength": "ใช้เวลาตั้งแต่เกิดเหตุเป็นตัวกำหนด เพราะประโยชน์ลดลงทุกชั่วโมงที่ล่าช้า",
-            "weigh": "ตามสูตรมักให้ต่ออีก 1 กรัมใน 8 ชั่วโมง ขนาดนี้จึงเป็นเพียงขนาดแรก",
-            "safety": ""
-          },
-          {
-            "strength": "ใช้ยาต้านการสลายลิ่มเลือดในช่วงที่ยังได้ผล แก้ส่วนที่การให้เลือดอย่างเดียวไม่ครอบคลุม",
-            "weigh": "หยดใน 10 นาทีช่วยเลี่ยงความดันตกที่อาจเกิดจากการฉีดเร็ว",
-            "safety": ""
-          }
-        ],
-        "en": [
-          {
-            "strength": "Giving **TXA 1 g IV** while the 3-hour window is still open targets deaths from bleeding.",
-            "weigh": "TXA slows clot breakdown but does not close the bleeding point itself.",
-            "safety": ""
-          },
-          {
-            "strength": "You use the clock well: the benefit falls with each hour of delay after injury.",
-            "weigh": "The usual course adds a second 1 g over 8 hours, so this dose is only the start.",
-            "safety": ""
-          },
-          {
-            "strength": "Adding an antifibrinolytic within the window treats a part of bleeding that units alone miss.",
-            "weigh": "Running it over 10 minutes avoids the drop in pressure a fast push can cause.",
-            "safety": ""
-          }
-        ]
-      },
       "b": {
         "th": [
           {
@@ -1433,7 +1397,7 @@
           },
           {
             "strength": "ยอมรับว่าเลือดเป็นเพียงสะพาน แล้วพาเขาไปหาศัลยแพทย์ที่หยุดเลือดได้",
-            "weigh": "ผ่านไปหนึ่งชั่วโมงแล้ว งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป",
+            "weigh": "งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป",
             "safety": ""
           },
           {
@@ -1450,7 +1414,7 @@
           },
           {
             "strength": "You accept that blood is a bridge and move him toward the surgeon who can stop it.",
-            "weigh": "An hour in, each extra task here should earn its place against the delay it causes.",
+            "weigh": "Each extra task here should earn its place against the delay it causes.",
             "safety": ""
           },
           {
@@ -1975,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "One claude-opus-5-5 reviewer that did not write the replies read every reply in all 13 banks, every option, all 3 alternatives, in Thai and English, against each bank's question variants. Sources opened: European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023, PMC9977110: Rec 13 systolic 80-90 mmHg without brain injury, Rec 15 restricted crystalloid, Rec 23 TXA within 3 h, 1 g over 10 min then 1 g over 8 h); CRASH-2 timing analysis (Lancet 2011, via secondary summaries: death from bleeding RR 0.68 within 1 h, 0.79 at 1-3 h, 1.44 after 3 h); Cyklokapron prescribing information (Pfizer, Medsafe: hypotension with rapid IV injection, no faster than 1 mL/min, so 1 g over 10 min). WHO Basic Emergency Care and Thai sources were not reopened; the case's own review cites them. Every TXA figure in the replies matches these sources. No reply reassures about a harmful action or delays needed treatment; no option is unsafe, so no safety sentence is needed. No reply ranks or grades an option, names an absent drug or test, or asks a question. Judged acceptable: the step3 option e weigh lines describe early clot breakdown and benefit within 3 h without naming TXA (the real gap in that option, not a step preview); the step3 option c weigh lines frame 1 L of saline as a ceiling, consistent with Rec 15 and the ATLS 10th ed. 1 L initial bolus. Non-blocking notes for a later edit: step3.b [1] calls near 90 a floor, while Rec 13 allows 80-90; step3.e en[1] strength says the two things he needs most (Thai has no most) and weigh says clot breakdown drives trauma bleeding (overstated; Thai says keeps it going); step2.W.a th[1] weigh adds trachea central, absent from the English and from question v2; step4.W.b [1] weigh says an hour in, stated only in question v1; step1.e [1] weigh lists talking and alert, which do not argue against neurogenic shock; step4.R.b [0] strength says blood only avoids dilution where the option line says limits; step3.e th[0] weigh uses a bare การชะลอ with no object, which could read as delay. Case-level, not a reply issue: on the path step3 e then step4.W b, c or d no TXA is ever given, which the case review's claim that TXA is loaded once on every path does not cover. Tree sha256 49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18. Replies sha256 05207ca1bc3f0a76ad8f3724ab7ed621a1a6f1a3c9486e02058b07a01ef9c3d0.",
-    "tree_sha256": "49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18",
-    "replies_sha256": "05207ca1bc3f0a76ad8f3724ab7ed621a1a6f1a3c9486e02058b07a01ef9c3d0"
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Rossaint 2023 Rec 13, 15 and 23; CRASH-2), then a confirm check of the step4.W replies against the edited v1 stem. The step4.W entry for removed option a is gone. b's weigh \"Each extra task here should earn its place against the delay it causes.\" / \"งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป\" carries no time stamp and fits both stems; c and d fit BP 88/58 and pulse 124. No step4.W reply mentions TXA or a dose, so nothing double-doses or contradicts the stems. The step-3 e replies point to the missing antifibrinolytic without naming it (\"slowing that within 3 hours lowers deaths further\"), true to CRASH-2 and Rec 23. No ranking or grading, no later-step preview, no drug outside the chosen option, no other option named; Thai reads naturally and matches the English. Non-blocking: step4.B b th[0] says \"repeat examination\" where the English says \"a scan\"; \"near 90 is a floor\" leans above Rec 13's 80-90 range but is safe. MUST-FIX: none. Tree sha256 9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 a165c9fa32ebd39ee872f6267f36438df4ce7395523ef668c837c9c9783286d7.",
+    "tree_sha256": "9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3",
+    "replies_sha256": "a165c9fa32ebd39ee872f6267f36438df4ce7395523ef668c837c9c9783286d7"
   }
 }

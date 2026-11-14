@@ -669,13 +669,8 @@ describe('the build runner', () => {
   test('without --go it checks every NFCME-2026 tree and reply bank, prints the plan and spends nothing', () => {
     const res = run([]);
     expect(res.status).toBe(0);
-    expect(res.stdout).toMatch(/^9 case\(s\) to build, 729 evaluator calls, about \$\d+\.\d\d typical\.$/m);
+    expect(res.stdout).toMatch(/^11 case\(s\) to build, 891 evaluator calls, about \$\d+\.\d\d typical\.$/m);
     expect(res.stdout).toMatch(/Nothing spent/);
-    // dka-young-adult is the three-step file, its review bound to no tree, until #476 re-authors it. The toddler bank
-    // names another option's short acronym (#494's rule), which its tree ticket fixes.
-    expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([
-      'dka-young-adult@5: refused, it has a safety review that names no tree (no tree_sha256)',
-      'toddler-gastro-dehydration@3: refused, it has a reply bank with 4 problem(s), first replies.step4.B.elec.th[0].weigh: names another option ("ors")',
-    ]);
+    expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([]);
   });
 });

@@ -1,6 +1,6 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "6",
+  "version": "7",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
@@ -802,12 +802,12 @@
             "id": "a",
             "tier": "best",
             "label": {
-              "th": "เริ่ม NIV (BiPAP) ทันที",
-              "en": "Start NIV (BiPAP) now"
+              "th": "NIV ทันที เตรียมท่อไว้พร้อม",
+              "en": "NIV now, with a tube ready"
             },
             "line": {
-              "th": "pH 7.28 กับ CO2 ที่สูงขึ้นเป็นข้อบ่งชี้ของ NIV",
-              "en": "pH 7.28 with a rising CO2 is the indication for NIV."
+              "th": "ซึมจาก CO2 มักดีขึ้นด้วย NIV มีท่อพร้อมหากล้มเหลว",
+              "en": "CO2 drowsiness often lifts on NIV, with a tube ready for failure."
             }
           },
           {
@@ -818,8 +818,8 @@
               "en": "NIV with a repeat ABG in 1 hour"
             },
             "line": {
-              "th": "ABG หลังเริ่ม NIV 1 ชม. บอกว่าได้ผลดีเพียงใด",
-              "en": "A gas an hour into NIV shows how well it is working."
+              "th": "ABG ใน 1 ชม. ชี้ได้เร็วหากต้องใส่ท่อ",
+              "en": "A gas within an hour shows early if he needs a tube."
             }
           },
           {
@@ -1091,9 +1091,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Review of version 6 (five steps). Thai: Thoracic Society of Thailand COPD guideline 2565 (2022), chapter 6 on exacerbations, Tables 3-9 and Flowcharts 1-2, opened in full; no newer Thai edition was found. WHO: IMAI District Clinician Manual (WHO 2011), volume 2 section 10.6.5 COPD and volume 1 section 3.2, difficult breathing. Also BTS/ICS AHRF 2016 recommendations 23-30 and BTS NIV Quality Standards 2018. Fixed after checking the 2022 Thai guideline: levofloxacin, a Thai first-line respiratory quinolone, is now reasonable in step3.W and left out of step3.B and step3.R, whose reasonable slots are full; the step-4 nebuliser step-down reads 2-4 hourly; after NIV failure every option above weaker calls ICU first (NIV only as a bridge, a senior called with ICU, intubation with ICU), and every reply there carries the escalation line. Departures from the Thai text, with reasons: the Thai guideline targets SpO2 92-94%, but this patient retains CO2 (PaCO2 48, later 66), so the tree keeps 88-92% per BTS/ICS recommendations 23-24; Thai Table 7 lists drowsiness as an intubation trigger, while the tree keeps NIV best for a drowsy but rousable patient at pH 7.28 with intubation reasonable, per BTS/ICS recommendation 26, and the step-4 replies carry the escalation line. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: prednisolone 40 mg for 5 days; amox-clav or doxycycline best; CXR, ECG and ABG first; NIV at pH 7.28 with a repeat gas at 1 hour; no NIV option delays the first repeat gas past 2 hours; a doubled steroid weaker; inhaler technique, vaccines, rehab and review within 4 weeks at discharge; Thai and English agree. Remains, listed on #470: the magnesium reply wording, and the Thai step5.W a label leaving the bridge meaning to its line. Tree sha256 cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c.",
-      "tree_sha256": "cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c"
+      "date": "2026-11-14",
+      "findings": "Review of version 7 (five steps) for #495: every question variant and every option's label, line and tier in all 13 banks, Thai and English. Thai: Thoracic Society of Thailand COPD guideline 2565 (2022), full PDF from tst.or.th, chapter 6 read: p.77 antibiotics for 5-7 days when breathlessness, sputum volume and colour all worsen, the usual first choice a beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide, with Pseudomonas cover only for two or more exacerbations a year, FEV1 <50% or a prior ventilator; Table 6 NIV for PaCO2 >45 mmHg at pH 7.25-7.35; Table 7 lists drowsiness as an invasive-ventilation indication; SpO2 92-94%, prednisolone 30-40 mg 5-7 days. WHO: the IMAI District Clinician Manual (WHO 2011) could not be reopened this round; the version-6 review opened volume 2 section 10.6.5 (COPD) and volume 1 section 3.2 and recorded no conflict with the tree. Also BTS/ICS AHRF 2016 open-access summary (BMJ Open Resp Res 2016;3:e000133): target 88-92%, NIV at pH <7.35 with pCO2 >6.5 kPa, adverse features do not on their own withhold a trial, a trial only where staff can intubate safely, NIV must not delay escalation, a written plan for NIV failure, depressed consciousness at GCS <8 as an invasive-ventilation indication; GOLD 2025 (quinolone in selected patients, NIV the preferred first mode); NICE NG114 via a search extract. Fresh re-check by a non-author of the final tree: step3.W levofloxacin stays reasonable, as the Thai guideline lists a respiratory quinolone as a usual first antibiotic and he meets none of its Pseudomonas criteria, while NICE and GOLD cautions keep it below best; step4.W keeps NIV best (\"NIV now, with a tube ready\"; a repeat gas within the hour) and intubation reasonable for a drowsy but rousable man at pH 7.28 and PaCO2 66, a deliberate departure from Thai Table 7 that follows BTS/ICS and is safe; 88-92% departs from the Thai 92-94% because he retains CO2, per BTS rec 24. Every option above weaker after NIV failure calls ICU first; a doubled steroid and IV magnesium stay weaker; every weaker option is safe; Thai and English agree. MUST-FIX: none. Reviewed tree sha256 d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1.",
+      "tree_sha256": "d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1"
     }
   }
 }

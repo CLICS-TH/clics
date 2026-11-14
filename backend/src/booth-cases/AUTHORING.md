@@ -169,7 +169,7 @@ node scripts/booth/reply-bank.mjs check backend/src/booth-cases/<EVENT_CODE>/<ca
 
 ## Moving a staged case into place
 
-A staged case goes live in one change, the way the ten five-step NFCME-2026 cases did (#386) and the re-authored `dka-young-adult` will (#476).
+A staged case goes live in one change, the way the ten five-step NFCME-2026 cases did (#386) and the re-authored `dka-young-adult` did (#495).
 
 1. Move `staging/<EVENT_CODE>/<case_id>.json` over `<EVENT_CODE>/<case_id>.json`, and its reply bank over `<EVENT_CODE>/replies/<case_id>.json`. Change no tree field on the way: an edit needs a new review.
 2. Give the moved file a `version` above every version the live file ever had, so it never shares a study snapshot with an old one.

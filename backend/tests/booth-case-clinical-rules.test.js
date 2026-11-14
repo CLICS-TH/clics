@@ -5,10 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DIR = path.join(__dirname, '../src/booth-cases');
-// The staged five-step version until the cutover (#386) moves it to the event folder.
-const fiveStep = (id) => [`staging/NFCME-2026/${id}.json`, `NFCME-2026/${id}.json`]
-  .map((f) => path.join(DIR, f)).filter((f) => fs.existsSync(f))
-  .map((f) => JSON.parse(fs.readFileSync(f, 'utf8'))).find((k) => Object.keys(k.banks).length === 5);
+const fiveStep = (id) => JSON.parse(fs.readFileSync(path.join(DIR, 'NFCME-2026', `${id}.json`), 'utf8'));
 
 const banks = (k) => Object.entries(k.banks).flatMap(([step, level]) => (level.variants ? [[step, level]]
   : Object.entries(level).map(([tier, bank]) => [`${step}.${tier}`, bank])));
@@ -114,4 +111,21 @@ test('melioidosis-farmer: with abscesses, no option above weaker ends the IV pha
   const bad = deep.flatMap(([name, b]) => b.options
     .filter((o) => o.tier !== 'weaker' && /\b(14 days|2 weeks|two weeks|oral)\b/i.test(text(o))).map((o) => at(name, o)));
   expect(bad).toEqual([]);
+});
+
+// #489: a weaker step 3 gave no TXA, and the step4.W options after it left it out too. The case loads TXA once, by step
+// 3's option or by every variant of the step-4 bank that follows, so every walk through steps 3 and 4 carries it once.
+test('motorcycle-shock: every path through steps 3 and 4 gives TXA exactly once', () => {
+  const k = fiveStep('motorcycle-shock');
+  const TXA = /\bTXA\b|tranexamic/i;
+  const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
+  const walks = Object.values(k.banks.step3).flatMap((b3) => b3.options.flatMap((o3) => {
+    const b4 = k.banks.step4[LETTER[o3.tier]];
+    return b4.variants.flatMap((v) => b4.options.map((o4) => ({
+      at: `step3 ${o3.id} > step4.${LETTER[o3.tier]} ${v.id} ${o4.id}`,
+      doses: [TXA.test(text(o3)), TXA.test(v.question.en), TXA.test(text(o4))].filter(Boolean).length,
+    })));
+  }));
+  expect(walks.length).toBeGreaterThan(0);
+  expect(walks.filter((w) => w.doses !== 1)).toEqual([]);
 });

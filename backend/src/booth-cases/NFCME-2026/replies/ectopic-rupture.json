@@ -1326,7 +1326,7 @@
           },
           {
             "strength": "อยากป้องกันให้นานขึ้น สะท้อนความระมัดระวังหลังผ่าตัดฉุกเฉิน",
-            "weigh": "ควรชั่งว่าวันแรกเธออาการคงที่และไม่มีสัญญาณติดเชื้อ",
+            "weigh": "ควรชั่งว่าหลังผ่าตัดเธออาการคงที่ และไม่มีสิ่งใดที่ระบุว่าติดเชื้อ",
             "safety": ""
           }
         ],
@@ -1343,7 +1343,7 @@
           },
           {
             "strength": "Wanting **longer cover** reflects caution after an emergency operation.",
-            "weigh": "Worth weighing that she is stable with no sign of infection on day 1.",
+            "weigh": "Worth weighing that she is stable after surgery, and nothing described points to infection.",
             "safety": ""
           }
         ]
@@ -1399,8 +1399,8 @@
             "safety": ""
           },
           {
-            "strength": "รักษาตามอาการ ไม่ใช่ตามตัวเลขอย่างเดียว ด้วยเลือดในปริมาณที่จำเป็น",
-            "weigh": "ชีพจร 106 วันแรกหลังผ่าตัด ควรมีคำอธิบายควบคู่กับการรักษา",
+            "strength": "ให้ตามสภาพของเธอ ไม่ใช่ตามตัวเลขอย่างเดียว ด้วยเลือดในปริมาณที่จำเป็น",
+            "weigh": "ชีพจร 106 หลังผ่าตัด ควรมีคำอธิบายควบคู่กับการรักษา",
             "safety": ""
           }
         ],
@@ -1416,8 +1416,8 @@
             "safety": ""
           },
           {
-            "strength": "You treated symptoms, not just a number, with the **least blood needed**.",
-            "weigh": "Worth weighing that a pulse of 106 a day after surgery deserves an explanation alongside treatment.",
+            "strength": "You matched blood to her state, not just a number, with the **least blood needed**.",
+            "weigh": "Worth weighing that a pulse of 106 after surgery deserves an explanation alongside treatment.",
             "safety": ""
           }
         ]
@@ -1471,7 +1471,7 @@
             "safety": ""
           },
           {
-            "strength": "ให้เลือดเมื่อ Hb 7.2 และมีอาการ ช่วยแก้ชีพจรเร็วและภาวะซีด",
+            "strength": "ให้เลือดเมื่อ Hb 7.2 และชีพจรเร็ว ช่วยแก้ทั้งชีพจรและภาวะซีด",
             "weigh": "ควรชั่งภาวะน้ำเกินและปฏิกิริยาจากการให้เลือด ซึ่งเพิ่มตามจำนวนยูนิต",
             "safety": ""
           }
@@ -1488,7 +1488,7 @@
             "safety": ""
           },
           {
-            "strength": "Treating a symptomatic Hb of 7.2 with blood addresses her fast pulse and low Hb.",
+            "strength": "Giving blood for an Hb of 7.2 with a fast pulse addresses both the pulse and the low Hb.",
             "weigh": "Worth weighing volume load and transfusion reactions, which rise with each unit given.",
             "safety": ""
           }
@@ -1498,7 +1498,7 @@
         "th": [
           {
             "strength": "**ให้สารน้ำ 500 มล.** แล้วตรวจซ้ำ เป็นก้าวแรกที่ระมัดระวังสำหรับชีพจรเร็ว",
-            "weigh": "สารน้ำทำให้ Hb เจือจางลงอีก และที่ Hb 7.2 อาการมาจากการขนออกซิเจนไม่พอ",
+            "weigh": "สารน้ำทำให้ Hb เจือจางลงอีก และที่ Hb 7.2 ชีพจรเร็วอาจมาจากการขนออกซิเจนไม่พอ",
             "safety": ""
           },
           {
@@ -1507,7 +1507,7 @@
             "safety": ""
           },
           {
-            "strength": "ตอบสนองต่อชีพจรและความดันทันที แสดงความใส่ใจต่อระบบไหลเวียน",
+            "strength": "ตอบสนองต่อชีพจรทันที แสดงความใส่ใจต่อระบบไหลเวียน",
             "weigh": "ควรหาคำอธิบายว่าทำไม Hb ลดลงหลังผ่าตัด",
             "safety": ""
           }
@@ -1515,7 +1515,7 @@
         "en": [
           {
             "strength": "A quick **fluid bolus** and recheck is a cautious first step for a fast pulse.",
-            "weigh": "Fluid dilutes Hb further, and at Hb 7.2 her symptoms come from too little oxygen-carrying capacity.",
+            "weigh": "Fluid dilutes Hb further, and at Hb 7.2 her fast pulse may come from too little oxygen-carrying capacity.",
             "safety": ""
           },
           {
@@ -1524,7 +1524,7 @@
             "safety": ""
           },
           {
-            "strength": "Responding promptly to her pulse and BP shows attention to her circulation.",
+            "strength": "Responding promptly to her pulse shows attention to her circulation.",
             "weigh": "Worth weighing why her Hb fell, since a drop after surgery needs an explanation.",
             "safety": ""
           }
@@ -1533,7 +1533,7 @@
       "three_units": {
         "th": [
           {
-            "strength": "แผนที่**เพิ่ม Hb ได้เร็ว** รักษาอาการได้อย่างเด็ดขาด",
+            "strength": "แผนที่**เพิ่ม Hb ได้เร็ว** แก้ปัญหาได้อย่างเด็ดขาด",
             "weigh": "เป้า Hb 10 เกินกว่าที่หญิงอายุน้อยที่คงที่ต้องการ และทุกยูนิตเพิ่มความเสี่ยง",
             "safety": ""
           },
@@ -1550,7 +1550,7 @@
         ],
         "en": [
           {
-            "strength": "A plan that **restores her Hb** quickly treats her symptoms decisively.",
+            "strength": "A plan that **restores her Hb** quickly tackles the problem decisively.",
             "weigh": "A target of 10 goes beyond what a young, stable woman needs, and each unit adds risk.",
             "safety": ""
           },
@@ -1572,7 +1572,7 @@
         "th": [
           {
             "strength": "ตรวจหาแหล่งไข้หลังผ่าตัดทั่วตัว ช่วยหาต้นเหตุไม่ใช่แค่ลดไข้",
-            "weigh": "ควรชั่งว่าเธอป่วยแค่ไหนโดยรวม เพราะไข้กับอ่อนเพลียหลังผ่าตัดอาจทรุดเร็ว",
+            "weigh": "ควรชั่งว่าเธอป่วยแค่ไหนโดยรวม เพราะไข้หลังผ่าตัดอาจทรุดเร็ว",
             "safety": ""
           },
           {
@@ -1589,7 +1589,7 @@
         "en": [
           {
             "strength": "A head-to-toe look at the usual post-operative sources finds the cause, not just the fever.",
-            "weigh": "Worth weighing how unwell she is overall, since fever with weakness after surgery can move fast.",
+            "weigh": "Worth weighing how unwell she is overall, since fever after surgery can move fast.",
             "safety": ""
           },
           {
@@ -1617,7 +1617,7 @@
             "safety": ""
           },
           {
-            "strength": "ตรวจ Hb คู่กับตัวบ่งชี้การติดเชื้อ รู้ว่าไข้และชีพจรเร็วอาจมาจากได้ทั้งสองทาง",
+            "strength": "ตรวจ Hb คู่กับตัวบ่งชี้การติดเชื้อ รู้ว่าไข้ใหม่อาจมาจากได้ทั้งสองทาง",
             "weigh": "ควรชั่งเวลารอผล เพื่อไม่ให้ผู้ป่วยที่ทรุดลงต้องรอนาน",
             "safety": ""
           }
@@ -2056,7 +2056,7 @@
           },
           {
             "strength": "ให้ช่องทางกลับมาหาทีมที่ชัด ทำให้เธอขอความช่วยเหลือได้ง่ายขึ้น",
-            "weigh": "การร้องไห้ช่วงแรกพบได้บ่อย แต่อารมณ์เศร้าที่ไม่ดีขึ้นควรได้รับการประเมินใกล้ชิด",
+            "weigh": "ความทุกข์ใจช่วงแรกพบได้บ่อย แต่อารมณ์เศร้าที่ไม่ดีขึ้นควรได้รับการประเมินใกล้ชิด",
             "safety": ""
           }
         ],
@@ -2073,7 +2073,7 @@
           },
           {
             "strength": "Giving her a clear way back to the team makes it easier to ask for help.",
-            "weigh": "Tearfulness this soon is common, while low mood that persists needs a closer look.",
+            "weigh": "Distress this soon is common, while low mood that persists needs a closer look.",
             "safety": ""
           }
         ]
@@ -2082,7 +2082,7 @@
         "th": [
           {
             "strength": "ให้ความสำคัญกับ**อารมณ์เศร้า**ของเธอ ไม่มองข้าม",
-            "weigh": "การร้องไห้หลังสูญเสียครรภ์มักเป็นปฏิกิริยาปกติ ที่อาจไม่ต้องพบผู้เชี่ยวชาญ",
+            "weigh": "ความทุกข์ใจหลังสูญเสียครรภ์มักเป็นปฏิกิริยาปกติ ที่อาจไม่ต้องพบผู้เชี่ยวชาญ",
             "safety": ""
           },
           {
@@ -2099,7 +2099,7 @@
         "en": [
           {
             "strength": "You took her **low mood** seriously rather than brushing it aside.",
-            "weigh": "Tearfulness after this loss is often a normal response that may not need a specialist.",
+            "weigh": "Distress after this loss is often a normal response that may not need a specialist.",
             "safety": ""
           },
           {
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, against every question variant. Sources opened: NICE NG126 (last updated 17 June 2026), chapter Anti-D immunoglobulin prophylaxis, rec 1.18.1 (no anti-D for ectopic pregnancy or miscarriage up to 11+6 weeks, surgical management included) and 1.18.2 (offer from 12+0 to 12+6 weeks); Srinagarind Med J 2018 abstract (62,201 Khon Kaen donors, Rh(D)-negative 0.2%, Thai range 0.1-0.3%); WikEM summary of the ACOG 2024 Clinical Practice Update (no routine RhIg before 12 weeks for abortion or pregnancy loss, ectopic pregnancy named as a possible exception). WHO MCPC 2017 and the RTCOG CPGs were not reopened; the case review's citations were relied on. Checked: clinical truth, safety, no leak, fit, Thai-English equivalence. No must-fix. step4.B anti_d: the weigh line on Rh-negative rarity is true (0.1-0.3% in Thais) and speaks to yield, not to withholding anti-D from a Rh-negative woman; the other two alternatives support checking her group and giving anti-D in time. The weaker tier matches NICE NG126 1.18.1 and WHO MCPC, but ACOG 2024 leaves ectopic pregnancy open, so it remains a contested case-level call (non-blocking, case issue). Empty safety lines accepted: no option in the tree is an action that could seriously harm her on its own (every step-3 option gives blood and surgery; the step-4 fluid bolus and the step-4.W antipyretic both carry weigh lines that flag the risk). Non-blocking notes: step4.W para could carry a safety line that a new fever with a fast pulse after surgery can signal sepsis or fresh bleeding; step4.R fluid en0/th0 weigh states the cause of her symptoms too firmly (could read likely); step2 fast en0/th0 weigh says free fluid confirms blood (suggests); step2.W glu_lyte th0 weigh uses the Thai for fluid loss where blood loss is meant; step4.B rpt_hb th2 strength reads translated; step4.R fluid en2/th2 strength mentions BP, which variant v2 does not give; step1 e/f weigh lines name blood loss or blood in the abdomen, an inference from vignette signs that names no diagnosis; bold label quotes keep label capitals mid-sentence (Bedside FAST scan, Broad IV, Check Rh); no step-3 reply says surgery does not wait for blood, as the case review asked on #470. Tree sha256 9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a. Replies sha256 25cdecf321a5d27dbe732985a01191db686b8b8f23052da7ae05bb08df482d10.",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, against every question variant. Sources opened: NICE NG126 (last updated 17 June 2026), chapter Anti-D immunoglobulin prophylaxis, rec 1.18.1 (no anti-D for ectopic pregnancy or miscarriage up to 11+6 weeks, surgical management included) and 1.18.2 (offer from 12+0 to 12+6 weeks); Srinagarind Med J 2018 abstract (62,201 Khon Kaen donors, Rh(D)-negative 0.2%, Thai range 0.1-0.3%); WikEM summary of the ACOG 2024 Clinical Practice Update (no routine RhIg before 12 weeks for abortion or pregnancy loss, ectopic pregnancy named as a possible exception). WHO MCPC 2017 and the RTCOG CPGs were not reopened; the case review's citations were relied on. Checked: clinical truth, safety, no leak, fit, Thai-English equivalence. No must-fix. step4.B anti_d: the weigh line on Rh-negative rarity is true (0.1-0.3% in Thais) and speaks to yield, not to withholding anti-D from a Rh-negative woman; the other two alternatives support checking her group and giving anti-D in time. The weaker tier matches NICE NG126 1.18.1 and WHO MCPC, but ACOG 2024 leaves ectopic pregnancy open, so it remains a contested case-level call (non-blocking, case issue). Empty safety lines accepted: no option in the tree is an action that could seriously harm her on its own (every step-3 option gives blood and surgery; the step-4 fluid bolus and the step-4.W antipyretic both carry weigh lines that flag the risk). Non-blocking notes: step4.W para could carry a safety line that a new fever with a fast pulse after surgery can signal sepsis or fresh bleeding; step4.R fluid en0/th0 weigh states the cause of her symptoms too firmly (could read likely); step2 fast en0/th0 weigh says free fluid confirms blood (suggests); step2.W glu_lyte th0 weigh uses the Thai for fluid loss where blood loss is meant; step4.B rpt_hb th2 strength reads translated; step4.R fluid en2/th2 strength mentions BP, which variant v2 does not give; step1 e/f weigh lines name blood loss or blood in the abdomen, an inference from vignette signs that names no diagnosis; bold label quotes keep label capitals mid-sentence (Bedside FAST scan, Broad IV, Check Rh); no step-3 reply says surgery does not wait for blood, as the case review asked on #470. Tree sha256 9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 d16dc58b228a8e3b17bb029db4e9417d8190cfb784f81ffc0367e6946d047812.",
     "tree_sha256": "9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a",
-    "replies_sha256": "25cdecf321a5d27dbe732985a01191db686b8b8f23052da7ae05bb08df482d10"
+    "replies_sha256": "d16dc58b228a8e3b17bb029db4e9417d8190cfb784f81ffc0367e6946d047812"
   }
 }
