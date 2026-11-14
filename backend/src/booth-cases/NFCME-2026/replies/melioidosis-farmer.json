@@ -702,7 +702,7 @@
             "safety": ""
           },
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
+            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น เหมาะกับการติดเชื้อรุนแรงของผู้ป่วยรายนี้",
             "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
             "safety": ""
           },
@@ -719,7 +719,7 @@
             "safety": ""
           },
           {
-            "strength": "Starting **IV ceftazidime** from the outset fits the organism behind his illness.",
+            "strength": "Starting **IV ceftazidime** from the outset fits his severe infection.",
             "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
             "safety": ""
           },
@@ -841,7 +841,7 @@
       "d": {
         "th": [
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
+            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก เหมาะกับการติดเชื้อรุนแรงของผู้ป่วยรายนี้",
             "weigh": "โคอะม็อกซิคลาฟเป็นยารองในระยะกำจัดเชื้อ จึงควรชั่งโอกาสกลับเป็นซ้ำที่สูงกว่า",
             "safety": ""
           },
@@ -858,7 +858,7 @@
         ],
         "en": [
           {
-            "strength": "Starting **IV ceftazidime** fits the organism behind his illness.",
+            "strength": "Starting **IV ceftazidime** fits his severe infection.",
             "weigh": "As a **second-line drug** for eradication, co-amoxiclav carries a higher relapse risk worth weighing.",
             "safety": ""
           },
@@ -889,7 +889,7 @@
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะตั้งแต่วันแรก ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
+            "strength": "การวางแผนสองระยะไว้ล่วงหน้า ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
             "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
             "safety": ""
           }
@@ -906,7 +906,7 @@
             "safety": ""
           },
           {
-            "strength": "Setting out both phases on day one helps him and the team expect a long course.",
+            "strength": "Setting out both phases up front helps him and the team expect a long course.",
             "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
             "safety": ""
           }
@@ -1071,7 +1071,7 @@
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะตั้งแต่วันแรก ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
+            "strength": "การวางแผนสองระยะไว้ล่วงหน้า ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
             "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
             "safety": ""
           }
@@ -1088,7 +1088,7 @@
             "safety": ""
           },
           {
-            "strength": "Setting out both phases on day one helps him and the team expect a long course.",
+            "strength": "Setting out both phases up front helps him and the team expect a long course.",
             "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
             "safety": ""
           }
@@ -1507,7 +1507,7 @@
             "safety": ""
           },
           {
-            "strength": "การตรวจเหล่านี้ทำได้เร็วในโรงพยาบาลส่วนใหญ่ และเทียบกับผลเดิมได้",
+            "strength": "การตรวจเหล่านี้ทำได้เร็วในโรงพยาบาลส่วนใหญ่ และทำซ้ำได้ง่าย",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายตั้งแต่แรก ยังเป็นข้อมูลที่ควรชั่งร่วมกับผลชุดนี้",
             "safety": ""
           }
@@ -1524,7 +1524,7 @@
             "safety": ""
           },
           {
-            "strength": "These tests are quick in most hospitals and compare directly with earlier results.",
+            "strength": "These tests are quick in most hospitals and easy to repeat.",
             "weigh": "The left upper abdominal tenderness from the start still deserves weight beside these results.",
             "safety": ""
           }
@@ -1534,12 +1534,12 @@
         "th": [
           {
             "strength": "การ**เพิ่ม TMP-SMX** แสดงความตั้งใจขยายความครอบคลุมเมื่อไข้ยังไม่ลงสนิท",
-            "weigh": "ไข้ที่ลงช้าในโรคนี้มักไม่ได้มาจากยาไม่ครอบคลุม จึงควรชั่งประโยชน์ของยาตัวที่สอง",
+            "weigh": "ไข้ที่ลงช้าในโรคนี้มักไม่ได้มาจากยาไม่ครอบคลุม จึงควรชั่งประโยชน์ของยากินกำจัดเชื้อที่เพิ่มเข้ามา",
             "safety": ""
           },
           {
-            "strength": "การใช้ยาสองตัวที่ออกฤทธิ์ต่อเชื้อนี้ทั้งคู่ สะท้อนความระวังต่อโรคที่รุนแรง",
-            "weigh": "ยาตัวที่สองเพิ่มผลข้างเคียง เช่น ผื่นหรือเม็ดเลือดต่ำ ซึ่งควรชั่งไว้",
+            "strength": "การเพิ่ม**TMP-SMX**ซึ่งออกฤทธิ์ต่อเชื้อนี้ สะท้อนความระวังต่อโรคที่รุนแรง",
+            "weigh": "ยาที่ให้เพิ่มมีผลข้างเคียง เช่น ผื่นหรือเม็ดเลือดต่ำ ซึ่งควรชั่งไว้",
             "safety": ""
           },
           {
@@ -1551,12 +1551,12 @@
         "en": [
           {
             "strength": "Choosing to **add TMP-SMX** aims to widen cover while fever has not fully settled.",
-            "weigh": "Slow fever in this disease rarely reflects a cover gap, so weigh what a second drug adds.",
+            "weigh": "Slow fever in this disease rarely reflects a cover gap, so weigh what the added oral eradication drug adds.",
             "safety": ""
           },
           {
-            "strength": "Using **two drugs** active against the organism reflects caution in a serious disease.",
-            "weigh": "A second drug adds side effects such as rash or low cell counts, which deserve weight.",
+            "strength": "Adding **TMP-SMX**, active against the organism, reflects caution in a serious disease.",
+            "weigh": "An added drug brings side effects such as rash or low cell counts, which deserve weight.",
             "safety": ""
           },
           {
@@ -2191,8 +2191,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh reviewer that did not write the replies, 2026-11-14, case version 5. Read all 13 banks, every option, all 3 alternatives in Thai and English against every variant and entry path. No reply ties diabetes or glucose control to relapse or recurrence; the 12 rewritten pairs (step3.B b, step3.W b, step3.R b, step4.W a, step5.B a/b, step5.R a/c/d) now make no relapse claim, say the same in both languages, and where they call diabetes a major risk factor for the infection Currie 2010 and Darwin 2024 agree. step3.B b en[1], step3.W b en[1] and step4.W d en[2] say the injected drug and leak no label word. No must-fix. Non-blocking, carried over: step3.B a[1] and d[0] name the organism before culture on non-melioidosis paths; step5.R d has no safety line though its weigh names the TMP-SMX hypoglycaemia interaction. Tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50, replies sha256 4671bba6a68cb348e9b6d58524af6fbf04d986a448390f822d0d937bc542f68e.",
+    "findings": "Fresh reviewer that did not write the replies, 2026-11-14, case version 5. Read all 13 banks, every option, all 3 alternatives in Thai and English against every variant and entry path. No reply ties diabetes or glucose control to relapse or recurrence; the 12 rewritten pairs (step3.B b, step3.W b, step3.R b, step4.W a, step5.B a/b, step5.R a/c/d) now make no relapse claim, say the same in both languages, and where they call diabetes a major risk factor for the infection Currie 2010 and Darwin 2024 agree. step3.B b en[1], step3.W b en[1] and step4.W d en[2] say the injected drug and leak no label word. No must-fix. Non-blocking, carried over: step3.B a[1] and d[0] name the organism before culture on non-melioidosis paths; step5.R d has no safety line though its weigh names the TMP-SMX hypoglycaemia interaction. Tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50, replies sha256 35def2ab17c0953de206e9eda86c4df5ad09a0fc5c9fd683a5c827aa5a140de7. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
     "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50",
-    "replies_sha256": "4671bba6a68cb348e9b6d58524af6fbf04d986a448390f822d0d937bc542f68e"
+    "replies_sha256": "35def2ab17c0953de206e9eda86c4df5ad09a0fc5c9fd683a5c827aa5a140de7"
   }
 }

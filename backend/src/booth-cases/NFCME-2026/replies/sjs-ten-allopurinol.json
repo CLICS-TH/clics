@@ -1471,7 +1471,7 @@
             "safety": ""
           },
           {
-            "strength": "มองอาการตาเจ็บที่มากขึ้นว่าคุกคามการมองเห็น ไม่ใช่เรื่องรอง",
+            "strength": "มองอาการตาที่แย่ลงว่าคุกคามการมองเห็น ไม่ใช่เรื่องรอง",
             "weigh": "น้ำตาเทียมช่วยบรรเทาอาการ แต่การตรวจโดยจักษุแพทย์คือสิ่งที่ประเมินความเสียหาย",
             "safety": ""
           }
@@ -1488,7 +1488,7 @@
             "safety": ""
           },
           {
-            "strength": "Treats worsening eye pain as a threat to sight, not a side issue.",
+            "strength": "Treats worsening eye symptoms as a threat to sight, not a side issue.",
             "weigh": "Lubricant eases symptoms, while the specialist exam is what assesses the damage.",
             "safety": ""
           }
@@ -2299,8 +2299,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh claude-opus-5-5 non-author reviewer, 2026-11-14, read every reply in all 13 banks (3 alternatives, Thai and English) against case version 6. Replies are unchanged since the last review; only the HLA labels changed, and no reply quotes the old spelling, so each still fits its option. Checked against BAD 2016 (fluids below burn needs and guided by urine output, early culprit withdrawal, lubricant and ophthalmology, oral anaesthetic care, unproven steroids, antibiotics only with signs of infection, pharmacovigilance report, allergy documentation), ACR 2020 and Saokaew 2014 on HLA-B*58:01 in Thais, and the Thai FDA HPVC page. No must-fix. Non-blocking: no reply carries a safety line; step4.R.c weigh already warns his drinking may lag; the word for waiting appears only in weigh fields, about results or appointments. Tree sha256 45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9, replies sha256 0cf1b1405953cb2258e85cf429136482e538eba058d74922e4a0360d5576e8cd.",
+    "findings": "Fresh claude-opus-5-5 non-author reviewer, 2026-11-14, read every reply in all 13 banks (3 alternatives, Thai and English) against case version 6. Replies are unchanged since the last review; only the HLA labels changed, and no reply quotes the old spelling, so each still fits its option. Checked against BAD 2016 (fluids below burn needs and guided by urine output, early culprit withdrawal, lubricant and ophthalmology, oral anaesthetic care, unproven steroids, antibiotics only with signs of infection, pharmacovigilance report, allergy documentation), ACR 2020 and Saokaew 2014 on HLA-B*58:01 in Thais, and the Thai FDA HPVC page. No must-fix. Non-blocking: no reply carries a safety line; step4.R.c weigh already warns his drinking may lag; the word for waiting appears only in weigh fields, about results or appointments. Tree sha256 45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9, replies sha256 a0b365c094942309618397a458ad758726f71096c9a19a541d43fad231aa6e8f. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
     "tree_sha256": "45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9",
-    "replies_sha256": "0cf1b1405953cb2258e85cf429136482e538eba058d74922e4a0360d5576e8cd"
+    "replies_sha256": "a0b365c094942309618397a458ad758726f71096c9a19a541d43fad231aa6e8f"
   }
 }

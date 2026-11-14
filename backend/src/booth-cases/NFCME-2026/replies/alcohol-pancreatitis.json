@@ -373,7 +373,7 @@
           },
           {
             "strength": "CT ช่วยได้มากเมื่อการวินิจฉัยยังไม่ชัด",
-            "weigh": "ผู้ป่วยอาเจียนและขาดน้ำ สารทึบรังสีจึงเพิ่มภาระต่อไต",
+            "weigh": "ผู้ป่วยอาเจียนและชีพจรเร็ว สารทึบรังสีจึงเพิ่มภาระต่อไต",
             "safety": ""
           },
           {
@@ -390,7 +390,7 @@
           },
           {
             "strength": "CT is powerful when the diagnosis is in doubt.",
-            "weigh": "He is vomiting and dry, so contrast adds strain on the kidneys.",
+            "weigh": "He is vomiting with a fast pulse, so contrast adds strain on the kidneys.",
             "safety": ""
           },
           {
@@ -590,7 +590,7 @@
             "safety": ""
           },
           {
-            "strength": "ทำได้ง่ายในผู้ป่วยที่ปวดมากจนลุกนั่งลำบาก",
+            "strength": "ทำได้ง่ายในผู้ป่วยที่ปวดรุนแรง",
             "weigh": "ผลที่ได้มักไม่ยืนยันหรือตัดโรคใดออก จึงเพิ่มข้อมูลได้ไม่มาก",
             "safety": ""
           },
@@ -607,7 +607,7 @@
             "safety": ""
           },
           {
-            "strength": "Easy to do in a man in too much pain to sit up.",
+            "strength": "Easy to do in a man in severe pain.",
             "weigh": "The result rarely confirms or excludes anything, so it adds little.",
             "safety": ""
           },
@@ -990,7 +990,7 @@
             "safety": ""
           },
           {
-            "strength": "เห็นว่าผู้ป่วยขาดน้ำจากอาเจียนซ้ำและชีพจรเร็ว จึงให้น้ำทันที",
+            "strength": "เห็นว่าผู้ป่วยอาเจียนซ้ำและชีพจรเร็ว จึงให้น้ำทันที",
             "weigh": "ให้น้ำเร็วมากเกินไปอาจทำให้น้ำเกิน ควรปรับอัตราตามชีพจรกับปัสสาวะ",
             "safety": ""
           },
@@ -1007,7 +1007,7 @@
             "safety": ""
           },
           {
-            "strength": "Sees dehydration from vomiting and a fast pulse, and acts on it at once.",
+            "strength": "Sees repeated vomiting and a fast pulse, and starts a drip at once.",
             "weigh": "Too much too fast risks overload, so pace it by pulse and urine output.",
             "safety": ""
           },
@@ -1063,7 +1063,7 @@
           },
           {
             "strength": "ยังคงให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
-            "weigh": "ผู้ป่วยขาดน้ำจากอาเจียน สารทึบรังสีจึงเพิ่มภาระต่อไต",
+            "weigh": "ผู้ป่วยอาเจียนและชีพจรเร็ว สารทึบรังสีจึงเพิ่มภาระต่อไต",
             "safety": ""
           },
           {
@@ -1080,7 +1080,7 @@
           },
           {
             "strength": "Keeps fluids and analgesia, the backbone of care.",
-            "weigh": "He is dry from vomiting, so contrast adds strain on the kidneys.",
+            "weigh": "He is vomiting with a fast pulse, so contrast adds strain on the kidneys.",
             "safety": ""
           },
           {
@@ -1131,7 +1131,7 @@
       "alcohol": {
         "th": [
           {
-            "strength": "ใช้ช่วงที่นอนโรงพยาบาลเป็นโอกาสคุยเรื่อง**เลิกสุรา** ซึ่งช่วยลดการเป็นซ้ำ",
+            "strength": "ใช้ช่วงที่นอนโรงพยาบาลเป็นโอกาสคุยสั้น ๆ เรื่อง**เลิกสุรา**",
             "weigh": "การคุยจะได้ผลกว่าเมื่อปวดทุเลาและผู้ป่วยพร้อมฟัง",
             "safety": ""
           },
@@ -1390,7 +1390,7 @@
             "safety": ""
           },
           {
-            "strength": "เห็นว่าผู้ป่วยขาดน้ำจากอาเจียนซ้ำและชีพจรเร็ว จึงให้น้ำทันที",
+            "strength": "เห็นว่าผู้ป่วยอาเจียนซ้ำและชีพจรเร็ว จึงให้น้ำทันที",
             "weigh": "ให้น้ำเร็วมากเกินไปอาจทำให้น้ำเกิน ควรปรับอัตราตามชีพจรกับปัสสาวะ",
             "safety": ""
           },
@@ -1407,7 +1407,7 @@
             "safety": ""
           },
           {
-            "strength": "Sees dehydration from vomiting and a fast pulse, and acts on it at once.",
+            "strength": "Sees repeated vomiting and a fast pulse, and starts a drip at once.",
             "weigh": "Too much too fast risks overload, so pace it by pulse and urine output.",
             "safety": ""
           },
@@ -1531,7 +1531,7 @@
       "soft": {
         "th": [
           {
-            "strength": "ใช้**ปวดลดลงและหิวแล้ว**เป็นสัญญาณว่าพร้อมกินอาหาร",
+            "strength": "ใช้อาการที่ดีขึ้นเป็นสัญญาณว่าพร้อมกิน**อาหารอ่อน**",
             "weigh": "ควรเฝ้าดูว่าปวดกลับมาหลังกินหรือไม่ ถ้ากลับมาค่อยถอยกลับ",
             "safety": ""
           },
@@ -1541,14 +1541,14 @@
             "safety": ""
           },
           {
-            "strength": "ฟังสัญญาณจากผู้ป่วยเอง คือความหิว แทนการยึดตารางตายตัว",
+            "strength": "ฟังสัญญาณจากผู้ป่วยเอง คืออาการที่ดีขึ้น แทนการยึดตารางตายตัว",
             "weigh": "การกินได้ดีต้องดูต่อเนื่องหลายมื้อ ไม่ใช่มื้อเดียว",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Reads less pain and **real hunger** as signs he is ready to eat.",
+            "strength": "Reads his improvement as a sign he is ready for **soft food**.",
             "weigh": "Watch whether pain returns after eating, and step back if it does.",
             "safety": ""
           },
@@ -1558,7 +1558,7 @@
             "safety": ""
           },
           {
-            "strength": "Follows his own cue, hunger, rather than a fixed timetable.",
+            "strength": "Follows his own improvement rather than a fixed timetable.",
             "weigh": "Eating well needs to hold over several meals, not just one.",
             "safety": ""
           }
@@ -1711,7 +1711,7 @@
       "ivsame": {
         "th": [
           {
-            "strength": "ระวังไม่ให้ขาดน้ำซ้ำ**ระหว่างเริ่มกินอาหาร**",
+            "strength": "ระวังไม่ให้ขาดน้ำ**ระหว่างเริ่มกินอาหาร**",
             "weigh": "เมื่อผู้ป่วยดื่มได้เองแล้ว อัตราเดิมอาจทำให้น้ำเกินและติดสายโดยไม่จำเป็น",
             "safety": ""
           },
@@ -1721,7 +1721,7 @@
             "safety": ""
           },
           {
-            "strength": "ให้ความสำคัญกับสมดุลน้ำในคนที่เคยขาดน้ำ",
+            "strength": "ให้ความสำคัญกับสมดุลน้ำในคนที่อาเจียนมาก",
             "weigh": "สายน้ำเกลือที่คาไว้นานเพิ่มความเสี่ยงติดเชื้อและจำกัดการเคลื่อนไหว",
             "safety": ""
           }
@@ -1738,7 +1738,7 @@
             "safety": ""
           },
           {
-            "strength": "Takes fluid balance seriously in a man who was dehydrated.",
+            "strength": "Takes fluid balance seriously in a man who has been vomiting.",
             "weigh": "A drip left in longer adds infection risk and limits his movement.",
             "safety": ""
           }
@@ -2111,7 +2111,7 @@
       "relative": {
         "th": [
           {
-            "strength": "รู้ว่า**คนคุ้นเคย**ช่วยให้ผู้ป่วยสงบ ซึ่งลดความกระวนกระวายได้จริง",
+            "strength": "รู้ว่า**คนคุ้นเคย**ทำให้ผู้ป่วยสงบลงได้ ซึ่งเป็นประโยชน์จริง",
             "weigh": "การให้ยาเมื่อจำเป็นโดยไม่มีเกณฑ์ชัด อาจทำให้ได้ยาน้อยกว่าอาการจริง",
             "safety": "อาการแบบนี้อาจหนักขึ้นจนเป็นอันตรายได้ในไม่กี่ชั่วโมง หากไม่ได้ประเมินใกล้ชิด"
           },
@@ -2128,7 +2128,7 @@
         ],
         "en": [
           {
-            "strength": "Knows **a familiar face** calms an agitated patient, which really helps.",
+            "strength": "Knows **a familiar face** can settle a patient, which really helps.",
             "weigh": "As-needed dosing without a set trigger can leave symptoms undertreated.",
             "safety": "Symptoms like these can turn dangerous within hours without close, regular assessment."
           },
@@ -2149,7 +2149,7 @@
       "discharge_bi": {
         "th": [
           {
-            "strength": "ใช้จังหวะก่อนกลับบ้านคุยเรื่อง**เลิกสุรา** ซึ่งอาจลดการกลับเป็นซ้ำได้จริง",
+            "strength": "ใช้จังหวะก่อนกลับบ้านคุยสั้น ๆ เรื่อง**เลิกสุรา**",
             "weigh": "คำแนะนำได้ผลขึ้นเมื่อเจาะจง และผู้ป่วยบอกเหตุผลที่อยากเลิกด้วยตัวเอง",
             "safety": ""
           },
@@ -2803,8 +2803,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh claude-opus-5-5 reviewer, 2026-11-14, read all 3 alternatives in Thai and English for every option of all 13 banks against case version 5, using ACG 2024, ASAM 2020, the Thai Nadun CIWA-Ar study and WHO AUDIT. The bank is unchanged and fits the edited npo and diet lines: npo replies frame nil by mouth as short-term comfort and say a longer fast does not speed recovery; diet replies say a low-fat diet does little against a drinking-driven repeat. All six step4.W relative alternatives carry a safety sentence. No unsafe advice, no fact outside the case, no other option named. Non-blocking: step3.R alcohol and step5.B discharge_bi th[0] strengths add a recurrence claim the English lacks; step4.W lytes has no safety sentence; step4.R ng en[0] weigh reads awkwardly. No must-fix. Tree sha256 77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e, replies sha256 d1155f302c9d9a274b577f55dfb23d382f1074c82ac95bc61307fc9060522c86.",
+    "findings": "Fresh claude-opus-5-5 reviewer, 2026-11-14, read all 3 alternatives in Thai and English for every option of all 13 banks against case version 5, using ACG 2024, ASAM 2020, the Thai Nadun CIWA-Ar study and WHO AUDIT. The bank is unchanged and fits the edited npo and diet lines: npo replies frame nil by mouth as short-term comfort and say a longer fast does not speed recovery; diet replies say a low-fat diet does little against a drinking-driven repeat. All six step4.W relative alternatives carry a safety sentence. No unsafe advice, no fact outside the case, no other option named. Non-blocking: step3.R alcohol and step5.B discharge_bi th[0] strengths add a recurrence claim the English lacks; step4.W lytes has no safety sentence; step4.R ng en[0] weigh reads awkwardly. No must-fix. Tree sha256 77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e, replies sha256 470ecbe4d9373654d3afe1c4ee3542b91bc75767961fd1457580c206af1cb5c3. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
     "tree_sha256": "77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e",
-    "replies_sha256": "d1155f302c9d9a274b577f55dfb23d382f1074c82ac95bc61307fc9060522c86"
+    "replies_sha256": "470ecbe4d9373654d3afe1c4ee3542b91bc75767961fd1457580c206af1cb5c3"
   }
 }

@@ -1387,7 +1387,7 @@
       "c": {
         "th": [
           {
-            "strength": "การตรวจเลือดซ้ำ ช่วยยืนยันด้วยตัวเลขว่าเกล็ดเลือดกลับขึ้นและไตยังปกติ",
+            "strength": "การตรวจเลือดซ้ำ ช่วยยืนยันด้วยตัวเลขว่าเกล็ดเลือดกลับขึ้นและไตเป็นอย่างไร",
             "weigh": "อาการดีขึ้นชัดเจนแล้ว จึงควรชั่งว่าผลเลือดซ้ำจะเปลี่ยนการดูแลได้มากน้อยเพียงใด",
             "safety": ""
           },
@@ -1404,7 +1404,7 @@
         ],
         "en": [
           {
-            "strength": "Repeating bloods checks with numbers whether platelets are rising and the kidneys stay normal.",
+            "strength": "Repeating bloods checks with numbers whether platelets are rising and how the kidneys are doing.",
             "weigh": "He is clearly better, so weigh how much a repeat result would change his care.",
             "safety": ""
           },
@@ -1904,7 +1904,7 @@
             "safety": ""
           },
           {
-            "strength": "การยืนยันว่าเกล็ดเลือดกลับมาเต็มที่ ช่วยปิดประเด็นค่าที่ต่ำระหว่างป่วย",
+            "strength": "การยืนยันว่าเกล็ดเลือดและไตกลับมาเต็มที่ ช่วยปิดประเด็นว่าโรคทิ้งผลไว้หรือไม่",
             "weigh": "ควรชั่งว่าผลนี้จะเปลี่ยนการดูแลอย่างไร ในผู้ป่วยที่ไม่มีไข้แล้ว",
             "safety": ""
           },
@@ -1921,7 +1921,7 @@
             "safety": ""
           },
           {
-            "strength": "Confirming that platelets are fully back closes out an abnormality seen during the illness.",
+            "strength": "Confirming platelets and kidneys are fully back settles whether the illness left lasting effects.",
             "weigh": "Weigh how the results would change care in a patient who is now free of fever.",
             "safety": ""
           },
@@ -1981,7 +1981,7 @@
             "safety": ""
           },
           {
-            "strength": "การยังคงติดต่อหลังรักษาครบ แสดงความต่อเนื่องของการดูแลโดยไม่เป็นภาระ",
+            "strength": "การยังคงติดต่อหลังรักษา แสดงความต่อเนื่องของการดูแลโดยไม่เป็นภาระ",
             "weigh": "ควรตกลงเวลาโทรที่ผู้ป่วยสะดวกรับสายได้จริง",
             "safety": ""
           }
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh reviewer that did not write the bank, 2026-11-14, case version 5. Read every reply in all 13 banks, Thai and English. The step4.R b replies now say assess or follow up daily instead of a daily appointment, so they fit an outpatient on azithromycin and an admitted patient on oral doxycycline alike; no other step4.R reply assumes one path. Facts checked against DDC 2564, the DDC alert of 2567, MSF, MSD and the Thai doxycycline versus azithromycin trial: RDT and IgM limits early in fever, doxycycline photosensitivity and oesophageal advice, fluids with overload checks in oliguria, potassium before transfer, paracetamol dose, uveitis late. No unsafe advice, no claim the case does not state, Thai and English agree. No must-fix. Tree sha256 b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311, replies sha256 433db0f876386107b957da7688b97b7b2b56983504c019ea3f2067f70a434a74.",
+    "findings": "Fresh reviewer that did not write the bank, 2026-11-14, case version 5. Read every reply in all 13 banks, Thai and English. The step4.R b replies now say assess or follow up daily instead of a daily appointment, so they fit an outpatient on azithromycin and an admitted patient on oral doxycycline alike; no other step4.R reply assumes one path. Facts checked against DDC 2564, the DDC alert of 2567, MSF, MSD and the Thai doxycycline versus azithromycin trial: RDT and IgM limits early in fever, doxycycline photosensitivity and oesophageal advice, fluids with overload checks in oliguria, potassium before transfer, paracetamol dose, uveitis late. No unsafe advice, no claim the case does not state, Thai and English agree. No must-fix. Tree sha256 b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311, replies sha256 b2347bf43b3de5cc5e6fdec99b06a18e02e464e4992b24483093390f3c633532. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
     "tree_sha256": "b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311",
-    "replies_sha256": "433db0f876386107b957da7688b97b7b2b56983504c019ea3f2067f70a434a74"
+    "replies_sha256": "b2347bf43b3de5cc5e6fdec99b06a18e02e464e4992b24483093390f3c633532"
   }
 }
