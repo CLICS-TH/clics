@@ -37,6 +37,7 @@ jobs:
       manuals: ${{ steps.select.outputs.manuals }}
       portal_browser: ${{ steps.select.outputs.portal_browser }}
       responsive: ${{ steps.select.outputs.responsive }}
+      booth_kiosk: ${{ steps.select.outputs.booth_kiosk }}
       booth_scripts: ${{ steps.select.outputs.booth_scripts }}
     steps:
       - uses: actions/checkout@v4
@@ -177,6 +178,13 @@ jobs:
       - name: calibration — Scope-leak regression suite + anchor cohort checks
         if: ${{ !cancelled() && steps.select.outputs.calibration == 'true' }}
         run: npm run test:calibration
+      # Two vm1 guard tests read across the tree: vm1-docs.test.mjs every tracked *.md (a Vercel deploy
+      # instruction without the #429 caveat), cutover-check.test.mjs every file under scripts/ (a hard-coded
+      # Railway origin). deploy-vm1 runs both too, in its guard-test glob; this copy checks a docs-only or
+      # scripts-only PR here, in seconds, instead of starting the Docker job. Package-free node --test.
+      - name: vm1-guards — Docs carry the #429 Vercel caveat; no script hard-codes the Railway origin
+        if: ${{ !cancelled() && steps.select.outputs.vm1_guards == 'true' }}
+        run: node --test scripts/deploy/vm1-docs.test.mjs scripts/deploy/cutover-check.test.mjs
 
   # Fully-hermetic jest — no env needed. Enforces coverage thresholds (jest.config.js) via --coverage.
   test:
@@ -480,7 +488,16 @@ jobs:
   # SUPER_* secrets) to keep real admin creds out of CI.
   responsive:
     needs: fast-checks
-    if: ${{ !cancelled() && needs.fast-checks.outputs.responsive == 'true' }}
+    # Two selections share this job's Chromium: `responsive` (the portal smokes and the mobile audit, which
+    # never open a booth page) and `booth_kiosk` (the booth harness, ~15 min, which serves only the booth
+    # pages and the shared assets they load). A PR touching only backend/src/booth-cases/ or scripts/booth/
+    # skips the smokes. A booth front-end PR under physician-ui/public/ still runs them (responsive-smoke.mjs
+    # scans every Portal file). A Portal PR skips the harness only when it leaves the shared assets (js/ui.js,
+    # icons.js, config.js, css/fonts.css, fonts/, favicon.svg) alone. The push to master selects both.
+    if: ${{ !cancelled() && (needs.fast-checks.outputs.responsive == 'true' || needs.fast-checks.outputs.booth_kiosk == 'true') }}
+    env:
+      RUN_RESPONSIVE: ${{ needs.fast-checks.outputs.responsive }}
+      RUN_BOOTH_KIOSK: ${{ needs.fast-checks.outputs.booth_kiosk }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -493,20 +510,25 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Responsive smoke (320/375/768/1280)
+        if: ${{ env.RUN_RESPONSIVE == 'true' }}
         run: npm run test:responsive
       # /ple-chat with 30 messages at 320/375/390: the page never scrolls past the composer, and with a
       # keyboard up the composer and the one-line AI notice stay on screen. Hermetic, ~10 s.
       - name: Chat page-scroll guard (320x568 / 375x667 / 390x844)
+        if: ${{ env.RUN_RESPONSIVE == 'true' }}
         run: npm run test:chat-scroll
       # /ple-chat lost-connection settle (#141 client_turn_id + the one-bubble rules). Hermetic, fake clock.
       - name: Chat turn-settle smoke
+        if: ${{ env.RUN_RESPONSIVE == 'true' }}
         run: npm run test:chat-settle
       - name: Booth kiosk harness (1080x1920, coarse pointer)
+        if: ${{ env.RUN_BOOTH_KIOSK == 'true' }}
         run: npm run test:booth
       # Mobile audit: physician-ui hermetic (always) + dashboard auditor live-smoke only on master
       # pushes. Same-repository PRs otherwise inherit the production secrets too. The harness
       # exits non-zero on any finding. SUPER_* deliberately unset → no real admin creds in CI.
       - name: Mobile audit (physician-ui hermetic + dashboard auditor live-smoke)
+        if: ${{ env.RUN_RESPONSIVE == 'true' }}
         env:
           DASH_URL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.DASH_URL || '' }}
           BACKEND_URL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.BACKEND_URL || '' }}
