@@ -532,10 +532,11 @@ function emailMiddleDotGuard(_seen, match) {
 }
 
 // The sub-number of an HN, MRN or AN: any digits after a '/', unless they open a date or a phone, left to its own pass:
-// a '/', '.' or '-' then a digit glued to them (/20/10/2569, /20.10.2569, /081-234-5678), a dotted date's spaced dot
-// (/20. 10. 2569), or a phone of 9 or 10 digits opening with 0 (/081 234 5678, / 02 123 4567). Other digits after them
-// are not theirs to refuse: HN 1234/67 2 ครั้ง keeps /67 in the HN, HN 1234567/12 081-234-5678 its /12.
-const HN_TAIL = String.raw`(?:\s*\/\s*(?!0\d(?:[\s().-]{0,8}\d){7,8}(?!\d))\d+(?!\d|[/.-]\d|\.\s{1,3}\d{1,2}\s{0,3}\.))?`;
+// two more groups glued by '/', '.' or '-' (/20/10/2569, /20.10.2569, /2569-10-20), a dotted date's spaced dots
+// (/20. 10. 2569), or a phone of 9 or 10 digits opening with 0 (/081-234-5678, / 02 123 4567). Other digits after them
+// are not theirs to refuse: HN 1234/67 2 ครั้ง keeps /67 in the HN, HN 1234567/12 081-234-5678 its /12, HN 1234/20.5 its
+// /20.
+const HN_TAIL = String.raw`(?:\s*\/\s*(?!0\d(?:[\s().-]{0,8}\d){7,8}(?!\d))\d+(?!\d|[/.-]\d{1,2}[/.-]\d|\.\s{1,3}\d{1,2}\s{0,3}\.))?`;
 
 // A 13-digit run of the ID pass that is two phones: it opens with a grouped phone (081-234-5678 089-876-5432), or with
 // an ungrouped one whose number, read on to its end (`rest` is the view after the run), holds one more phone
