@@ -70,6 +70,25 @@ function generator(seed, { ascii = false } = {}) {
     chain,
     () => `${day()} ${pick(['Oct', 'ต.ค.', 'ตุลาคม', 'March'])} ${pick(['1967', '2510', '67'])}`,
     () => `${pick(['somchai', 'a.b', 'jd_12'])}${pick(['@', '·@'])}${pick(['example.com', 'example·com', 'x.co.th'])}`,
+    // A date or ID beside an 11-digit run, one digit too many for a phone (Seen 2026-01-02 0262769).
+    () => `${pick([() => `2026-0${month() % 9 + 1}-${10 + Math.floor(r() * 18)}`, () => `${day()}/${month()}/${pick(['2569', '68'])}`,
+      () => groups([13]), () => `${pick(['HN', 'MRN'])} ${groups([7])}`])()}${pick([' ', '-', '', ...dashes])}${groups([3, 4, 4], 0)}`,
+    // An unlabelled age beside a middle-dot email (45 years old@example·com, 45 y/o·bob@example.com).
+    () => `${digits(2, 4).join('')} ${pick(['years old', 'y/o', 'ปี'])}${pick(['', '·', ' '])}${pick(['', 'bob', 'a·b·'])}`
+      + `${pick(['@', '·@'])}${pick(['example.com', 'example·com'])}`,
+    // 40 to 130 spaces inside an HN, MRN or phone (HN + 44 spaces + 12 34…, 08 + gaps of 8 spaces + digits).
+    () => {
+      const gaps = (ds, lo) => ds.map((d, i) => (i ? ' '.repeat(lo + Math.floor(r() * (9 - lo))) : '') + d).join('');
+      const pad = ' '.repeat(40 + Math.floor(r() * 91));
+      return pick([
+        () => `${pick(['HN', 'MRN', 'AN', 'HN:'])}${pad}${groups(pick([[2, 2], [4], [7], [2, 5]]))}`,
+        () => gaps(digits(pick([10, 13]), 0), 5),
+        () => `HN${digits(4).join('')}/${gaps(digits(10, 0), 4)}`,
+      ])();
+    },
+    // A long house-number chain, then date groups (บ้านเลขที่ 1/1/…/1-20-10-2569-55-6).
+    () => `${pick(['บ้านเลขที่ ', 'เลขที่', 'เลขที่ '])}${Array.from({ length: 5 + Math.floor(r() * 30) }, () => digits(1 + Math.floor(r() * 2)).join(''))
+      .join(pick(['/', '-', '/', ...dashes]))}${pick(['', `-${chain()}`, `/${chain()}`])}`,
     () => `อายุ ${digits(2, 4).join('')} ปี`,
     () => `age ${digits(2, 6).join('')}`,
     () => `ward ${digits(1, 5).join('')}A`,

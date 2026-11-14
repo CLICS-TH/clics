@@ -2,17 +2,24 @@
 // (look-alike digits, dashes and middle dots), and over an ASCII variant whose joiners and separators are '.', '-' and
 // '/', every letter or digit master's stripPii masks must be masked by this branch's. Master's filter is frozen in
 // tests/fixtures/pii-filter.master-474.js (master 9438d7a2, its require paths alone changed).
+// stripPii makes it so by construction (it makes every mask of master's this filter left a letter or digit of in clear),
+// so nothing is exempt. The owner-approved dose range (titrate 10-12-14 mg) is no exemption either: master masks none.
 const { stripPii } = require('../src/services/pii-filter');
 const master = require('./fixtures/pii-filter.master-474');
 const { generator, maskedSet, counted } = require('./helpers/pii-474-generator');
 
-// Text that is not counted. The label word of an identifier whose value another pass masked first (age 66·05… masks 66
-// in a phone, leaving the word age; บ้านเลขที่ 93/1/… in a date), the same words the folds-only-add test exempts.
-// Version and section numbers are counted: this branch keeps master's numbering labels exactly (#474 owner ruling).
-const NOT_COUNTED_RE = /age|อายุ|ปี|บ้านเลขที่|HN|MRN|AN/gu;
-
 const SEEDS = [474, 1, 2, 3, 4, 5];
 const N = 3000;
+const NOTHING = /(?!)/g;
+
+// Each letter or digit outside the [CAT-n] tokens of `out`, with how many times it appears. Needs no alignment, so it
+// also checks the strings maskedSet cannot place. A separator between two masks (-, /) is no identifier and is not counted.
+const TOKEN_RE = /\[[A-Z]+-\d+\]/g;
+function clearCounts(out) {
+  const n = new Map();
+  for (const c of out.replace(TOKEN_RE, '')) if (/[\p{L}\p{N}]/u.test(c)) n.set(c, (n.get(c) ?? 0) + 1);
+  return n;
+}
 
 describe.each([
   ['look-alike', false],
@@ -21,25 +28,30 @@ describe.each([
   test.each(SEEDS)('seed %i: every letter or digit master masks is masked', (seed) => {
     const next = generator(seed, { ascii });
     const lost = [];
+    const more = [];
     let compared = 0;
     let masterMasked = 0;
     for (let n = 0; n < N; n += 1) {
       const input = next();
-      if (/[[\]]/.test(input)) continue;
       const m = master.stripPii(input);
       const h = stripPii(input);
+      if (m !== input) masterMasked += 1;
+      const mc = clearCounts(m);
+      const extra = [...clearCounts(h)].filter(([c, k]) => k > (mc.get(c) ?? 0)).map(([c]) => c);
+      if (extra.length) more.push({ input, master: m, head: h, extra });
+      if (/[[\]]/.test(input)) continue;
       const a = maskedSet(input, m);
       const b = maskedSet(input, h);
       if (!a || !b) continue;
       compared += 1;
-      if (m !== input) masterMasked += 1;
-      const count = counted(input, NOT_COUNTED_RE);
+      const count = counted(input, NOTHING);
       const at = a.findIndex((x, i) => x && !b[i] && count[i]);
       if (at >= 0) lost.push({ input, master: m, head: h, at });
     }
     expect(lost.slice(0, 5)).toEqual([]);
+    expect(more.slice(0, 5)).toEqual([]);
     // Not vacuous: most strings align, and master masks something in most of them.
-    expect(compared).toBeGreaterThan(N * 0.8);
+    expect(compared).toBeGreaterThan(N * 0.7);
     expect(masterMasked).toBeGreaterThan(N * 0.5);
   });
 });

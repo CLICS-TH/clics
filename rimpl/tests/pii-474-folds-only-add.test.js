@@ -8,12 +8,12 @@ const { generator, maskedSet, counted } = require('./helpers/pii-474-generator')
 
 const { stripPii } = filter;
 
-// A lost character counts when it is a letter or digit of the input, outside two kinds of text that hold no identifier.
-// A dose range that the folds-off run masks only while a digit is glued after it, which the folded run may mask first
-// (NOT_DOSE: titrate 10-12-14 mg0️⃣1️⃣4️⃣…). And the label word of an identifier whose value a folded run masked first
-// (age 66·05・⓪②⓪・6087 masks 66 in the phone; บ้านเลขที่ 93/1/①… in a date). Punctuation between masks is no identifier.
-// Version and section numbers are counted (#474 owner ruling).
-const NOT_COUNTED_RE = /titrate 10-12-14 mg|age|อายุ|ปี|บ้านเลขที่|HN|MRN|AN/g;
+// A lost character counts when it is a letter or digit of the input, outside one kind of text that holds no identifier:
+// a dose range that the folds-off run masks only while a digit is glued after it, which the folded run may mask first
+// (NOT_DOSE: titrate 10-12-14 mg๐๓-628-6️⃣5️⃣…). A label word is counted: master's mask of a label with its value is
+// made whatever the folded run takes (stripPii). Punctuation between masks is no identifier. Version and section numbers
+// are counted (#474 owner ruling).
+const NOT_COUNTED_RE = /titrate 10-12-14 mg/g;
 
 describe('#474 the folded run only adds masks', () => {
   afterEach(() => filter._setFoldsForTest(true));
