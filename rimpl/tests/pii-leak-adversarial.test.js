@@ -1525,3 +1525,154 @@ describe('booth label tail after an admission number in any digit script (#463)'
     expect(out).not.toContain('Dalton');
   });
 });
+
+// ===========================================================================
+// DATE, SEPARATOR, LABEL AND NON-DECIMAL-DIGIT SHAPES (#474) — each passed every pass unmasked: a date pass had no
+// slash year-first, dash day-first, one-digit ISO, wide-gap dotted or month-name form; the phone and ID separators took
+// only an ASCII hyphen; the ASCII view folded decimal digits only, never keycap or circled digits or mathematical
+// letters; and a ward or age label needed whitespace right after it, while an HN or house number lost only its first
+// part. All values are synthetic.
+// ===========================================================================
+describe('adversarial — date, separator, label and non-decimal-digit shapes (#474)', () => {
+  const { maskLabelledTail } = require('../src/services/pii-filter');
+  const keycap = (s) => [...s].map((d) => `${d}️⃣`).join('');
+  const circled = (s) => [...s].map((d) => (d === '0' ? '⓪' : String.fromCodePoint(0x2460 + Number(d) - 1))).join('');
+  const bold = (s) => [...s].map((c) => {
+    if (/[A-Z]/.test(c)) return String.fromCodePoint(0x1d400 + c.charCodeAt(0) - 65);
+    if (/[a-z]/.test(c)) return String.fromCodePoint(0x1d41a + c.charCodeAt(0) - 97);
+    return c;
+  }).join('');
+
+  test.each([
+    ['year-first slash date', 'นัด 2569/12/11 ค่ะ', 'DATE'],
+    ['dash day-first date', 'นัด 11-12-2569 ค่ะ', 'DATE'],
+    ['ISO date, one-digit month and day', 'admitted 2026-1-5 today', 'DATE'],
+    ['dotted year-first date, two spaces', 'born 1999.  1.2 in', 'DATE'],
+    ['dotted day-first date, wide gaps', 'นัด 20.   10.   2026 ค่ะ', 'DATE'],
+    ['English day-month-year', 'born 20 Oct 1967 in', 'DATE'],
+    ['English day, full month, year', 'born 20 October 1967 in', 'DATE'],
+    ['English month day, year', 'born Oct 20, 1967 in', 'DATE'],
+    ['English dashed day-month-year', 'DOB 20-Oct-1967 ค่ะ', 'DATE'],
+    ['Thai day, full month, year', 'เกิด 20 ตุลาคม 2510 ค่ะ', 'DATE'],
+    ['Thai day, abbreviated month, year', 'เกิด 20 ต.ค. 2510 ค่ะ', 'DATE'],
+    ['Thai day, abbreviated month, พ.ศ. year', 'เกิด 20 ต.ค. พ.ศ. 2510 ค่ะ', 'DATE'],
+    ['Thai-digit day, Thai month, year', 'เกิด ๒๐ ตุลาคม ๒๕๑๐ ค่ะ', 'DATE'],
+  ])('a %s is masked', (_label, input, cat) => expectNoDigitLeft(stripPii(input), cat));
+
+  test.each([
+    ['en dash', '–'], ['non-breaking hyphen', '‑'], ['hyphen', '‐'], ['figure dash', '‒'],
+    ['em dash', '—'], ['horizontal bar', '―'], ['minus sign', '−'], ['middle dot', '·'],
+  ])('a phone grouped with a %s is masked', (_label, sep) => {
+    expectNoDigitLeft(stripPii(`โทร 081${sep}234${sep}5678 ค่ะ`), 'PHONE');
+  });
+
+  test.each([['non-breaking hyphen', '‑'], ['en dash', '–'], ['minus sign', '−']])(
+    'a national ID grouped with a %s is masked', (_label, sep) => {
+      expectNoDigitLeft(stripPii(`บัตร 1${sep}2345${sep}67890${sep}12${sep}1 ค่ะ`), 'ID');
+    }
+  );
+
+  test('a phone in keycap digits is masked, marks and all', () => {
+    expect(stripPii(`โทร ${keycap('0812345678')} ค่ะ`)).toBe('โทร [PHONE-1] ค่ะ');
+  });
+  test('a phone in circled digits is masked', () => {
+    expect(circled('0812345678')).toBe('⓪⑧①②③④⑤⑥⑦⑧');
+    expect(stripPii(`โทร ${circled('0812345678')} ค่ะ`)).toBe('โทร [PHONE-1] ค่ะ');
+  });
+  test('a phone in keycap, circled and ASCII digits is one person: one token', () => {
+    expect(stripPii(`โทร ${keycap('0812345678')} หรือ ${circled('0812345678')} หรือ 0812345678`))
+      .toBe('โทร [PHONE-1] หรือ [PHONE-1] หรือ [PHONE-1]');
+  });
+
+  test.each([
+    ['a ward after "Ward:"', 'moved to Ward: 5A today', ['5A'], 'WARD'],
+    ['a ward after "ward="', 'moved to ward=5A today', ['5A'], 'WARD'],
+    ['an age after "age ="', 'age = 45 male', ['45'], 'AGE'],
+    ['an HN with a year tail', 'HN 1234/67 มา', ['1234', '/67', '67'], 'HN'],
+    ['an AN with a spaced year tail', 'AN 123456 / 67 มา', ['123456', '67'], 'MRN'],
+    ['a house number with a spaced sub-number', 'บ้านเลขที่ 99 / 1 ค่ะ', ['99', '/ 1'], 'ADDR'],
+  ])('%s is masked whole', (_label, input, leaked, cat) => {
+    assertScrubbed(input, leaked);
+    expect(scrubbedOut).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+    expect(scrubbedOut.replace(/\[[A-Z]+-\d+\]/g, '')).not.toMatch(/\d/);
+  });
+
+  test('mathematical bold AN masks the number after it', () => {
+    expectNoDigitLeft(stripPii(`ผู้ป่วย ${bold('AN')} 1234567 มา`), 'MRN');
+  });
+  test('mathematical bold HN masks the number after it', () => {
+    expectNoDigitLeft(stripPii(`ผู้ป่วย ${bold('HN')} 1234567 มา`), 'HN');
+  });
+  test('a booth answer with a mathematical bold Name label masks the name typed after it', () => {
+    const out = maskLabelledTail(`${bold('Name')}: Dalton Prewitt`, makeRegistry());
+    expect(out).not.toContain('Dalton');
+    expect(out).not.toContain('Prewitt');
+    expect(out).toMatch(/^\[PII-\d+\]$/);
+  });
+  test('a booth answer with a mathematical bold AN label masks the name typed after it', () => {
+    const out = maskLabelledTail(`call ${bold('AN')} 123456 Dalton`, makeRegistry());
+    expect(out).not.toContain('Dalton');
+    expect(out).toMatch(/^call \[PII-\d+\]$/);
+  });
+
+  // Two-unit letters, three-unit keycaps and circled numbers that fold to two digits shift the view: cuts still land.
+  test.each([
+    [`😀 ${bold('AN')} 1234567 😀 ${keycap('0812345678')} 😀`, '😀 [MRN-1] 😀 [PHONE-1] 😀'],
+    ['นัด ⑳.10.2026 ค่ะ', 'นัด [DATE-1] ค่ะ'],
+  ])('%s cuts the original text at the right place', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+
+  // NEGATIVES — version numbers in any case and after a colon, clinical ranges and decimals with a look-alike
+  // separator, superscripts, month words in clinical prose, label words with no value.
+  test.each([
+    'version 2024.10.1',
+    'VERSION 2024.10.1',
+    'ECG software version: 2024.10.1',
+    'Version: 1.2.10',
+    'VERSION 1.2.10',
+    'BP 120–130/80–90',
+    'K 3.5–4.5 mmol/L',
+    'Na 135−145',
+    'pH 7·35',
+    'Hb 12·5 g/dL',
+    'urine RBC 2–3/HPF',
+    'plt 150 × 10⁹/L',
+    'BSA 1.7 m²',
+    'may 20 mg be given',
+    'give 20 mg in Oct',
+    'อาการดีขึ้นในเดือนตุลาคม',
+    'GCS E4V5M6',
+    'ward round at 8',
+    'Ward: round notes',
+    'HN pending, age pending',
+    // Dose and score triples are no dash date: the dash day-first form needs a four-digit year (review of #474).
+    'RI 10-10-10 u sc ac',
+    'RI 10–10–10',
+    'Apgar 8-9-10',
+    'NPH 10-0-12',
+  ])('%s survives byte-for-byte', (text) => assertSurvives(text));
+
+  // Review of #474: a footnote mark or a circled list number glued to a real number must not merge into its digits,
+  // and a short version-like label inside a longer word (Prev, DOV, Adv) exempts no date.
+  test.each([
+    ['a phone with a superscript footnote mark', 'โทร 081-234-5678¹ ค่ะ', ['081', '234', '5678'], 'PHONE'],
+    ['a slash date with a superscript footnote mark', 'นัด 20/10/2026¹ ค่ะ', ['20/10', '2026'], 'DATE'],
+    ['a phone after a circled list number', '①0812345678 ค่ะ', ['0812345678', '5678'], 'PHONE'],
+    ['a phone before a circled mark', '0812345678① ค่ะ', ['0812345678', '5678'], 'PHONE'],
+    ['a phone with a superscript two', '0812345678² ค่ะ', ['0812345678', '5678'], 'PHONE'],
+    ['a dotted date after "Prev:"', 'Prev: 20.10.2569 ค่ะ', ['20.10', '2569'], 'DATE'],
+    ['a dotted date after "DOV:"', 'DOV: 20.10.2569 ค่ะ', ['20.10', '2569'], 'DATE'],
+    ['a dotted date after "DOV"', 'DOV 20.10.2569 ค่ะ', ['20.10', '2569'], 'DATE'],
+    ['a dotted date after "Adv:"', 'Adv: 20.10.69 ค่ะ', ['20.10', '.69'], 'DATE'],
+  ])('%s is masked', (_label, input, leaked, cat) => {
+    assertScrubbed(input, leaked);
+    expect(scrubbedOut).toMatch(new RegExp(`\\[${cat}-\\d+\\]`));
+  });
+
+  test('an astral character that folds to two units leaves no lone surrogate', () => {
+    const out = stripPii('โทร 081234567\u{1F101}');
+    expect(out.isWellFormed()).toBe(true);
+    expect(stripPii('x \u{1F101} y \u{1D400} z').isWellFormed()).toBe(true);
+  });
+});
