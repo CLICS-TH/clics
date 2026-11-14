@@ -378,6 +378,20 @@ export const FIXTURES = [
     { id: 'p2', pseudonym: 'P-002', full_name_th: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ', role: 'auditor', status: 'active',
       specialty_name_th: 'สูติศาสตร์-นรีเวชวิทยา', usage_usd: 0.49, usage_limit_usd: 0.5, can_audit: true },
   ]],
+  // GET /admin/booth is a BoothSettings (lib/types.ts), read by the overview's BoothCard. Without it the
+  // FALLBACK envelope reached the card, `booth.cases.length` threw, and the whole overview fell into its
+  // error boundary: its three markers went MISSING (the #488 review).
+  [/\/admin\/booth(\?|$)/, {
+    event_code: 'HA-2026', enabled: true, opens_at: '2026-11-02T08:00:00+07:00', closes_at: '2026-11-02T17:00:00+07:00',
+    ceiling_usd: 2, state: 'open', plays: 1284, scored: 1207, spend_usd: 14.62,
+    cases: [
+      { case_id: 'bc-01', teaser: { th: LONG_TH, en: 'A 78-year-old woman with chronic heart failure declines dialysis' },
+        version: 'v3', admitted_on: '2026-10-28', plays: 640, on: true },
+      { case_id: 'bc-02', teaser: { th: 'ชายอายุ ๕๒ ปี เจ็บหน้าอกขณะออกกำลังกาย', en: 'A 52-year-old man with chest pain on exertion' },
+        version: 'v1', admitted_on: '2026-10-30', plays: null, on: false },
+    ],
+    audits: { audits: 42, auditors: 6, plays: 31, mean_gap: { d1: 0.4, d2: -0.25, d3: 0, d4: 1.1, d5: -0.6, d6: 0.2, d7: -0.05 } },
+  }],
   // The overview page fetches /admin/overview-counts (CountRow[]), never /admin/overview. This entry
   // was keyed /admin\/overview/, which also matched -counts and handed the page an object.
   [/\/admin\/overview-counts/, [

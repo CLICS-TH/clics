@@ -4,6 +4,16 @@
 Pairs with [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to
 work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
+> ## One origin on vm1 — 2026-11-13 (#429, prepared, not live)
+>
+> The cutover now moves the front ends too. On vm1 the `clics` compose project serves `https://clics.ccme.or.th`:
+> the Portal at `/` (its own nginx, port 3103), the audit-dashboard at `/audit` (Next `basePath`, standalone,
+> port 3104) and the backend at `/api` (nginx strips the prefix). The staff handoff no longer passes `?token=`:
+> the dashboard reads the session the Portal stored in the shared `localStorage`. `physician-ui/vercel.json` and
+> `audit-dashboard/vercel.json` are redirects to the new origin, deployed by the owner at cutover step 4, after
+> the Google and Supabase origins are added (`deploy/vm1/README.md` §4). Locally, `npm run dev` adds the same
+> routing on `http://localhost:3080`; the staff handoff works only there.
+>
 > ## Current state — 2026-10-15
 >
 > **Production stays on Railway until the owner cuts over to vm1 (#426).** The repo is prepared: the Portal's

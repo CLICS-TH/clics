@@ -1,0 +1,1982 @@
+{
+  "case_id": "motorcycle-shock",
+  "replies": {
+    "step1": {
+      "a": {
+        "th": [
+          {
+            "strength": "เชื่อม**ชีพจรเร็ว** ความดันต่ำ และท้องซ้ายบนที่กดเจ็บ เข้าเป็นเรื่องเดียวกันได้ชัด",
+            "weigh": "capillary refill 4 วินาทีกับอาการกระสับกระส่าย บอกว่าอาจเสียเลือดมากกว่าที่ความดันแสดง",
+            "safety": ""
+          },
+          {
+            "strength": "อ่านมือเย็นซีดกับความดันต่ำว่าเป็นการเสียเลือด และระบุแหล่งไว้ในช่องท้อง",
+            "weigh": "คนหนุ่มมักคงความดันไว้ได้จนช่วงท้าย ความดัน 86/60 จึงอาจสะท้อนการเสียเลือดไปมากแล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "ระบุแหล่งเลือดออกในช่องท้อง ทำให้ผลตรวจร่างกายกลายเป็นเป้าหมายที่ชัด",
+            "weigh": "การตรวจร่างกายบอกตำแหน่งได้ แต่บอกไม่ได้ว่าเลือดออกเร็วแค่ไหน แนวโน้มสัญญาณชีพจึงสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Linking a **fast pulse**, low pressure and the tender left upper abdomen gives one clear story.",
+            "weigh": "A capillary refill of 4 s and restlessness hint the loss may be larger than the pressure suggests.",
+            "safety": ""
+          },
+          {
+            "strength": "You read his cold, pale hands and low pressure as volume loss, and place it in the abdomen.",
+            "weigh": "A young man can hold his pressure until late, so 86/60 may already reflect a large loss.",
+            "safety": ""
+          },
+          {
+            "strength": "Placing the source in the abdomen turns the exam findings into a clear target.",
+            "weigh": "The exam shows where, not how fast, so the trend in his vital signs matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ผูก**ชายโครงซ้ายฟกช้ำ**กับท้องซ้ายบนที่กดเจ็บ ทำให้ระบุอวัยวะได้แม่นยำ",
+            "weigh": "ความดัน 86/60 ชีพจร 128 บอกว่าสิ่งสำคัญคือปริมาณเลือดที่ม้ามกำลังเสียไป",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้รอยฟกช้ำบนผิวเป็นเบาะแส ชายโครงซ้ายล่างที่ช้ำมักอยู่เหนือม้ามที่บาดเจ็บ",
+            "weigh": "การระบุอวัยวะมีประโยชน์ แต่มือเย็นซีดบอกว่าความเร็วของเลือดออกเป็นตัวกำหนดจังหวะ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้กายวิภาคนำทาง เชื่อมรอยช้ำ จุดกดเจ็บ และอวัยวะที่อยู่ข้างใต้เข้าด้วยกัน",
+            "weigh": "แรงกระแทกชายโครงซ้ายล่างทำให้บาดเจ็บได้มากกว่าหนึ่งอวัยวะ ม้ามอาจไม่ใช่จุดเดียวที่เลือดออก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Tying the **left rib bruising** to the tender upper abdomen localises the injury precisely.",
+            "weigh": "With BP 86/60 and a pulse of 128, what matters most is how much the spleen is bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "You use the surface signs well: bruised lower left ribs often overlie a damaged spleen.",
+            "weigh": "Naming the organ helps, yet his cold, pale hands say the pace of bleeding sets the agenda.",
+            "safety": ""
+          },
+          {
+            "strength": "Anatomy guides you here, linking the bruise, the tender spot and the organ beneath.",
+            "weigh": "A blow to the lower left ribs can harm more than one structure, so the spleen may not bleed alone.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "เริ่มจากความจริงพื้นฐานว่าภาวะช็อกในผู้บาดเจ็บส่วนใหญ่มาจาก**การเสียเลือด**",
+            "weigh": "ชายโครงซ้ายฟกช้ำและท้องซ้ายบนกดเจ็บ ช่วยจำกัดตำแหน่งที่น่าจะเสียเลือดได้แล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "ถือว่าความดันต่ำหลังอุบัติเหตุเป็นการเสียเลือดไว้ก่อน ช่วยไม่ให้พลาดภาวะอันตราย",
+            "weigh": "การเปิดตำแหน่งไว้กว้างเป็นความรอบคอบ แต่ผลตรวจร่างกายมีเบาะแสชัดอยู่แล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ยึดติดอวัยวะเดียว และวางสรีรวิทยาของการเสียเลือดไว้เป็นแกนกลาง",
+            "weigh": "รอยช้ำและจุดกดเจ็บด้านซ้ายเป็นเบาะแสที่ควรนำมาคิดต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting from the base rate, that most shock after injury is **blood loss**, is sound trauma reasoning.",
+            "weigh": "His tender left upper abdomen and bruised left ribs already narrow where the loss may be.",
+            "safety": ""
+          },
+          {
+            "strength": "Treating low pressure after a crash as blood loss until shown otherwise guards against a missed bleed.",
+            "weigh": "Leaving the site open is cautious, though the exam already gives a clear lead.",
+            "safety": ""
+          },
+          {
+            "strength": "You avoid anchoring on one organ and keep the physiology of blood loss at the centre.",
+            "weigh": "The left-sided bruising and tenderness are clues worth carrying forward.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "นึกถึงภัยในช่องอกจาก**ชนแรงที่ชายโครง** ช่วยไม่ให้ภาวะที่ฆ่าได้เร็วหลุดไป",
+            "weigh": "เสียงหายใจเท่ากันและ SpO2 96% ขณะหายใจอากาศปกติ ไม่เข้ากับภาวะมีแรงดันในช่องอก",
+            "safety": ""
+          },
+          {
+            "strength": "คัดกรองสาเหตุในช่องอกที่แก้ไขได้ของความดันต่ำ เป็นนิสัยที่ช่วยชีวิตผู้บาดเจ็บ",
+            "weigh": "เสียงหายใจเท่ากันและออกซิเจน 96% ทำให้ภาวะนี้อธิบายความดันต่ำได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "รอยช้ำชายโครงร่วมกับความดันต่ำ ทำให้คิดถึงช่องอกตั้งแต่เนิ่น ๆ",
+            "weigh": "ผลตรวจปอดของเขาซึ่งเสียงหายใจเท่ากัน ยังไม่เข้ากับภาพของแรงดันในช่องอก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinking of a **hard blow** to the ribs as a chest threat keeps a fast killer on the list.",
+            "weigh": "Equal breath sounds and SpO2 96% on air sit poorly with tension physiology.",
+            "safety": ""
+          },
+          {
+            "strength": "You screen for a reversible chest cause of low pressure, a habit that saves lives after trauma.",
+            "weigh": "His equal breath sounds and 96% saturation on air make this a weak fit for the pressure.",
+            "safety": ""
+          },
+          {
+            "strength": "Rib bruising plus low pressure prompts you to consider the chest early.",
+            "weigh": "With equal breath sounds and 96% on air, the chest findings do not match a tension picture.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "คำนึงถึง**ไขสันหลัง**หลังอุบัติเหตุจักรยานยนต์ ช่วยป้องกันการบาดเจ็บที่ตกหล่น",
+            "weigh": "ชีพจร 128 กับมือเย็นซีดไม่เข้ากับช็อกจากไขสันหลัง ซึ่งมักผิวอุ่นและชีพจรไม่เร็ว",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณากลไกการบาดเจ็บครบ รวมถึงไขสันหลังที่บาดเจ็บได้ในอุบัติเหตุแรงสูง",
+            "weigh": "เขายังพูดได้ รู้ตัว กระสับกระส่าย มือเย็น ภาพนี้ไม่ค่อยเข้ากับช็อกจากไขสันหลัง",
+            "safety": ""
+          },
+          {
+            "strength": "นึกถึงสาเหตุที่ไม่ใช่เลือดออก แสดงว่าคิดวินิจฉัยแยกโรคได้กว้างแม้อยู่ในภาวะกดดัน",
+            "weigh": "ช็อกจากไขสันหลังมักผิวอุ่นและชีพจรช้า ต่างจากมือเย็นซีดและชีพจร 128 ของเขา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeping the **spinal cord** in mind after a motorcycle crash protects against a missed injury.",
+            "weigh": "A pulse of 128 with cold, pale hands is unusual for neurogenic shock, which tends to bring warm skin.",
+            "safety": ""
+          },
+          {
+            "strength": "You consider the mechanism fully, including the cord, which high-energy crashes can harm.",
+            "weigh": "He is talking, alert and restless with cold hands, a picture that sits awkwardly with cord-level shock.",
+            "safety": ""
+          },
+          {
+            "strength": "Considering a cause other than bleeding shows a broad differential under pressure.",
+            "weigh": "Neurogenic shock usually gives warm skin and a slow pulse, not the cold hands and 128 seen here.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "**FAST ข้างเตียง**ตอบคำถามสำคัญได้เร็ว โดยไม่ต้องย้ายผู้ป่วยที่ยังไม่คงที่",
+            "weigh": "FAST อาจไม่เห็นเลือดที่ออกน้อยหรือช่วงแรก ผลปกติจึงยังตัดการบาดเจ็บไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "กู้ชีพไปพร้อมกับได้คำตอบข้างเตียง สอดคล้องกับความดัน 86/60 ของเขา",
+            "weigh": "FAST เห็นของเหลวแต่ไม่บอกว่ามาจากอวัยวะใด จึงยืนยันว่ามีเลือดออกมากกว่าระบุแหล่ง",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกการตรวจเร็วข้างเตียง สอดรับกับผู้ป่วยที่ไม่คงที่พอจะออกนอกห้อง",
+            "weigh": "ผลขึ้นกับผู้ตรวจ และของเหลวปริมาณน้อยในช่วงแรกอาจมองไม่เห็น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **bedside FAST** answers the key question fast without moving an unstable man.",
+            "weigh": "FAST can miss small or early bleeding, so a clear scan does not rule out injury.",
+            "safety": ""
+          },
+          {
+            "strength": "You keep resuscitating while getting an answer at the bedside, which suits a pressure of 86/60.",
+            "weigh": "FAST shows free fluid but not which organ, so it confirms bleeding rather than its exact source.",
+            "safety": ""
+          },
+          {
+            "strength": "Choosing a quick scan at the bedside fits a man too unstable to leave the room.",
+            "weigh": "The scan depends on the operator, and a small amount of early fluid can be missed.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ส่ง**จองเลือด**ตอนนี้ ระหว่างนั้นเริ่มเลือดหมู่โอทันที การให้เลือดจึงไม่สะดุด",
+            "weigh": "เลือดที่จองต้องใช้เวลา ปริมาณเลือดหมู่โอที่มีในโรงพยาบาลจึงสำคัญตั้งแต่ต้น",
+            "safety": ""
+          },
+          {
+            "strength": "มองการส่งตรวจนี้เป็นส่วนหนึ่งของการกู้ชีพ สอดรับกับผู้ป่วยที่กำลังเสียเลือด",
+            "weigh": "การตรวจนี้เตรียมการรักษา แต่ไม่ได้บอกว่าเลือดออกจากตรงไหน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
+            "weigh": "เจาะเลือดส่งก่อนเริ่มให้เลือด ช่วยให้การจองเลือดไม่สับสนในภายหลัง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending the **crossmatch** now while **group O blood** starts at once keeps transfusion moving.",
+            "weigh": "Matched units take time to arrive, so how much group O is on hand matters early.",
+            "safety": ""
+          },
+          {
+            "strength": "You treat the test as part of the resuscitation, which suits a man losing blood now.",
+            "weigh": "This prepares treatment but does not show where he is bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
+            "weigh": "Drawing the sample before any transfusion keeps the crossmatch clean later.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ตรวจ**ช่องอกและเชิงกราน** ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
+            "weigh": "เสียงหายใจเท่ากันและเชิงกรานกดไม่เจ็บ ทำให้ภาพนี้อาจอธิบายความดันต่ำได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "มองหาอย่างเป็นระบบในช่องที่เก็บเลือดได้มากหลังการบาดเจ็บ",
+            "weigh": "ภาพเหล่านี้ไม่ได้ดูท้องซ้ายบน ซึ่งเป็นจุดที่เขากดเจ็บ",
+            "safety": ""
+          },
+          {
+            "strength": "ถ่ายภาพในห้องฉุกเฉิน ทำให้ผู้ป่วยอยู่ใกล้ทีมขณะค้นหาเลือดที่ซ่อนอยู่",
+            "weigh": "ผลตรวจร่างกายยังไม่ชี้ไปที่ช่องอกหรือเชิงกราน ภาพนี้จึงอาจเพิ่มข้อมูลได้ไม่มาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Checking the **chest and pelvis** covers two places where large bleeds can hide.",
+            "weigh": "With equal breath sounds and a non-tender pelvis, these films are less likely to explain his pressure.",
+            "safety": ""
+          },
+          {
+            "strength": "You look systematically at the cavities that can hold a large volume after trauma.",
+            "weigh": "These films do not look at the left upper abdomen, where his tenderness is.",
+            "safety": ""
+          },
+          {
+            "strength": "Films in the emergency room keep him close to the team while you screen for hidden bleeding.",
+            "weigh": "His examination does not point to the chest or pelvis, so these films may add little here.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "นึกถึง**ไต**ด้วย แสดงว่าประเมินทั้งบริเวณสีข้าง ไม่ใช่อวัยวะเดียว",
+            "weigh": "ผลปัสสาวะใช้เวลา และไม่เปลี่ยนความเร่งด่วนของการดูแลความดัน 86/60",
+            "safety": ""
+          },
+          {
+            "strength": "ระลึกว่าแรงกระแทกด้านซ้ายทำให้ไตบาดเจ็บได้ร่วมกับอวัยวะข้างเคียง",
+            "weigh": "ขณะความดัน 86/60 ผลปัสสาวะจะมาช้าเกินกว่าจะช่วยตัดสินใจในนาทีแรก ๆ",
+            "safety": ""
+          },
+          {
+            "strength": "หา**เลือดในปัสสาวะ** ช่วยไม่ให้พลาดการบาดเจ็บร่วม",
+            "weigh": "อาจพบการบาดเจ็บที่สอง แต่ไม่บอกว่าเขากำลังเสียเลือดมากเพียงใดในขณะนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinking of the **kidney** shows you are surveying the whole flank, not just one organ.",
+            "weigh": "A urine result takes time and will not change how urgently his pressure of 86/60 needs care.",
+            "safety": ""
+          },
+          {
+            "strength": "You remember that left-sided blows can injure the kidney as well as nearby organs.",
+            "weigh": "With BP 86/60, a urine result will come too late to guide the first minutes.",
+            "safety": ""
+          },
+          {
+            "strength": "Looking for **blood in the urine** keeps an associated injury in view.",
+            "weigh": "It may show a second injury, but it cannot tell how much he is losing at this moment.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "**FAST ข้างเตียง**ตอบคำถามสำคัญได้เร็ว โดยไม่ต้องย้ายผู้ป่วยที่ยังไม่คงที่",
+            "weigh": "FAST อาจไม่เห็นเลือดที่ออกน้อยหรือช่วงแรก ผลปกติจึงยังตัดการบาดเจ็บไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "กู้ชีพไปพร้อมกับได้คำตอบข้างเตียง สอดคล้องกับความดัน 86/60 ของเขา",
+            "weigh": "FAST เห็นของเหลวแต่ไม่บอกว่ามาจากอวัยวะใด จึงยืนยันว่ามีเลือดออกมากกว่าระบุแหล่ง",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกการตรวจเร็วข้างเตียง สอดรับกับผู้ป่วยที่ไม่คงที่พอจะออกนอกห้อง",
+            "weigh": "ผลขึ้นกับผู้ตรวจ และของเหลวปริมาณน้อยในช่วงแรกอาจมองไม่เห็น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **bedside FAST** answers the key question fast without moving an unstable man.",
+            "weigh": "FAST can miss small or early bleeding, so a clear scan does not rule out injury.",
+            "safety": ""
+          },
+          {
+            "strength": "You keep resuscitating while getting an answer at the bedside, which suits a pressure of 86/60.",
+            "weigh": "FAST shows free fluid but not which organ, so it confirms bleeding rather than its exact source.",
+            "safety": ""
+          },
+          {
+            "strength": "Choosing a quick scan at the bedside fits a man too unstable to leave the room.",
+            "weigh": "The scan depends on the operator, and a small amount of early fluid can be missed.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ส่ง**จองเลือด**ตอนนี้ ระหว่างนั้นเริ่มเลือดหมู่โอทันที การให้เลือดจึงไม่สะดุด",
+            "weigh": "เลือดที่จองต้องใช้เวลา ปริมาณเลือดหมู่โอที่มีในโรงพยาบาลจึงสำคัญตั้งแต่ต้น",
+            "safety": ""
+          },
+          {
+            "strength": "มองการส่งตรวจนี้เป็นส่วนหนึ่งของการกู้ชีพ สอดรับกับผู้ป่วยที่กำลังเสียเลือด",
+            "weigh": "การตรวจนี้เตรียมการรักษา แต่ไม่ได้บอกว่าเลือดออกจากตรงไหน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
+            "weigh": "เจาะเลือดส่งก่อนเริ่มให้เลือด ช่วยให้การจองเลือดไม่สับสนในภายหลัง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending the **crossmatch** now while **group O blood** starts at once keeps transfusion moving.",
+            "weigh": "Matched units take time to arrive, so how much group O is on hand matters early.",
+            "safety": ""
+          },
+          {
+            "strength": "You treat the test as part of the resuscitation, which suits a man losing blood now.",
+            "weigh": "This prepares treatment but does not show where he is bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
+            "weigh": "Drawing the sample before any transfusion keeps the crossmatch clean later.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ตรวจ**ช่องอกและเชิงกราน** ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
+            "weigh": "เสียงหายใจเท่ากันและเชิงกรานกดไม่เจ็บ ทำให้ภาพนี้อาจอธิบายความดันต่ำได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "มองหาอย่างเป็นระบบในช่องที่เก็บเลือดได้มากหลังการบาดเจ็บ",
+            "weigh": "ภาพเหล่านี้ไม่ได้ดูท้องซ้ายบน ซึ่งเป็นจุดที่เขากดเจ็บ",
+            "safety": ""
+          },
+          {
+            "strength": "ถ่ายภาพในห้องฉุกเฉิน ทำให้ผู้ป่วยอยู่ใกล้ทีมขณะค้นหาเลือดที่ซ่อนอยู่",
+            "weigh": "ผลตรวจร่างกายยังไม่ชี้ไปที่ช่องอกหรือเชิงกราน ภาพนี้จึงอาจเพิ่มข้อมูลได้ไม่มาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Checking the **chest and pelvis** covers two places where large bleeds can hide.",
+            "weigh": "With equal breath sounds and a non-tender pelvis, these films are less likely to explain his pressure.",
+            "safety": ""
+          },
+          {
+            "strength": "You look systematically at the cavities that can hold a large volume after trauma.",
+            "weigh": "These films do not look at the left upper abdomen, where his tenderness is.",
+            "safety": ""
+          },
+          {
+            "strength": "Films in the emergency room keep him close to the team while you screen for hidden bleeding.",
+            "weigh": "His examination does not point to the chest or pelvis, so these films may add little here.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ค่า**ฮีโมโกลบิน**ตั้งต้นให้จุดอ้างอิงสำหรับติดตามอาการตามเวลา",
+            "weigh": "ฮีโมโกลบินช่วงแรกของเลือดออกเฉียบพลันมักยังใกล้ปกติ จึงอาจประเมินการเสียเลือดต่ำไป",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนเก็บข้อมูลแนวโน้ม ซึ่งมีประโยชน์เมื่อการกู้ชีพดำเนินไป",
+            "weigh": "ค่าแรกอาจดูน่าวางใจ ก่อนที่เลือดจะถูกเจือจางจนค่าลดลงจริง",
+            "safety": ""
+          },
+          {
+            "strength": "มีค่าเริ่มต้นไว้ ทำให้เทียบผลครั้งต่อไปได้ชัด",
+            "weigh": "ชีพจร 128 และความดัน 86/60 บอกการเสียเลือดได้มากกว่าตัวเลขนี้ในตอนนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **baseline haemoglobin** gives a fixed point for tracking him over time.",
+            "weigh": "Early haemoglobin often reads near normal in acute bleeding, so it can understate his loss.",
+            "safety": ""
+          },
+          {
+            "strength": "You plan for trend data, which helps as the resuscitation goes on.",
+            "weigh": "A first value can look reassuring before the blood has had time to dilute.",
+            "safety": ""
+          },
+          {
+            "strength": "Having a starting value lets later results be compared.",
+            "weigh": "With a pulse of 128 and BP 86/60, his vital signs say more about loss than this number will.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "**eFAST** ตอบสองคำถามพร้อมกัน ทั้งลมในช่องอกและของเหลวในช่องท้อง โดยไม่ต้องย้ายตัว",
+            "weigh": "ผลขึ้นกับผู้ตรวจ และเลือดที่ออกน้อยหรือช่วงแรกอาจมองไม่เห็น",
+            "safety": ""
+          },
+          {
+            "strength": "ขยายการตรวจไปที่ช่องอก ครอบคลุมทั้งสองช่องในการตรวจข้างเตียงครั้งเดียว",
+            "weigh": "เสียงหายใจเท่ากันและหลอดลมอยู่กลาง ภาพช่องอกจึงอาจเพิ่มข้อมูลน้อยกว่าภาพช่องท้อง",
+            "safety": ""
+          },
+          {
+            "strength": "ผู้ป่วยอยู่ในห้องตลอด แต่ยังตรวจได้ทั้งช่องอกและช่องท้องในไม่กี่นาที",
+            "weigh": "ผลปกติในช่วงแรกตัดการบาดเจ็บไม่ได้ สัญญาณชีพจึงยังเป็นตัวนำหลัก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "An **eFAST** answers two questions at once, air in the chest and fluid in the abdomen, without moving him.",
+            "weigh": "Like any bedside scan it depends on the operator, and small or early bleeding can be missed.",
+            "safety": ""
+          },
+          {
+            "strength": "Extending the scan to the chest covers both cavities in a single bedside look.",
+            "weigh": "With equal breath sounds, the chest views may add less than the abdominal ones.",
+            "safety": ""
+          },
+          {
+            "strength": "You keep him in the room and still screen the chest and abdomen in minutes.",
+            "weigh": "A clear scan early on does not rule out injury, so his vital signs remain the main guide.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ส่ง**จองเลือด**ตอนนี้ ระหว่างนั้นเริ่มเลือดหมู่โอทันที การให้เลือดจึงไม่สะดุด",
+            "weigh": "เลือดที่จองต้องใช้เวลา ปริมาณเลือดหมู่โอที่มีในโรงพยาบาลจึงสำคัญตั้งแต่ต้น",
+            "safety": ""
+          },
+          {
+            "strength": "มองการส่งตรวจนี้เป็นส่วนหนึ่งของการกู้ชีพ สอดรับกับผู้ป่วยที่กำลังเสียเลือด",
+            "weigh": "การตรวจนี้เตรียมการรักษา แต่ไม่ได้บอกว่าเลือดออกจากตรงไหน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
+            "weigh": "เจาะเลือดส่งก่อนเริ่มให้เลือด ช่วยให้การจองเลือดไม่สับสนในภายหลัง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending the **crossmatch** now while **group O blood** starts at once keeps transfusion moving.",
+            "weigh": "Matched units take time to arrive, so how much group O is on hand matters early.",
+            "safety": ""
+          },
+          {
+            "strength": "You treat the test as part of the resuscitation, which suits a man losing blood now.",
+            "weigh": "This prepares treatment but does not show where he is bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
+            "weigh": "Drawing the sample before any transfusion keeps the crossmatch clean later.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ตรวจ**ช่องอกและเชิงกราน** ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
+            "weigh": "เสียงหายใจเท่ากันและเชิงกรานกดไม่เจ็บ ทำให้ภาพนี้อาจอธิบายความดันต่ำได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "มองหาอย่างเป็นระบบในช่องที่เก็บเลือดได้มากหลังการบาดเจ็บ",
+            "weigh": "ภาพเหล่านี้ไม่ได้ดูท้องซ้ายบน ซึ่งเป็นจุดที่เขากดเจ็บ",
+            "safety": ""
+          },
+          {
+            "strength": "ถ่ายภาพในห้องฉุกเฉิน ทำให้ผู้ป่วยอยู่ใกล้ทีมขณะค้นหาเลือดที่ซ่อนอยู่",
+            "weigh": "ผลตรวจร่างกายยังไม่ชี้ไปที่ช่องอกหรือเชิงกราน ภาพนี้จึงอาจเพิ่มข้อมูลได้ไม่มาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Checking the **chest and pelvis** covers two places where large bleeds can hide.",
+            "weigh": "With equal breath sounds and a non-tender pelvis, these films are less likely to explain his pressure.",
+            "safety": ""
+          },
+          {
+            "strength": "You look systematically at the cavities that can hold a large volume after trauma.",
+            "weigh": "These films do not look at the left upper abdomen, where his tenderness is.",
+            "safety": ""
+          },
+          {
+            "strength": "Films in the emergency room keep him close to the team while you screen for hidden bleeding.",
+            "weigh": "His examination does not point to the chest or pelvis, so these films may add little here.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ค่า**ฮีโมโกลบิน**ตั้งต้นให้จุดอ้างอิงสำหรับติดตามอาการตามเวลา",
+            "weigh": "ฮีโมโกลบินช่วงแรกของเลือดออกเฉียบพลันมักยังใกล้ปกติ จึงอาจประเมินการเสียเลือดต่ำไป",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนเก็บข้อมูลแนวโน้ม ซึ่งมีประโยชน์เมื่อการกู้ชีพดำเนินไป",
+            "weigh": "ค่าแรกอาจดูน่าวางใจ ก่อนที่เลือดจะถูกเจือจางจนค่าลดลงจริง",
+            "safety": ""
+          },
+          {
+            "strength": "มีค่าเริ่มต้นไว้ ทำให้เทียบผลครั้งต่อไปได้ชัด",
+            "weigh": "ชีพจร 128 และความดัน 86/60 บอกการเสียเลือดได้มากกว่าตัวเลขนี้ในตอนนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **baseline haemoglobin** gives a fixed point for tracking him over time.",
+            "weigh": "Early haemoglobin often reads near normal in acute bleeding, so it can understate his loss.",
+            "safety": ""
+          },
+          {
+            "strength": "You plan for trend data, which helps as the resuscitation goes on.",
+            "weigh": "A first value can look reassuring before the blood has had time to dilute.",
+            "safety": ""
+          },
+          {
+            "strength": "Having a starting value lets later results be compared.",
+            "weigh": "With a pulse of 128 and BP 86/60, his vital signs say more about loss than this number will.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "นึกถึง**ไต**ด้วย แสดงว่าประเมินทั้งบริเวณสีข้าง ไม่ใช่อวัยวะเดียว",
+            "weigh": "ผลปัสสาวะใช้เวลา และไม่เปลี่ยนความเร่งด่วนของการดูแลความดัน 86/60",
+            "safety": ""
+          },
+          {
+            "strength": "ระลึกว่าแรงกระแทกด้านซ้ายทำให้ไตบาดเจ็บได้ร่วมกับอวัยวะข้างเคียง",
+            "weigh": "ขณะความดัน 86/60 ผลปัสสาวะจะมาช้าเกินกว่าจะช่วยตัดสินใจในนาทีแรก ๆ",
+            "safety": ""
+          },
+          {
+            "strength": "หา**เลือดในปัสสาวะ** ช่วยไม่ให้พลาดการบาดเจ็บร่วม",
+            "weigh": "อาจพบการบาดเจ็บที่สอง แต่ไม่บอกว่าเขากำลังเสียเลือดมากเพียงใดในขณะนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinking of the **kidney** shows you are surveying the whole flank, not just one organ.",
+            "weigh": "A urine result takes time and will not change how urgently his pressure of 86/60 needs care.",
+            "safety": ""
+          },
+          {
+            "strength": "You remember that left-sided blows can injure the kidney as well as nearby organs.",
+            "weigh": "With BP 86/60, a urine result will come too late to guide the first minutes.",
+            "safety": ""
+          },
+          {
+            "strength": "Looking for **blood in the urine** keeps an associated injury in view.",
+            "weigh": "It may show a second injury, but it cannot tell how much he is losing at this moment.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "**ให้เลือดและ TXA** ร่วมกับส่งต่อด่วน แก้ทั้งการเสียเลือด การแข็งตัวของเลือด และต้นเหตุ",
+            "weigh": "TXA ได้ผลมากเมื่อให้เร็วภายใน 3 ชั่วโมงหลังบาดเจ็บ จึงควรบันทึกเวลาเกิดเหตุ",
+            "safety": ""
+          },
+          {
+            "strength": "มุ่งไปที่การแก้จริงคือศัลยแพทย์ โดยทดแทนเลือดไประหว่างทาง",
+            "weigh": "เลือดยังออกอยู่ ความเร็วของการส่งต่อจึงสำคัญไม่แพ้สิ่งที่ให้ระหว่างรอ",
+            "safety": ""
+          },
+          {
+            "strength": "มองเลือดออกเป็นปัญหาที่ศัลยแพทย์ต้องแก้ และใช้เลือดกับ TXA เป็นสะพานระหว่างทาง",
+            "weigh": "TXA ที่ให้หลัง 3 ชั่วโมงไม่ได้ช่วยลดการตาย จึงต้องรู้เวลาเกิดเหตุแน่ชัด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing **blood and TXA** with urgent transfer treats the loss, the clotting and the source together.",
+            "weigh": "TXA helps most when given within 3 hours of injury, so note the time of the crash.",
+            "safety": ""
+          },
+          {
+            "strength": "You aim at the real fix, a surgeon, while replacing blood on the way.",
+            "weigh": "He is still bleeding, so how quickly the transfer happens counts as much as what he receives.",
+            "safety": ""
+          },
+          {
+            "strength": "Your plan treats the bleeding as a surgical problem, with blood and TXA as a bridge.",
+            "weigh": "TXA started more than 3 hours after injury loses its benefit, so the crash time matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกเพิ่ม แต่ยังพอให้อวัยวะได้เลือด",
+            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่รู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "safety": ""
+          },
+          {
+            "strength": "กู้ชีพตามเป้าแทนที่จะดันให้ปกติ ช่วยไม่ให้ความดันที่สูงขึ้นทำให้เลือดออกซ้ำ",
+            "weigh": "ราว 90 คือขั้นต่ำ ถ้ากระสับกระส่ายมากขึ้นแสดงว่าอวัยวะยังได้เลือดไม่พอ",
+            "safety": ""
+          },
+          {
+            "strength": "ผสานเป้าความดันกับ TXA และการส่งต่อ ครอบคลุมทั้งการกู้ชีพและการรักษาจริง",
+            "weigh": "แนวทางนี้เพียงซื้อเวลา เลือดจะหยุดได้ด้วยการผ่าตัด ไม่ใช่ด้วยตัวเลขความดัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Targeting a **systolic BP near 90** limits further bleeding while still feeding the organs.",
+            "weigh": "A lower target fits an alert, helmeted young man and needs rethinking if his alertness falls.",
+            "safety": ""
+          },
+          {
+            "strength": "You resuscitate to a goal rather than to normal, which avoids pushing pressure up and restarting bleeding.",
+            "weigh": "Near 90 is a floor, not a level to drift below; growing restlessness means the organs are short.",
+            "safety": ""
+          },
+          {
+            "strength": "Combining a pressure target with TXA and transfer covers resuscitation and definitive care.",
+            "weigh": "This only buys time, since the bleeding stops with surgery, not with the number.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
+            "weigh": "น้ำเกลือเจือจางปัจจัยการแข็งตัวของเลือด เมื่อเลือดยังออก ปริมาณก่อนให้เลือดจึงควรน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคง TXA และการส่งต่อไว้ในแผน ต้นเหตุของเลือดออกจึงยังได้รับการแก้",
+            "weigh": "ในเลือดที่ยังออกอยู่ น้ำเกลือเต็มลิตรก่อนให้เลือดอาจทำให้เลือดแข็งตัวยากและตัวเย็นลง",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้สิ่งที่มีพร้อมก่อน ทำให้การทดแทนปริมาตรไม่ขาดช่วง",
+            "weigh": "การดูแลผู้บาดเจ็บปัจจุบันจำกัดสารน้ำใสเมื่อมีเลือดออก หนึ่งลิตรจึงเป็นเพดาน ไม่ใช่จุดเริ่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
+            "weigh": "Saline dilutes clotting factors, so in active bleeding the amount given before blood is worth keeping small.",
+            "safety": ""
+          },
+          {
+            "strength": "You keep TXA and transfer in the plan, so the source is still addressed.",
+            "weigh": "In ongoing bleeding, a full litre before blood can thin his clotting and cool him.",
+            "safety": ""
+          },
+          {
+            "strength": "Using what is on the shelf first avoids any gap in volume replacement.",
+            "weigh": "Current trauma care limits clear fluids in active bleeding, so treat the litre as a ceiling.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "เน้นการให้เลือดและ**การผ่าตัด** ทำให้แผนอยู่ที่สิ่งที่หยุดเลือดได้จริง",
+            "weigh": "หลังบาดเจ็บรุนแรง ลิ่มเลือดถูกสลายเร็วในช่วงแรก การชะลอภายใน 3 ชั่วโมงช่วยลดการตายได้อีก",
+            "safety": ""
+          },
+          {
+            "strength": "ตรงไปที่สองสิ่งที่เขาต้องการ คือเลือดและศัลยแพทย์",
+            "weigh": "การทดแทนเลือดอย่างเดียวไม่ได้แก้การสลายลิ่มเลือดช่วงแรกที่ทำให้เลือดออกต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "แผนเรียบง่ายและเร็ว ลดความล่าช้าในผู้ป่วยที่ยังเสียเลือด",
+            "weigh": "ช่วงแรกหลังบาดเจ็บ ลิ่มเลือดสลายเร็วขึ้น และการให้เลือดเพียงอย่างเดียวไม่ได้ชะลอสิ่งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Focusing on **blood and surgery** keeps the plan centred on what stops the bleeding.",
+            "weigh": "Clots break down fast early after major injury, and slowing that within 3 hours lowers deaths further.",
+            "safety": ""
+          },
+          {
+            "strength": "You go straight to the two things he needs most, volume and a surgeon.",
+            "weigh": "Replacing blood alone does not address the early clot breakdown that drives trauma bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple, fast plan cuts delay for a man who is still bleeding.",
+            "weigh": "Clots break down faster soon after major injury, and blood alone does nothing to slow that.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "**ให้เลือดและ TXA** ร่วมกับส่งต่อด่วน แก้ทั้งการเสียเลือด การแข็งตัวของเลือด และต้นเหตุ",
+            "weigh": "TXA ได้ผลมากเมื่อให้เร็วภายใน 3 ชั่วโมงหลังบาดเจ็บ จึงควรบันทึกเวลาเกิดเหตุ",
+            "safety": ""
+          },
+          {
+            "strength": "มุ่งไปที่การแก้จริงคือศัลยแพทย์ โดยทดแทนเลือดไประหว่างทาง",
+            "weigh": "เลือดยังออกอยู่ ความเร็วของการส่งต่อจึงสำคัญไม่แพ้สิ่งที่ให้ระหว่างรอ",
+            "safety": ""
+          },
+          {
+            "strength": "มองเลือดออกเป็นปัญหาที่ศัลยแพทย์ต้องแก้ และใช้เลือดกับ TXA เป็นสะพานระหว่างทาง",
+            "weigh": "TXA ที่ให้หลัง 3 ชั่วโมงไม่ได้ช่วยลดการตาย จึงต้องรู้เวลาเกิดเหตุแน่ชัด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing **blood and TXA** with urgent transfer treats the loss, the clotting and the source together.",
+            "weigh": "TXA helps most when given within 3 hours of injury, so note the time of the crash.",
+            "safety": ""
+          },
+          {
+            "strength": "You aim at the real fix, a surgeon, while replacing blood on the way.",
+            "weigh": "He is still bleeding, so how quickly the transfer happens counts as much as what he receives.",
+            "safety": ""
+          },
+          {
+            "strength": "Your plan treats the bleeding as a surgical problem, with blood and TXA as a bridge.",
+            "weigh": "TXA started more than 3 hours after injury loses its benefit, so the crash time matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกเพิ่ม แต่ยังพอให้อวัยวะได้เลือด",
+            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่รู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "safety": ""
+          },
+          {
+            "strength": "กู้ชีพตามเป้าแทนที่จะดันให้ปกติ ช่วยไม่ให้ความดันที่สูงขึ้นทำให้เลือดออกซ้ำ",
+            "weigh": "ราว 90 คือขั้นต่ำ ถ้ากระสับกระส่ายมากขึ้นแสดงว่าอวัยวะยังได้เลือดไม่พอ",
+            "safety": ""
+          },
+          {
+            "strength": "ผสานเป้าความดันกับ TXA และการส่งต่อ ครอบคลุมทั้งการกู้ชีพและการรักษาจริง",
+            "weigh": "แนวทางนี้เพียงซื้อเวลา เลือดจะหยุดได้ด้วยการผ่าตัด ไม่ใช่ด้วยตัวเลขความดัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Targeting a **systolic BP near 90** limits further bleeding while still feeding the organs.",
+            "weigh": "A lower target fits an alert, helmeted young man and needs rethinking if his alertness falls.",
+            "safety": ""
+          },
+          {
+            "strength": "You resuscitate to a goal rather than to normal, which avoids pushing pressure up and restarting bleeding.",
+            "weigh": "Near 90 is a floor, not a level to drift below; growing restlessness means the organs are short.",
+            "safety": ""
+          },
+          {
+            "strength": "Combining a pressure target with TXA and transfer covers resuscitation and definitive care.",
+            "weigh": "This only buys time, since the bleeding stops with surgery, not with the number.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
+            "weigh": "น้ำเกลือเจือจางปัจจัยการแข็งตัวของเลือด เมื่อเลือดยังออก ปริมาณก่อนให้เลือดจึงควรน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคง TXA และการส่งต่อไว้ในแผน ต้นเหตุของเลือดออกจึงยังได้รับการแก้",
+            "weigh": "ในเลือดที่ยังออกอยู่ น้ำเกลือเต็มลิตรก่อนให้เลือดอาจทำให้เลือดแข็งตัวยากและตัวเย็นลง",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้สิ่งที่มีพร้อมก่อน ทำให้การทดแทนปริมาตรไม่ขาดช่วง",
+            "weigh": "การดูแลผู้บาดเจ็บปัจจุบันจำกัดสารน้ำใสเมื่อมีเลือดออก หนึ่งลิตรจึงเป็นเพดาน ไม่ใช่จุดเริ่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
+            "weigh": "Saline dilutes clotting factors, so in active bleeding the amount given before blood is worth keeping small.",
+            "safety": ""
+          },
+          {
+            "strength": "You keep TXA and transfer in the plan, so the source is still addressed.",
+            "weigh": "In ongoing bleeding, a full litre before blood can thin his clotting and cool him.",
+            "safety": ""
+          },
+          {
+            "strength": "Using what is on the shelf first avoids any gap in volume replacement.",
+            "weigh": "Current trauma care limits clear fluids in active bleeding, so treat the litre as a ceiling.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "เน้นการให้เลือดและ**การผ่าตัด** ทำให้แผนอยู่ที่สิ่งที่หยุดเลือดได้จริง",
+            "weigh": "หลังบาดเจ็บรุนแรง ลิ่มเลือดถูกสลายเร็วในช่วงแรก การชะลอภายใน 3 ชั่วโมงช่วยลดการตายได้อีก",
+            "safety": ""
+          },
+          {
+            "strength": "ตรงไปที่สองสิ่งที่เขาต้องการ คือเลือดและศัลยแพทย์",
+            "weigh": "การทดแทนเลือดอย่างเดียวไม่ได้แก้การสลายลิ่มเลือดช่วงแรกที่ทำให้เลือดออกต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "แผนเรียบง่ายและเร็ว ลดความล่าช้าในผู้ป่วยที่ยังเสียเลือด",
+            "weigh": "ช่วงแรกหลังบาดเจ็บ ลิ่มเลือดสลายเร็วขึ้น และการให้เลือดเพียงอย่างเดียวไม่ได้ชะลอสิ่งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Focusing on **blood and surgery** keeps the plan centred on what stops the bleeding.",
+            "weigh": "Clots break down fast early after major injury, and slowing that within 3 hours lowers deaths further.",
+            "safety": ""
+          },
+          {
+            "strength": "You go straight to the two things he needs most, volume and a surgeon.",
+            "weigh": "Replacing blood alone does not address the early clot breakdown that drives trauma bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple, fast plan cuts delay for a man who is still bleeding.",
+            "weigh": "Clots break down faster soon after major injury, and blood alone does nothing to slow that.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "**ให้เลือดและ TXA** ร่วมกับส่งต่อด่วน แก้ทั้งการเสียเลือด การแข็งตัวของเลือด และต้นเหตุ",
+            "weigh": "TXA ได้ผลมากเมื่อให้เร็วภายใน 3 ชั่วโมงหลังบาดเจ็บ จึงควรบันทึกเวลาเกิดเหตุ",
+            "safety": ""
+          },
+          {
+            "strength": "มุ่งไปที่การแก้จริงคือศัลยแพทย์ โดยทดแทนเลือดไประหว่างทาง",
+            "weigh": "เลือดยังออกอยู่ ความเร็วของการส่งต่อจึงสำคัญไม่แพ้สิ่งที่ให้ระหว่างรอ",
+            "safety": ""
+          },
+          {
+            "strength": "มองเลือดออกเป็นปัญหาที่ศัลยแพทย์ต้องแก้ และใช้เลือดกับ TXA เป็นสะพานระหว่างทาง",
+            "weigh": "TXA ที่ให้หลัง 3 ชั่วโมงไม่ได้ช่วยลดการตาย จึงต้องรู้เวลาเกิดเหตุแน่ชัด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing **blood and TXA** with urgent transfer treats the loss, the clotting and the source together.",
+            "weigh": "TXA helps most when given within 3 hours of injury, so note the time of the crash.",
+            "safety": ""
+          },
+          {
+            "strength": "You aim at the real fix, a surgeon, while replacing blood on the way.",
+            "weigh": "He is still bleeding, so how quickly the transfer happens counts as much as what he receives.",
+            "safety": ""
+          },
+          {
+            "strength": "Your plan treats the bleeding as a surgical problem, with blood and TXA as a bridge.",
+            "weigh": "TXA started more than 3 hours after injury loses its benefit, so the crash time matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกเพิ่ม แต่ยังพอให้อวัยวะได้เลือด",
+            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่รู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "safety": ""
+          },
+          {
+            "strength": "กู้ชีพตามเป้าแทนที่จะดันให้ปกติ ช่วยไม่ให้ความดันที่สูงขึ้นทำให้เลือดออกซ้ำ",
+            "weigh": "ราว 90 คือขั้นต่ำ ถ้ากระสับกระส่ายมากขึ้นแสดงว่าอวัยวะยังได้เลือดไม่พอ",
+            "safety": ""
+          },
+          {
+            "strength": "ผสานเป้าความดันกับ TXA และการส่งต่อ ครอบคลุมทั้งการกู้ชีพและการรักษาจริง",
+            "weigh": "แนวทางนี้เพียงซื้อเวลา เลือดจะหยุดได้ด้วยการผ่าตัด ไม่ใช่ด้วยตัวเลขความดัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Targeting a **systolic BP near 90** limits further bleeding while still feeding the organs.",
+            "weigh": "A lower target fits an alert, helmeted young man and needs rethinking if his alertness falls.",
+            "safety": ""
+          },
+          {
+            "strength": "You resuscitate to a goal rather than to normal, which avoids pushing pressure up and restarting bleeding.",
+            "weigh": "Near 90 is a floor, not a level to drift below; growing restlessness means the organs are short.",
+            "safety": ""
+          },
+          {
+            "strength": "Combining a pressure target with TXA and transfer covers resuscitation and definitive care.",
+            "weigh": "This only buys time, since the bleeding stops with surgery, not with the number.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
+            "weigh": "น้ำเกลือเจือจางปัจจัยการแข็งตัวของเลือด เมื่อเลือดยังออก ปริมาณก่อนให้เลือดจึงควรน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคง TXA และการส่งต่อไว้ในแผน ต้นเหตุของเลือดออกจึงยังได้รับการแก้",
+            "weigh": "ในเลือดที่ยังออกอยู่ น้ำเกลือเต็มลิตรก่อนให้เลือดอาจทำให้เลือดแข็งตัวยากและตัวเย็นลง",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้สิ่งที่มีพร้อมก่อน ทำให้การทดแทนปริมาตรไม่ขาดช่วง",
+            "weigh": "การดูแลผู้บาดเจ็บปัจจุบันจำกัดสารน้ำใสเมื่อมีเลือดออก หนึ่งลิตรจึงเป็นเพดาน ไม่ใช่จุดเริ่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
+            "weigh": "Saline dilutes clotting factors, so in active bleeding the amount given before blood is worth keeping small.",
+            "safety": ""
+          },
+          {
+            "strength": "You keep TXA and transfer in the plan, so the source is still addressed.",
+            "weigh": "In ongoing bleeding, a full litre before blood can thin his clotting and cool him.",
+            "safety": ""
+          },
+          {
+            "strength": "Using what is on the shelf first avoids any gap in volume replacement.",
+            "weigh": "Current trauma care limits clear fluids in active bleeding, so treat the litre as a ceiling.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "เน้นการให้เลือดและ**การผ่าตัด** ทำให้แผนอยู่ที่สิ่งที่หยุดเลือดได้จริง",
+            "weigh": "หลังบาดเจ็บรุนแรง ลิ่มเลือดถูกสลายเร็วในช่วงแรก การชะลอภายใน 3 ชั่วโมงช่วยลดการตายได้อีก",
+            "safety": ""
+          },
+          {
+            "strength": "ตรงไปที่สองสิ่งที่เขาต้องการ คือเลือดและศัลยแพทย์",
+            "weigh": "การทดแทนเลือดอย่างเดียวไม่ได้แก้การสลายลิ่มเลือดช่วงแรกที่ทำให้เลือดออกต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "แผนเรียบง่ายและเร็ว ลดความล่าช้าในผู้ป่วยที่ยังเสียเลือด",
+            "weigh": "ช่วงแรกหลังบาดเจ็บ ลิ่มเลือดสลายเร็วขึ้น และการให้เลือดเพียงอย่างเดียวไม่ได้ชะลอสิ่งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Focusing on **blood and surgery** keeps the plan centred on what stops the bleeding.",
+            "weigh": "Clots break down fast early after major injury, and slowing that within 3 hours lowers deaths further.",
+            "safety": ""
+          },
+          {
+            "strength": "You go straight to the two things he needs most, volume and a surgeon.",
+            "weigh": "Replacing blood alone does not address the early clot breakdown that drives trauma bleeding.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple, fast plan cuts delay for a man who is still bleeding.",
+            "weigh": "Clots break down faster soon after major injury, and blood alone does nothing to slow that.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "วัด**ทุก 5 นาที** ทำให้ตัวเลขที่ดีขึ้นกลายเป็นแนวโน้มที่เชื่อถือได้",
+            "weigh": "ความดันที่ดีขึ้นหลังให้เลือดอาจเป็นเพียงชั่วคราว เพราะต้นเหตุยังไม่ได้รับการแก้",
+            "safety": ""
+          },
+          {
+            "strength": "ถือว่าอาการที่ดีขึ้นยังไม่แน่นอน และเฝ้าดูใกล้ชิดระหว่างประสานส่งต่อ",
+            "weigh": "การวัดถี่จะมีประโยชน์เมื่อมีคนที่ได้รับมอบหมายลงมือทันทีที่ความดันตก",
+            "safety": ""
+          },
+          {
+            "strength": "เฝ้าดูใกล้ชิด จับการเลือดออกซ้ำได้ก่อนผู้ป่วยทรุดลง",
+            "weigh": "สัญญาณชีพเปลี่ยนช้ากว่าการเสียเลือด ค่าที่คงที่จึงยังซ่อนการทรุดลงเงียบ ๆ ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Rechecking **every 5 minutes** turns a better number into a trend you can trust.",
+            "weigh": "An improved pressure after blood may be temporary while the source is still untreated.",
+            "safety": ""
+          },
+          {
+            "strength": "You treat the improvement as provisional and watch closely while the transfer is arranged.",
+            "weigh": "Readings every 5 minutes help only if someone is named to act on a fall.",
+            "safety": ""
+          },
+          {
+            "strength": "Close observation catches a fresh bleed early, before he collapses.",
+            "weigh": "Vital signs lag behind blood loss, so a stable reading still leaves room for a quiet fall.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "เพิ่มการวัด**ปริมาณปัสสาวะ** บอกได้ตรงว่าอวัยวะได้เลือดพอหรือไม่",
+            "weigh": "การตรวจซ้ำตอนนี้มีประโยชน์เมื่อผลจะเปลี่ยนแผน และไม่ควรทำให้การส่งต่อช้าลง",
+            "safety": ""
+          },
+          {
+            "strength": "จับคู่การดูกายวิภาคกับตัวชี้วัดการไหลเวียน เป็นการประเมินการตอบสนองที่สมดุล",
+            "weigh": "ปริมาณปัสสาวะต้องใช้เวลาราวชั่วโมงจึงมีความหมาย ค่าช่วงแรกจึงยังบอกได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "เชื่อมของเหลวในท้องกับเลือดที่ไปเลี้ยงไต บอกทั้งตำแหน่งและผลของการเสียเลือด",
+            "weigh": "ของเหลวที่เพิ่มขึ้นยืนยันว่าเลือดออก แต่ไม่ได้ตัดสินเองว่าต้องออกเดินทางเร็วแค่ไหน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Adding **urine output** gives a direct read on whether the organs are getting enough blood.",
+            "weigh": "A scan at this point helps only if it would change his plan, so it should not delay transfer.",
+            "safety": ""
+          },
+          {
+            "strength": "You pair an anatomical look with a perfusion marker, a balanced way to judge his response.",
+            "weigh": "Urine output needs an hour or so to mean much, so early readings carry little weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Linking abdominal fluid to kidney perfusion tells you both where and how much he is losing.",
+            "weigh": "More fluid on the scan confirms bleeding but will not by itself decide how fast he must leave.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**ดามแขนซ้าย**ก่อนเดินทาง ช่วยปกป้องแขนและลดปวดระหว่างเคลื่อนย้าย",
+            "weigh": "ความดัน 94/62 ช่องท้องยังเป็นตัวกำหนดจังหวะ การดามแขนจึงไม่ควรทำให้ส่งต่อช้า",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ลืมปลายแขนที่บาดเจ็บ ซึ่งมักถูกมองข้ามเมื่อทีมสนใจแต่เลือดออก",
+            "weigh": "การดามใช้เวลาไม่กี่นาที ถ้าทำไปพร้อมงานอื่นก็เพิ่มความปลอดภัยโดยไม่เสียเวลา",
+            "safety": ""
+          },
+          {
+            "strength": "คลำชีพจรปลายแขนตอนนี้ ได้ค่าตั้งต้นไว้เทียบหากมีการเปลี่ยนแปลงระหว่างทาง",
+            "weigh": "การดามช่วยรักษาแขน แต่สิ่งที่คุกคามชีวิตยังอยู่ในช่องท้อง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Taking time to **splint the left arm** protects the limb and eases pain before the move.",
+            "weigh": "With BP 94/62 the abdomen still sets the pace, so the splint should not hold up the transfer.",
+            "safety": ""
+          },
+          {
+            "strength": "You remember the injured forearm, easily missed while the bleeding takes all the attention.",
+            "weigh": "A splint takes minutes; done alongside other care, it adds safety without adding delay.",
+            "safety": ""
+          },
+          {
+            "strength": "Feeling the forearm pulse now records a baseline before any change on the road.",
+            "weigh": "This protects the limb, though the threat to his life still lies in his abdomen.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ต้องการ**ตัวเลขไว้ติดตาม** แสดงว่าคิดถึงแนวโน้ม ไม่ใช่ภาพครั้งเดียว",
+            "weigh": "ฮีโมโกลบินเปลี่ยนช้าหลังเลือดออกและหลังให้เลือด จึงตามหลังสภาพจริงของผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "พยายามวัดการเสียเลือดให้เป็นรูปธรรม แทนการอาศัยความรู้สึกอย่างเดียว",
+            "weigh": "หลังให้เลือด ค่านี้สะท้อนเลือดที่ให้ไปพอ ๆ กับเลือดที่ยังเสีย",
+            "safety": ""
+          },
+          {
+            "strength": "เพิ่มตัวชี้วัดจากห้องปฏิบัติการ ควบคู่กับภาพข้างเตียง",
+            "weigh": "ผลครั้งเดียวตอนนี้เปลี่ยนการตัดสินใจได้น้อย ขณะที่ชีพจรและความดันเปลี่ยนทุกนาที",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wanting a **number to track** the loss shows you are thinking about trend, not one snapshot.",
+            "weigh": "Haemoglobin changes slowly after bleeding and after transfusion, so it lags behind his real state.",
+            "safety": ""
+          },
+          {
+            "strength": "You aim to quantify the loss objectively rather than rely on impression alone.",
+            "weigh": "After transfusion, the value reflects the blood given as much as any ongoing loss.",
+            "safety": ""
+          },
+          {
+            "strength": "Tracking a lab value adds an objective marker alongside the clinical picture.",
+            "weigh": "A single result now will change little, while his pulse and pressure move minute to minute.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "อ่านการตอบสนองชั่วคราวว่า**เลือดยังออกอยู่** แล้วเร่งส่งต่อ สอดคล้องกับที่ร่างกายแสดง",
+            "weigh": "เลือดแต่ละถุงซื้อเวลาได้เพียงไม่กี่นาที เวลาส่งต่อจึงสำคัญกว่าจำนวนถุง",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่าเป็นการตอบสนองชั่วคราว และมุ่งไปหาศัลยแพทย์แทนการรอดูต่อ",
+            "weigh": "อาการดีขึ้นแล้วกลับทรุด มักหมายถึงเลือดออกเร็วกว่าที่การให้เลือดจะชดเชยทัน",
+            "safety": ""
+          },
+          {
+            "strength": "เชื่อมการทรุดลงซ้ำกับเลือดที่ยังออก ทำให้เป้าหมายอยู่ที่การหยุดเลือด",
+            "weigh": "ทุกนาทีที่ช้าคือเลือดที่เขาเสียไปอีก งานที่ทำให้ออกเดินทางช้าจึงควรทบทวน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Reading the relapse as **still bleeding** and speeding the transfer follows what his body shows.",
+            "weigh": "Each unit buys minutes only, so the transfer clock matters more than the count of units.",
+            "safety": ""
+          },
+          {
+            "strength": "You recognise a transient response and move toward a surgeon instead of waiting.",
+            "weigh": "A brief improvement followed by a slide often means the bleeding outpaces what any unit can replace.",
+            "safety": ""
+          },
+          {
+            "strength": "Linking the relapse to ongoing bleeding keeps the focus on stopping it.",
+            "weigh": "Every delay now costs blood he cannot spare, so tasks that slow departure deserve a second look.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ให้**แค่เลือด** หลีกเลี่ยงการเจือจางปัจจัยการแข็งตัวที่เขายังมีอยู่",
+            "weigh": "เป้า 90 ช่วยประคองแต่ไม่หยุดเลือด และการทรุดซ้ำบอกว่าเลือดยังออกอยู่",
+            "safety": ""
+          },
+          {
+            "strength": "กู้ชีพตามเป้าความดัน ลดโอกาสที่ความดันสูงจะดันลิ่มเลือดหลุดจากจุดที่เลือดออก",
+            "weigh": "ในผู้ที่ตอบสนองชั่วคราว การคงความดัน 90 อาจต้องใช้เลือดมากขึ้นเรื่อย ๆ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เลือดอย่างเดียวพร้อมเป้าชัด ทำให้ทุกถุงมุ่งไปที่การไหลเวียน",
+            "weigh": "เป้านี้ใช้กับชายหนุ่มที่รู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving **blood only** avoids diluting the clotting factors he still has.",
+            "weigh": "A target of 90 holds him but does not stop the bleeding, which the relapse shows is ongoing.",
+            "safety": ""
+          },
+          {
+            "strength": "You resuscitate to a set pressure, which limits pushing clot off a bleeding vessel.",
+            "weigh": "In a transient responder, holding 90 may take more and more units as losses continue.",
+            "safety": ""
+          },
+          {
+            "strength": "Choosing **blood only** with a clear target makes each unit count toward perfusion.",
+            "weigh": "This target suits an alert young man; any drop in alertness would call for rethinking it.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ทำ**FAST ข้างเตียง**ตอนนี้ ดูว่าของเหลวในท้องเพิ่มขึ้นหรือไม่ขณะอาการไม่คงที่",
+            "weigh": "ของเหลวที่มากขึ้นยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ",
+            "safety": ""
+          },
+          {
+            "strength": "ต้องการภาพในช่องท้องที่เป็นรูปธรรม ณ เวลาที่อาการยังไม่นิ่ง",
+            "weigh": "ภาพบอกได้ว่ามีของเหลว แต่บอกความเร็วของเลือดออกได้น้อยกว่าสัญญาณชีพ",
+            "safety": ""
+          },
+          {
+            "strength": "ตรวจข้างเตียง ผู้ป่วยไม่ต้องออกนอกห้องขณะเก็บหลักฐานเพิ่ม",
+            "weigh": "การตรวจใช้เวลาหลายนาที ซึ่งเขาอาจไม่มีหากเลือดยังออกในอัตรานี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **bedside FAST** now shows whether abdominal fluid is building while he stays unstable.",
+            "weigh": "More fluid confirms what his vital signs already suggest, so it should not hold him here.",
+            "safety": ""
+          },
+          {
+            "strength": "You seek an objective look inside the abdomen at the moment he is unsettled.",
+            "weigh": "The scan shows fluid but not the rate of bleeding, which his pulse and pressure show better.",
+            "safety": ""
+          },
+          {
+            "strength": "Imaging at the bedside keeps him in the room while you gather evidence.",
+            "weigh": "A scan takes minutes he may not have if the bleeding goes on at this pace.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ต้องการ**ตัวเลขไว้ติดตาม**การเสียเลือด แสดงว่าให้ค่ากับข้อมูลที่เป็นรูปธรรม",
+            "weigh": "ฮีโมโกลบินตามหลังการเสียเลือด ค่าที่ใกล้ปกติตอนนี้ไม่ได้แปลว่าเลือดหยุดแล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "พยายามบอกการเสียเลือดเป็นตัวเลข แทนการอาศัยความรู้สึก",
+            "weigh": "ความดันและชีพจรบอกการเสียเลือดอยู่แล้ว ผลแล็บจะมาหลังเวลาที่ต้องตัดสินใจ",
+            "safety": ""
+          },
+          {
+            "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
+            "weigh": "หลังให้เลือด ค่านี้ปนกันระหว่างเลือดที่ได้รับกับที่เสียไป จึงอาจแปลผลคลาดได้ตอนนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wanting a **number to track** the loss shows you value objective data.",
+            "weigh": "Haemoglobin lags behind bleeding, so a near-normal value now would not mean he has stopped.",
+            "safety": ""
+          },
+          {
+            "strength": "You aim to put a figure on the loss rather than rely on impression.",
+            "weigh": "His pressure and pulse already show the loss; a lab number will arrive after the decision is due.",
+            "safety": ""
+          },
+          {
+            "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
+            "weigh": "After transfusion the value mixes given and lost blood, so it can mislead at this point.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "ให้ **TXA 1 กรัม IV** ขณะยังอยู่ในช่วง 3 ชั่วโมง ช่วยลดการตายจากเลือดออก",
+            "weigh": "TXA ชะลอการสลายลิ่มเลือด แต่ไม่ได้หยุดจุดที่เลือดออกเอง",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้เวลาตั้งแต่เกิดเหตุเป็นตัวกำหนด เพราะประโยชน์ลดลงทุกชั่วโมงที่ล่าช้า",
+            "weigh": "ตามสูตรมักให้ต่ออีก 1 กรัมใน 8 ชั่วโมง ขนาดนี้จึงเป็นเพียงขนาดแรก",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ยาต้านการสลายลิ่มเลือดในช่วงที่ยังได้ผล แก้ส่วนที่การให้เลือดอย่างเดียวไม่ครอบคลุม",
+            "weigh": "หยดใน 10 นาทีช่วยเลี่ยงความดันตกที่อาจเกิดจากการฉีดเร็ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving **TXA 1 g IV** while the 3-hour window is still open targets deaths from bleeding.",
+            "weigh": "TXA slows clot breakdown but does not close the bleeding point itself.",
+            "safety": ""
+          },
+          {
+            "strength": "You use the clock well: the benefit falls with each hour of delay after injury.",
+            "weigh": "The usual course adds a second 1 g over 8 hours, so this dose is only the start.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding an antifibrinolytic within the window treats a part of bleeding that units alone miss.",
+            "weigh": "Running it over 10 minutes avoids the drop in pressure a fast push can cause.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "อ่านอาการที่ไม่คงที่ว่า**เลือดยังออกอยู่** และให้ศัลยแพทย์เป็นแกนของแผน",
+            "weigh": "เลือดประคองได้เฉพาะขณะที่ยังให้อยู่ เวลาเดินทางจึงสำคัญพอ ๆ กับปริมาณเลือด",
+            "safety": ""
+          },
+          {
+            "strength": "ยอมรับว่าเลือดเป็นเพียงสะพาน แล้วพาเขาไปหาศัลยแพทย์ที่หยุดเลือดได้",
+            "weigh": "ผ่านไปหนึ่งชั่วโมงแล้ว งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เลือดเพิ่มคู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
+            "weigh": "เมื่อให้เลือดเร็ว ต้องเฝ้าดู เพราะความดันอาจตกลงอีกระหว่างถุง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Reading persistent instability as **still bleeding** puts a surgeon at the centre of the plan.",
+            "weigh": "Blood keeps him going only while it runs, so time on the road matters as much as volume.",
+            "safety": ""
+          },
+          {
+            "strength": "You accept that blood is a bridge and move him toward the surgeon who can stop it.",
+            "weigh": "An hour in, each extra task here should earn its place against the delay it causes.",
+            "safety": ""
+          },
+          {
+            "strength": "Matching more blood with a faster move addresses both his volume and the cause.",
+            "weigh": "Units given fast need watching, as his pressure can sag again between bags.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ทำ**FAST ข้างเตียง**ตอนนี้ ดูว่าของเหลวในท้องเพิ่มขึ้นหรือไม่ขณะอาการไม่คงที่",
+            "weigh": "ของเหลวที่มากขึ้นยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ",
+            "safety": ""
+          },
+          {
+            "strength": "ต้องการภาพในช่องท้องที่เป็นรูปธรรม ณ เวลาที่อาการยังไม่นิ่ง",
+            "weigh": "ภาพบอกได้ว่ามีของเหลว แต่บอกความเร็วของเลือดออกได้น้อยกว่าสัญญาณชีพ",
+            "safety": ""
+          },
+          {
+            "strength": "ตรวจข้างเตียง ผู้ป่วยไม่ต้องออกนอกห้องขณะเก็บหลักฐานเพิ่ม",
+            "weigh": "การตรวจใช้เวลาหลายนาที ซึ่งเขาอาจไม่มีหากเลือดยังออกในอัตรานี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **bedside FAST** now shows whether abdominal fluid is building while he stays unstable.",
+            "weigh": "More fluid confirms what his vital signs already suggest, so it should not hold him here.",
+            "safety": ""
+          },
+          {
+            "strength": "You seek an objective look inside the abdomen at the moment he is unsettled.",
+            "weigh": "The scan shows fluid but not the rate of bleeding, which his pulse and pressure show better.",
+            "safety": ""
+          },
+          {
+            "strength": "Imaging at the bedside keeps him in the room while you gather evidence.",
+            "weigh": "A scan takes minutes he may not have if the bleeding goes on at this pace.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ต้องการ**ตัวเลขไว้ติดตาม**การเสียเลือด แสดงว่าให้ค่ากับข้อมูลที่เป็นรูปธรรม",
+            "weigh": "ฮีโมโกลบินตามหลังการเสียเลือด ค่าที่ใกล้ปกติตอนนี้ไม่ได้แปลว่าเลือดหยุดแล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "พยายามบอกการเสียเลือดเป็นตัวเลข แทนการอาศัยความรู้สึก",
+            "weigh": "ความดันและชีพจรบอกการเสียเลือดอยู่แล้ว ผลแล็บจะมาหลังเวลาที่ต้องตัดสินใจ",
+            "safety": ""
+          },
+          {
+            "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
+            "weigh": "หลังให้เลือด ค่านี้ปนกันระหว่างเลือดที่ได้รับกับที่เสียไป จึงอาจแปลผลคลาดได้ตอนนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wanting a **number to track** the loss shows you value objective data.",
+            "weigh": "Haemoglobin lags behind bleeding, so a near-normal value now would not mean he has stopped.",
+            "safety": ""
+          },
+          {
+            "strength": "You aim to put a figure on the loss rather than rely on impression.",
+            "weigh": "His pressure and pulse already show the loss; a lab number will arrive after the decision is due.",
+            "safety": ""
+          },
+          {
+            "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
+            "weigh": "After transfusion the value mixes given and lost blood, so it can mislead at this point.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "**พยาบาลนำส่ง**พร้อมให้เลือด ทำให้การกู้ชีพไม่ขาดช่วงระหว่างเดินทาง",
+            "weigh": "ความดันอาจตกระหว่างทาง ผู้นำส่งจึงต้องรู้ชัดว่าเมื่อใดต้องลงมือ",
+            "safety": ""
+          },
+          {
+            "strength": "มองการเดินทางเป็นส่วนหนึ่งของการกู้ชีพ ไม่ใช่ช่องว่างของการดูแล",
+            "weigh": "ต้องมีเลือดไปพอสำหรับทั้งเส้นทางและความล่าช้าที่อาจเกิดขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เลือดต่อเนื่องและมีคนเฝ้าตลอดทาง ป้องกันการทรุดลงแบบเงียบ ๆ",
+            "weigh": "ผู้นำส่งตอบสนองได้ตามสิ่งที่วัดได้ การมีเครื่องติดตามบนรถจึงสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **trained escort** with blood running keeps resuscitation going through a risky stretch.",
+            "weigh": "His pressure can fall on the road, so the escort needs clear limits for when to act.",
+            "safety": ""
+          },
+          {
+            "strength": "You treat the journey as part of resuscitation rather than a gap in care.",
+            "weigh": "Enough blood must travel with him to cover the whole trip and any delay.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeping **blood running** and eyes on him all the way guards against a quiet relapse.",
+            "weigh": "The escort can only respond to what they can measure, so monitoring on board matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "โทรตรงทำให้**ศัลยแพทย์ปลายทาง**เตรียมห้องผ่าตัดได้ก่อนผู้ป่วยถึง",
+            "weigh": "การส่งต่อข้อมูลทางโทรศัพท์อย่างเป็นระบบ ช่วยให้ตัวเลขสำคัญไม่ตกหล่น",
+            "safety": ""
+          },
+          {
+            "strength": "ลดเวลาตั้งแต่ถึงประตูจนเข้าห้องผ่าตัด ด้วยการเตือนทีมล่วงหน้า",
+            "weigh": "การโทรมีประโยชน์มากเมื่อบอกแนวโน้มสัญญาณชีพ ไม่ใช่ความดันครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "คุยกับศัลยแพทย์โดยตรง ทำให้แผนผ่าตัดชัดก่อนออกเดินทาง",
+            "weigh": "ควรโทรไปพร้อมกับเตรียมออกเดินทาง เพื่อไม่ให้ผู้ป่วยต้องรออยู่ที่นี่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A direct call lets the **receiving surgeon** ready theatre before he arrives.",
+            "weigh": "A short, structured handover on the call makes sure the key numbers are heard.",
+            "safety": ""
+          },
+          {
+            "strength": "You shorten the time from door to theatre by warning the team in advance.",
+            "weigh": "The call adds most when it gives his trend, not just a single pressure reading.",
+            "safety": ""
+          },
+          {
+            "strength": "Speaking to the surgeon directly makes the plan for theatre clear before departure.",
+            "weigh": "Calling should run alongside departure so it never holds him at this hospital.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมปลายทางรู้เรื่องครบโดยไม่ต้องรอ",
+            "weigh": "ใบส่งตัวไม่ควรรอผลที่ค้าง เพราะเวลาออกเดินทางสำคัญกว่าในกรณีนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ทำให้ข้อมูลทุกอย่างที่ได้ที่นี่ไม่หายไประหว่างส่งต่อ",
+            "weigh": "ลำดับเวลาของสัญญาณชีพและการรักษาที่ให้ไป มีประโยชน์กว่ารายการผลตรวจยาว ๆ",
+            "safety": ""
+          },
+          {
+            "strength": "โทรแจ้ง**ผลที่ค้าง**ตามทีหลัง ทำให้ทีมปลายทางได้ข้อมูลล่าสุดเสมอ",
+            "weigh": "การเขียนใช้เวลาหลายนาที ควรทำคู่กับงานอื่น ไม่ใช่ทำก่อนแล้วค่อยออกเดินทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending **results so far** gives the receiving team the full story without delay.",
+            "weigh": "The letter should not wait for pending results, since departure time matters more here.",
+            "safety": ""
+          },
+          {
+            "strength": "You make sure nothing learned here is lost at handover.",
+            "weigh": "A clear timeline of vital signs and treatment given helps more than a long list of tests.",
+            "safety": ""
+          },
+          {
+            "strength": "Following up **pending results** by phone keeps the receiving team current.",
+            "weigh": "Writing takes minutes, so it is worth doing while other tasks proceed, not before them.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "แจ้งเรื่อง**แขนที่หัก** ทำให้การบาดเจ็บที่สองไม่ตกหล่นระหว่างส่งต่อ",
+            "weigh": "แขนรอถ่ายภาพที่ปลายทางได้ ช่องท้องคือสิ่งที่กำหนดว่าต้องเดินทางเร็วแค่ไหน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดไกลกว่าภาวะคุกคามตรงหน้า ไปถึงการใช้งานแขนในระยะยาว",
+            "weigh": "คำขอนี้ส่งต่อได้ง่าย แต่แทบไม่เปลี่ยนวิธีที่เขาเดินทางตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนล่วงหน้าให้**ศัลยแพทย์กระดูก** ช่วยการฟื้นตัวหลังคุมเลือดออกได้แล้ว",
+            "weigh": "ปลายแขนไม่ใช่สิ่งที่คุกคามชีวิต จึงไม่ควรกินเวลาจากการส่งต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Flagging the **broken arm** makes sure the second injury is not lost in the handover.",
+            "weigh": "The arm can wait for imaging there; the abdomen decides how fast he must travel.",
+            "safety": ""
+          },
+          {
+            "strength": "You think beyond the immediate threat to his longer-term use of the arm.",
+            "weigh": "This request is easy to pass on but adds little to how he travels now.",
+            "safety": ""
+          },
+          {
+            "strength": "Planning ahead for the **orthopaedic surgeons** helps his recovery once the bleeding is controlled.",
+            "weigh": "The forearm is not the threat to his life, so it should not take time from the transfer.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "**พยาบาลนำส่ง**พร้อมให้เลือด ทำให้การกู้ชีพไม่ขาดช่วงระหว่างเดินทาง",
+            "weigh": "ความดันอาจตกระหว่างทาง ผู้นำส่งจึงต้องรู้ชัดว่าเมื่อใดต้องลงมือ",
+            "safety": ""
+          },
+          {
+            "strength": "มองการเดินทางเป็นส่วนหนึ่งของการกู้ชีพ ไม่ใช่ช่องว่างของการดูแล",
+            "weigh": "ต้องมีเลือดไปพอสำหรับทั้งเส้นทางและความล่าช้าที่อาจเกิดขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เลือดต่อเนื่องและมีคนเฝ้าตลอดทาง ป้องกันการทรุดลงแบบเงียบ ๆ",
+            "weigh": "ผู้นำส่งตอบสนองได้ตามสิ่งที่วัดได้ การมีเครื่องติดตามบนรถจึงสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **trained escort** with blood running keeps resuscitation going through a risky stretch.",
+            "weigh": "His pressure can fall on the road, so the escort needs clear limits for when to act.",
+            "safety": ""
+          },
+          {
+            "strength": "You treat the journey as part of resuscitation rather than a gap in care.",
+            "weigh": "Enough blood must travel with him to cover the whole trip and any delay.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeping **blood running** and eyes on him all the way guards against a quiet relapse.",
+            "weigh": "The escort can only respond to what they can measure, so monitoring on board matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "โทรตรงทำให้**ศัลยแพทย์ปลายทาง**เตรียมห้องผ่าตัดได้ก่อนผู้ป่วยถึง",
+            "weigh": "การส่งต่อข้อมูลทางโทรศัพท์อย่างเป็นระบบ ช่วยให้ตัวเลขสำคัญไม่ตกหล่น",
+            "safety": ""
+          },
+          {
+            "strength": "ลดเวลาตั้งแต่ถึงประตูจนเข้าห้องผ่าตัด ด้วยการเตือนทีมล่วงหน้า",
+            "weigh": "การโทรมีประโยชน์มากเมื่อบอกแนวโน้มสัญญาณชีพ ไม่ใช่ความดันครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "คุยกับศัลยแพทย์โดยตรง ทำให้แผนผ่าตัดชัดก่อนออกเดินทาง",
+            "weigh": "ควรโทรไปพร้อมกับเตรียมออกเดินทาง เพื่อไม่ให้ผู้ป่วยต้องรออยู่ที่นี่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A direct call lets the **receiving surgeon** ready theatre before he arrives.",
+            "weigh": "A short, structured handover on the call makes sure the key numbers are heard.",
+            "safety": ""
+          },
+          {
+            "strength": "You shorten the time from door to theatre by warning the team in advance.",
+            "weigh": "The call adds most when it gives his trend, not just a single pressure reading.",
+            "safety": ""
+          },
+          {
+            "strength": "Speaking to the surgeon directly makes the plan for theatre clear before departure.",
+            "weigh": "Calling should run alongside departure so it never holds him at this hospital.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมปลายทางรู้เรื่องครบโดยไม่ต้องรอ",
+            "weigh": "ใบส่งตัวไม่ควรรอผลที่ค้าง เพราะเวลาออกเดินทางสำคัญกว่าในกรณีนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ทำให้ข้อมูลทุกอย่างที่ได้ที่นี่ไม่หายไประหว่างส่งต่อ",
+            "weigh": "ลำดับเวลาของสัญญาณชีพและการรักษาที่ให้ไป มีประโยชน์กว่ารายการผลตรวจยาว ๆ",
+            "safety": ""
+          },
+          {
+            "strength": "โทรแจ้ง**ผลที่ค้าง**ตามทีหลัง ทำให้ทีมปลายทางได้ข้อมูลล่าสุดเสมอ",
+            "weigh": "การเขียนใช้เวลาหลายนาที ควรทำคู่กับงานอื่น ไม่ใช่ทำก่อนแล้วค่อยออกเดินทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending **results so far** gives the receiving team the full story without delay.",
+            "weigh": "The letter should not wait for pending results, since departure time matters more here.",
+            "safety": ""
+          },
+          {
+            "strength": "You make sure nothing learned here is lost at handover.",
+            "weigh": "A clear timeline of vital signs and treatment given helps more than a long list of tests.",
+            "safety": ""
+          },
+          {
+            "strength": "Following up **pending results** by phone keeps the receiving team current.",
+            "weigh": "Writing takes minutes, so it is worth doing while other tasks proceed, not before them.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "แจ้งเรื่อง**แขนที่หัก** ทำให้การบาดเจ็บที่สองไม่ตกหล่นระหว่างส่งต่อ",
+            "weigh": "แขนรอถ่ายภาพที่ปลายทางได้ ช่องท้องคือสิ่งที่กำหนดว่าต้องเดินทางเร็วแค่ไหน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดไกลกว่าภาวะคุกคามตรงหน้า ไปถึงการใช้งานแขนในระยะยาว",
+            "weigh": "คำขอนี้ส่งต่อได้ง่าย แต่แทบไม่เปลี่ยนวิธีที่เขาเดินทางตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนล่วงหน้าให้**ศัลยแพทย์กระดูก** ช่วยการฟื้นตัวหลังคุมเลือดออกได้แล้ว",
+            "weigh": "ปลายแขนไม่ใช่สิ่งที่คุกคามชีวิต จึงไม่ควรกินเวลาจากการส่งต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Flagging the **broken arm** makes sure the second injury is not lost in the handover.",
+            "weigh": "The arm can wait for imaging there; the abdomen decides how fast he must travel.",
+            "safety": ""
+          },
+          {
+            "strength": "You think beyond the immediate threat to his longer-term use of the arm.",
+            "weigh": "This request is easy to pass on but adds little to how he travels now.",
+            "safety": ""
+          },
+          {
+            "strength": "Planning ahead for the **orthopaedic surgeons** helps his recovery once the bleeding is controlled.",
+            "weigh": "The forearm is not the threat to his life, so it should not take time from the transfer.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "ตัดสินใจ**ออกทันที** ให้การผ่าตัดซึ่งหยุดเลือดได้มาก่อนทุกอย่าง",
+            "weigh": "ออกเร็วก็ยังต้องมีเลือดไปพอสำหรับทั้งเส้นทาง",
+            "safety": ""
+          },
+          {
+            "strength": "ชั่งนาทีกับงานที่ต้องทำ และให้เลือดที่ออกเป็นตัวกำหนดเวลา",
+            "weigh": "ทีมที่ออกอย่างเร่งรีบต้องรู้ชัดว่าจะทำอะไรหากความดันตกลงอีก",
+            "safety": ""
+          },
+          {
+            "strength": "ออกเดินทางพร้อมเลือดและ**พยาบาล** ทำให้การกู้ชีพไม่หยุดขณะเข้าใกล้ห้องผ่าตัด",
+            "weigh": "ความเร็วมีประโยชน์เมื่อการเดินทางเองปลอดภัย มีการติดตามอาการบนรถ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing to **leave now** puts surgery, what stops this bleeding, ahead of everything else.",
+            "weigh": "Leaving fast still needs enough blood on board for the whole trip.",
+            "safety": ""
+          },
+          {
+            "strength": "You weigh minutes against tasks and let the bleeding set the timetable.",
+            "weigh": "A crew leaving in haste needs clear limits for when to act if his pressure drops further.",
+            "safety": ""
+          },
+          {
+            "strength": "Departing with blood and a **nurse escort** keeps resuscitation going as you close the distance to theatre.",
+            "weigh": "Speed helps only if the trip itself is safe, with monitoring on board.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "โทรตรงทำให้**ศัลยแพทย์ปลายทาง**เตรียมห้องผ่าตัดได้ก่อนผู้ป่วยถึง",
+            "weigh": "การส่งต่อข้อมูลทางโทรศัพท์อย่างเป็นระบบ ช่วยให้ตัวเลขสำคัญไม่ตกหล่น",
+            "safety": ""
+          },
+          {
+            "strength": "ลดเวลาตั้งแต่ถึงประตูจนเข้าห้องผ่าตัด ด้วยการเตือนทีมล่วงหน้า",
+            "weigh": "การโทรมีประโยชน์มากเมื่อบอกแนวโน้มสัญญาณชีพ ไม่ใช่ความดันครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "คุยกับศัลยแพทย์โดยตรง ทำให้แผนผ่าตัดชัดก่อนออกเดินทาง",
+            "weigh": "ควรโทรไปพร้อมกับเตรียมออกเดินทาง เพื่อไม่ให้ผู้ป่วยต้องรออยู่ที่นี่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A direct call lets the **receiving surgeon** ready theatre before he arrives.",
+            "weigh": "A short, structured handover on the call makes sure the key numbers are heard.",
+            "safety": ""
+          },
+          {
+            "strength": "You shorten the time from door to theatre by warning the team in advance.",
+            "weigh": "The call adds most when it gives his trend, not just a single pressure reading.",
+            "safety": ""
+          },
+          {
+            "strength": "Speaking to the surgeon directly makes the plan for theatre clear before departure.",
+            "weigh": "Calling should run alongside departure so it never holds him at this hospital.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมปลายทางรู้เรื่องครบโดยไม่ต้องรอ",
+            "weigh": "ใบส่งตัวไม่ควรรอผลที่ค้าง เพราะเวลาออกเดินทางสำคัญกว่าในกรณีนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ทำให้ข้อมูลทุกอย่างที่ได้ที่นี่ไม่หายไประหว่างส่งต่อ",
+            "weigh": "ลำดับเวลาของสัญญาณชีพและการรักษาที่ให้ไป มีประโยชน์กว่ารายการผลตรวจยาว ๆ",
+            "safety": ""
+          },
+          {
+            "strength": "โทรแจ้ง**ผลที่ค้าง**ตามทีหลัง ทำให้ทีมปลายทางได้ข้อมูลล่าสุดเสมอ",
+            "weigh": "การเขียนใช้เวลาหลายนาที ควรทำคู่กับงานอื่น ไม่ใช่ทำก่อนแล้วค่อยออกเดินทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending **results so far** gives the receiving team the full story without delay.",
+            "weigh": "The letter should not wait for pending results, since departure time matters more here.",
+            "safety": ""
+          },
+          {
+            "strength": "You make sure nothing learned here is lost at handover.",
+            "weigh": "A clear timeline of vital signs and treatment given helps more than a long list of tests.",
+            "safety": ""
+          },
+          {
+            "strength": "Following up **pending results** by phone keeps the receiving team current.",
+            "weigh": "Writing takes minutes, so it is worth doing while other tasks proceed, not before them.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "แจ้งเรื่อง**แขนที่หัก** ทำให้การบาดเจ็บที่สองไม่ตกหล่นระหว่างส่งต่อ",
+            "weigh": "แขนรอถ่ายภาพที่ปลายทางได้ ช่องท้องคือสิ่งที่กำหนดว่าต้องเดินทางเร็วแค่ไหน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดไกลกว่าภาวะคุกคามตรงหน้า ไปถึงการใช้งานแขนในระยะยาว",
+            "weigh": "คำขอนี้ส่งต่อได้ง่าย แต่แทบไม่เปลี่ยนวิธีที่เขาเดินทางตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนล่วงหน้าให้**ศัลยแพทย์กระดูก** ช่วยการฟื้นตัวหลังคุมเลือดออกได้แล้ว",
+            "weigh": "ปลายแขนไม่ใช่สิ่งที่คุกคามชีวิต จึงไม่ควรกินเวลาจากการส่งต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Flagging the **broken arm** makes sure the second injury is not lost in the handover.",
+            "weigh": "The arm can wait for imaging there; the abdomen decides how fast he must travel.",
+            "safety": ""
+          },
+          {
+            "strength": "You think beyond the immediate threat to his longer-term use of the arm.",
+            "weigh": "This request is easy to pass on but adds little to how he travels now.",
+            "safety": ""
+          },
+          {
+            "strength": "Planning ahead for the **orthopaedic surgeons** helps his recovery once the bleeding is controlled.",
+            "weigh": "The forearm is not the threat to his life, so it should not take time from the transfer.",
+            "safety": ""
+          }
+        ]
+      }
+    }
+  },
+  "safety_review": {
+    "model": "claude-opus-5-5",
+    "date": "2026-11-14",
+    "findings": "One claude-opus-5-5 reviewer that did not write the replies read every reply in all 13 banks, every option, all 3 alternatives, in Thai and English, against each bank's question variants. Sources opened: European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023, PMC9977110: Rec 13 systolic 80-90 mmHg without brain injury, Rec 15 restricted crystalloid, Rec 23 TXA within 3 h, 1 g over 10 min then 1 g over 8 h); CRASH-2 timing analysis (Lancet 2011, via secondary summaries: death from bleeding RR 0.68 within 1 h, 0.79 at 1-3 h, 1.44 after 3 h); Cyklokapron prescribing information (Pfizer, Medsafe: hypotension with rapid IV injection, no faster than 1 mL/min, so 1 g over 10 min). WHO Basic Emergency Care and Thai sources were not reopened; the case's own review cites them. Every TXA figure in the replies matches these sources. No reply reassures about a harmful action or delays needed treatment; no option is unsafe, so no safety sentence is needed. No reply ranks or grades an option, names an absent drug or test, or asks a question. Judged acceptable: the step3 option e weigh lines describe early clot breakdown and benefit within 3 h without naming TXA (the real gap in that option, not a step preview); the step3 option c weigh lines frame 1 L of saline as a ceiling, consistent with Rec 15 and the ATLS 10th ed. 1 L initial bolus. Non-blocking notes for a later edit: step3.b [1] calls near 90 a floor, while Rec 13 allows 80-90; step3.e en[1] strength says the two things he needs most (Thai has no most) and weigh says clot breakdown drives trauma bleeding (overstated; Thai says keeps it going); step2.W.a th[1] weigh adds trachea central, absent from the English and from question v2; step4.W.b [1] weigh says an hour in, stated only in question v1; step1.e [1] weigh lists talking and alert, which do not argue against neurogenic shock; step4.R.b [0] strength says blood only avoids dilution where the option line says limits; step3.e th[0] weigh uses a bare การชะลอ with no object, which could read as delay. Case-level, not a reply issue: on the path step3 e then step4.W b, c or d no TXA is ever given, which the case review's claim that TXA is loaded once on every path does not cover. Tree sha256 49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18. Replies sha256 05207ca1bc3f0a76ad8f3724ab7ed621a1a6f1a3c9486e02058b07a01ef9c3d0.",
+    "tree_sha256": "49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18",
+    "replies_sha256": "05207ca1bc3f0a76ad8f3724ab7ed621a1a6f1a3c9486e02058b07a01ef9c3d0"
+  }
+}

@@ -20,13 +20,14 @@
 #   TAILSCALE_BIN  Tailscale CLI (default /Applications/Tailscale.app/Contents/MacOS/Tailscale). On macOS
 #                  `tailscale ssh` needs the Standalone variant; the App Store variant does not have it.
 #
-# What it does: git archive of backend/ rimpl/ deploy/vm1/ at the ref -> Tailscale SSH -> preflight ->
-# /opt/clics/releases/<sha> -> activate, started DETACHED on vm1 (a systemd transient unit) and followed
-# from here: docker compose -p clics build -> rimpl up -> gate 1 (rimpl healthy, INTERNAL_TOKEN matches)
-# -> backend up -> gate 2 (/health/deep says backend, rimpl up, Supabase up) -> /opt/clics/current flips.
+# What it does: git archive of backend/ rimpl/ physician-ui/ audit-dashboard/ deploy/vm1/ at the ref ->
+# Tailscale SSH -> preflight -> /opt/clics/releases/<sha> -> activate, started DETACHED on vm1 (a systemd
+# transient unit) and followed from here: docker compose -p clics build -> rimpl up -> gate 1 (rimpl
+# healthy, INTERNAL_TOKEN matches) -> backend up -> gate 2 (/health/deep says backend, rimpl up, Supabase
+# up) -> Portal and dashboard up, each answering on its loopback port only -> /opt/clics/current flips.
 # Any failure restores the previous release in that same order: its backend starts again if its rimpl
 # accepts INTERNAL_TOKEN (healthy or only degraded), and is left STOPPED if it does not (on a first
-# deploy, CLICS is stopped). A signal on vm1 (systemctl stop, a reboot) is recorded as a failure and
+# deploy, CLICS is stopped); its Portal and dashboard start again, or this run's are stopped if it had none. A signal on vm1 (systemctl stop, a reboot) is recorded as a failure and
 # restores nothing. A dropped connection stops only the following, never the activation.
 #
 # What it never does: copy an env file (they live in /opt/clics/env, placed by a human), need GitHub
@@ -144,7 +145,7 @@ trap 'rm -rf "$TMP"' EXIT
 # ---- the release tarball (deploy only) ------------------------------------------------------------
 TARBALL="$TMP/release-$SHA.tgz"
 if [ "$MODE" = deploy ]; then
-  git -C "$REPO" archive --format=tar "$SHA" -- backend rimpl deploy/vm1 | gzip -n > "$TARBALL"
+  git -C "$REPO" archive --format=tar "$SHA" -- backend rimpl physician-ui audit-dashboard deploy/vm1 | gzip -n > "$TARBALL"
   # git archive ships tracked files only, and no env file is tracked. Refuse anyway if one ever is.
   # The listing goes to a file first: `tar | grep -q` under pipefail can lose a match to SIGPIPE.
   tar -tzf "$TARBALL" > "$TMP/listing"

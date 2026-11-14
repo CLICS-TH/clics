@@ -39,12 +39,12 @@ export function canAudit(u?: Pick<ClicsUser, 'role' | 'can_audit'> | null): bool
   return !!u && (u.role === 'auditor' || (u.role === 'physician' && !!u.can_audit));
 }
 
-// Drops this origin's session but keeps the theme/view display prefs (mirror the Portal's
-// /login?logout=1 handler), so signing out doesn't reset a dark-mode user to light.
+// The Portal and the dashboard share one origin, so this is the Portal's session too. Display prefs survive,
+// as in the Portal's clearPortalSession (physician-ui/public/js/api.js), so signing out keeps dark mode.
+const KEPT_PREFS = ['clics_theme', 'clics_view', 'clics_manual_lang'];
+
 export function clearSession(): void {
-  const theme = localStorage.getItem('clics_theme');
-  const view = localStorage.getItem('clics_view');
+  const kept = KEPT_PREFS.map(k => [k, localStorage.getItem(k)] as const).filter(([, v]) => v);
   localStorage.clear();
-  if (theme) localStorage.setItem('clics_theme', theme);
-  if (view) localStorage.setItem('clics_view', view);
+  for (const [k, v] of kept) localStorage.setItem(k, v as string);
 }

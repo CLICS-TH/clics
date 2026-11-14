@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
 import { getUser } from '@/lib/auth';
@@ -509,7 +510,7 @@ export default function UsersPage() {
   const IconBtn = ({ icon, title, onClick, disabled, href }: { icon: React.ReactNode; title: string; onClick?: () => void; disabled?: boolean; href?: string }) => {
     const cls = 'w-8 h-8 inline-flex items-center justify-center border border-border rounded-md leading-none hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent [&_svg]:size-4';
     return href
-      ? <a href={href} title={title} aria-label={title} className={cls}>{icon}</a>
+      ? <Link href={href} title={title} aria-label={title} className={cls}>{icon}</Link>
       : <button type="button" title={title} aria-label={title} onClick={onClick} disabled={disabled} className={cls}>{icon}</button>;
   };
 

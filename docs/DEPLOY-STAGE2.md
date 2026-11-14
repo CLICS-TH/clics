@@ -40,6 +40,9 @@ structured patient intake, reconcile sweep.
 ```bash
 cd backend         && railway up . --path-as-root --service backend --ci
 cd ../rimpl        && railway up . --path-as-root --service rimpl   --ci
+# The two Vercel lines: before the vm1 cutover, from a pre-#429 ref only (the Portal from one before #472,
+# deploy/vm1/README.md §5). From #429 on, both vercel.json files redirect to https://clics.ccme.or.th, so
+# these lines would move every user there; after the cutover the front ends deploy to vm1 (deploy/vm1/deploy.sh).
 cd ../audit-dashboard && vercel --prod --yes
 cd ../physician-ui    && vercel --prod --yes
 curl https://<backend>/health        # {"status":"ok"}

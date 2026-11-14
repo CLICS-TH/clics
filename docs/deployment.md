@@ -1,6 +1,6 @@
 # Deployment
 
-Deploys run from the **local working tree** (not GitHub). **Production stays on Railway until the owner runs the vm1 cutover** (ADR 0002, runbook [`deploy/vm1/README.md`](../deploy/vm1/README.md)). After it, backend + RIMPL run on vm1 as the `clics` compose project behind `https://clics.ccme.or.th`, Railway (project `CLICS-Pilot`) is the rollback for 7 days and is then stopped. Both front-ends are on **Vercel**.
+Deploys run from the **local working tree** (not GitHub). **Production stays on Railway until the owner runs the vm1 cutover** (ADR 0002, runbook [`deploy/vm1/README.md`](../deploy/vm1/README.md)). After it, everything runs on vm1 as the `clics` compose project behind one origin, `https://clics.ccme.or.th` (#429): the Portal at `/`, the audit-dashboard at `/audit`, the backend at `/api`. Railway (project `CLICS-Pilot`) is the rollback for 7 days and is then stopped, and the two Vercel projects become redirects to the new origin. Until then both front-ends are on **Vercel**.
 
 ## Live URLs
 
@@ -9,15 +9,20 @@ Deploys run from the **local working tree** (not GitHub). **Production stays on 
 | Physician portal | https://physician-ui.vercel.app |
 | Audit dashboard (Admin / Superadmin / Auditor) | https://audit-dashboard-rouge.vercel.app |
 | Backend API (production) | https://backend-production-c12e4.up.railway.app |
-| Backend API on vm1 (after the owner's cutover) | https://clics.ccme.or.th |
+| On vm1, after the owner's cutover: Portal, dashboard, API | https://clics.ccme.or.th, `/audit`, `/api` |
 | RIMPL | internal-only: `rimpl.railway.internal:3003` today, vm1's docker network after the cutover |
 
 ## vm1 (Topology B): prepared, cutover is the owner's
 
-Backend + RIMPL can run as one Docker Compose project on vm1 ([ADR 0002](adr/0002-vm1-topology-b.md)) behind
-`https://clics.ccme.or.th`. Until the owner runs the cutover, production is the Railway deployment below. Deploy, cutover and rollback are in [`deploy/vm1/README.md`](../deploy/vm1/README.md);
+Backend, RIMPL, the Portal and the audit-dashboard run as one Docker Compose project on vm1
+([ADR 0002](adr/0002-vm1-topology-b.md)) behind `https://clics.ccme.or.th`. The host nginx sends `/api/` to the
+backend (prefix stripped), `/audit/` to the dashboard (a Next standalone server with `basePath: '/audit'`) and
+everything else to the Portal's own nginx. Sharing the origin, the dashboard reads the session the Portal's
+sign-in stored in `localStorage`; no token travels in a URL. Until the owner runs the cutover, production is the Railway deployment below. Deploy, cutover and rollback are in [`deploy/vm1/README.md`](../deploy/vm1/README.md);
 the public origin is proven by `node scripts/deploy/cutover-check.mjs` (add `--stream` for the one-turn SSE check).
-The Portal's API URL is `physician-ui/public/js/config.js`; the dashboard's is `NEXT_PUBLIC_API_URL` on Vercel.
+Both front ends call `/api` on their own origin (`physician-ui/public/js/config.js`; the dashboard's
+`NEXT_PUBLIC_API_URL`, which defaults to `/api`). Locally, `npm run dev` adds the same routing on
+`http://localhost:3080` (`scripts/dev/one-origin.mjs`); open the app there to hand off to the dashboard.
 Every script reads the API origin from `scripts/lib/api-origin.cjs` (override: `CLICS_API_ORIGIN`).
 Sign-in and the database stay in Supabase (Tokyo) until #427 and #432. The Railway commands below are today's
 deploy path and, after the cutover, the rollback, which keeps running unchanged for 7 days.
@@ -29,19 +34,23 @@ deploy path and, after the cutover, the rollback, which keeps running unchanged 
   - RIMPL: `cd rimpl && railway up . --path-as-root --service rimpl --ci`
   - **Never omit `--service`.** Without it the CLI deploys to whatever service the directory is linked to. On 2026-10-14 `rimpl/` was linked to `backend`, so a rimpl deploy replaced the backend: the public URL answered `"service":"rimpl"` with a 503 until the backend was redeployed. After any backend deploy, check `curl -s https://backend-production-c12e4.up.railway.app/health/deep` (Railway) or `https://clics.ccme.or.th/health/deep` (vm1) reports `"service":"backend"`.
   - `railway up` often prints a `reqwest timeout` even on success — verify with `railway status --json` (look for a fresh active deployment), not the CLI message.
-- **Front-ends:** **the Portal's `config.js` already names vm1, so a Portal deploy sends every page to `https://clics.ccme.or.th`. Do not deploy it before `node scripts/deploy/cutover-check.mjs` passes** (`deploy/vm1/README.md` cutover step 2). `cd audit-dashboard && vercel --prod --yes`, **then** `cd physician-ui && vercel --prod --yes`.
-  - **Deploy the audit-dashboard first, or both together (owner ruling, 2026-10-27, #202).** Portal Sign out now leaves through the dashboard's `/login?logout=1` so a dual-role user's dashboard session ends too. A Portal deployed ahead of the dashboard sends that Sign out to an old dashboard build that does not clear its session.
-- **The audit-dashboard needs `NEXT_PUBLIC_API_URL` set on Vercel** or its login silently hangs in prod (build inlines the `localhost:3001` fallback). Cutover step 3 sets it to `https://clics.ccme.or.th`; do not set it earlier. To (re)set it:
-  ```bash
-  echo "https://clics.ccme.or.th" | vercel env add NEXT_PUBLIC_API_URL production
-  cd audit-dashboard && vercel --prod --yes   # NEXT_PUBLIC_* is inlined at build time
-  ```
-  physician-ui is unaffected (uses hardcoded `public/js/config.js`).
-- **`NEXT_PUBLIC_PORTAL_URL`** is the Portal origin the audit-dashboard sends people to: a bare `/login` visit goes to `<portal>/login`, Logout to `<portal>/login?logout=1`, Return to Physician to `<portal>/dashboard`. Default `https://physician-ui.vercel.app`, no trailing slash. It is inlined at build time like `NEXT_PUBLIC_API_URL`, so a change on Vercel needs a rebuild.
+- **Front-ends on vm1** deploy with the backend: `deploy/vm1/deploy.sh` builds the `portal` and `dashboard`
+  images from the same commit and starts them after the backend's gates. Nothing else to deploy.
+- **Vercel is redirects only.** `physician-ui/vercel.json` sends every path 1:1 to `https://clics.ccme.or.th`
+  (query string included: invite links carry `?token=<invite>`); `audit-dashboard/vercel.json` sends every
+  path under `/audit/` and blanks a `?token=` (it was a session). The owner deploys both at cutover step 4
+  (`vercel --prod --yes` in each directory). A Vercel deploy of this repo before then moves the users early,
+  so until that step a front-end deploy to Vercel comes from a pre-#429 ref (the Portal's from one before #472,
+  `deploy/vm1/README.md` §5); after it the front ends deploy to vm1 only.
+- **`NEXT_PUBLIC_API_URL`** (dashboard, inlined at build time): unset means `/api` on the dashboard's own
+  origin, which is right on vm1 and behind `npm run dev`'s `:3080`. Set it only to point a local build at
+  another backend (e.g. `http://localhost:3001`).
+- **`NEXT_PUBLIC_PORTAL_URL`**: unset (the default) means the Portal is on the same origin; the dashboard
+  sends a bare `/audit/login` to `/login`, Logout to `/login?logout=1`, Return to Physician to `/dashboard`.
 
 ## Required env vars
 
-- **backend** (Railway variables, kept for the rollback; vm1's `backend.env` omits `RIMPL_URL`, compose sets it, see `deploy/vm1/README.md`): `INTERNAL_TOKEN`, `RIMPL_URL=http://rimpl.railway.internal:3003`, `SITE_URL` (portal origin for invite-accept links + the password-reset redirect — `https://physician-ui.vercel.app`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `ALLOWED_ORIGINS` (both Vercel origins), `IDENTITY_ENC_KEY` (AES-256-GCM key for the OAuth identity vault — long random string), `GUEST_TOKEN_SECRET` (HMAC secret for ephemeral guest tokens). **The prod boot check now refuses to start if `RIMPL_URL`, `SITE_URL`, `SUPABASE_ANON_KEY`, or any of the above are missing** (they otherwise fall back to localhost/insecure-dev silently). The last two MUST be set in prod (the backend uses an insecure dev fallback only when `NODE_ENV` ≠ `production`); generate each with e.g. `openssl rand -base64 48`.
+- **backend** (Railway variables, kept for the rollback; vm1's `backend.env` omits `RIMPL_URL`, compose sets it, see `deploy/vm1/README.md`): `INTERNAL_TOKEN`, `RIMPL_URL=http://rimpl.railway.internal:3003`, `SITE_URL` (portal origin for invite-accept links + the password-reset redirect — `https://physician-ui.vercel.app` on Railway, `https://clics.ccme.or.th` on vm1), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `ALLOWED_ORIGINS` (both Vercel origins on Railway; `https://clics.ccme.or.th` on vm1), `IDENTITY_ENC_KEY` (AES-256-GCM key for the OAuth identity vault — long random string), `GUEST_TOKEN_SECRET` (HMAC secret for ephemeral guest tokens). **The prod boot check now refuses to start if `RIMPL_URL`, `SITE_URL`, `SUPABASE_ANON_KEY`, or any of the above are missing** (they otherwise fall back to localhost/insecure-dev silently). The last two MUST be set in prod (the backend uses an insecure dev fallback only when `NODE_ENV` ≠ `production`); generate each with e.g. `openssl rand -base64 48`.
 - **backend, evaluation queue (2026-09-02, optional — defaults shown):** `EVAL_DRAIN_INTERVAL_MS=60000`, `EVAL_DRAIN_CONCURRENCY=1`, `EVAL_LEASE_S=600`, `EVAL_MAX_ATTEMPTS=20`, `RIMPL_EVAL_TIMEOUT_MS=480000`, `RIMPL_CRITERIA_TIMEOUT_MS=180000`. **Never set `EVAL_DRAIN_ONLY_COUNCILS` in prod — the backend refuses to start.**
 - **rimpl, on-prem model over Tailscale (2026-09-03, TESTING ONLY):** `TS_AUTHKEY` (ephemeral,
   pre-authorised, tagged), `TS_HOSTNAME=clics-rimpl`, `TS_PROXY_PORT=1055`,
@@ -73,7 +82,7 @@ deploy path and, after the cutover, the rollback, which keeps running unchanged 
   the same value; on vm1 the preflight refuses it on in `backend.env` and off in `rimpl.env`.
 - **backend, `/health/deep` queue verdict (2026-09-03, optional — defaults shown):** `HEALTH_PROBE_TIMEOUT_MS=2000`, `HEALTH_QUEUE_STUCK_S=900`, `HEALTH_QUEUE_STUCK_ETA_MULTIPLE=3`. The evaluation queue can now fail the verdict, so `/health/deep` answering 200 finally means the drain is claiming work. The stuck grace is `max(HEALTH_QUEUE_STUCK_S, predicted_wait × multiple)` where the prediction uses the same `eval_drain_concurrency` / `eval_p50_seconds` the physician's queue ETA uses — raise the multiple if a legitimate cohort backlog ever reads red.
 - **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`. Local-model lanes (optional, defaults): `LOCAL_MAX_CONCURRENCY=2`, `LOCAL_INTERACTIVE_RESERVE=1`, `LOCAL_MAX_QUEUE_INTERACTIVE=4`, `LOCAL_MAX_QUEUE_BACKGROUND=2`, `RIMPL_BODY_LIMIT=2mb`. `RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS` (default `50000`): a language-only or evidence-only chat retry that would start later than this into the turn is skipped and the first reply is delivered. Keep it at about **half the backend's `RIMPL_CHAT_TIMEOUT_MS`** (50000 for the default 100000; about 75000 on the local stack, where `RIMPL_CHAT_TIMEOUT_MS=150000` per `docs/GATE0-DGX-RESULTS.md`), and change the two together. It applies to the **language retry even with `chat_evidence_marker` off**. `RIMPL_CHAT_DEEP_MAX_TOKENS` (default `RIMPL_CHAT_MAX_TOKENS` + 4000 = `8000`, never below the fast ceiling): the `max_tokens` of a chat turn the router serves deep with thinking on, since reasoning tokens count against it. Read only when `chat_router_enabled` = 1 and the chat provider can think. **Never set `PROVIDER_SETTINGS_SOURCE=env` in prod (rimpl refuses to boot); leave `CHAT_FAILOVER_PROVIDER` unset (CREC decision pending).**
-- **audit-dashboard** (Vercel): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_PORTAL_URL` (Portal origin, default `https://physician-ui.vercel.app`, no trailing slash).
+- **audit-dashboard**: none required. `NEXT_PUBLIC_API_URL` (default `/api`) and `NEXT_PUBLIC_PORTAL_URL` (default: same origin) are overrides for local builds.
 
 ## Seed the 4 role accounts (idempotent)
 
@@ -147,7 +156,8 @@ booth card's audit counts read. Production did not have it on 2026-11-10. Run in
 2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then `/health/deep` reports
    `"service":"backend"`.
 3. **Dashboard.** `cd audit-dashboard && vercel --prod --yes`. This is what shows auditors the "Booth case studies"
-   link.
+   link. Before the vm1 cutover deploy it only from a pre-#429 ref: from #429 on this ships the redirect to
+   `https://clics.ccme.or.th`. After the cutover the dashboard deploys to vm1 with `deploy/vm1/deploy.sh`.
 
 Until the migration is applied, every `/auditor/booth` call (queue, study and submit) answers 502, and the
 superadmin booth card shows "—" for audits. The kiosk never reads `booth_audits`, so plays are unaffected.
@@ -160,7 +170,9 @@ CLICS token. The backend is unaffected: it uses the service-role key. **Deploy t
 owner applies the migration.** The backend reports `not_installed` until the function exists. Run in this order:
 
 1. **Dashboard.** This round does not change it. Check that #228's build (`25cb3061`) is the live production
-   dashboard. If it is not, deploy the dashboard first (`cd audit-dashboard && vercel --prod --yes`).
+   dashboard. If it is not, deploy the dashboard first (`cd audit-dashboard && vercel --prod --yes`, from a
+   pre-#429 ref only: from #429 on this ships the redirect to `https://clics.ccme.or.th`; after the vm1 cutover
+   the dashboard deploys to vm1 with `deploy/vm1/deploy.sh`).
 2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then
    `curl -s https://backend-production-c12e4.up.railway.app/health/deep` (this step deploys to Railway; use the vm1 origin once Railway is stopped) reports `"service":"backend"` and
    `checks.postgrest_surface.status` is `"not_installed"`.
@@ -182,6 +194,8 @@ owner applies the migration.** The backend reports `not_installed` until the fun
    The function reads catalog metadata only, never a table row. Only `service_role` can execute it.
 7. **Portal.** Deploy the Privacy page change (`cd physician-ui && vercel --prod --yes`) only after production
    reads `closed`. Until then the page's auditor line would claim a protection the database does not have.
+   Before the vm1 cutover deploy it only from a pre-#429 ref (one before #472, `deploy/vm1/README.md` §5): from
+   #429 on this ships the redirect to `https://clics.ccme.or.th`. After the cutover the Portal deploys to vm1.
 
 The migration header records whether `supabase_admin`'s default privileges could be changed. If they could not,
 a table created later through the dashboard can reopen the surface. `checks.postgrest_surface` covers that

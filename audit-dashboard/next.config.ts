@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { BASE_PATH } from "./lib/base-path";
 
 const nextConfig: NextConfig = {
+  basePath: BASE_PATH,
+  // vm1 runs the dashboard as `node server.js` from the standalone bundle (deploy/vm1/dashboard.Dockerfile).
+  output: 'standalone',
+  // The image optimizer writes a cache under .next/, and the vm1 container's root is read-only.
+  images: { unoptimized: true },
   // Pin the workspace root to THIS directory. The repo root now also has a package-lock.json (for the
   // one-command `npm run dev` dev stack), so without this Next detects multiple lockfiles and infers the
   // repo root — which mis-resolves modules under Turbopack dev and over-traces the serverless output.

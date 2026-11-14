@@ -21,6 +21,7 @@
  * services/integrity.js is explicit that an uncalibrated threshold eventually accuses someone
  * wrongly.
  */
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { PageIntro } from '@/components/PageIntro';
@@ -359,9 +360,9 @@ export default function IntegrityQueuePage() {
               {/* Reading the transcript is the action. There is deliberately no decision button:
                   this queue routes work to a person, and the person's job is to read. */}
               <div className="mt-3 border-t border-border pt-3">
-                <a href={`/admin/ples?id=${r.id}`} className="text-sm text-link underline underline-offset-2">
+                <Link href={`/admin/ples?id=${r.id}`} className="text-sm text-link underline underline-offset-2">
                   <BiLabel th="อ่านบทสนทนา" en="Read the transcript" /> →
-                </a>
+                </Link>
               </div>
             </Card>
           );

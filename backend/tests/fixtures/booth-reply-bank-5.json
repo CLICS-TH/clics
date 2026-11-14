@@ -1,0 +1,1946 @@
+{
+  "case_id": "cap-adult-5",
+  "replies": {
+    "step1": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ e แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ e แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ e แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of e, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of e, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of e, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step2.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step2.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step2.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ e แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ e แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ e แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of e, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of e, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of e, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step3.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step3.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step3.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ e แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ e แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ e แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of e, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of e, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of e, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step4.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step4.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step4.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step5.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step5.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    },
+    "step5.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ a แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ a แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of a, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of a, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ b แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ b แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of b, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of b, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ c แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ c แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of c, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of c, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "จุดเด่นของ d แบบที่หนึ่ง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่หนึ่ง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สอง",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สอง",
+            "safety": ""
+          },
+          {
+            "strength": "จุดเด่นของ d แบบที่สาม",
+            "weigh": "ข้อที่ควรชั่งน้ำหนักแบบที่สาม",
+            "safety": "ระวังผลข้างเคียง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Strength of d, take one.",
+            "weigh": "Worth weighing, take one.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take two.",
+            "weigh": "Worth weighing, take two.",
+            "safety": ""
+          },
+          {
+            "strength": "Strength of d, take three.",
+            "weigh": "Worth weighing, take three.",
+            "safety": "Mind the side effects."
+          }
+        ]
+      }
+    }
+  },
+  "safety_review": {
+    "model": "fixture",
+    "date": "2026-11-14",
+    "findings": "Test fixture. No safety review was run. Tree sha256 a4c5f10905bab59f5479da49bb8f52cef2c31453b0c21f75803c7cff264df5b8. Replies sha256 f044ab378de75dd574513bd4a3ad92e4a966ab86e469cbffc5d4769510f36b1b.",
+    "tree_sha256": "a4c5f10905bab59f5479da49bb8f52cef2c31453b0c21f75803c7cff264df5b8",
+    "replies_sha256": "f044ab378de75dd574513bd4a3ad92e4a966ab86e469cbffc5d4769510f36b1b"
+  }
+}

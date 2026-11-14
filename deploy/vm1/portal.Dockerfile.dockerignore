@@ -1,0 +1,3 @@
+*
+!physician-ui/public
+!deploy/vm1/portal.nginx.conf

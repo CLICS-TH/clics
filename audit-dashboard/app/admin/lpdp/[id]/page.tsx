@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
@@ -78,7 +79,7 @@ export default function PhysicianProfilePage() {
                 : null;
               return (
                 // The whole card links to the session transcript so an admin can explore the chat history.
-                <a key={s.id} href={`/admin/ples/${s.id}`}
+                <Link key={s.id} href={`/admin/ples/${s.id}`}
                   className="block border rounded-xl p-4 transition-colors hover:border-primary hover:shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -100,7 +101,7 @@ export default function PhysicianProfilePage() {
                     </p>
                   )}
                   <p className="mt-2 text-xs text-link">ดูบทสนทนา / View chat →</p>
-                </a>
+                </Link>
               );
             })}
           </div>

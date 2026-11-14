@@ -59,7 +59,9 @@ Pick from [docs/ROADMAP.md](docs/ROADMAP.md) (**P1** = pilot-readiness) and the 
 ## 6. Deploy (from the local tree — see [docs/deployment.md](docs/deployment.md))
 
 - **backend / rimpl** → Railway: `railway up . --path-as-root --service <name> --ci`
-- **front-ends** → Vercel: `cd <layer> && vercel --prod --yes`
+- **front-ends** → vm1 after the cutover: `deploy/vm1/deploy.sh` builds them with the backend. Before it,
+  Vercel from a pre-#429 ref only (`cd <layer> && vercel --prod --yes`): from #429 on, `vercel.json` is a
+  redirect to `https://clics.ccme.or.th`, so a Vercel deploy of this tree moves every user there.
 
 ## Must-know rules ([CLAUDE.md](CLAUDE.md))
 

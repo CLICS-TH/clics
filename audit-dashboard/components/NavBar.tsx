@@ -97,19 +97,16 @@ export function NavBar() {
   if (!user) return null;
 
   function logout() {
-    // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
-    // token and autoForward there would re-log us straight back in. Bounce to the portal's logout,
-    // which clears its own storage and shows the login form (so you can sign in as another account).
+    // The session is the Portal's too (one origin), so this wipe signs both out; the Portal's logout mode
+    // then shows its sign-in form rather than forwarding.
     const token = getToken();
     clearSession();
     revokeSession(token);
     window.location.href = PORTAL.logout;
   }
 
-  // The Portal's Sign out cannot reach this origin's storage, so a session left here would outlive it
-  // and Back would show the dashboard signed in. The Portal hands over a fresh token on the next visit.
+  // The Portal shares this origin's session, so the dual-role user stays signed in on the way back.
   function returnToPhysician() {
-    clearSession();
     window.location.replace(PORTAL.dashboard);
   }
 

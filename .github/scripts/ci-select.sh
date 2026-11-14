@@ -23,7 +23,7 @@ dashboard         ^(audit-dashboard/|physician-ui/public/|backend/src/|db/|rimpl
 physician_ui      ^physician-ui/public/js/
 probe             ^(scripts/probe/|rimpl/src/|backend/src/services/)
 quality           ^(scripts/quality/|scripts/probe/|rimpl/src/)
-vm1               ^(deploy/|scripts/deploy/|scripts/lib/|physician-ui/public/js/config\.js$|backend/|rimpl/)
+vm1               ^(deploy/|scripts/deploy/|scripts/dev/|scripts/lib/|physician-ui/|audit-dashboard/|backend/|rimpl/)
 manifest          ^(scripts/manifest/|rimpl/src/)
 pg                ^(scripts/db/|db/)
 calibration       ^(scripts/calibration/|rimpl/src/|backend/src/services/)

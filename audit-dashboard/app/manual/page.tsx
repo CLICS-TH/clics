@@ -15,6 +15,7 @@
 // It describes the product, holds no participant data, and the reader most likely to need it is one
 // who cannot get where they were going. NavBar renders null until auth resolves (and stays null when
 // signed out), so the cover carries its own way back rather than relying on chrome being there.
+import { withBasePath } from '@/lib/base-path';
 import { useCallback, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { AUDITOR_MANUAL } from '@/lib/manual-content';
@@ -99,7 +100,7 @@ function BlockView({ b, lang }: { b: Block; lang: ManualLang }) {
     case 'figure':
       return (
         <figure className="mb-5">
-          <img src={b.src} alt={b.alt} loading="lazy" className="w-full rounded-xl border border-border bg-muted" />
+          <img src={withBasePath(b.src)} alt={b.alt} loading="lazy" className="w-full rounded-xl border border-border bg-muted" />
           {b.caption && <figcaption data-role="figcap" className="mt-1.5 text-[0.84375em] text-muted-foreground">{b.caption}</figcaption>}
         </figure>
       );

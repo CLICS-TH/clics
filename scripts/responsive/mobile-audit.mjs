@@ -18,7 +18,7 @@
  *                    clics_token / clics_user, then visits each role's routes. Skipped unless creds set.
  *
  * Env:
- *   DASH_URL      audit-dashboard origin (e.g. https://audit-dashboard-rouge.vercel.app)  [enables dashboard audit]
+ *   DASH_URL      audit-dashboard base URL (e.g. https://clics.ccme.or.th/audit)  [enables dashboard audit]
  *   BACKEND_URL   backend origin (default: scripts/lib/api-origin.cjs, i.e. CLICS_API_ORIGIN or vm1)
  *   SUPER_EMAIL/SUPER_PW, AUDITOR_EMAIL/AUDITOR_PW   role creds (throwaway demo creds in docs/deployment.md)
  *   AUDIT_JSON    optional path to also write the findings as JSON

@@ -2,29 +2,41 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "redirects": [
-    { "source": "/cle-chat", "permanent": false, "destination": "/ple-chat" },
-    { "source": "/cle-chat.html", "permanent": false, "destination": "/ple-chat" },
-    { "source": "/cle-new", "permanent": false, "destination": "/ple-new" },
-    { "source": "/cle-new.html", "permanent": false, "destination": "/ple-new" },
-    { "source": "/cle-reflect", "permanent": false, "destination": "/ple-reflect" },
-    { "source": "/cle-reflect.html", "permanent": false, "destination": "/ple-reflect" },
-    { "source": "/cle-result", "permanent": false, "destination": "/ple-result" },
-    { "source": "/cle-result.html", "permanent": false, "destination": "/ple-result" }
+    {
+      "source": "/:path*",
+      "destination": "https://clics.ccme.or.th/:path*",
+      "permanent": false
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Content-Security-Policy", "value": "object-src 'none'; base-uri 'self'; frame-ancestors 'none'" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+        }
       ]
     },
     {
       "source": "/fonts/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]

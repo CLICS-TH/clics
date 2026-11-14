@@ -170,7 +170,7 @@ describe('NavBar — leaving for the Portal', () => {
     localStorage.setItem('clics_view', 'mobile');
     render(<NavBar />);
     fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
-    expect(window.location.href).toBe('https://physician-ui.vercel.app/login?logout=1');
+    expect(window.location.href).toBe('/login?logout=1');
     expect(localStorage.getItem('clics_token')).toBeNull();
     expect(localStorage.getItem('clics_user')).toBeNull();
     expect(localStorage.getItem('clics_theme')).toBe('dark');
@@ -182,7 +182,7 @@ describe('NavBar — leaving for the Portal', () => {
     localStorage.setItem('clics_token', 'tok');
     render(<NavBar />);
     fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/auth/logout', expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith('/api/auth/logout', expect.objectContaining({
       method: 'POST', keepalive: true, headers: { Authorization: 'Bearer tok' },
     }));
   });
@@ -192,7 +192,7 @@ describe('NavBar — leaving for the Portal', () => {
     localStorage.setItem('clics_token', 'tok');
     render(<NavBar />);
     fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
-    expect(window.location.href).toBe('https://physician-ui.vercel.app/login?logout=1');
+    expect(window.location.href).toBe('/login?logout=1');
     expect(localStorage.getItem('clics_token')).toBeNull();
   });
 
@@ -203,24 +203,20 @@ describe('NavBar — leaving for the Portal', () => {
     render(<NavBar />);
     fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
     await act(async () => {});
-    expect(window.location.href).toBe('https://physician-ui.vercel.app/login?logout=1');
+    expect(window.location.href).toBe('/login?logout=1');
     expect(localStorage.getItem('clics_token')).toBeNull();
     expect(sessionStorage.getItem('clics_reauth_next')).toBeNull();
   });
 
-  // The Portal's Sign out cannot clear this origin, so a session kept here would survive it (#189).
-  it('Return to Physician drops this origin\'s session but keeps theme/view, then replaces itself with the Portal dashboard', () => {
+  // The Portal shares this origin's session: going back must not sign the dual-role user out of it.
+  it('Return to Physician keeps the shared session and replaces itself with the Portal dashboard', () => {
     signIn({ role: 'physician', can_audit: true });
     localStorage.setItem('clics_token', 'tok');
-    localStorage.setItem('clics_theme', 'dark');
-    localStorage.setItem('clics_view', 'mobile');
     render(<NavBar />);
     fireEvent.click(screen.getByRole('button', { name: /Return to Physician/ }));
-    expect(replace).toHaveBeenCalledWith('https://physician-ui.vercel.app/dashboard');
-    expect(localStorage.getItem('clics_token')).toBeNull();
-    expect(localStorage.getItem('clics_user')).toBeNull();
-    expect(localStorage.getItem('clics_theme')).toBe('dark');
-    expect(localStorage.getItem('clics_view')).toBe('mobile');
+    expect(replace).toHaveBeenCalledWith('/dashboard');
+    expect(localStorage.getItem('clics_token')).toBe('tok');
+    expect(localStorage.getItem('clics_user')).not.toBeNull();
   });
 });
 

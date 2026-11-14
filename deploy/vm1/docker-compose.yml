@@ -1,11 +1,12 @@
-# CLICS backend + rimpl on vm1 — Topology B (docs/adr/0002-vm1-topology-b.md).
+# CLICS on vm1 — Topology B (docs/adr/0002-vm1-topology-b.md): backend + rimpl, and the two front ends,
+# the Portal and the audit-dashboard, behind one origin (#429).
 #
 # PREPARED, NOT LIVE. Production stays on Railway until the cutover in deploy/vm1/README.md.
 #
 # vm1 is a SHARED production host (ccme.or.th, WordPress, superset, other teams' CI runners), so
 # every setting below that narrows what a container can do is a requirement from ADR 0002, not a
-# preference. scripts/deploy/vm1.test.mjs guards the ones that matter most (loopback-only backend,
-# rimpl unpublished, no IPv4 literals) and CI (job `deploy-vm1`) builds and boots both images.
+# preference. scripts/deploy/vm1.test.mjs guards the ones that matter most (loopback-only ports,
+# rimpl unpublished, no IPv4 literals) and CI (job `deploy-vm1`) builds and boots all four images.
 #
 # deploy.sh supplies four variables; `docker compose config` refuses to render without them:
 #   CLICS_RELEASE  git sha being run (image tag)      CLICS_ENV_DIR  /opt/clics/env on vm1
@@ -21,14 +22,15 @@ x-hardened: &hardened
   # Non-root: the host's dedicated `clics` uid, not the image's `node` (uid 1000 may be a real login
   # user on this host). No file in either image is written at runtime, so any uid can run them.
   user: "${CLICS_UID:?set by deploy.sh to the uid of the clics user on the host}:${CLICS_GID:?set by deploy.sh to the gid of the clics user on the host}"
-  # Neither app writes to its filesystem (checked 2026-10-21: no fs writes in backend/src or
-  # rimpl/src). /tmp is the one writable path, for anything a dependency puts in os.tmpdir().
+  # No service writes to its filesystem (checked 2026-10-21: no fs writes in backend/src or
+  # rimpl/src; the Portal's nginx keeps its pid and temp files in /tmp). /tmp is the one writable path,
+  # for anything a dependency puts in os.tmpdir().
   read_only: true
   tmpfs:
     - /tmp:rw,noexec,nosuid,size=64m
   security_opt:
     - no-new-privileges:true
-  # Both listen above 1024 and need no capability at all.
+  # All listen above 1024 and need no capability at all.
   cap_drop:
     - ALL
   # Limits protect the host's other tenants from us. They do not reserve anything for us.
@@ -115,6 +117,56 @@ services:
     # Above the backend's own 15 s drain timer (backend/src/index.js:138), so its graceful shutdown
     # finishes before docker sends SIGKILL.
     stop_grace_period: 20s
+
+  # The physician-ui Portal: static files behind its own nginx. Host port 3103, loopback only, for the
+  # host nginx's / location; the 31xx run as the backend's, free in the 2026-10-21 inventory.
+  portal:
+    <<: *hardened
+    image: clics-portal:${CLICS_RELEASE:?set by deploy.sh to the git sha being run}
+    build:
+      # The repository root: the image takes physician-ui/public and deploy/vm1/portal.nginx.conf, and
+      # portal.Dockerfile.dockerignore lets in nothing else.
+      context: ../..
+      dockerfile: deploy/vm1/portal.Dockerfile
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.5
+    ports:
+      - "127.0.0.1:3103:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/login"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    stop_grace_period: 10s
+
+  # The audit-dashboard: Next's standalone server, built with basePath /audit (audit-dashboard/next.config.ts).
+  # Host port 3104, loopback only, for the host nginx's /audit/ location, which keeps the prefix.
+  dashboard:
+    <<: *hardened
+    image: clics-dashboard:${CLICS_RELEASE:?set by deploy.sh to the git sha being run}
+    build:
+      context: ../../audit-dashboard
+      # Resolved relative to the context, as for the backend.
+      dockerfile: ../deploy/vm1/dashboard.Dockerfile
+    environment:
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=384
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    ports:
+      - "127.0.0.1:3104:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/audit/login').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 10s
 
 networks:
   clics:

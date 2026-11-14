@@ -294,6 +294,6 @@ function routeActive(body) {
   if (role === 'physician') {
     window.location.replace('/dashboard');
   } else {
-    window.location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(body.access_token));
+    window.location.replace((window.CLICS_DASHBOARD_URL || '/audit') + '/login');
   }
 }

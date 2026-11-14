@@ -57,7 +57,14 @@
  * READABILITY_ONLY=/reset,/admin/flagged narrows a run while iterating; the full run is the gate.
  *
  * Run:  node scripts/readability/audit.mjs
- *       DASH_URL=http://localhost:3002 node scripts/readability/audit.mjs   (adds the dashboard)
+ *       DASH_URL=http://127.0.0.1:3002/audit node scripts/readability/audit.mjs   (adds the dashboard)
+ *
+ * The dashboard is measured as BUILT, the default way: NEXT_PUBLIC_API_URL unset (its API is then the
+ * relative /api on its own origin), basePath /audit, served on port 3002:
+ *       (cd audit-dashboard && npm run build && npx next start -p 3002)
+ *       DASH_URL=http://127.0.0.1:3002/audit npm run test:readability
+ * Calls to DASH_URL's origin /api and to http://localhost:3001 are both answered from the fixtures
+ * (scripts/lib/gate-api.mjs). A build made with NEXT_PUBLIC_API_URL set needs that same value exported here.
  *
  * Backend calls are answered from scripts/readability/fixtures.mjs — deliberately long Thai
  * content, never real data. Without it the dashboard renders its empty state and the audit
@@ -70,6 +77,7 @@ import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { fixtureFor, AUDITOR_PLE_OPEN, AUDITOR_PLE_REVEALED } from './fixtures.mjs';
+import { gateApiBases, isGateApiCall } from '../lib/gate-api.mjs';
 import { watchPageHealth, resolvedTheme } from '../responsive/page-health.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
@@ -391,7 +399,9 @@ function collect([thaiMinPx, bodyMinPx, proseCheck]) {
 
 // ---- runner ----------------------------------------------------------------------------------
 const dashUrl = process.env.DASH_URL || '';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// The dashboard's own-origin /api (the default build), :3001 (the Portal pages, an older build), and
+// NEXT_PUBLIC_API_URL when the build set one: scripts/lib/gate-api.mjs.
+const API_BASES = gateApiBases({ dashUrl, apiUrl: process.env.NEXT_PUBLIC_API_URL });
 const jsonAt = process.argv.includes('--json') ? process.argv[process.argv.indexOf('--json') + 1] : null;
 
 const server = await startServer();
@@ -414,7 +424,7 @@ async function run(url, label, token, manualLang, { role = null, expect = [], wi
         const u = route.request().url();
         // Backend calls are FULFILLED, not forwarded: populated rows are the whole point, and a
         // real backend would put real transcripts in the audit.
-        if (u.startsWith(API_BASE)) {
+        if (isGateApiCall(u, API_BASES)) {
           return route.fulfill({
             status: 200, contentType: 'application/json',
             headers: { 'access-control-allow-origin': '*' },

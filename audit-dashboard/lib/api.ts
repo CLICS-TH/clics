@@ -1,18 +1,23 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { clearSession } from '@/lib/auth';
+import { stripBasePath } from '@/lib/base-path';
+import { PORTAL } from '@/lib/portal';
+
+// The backend sits on this origin under /api (vm1's nginx, or scripts/dev/one-origin.mjs locally).
+const BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('clics_token');
 }
 
-// Session expiry → bounce to /login (which re-enters the portal). Remember where we were FIRST, in
-// sessionStorage (same-origin, survives the portal round-trip and the localStorage.clear below) so
-// the login gate can return the user to the exact page after they sign back in.
+// Session expiry → the Portal's sign-in. Remember where we were FIRST, in sessionStorage (survives the
+// Portal round-trip and the session wipe below), so the login gate can return the user to the exact page
+// after they sign back in. Stored without the base path: the gate hands it to router.push, which adds it.
 function redirectToLogin(): void {
   if (typeof window === 'undefined') return;
-  try { sessionStorage.setItem('clics_reauth_next', window.location.pathname + window.location.search); } catch {}
-  localStorage.clear();
-  window.location.href = '/login';
+  try { sessionStorage.setItem('clics_reauth_next', stripBasePath(window.location.pathname) + window.location.search); } catch {}
+  clearSession();
+  window.location.href = PORTAL.login;
 }
 
 // Best-effort server-side revoke on Sign out. keepalive lets it finish after the page navigates

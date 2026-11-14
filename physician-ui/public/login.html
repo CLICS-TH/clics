@@ -215,7 +215,7 @@
         localStorage.setItem('clics_token', data.access_token);
         localStorage.setItem('clics_user', JSON.stringify(data.user));
         if (data.user.role === 'physician') window.location.replace('/dashboard');
-        else window.location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(data.access_token));
+        else window.location.replace((window.CLICS_DASHBOARD_URL || '/audit') + '/login');
       } else {
         // data.error may be a zod flatten OBJECT (invalid email / short password) — assigning it to
         // textContent shows "[object Object]". Pull a readable string out.

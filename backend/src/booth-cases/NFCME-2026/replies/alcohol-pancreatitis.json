@@ -1,0 +1,2810 @@
+{
+  "case_id": "alcohol-pancreatitis",
+  "replies": {
+    "step1": {
+      "a": {
+        "th": [
+          {
+            "strength": "จับรูปแบบ**ปวดลิ้นปี่ร้าวไปหลัง**ร่วมกับอาเจียน ซึ่งเป็นภาพคลาสสิก",
+            "weigh": "ความรุนแรงสำคัญพอ ๆ กับชื่อโรค ชีพจร 110 และหายใจ 22 ครั้งเป็นตัวเลขที่ควรจับตา",
+            "safety": ""
+          },
+          {
+            "strength": "เชื่อมอาการปวดที่ร้าวไปหลังกับอาเจียนซ้ำ ๆ ได้อย่างตรงไปตรงมา",
+            "weigh": "สาเหตุของครั้งนี้ยังต้องยืนยัน แม้ประวัติดื่มหนักจะเด่นชัด",
+            "safety": ""
+          },
+          {
+            "strength": "วินิจฉัยจากลักษณะการปวด ซึ่งเป็นหนึ่งในเกณฑ์หลักของโรคนี้",
+            "weigh": "อาการเข้าได้ แต่ยังต้องการหลักฐานเพิ่มก่อนสรุปให้แน่นอน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Spots the classic pattern of epigastric **pain to the back** with vomiting.",
+            "weigh": "Severity matters as much as the label; a pulse of 110 and breathing at 22 deserve attention.",
+            "safety": ""
+          },
+          {
+            "strength": "Links pain through to the back with repeated vomiting in a direct way.",
+            "weigh": "The cause of this attack still needs confirming, even with heavy drinking so clear.",
+            "safety": ""
+          },
+          {
+            "strength": "Builds the diagnosis on the pain pattern, one of the core criteria for this illness.",
+            "weigh": "The picture fits, but more evidence is needed before it is settled.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "เชื่อม**การดื่มหนัก**ช่วงสุดสัปดาห์กับอาการปวดครั้งนี้อย่างมีเหตุผล",
+            "weigh": "ประวัติดื่มทำให้สุราน่าเป็นสาเหตุ แต่ประวัติอย่างเดียวยังตัดสาเหตุอื่นไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ระบุทั้งโรคและสาเหตุในคราวเดียว ซึ่งช่วยวางแผนการดูแลระยะยาว",
+            "weigh": "ชีพจร 110 และหายใจ 22 ครั้งบอกว่าควรประเมินความรุนแรงควบคู่กันไป",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ประวัติดื่มเหล้าขาวทุกวันมา 10 ปี มาให้น้ำหนักกับการวินิจฉัย",
+            "weigh": "การตั้งชื่อสาเหตุตั้งแต่ต้นอาจทำให้มองข้ามปัจจัยอื่นที่รักษาได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Ties the weekend of **heavy drinking** to this attack in a reasoned way.",
+            "weigh": "Drinking makes alcohol a likely cause, but history alone does not exclude others.",
+            "safety": ""
+          },
+          {
+            "strength": "Names the illness and its cause together, which helps plan long-term care.",
+            "weigh": "A pulse of 110 and breathing at 22 mean severity needs judging alongside the cause.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses ten years of daily rice spirit to give the diagnosis weight.",
+            "weigh": "Fixing on a cause early can hide another factor that is treatable.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ไม่ลืมภาวะที่พลาดไม่ได้ในคน**ปวดลิ้นปี่รุนแรง**ที่ดื่มหนัก",
+            "weigh": "ท้องไม่แข็งเกร็งและปวดร้าวไปหลัง เป็นลักษณะที่เข้ากับแผลทะลุได้ไม่ค่อยดี",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงภาวะอันตรายก่อน ซึ่งช่วยไม่ให้พลาดเรื่องที่ต้องรีบจัดการ",
+            "weigh": "แผลทะลุมักทำให้ท้องแข็งเกร็งทั่วไป ซึ่งผู้ป่วยรายนี้ยังไม่มี",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำหนักกับการดื่มหนัก ซึ่งเพิ่มความเสี่ยงแผลในกระเพาะได้จริง",
+            "weigh": "อาการปวดร้าวไปหลังร่วมกับอาเจียนซ้ำ เป็นภาพที่แผลทะลุอธิบายได้ไม่ครบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps a must-not-miss cause in view for **severe epigastric** pain in a drinker.",
+            "weigh": "An abdomen that is not rigid, with pain to the back, fits a perforation less well.",
+            "safety": ""
+          },
+          {
+            "strength": "Puts the dangerous cause first, so nothing urgent is missed.",
+            "weigh": "A perforation usually makes the whole abdomen rigid, which he does not have.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives weight to heavy drinking, a real risk for stomach ulcers.",
+            "weigh": "Pain through to the back with repeated vomiting is not fully explained by a perforation.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "สังเกต**ไข้ต่ำ**ร่วมกับปวดท้องส่วนบนและอาเจียน ซึ่งเข้ากันได้จริง",
+            "weigh": "จุดกดเจ็บอยู่ที่ลิ้นปี่และปวดร้าวไปหลัง ซึ่งต่างจากรูปแบบที่พบบ่อยของโรคนี้",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงโรคที่พบบ่อยและต้องหาให้เจอในคนปวดท้องส่วนบน",
+            "weigh": "ประวัติดื่มหนักแล้วเริ่มปวด เป็นบริบทที่ควรนำมาชั่งน้ำหนักด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "นำไข้ 37.8 °C มาร่วมพิจารณา ไม่มองข้ามข้อมูลเล็ก ๆ",
+            "weigh": "ปวดลิ้นปี่ร้าวทะลุหลังพบได้ไม่บ่อยในถุงน้ำดีอักเสบ จึงควรชั่งน้ำหนักให้รอบคอบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Notes the **low fever** with upper abdominal pain and vomiting, which do fit together.",
+            "weigh": "Tenderness is epigastric and the pain goes through to the back, which is less typical here.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers a common cause of upper abdominal pain that must not be missed.",
+            "weigh": "Pain starting after a weekend of heavy drinking is context worth weighing.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the 37.8 °C temperature rather than overlooking a small detail.",
+            "weigh": "Pain boring through to the back is uncommon in cholecystitis, so weigh it carefully.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "เชื่อมสุรากับการ**ระคายกระเพาะ** ซึ่งเกิดได้จริงในคนดื่มหนัก",
+            "weigh": "ปวดรุนแรงจนร้าวไปหลังร่วมกับชีพจร 110 มากกว่าที่กระเพาะอักเสบมักทำให้เกิด",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงสิ่งที่พบบ่อยในคนดื่มหนักที่ปวดลิ้นปี่และอาเจียน",
+            "weigh": "การให้ชื่อโรคที่ไม่รุนแรงในคนที่ปวดมาก อาจทำให้ประเมินความรุนแรงต่ำไป",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ความสัมพันธ์ระหว่างการดื่มกับอาการอาเจียนอย่างมีเหตุผล",
+            "weigh": "อาการปวดทะลุไปหลังเป็นลักษณะที่กระเพาะอักเสบอธิบายได้ยาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Links drinking to how alcohol **irritates** the stomach, a real effect in heavy drinkers.",
+            "weigh": "Pain severe enough to go through to the back, with a pulse of 110, is beyond what gastritis usually causes.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks of a common problem in heavy drinkers with epigastric pain and vomiting.",
+            "weigh": "A mild label for a man in this much pain can lead to underestimating how sick he is.",
+            "safety": ""
+          },
+          {
+            "strength": "Connects drinking with vomiting in a reasoned way.",
+            "weigh": "Pain boring through to the back is hard to explain by gastritis.",
+            "safety": ""
+          }
+        ]
+      },
+      "f": {
+        "th": [
+          {
+            "strength": "รู้ว่า**แสบลิ้นปี่**หลังดื่มหนักพบได้บ่อยในเวชปฏิบัติ",
+            "weigh": "ปวดรุนแรงร้าวไปหลัง อาเจียนซ้ำ และชีพจร 110 เกินกว่าที่กรดไหลย้อนมักทำให้เกิด",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงปัญหาที่พบบ่อยหลังการดื่มหนัก",
+            "weigh": "การให้ชื่อโรคที่ไม่รุนแรงในคนที่ปวดมาก อาจทำให้ประเมินความรุนแรงต่ำไป",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ความสัมพันธ์ระหว่างการดื่มกับอาการแสบท้องที่พบได้จริง",
+            "weigh": "อาการปวดทะลุไปหลังเป็นลักษณะที่กรดไหลย้อนอธิบายได้ยาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows **burning epigastric** pain after heavy drinking is common in practice.",
+            "weigh": "Severe pain to the back, repeated vomiting and a pulse of 110 go beyond what reflux usually causes.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers a common problem after heavy drinking.",
+            "weigh": "A mild label for a man in this much pain risks underestimating how sick he is.",
+            "safety": ""
+          },
+          {
+            "strength": "Connects drinking with a burning pain that really does occur.",
+            "weigh": "Pain boring through to the back is hard to explain by reflux.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.B": {
+      "severity": {
+        "th": [
+          {
+            "strength": "**ประเมินความรุนแรง**ไปพร้อมกับยืนยันโรค ได้จากการเจาะเลือดครั้งเดียว",
+            "weigh": "BUN ที่สูงขึ้นใน 24-48 ชม. แรกบอกความเสี่ยงได้มากกว่าค่าครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "มองไกลกว่าการยืนยันโรค ไปถึงการคาดว่าใครจะป่วยหนัก",
+            "weigh": "ตัวเลขช่วยได้ แต่การประเมินข้างเตียงซ้ำยังจำเป็นในช่วง 48 ชม. แรก",
+            "safety": ""
+          },
+          {
+            "strength": "BUN และครีเอตินินบอกทั้งภาวะขาดน้ำและความเสี่ยงที่จะรุนแรง",
+            "weigh": "ผลชุดนี้ยังไม่ได้บอกว่าอะไรเป็นสาเหตุของการอักเสบครั้งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Confirms the diagnosis and **gauges severity** from a single blood draw.",
+            "weigh": "A BUN that rises over the first 24-48 hours predicts risk better than one value, so follow it.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks beyond confirming the diagnosis to who may become seriously ill.",
+            "weigh": "Numbers help, but bedside reassessment over the first 48 hours still counts.",
+            "safety": ""
+          },
+          {
+            "strength": "BUN and creatinine reflect both dehydration and the risk of a severe course.",
+            "weigh": "These results do not yet show what caused this attack.",
+            "safety": ""
+          }
+        ]
+      },
+      "sev_us": {
+        "th": [
+          {
+            "strength": "ไม่หยุดที่ประวัติดื่ม แต่**หานิ่ว**ที่อาจเป็นสาเหตุด้วย",
+            "weigh": "ลมในลำไส้จากการอาเจียนอาจบังภาพ ทำให้เห็นถุงน้ำดีไม่ชัดในวันแรก",
+            "safety": ""
+          },
+          {
+            "strength": "ครอบคลุมทั้งการยืนยันโรค ความรุนแรง และสาเหตุในรอบเดียว",
+            "weigh": "ถ้าพบนิ่ว แผนการดูแลจะเปลี่ยน จึงควรเตรียมว่าจะทำอะไรต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "อัลตราซาวด์ทำได้ข้างเตียง ไม่มีรังสี และหาได้ในโรงพยาบาลทั่วไป",
+            "weigh": "อัลตราซาวด์ขึ้นกับผู้ตรวจ ผลที่ไม่พบนิ่วจึงยังตัดออกไม่ได้ทั้งหมด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Does not stop at the drinking history but looks for **gallstones** as a cause.",
+            "weigh": "Gas from vomiting can hide the gallbladder, so the first-day view may be limited.",
+            "safety": ""
+          },
+          {
+            "strength": "Covers diagnosis, severity and cause in one round.",
+            "weigh": "Finding stones changes the plan, so be ready for what follows.",
+            "safety": ""
+          },
+          {
+            "strength": "Ultrasound is bedside, radiation-free and widely available.",
+            "weigh": "Ultrasound depends on the operator, so a scan without stones does not fully exclude them.",
+            "safety": ""
+          }
+        ]
+      },
+      "lipase_only": {
+        "th": [
+          {
+            "strength": "รู้เกณฑ์ว่าไลเปส**ตั้งแต่ 3 เท่า**ร่วมกับอาการปวดแบบนี้ยืนยันโรคได้",
+            "weigh": "ไลเปสยืนยันโรคได้แต่ไม่บอกความรุนแรง ชีพจร 110 จึงควรได้รับการประเมินด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "ไลเปสจำเพาะต่อตับอ่อนและยังสูงอยู่ได้หลายวันหลังเริ่มปวด",
+            "weigh": "ระดับไลเปสไม่สัมพันธ์กับความรุนแรง ค่าที่สูงมากจึงไม่ได้แปลว่าหนักกว่า",
+            "safety": ""
+          },
+          {
+            "strength": "ตรวจน้อยแต่ตรงเป้า ได้ผลเร็วและประหยัด",
+            "weigh": "การตรวจอย่างเดียวทำให้ยังขาดข้อมูลเรื่องไตและภาวะขาดน้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows that lipase at least **3 times normal** with this pain confirms it.",
+            "weigh": "Lipase confirms the diagnosis but not its severity, and a pulse of 110 asks for both.",
+            "safety": ""
+          },
+          {
+            "strength": "Lipase is specific to the pancreas and stays raised for days after onset.",
+            "weigh": "Lipase level does not track severity, so a very high value does not mean a worse attack.",
+            "safety": ""
+          },
+          {
+            "strength": "A focused test that is quick and inexpensive.",
+            "weigh": "One test alone leaves kidney function and hydration unmeasured.",
+            "safety": ""
+          }
+        ]
+      },
+      "amylase": {
+        "th": [
+          {
+            "strength": "ใช้การตรวจที่หาได้ง่าย และรู้ว่า**ตั้งแต่ 3 เท่า**ก็เข้าเกณฑ์วินิจฉัย",
+            "weigh": "อะไมเลสลดลงเร็วและอาจปกติได้ในคนที่ดื่มสุรา ค่าปกติจึงแปลผลยาก",
+            "safety": ""
+          },
+          {
+            "strength": "รู้เกณฑ์การวินิจฉัยชัดเจน และนำมาใช้กับผู้ป่วยรายนี้ได้ตรง",
+            "weigh": "อะไมเลสสูงได้จากหลายภาวะนอกตับอ่อน จึงจำเพาะน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นการตรวจที่หลายโรงพยาบาลทำได้ตลอด 24 ชั่วโมง",
+            "weigh": "ระดับอะไมเลสไม่ได้บอกความรุนแรง จึงยังต้องประเมินอาการร่วม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses a widely available test and knows **3 times normal** meets the criteria.",
+            "weigh": "Amylase falls faster and can be normal in drinkers, so a normal result is hard to read.",
+            "safety": ""
+          },
+          {
+            "strength": "Knows the diagnostic threshold clearly and applies it to this man.",
+            "weigh": "Amylase rises in many conditions outside the pancreas, so it is less specific.",
+            "safety": ""
+          },
+          {
+            "strength": "Many hospitals can run it at any hour.",
+            "weigh": "Amylase level does not show severity, so the clinical picture still has to be judged.",
+            "safety": ""
+          }
+        ]
+      },
+      "ct": {
+        "th": [
+          {
+            "strength": "ต้องการเห็นตับอ่อนและ**เนื้อเยื่อรอบ ๆ**อย่างละเอียดตั้งแต่แรก",
+            "weigh": "ในวันแรก CT มักไม่เปลี่ยนการรักษา และอาจเห็นความเสียหายน้อยกว่าจริง",
+            "safety": ""
+          },
+          {
+            "strength": "CT ช่วยได้มากเมื่อการวินิจฉัยยังไม่ชัด",
+            "weigh": "ผู้ป่วยอาเจียนและขาดน้ำ สารทึบรังสีจึงเพิ่มภาระต่อไต",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจภาวะแทรกซ้อนที่การตรวจร่างกายมองไม่เห็น",
+            "weigh": "CT มักมีประโยชน์มากกว่าหลัง 72 ชม. หากอาการไม่ดีขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants to see the pancreas **in detail** from the very start.",
+            "weigh": "On day one, CT rarely changes treatment and can understate the damage.",
+            "safety": ""
+          },
+          {
+            "strength": "CT is powerful when the diagnosis is in doubt.",
+            "weigh": "He is vomiting and dry, so contrast adds strain on the kidneys.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to complications that examination cannot show.",
+            "weigh": "CT tends to help more after 72 hours if he is not improving.",
+            "safety": ""
+          }
+        ]
+      },
+      "axr": {
+        "th": [
+          {
+            "strength": "รู้ว่าฟิล์มท้องอาจเห็น**ลำไส้อืด**หรือหินปูน ซึ่งเป็นข้อมูลประกอบได้",
+            "weigh": "ฟิล์มท้องไม่ได้ยืนยันหรือบอกความรุนแรงของการอักเสบเฉียบพลัน",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นการตรวจที่ทำได้เร็วและมีทุกโรงพยาบาล",
+            "weigh": "หินปูนในตับอ่อนบอกถึงความเสียหายที่สะสมมานาน ไม่ได้อธิบายอาการเฉียบพลันครั้งนี้",
+            "safety": ""
+          },
+          {
+            "strength": "มองหาร่องรอยของการดื่มหนักมานานผ่านหินปูนในตับอ่อน",
+            "weigh": "ฟิล์มที่ปกติตัดอะไรออกได้น้อย จึงยังต้องตรวจอย่างอื่นต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows a plain film may show **ileus** or calcification, which adds context.",
+            "weigh": "A plain film neither confirms nor grades an acute attack.",
+            "safety": ""
+          },
+          {
+            "strength": "A quick test available in every hospital.",
+            "weigh": "Pancreatic calcification points to long-standing damage, not this acute episode.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for signs of years of heavy drinking through calcification.",
+            "weigh": "A normal film rules little out, so further tests are still needed.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.R": {
+      "lipase_cxr": {
+        "th": [
+          {
+            "strength": "ตรวจทั้งตับอ่อนและ**หาลมใต้กะบังลม**ได้พร้อมกัน ครอบคลุมภาวะอันตราย",
+            "weigh": "ฟิล์มท่ายืนอาจไม่เห็นลมในแผลทะลุบางราย จึงต้องตรวจท้องซ้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกสองการตรวจที่ตอบคำถามสำคัญสองข้อได้รวดเร็ว",
+            "weigh": "ท้องไม่แข็งเกร็งช่วยให้อุ่นใจ แต่ควรตรวจท้องซ้ำเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "ทั้งสองการตรวจทำได้เร็ว ราคาไม่แพง และมีในโรงพยาบาลชุมชน",
+            "weigh": "ควรให้นั่งหรือยืนราว 10 นาทีก่อนถ่ายภาพ เพื่อให้ลมลอยขึ้นใต้กะบังลม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Checks the pancreas and **looks for free air** together, covering the dangerous cause.",
+            "weigh": "An upright film misses free air in some perforations, so the abdomen needs re-examining.",
+            "safety": ""
+          },
+          {
+            "strength": "Picks two tests that answer the two key questions quickly.",
+            "weigh": "An abdomen that is not rigid is reassuring, but it needs examining again over time.",
+            "safety": ""
+          },
+          {
+            "strength": "Both are quick, cheap and available in a community hospital.",
+            "weigh": "He should sit upright for about 10 minutes first so any free air can rise.",
+            "safety": ""
+          }
+        ]
+      },
+      "full_r": {
+        "th": [
+          {
+            "strength": "คิดครบทั้งสามภาวะที่เป็นไปได้ และตรวจได้ใน**รอบเดียว**",
+            "weigh": "การตรวจสามอย่างใช้เวลา ระหว่างรอผลควรเฝ้าดูชีพจรและความดันใกล้ชิด",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การตรวจที่ทำได้ในโรงพยาบาลทั่วไปเป็นหลัก",
+            "weigh": "อัลตราซาวด์ขึ้นกับผู้ตรวจ และลมในลำไส้อาจบังภาพได้",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ปิดโอกาสภาวะใดเร็วเกินไปในขณะที่ภาพยังไม่ชัด",
+            "weigh": "ผลหลายอย่างควรนำมาอ่านประกอบกัน ไม่ใช่อ่านแยกทีละผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Weighs all three competing causes and tests for them in **one round**.",
+            "weigh": "Three tests take time, so pulse and BP need close watching while results come in.",
+            "safety": ""
+          },
+          {
+            "strength": "Relies mainly on tests any general hospital can do.",
+            "weigh": "Ultrasound depends on the operator, and bowel gas can hide the view.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps every cause open while the picture is still unclear.",
+            "weigh": "The results need reading together rather than one at a time.",
+            "safety": ""
+          }
+        ]
+      },
+      "cxr": {
+        "th": [
+          {
+            "strength": "เลือกการตรวจที่ตอบคำถามเรื่อง**แผลทะลุ**ได้รวดเร็ว",
+            "weigh": "ฟิล์มที่ไม่เห็นลมช่วยลดโอกาสแผลทะลุ แต่ยังตัดออกไม่ได้ทั้งหมด",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงภาวะที่อันตรายและต้องรีบจัดการก่อน",
+            "weigh": "การตรวจนี้ตอบเพียงคำถามเดียว สาเหตุของอาการปวดจึงยังต้องหาต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "ทำได้เร็ว ราคาไม่แพง และมีในโรงพยาบาลชุมชน",
+            "weigh": "ควรให้นั่งหรือยืนราว 10 นาทีก่อนถ่าย เพื่อให้เห็นลมได้ชัดขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Picks a fast way to answer the **perforation** question.",
+            "weigh": "A film without free air lowers but does not remove the chance of a perforation.",
+            "safety": ""
+          },
+          {
+            "strength": "Puts the dangerous, urgent cause first.",
+            "weigh": "This answers one question only, so the cause of his pain still needs working out.",
+            "safety": ""
+          },
+          {
+            "strength": "Quick, cheap and available in a community hospital.",
+            "weigh": "Sitting him upright for about 10 minutes first makes free air easier to see.",
+            "safety": ""
+          }
+        ]
+      },
+      "us": {
+        "th": [
+          {
+            "strength": "ใช้**อัลตราซาวด์ข้างเตียง**ดูถุงน้ำดีและนิ่วได้ทันทีโดยไม่มีรังสี",
+            "weigh": "ลมในลำไส้จากการอาเจียนอาจบังภาพ ทำให้เห็นช่องท้องส่วนบนได้ไม่ครบ",
+            "safety": ""
+          },
+          {
+            "strength": "หาสาเหตุที่แก้ไขได้ คือนิ่ว ตั้งแต่ช่วงแรก",
+            "weigh": "ผลขึ้นกับผู้ตรวจ ภาพที่ไม่ชัดจึงไม่ควรใช้ตัดโรคออก",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่มีรังสีและทำซ้ำได้ง่ายถ้าอาการเปลี่ยน",
+            "weigh": "ภาพถุงน้ำดีที่ปกติไม่ได้อธิบายอาการปวดร้าวไปหลังได้ทั้งหมด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **bedside ultrasound** to view the gallbladder and stones at once, without radiation.",
+            "weigh": "Bowel gas from vomiting can limit how much of the upper abdomen is seen.",
+            "safety": ""
+          },
+          {
+            "strength": "Hunts early for a fixable cause: stones.",
+            "weigh": "Results depend on the operator, so an unclear scan should not rule anything out.",
+            "safety": ""
+          },
+          {
+            "strength": "No radiation, and easy to repeat if things change.",
+            "weigh": "A normal gallbladder does not explain all of his pain through to the back.",
+            "safety": ""
+          }
+        ]
+      },
+      "supine": {
+        "th": [
+          {
+            "strength": "รู้ว่าฟิล์มท่านอนอาจเห็น**ลำไส้พอง**หรือหินปูน ซึ่งเป็นข้อมูลประกอบ",
+            "weigh": "ฟิล์มท่านอนเห็นลมอิสระได้ยาก จึงช่วยเรื่องแผลทะลุได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ทำได้ง่ายในผู้ป่วยที่ปวดมากจนลุกนั่งลำบาก",
+            "weigh": "ผลที่ได้มักไม่ยืนยันหรือตัดโรคใดออก จึงเพิ่มข้อมูลได้ไม่มาก",
+            "safety": ""
+          },
+          {
+            "strength": "มองหาลำไส้พองที่อาจอธิบายการอาเจียนซ้ำ",
+            "weigh": "หินปูนบอกถึงความเสียหายที่สะสมมานาน ไม่ได้อธิบายอาการเฉียบพลันครั้งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows a supine film may show **dilated bowel** or calcification, which adds context.",
+            "weigh": "Free air is hard to see on a supine film, so it helps little with a perforation.",
+            "safety": ""
+          },
+          {
+            "strength": "Easy to do in a man in too much pain to sit up.",
+            "weigh": "The result rarely confirms or excludes anything, so it adds little.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for dilated bowel that could explain the repeated vomiting.",
+            "weigh": "Calcification points to long-standing damage, not this acute episode.",
+            "safety": ""
+          }
+        ]
+      },
+      "lft": {
+        "th": [
+          {
+            "strength": "รู้ว่า**เอนไซม์ตับสูง**อาจเป็นเบาะแสของนิ่วถุงน้ำดี",
+            "weigh": "คนที่ดื่มทุกวันมักมีค่าตับสูงอยู่แล้ว ทำให้แปลผลเรื่องนิ่วได้ยาก",
+            "safety": ""
+          },
+          {
+            "strength": "หาสาเหตุที่แก้ไขได้ของอาการปวดท้องส่วนบน",
+            "weigh": "ผลการทำงานของตับไม่ได้ยืนยันหรือตัดภาวะอันตรายออก",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นการตรวจเลือดง่าย ๆ ที่มีทุกโรงพยาบาล",
+            "weigh": "ค่าตับอย่างเดียวบอกได้แค่ทิศทาง ยังสรุปเรื่องนิ่วไม่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows raised **liver enzymes** may point to gallstones.",
+            "weigh": "Daily drinkers often have raised liver enzymes already, which blurs what they say about stones.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for a fixable cause of his pain.",
+            "weigh": "Liver tests neither confirm nor exclude the dangerous causes.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple blood test available in any hospital.",
+            "weigh": "Liver tests alone give a direction but cannot settle the question of stones.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.W": {
+      "lipase": {
+        "th": [
+          {
+            "strength": "เห็นว่า**ปวดรุนแรงร้าวไปหลัง**เป็นเหตุผลพอที่จะตรวจไลเปส",
+            "weigh": "ไลเปสยืนยันโรคได้แต่ไม่บอกความรุนแรง ชีพจร 110 จึงควรได้รับการประเมินด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "ปรับความคิดเมื่ออาการไม่เป็นไปตามที่คาด ซึ่งเป็นทักษะสำคัญ",
+            "weigh": "ระดับไลเปสไม่สัมพันธ์กับความรุนแรง ค่าที่สูงมากจึงไม่ได้แปลว่าหนักกว่า",
+            "safety": ""
+          },
+          {
+            "strength": "ไลเปสจำเพาะต่อตับอ่อนและยังสูงอยู่ได้หลายวันหลังเริ่มปวด",
+            "weigh": "การตรวจเพียงอย่างเดียวทำให้ยังขาดข้อมูลเรื่องไตและภาวะขาดน้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sees that severe **pain to the back** is reason enough for a lipase.",
+            "weigh": "Lipase confirms the diagnosis but not its severity, and a pulse of 110 asks for both.",
+            "safety": ""
+          },
+          {
+            "strength": "Rethinks when the course does not fit the first idea, a valuable skill.",
+            "weigh": "Lipase level does not track severity, so a very high value does not mean a worse attack.",
+            "safety": ""
+          },
+          {
+            "strength": "Lipase is specific to the pancreas and stays raised for days after onset.",
+            "weigh": "On its own it leaves kidney function and hydration unmeasured.",
+            "safety": ""
+          }
+        ]
+      },
+      "severity": {
+        "th": [
+          {
+            "strength": "**ประเมินความรุนแรง**ไปพร้อมกับยืนยันโรค ได้จากการเจาะเลือดครั้งเดียว",
+            "weigh": "BUN ที่สูงขึ้นใน 24-48 ชม. แรกบอกความเสี่ยงได้มากกว่าค่าครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "มองไกลกว่าการยืนยันโรค ไปถึงการคาดว่าใครจะป่วยหนัก",
+            "weigh": "ตัวเลขช่วยได้ แต่การประเมินข้างเตียงซ้ำยังจำเป็นในช่วง 48 ชม. แรก",
+            "safety": ""
+          },
+          {
+            "strength": "BUN และครีเอตินินบอกทั้งภาวะขาดน้ำและความเสี่ยงที่จะรุนแรง",
+            "weigh": "ผลชุดนี้ยังไม่ได้บอกว่าอะไรเป็นสาเหตุของการอักเสบครั้งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Confirms the diagnosis and **gauges severity** from a single blood draw.",
+            "weigh": "A BUN that rises over the first 24-48 hours predicts risk better than one value, so follow it.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks beyond confirming the diagnosis to who may become seriously ill.",
+            "weigh": "Numbers help, but bedside reassessment over the first 48 hours still counts.",
+            "safety": ""
+          },
+          {
+            "strength": "BUN and creatinine reflect both dehydration and the risk of a severe course.",
+            "weigh": "These results do not yet show what caused this attack.",
+            "safety": ""
+          }
+        ]
+      },
+      "amylase": {
+        "th": [
+          {
+            "strength": "ใช้การตรวจที่หาได้ง่าย และรู้ว่า**ตั้งแต่ 3 เท่า**ก็เข้าเกณฑ์วินิจฉัย",
+            "weigh": "อะไมเลสลดลงเร็วและอาจปกติได้ในคนที่ดื่มสุรา ค่าปกติจึงแปลผลยาก",
+            "safety": ""
+          },
+          {
+            "strength": "รู้เกณฑ์การวินิจฉัยชัดเจน และนำมาใช้กับผู้ป่วยรายนี้ได้ตรง",
+            "weigh": "อะไมเลสสูงได้จากหลายภาวะนอกตับอ่อน จึงจำเพาะน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นการตรวจที่หลายโรงพยาบาลทำได้ตลอด 24 ชั่วโมง",
+            "weigh": "ระดับอะไมเลสไม่ได้บอกความรุนแรง จึงยังต้องประเมินอาการร่วม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses a widely available test and knows **3 times normal** meets the criteria.",
+            "weigh": "Amylase falls faster and can be normal in drinkers, so a normal result is hard to read.",
+            "safety": ""
+          },
+          {
+            "strength": "Knows the diagnostic threshold clearly and applies it to this man.",
+            "weigh": "Amylase rises in many conditions outside the pancreas, so it is less specific.",
+            "safety": ""
+          },
+          {
+            "strength": "Many hospitals can run it at any hour.",
+            "weigh": "Amylase level does not show severity, so the clinical picture still has to be judged.",
+            "safety": ""
+          }
+        ]
+      },
+      "ecg": {
+        "th": [
+          {
+            "strength": "ไม่ลืมว่า**ปวดลิ้นปี่**อาจมาจากหัวใจ ซึ่งพลาดไม่ได้",
+            "weigh": "คลื่นไฟฟ้าหัวใจตอบเรื่องหัวใจได้ แต่ยังไม่ได้อธิบายอาการปวดท้องที่ร้าวไปหลัง",
+            "safety": ""
+          },
+          {
+            "strength": "ทำได้เร็ว ราคาไม่แพง และช่วยคัดกรองภาวะอันตรายได้ในไม่กี่นาที",
+            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวที่ปกติยังตัดกล้ามเนื้อหัวใจตายออกไม่ได้ทั้งหมด",
+            "safety": ""
+          },
+          {
+            "strength": "มองกว้างกว่าช่องท้องเมื่ออาการหนักเกินคาด",
+            "weigh": "อาการปวดหลังดื่มหนักร่วมกับอาเจียน ยังมีสาเหตุในช่องท้องที่ต้องหาต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Remembers **epigastric pain** can come from the heart, a cause not to miss.",
+            "weigh": "An ECG answers the heart question but leaves his pain through to the back unexplained.",
+            "safety": ""
+          },
+          {
+            "strength": "Quick, cheap and screens for a dangerous cause within minutes.",
+            "weigh": "A single normal ECG does not fully exclude a heart attack.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks beyond the abdomen when the illness is worse than expected.",
+            "weigh": "Pain after heavy drinking with vomiting still has a cause in the belly to find.",
+            "safety": ""
+          }
+        ]
+      },
+      "axr": {
+        "th": [
+          {
+            "strength": "รู้ว่าฟิล์มท้องอาจเห็น**ลำไส้อืด**หรือหินปูน ซึ่งเป็นข้อมูลประกอบได้",
+            "weigh": "ฟิล์มท้องไม่ได้ยืนยันหรือบอกความรุนแรงของการอักเสบเฉียบพลัน",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นการตรวจที่ทำได้เร็วและมีทุกโรงพยาบาล",
+            "weigh": "หินปูนในตับอ่อนบอกถึงความเสียหายที่สะสมมานาน ไม่ได้อธิบายอาการเฉียบพลันครั้งนี้",
+            "safety": ""
+          },
+          {
+            "strength": "มองหาร่องรอยของการดื่มหนักมานานผ่านหินปูนในตับอ่อน",
+            "weigh": "ฟิล์มที่ปกติตัดอะไรออกได้น้อย จึงยังต้องตรวจอย่างอื่นต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows a plain film may show **ileus** or calcification, which adds context.",
+            "weigh": "A plain film neither confirms nor grades an acute attack.",
+            "safety": ""
+          },
+          {
+            "strength": "A quick test available in every hospital.",
+            "weigh": "Pancreatic calcification points to long-standing damage, not this acute episode.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for signs of years of heavy drinking through calcification.",
+            "weigh": "A normal film rules little out, so further tests are still needed.",
+            "safety": ""
+          }
+        ]
+      },
+      "urine": {
+        "th": [
+          {
+            "strength": "คิดถึง**ภาวะขาดน้ำ**จากการอาเจียนซ้ำ ๆ ซึ่งพบได้จริง",
+            "weigh": "ปวดลิ้นปี่ร้าวไปหลังร่วมกับอาเจียน เป็นภาพที่การตรวจปัสสาวะอธิบายได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นการตรวจง่ายและไม่เจ็บตัว",
+            "weigh": "นิ่วในไตมักปวดบั้นเอวร้าวลงขาหนีบ ซึ่งต่างจากอาการของผู้ป่วยรายนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่มองข้ามสาเหตุจากระบบทางเดินปัสสาวะในคนปวดท้อง",
+            "weigh": "ผลปัสสาวะไม่ได้ช่วยแยกภาวะอันตรายในช่องท้องส่วนบน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Considers **dehydration** from repeated vomiting, a real issue.",
+            "weigh": "Epigastric pain to the back with vomiting is little explained by a urine test.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple, painless test.",
+            "weigh": "A kidney stone usually causes flank pain spreading to the groin, unlike his pain.",
+            "safety": ""
+          },
+          {
+            "strength": "Does not overlook a urinary cause in a man with belly pain.",
+            "weigh": "Urine results do not separate the dangerous causes in the upper belly.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.B": {
+      "thiamine": {
+        "th": [
+          {
+            "strength": "เห็นความเสี่ยงของคนดื่มทุกวัน จึงให้**ไทอามีน**และประเมินอาการถอนสุราตั้งแต่ต้น",
+            "weigh": "อาการถอนสุรามักเริ่มภายในหนึ่งวันหลังดื่มครั้งสุดท้าย จึงควรประเมินซ้ำเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "ดูแลทั้งตับอ่อนและผลจากการดื่มสุราไปพร้อมกันในแผนเดียว",
+            "weigh": "สารน้ำควรให้ปานกลาง และปรับตามชีพจร ความดัน และปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ CIWA-Ar ทำให้อาการถอนสุราเป็นตัวเลขที่ติดตามได้",
+            "weigh": "อาการปวดที่คุมไม่ได้ทำให้ชีพจรเร็ว และทำให้ประเมินอาการถอนสุรายากขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sees the risks of daily drinking and gives **thiamine** and withdrawal scoring from the outset.",
+            "weigh": "Withdrawal often starts within a day of the last drink, so scoring needs repeating.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats the pancreas and the effects of drinking in one plan.",
+            "weigh": "Give fluids at a moderate rate, guided by pulse, BP and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "CIWA-Ar turns withdrawal into a number that can be tracked.",
+            "weigh": "Pain that is not controlled raises the pulse and makes withdrawal harder to judge.",
+            "safety": ""
+          }
+        ]
+      },
+      "oral": {
+        "th": [
+          {
+            "strength": "รู้ว่า**เริ่มกินทางปากเร็ว**ตามที่ทนได้ ช่วยให้ร่างกายฟื้นตัวไว",
+            "weigh": "ยังอาเจียนซ้ำอยู่ จึงควรเริ่มเมื่อคลื่นไส้และปวดทุเลาพอ",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนการกินตั้งแต่วันแรก แทนการงดอาหารไปเรื่อย ๆ",
+            "weigh": "สารน้ำควรให้ปานกลาง และปรับตามชีพจร ความดัน และปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ร่างกายได้พลังงานเร็ว ซึ่งสำคัญในคนดื่มสุราที่มักขาดสารอาหาร",
+            "weigh": "ควรเริ่มด้วยปริมาณน้อยและดูว่าปวดเพิ่มขึ้นหลังกินหรือไม่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows that starting **oral food early** as tolerated speeds recovery.",
+            "weigh": "He is still vomiting, so food can start once nausea and pain ease enough.",
+            "safety": ""
+          },
+          {
+            "strength": "Plans eating from day one instead of an open-ended fast.",
+            "weigh": "Give fluids at a moderate rate, guided by pulse, BP and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "Gets energy in quickly, which matters in drinkers who are often undernourished.",
+            "weigh": "Start with small amounts and watch whether the pain rises.",
+            "safety": ""
+          }
+        ]
+      },
+      "npo": {
+        "th": [
+          {
+            "strength": "ให้ลำไส้ได้พัก**ช่วงคลื่นไส้** ซึ่งช่วยให้ผู้ป่วยสบายขึ้นในระยะสั้น",
+            "weigh": "การงดอาหารนานไม่ได้ช่วยให้หายเร็วขึ้น เมื่อคลื่นไส้ทุเลาจึงเริ่มกินได้",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "การงดอาหารนานเพิ่มความเสี่ยงขาดสารอาหาร โดยเฉพาะในคนดื่มสุรา",
+            "safety": ""
+          },
+          {
+            "strength": "คำนึงถึงความสบายของผู้ป่วยขณะที่ยังคลื่นไส้มาก",
+            "weigh": "ควรกำหนดให้ชัดว่าจะประเมินการกินใหม่เมื่อใด ไม่ปล่อยให้งดยาวไป",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Rests the gut **during the nausea**, which eases him in the short term.",
+            "weigh": "Fasting longer does not speed recovery, so food can resume once nausea settles.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and pain relief, the backbone of care.",
+            "weigh": "A long fast raises the risk of undernutrition, especially in a drinker.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks of his comfort while the nausea is at its worst.",
+            "weigh": "Set a clear time to look at eating again so the fast does not drift on.",
+            "safety": ""
+          }
+        ]
+      },
+      "saline": {
+        "th": [
+          {
+            "strength": "รับไว้ในโรงพยาบาลและแก้**ภาวะขาดน้ำ**ด้วยน้ำเกลือที่หาได้ทุกที่",
+            "weigh": "น้ำเกลือนอร์มัลปริมาณมากทำให้เลือดเป็นกรดได้ จึงควรทบทวนปริมาณที่ให้เป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "เห็นว่าผู้ป่วยขาดน้ำจากอาเจียนซ้ำและชีพจรเร็ว จึงให้น้ำทันที",
+            "weigh": "ให้น้ำเร็วมากเกินไปอาจทำให้น้ำเกิน ควรปรับอัตราตามชีพจรกับปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "แผนเรียบง่ายที่ทำได้ทันทีในโรงพยาบาลทุกระดับ",
+            "weigh": "คนดื่มทุกวันมีความเสี่ยงเฉพาะที่ควรคิดถึงในแผนการดูแลด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Admits him and treats the **dehydration** with saline available everywhere.",
+            "weigh": "Large volumes of normal saline can tip the blood toward acid, so review the total given.",
+            "safety": ""
+          },
+          {
+            "strength": "Sees dehydration from vomiting and a fast pulse, and acts on it at once.",
+            "weigh": "Too much too fast risks overload, so pace it by pulse and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple plan any hospital can begin at once.",
+            "weigh": "A daily drinker carries specific risks that the plan should also cover.",
+            "safety": ""
+          }
+        ]
+      },
+      "ppi": {
+        "th": [
+          {
+            "strength": "คิดถึงการ**ปกป้องกระเพาะอาหาร**ในคนที่ดื่มสุราหนัก",
+            "weigh": "ยา PPI ยังไม่มีหลักฐานว่าช่วยให้ตับอ่อนอักเสบหายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "การให้ PPI โดยไม่มีข้อบ่งชี้ชัด เพิ่มผลข้างเคียงโดยไม่ได้ประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจกระเพาะที่อาจระคายจากสุราร่วมด้วย",
+            "weigh": "ยานี้ควรมีข้อบ่งชี้ชัดในผู้ป่วยรายนี้ ไม่ใช่ให้ตามความเคยชิน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinks about how to **protect the stomach** in a heavy drinker.",
+            "weigh": "There is no evidence a PPI speeds recovery from pancreatitis.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia, the backbone of care.",
+            "weigh": "A PPI given without a clear indication adds side effects without benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to a stomach that alcohol may have irritated too.",
+            "weigh": "This drug needs a clear indication here rather than habit.",
+            "safety": ""
+          }
+        ]
+      },
+      "ct_day1": {
+        "th": [
+          {
+            "strength": "ต้องการ**ประเมินความเสียหาย**ของตับอ่อนตั้งแต่ต้น",
+            "weigh": "ในวันแรกความเสียหายอาจยังไม่ปรากฏ และ CT มักไม่เปลี่ยนการรักษา",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "ผู้ป่วยขาดน้ำจากอาเจียน สารทึบรังสีจึงเพิ่มภาระต่อไต",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจภาวะแทรกซ้อนที่การตรวจร่างกายมองไม่เห็น",
+            "weigh": "CT มักมีประโยชน์มากกว่าเมื่ออาการไม่ดีขึ้นหลัง 48-72 ชม.",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses a **day-one CT** to gauge pancreatic damage from the start.",
+            "weigh": "Damage may not show on day one, and with the diagnosis clear, CT rarely changes care.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia, the backbone of care.",
+            "weigh": "He is dry from vomiting, so contrast adds strain on the kidneys.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to complications that examination cannot show.",
+            "weigh": "CT tends to help more if he is not improving after 48-72 hours.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.R": {
+      "thiamine": {
+        "th": [
+          {
+            "strength": "เห็นความเสี่ยงของคนดื่มทุกวัน จึงให้**ไทอามีน**และประเมินอาการถอนสุราตั้งแต่ต้น",
+            "weigh": "อาการถอนสุรามักเริ่มภายในหนึ่งวันหลังดื่มครั้งสุดท้าย จึงควรประเมินซ้ำเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "ดูแลทั้งตับอ่อนและผลจากการดื่มสุราไปพร้อมกันในแผนเดียว",
+            "weigh": "สารน้ำควรให้ปานกลาง และปรับตามชีพจร ความดัน และปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ CIWA-Ar ทำให้อาการถอนสุราเป็นตัวเลขที่ติดตามได้",
+            "weigh": "อาการปวดที่คุมไม่ได้ทำให้ชีพจรเร็ว และทำให้ประเมินอาการถอนสุรายากขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sees the risks of daily drinking and gives **thiamine** and withdrawal scoring from the outset.",
+            "weigh": "Withdrawal often starts within a day of the last drink, so scoring needs repeating.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats the pancreas and the effects of drinking in one plan.",
+            "weigh": "Give fluids at a moderate rate, guided by pulse, BP and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "CIWA-Ar turns withdrawal into a number that can be tracked.",
+            "weigh": "Pain that is not controlled raises the pulse and makes withdrawal harder to judge.",
+            "safety": ""
+          }
+        ]
+      },
+      "alcohol": {
+        "th": [
+          {
+            "strength": "ใช้ช่วงที่นอนโรงพยาบาลเป็นโอกาสคุยเรื่อง**เลิกสุรา** ซึ่งช่วยลดการเป็นซ้ำ",
+            "weigh": "การคุยจะได้ผลกว่าเมื่อปวดทุเลาและผู้ป่วยพร้อมฟัง",
+            "safety": ""
+          },
+          {
+            "strength": "มองไกลกว่าครั้งนี้ ไปถึงการป้องกันไม่ให้กลับเป็นซ้ำ",
+            "weigh": "ควรใช้ภาษาที่ไม่ตำหนิ เพื่อให้ผู้ป่วยเปิดใจพูดถึงการดื่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวด จึงดูแลอาการเฉียบพลันไปพร้อมกัน",
+            "weigh": "ควรถามผู้ป่วยว่าอยากเปลี่ยนอะไร แล้วตั้งเป้าที่เขาทำได้จริง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses the admission as a chance for **a brief talk** on stopping alcohol.",
+            "weigh": "The talk lands better once pain settles and he is ready to listen.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks past this attack to preventing the next one.",
+            "weigh": "Non-judgemental language helps him speak openly about his drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia going, so the acute illness is treated too.",
+            "weigh": "Find out what he wants to change, and set a goal he can actually reach.",
+            "safety": ""
+          }
+        ]
+      },
+      "npo": {
+        "th": [
+          {
+            "strength": "ให้ลำไส้ได้พัก**ช่วงคลื่นไส้** ซึ่งช่วยให้ผู้ป่วยสบายขึ้นในระยะสั้น",
+            "weigh": "การงดอาหารนานไม่ได้ช่วยให้หายเร็วขึ้น เมื่อคลื่นไส้ทุเลาจึงเริ่มกินได้",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "การงดอาหารนานเพิ่มความเสี่ยงขาดสารอาหาร โดยเฉพาะในคนดื่มสุรา",
+            "safety": ""
+          },
+          {
+            "strength": "คำนึงถึงความสบายของผู้ป่วยขณะที่ยังคลื่นไส้มาก",
+            "weigh": "ควรกำหนดให้ชัดว่าจะประเมินการกินใหม่เมื่อใด ไม่ปล่อยให้งดยาวไป",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Rests the gut **during the nausea**, which eases him in the short term.",
+            "weigh": "Fasting longer does not speed recovery, so food can resume once nausea settles.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and pain relief, the backbone of care.",
+            "weigh": "A long fast raises the risk of undernutrition, especially in a drinker.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks of his comfort while the nausea is at its worst.",
+            "weigh": "Set a clear time to look at eating again so the fast does not drift on.",
+            "safety": ""
+          }
+        ]
+      },
+      "surgery": {
+        "th": [
+          {
+            "strength": "ขอให้ศัลยแพทย์ช่วยประเมิน**ท้องที่ปวดรุนแรง** เพื่อไม่ให้พลาดภาวะเร่งด่วน",
+            "weigh": "ท้องไม่แข็งเกร็ง บทบาทของศัลยแพทย์ในช่วงแรกจึงอาจมีไม่มาก",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวด จึงไม่รอผู้เชี่ยวชาญก่อนเริ่มรักษา",
+            "weigh": "ควรระบุคำถามที่ต้องการให้ศัลยแพทย์ตอบให้ชัด เพื่อให้การปรึกษาได้ประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่าท้องที่ปวดรุนแรงควรมีสองสายตาช่วยกันดู",
+            "weigh": "ถ้าอาการแย่ลงหรือท้องแข็งขึ้น การปรึกษาซ้ำจะมีความหมายมากขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Asks a surgeon to assess an abdomen **this painful** so nothing urgent is missed.",
+            "weigh": "With the abdomen not rigid, a surgeon's early role may be small.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia going instead of waiting for the specialist.",
+            "weigh": "State clearly what the surgeon is being asked, so the consult is useful.",
+            "safety": ""
+          },
+          {
+            "strength": "Knows a severe abdomen benefits from a second pair of eyes.",
+            "weigh": "If he worsens or the abdomen grows rigid, a further look by the surgeon means more.",
+            "safety": ""
+          }
+        ]
+      },
+      "ppi": {
+        "th": [
+          {
+            "strength": "คิดถึงการ**ปกป้องกระเพาะอาหาร**ในคนที่ดื่มสุราหนัก",
+            "weigh": "ยา PPI ยังไม่มีหลักฐานว่าช่วยให้ตับอ่อนอักเสบหายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "การให้ PPI โดยไม่มีข้อบ่งชี้ชัด เพิ่มผลข้างเคียงโดยไม่ได้ประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจกระเพาะที่อาจระคายจากสุราร่วมด้วย",
+            "weigh": "ยานี้ควรมีข้อบ่งชี้ชัดในผู้ป่วยรายนี้ ไม่ใช่ให้ตามความเคยชิน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinks about how to **protect the stomach** in a heavy drinker.",
+            "weigh": "There is no evidence a PPI speeds recovery from pancreatitis.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia, the backbone of care.",
+            "weigh": "A PPI given without a clear indication adds side effects without benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to a stomach that alcohol may have irritated too.",
+            "weigh": "This drug needs a clear indication here rather than habit.",
+            "safety": ""
+          }
+        ]
+      },
+      "ng": {
+        "th": [
+          {
+            "strength": "คิดถึงการ**ระบายกระเพาะ**เพื่อลดการอาเจียนที่เกิดซ้ำ ๆ",
+            "weigh": "สาย NG ไม่ได้ช่วยให้ตับอ่อนอักเสบหายเร็วขึ้น และทำให้ผู้ป่วยไม่สบายตัว",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "สายทางจมูกมีที่ใช้เมื่ออาเจียนไม่หยุดหรือลำไส้อืดมาก ไม่ใช่ใส่ทุกราย",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจความทุกข์จากการอาเจียนซ้ำ ซึ่งทำให้ผู้ป่วยทรมาน",
+            "weigh": "การใส่สายทำให้เริ่มกินได้ช้าลง ซึ่งอาจทำให้ฟื้นตัวช้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Aims to ease repeated vomiting with a tube that **drains the stomach**.",
+            "weigh": "A nasogastric tube does not speed recovery and is uncomfortable for him.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia, the backbone of care.",
+            "weigh": "A tube has a role when vomiting will not stop or the bowel is very distended, not for everyone.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes the distress of repeated vomiting seriously.",
+            "weigh": "A tube delays eating, which can slow recovery.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.W": {
+      "admit": {
+        "th": [
+          {
+            "strength": "วางแผนครบทั้ง**สารน้ำปานกลาง** ยาแก้ปวด และหาสาเหตุด้วยอัลตราซาวด์",
+            "weigh": "ชีพจร ความดัน และปัสสาวะ ควรเป็นตัวกำหนดปริมาณสารน้ำในชั่วโมงต่อ ๆ ไป",
+            "safety": ""
+          },
+          {
+            "strength": "ปรับแผนทันทีเมื่อผลไลเปสสูงชัดเจน",
+            "weigh": "ควรกำหนดรอบประเมินซ้ำให้ชัดในช่วง 48 ชม. แรก ซึ่งอาการเปลี่ยนได้เร็ว",
+            "safety": ""
+          },
+          {
+            "strength": "หานิ่วตั้งแต่ต้น เพราะเป็นสาเหตุที่แก้ไขได้แม้ในคนดื่มหนัก",
+            "weigh": "ลมในลำไส้อาจบังภาพอัลตราซาวด์ ผลที่ไม่พบนิ่วจึงยังตัดออกไม่ได้ทั้งหมด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Covers **moderate fluids**, analgesia and a search for the cause in one plan.",
+            "weigh": "Pulse, BP and urine output should set the fluid rate over the coming hours.",
+            "safety": ""
+          },
+          {
+            "strength": "Changes course at once when the lipase comes back clearly raised.",
+            "weigh": "Set clear times to reassess in the first 48 hours, when things change fastest.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for gallstones early, a fixable cause even in a heavy drinker.",
+            "weigh": "Bowel gas can hide the view, so a scan without stones does not fully exclude them.",
+            "safety": ""
+          }
+        ]
+      },
+      "thiamine": {
+        "th": [
+          {
+            "strength": "เห็นความเสี่ยงของคนดื่มทุกวัน จึงให้**ไทอามีน**และประเมินอาการถอนสุราตั้งแต่ต้น",
+            "weigh": "อาการถอนสุรามักเริ่มภายในหนึ่งวันหลังดื่มครั้งสุดท้าย จึงควรประเมินซ้ำเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "ดูแลทั้งตับอ่อนและผลจากการดื่มสุราไปพร้อมกันในแผนเดียว",
+            "weigh": "สารน้ำควรให้ปานกลาง และปรับตามชีพจร ความดัน และปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ CIWA-Ar ทำให้อาการถอนสุราเป็นตัวเลขที่ติดตามได้",
+            "weigh": "อาการปวดที่คุมไม่ได้ทำให้ชีพจรเร็ว และทำให้ประเมินอาการถอนสุรายากขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sees the risks of daily drinking and gives **thiamine** and withdrawal scoring from the outset.",
+            "weigh": "Withdrawal often starts within a day of the last drink, so scoring needs repeating.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats the pancreas and the effects of drinking in one plan.",
+            "weigh": "Give fluids at a moderate rate, guided by pulse, BP and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "CIWA-Ar turns withdrawal into a number that can be tracked.",
+            "weigh": "Pain that is not controlled raises the pulse and makes withdrawal harder to judge.",
+            "safety": ""
+          }
+        ]
+      },
+      "saline": {
+        "th": [
+          {
+            "strength": "รับไว้ในโรงพยาบาลและแก้**ภาวะขาดน้ำ**ด้วยน้ำเกลือที่หาได้ทุกที่",
+            "weigh": "น้ำเกลือนอร์มัลปริมาณมากทำให้เลือดเป็นกรดได้ จึงควรทบทวนปริมาณที่ให้เป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "เห็นว่าผู้ป่วยขาดน้ำจากอาเจียนซ้ำและชีพจรเร็ว จึงให้น้ำทันที",
+            "weigh": "ให้น้ำเร็วมากเกินไปอาจทำให้น้ำเกิน ควรปรับอัตราตามชีพจรกับปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "แผนเรียบง่ายที่ทำได้ทันทีในโรงพยาบาลทุกระดับ",
+            "weigh": "คนดื่มทุกวันมีความเสี่ยงเฉพาะที่ควรคิดถึงในแผนการดูแลด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Admits him and treats the **dehydration** with saline available everywhere.",
+            "weigh": "Large volumes of normal saline can tip the blood toward acid, so review the total given.",
+            "safety": ""
+          },
+          {
+            "strength": "Sees dehydration from vomiting and a fast pulse, and acts on it at once.",
+            "weigh": "Too much too fast risks overload, so pace it by pulse and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "A simple plan any hospital can begin at once.",
+            "weigh": "A daily drinker carries specific risks that the plan should also cover.",
+            "safety": ""
+          }
+        ]
+      },
+      "surgery": {
+        "th": [
+          {
+            "strength": "ขอให้ศัลยแพทย์ช่วยประเมิน**ท้องที่ปวดรุนแรง** เพื่อไม่ให้พลาดภาวะเร่งด่วน",
+            "weigh": "ท้องไม่แข็งเกร็ง บทบาทของศัลยแพทย์ในช่วงแรกจึงอาจมีไม่มาก",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวด จึงไม่รอผู้เชี่ยวชาญก่อนเริ่มรักษา",
+            "weigh": "ควรระบุคำถามที่ต้องการให้ศัลยแพทย์ตอบให้ชัด เพื่อให้การปรึกษาได้ประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่าท้องที่ปวดรุนแรงควรมีสองสายตาช่วยกันดู",
+            "weigh": "ถ้าอาการแย่ลงหรือท้องแข็งขึ้น การปรึกษาซ้ำจะมีความหมายมากขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Asks a surgeon to assess an abdomen **this painful** so nothing urgent is missed.",
+            "weigh": "With the abdomen not rigid, a surgeon's early role may be small.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia going instead of waiting for the specialist.",
+            "weigh": "State clearly what the surgeon is being asked, so the consult is useful.",
+            "safety": ""
+          },
+          {
+            "strength": "Knows a severe abdomen benefits from a second pair of eyes.",
+            "weigh": "If he worsens or the abdomen grows rigid, a further look by the surgeon means more.",
+            "safety": ""
+          }
+        ]
+      },
+      "ppi": {
+        "th": [
+          {
+            "strength": "คิดถึงการ**ปกป้องกระเพาะอาหาร**ในคนที่ดื่มสุราหนัก",
+            "weigh": "ยา PPI ยังไม่มีหลักฐานว่าช่วยให้ตับอ่อนอักเสบหายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "การให้ PPI โดยไม่มีข้อบ่งชี้ชัด เพิ่มผลข้างเคียงโดยไม่ได้ประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจกระเพาะที่อาจระคายจากสุราร่วมด้วย",
+            "weigh": "ยานี้ควรมีข้อบ่งชี้ชัดในผู้ป่วยรายนี้ ไม่ใช่ให้ตามความเคยชิน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinks about how to **protect the stomach** in a heavy drinker.",
+            "weigh": "There is no evidence a PPI speeds recovery from pancreatitis.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia, the backbone of care.",
+            "weigh": "A PPI given without a clear indication adds side effects without benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to a stomach that alcohol may have irritated too.",
+            "weigh": "This drug needs a clear indication here rather than habit.",
+            "safety": ""
+          }
+        ]
+      },
+      "ng": {
+        "th": [
+          {
+            "strength": "คิดถึงการ**ระบายกระเพาะ**เพื่อลดการอาเจียนที่เกิดซ้ำ ๆ",
+            "weigh": "สาย NG ไม่ได้ช่วยให้ตับอ่อนอักเสบหายเร็วขึ้น และทำให้ผู้ป่วยไม่สบายตัว",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้สารน้ำและยาแก้ปวดซึ่งเป็นแกนหลักของการดูแล",
+            "weigh": "สายทางจมูกมีที่ใช้เมื่ออาเจียนไม่หยุดหรือลำไส้อืดมาก ไม่ใช่ใส่ทุกราย",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจความทุกข์จากการอาเจียนซ้ำ ซึ่งทำให้ผู้ป่วยทรมาน",
+            "weigh": "การใส่สายทำให้เริ่มกินได้ช้าลง ซึ่งอาจทำให้ฟื้นตัวช้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Aims to ease repeated vomiting with a tube that **drains the stomach**.",
+            "weigh": "A nasogastric tube does not speed recovery and is uncomfortable for him.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps fluids and analgesia, the backbone of care.",
+            "weigh": "A tube has a role when vomiting will not stop or the bowel is very distended, not for everyone.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes the distress of repeated vomiting seriously.",
+            "weigh": "A tube delays eating, which can slow recovery.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.B": {
+      "soft": {
+        "th": [
+          {
+            "strength": "ใช้**ปวดลดลงและหิวแล้ว**เป็นสัญญาณว่าพร้อมกินอาหาร",
+            "weigh": "ควรเฝ้าดูว่าปวดกลับมาหลังกินหรือไม่ ถ้ากลับมาค่อยถอยกลับ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ผู้ป่วยกินได้เร็ว ช่วยให้ลำไส้ฟื้นตัวและกลับบ้านได้ไว",
+            "weigh": "ควรเริ่มปริมาณน้อยแล้วค่อยเพิ่มตามที่ผู้ป่วยทนได้",
+            "safety": ""
+          },
+          {
+            "strength": "ฟังสัญญาณจากผู้ป่วยเอง คือความหิว แทนการยึดตารางตายตัว",
+            "weigh": "การกินได้ดีต้องดูต่อเนื่องหลายมื้อ ไม่ใช่มื้อเดียว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Reads less pain and **real hunger** as signs he is ready to eat.",
+            "weigh": "Watch whether pain returns after eating, and step back if it does.",
+            "safety": ""
+          },
+          {
+            "strength": "Gets him eating soon, which helps the gut recover and shortens the stay.",
+            "weigh": "Start with small portions and build up as he tolerates them.",
+            "safety": ""
+          },
+          {
+            "strength": "Follows his own cue, hunger, rather than a fixed timetable.",
+            "weigh": "Eating well needs to hold over several meals, not just one.",
+            "safety": ""
+          }
+        ]
+      },
+      "taper": {
+        "th": [
+          {
+            "strength": "ลดสารน้ำเมื่อ**กินดื่มได้ดี** ช่วยเลี่ยงน้ำเกินและเตรียมกลับบ้าน",
+            "weigh": "ควรแน่ใจว่าผู้ป่วยกินดื่มได้ต่อเนื่องจริงก่อนลดสารน้ำลงมาก",
+            "safety": ""
+          },
+          {
+            "strength": "เปลี่ยนเป็นยาแก้ปวดชนิดกิน ทำให้ผู้ป่วยเคลื่อนไหวได้สะดวกขึ้น",
+            "weigh": "ยาแก้ปวดที่เลือกควรคำนึงถึงตับของคนที่ดื่มทุกวัน",
+            "safety": ""
+          },
+          {
+            "strength": "ปรับการรักษาตามอาการที่ดีขึ้น ไม่ให้สารน้ำต่อโดยไม่จำเป็น",
+            "weigh": "ถ้าปวดกลับมาหรือกินได้น้อยลง ควรพร้อมเพิ่มสารน้ำกลับ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Brings fluids down once he **eats and drinks well**, avoiding overload.",
+            "weigh": "Make sure he keeps eating and drinking steadily before the drip comes off.",
+            "safety": ""
+          },
+          {
+            "strength": "Oral pain relief frees him to move about more easily.",
+            "weigh": "The choice of pain relief should take the liver of a daily drinker into account.",
+            "safety": ""
+          },
+          {
+            "strength": "Matches treatment to improvement instead of running the drip without need.",
+            "weigh": "If pain returns or intake drops, be ready to raise the drip again.",
+            "safety": ""
+          }
+        ]
+      },
+      "labs": {
+        "th": [
+          {
+            "strength": "ใช้**ผลเลือด**ยืนยันว่าไตและเลือดยังดีอยู่ ก่อนก้าวไปขั้นต่อไป",
+            "weigh": "เมื่ออาการดีขึ้นชัด ผลเลือดซ้ำมักไม่เปลี่ยนแผนการดูแล",
+            "safety": ""
+          },
+          {
+            "strength": "BUN ที่ไม่สูงขึ้นช่วยยืนยันว่าสารน้ำที่ให้เพียงพอ",
+            "weigh": "การเจาะเลือดซ้ำควรมีคำถามที่ชัดว่าผลจะเปลี่ยนอะไร",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ข้อมูลเชิงตัวเลขประกอบการตัดสินใจ ไม่ดูแค่อาการ",
+            "weigh": "ผลเลือดไม่ได้บอกว่าผู้ป่วยพร้อมกินอาหารหรือยัง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **blood results** to confirm the kidneys and blood count are holding.",
+            "weigh": "With obvious improvement, repeat bloods rarely change the plan.",
+            "safety": ""
+          },
+          {
+            "strength": "A BUN that is not rising confirms the hydration has been enough.",
+            "weigh": "Repeat blood tests should answer a specific question about what would change.",
+            "safety": ""
+          },
+          {
+            "strength": "Brings numbers into the decision, not symptoms alone.",
+            "weigh": "Blood results do not show whether he is ready to eat.",
+            "safety": ""
+          }
+        ]
+      },
+      "clear": {
+        "th": [
+          {
+            "strength": "ค่อย ๆ เริ่มด้วยเหลวใส**เพื่อดูว่าทนได้**",
+            "weigh": "เมื่ออาการดีขึ้นชัด การเริ่มด้วยเหลวใสมักไม่ได้เพิ่มความปลอดภัย",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้ผู้ป่วยได้เริ่มกินทางปาก ไม่ได้งดต่อ",
+            "weigh": "อาหารเหลวใสให้พลังงานน้อย ถ้าใช้ทั้งวันอาจทำให้ฟื้นตัวช้าลง",
+            "safety": ""
+          },
+          {
+            "strength": "ค่อยเป็นค่อยไปเพื่อลดโอกาสที่ปวดหรืออาเจียนจะกลับมา",
+            "weigh": "อาหารเหลวใสอย่างเดียวทั้งวันอาจทำให้ผู้ป่วยไม่อิ่มและกินได้น้อย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Takes a cautious start to see that he **keeps them down**.",
+            "weigh": "Once he is clearly improving, a clear liquid start adds little safety.",
+            "safety": ""
+          },
+          {
+            "strength": "Still gets him eating by mouth rather than fasting.",
+            "weigh": "Clear liquids give little energy, so a whole day of them can slow recovery.",
+            "safety": ""
+          },
+          {
+            "strength": "Goes step by step to lower the chance of pain or vomiting returning.",
+            "weigh": "Limiting him to clear liquids may leave him eating less than he could.",
+            "safety": ""
+          }
+        ]
+      },
+      "ct": {
+        "th": [
+          {
+            "strength": "ต้องการเห็น**สภาพตับอ่อน**ด้วยตาตัวเอง ไม่อาศัยอาการอย่างเดียว",
+            "weigh": "ผู้ป่วยดีขึ้นชัดแล้ว CT ตอนนี้แทบไม่เปลี่ยนการดูแล และได้รับรังสีเพิ่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจภาวะแทรกซ้อนที่การตรวจร่างกายอาจมองไม่เห็น",
+            "weigh": "CT มีประโยชน์เมื่ออาการไม่ดีขึ้นหรือแย่ลง ซึ่งต่างจากสถานการณ์ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ภาพมาประกอบการตัดสินใจอย่างเป็นรูปธรรม",
+            "weigh": "สารทึบรังสีมีความเสี่ยงต่อไต ซึ่งต้องชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants **to see the pancreas** directly rather than rely on symptoms.",
+            "weigh": "He is clearly improving, so a CT now rarely changes care and adds radiation.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to complications that examination may miss.",
+            "weigh": "CT earns its place when he fails to improve or worsens, which is not the case now.",
+            "safety": ""
+          },
+          {
+            "strength": "Brings imaging in to support a concrete decision.",
+            "weigh": "Contrast carries a kidney risk that has to be weighed against the gain.",
+            "safety": ""
+          }
+        ]
+      },
+      "ivsame": {
+        "th": [
+          {
+            "strength": "ระวังไม่ให้ขาดน้ำซ้ำ**ระหว่างเริ่มกินอาหาร**",
+            "weigh": "เมื่อผู้ป่วยดื่มได้เองแล้ว อัตราเดิมอาจทำให้น้ำเกินและติดสายโดยไม่จำเป็น",
+            "safety": ""
+          },
+          {
+            "strength": "รักษาความต่อเนื่องในช่วงที่ยังไม่แน่ใจว่ากินได้พอ",
+            "weigh": "ควรทบทวนอัตราสารน้ำทุกวันตามสิ่งที่ผู้ป่วยกินดื่มได้",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ความสำคัญกับสมดุลน้ำในคนที่เคยขาดน้ำ",
+            "weigh": "สายน้ำเกลือที่คาไว้นานเพิ่มความเสี่ยงติดเชื้อและจำกัดการเคลื่อนไหว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Guards against dehydration while he **restarts food**.",
+            "weigh": "Once he drinks for himself, the same rate risks overload and keeps him tethered.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps things steady while it is unclear he will take enough.",
+            "weigh": "Review the rate each day against what he eats and drinks.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes fluid balance seriously in a man who was dehydrated.",
+            "weigh": "A drip left in longer adds infection risk and limits his movement.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.R": {
+      "antiemetic": {
+        "th": [
+          {
+            "strength": "**คุมคลื่นไส้**ก่อนแล้วเริ่มกิน ทำให้ลำไส้กลับมาทำงาน",
+            "weigh": "อาหารควรเริ่มทีละน้อยและเพิ่มขึ้นตามที่คลื่นไส้ทุเลา",
+            "safety": ""
+          },
+          {
+            "strength": "แก้อาการที่ขวางการกินโดยตรง แทนที่จะงดอาหารต่อ",
+            "weigh": "ถ้าคลื่นไส้ไม่ดีขึ้นแม้ได้ยา ควรหาสาเหตุที่ทำให้ฟื้นช้าต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ปล่อยให้คลื่นไส้เป็นเหตุให้ผู้ป่วยต้องงดอาหารนาน",
+            "weigh": "ยาแก้อาเจียนบางตัวมีผลต่อจังหวะหัวใจหรือทำให้ง่วง จึงควรเลือกอย่างรอบคอบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Settling the nausea**, then eating, gets the gut working again.",
+            "weigh": "Food can begin in small amounts and build up as the nausea eases.",
+            "safety": ""
+          },
+          {
+            "strength": "Tackles what blocks eating directly instead of prolonging a fast.",
+            "weigh": "If nausea persists despite the drug, the reason for slow recovery needs finding.",
+            "safety": ""
+          },
+          {
+            "strength": "Does not let nausea become a reason for a long fast.",
+            "weigh": "Some antiemetics affect heart rhythm or cause drowsiness, so choose with care.",
+            "safety": ""
+          }
+        ]
+      },
+      "recheck": {
+        "th": [
+          {
+            "strength": "คิดถึงทั้งขาดน้ำและ**ถอนสุรา**เป็นเหตุของชีพจรเร็ว ไม่ยึดคำตอบเดียว",
+            "weigh": "ความปวดและการอักเสบที่ยังมีอยู่ก็ทำให้ชีพจรเร็วได้ ควรประเมินร่วมกัน",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ CIWA-Ar ทำให้อาการถอนสุราเป็นตัวเลขที่ติดตามได้",
+            "weigh": "ควรประเมินซ้ำเป็นรอบที่ชัด เพราะอาการถอนสุราเปลี่ยนได้ในไม่กี่ชั่วโมง",
+            "safety": ""
+          },
+          {
+            "strength": "ทบทวนสมดุลน้ำใหม่ เมื่อการฟื้นตัวไม่เป็นไปตามคาด",
+            "weigh": "การประเมินควรนำไปสู่การกระทำที่ชัด ไม่ใช่แค่บันทึกตัวเลข",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Considers both dehydration and **alcohol withdrawal** behind a fast pulse.",
+            "weigh": "Ongoing pain and inflammation can also raise the pulse, so weigh them together.",
+            "safety": ""
+          },
+          {
+            "strength": "CIWA-Ar turns withdrawal into a number that can be tracked.",
+            "weigh": "Withdrawal can change within hours, so set fixed times to reassess.",
+            "safety": ""
+          },
+          {
+            "strength": "Revisits fluid balance when recovery is not going to plan.",
+            "weigh": "An assessment should lead to a definite action, not just a recorded number.",
+            "safety": ""
+          }
+        ]
+      },
+      "labs": {
+        "th": [
+          {
+            "strength": "ใช้**ผลเลือด**ยืนยันว่าไตและเลือดยังดีอยู่ เมื่อฟื้นตัวช้ากว่าคาด",
+            "weigh": "ผลเลือดช่วยได้ แต่เหตุที่ฟื้นช้าต้องประเมินข้างเตียงด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "BUN ที่สูงขึ้นอาจบอกว่าสารน้ำยังไม่พอ ซึ่งสำคัญเมื่อฟื้นช้า",
+            "weigh": "ควรรู้ล่วงหน้าว่าผลแบบใดจะทำให้เปลี่ยนแผน",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ข้อมูลเชิงตัวเลขประกอบ ไม่อาศัยอาการอย่างเดียว",
+            "weigh": "ผลเลือดที่ปกติยังไม่ได้อธิบายว่าทำไมผู้ป่วยฟื้นตัวช้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **blood results** to confirm the kidneys and blood count are holding.",
+            "weigh": "Bloods help, but why he is slow to improve also needs bedside assessment.",
+            "safety": ""
+          },
+          {
+            "strength": "A rising BUN can show hydration is falling short, which matters when progress is slow.",
+            "weigh": "Decide in advance which result would change the plan.",
+            "safety": ""
+          },
+          {
+            "strength": "Brings numbers in when recovery is slower than expected.",
+            "weigh": "Normal bloods would not explain why his recovery is slow.",
+            "safety": ""
+          }
+        ]
+      },
+      "clear": {
+        "th": [
+          {
+            "strength": "**เริ่มทีละขั้น** ช่วยให้ผู้ป่วยทนอาหารได้ในช่วงที่ยังฟื้นตัว",
+            "weigh": "หลักฐานว่าการเริ่มด้วยเหลวใสช่วยลดปวดหรืออาเจียนมีไม่มาก",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้เริ่มกินทางปาก ซึ่งช่วยให้ลำไส้ฟื้นตัว",
+            "weigh": "ควรดูสาเหตุที่ยังฟื้นช้าควบคู่ไปด้วย ไม่ใช่ปรับเพียงอาหาร",
+            "safety": ""
+          },
+          {
+            "strength": "มีแผนชัดว่าจะเพิ่มอาหารเมื่อใด ไม่ค้างอยู่ที่เหลวใส",
+            "weigh": "อาหารเหลวใสให้พลังงานน้อย จึงไม่ควรใช้นานเกินจำเป็น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **step-by-step** start helps him keep food down while he recovers.",
+            "weigh": "Evidence that a clear liquid phase reduces pain or vomiting is limited.",
+            "safety": ""
+          },
+          {
+            "strength": "Still restores eating by mouth, which helps the gut recover.",
+            "weigh": "Why he is slow to improve deserves a look alongside the diet.",
+            "safety": ""
+          },
+          {
+            "strength": "Has a clear plan to move up to soft food rather than stalling on liquids.",
+            "weigh": "Clear liquids give little energy, so they should not last longer than needed.",
+            "safety": ""
+          }
+        ]
+      },
+      "ct": {
+        "th": [
+          {
+            "strength": "ต้องการหาเหตุที่อาการ**ดีขึ้นช้า**อย่างเป็นรูปธรรม",
+            "weigh": "ผู้ป่วยยังดีขึ้นทีละน้อย และภาวะแทรกซ้อนมักเห็นชัดใน CT หลัง 72 ชม.",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ปล่อยให้อาการที่ฟื้นช้าผ่านไปโดยไม่หาเหตุ",
+            "weigh": "สารทึบรังสีมีความเสี่ยงต่อไต โดยเฉพาะถ้ายังขาดน้ำอยู่",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจภาวะแทรกซ้อนที่การตรวจร่างกายอาจมองไม่เห็น",
+            "weigh": "ผล CT ควรเปลี่ยนการตัดสินใจได้จริง จึงจะคุ้มกับความเสี่ยงที่เพิ่มขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants a concrete answer to why he is **slow to improve**.",
+            "weigh": "He is still improving a little, and complications show better on CT after 72 hours.",
+            "safety": ""
+          },
+          {
+            "strength": "Does not let slow recovery pass without looking for a reason.",
+            "weigh": "Contrast carries a kidney risk, more so if he is still dry.",
+            "safety": ""
+          },
+          {
+            "strength": "Pays attention to complications examination may miss.",
+            "weigh": "A CT is worth its risk when the result would really change the decision.",
+            "safety": ""
+          }
+        ]
+      },
+      "ng": {
+        "th": [
+          {
+            "strength": "ต้องการลดคลื่นไส้ที่ค้างอยู่ด้วยการ**ระบายกระเพาะ**",
+            "weigh": "สาย NG มีที่ใช้เมื่ออาเจียนไม่หยุดหรือลำไส้อืด คนที่แค่คลื่นไส้มักไม่ได้ประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ใส่ใจความทรมานจากคลื่นไส้ที่ยังไม่หาย",
+            "weigh": "การใส่สายทำให้ไม่สบายตัวและเลื่อนการกินออกไป",
+            "safety": ""
+          },
+          {
+            "strength": "คิดหาทางแก้อาการที่ขวางการฟื้นตัว",
+            "weigh": "ควรหาสาเหตุที่ยังคลื่นไส้ก่อนเลือกวิธีที่รุกล้ำร่างกาย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Aims to ease the **lingering nausea** by draining the stomach.",
+            "weigh": "A tube helps when vomiting will not stop or the bowel is distended; nausea alone rarely gains.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes his ongoing nausea seriously.",
+            "weigh": "A tube is uncomfortable and pushes eating further back.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for a way past what is blocking recovery.",
+            "weigh": "Finding why he is still nauseated comes before an invasive step.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.W": {
+      "dzp": {
+        "th": [
+          {
+            "strength": "ผูกขนาด**ไดอะซีแพม**กับคะแนน CIWA-Ar ทำให้ยาตามอาการจริง",
+            "weigh": "คนดื่มทุกวันอาจขับยาได้ช้า ควรเฝ้าดูอาการง่วงซึมและการหายใจ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ไทอามีนร่วมด้วย ช่วยปกป้องสมองของคนที่ดื่มมานาน",
+            "weigh": "ควรประเมินคะแนนซ้ำตามรอบที่ชัด จึงจะให้ยาได้ปลอดภัย",
+            "safety": ""
+          },
+          {
+            "strength": "อ่านอาการชุดนี้ว่าเป็นภาวะถอนสุราได้ชัดและรักษาตรงจุด",
+            "weigh": "อาการถอนสุราอาจหนักขึ้นได้ในวันที่ 2-3 จึงควรเฝ้าดูต่อเนื่อง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Ties the **diazepam** dose to the CIWA-Ar, so treatment follows his symptoms.",
+            "weigh": "A daily drinker may clear diazepam slowly, so watch for drowsiness and slow breathing.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding thiamine protects the brain of a long-term drinker.",
+            "weigh": "Re-scoring at set intervals is what keeps the dosing safe.",
+            "safety": ""
+          },
+          {
+            "strength": "Reads this set of symptoms as withdrawal and treats it directly.",
+            "weigh": "Withdrawal can worsen over the next day or two, so keep watching closely.",
+            "safety": ""
+          }
+        ]
+      },
+      "thia_dzp": {
+        "th": [
+          {
+            "strength": "**ปกป้องสมอง**ไปพร้อมกับรักษาอาการถอนสุราในคราวเดียว",
+            "weigh": "ขนาดไดอะซีแพมควรปรับตามอาการ และเฝ้าดูอาการง่วงซึมกับการหายใจ",
+            "safety": ""
+          },
+          {
+            "strength": "ไทอามีนแบบฉีดเข้าร่างกายได้แน่นอน ในคนดื่มที่อาจขาดสารอาหาร",
+            "weigh": "ควรมีแผนชัดว่าจะให้ไดอะซีแพมซ้ำเมื่อใดและเท่าใด",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ยาที่ตรงกับภาวะถอนสุราโดยตรง ไม่รอให้อาการหนักขึ้น",
+            "weigh": "คนดื่มทุกวันอาจขับยาได้ช้า จึงควรระวังการสะสมของไดอะซีแพม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Treats withdrawal and **protects the brain** at the same time.",
+            "weigh": "Dose the diazepam to his symptoms and watch for drowsiness and slow breathing.",
+            "safety": ""
+          },
+          {
+            "strength": "Injected thiamine is absorbed reliably in a drinker who may be undernourished.",
+            "weigh": "A clear plan for when and how much diazepam to repeat keeps dosing safe.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses drugs aimed squarely at withdrawal instead of waiting for it to worsen.",
+            "weigh": "A daily drinker may clear diazepam slowly, so it can build up.",
+            "safety": ""
+          }
+        ]
+      },
+      "lytes": {
+        "th": [
+          {
+            "strength": "ไม่ด่วนสรุป แต่หา**น้ำตาลต่ำ**หรือเกลือแร่ที่ทำให้มือสั่นได้เช่นกัน",
+            "weigh": "ระหว่างรอผล อาการที่เห็นอยู่ตรงหน้ายังต้องได้รับการดูแล",
+            "safety": ""
+          },
+          {
+            "strength": "แมกนีเซียมต่ำพบบ่อยในคนดื่มสุรา และทำให้อาการแย่ลงได้",
+            "weigh": "การตรวจช่วยหาสิ่งที่แก้ได้ แต่ไม่ได้รักษาอาการที่กำลังเกิด",
+            "safety": ""
+          },
+          {
+            "strength": "น้ำตาลต่ำแก้ได้เร็วและอันตรายถ้าพลาด การตรวจจึงมีความหมาย",
+            "weigh": "ผลเกลือแร่ต้องใช้เวลา ส่วนน้ำตาลปลายนิ้วรู้ผลได้ทันที",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Does not jump to a conclusion and looks for **low glucose** or salts that also cause tremor.",
+            "weigh": "While results are awaited, the symptoms in front of you still need managing.",
+            "safety": ""
+          },
+          {
+            "strength": "Low magnesium is common in drinkers and can make things worse.",
+            "weigh": "Testing finds what is fixable but does not treat what is happening now.",
+            "safety": ""
+          },
+          {
+            "strength": "Low glucose is quick to fix and dangerous to miss, so testing earns its place.",
+            "weigh": "Electrolytes take time, while a finger-prick glucose is back at once.",
+            "safety": ""
+          }
+        ]
+      },
+      "score": {
+        "th": [
+          {
+            "strength": "ใช้**คะแนน**บอกความรุนแรง และย้ายเตียงให้พยาบาลเฝ้าดูได้ใกล้ชิด",
+            "weigh": "คะแนนมีประโยชน์เมื่อแต่ละระดับผูกกับการกระทำที่ชัดเจน",
+            "safety": ""
+          },
+          {
+            "strength": "ทำให้อาการเป็นตัวเลขที่ทุกคนในทีมอ่านตรงกัน",
+            "weigh": "การให้คะแนนอย่างเดียวยังไม่ได้รักษาอาการ จึงต้องมีแผนเมื่อคะแนนสูง",
+            "safety": ""
+          },
+          {
+            "strength": "การอยู่ใกล้พยาบาลช่วยจับอาการที่แย่ลงได้เร็ว",
+            "weigh": "ควรกำหนดรอบการให้คะแนนซ้ำให้ชัด เพราะอาการเปลี่ยนได้ในไม่กี่ชั่วโมง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **a score** to grade severity and moves him where nurses can watch closely.",
+            "weigh": "A score helps when each level is tied to a clear action.",
+            "safety": ""
+          },
+          {
+            "strength": "Turns his symptoms into a number the whole team reads the same way.",
+            "weigh": "Scoring alone does not treat, so a plan for high scores is needed.",
+            "safety": ""
+          },
+          {
+            "strength": "A bed near the nurses catches deterioration quickly.",
+            "weigh": "Set clear times to re-score, since things can change within hours.",
+            "safety": ""
+          }
+        ]
+      },
+      "relative": {
+        "th": [
+          {
+            "strength": "รู้ว่า**คนคุ้นเคย**ช่วยให้ผู้ป่วยสงบ ซึ่งลดความกระวนกระวายได้จริง",
+            "weigh": "การให้ยาเมื่อจำเป็นโดยไม่มีเกณฑ์ชัด อาจทำให้ได้ยาน้อยกว่าอาการจริง",
+            "safety": "อาการแบบนี้อาจหนักขึ้นจนเป็นอันตรายได้ในไม่กี่ชั่วโมง หากไม่ได้ประเมินใกล้ชิด"
+          },
+          {
+            "strength": "ใช้วิธีที่ไม่ใช้ยาช่วยให้ผู้ป่วยสงบ ซึ่งเป็นส่วนหนึ่งของการดูแล",
+            "weigh": "ญาติช่วยให้สงบได้ แต่ไม่ได้ฝึกมาเพื่อจับอาการที่แย่ลง",
+            "safety": "อาการนี้อาจรุนแรงจนอันตรายถึงชีวิตได้ในเวลาไม่นาน หากไม่ได้เฝ้าดูใกล้ชิด"
+          },
+          {
+            "strength": "ยังมีไดอะซีแพมเตรียมไว้ ไม่ได้ปล่อยอาการไว้โดยไม่มีแผน",
+            "weigh": "คำว่าเมื่อจำเป็นควรมีความหมายที่ทุกคนที่ดูแลเข้าใจตรงกัน",
+            "safety": "หากไม่ได้รักษาเต็มที่ อาการชุดนี้อาจลุกลามจนเป็นอันตรายได้ภายในไม่กี่ชั่วโมง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows **a familiar face** calms an agitated patient, which really helps.",
+            "weigh": "As-needed dosing without a set trigger can leave symptoms undertreated.",
+            "safety": "Symptoms like these can turn dangerous within hours without close, regular assessment."
+          },
+          {
+            "strength": "Uses a non-drug way to settle him, which is a real part of care.",
+            "weigh": "A relative can calm him but is not trained to spot deterioration.",
+            "safety": "This picture can become life-threatening quickly if he is not watched closely."
+          },
+          {
+            "strength": "Keeps diazepam on hand, so the symptoms are not left without a plan.",
+            "weigh": "As needed should mean the same thing to everyone caring for him.",
+            "safety": "Undertreated, these symptoms can progress to a dangerous state within hours."
+          }
+        ]
+      }
+    },
+    "step5.B": {
+      "discharge_bi": {
+        "th": [
+          {
+            "strength": "ใช้จังหวะก่อนกลับบ้านคุยเรื่อง**เลิกสุรา** ซึ่งอาจลดการกลับเป็นซ้ำได้จริง",
+            "weigh": "คำแนะนำได้ผลขึ้นเมื่อเจาะจง และผู้ป่วยบอกเหตุผลที่อยากเลิกด้วยตัวเอง",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ปล่อยให้ต้นเหตุของครั้งนี้หลุดไปตอนจำหน่าย",
+            "weigh": "การคุยครั้งเดียวได้ผลจำกัด จึงควรมีจุดที่หยิบเรื่องนี้ขึ้นมาอีก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ผู้ป่วยกลับบ้านเมื่อพร้อม โดยไม่ทิ้งเรื่องสุราไว้เบื้องหลัง",
+            "weigh": "ควรใช้ภาษาที่ไม่ตำหนิ เพื่อให้ผู้ป่วยเปิดใจพูดถึงการดื่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses the moment before discharge for **a brief talk** on stopping alcohol.",
+            "weigh": "Advice lands better when it is specific and he names his own reason to stop.",
+            "safety": ""
+          },
+          {
+            "strength": "Does not let the cause of this attack slip away at discharge.",
+            "weigh": "A single talk has limited effect, so the topic needs a place to return to.",
+            "safety": ""
+          },
+          {
+            "strength": "Sends him home when ready without leaving alcohol behind.",
+            "weigh": "Non-judgemental language helps him speak openly about his drinking.",
+            "safety": ""
+          }
+        ]
+      },
+      "audit_refer": {
+        "th": [
+          {
+            "strength": "ใช้**คะแนน AUDIT** วางแผนเลิกสุราที่เข้ากับผู้ป่วยรายนี้",
+            "weigh": "การส่งต่อได้ผลเมื่อผู้ป่วยไปตามนัด ความพร้อมของเขาจึงสำคัญ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้เครื่องมือมาตรฐานแยกระดับการดื่ม ทำให้แผนชัดเจน",
+            "weigh": "ระยะทางและเวลาไปคลินิกอาจเป็นอุปสรรค ควรคุยเรื่องนี้ก่อนส่ง",
+            "safety": ""
+          },
+          {
+            "strength": "มองการดื่มเป็นภาวะที่รักษาได้ และเชื่อมผู้ป่วยกับผู้เชี่ยวชาญ",
+            "weigh": "การแจ้งคะแนนให้ผู้ป่วยรู้ตรง ๆ ช่วยให้เขาเห็นภาพการดื่มของตัวเอง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **an AUDIT score** to shape a plan to stop that fits him.",
+            "weigh": "Referral works only if he attends, so his readiness matters.",
+            "safety": ""
+          },
+          {
+            "strength": "A standard tool grades his drinking and makes the plan clear.",
+            "weigh": "Distance and time to the clinic can be barriers worth discussing before referral.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats drinking as a treatable condition and connects him to specialists.",
+            "weigh": "Sharing the score with him plainly helps him see his own drinking.",
+            "safety": ""
+          }
+        ]
+      },
+      "clinic": {
+        "th": [
+          {
+            "strength": "**นัดติดตาม**ช่วยยืนยันว่าหายดีและกินอาหารได้หลังกลับบ้าน",
+            "weigh": "การดื่มทุกวันซึ่งอยู่เบื้องหลังครั้งนี้ ควรมีที่ทางในการนัดครั้งนั้นด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "วางระบบติดตามที่ชัด ไม่ปล่อยให้ผู้ป่วยหายไปหลังจำหน่าย",
+            "weigh": "ช่วงก่อนถึงนัดเป็นช่วงที่ผู้ป่วยเสี่ยงจะกลับไปดื่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การนัดตรวจเป็นจุดเชื่อมระหว่างโรงพยาบาลกับบ้าน",
+            "weigh": "นัดที่ดูเพียงการฟื้นตัว ยังไม่ได้แตะเหตุที่ทำให้ป่วยครั้งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**A follow-up visit** confirms he is well and eating after he goes home.",
+            "weigh": "The daily drinking behind this attack deserves a place in that visit.",
+            "safety": ""
+          },
+          {
+            "strength": "Sets up clear follow-up so he does not drop out of sight.",
+            "weigh": "The time before the visit is when drinking may restart.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the visit as a bridge between hospital and home.",
+            "weigh": "A visit that looks only at recovery leaves the cause of this illness untouched.",
+            "safety": ""
+          }
+        ]
+      },
+      "warn": {
+        "th": [
+          {
+            "strength": "สอนให้ผู้ป่วยรู้ว่าอาการใดต้อง**กลับมาทันที** ซึ่งช่วยความปลอดภัยหลังกลับบ้าน",
+            "weigh": "อาการเตือนปกป้องระยะสั้น แต่การดื่มยังเป็นตัวขับหลักของการเป็นซ้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ผู้ป่วยมีส่วนดูแลตัวเองด้วยความรู้ที่ใช้ได้จริง",
+            "weigh": "ควรให้ญาติรู้อาการเตือนด้วย และบอกชัดว่าต้องไปที่ใด",
+            "safety": ""
+          },
+          {
+            "strength": "ป้องกันการกลับมาช้าเมื่อเกิดภาวะแทรกซ้อน",
+            "weigh": "การสอนได้ผลขึ้นเมื่อให้ผู้ป่วยทวนกลับด้วยคำพูดของตัวเอง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Teaches him which signs mean **coming back at once**, protecting him after discharge.",
+            "weigh": "Warning signs protect him short term, but drinking remains the main driver of a repeat attack.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives him practical knowledge to take part in his own care.",
+            "weigh": "Family should know the signs too, and exactly where to go.",
+            "safety": ""
+          },
+          {
+            "strength": "Prevents a late return if a complication develops.",
+            "weigh": "Teaching sticks better when he repeats it back in his own words.",
+            "safety": ""
+          }
+        ]
+      },
+      "stay": {
+        "th": [
+          {
+            "strength": "ต้องการ**ให้มั่นใจว่าหายดี**ก่อนให้กลับบ้าน",
+            "weigh": "เมื่อผู้ป่วยกำลังฟื้นตัว การนอนต่อเพิ่มความเสี่ยงในโรงพยาบาลมากกว่าประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ระมัดระวังไม่ให้ผู้ป่วยกลับมานอนซ้ำเร็ว",
+            "weigh": "การนอนนานขึ้นไม่ได้ลดโอกาสเป็นซ้ำ ซึ่งขึ้นกับการดื่มเป็นหลัก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เวลาเฝ้าดูอาการต่ออีกระยะ",
+            "weigh": "ผู้ป่วยต้องหยุดงานและมีค่าใช้จ่ายเพิ่ม ซึ่งควรชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants to be sure he has **healed** before he leaves.",
+            "weigh": "Once he is recovering, a longer stay adds hospital risk more than benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes care that he does not bounce back soon.",
+            "weigh": "A longer stay does not lower the chance of a repeat, which rests mainly on drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Allows more time to watch how he does.",
+            "weigh": "Time off work and extra cost need weighing against what another week gains.",
+            "safety": ""
+          }
+        ]
+      },
+      "ct": {
+        "th": [
+          {
+            "strength": "ต้องการ**ดูตับอ่อนอีกครั้ง**ก่อนให้กลับบ้าน",
+            "weigh": "เมื่อฟื้นตัวตามคาด CT ก่อนกลับบ้านแทบไม่เปลี่ยนการดูแล และได้รับรังสีเพิ่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ระมัดระวังภาวะแทรกซ้อนที่อาจซ่อนอยู่ก่อนจำหน่าย",
+            "weigh": "สารทึบรังสีมีความเสี่ยงต่อไต ซึ่งต้องชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ภาพเป็นหลักฐานยืนยันการฟื้นตัว",
+            "weigh": "ความก้าวหน้าของผู้ป่วยบนหอผู้ป่วยบอกการฟื้นตัวได้อยู่แล้ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants to look at **the pancreas again** before he goes home.",
+            "weigh": "With recovery on track, a pre-discharge CT rarely changes care and adds radiation.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes care over complications that may be hiding before discharge.",
+            "weigh": "Contrast carries a kidney risk that has to be weighed against the gain.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses imaging as evidence that he has recovered.",
+            "weigh": "His own progress on the ward already shows how he is recovering.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.R": {
+      "bi_review": {
+        "th": [
+          {
+            "strength": "**คุยเรื่องสุราวันนี้** และนัดดูการฟื้นตัวอีกครั้งในเวลาไม่นาน",
+            "weigh": "คำแนะนำได้ผลขึ้นเมื่อผู้ป่วยตั้งเป้าเองและนำมาคุยต่อในนัดหน้า",
+            "safety": ""
+          },
+          {
+            "strength": "ผูกเรื่องสุรากับการนัดติดตาม ทำให้มีโอกาสคุยซ้ำ",
+            "weigh": "นัดครั้งหน้าควรดูว่าการฟื้นตัวก้าวหน้าต่อเนื่องจริง",
+            "safety": ""
+          },
+          {
+            "strength": "นัดเร็วใน 1 สัปดาห์ ช่วยจับปัญหาได้ก่อนที่จะลุกลาม",
+            "weigh": "ควรใช้ภาษาที่ไม่ตำหนิ เพื่อให้ผู้ป่วยเปิดใจพูดถึงการดื่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Raises alcohol today and brings him back **in a week** to check his recovery.",
+            "weigh": "Advice works better when he sets his own goal and it is picked up at the next appointment.",
+            "safety": ""
+          },
+          {
+            "strength": "Links the alcohol talk to follow-up, giving a chance to return to it.",
+            "weigh": "Recovery should be clearly further along by the next appointment.",
+            "safety": ""
+          },
+          {
+            "strength": "An early look within a week catches problems before they grow.",
+            "weigh": "Non-judgemental language helps him speak openly about his drinking.",
+            "safety": ""
+          }
+        ]
+      },
+      "audit_refer": {
+        "th": [
+          {
+            "strength": "ใช้**คะแนน AUDIT** วางแผนเลิกสุราที่เข้ากับผู้ป่วยรายนี้",
+            "weigh": "การส่งต่อได้ผลเมื่อผู้ป่วยไปตามนัด ความพร้อมของเขาจึงสำคัญ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้เครื่องมือมาตรฐานแยกระดับการดื่ม ทำให้แผนชัดเจน",
+            "weigh": "ระยะทางและเวลาไปคลินิกอาจเป็นอุปสรรค ควรคุยเรื่องนี้ก่อนส่ง",
+            "safety": ""
+          },
+          {
+            "strength": "มองการดื่มเป็นภาวะที่รักษาได้ และเชื่อมผู้ป่วยกับผู้เชี่ยวชาญ",
+            "weigh": "การแจ้งคะแนนให้ผู้ป่วยรู้ตรง ๆ ช่วยให้เขาเห็นภาพการดื่มของตัวเอง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **an AUDIT score** to shape a plan to stop that fits him.",
+            "weigh": "Referral works only if he attends, so his readiness matters.",
+            "safety": ""
+          },
+          {
+            "strength": "A standard tool grades his drinking and makes the plan clear.",
+            "weigh": "Distance and time to the clinic can be barriers worth discussing before referral.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats drinking as a treatable condition and connects him to specialists.",
+            "weigh": "Sharing the score with him plainly helps him see his own drinking.",
+            "safety": ""
+          }
+        ]
+      },
+      "clinic": {
+        "th": [
+          {
+            "strength": "**นัดติดตาม**ช่วยยืนยันว่าหายดีและกินอาหารได้หลังกลับบ้าน",
+            "weigh": "การดื่มทุกวันซึ่งอยู่เบื้องหลังครั้งนี้ ควรมีที่ทางในการนัดครั้งนั้นด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "วางระบบติดตามที่ชัด ไม่ปล่อยให้ผู้ป่วยหายไปหลังจำหน่าย",
+            "weigh": "ช่วงก่อนถึงนัดเป็นช่วงที่ผู้ป่วยเสี่ยงจะกลับไปดื่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การนัดตรวจเป็นจุดเชื่อมระหว่างโรงพยาบาลกับบ้าน",
+            "weigh": "นัดที่ดูเพียงการฟื้นตัว ยังไม่ได้แตะเหตุที่ทำให้ป่วยครั้งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**A follow-up visit** confirms he is well and eating after he goes home.",
+            "weigh": "The daily drinking behind this attack deserves a place in that visit.",
+            "safety": ""
+          },
+          {
+            "strength": "Sets up clear follow-up so he does not drop out of sight.",
+            "weigh": "The time before the visit is when drinking may restart.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the visit as a bridge between hospital and home.",
+            "weigh": "A visit that looks only at recovery leaves the cause of this illness untouched.",
+            "safety": ""
+          }
+        ]
+      },
+      "warn": {
+        "th": [
+          {
+            "strength": "สอนให้ผู้ป่วยรู้ว่าอาการใดต้อง**กลับมาทันที** ซึ่งช่วยความปลอดภัยหลังกลับบ้าน",
+            "weigh": "อาการเตือนปกป้องระยะสั้น แต่การดื่มยังเป็นตัวขับหลักของการเป็นซ้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ผู้ป่วยมีส่วนดูแลตัวเองด้วยความรู้ที่ใช้ได้จริง",
+            "weigh": "ควรให้ญาติรู้อาการเตือนด้วย และบอกชัดว่าต้องไปที่ใด",
+            "safety": ""
+          },
+          {
+            "strength": "ป้องกันการกลับมาช้าเมื่อเกิดภาวะแทรกซ้อน",
+            "weigh": "การสอนได้ผลขึ้นเมื่อให้ผู้ป่วยทวนกลับด้วยคำพูดของตัวเอง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Teaches him which signs mean **coming back at once**, protecting him after discharge.",
+            "weigh": "Warning signs protect him short term, but drinking remains the main driver of a repeat attack.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives him practical knowledge to take part in his own care.",
+            "weigh": "Family should know the signs too, and exactly where to go.",
+            "safety": ""
+          },
+          {
+            "strength": "Prevents a late return if a complication develops.",
+            "weigh": "Teaching sticks better when he repeats it back in his own words.",
+            "safety": ""
+          }
+        ]
+      },
+      "stay": {
+        "th": [
+          {
+            "strength": "ต้องการ**ให้มั่นใจว่าหายดี**ก่อนให้กลับบ้าน",
+            "weigh": "เมื่อผู้ป่วยกำลังฟื้นตัว การนอนต่อเพิ่มความเสี่ยงในโรงพยาบาลมากกว่าประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ระมัดระวังไม่ให้ผู้ป่วยกลับมานอนซ้ำเร็ว",
+            "weigh": "การนอนนานขึ้นไม่ได้ลดโอกาสเป็นซ้ำ ซึ่งขึ้นกับการดื่มเป็นหลัก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เวลาเฝ้าดูอาการต่ออีกระยะ",
+            "weigh": "ผู้ป่วยต้องหยุดงานและมีค่าใช้จ่ายเพิ่ม ซึ่งควรชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants to be sure he has **healed** before he leaves.",
+            "weigh": "Once he is recovering, a longer stay adds hospital risk more than benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes care that he does not bounce back soon.",
+            "weigh": "A longer stay does not lower the chance of a repeat, which rests mainly on drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Allows more time to watch how he does.",
+            "weigh": "Time off work and extra cost need weighing against what another week gains.",
+            "safety": ""
+          }
+        ]
+      },
+      "surgeon": {
+        "th": [
+          {
+            "strength": "ไม่ปล่อย**ตับอ่อนที่หายช้า**ผ่านไป และหาความเห็นผู้เชี่ยวชาญ",
+            "weigh": "ผู้ป่วยกลับมากินได้แล้ว การฟื้นช้าอย่างเดียวยังไม่ใช่ปัญหาที่ต้องผ่าตัด",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ข้อจำกัดของโรงพยาบาลชุมชนและพร้อมขอความช่วยเหลือ",
+            "weigh": "การส่งต่อไกลบ้านมีค่าใช้จ่ายและการเดินทาง ซึ่งควรชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ระวังภาวะแทรกซ้อนที่อาจซ่อนอยู่หลังการฟื้นช้า",
+            "weigh": "การส่งต่อควรมีคำถามที่ชัดว่าต้องการให้ศัลยแพทย์ช่วยเรื่องใด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Does not let a **slow-healing** pancreas pass and seeks expert input.",
+            "weigh": "He is eating again, and slow recovery alone is not a surgical problem.",
+            "safety": ""
+          },
+          {
+            "strength": "Knows the community hospital's limits and is ready to ask for help.",
+            "weigh": "Referral far from home brings cost and travel that need weighing against the gain.",
+            "safety": ""
+          },
+          {
+            "strength": "Stays alert to complications that may hide behind a slow recovery.",
+            "weigh": "A referral needs a clear question about what the surgeon is asked to do.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.W": {
+      "audit_refer": {
+        "th": [
+          {
+            "strength": "ใช้**คะแนน AUDIT** วางแผนเลิกสุราที่เข้ากับผู้ป่วยรายนี้",
+            "weigh": "การส่งต่อได้ผลเมื่อผู้ป่วยไปตามนัด ความพร้อมของเขาจึงสำคัญ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้เครื่องมือมาตรฐานแยกระดับการดื่ม ทำให้แผนชัดเจน",
+            "weigh": "ระยะทางและเวลาไปคลินิกอาจเป็นอุปสรรค ควรคุยเรื่องนี้ก่อนส่ง",
+            "safety": ""
+          },
+          {
+            "strength": "มองการดื่มเป็นภาวะที่รักษาได้ และเชื่อมผู้ป่วยกับผู้เชี่ยวชาญ",
+            "weigh": "การแจ้งคะแนนให้ผู้ป่วยรู้ตรง ๆ ช่วยให้เขาเห็นภาพการดื่มของตัวเอง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses **an AUDIT score** to shape a plan to stop that fits him.",
+            "weigh": "Referral works only if he attends, so his readiness matters.",
+            "safety": ""
+          },
+          {
+            "strength": "A standard tool grades his drinking and makes the plan clear.",
+            "weigh": "Distance and time to the clinic can be barriers worth discussing before referral.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats drinking as a treatable condition and connects him to specialists.",
+            "weigh": "Sharing the score with him plainly helps him see his own drinking.",
+            "safety": ""
+          }
+        ]
+      },
+      "family": {
+        "th": [
+          {
+            "strength": "ดึง**ครอบครัว**เข้ามาสนับสนุนการเลิกสุราที่บ้าน ซึ่งเป็นแรงหนุนสำคัญ",
+            "weigh": "ควรได้ความยินยอมจากผู้ป่วยก่อนคุยเรื่องการดื่มต่อหน้าภรรยา",
+            "safety": ""
+          },
+          {
+            "strength": "ชวนภรรยามาร่วมวางแผนที่ทั้งคู่มีส่วนร่วม",
+            "weigh": "เป้าหมายของผู้ป่วยเองยังเป็นตัวนำ ภรรยาช่วยหนุนแต่ไม่ควรเป็นผู้คุม",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ครอบครัวเป็นแรงหนุนตั้งแต่ผู้ป่วยยังอยู่โรงพยาบาล",
+            "weigh": "ควรใช้ภาษาที่ไม่ตำหนิ เพื่อไม่ให้การคุยกลายเป็นการโทษกัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Brings in **family support** to help him stop drinking at home.",
+            "weigh": "Get his consent before discussing his drinking in front of his wife.",
+            "safety": ""
+          },
+          {
+            "strength": "Brings his wife into a plan they both take part in.",
+            "weigh": "His own goal still leads; his wife supports rather than polices.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the family as a resource while he is still in hospital.",
+            "weigh": "Non-judgemental language keeps the talk from becoming blame.",
+            "safety": ""
+          }
+        ]
+      },
+      "clinic": {
+        "th": [
+          {
+            "strength": "**นัดติดตาม**ช่วยยืนยันว่าหายดีและกินอาหารได้หลังกลับบ้าน",
+            "weigh": "การดื่มทุกวันซึ่งอยู่เบื้องหลังครั้งนี้ ควรมีที่ทางในการนัดครั้งนั้นด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "วางระบบติดตามที่ชัด ไม่ปล่อยให้ผู้ป่วยหายไปหลังจำหน่าย",
+            "weigh": "ช่วงก่อนถึงนัดเป็นช่วงที่ผู้ป่วยเสี่ยงจะกลับไปดื่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การนัดตรวจเป็นจุดเชื่อมระหว่างโรงพยาบาลกับบ้าน",
+            "weigh": "นัดที่ดูเพียงการฟื้นตัว ยังไม่ได้แตะเหตุที่ทำให้ป่วยครั้งนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**A follow-up visit** confirms he is well and eating after he goes home.",
+            "weigh": "The daily drinking behind this attack deserves a place in that visit.",
+            "safety": ""
+          },
+          {
+            "strength": "Sets up clear follow-up so he does not drop out of sight.",
+            "weigh": "The time before the visit is when drinking may restart.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the visit as a bridge between hospital and home.",
+            "weigh": "A visit that looks only at recovery leaves the cause of this illness untouched.",
+            "safety": ""
+          }
+        ]
+      },
+      "warn": {
+        "th": [
+          {
+            "strength": "สอนให้ผู้ป่วยรู้ว่าอาการใดต้อง**กลับมาทันที** ซึ่งช่วยความปลอดภัยหลังกลับบ้าน",
+            "weigh": "อาการเตือนปกป้องระยะสั้น แต่การดื่มยังเป็นตัวขับหลักของการเป็นซ้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ผู้ป่วยมีส่วนดูแลตัวเองด้วยความรู้ที่ใช้ได้จริง",
+            "weigh": "ควรให้ญาติรู้อาการเตือนด้วย และบอกชัดว่าต้องไปที่ใด",
+            "safety": ""
+          },
+          {
+            "strength": "ป้องกันการกลับมาช้าเมื่อเกิดภาวะแทรกซ้อน",
+            "weigh": "การสอนได้ผลขึ้นเมื่อให้ผู้ป่วยทวนกลับด้วยคำพูดของตัวเอง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Teaches him which signs mean **coming back at once**, protecting him after discharge.",
+            "weigh": "Warning signs protect him short term, but drinking remains the main driver of a repeat attack.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives him practical knowledge to take part in his own care.",
+            "weigh": "Family should know the signs too, and exactly where to go.",
+            "safety": ""
+          },
+          {
+            "strength": "Prevents a late return if a complication develops.",
+            "weigh": "Teaching sticks better when he repeats it back in his own words.",
+            "safety": ""
+          }
+        ]
+      },
+      "diet": {
+        "th": [
+          {
+            "strength": "ให้ข้อมูลเป็นเอกสารที่ผู้ป่วยนำกลับไปอ่านได้",
+            "weigh": "อาหารไขมันต่ำแทบไม่ได้ลดโอกาสเป็นซ้ำจากการดื่ม ซึ่งเป็นต้นเหตุของครั้งนี้",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงการ**ลดภาระของตับอ่อน**ในช่วงที่เพิ่งฟื้นตัว",
+            "weigh": "เอกสารอย่างเดียวมักไม่เปลี่ยนพฤติกรรม หากไม่มีการพูดคุยประกอบ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ผู้ป่วยมีสิ่งที่ทำได้เองที่บ้าน",
+            "weigh": "การดื่มทุกวันมาสิบปียังเป็นปัจจัยหลักที่เอกสารนี้ไม่ได้แตะ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Gives him something in writing to take home and read.",
+            "weigh": "A low-fat diet does little to prevent a repeat driven by drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks about easing **the load** on the pancreas while he recovers.",
+            "weigh": "A leaflet alone rarely changes behaviour without a conversation behind it.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives him something practical he can do at home.",
+            "weigh": "Ten years of daily drinking remains the main factor this leaflet does not touch.",
+            "safety": ""
+          }
+        ]
+      },
+      "stay": {
+        "th": [
+          {
+            "strength": "ต้องการ**ให้มั่นใจว่าหายดี**ก่อนให้กลับบ้าน",
+            "weigh": "เมื่อผู้ป่วยกำลังฟื้นตัว การนอนต่อเพิ่มความเสี่ยงในโรงพยาบาลมากกว่าประโยชน์",
+            "safety": ""
+          },
+          {
+            "strength": "ระมัดระวังไม่ให้ผู้ป่วยกลับมานอนซ้ำเร็ว",
+            "weigh": "การนอนนานขึ้นไม่ได้ลดโอกาสเป็นซ้ำ ซึ่งขึ้นกับการดื่มเป็นหลัก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เวลาเฝ้าดูอาการต่ออีกระยะ",
+            "weigh": "ผู้ป่วยต้องหยุดงานและมีค่าใช้จ่ายเพิ่ม ซึ่งควรชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Wants to be sure he has **healed** before he leaves.",
+            "weigh": "Once he is recovering, a longer stay adds hospital risk more than benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes care that he does not bounce back soon.",
+            "weigh": "A longer stay does not lower the chance of a repeat, which rests mainly on drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Allows more time to watch how he does.",
+            "weigh": "Time off work and extra cost need weighing against what another week gains.",
+            "safety": ""
+          }
+        ]
+      }
+    }
+  },
+  "safety_review": {
+    "model": "claude-opus-5-5",
+    "date": "2026-11-14",
+    "findings": "Fresh claude-opus-5-5 reviewer read all 13 banks, every option, all 3 alternatives in Thai and English against the case tree and every question variant. Sources: ACG 2024 acute pancreatitis guideline (via published summaries: moderate fluids reassessed by pulse, BP, urine and BUN; lactated Ringer over saline; early oral low-fat solid feeding over nil by mouth or a liquid-first step; CT for no improvement after 48-72 h), revised Atlanta 2012 criteria (lipase or amylase at least 3 times normal plus typical pain), WATERFALL (NEJM 2022) on fluid overload, CIWA-Ar symptom-triggered benzodiazepine dosing with parenteral thiamine, WHO AUDIT and brief intervention as named in the case review. Checked clinical truth, safety, leaks (no reply names a test, drug or diagnosis outside its option's label and line; acronym scan clean), fit to every variant, Thai-English equivalence. Writer flags judged: step4.W relative safety sentences are warranted (active withdrawal, pulse 118, PRN without a trigger) and name no alternative; npo replies frame nil by mouth as short-term comfort only and say a longer fast does not speed recovery, so they do not mislead; diet replies say a low-fat diet does little against a drinking-driven repeat and frame pancreatic load as intent, not effect; 'within a day' withdrawal onset reads true after every step-3 variant. Non-blocking notes: step3.R.alcohol th[0].strength and step5.B.discharge_bi th[0].strength add a recurrence-benefit clause the English lacks; step2.B/W.severity en[0].weigh adds 'so follow it' absent from the Thai; step4.W.dzp th[2].weigh says day 2-3 where the English says the next day or two; step2.R.us [2].weigh ('a normal gallbladder does not explain all of his pain') reads slightly illogically; step4.W.thia_dzp th[1].strength reads translated; step4.W.relative [2].strength ('not left without a plan') is mildly reassuring beside its safety sentence; step4.W.lytes carries no safety sentence, though its weighs say the symptoms need managing now. Tree sha256 fe09f513a0696d36032597702a13954756e0290e0b0cb121c068407a59bd3f6a. Replies sha256 d1155f302c9d9a274b577f55dfb23d382f1074c82ac95bc61307fc9060522c86.",
+    "tree_sha256": "fe09f513a0696d36032597702a13954756e0290e0b0cb121c068407a59bd3f6a",
+    "replies_sha256": "d1155f302c9d9a274b577f55dfb23d382f1074c82ac95bc61307fc9060522c86"
+  }
+}

@@ -1,0 +1,2450 @@
+{
+  "case_id": "toddler-gastro-dehydration",
+  "replies": {
+    "step1": {
+      "age": {
+        "th": [
+          {
+            "strength": "ระบุทั้งสาเหตุและภาวะ**ขาดน้ำ** ซึ่งเป็นสิ่งที่กำหนดการรักษา",
+            "weigh": "การบอกระดับการขาดน้ำด้วย จะทำให้การวินิจฉัยนี้นำไปสู่แผนได้ทันที",
+            "safety": ""
+          },
+          {
+            "strength": "เชื่อมถ่ายเป็นน้ำและอาเจียนเข้ากับ**ลำไส้ติดเชื้อ** ซึ่งพบบ่อยในวัยนี้",
+            "weigh": "ไข้ 38.2 °C เข้ากันได้ แต่ถ้าไข้สูงขึ้นเรื่อย ๆ ควรทบทวนอีกครั้ง",
+            "safety": ""
+          },
+          {
+            "strength": "อ่านตาโหลว่าเป็นสัญญาณของการเสียน้ำ ไม่ใช่แค่การติดเชื้อ",
+            "weigh": "การไม่มีมูกเลือดในอุจจาระควรบันทึกไว้ เพราะมีผลต่อการรักษา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Names both the cause and the **dehydrated** state, which drives the plan.",
+            "weigh": "Putting a degree on how dry she is turns the label into a plan.",
+            "safety": ""
+          },
+          {
+            "strength": "Ties watery stools and vomiting to a **gut infection**, the common cause at this age.",
+            "weigh": "A fever of 38.2 °C fits, though a rising fever would deserve a second look.",
+            "safety": ""
+          },
+          {
+            "strength": "Reads sunken eyes as a sign of fluid loss, not only infection.",
+            "weigh": "The absence of blood or mucus in the stools is worth recording, as it shapes care.",
+            "safety": ""
+          }
+        ]
+      },
+      "moddehyd": {
+        "th": [
+          {
+            "strength": "จัดระดับการขาดน้ำจาก**ตาโหล กระหายน้ำ** และหนังคืนช้า ตามแนวทาง WHO",
+            "weigh": "อาการงอแงและ capillary refill 2 วินาทีก็เข้ากัน ควรบันทึกไว้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "บอกระดับการขาดน้ำ ซึ่งเป็นตัวกำหนดปริมาณน้ำที่ต้องให้",
+            "weigh": "ระบุสาเหตุของอุจจาระร่วงคู่กับระดับการขาดน้ำ จะทำให้ภาพครบขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อาการข้างเตียงที่พยาบาลตรวจซ้ำได้ มาจัดระดับการขาดน้ำ",
+            "weigh": "ชีพจร 140 ในเด็กที่มีไข้ ส่วนหนึ่งมาจากไข้ ควรคิดถึงไว้ด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Grades fluid loss from **sunken eyes, thirst** and a slow pinch, as WHO teaches.",
+            "weigh": "Irritability and a capillary refill of 2 seconds also fit, and are worth documenting.",
+            "safety": ""
+          },
+          {
+            "strength": "Puts a degree on the dehydration, which sets the volume of fluid.",
+            "weigh": "Naming the cause of the diarrhoea alongside the grade completes the picture.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses bedside signs a nurse can repeat to grade fluid loss.",
+            "weigh": "A pulse of 140 in a febrile toddler partly reflects the fever, which is worth keeping in mind.",
+            "safety": ""
+          }
+        ]
+      },
+      "viral": {
+        "th": [
+          {
+            "strength": "รู้ว่า**โรตาไวรัส**และโนโรไวรัสเป็นสาเหตุหลักของท้องร่วงในวัยนี้",
+            "weigh": "วันนี้สาเหตุสำคัญน้อยกว่าว่าเด็กขาดน้ำมากแค่ไหน ซึ่งการวินิจฉัยนี้ยังไม่บอก",
+            "safety": ""
+          },
+          {
+            "strength": "ระบุสาเหตุจากไวรัส ซึ่งเข้ากับถ่ายเป็นน้ำที่ไม่มีมูกเลือด",
+            "weigh": "การบอกว่าเป็นไวรัสยังไม่ได้บอกระดับการขาดน้ำ ซึ่งต้องจัดการตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ระบาดวิทยาตามวัยมาบอกสาเหตุที่น่าจะเป็น",
+            "weigh": "ตาโหล กระหายน้ำ และหนังคืนช้า ควรได้รับการระบุเรื่องการเสียน้ำด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Knows that **rotavirus** and norovirus lead the causes of diarrhoea at this age.",
+            "weigh": "The cause matters less today than how dry she is, which the label leaves open.",
+            "safety": ""
+          },
+          {
+            "strength": "Identifies a viral cause, which fits watery stools without blood.",
+            "weigh": "A viral label does not grade how dry she is, the part that needs action now.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses age-specific epidemiology to name the likely cause.",
+            "weigh": "Sunken eyes, thirst and a slow skin pinch call for a statement about fluid loss too.",
+            "safety": ""
+          }
+        ]
+      },
+      "uti": {
+        "th": [
+          {
+            "strength": "นึกได้ว่าไข้และอาเจียนในเด็กเล็กอาจมาจาก**ทางเดินปัสสาวะ**",
+            "weigh": "ถ่ายเป็นน้ำวันละ 8 ครั้ง ไม่ได้อธิบายด้วยทางเดินปัสสาวะติดเชื้อ",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงโรคติดเชื้อที่พบบ่อยและพลาดง่ายในเด็กเล็กไว้ในรายการ",
+            "weigh": "ตาโหลและกระหายน้ำบอกการเสียน้ำ ที่ต้องดูแลไม่ว่าสาเหตุคืออะไร",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ยึดติดกับอาการถ่ายเหลวอย่างเดียวเมื่อเด็กเล็กมีไข้",
+            "weigh": "ถ่ายเป็นน้ำบ่อยมา 2 วัน เป็นอาการเด่นที่ต้องอธิบายให้ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Remembers that fever and vomiting in a toddler can hide a **urinary infection**.",
+            "weigh": "Eight watery stools a day are not explained by a urinary infection.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps a common, easily missed toddler infection on the list.",
+            "weigh": "Her sunken eyes and thirst point to fluid loss that needs attention whatever the cause.",
+            "safety": ""
+          },
+          {
+            "strength": "Avoids anchoring on the watery stools alone when a toddler has fever.",
+            "weigh": "Two days of frequent watery stools are the dominant feature to explain here.",
+            "safety": ""
+          }
+        ]
+      },
+      "intus": {
+        "th": [
+          {
+            "strength": "นึกถึงภาวะฉุกเฉินทางศัลยกรรมของวัยนี้ เมื่อเด็กเล็กอาเจียน",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ร่วมกับไข้และกระหายน้ำ ไม่ใช่ภาพที่พบบ่อยของโรคนี้",
+            "safety": ""
+          },
+          {
+            "strength": "นึกถึง**ลำไส้กลืนกัน** ซึ่งเป็นโรคที่พลาดไม่ได้ในวัยนี้",
+            "weigh": "ถ่ายเป็นน้ำวันละ 8 ครั้งมา 2 วัน ทำให้โอกาสน้อยลง แต่ยังไม่ถึงกับตัดทิ้ง",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ความสำคัญกับอาการอาเจียน ไม่ด่วนสรุปว่าเป็นเรื่องธรรมดา",
+            "weigh": "ร้องกวนเป็นพัก ๆ ชันขา หรือถ่ายเป็นเลือด จะทำให้นึกถึงมากขึ้น แต่รายนี้ไม่มี",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps a surgical emergency of this age in mind when a toddler vomits.",
+            "weigh": "Watery stools without blood, with fever and thirst, are not the usual picture of it.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks of **intussusception**, a diagnosis that must not be missed at this age.",
+            "weigh": "Eight watery stools a day for 2 days make it less likely, though not impossible.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes vomiting seriously rather than assuming a simple cause.",
+            "weigh": "Bouts of crying, drawing up the legs or blood in the stool would raise it; none is described.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.B": {
+      "assess": {
+        "th": [
+          {
+            "strength": "จัดระดับการขาดน้ำข้างเตียง และใช้น้ำหนักคำนวณ**ปริมาณ ORS**",
+            "weigh": "หนังหน้าท้องอาจหลอกได้ในเด็กผอมมากหรืออ้วน จึงควรดูหลายอาการร่วมกัน",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อาการข้างเตียงที่ทำได้ทันที วางแผนได้ภายในไม่กี่นาที",
+            "weigh": "การจัดระดับเป็นการใช้ดุลยพินิจ การจดแต่ละอาการไว้ช่วยให้ประเมินซ้ำได้",
+            "safety": ""
+          },
+          {
+            "strength": "**ชั่งน้ำหนัก** เพื่อให้ปริมาณ ORS พอดีกับเด็ก 10 กก.",
+            "weigh": "เสื้อผ้าและผ้าอ้อมเปียกทำให้น้ำหนักคลาดได้ ควรชั่งตัวเปล่า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Grades fluid loss at the bedside and turns weight into an **ORS volume**.",
+            "weigh": "A skin pinch can mislead in a very thin or plump child, so several signs together matter.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses free, immediate bedside signs that set the plan within minutes.",
+            "weigh": "Bedside grading is a judgement, so writing each sign down makes it repeatable.",
+            "safety": ""
+          },
+          {
+            "strength": "Weighs her, so the **ORS volume** fits a 10 kg child exactly.",
+            "weigh": "Clothes and a wet nappy change the weight, so a bare weight is worth getting.",
+            "safety": ""
+          }
+        ]
+      },
+      "urineout": {
+        "th": [
+          {
+            "strength": "ใช้**ปริมาณปัสสาวะ**ร่วมกับอาการข้างเตียงจัดระดับการขาดน้ำ",
+            "weigh": "ปัสสาวะในผ้าอ้อมวัดยาก การนับผ้าอ้อมเปียกจึงเป็นตัวแทนที่ทำได้จริง",
+            "safety": ""
+          },
+          {
+            "strength": "วางวิธีติดตามการตอบสนองต่อ ORS ไว้ตั้งแต่แรก",
+            "weigh": "จำนวนผ้าอ้อมเปียกขึ้นกับที่แม่เล่า และไม่อยู่ในเกณฑ์จัดระดับของ WHO จึงใช้เสริมการประเมินมากกว่านำ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อาการที่แม่สังเกตได้เองและตรวจซ้ำง่าย",
+            "weigh": "ชั่งผ้าอ้อมแห้งเทียบผ้าอ้อมเปียก ช่วยประมาณปริมาณปัสสาวะได้เมื่อจำเป็น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Combines **urine output** with bedside signs to grade fluid loss.",
+            "weigh": "Urine in nappies is hard to measure, so counting wet nappies is a practical proxy.",
+            "safety": ""
+          },
+          {
+            "strength": "Builds in a measure that can track her response once ORS starts.",
+            "weigh": "Nappy counts come from the mother and are not a WHO grading sign, so they support the grading rather than lead it.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses signs a mother can see herself and that are easy to recheck.",
+            "weigh": "Weighing a dry and a wet nappy gives a rough urine volume when it is needed.",
+            "safety": ""
+          }
+        ]
+      },
+      "elec": {
+        "th": [
+          {
+            "strength": "มองหาปัญหาโซเดียมและไตที่การขาดน้ำอาจพามา",
+            "weigh": "แนวทางของไทยแนะนำการตรวจนี้เป็นหลักเมื่อขาดน้ำรุนแรงหรือมีอาการไม่ตรงแบบ",
+            "safety": ""
+          },
+          {
+            "strength": "ตรวจ**ครีเอตินีน**และโซเดียม ดูว่าไตรับมือได้แค่ไหน",
+            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำทำได้ยาก และผลมักไม่เปลี่ยนการให้น้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "คิดไปไกลกว่าปริมาตรน้ำ ถึงเกลือแร่ที่เสียไปทางอุจจาระ",
+            "weigh": "ผลต้องใช้เวลา และการให้น้ำไม่จำเป็นต้องรอผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for sodium and kidney problems that fluid loss can bring.",
+            "weigh": "Thai guidance reserves these mainly for severe fluid loss or an unusual course.",
+            "safety": ""
+          },
+          {
+            "strength": "Adds **creatinine** and sodium to see how her kidneys are coping.",
+            "weigh": "A blood draw in a thirsty toddler is hard, and results seldom change rehydration.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks beyond volume to the salts lost in watery stools.",
+            "weigh": "Results take time, and rehydration need not wait for them.",
+            "safety": ""
+          }
+        ]
+      },
+      "glucose": {
+        "th": [
+          {
+            "strength": "จับน้ำตาลต่ำได้เร็วด้วยการ**เจาะปลายนิ้ว**",
+            "weigh": "เด็กงอแงแต่ยังตื่นและดื่มน้ำได้ ทำให้โอกาสน้ำตาลต่ำน้อยลง",
+            "safety": ""
+          },
+          {
+            "strength": "นึกได้ว่า**เด็กที่อาเจียน**อาจมีน้ำตาลต่ำ",
+            "weigh": "ผลนี้มีความหมายมากขึ้นถ้าเด็กเริ่มซึมหรือไม่ยอมดื่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การตรวจที่ทำง่าย ราคาไม่แพง รู้ผลในไม่กี่วินาที",
+            "weigh": "น้ำตาลปกติไม่ได้บอกระดับการขาดน้ำ ซึ่งยังต้องวางแผนอยู่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Catches low sugar fast with a simple **fingerprick**.",
+            "weigh": "She is irritable but alert and drinking, which makes low sugar less likely.",
+            "safety": ""
+          },
+          {
+            "strength": "Remembers that a **vomiting toddler** can run low on sugar.",
+            "weigh": "The result matters most if she becomes drowsy or stops drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a quick, cheap test with an answer in seconds.",
+            "weigh": "A normal sugar does not grade her fluid loss, which still needs a plan.",
+            "safety": ""
+          }
+        ]
+      },
+      "stool": {
+        "th": [
+          {
+            "strength": "มองหาเชื้อ**แบคทีเรียหรือพยาธิ**ที่อาจเปลี่ยนการรักษา",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อมักไม่เปลี่ยนการดูแล และต้องรอหลายวัน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงสาเหตุของอาการถ่ายเหลว ไม่ใช่แค่ผลที่ตามมา",
+            "weigh": "อันตรายเฉพาะหน้าของเด็กคนนี้คือการเสียน้ำ ไม่ใช่ชนิดของเชื้อ",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงเชื้อแบคทีเรียและพยาธิที่รักษาได้ไว้ในใจ",
+            "weigh": "ผลเพาะเชื้อออกหลังช่วงเวลาสำคัญของการให้น้ำไปนานแล้ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for a bacterial or **parasitic cause** that could change treatment.",
+            "weigh": "For watery stools without blood, results rarely change care and take days.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks about the cause of the diarrhoea, not only its effects.",
+            "weigh": "Fluid loss, not the organism, is the immediate danger in this child.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps treatable parasites and bacteria in view.",
+            "weigh": "A culture result arrives long after the hours that matter for her fluids.",
+            "safety": ""
+          }
+        ]
+      },
+      "cbc": {
+        "th": [
+          {
+            "strength": "ให้ความสำคัญกับไข้ และหาที่มาของไข้",
+            "weigh": "ในเด็กเล็กที่ถ่ายเป็นน้ำ ผล CBC และ CRP มักไม่เปลี่ยนแผนการให้น้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ **CBC และ CRP** ประเมินการอักเสบ",
+            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำทำได้ยาก จึงอาจรอจนมีเหตุผลชัดกว่านี้",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณาว่ามีสาเหตุนอกลำไส้ที่ทำให้มีไข้หรือไม่",
+            "weigh": "ผลตรวจเหล่านี้ทับซ้อนกันมากระหว่างสาเหตุต่าง ๆ จึงไม่ค่อยชี้ที่มาของไข้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Takes the fever seriously and looks for its source.",
+            "weigh": "In a toddler with watery diarrhoea, CRP and counts rarely change the fluid plan.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a **complete blood count** and CRP to gauge inflammation.",
+            "weigh": "A blood draw in a dehydrated toddler is hard and can wait for a clearer reason.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers whether something beyond the gut is driving the fever.",
+            "weigh": "Results overlap widely between causes, so they rarely settle the source.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.R": {
+      "assess": {
+        "th": [
+          {
+            "strength": "จัดระดับการขาดน้ำข้างเตียง และใช้น้ำหนักคำนวณ**ปริมาณ ORS**",
+            "weigh": "หนังหน้าท้องอาจหลอกได้ในเด็กผอมมากหรืออ้วน จึงควรดูหลายอาการร่วมกัน",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อาการข้างเตียงที่ทำได้ทันที วางแผนได้ภายในไม่กี่นาที",
+            "weigh": "การจัดระดับเป็นการใช้ดุลยพินิจ การจดแต่ละอาการไว้ช่วยให้ประเมินซ้ำได้",
+            "safety": ""
+          },
+          {
+            "strength": "**ชั่งน้ำหนัก** เพื่อให้ปริมาณ ORS พอดีกับเด็ก 10 กก.",
+            "weigh": "เสื้อผ้าและผ้าอ้อมเปียกทำให้น้ำหนักคลาดได้ ควรชั่งตัวเปล่า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Grades fluid loss at the bedside and turns weight into an **ORS volume**.",
+            "weigh": "A skin pinch can mislead in a very thin or plump child, so several signs together matter.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses free, immediate bedside signs that set the plan within minutes.",
+            "weigh": "Bedside grading is a judgement, so writing each sign down makes it repeatable.",
+            "safety": ""
+          },
+          {
+            "strength": "Weighs her, so the **ORS volume** fits a 10 kg child exactly.",
+            "weigh": "Clothes and a wet nappy change the weight, so a bare weight is worth getting.",
+            "safety": ""
+          }
+        ]
+      },
+      "elec": {
+        "th": [
+          {
+            "strength": "มองหาปัญหาโซเดียมและไตที่การขาดน้ำอาจพามา",
+            "weigh": "แนวทางของไทยแนะนำการตรวจนี้เป็นหลักเมื่อขาดน้ำรุนแรงหรือมีอาการไม่ตรงแบบ",
+            "safety": ""
+          },
+          {
+            "strength": "ตรวจ**ครีเอตินีน**และโซเดียม ดูว่าไตรับมือได้แค่ไหน",
+            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำทำได้ยาก และผลมักไม่เปลี่ยนการให้น้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "คิดไปไกลกว่าปริมาตรน้ำ ถึงเกลือแร่ที่เสียไปทางอุจจาระ",
+            "weigh": "ผลต้องใช้เวลา และการให้น้ำไม่จำเป็นต้องรอผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for sodium and kidney problems that fluid loss can bring.",
+            "weigh": "Thai guidance reserves these mainly for severe fluid loss or an unusual course.",
+            "safety": ""
+          },
+          {
+            "strength": "Adds **creatinine** and sodium to see how her kidneys are coping.",
+            "weigh": "A blood draw in a thirsty toddler is hard, and results seldom change rehydration.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks beyond volume to the salts lost in watery stools.",
+            "weigh": "Results take time, and rehydration need not wait for them.",
+            "safety": ""
+          }
+        ]
+      },
+      "glucose": {
+        "th": [
+          {
+            "strength": "จับน้ำตาลต่ำได้เร็วด้วยการ**เจาะปลายนิ้ว**",
+            "weigh": "เด็กงอแงแต่ยังตื่นและดื่มน้ำได้ ทำให้โอกาสน้ำตาลต่ำน้อยลง",
+            "safety": ""
+          },
+          {
+            "strength": "นึกได้ว่า**เด็กที่อาเจียน**อาจมีน้ำตาลต่ำ",
+            "weigh": "ผลนี้มีความหมายมากขึ้นถ้าเด็กเริ่มซึมหรือไม่ยอมดื่ม",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การตรวจที่ทำง่าย ราคาไม่แพง รู้ผลในไม่กี่วินาที",
+            "weigh": "น้ำตาลปกติไม่ได้บอกระดับการขาดน้ำ ซึ่งยังต้องวางแผนอยู่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Catches low sugar fast with a simple **fingerprick**.",
+            "weigh": "She is irritable but alert and drinking, which makes low sugar less likely.",
+            "safety": ""
+          },
+          {
+            "strength": "Remembers that a **vomiting toddler** can run low on sugar.",
+            "weigh": "The result matters most if she becomes drowsy or stops drinking.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a quick, cheap test with an answer in seconds.",
+            "weigh": "A normal sugar does not grade her fluid loss, which still needs a plan.",
+            "safety": ""
+          }
+        ]
+      },
+      "stool": {
+        "th": [
+          {
+            "strength": "มองหาเชื้อ**แบคทีเรียหรือพยาธิ**ที่อาจเปลี่ยนการรักษา",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อมักไม่เปลี่ยนการดูแล และต้องรอหลายวัน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงสาเหตุของอาการถ่ายเหลว ไม่ใช่แค่ผลที่ตามมา",
+            "weigh": "อันตรายเฉพาะหน้าของเด็กคนนี้คือการเสียน้ำ ไม่ใช่ชนิดของเชื้อ",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงเชื้อแบคทีเรียและพยาธิที่รักษาได้ไว้ในใจ",
+            "weigh": "ผลเพาะเชื้อออกหลังช่วงเวลาสำคัญของการให้น้ำไปนานแล้ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for a bacterial or **parasitic cause** that could change treatment.",
+            "weigh": "For watery stools without blood, results rarely change care and take days.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks about the cause of the diarrhoea, not only its effects.",
+            "weigh": "Fluid loss, not the organism, is the immediate danger in this child.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps treatable parasites and bacteria in view.",
+            "weigh": "A culture result arrives long after the hours that matter for her fluids.",
+            "safety": ""
+          }
+        ]
+      },
+      "cbc": {
+        "th": [
+          {
+            "strength": "ให้ความสำคัญกับไข้ และหาที่มาของไข้",
+            "weigh": "ในเด็กเล็กที่ถ่ายเป็นน้ำ ผล CBC และ CRP มักไม่เปลี่ยนแผนการให้น้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ **CBC และ CRP** ประเมินการอักเสบ",
+            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำทำได้ยาก จึงอาจรอจนมีเหตุผลชัดกว่านี้",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณาว่ามีสาเหตุนอกลำไส้ที่ทำให้มีไข้หรือไม่",
+            "weigh": "ผลตรวจเหล่านี้ทับซ้อนกันมากระหว่างสาเหตุต่าง ๆ จึงไม่ค่อยชี้ที่มาของไข้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Takes the fever seriously and looks for its source.",
+            "weigh": "In a toddler with watery diarrhoea, CRP and counts rarely change the fluid plan.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a **complete blood count** and CRP to gauge inflammation.",
+            "weigh": "A blood draw in a dehydrated toddler is hard and can wait for a clearer reason.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers whether something beyond the gut is driving the fever.",
+            "weigh": "Results overlap widely between causes, so they rarely settle the source.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.W": {
+      "assess": {
+        "th": [
+          {
+            "strength": "จัดระดับการขาดน้ำข้างเตียง และใช้น้ำหนักคำนวณ**ปริมาณ ORS**",
+            "weigh": "หนังหน้าท้องอาจหลอกได้ในเด็กผอมมากหรืออ้วน จึงควรดูหลายอาการร่วมกัน",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อาการข้างเตียงที่ทำได้ทันที วางแผนได้ภายในไม่กี่นาที",
+            "weigh": "การจัดระดับเป็นการใช้ดุลยพินิจ การจดแต่ละอาการไว้ช่วยให้ประเมินซ้ำได้",
+            "safety": ""
+          },
+          {
+            "strength": "**ชั่งน้ำหนัก** เพื่อให้ปริมาณ ORS พอดีกับเด็ก 10 กก.",
+            "weigh": "เสื้อผ้าและผ้าอ้อมเปียกทำให้น้ำหนักคลาดได้ ควรชั่งตัวเปล่า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Grades fluid loss at the bedside and turns weight into an **ORS volume**.",
+            "weigh": "A skin pinch can mislead in a very thin or plump child, so several signs together matter.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses free, immediate bedside signs that set the plan within minutes.",
+            "weigh": "Bedside grading is a judgement, so writing each sign down makes it repeatable.",
+            "safety": ""
+          },
+          {
+            "strength": "Weighs her, so the **ORS volume** fits a 10 kg child exactly.",
+            "weigh": "Clothes and a wet nappy change the weight, so a bare weight is worth getting.",
+            "safety": ""
+          }
+        ]
+      },
+      "urineout": {
+        "th": [
+          {
+            "strength": "ใช้**ปริมาณปัสสาวะ**ร่วมกับอาการข้างเตียงจัดระดับการขาดน้ำ",
+            "weigh": "ปัสสาวะในผ้าอ้อมวัดยาก การนับผ้าอ้อมเปียกจึงเป็นตัวแทนที่ทำได้จริง",
+            "safety": ""
+          },
+          {
+            "strength": "วางวิธีติดตามการตอบสนองต่อ ORS ไว้ตั้งแต่แรก",
+            "weigh": "จำนวนผ้าอ้อมเปียกขึ้นกับที่แม่เล่า และไม่อยู่ในเกณฑ์จัดระดับของ WHO จึงใช้เสริมการประเมินมากกว่านำ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อาการที่แม่สังเกตได้เองและตรวจซ้ำง่าย",
+            "weigh": "ชั่งผ้าอ้อมแห้งเทียบผ้าอ้อมเปียก ช่วยประมาณปริมาณปัสสาวะได้เมื่อจำเป็น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Combines **urine output** with bedside signs to grade fluid loss.",
+            "weigh": "Urine in nappies is hard to measure, so counting wet nappies is a practical proxy.",
+            "safety": ""
+          },
+          {
+            "strength": "Builds in a measure that can track her response once ORS starts.",
+            "weigh": "Nappy counts come from the mother and are not a WHO grading sign, so they support the grading rather than lead it.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses signs a mother can see herself and that are easy to recheck.",
+            "weigh": "Weighing a dry and a wet nappy gives a rough urine volume when it is needed.",
+            "safety": ""
+          }
+        ]
+      },
+      "urinetest": {
+        "th": [
+          {
+            "strength": "**ตรวจปัสสาวะ** หาการติดเชื้อที่อาจซ่อนอยู่หลังไข้ในเด็กเล็ก",
+            "weigh": "เก็บปัสสาวะที่สะอาดจากเด็กที่ใส่ผ้าอ้อมต้องใช้เวลาและความระมัดระวัง",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้การตรวจง่ายราคาไม่แพง หาที่มาของไข้ที่พบบ่อยและซ่อนอยู่",
+            "weigh": "ถ่ายเป็นน้ำวันละ 8 ครั้งก็อธิบายไข้ได้อยู่แล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ยึดติดกับลำไส้อย่างเดียวเมื่อเด็กเล็กมีไข้",
+            "weigh": "ปัสสาวะจากถุงเก็บปนเปื้อนง่าย อาจทำให้วินิจฉัยติดเชื้อเกินจริง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for a **urinary infection** behind the fever, which toddlers can hide.",
+            "weigh": "Collecting a clean sample from a toddler in nappies takes time and care.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a simple, cheap test to check a common hidden source of fever.",
+            "weigh": "Watery stools 8 times a day already give the fever a likely source.",
+            "safety": ""
+          },
+          {
+            "strength": "Avoids anchoring on the gut when a toddler has fever.",
+            "weigh": "Bag samples are easily contaminated, which can lead to overcalling infection.",
+            "safety": ""
+          }
+        ]
+      },
+      "elec": {
+        "th": [
+          {
+            "strength": "มองหาปัญหาโซเดียมและไตที่การขาดน้ำอาจพามา",
+            "weigh": "แนวทางของไทยแนะนำการตรวจนี้เป็นหลักเมื่อขาดน้ำรุนแรงหรือมีอาการไม่ตรงแบบ",
+            "safety": ""
+          },
+          {
+            "strength": "ตรวจ**ครีเอตินีน**และโซเดียม ดูว่าไตรับมือได้แค่ไหน",
+            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำทำได้ยาก และผลมักไม่เปลี่ยนการให้น้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "คิดไปไกลกว่าปริมาตรน้ำ ถึงเกลือแร่ที่เสียไปทางอุจจาระ",
+            "weigh": "ผลต้องใช้เวลา และการให้น้ำไม่จำเป็นต้องรอผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for sodium and kidney problems that fluid loss can bring.",
+            "weigh": "Thai guidance reserves these mainly for severe fluid loss or an unusual course.",
+            "safety": ""
+          },
+          {
+            "strength": "Adds **creatinine** and sodium to see how her kidneys are coping.",
+            "weigh": "A blood draw in a thirsty toddler is hard, and results seldom change rehydration.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks beyond volume to the salts lost in watery stools.",
+            "weigh": "Results take time, and rehydration need not wait for them.",
+            "safety": ""
+          }
+        ]
+      },
+      "us": {
+        "th": [
+          {
+            "strength": "ใช้การตรวจที่ปลอดภัยไม่มีรังสี มองหาลำไส้กลืนกัน",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือดร่วมกับไข้ ทำให้นึกถึงลำไส้กลืนกันน้อยลง",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้**อัลตราซาวด์ช่องท้อง**มองหาสาเหตุอาเจียนที่พลาดไม่ได้",
+            "weigh": "การสแกนไม่ได้บอกว่าเด็กขาดน้ำมากแค่ไหน ซึ่งเป็นเรื่องที่ต้องรู้ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ความสำคัญกับอาการอาเจียนในเด็กเล็ก ว่าอาจเป็นสัญญาณทางศัลยกรรม",
+            "weigh": "ถ้าไม่มีปวดท้องเป็นพัก ๆ หรือถ่ายเป็นเลือด โอกาสพบจากการสแกนจะต่ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses a safe, radiation-free scan to look for intussusception.",
+            "weigh": "Watery stools without blood, with fever, make intussusception less likely here.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps a must-not-miss cause of vomiting in view with an **abdominal ultrasound**.",
+            "weigh": "Scanning will not tell how dry she is, which is what needs answering now.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes vomiting in a toddler seriously as a possible surgical sign.",
+            "weigh": "Without bouts of colicky pain or bloody stools, the scan is unlikely to find it.",
+            "safety": ""
+          }
+        ]
+      },
+      "stool": {
+        "th": [
+          {
+            "strength": "มองหาเชื้อ**แบคทีเรียหรือพยาธิ**ที่อาจเปลี่ยนการรักษา",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อมักไม่เปลี่ยนการดูแล และต้องรอหลายวัน",
+            "safety": ""
+          },
+          {
+            "strength": "คิดถึงสาเหตุของอาการถ่ายเหลว ไม่ใช่แค่ผลที่ตามมา",
+            "weigh": "อันตรายเฉพาะหน้าของเด็กคนนี้คือการเสียน้ำ ไม่ใช่ชนิดของเชื้อ",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงเชื้อแบคทีเรียและพยาธิที่รักษาได้ไว้ในใจ",
+            "weigh": "ผลเพาะเชื้อออกหลังช่วงเวลาสำคัญของการให้น้ำไปนานแล้ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looks for a bacterial or **parasitic cause** that could change treatment.",
+            "weigh": "For watery stools without blood, results rarely change care and take days.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks about the cause of the diarrhoea, not only its effects.",
+            "weigh": "Fluid loss, not the organism, is the immediate danger in this child.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps treatable parasites and bacteria in view.",
+            "weigh": "A culture result arrives long after the hours that matter for her fluids.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.B": {
+      "planb": {
+        "th": [
+          {
+            "strength": "ใช้**แผน B WHO** ซึ่งให้ 750 มล. ตามน้ำหนัก 10 กก. ของเด็ก",
+            "weigh": "ถ้าอาเจียน WHO แนะนำให้รอ 10 นาที แล้วให้ ORS ช้าลง",
+            "safety": ""
+          },
+          {
+            "strength": "เสริม**ซิงค์** ซึ่งช่วยให้หายเร็วขึ้นและลดการเป็นซ้ำ",
+            "weigh": "ซิงค์ต้องกินทุกวันต่อไปอีกหลายวันหลังจากนี้ แม่จึงควรรู้ไว้ตั้งแต่ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "วางจุดประเมินซ้ำที่ 4 ชม. ให้แผนปรับตามการตอบสนองของเด็ก",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Follows **WHO Plan B**, matching 750 mL to her weight of 10 kg.",
+            "weigh": "If she vomits, WHO advises waiting 10 minutes and then giving ORS more slowly.",
+            "safety": ""
+          },
+          {
+            "strength": "Adds **zinc**, which shortens the illness and lowers the chance of another episode.",
+            "weigh": "Zinc continues daily for well over a week, which the mother needs to hear now.",
+            "safety": ""
+          },
+          {
+            "strength": "Plans a fixed recheck at 4 hours, so the plan adapts to her response.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "clinic": {
+        "th": [
+          {
+            "strength": "ป้อน ORS **ทีละน้อย** ซึ่งเด็กที่อาเจียนมักเก็บไว้ได้",
+            "weigh": "การป้อน 750 มล. ใน 4 ชม. ต้องอาศัยความสม่ำเสมอ แม่จึงต้องการคนช่วย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ปริมาณครบตามที่ขาด ร่วมกับ**ซิงค์**และนัดประเมินซ้ำ",
+            "weigh": "ซิงค์ต้องกินทุกวันต่อไปอีกหลายวันหลังจากนี้ แม่จึงควรรู้ไว้ตั้งแต่ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ทดแทนน้ำที่เสียไปทันที ด้วยการให้**เสริมหลังถ่าย**",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Feeds ORS in **small sips**, which a vomiting toddler usually keeps down.",
+            "weigh": "Sipping 750 mL over 4 hours takes steady effort, so her mother will need support.",
+            "safety": ""
+          },
+          {
+            "strength": "Pairs the full deficit volume with **zinc** and a set recheck.",
+            "weigh": "Zinc continues daily for well over a week, which the mother needs to hear now.",
+            "safety": ""
+          },
+          {
+            "strength": "Replaces stool losses as they happen, with more **after each stool**.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "ondan": {
+        "th": [
+          {
+            "strength": "มองว่าอาเจียนคือสิ่งที่ขวางการดื่ม ORS และแก้ที่จุดนั้น",
+            "weigh": "ให้ครั้งเดียวมักปลอดภัย แต่อาจทำให้ถ่ายเหลวมากขึ้นเล็กน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้**ออนแดนซีตรอน**กิน 1 ครั้ง เพื่อให้ ORS อยู่ในท้องได้",
+            "weigh": "ยาจะช่วยได้เมื่อแผนการให้ ORS รอบ ๆ นั้นชัดเจนและทำตามได้",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้หลักฐานว่ายาครั้งเดียวช่วยให้เด็กดื่มน้ำทางปากได้ครบมากขึ้น",
+            "weigh": "WHO ไม่ได้ใส่ออนแดนซีตรอนไว้ในแผนรักษาอุจจาระร่วง การใช้จึงต่างกันไปในแต่ละโรงพยาบาล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Treats vomiting as the barrier to ORS and removes it.",
+            "weigh": "One dose is generally safe, though it can make the diarrhoea a little worse.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a single **oral ondansetron** dose to help ORS stay down.",
+            "weigh": "The dose helps only if the ORS plan around it is clear and followed.",
+            "safety": ""
+          },
+          {
+            "strength": "Draws on evidence that one dose helps more children finish rehydrating by mouth.",
+            "weigh": "Ondansetron is not in the WHO diarrhoea plan, so local practice varies.",
+            "safety": ""
+          }
+        ]
+      },
+      "iv": {
+        "th": [
+          {
+            "strength": "เตรียม IV ไว้เป็นทางสำรอง ใช้เมื่อ ORS ไม่ได้ผลเท่านั้น",
+            "weigh": "อาเจียนเพียง 3 ครั้ง เด็กอาจดื่ม ORS ได้ จึงควรให้โอกาสลอง ORS อย่างเต็มที่",
+            "safety": ""
+          },
+          {
+            "strength": "มีขั้นยกระดับการรักษาที่ชัด เมื่อลอง ORS แล้ว**อาเจียนออกซ้ำ ๆ**",
+            "weigh": "แทงเส้นในเด็กเล็กที่ขาดน้ำทำได้ยาก ควรเตรียมการไว้",
+            "safety": ""
+          },
+          {
+            "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
+            "weigh": "กำหนดไว้ก่อนว่าแค่ไหนถือว่าไม่ได้ผล ช่วยให้เปลี่ยนแผนได้ทันเวลา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps IV as a backup, used only **if ORS fails**.",
+            "weigh": "With only 3 vomits, she may well manage ORS, so the trial deserves a fair chance.",
+            "safety": ""
+          },
+          {
+            "strength": "Has a clear escalation step ready when ORS keeps coming back up.",
+            "weigh": "Cannulating a dehydrated toddler can be hard, which is worth planning for.",
+            "safety": ""
+          },
+          {
+            "strength": "Chooses **Ringer's lactate**, a fluid suited to replacing stool losses.",
+            "weigh": "Defining failure in advance, such as how much vomiting, keeps the switch timely.",
+            "safety": ""
+          }
+        ]
+      },
+      "abx": {
+        "th": [
+          {
+            "strength": "ยังให้ **ORS** เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรียไปด้วย",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO มักไม่ต้องใช้ยาปฏิชีวนะ",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณาว่าแบคทีเรียอาจเป็นต้นเหตุของไข้และถ่ายเหลว",
+            "weigh": "ยาปฏิชีวนะอาจทำให้ถ่ายเหลวมากขึ้นและมีผลข้างเคียง โดยไม่ช่วยให้หายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำทดแทนและครอบคลุมสาเหตุจากแบคทีเรียไว้ด้วย",
+            "weigh": "การใช้ยาปฏิชีวนะเกินจำเป็นเพิ่มเชื้อดื้อยา ซึ่งเป็นต้นทุนจริงของโรคที่พบบ่อย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps **ORS** at the centre while thinking about a bacterial cause.",
+            "weigh": "Watery stools without blood rarely need an antibiotic under WHO guidance.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers whether bacteria could be driving her fever and diarrhoea.",
+            "weigh": "Antibiotics can worsen diarrhoea and add side effects without speeding recovery here.",
+            "safety": ""
+          },
+          {
+            "strength": "Rehydrates her while covering a possible bacterial cause.",
+            "weigh": "Unneeded antibiotics feed resistance, a real cost for a common illness.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.R": {
+      "planb": {
+        "th": [
+          {
+            "strength": "ใช้**แผน B WHO** ซึ่งให้ 750 มล. ตามน้ำหนัก 10 กก. ของเด็ก",
+            "weigh": "ถ้าอาเจียน WHO แนะนำให้รอ 10 นาที แล้วให้ ORS ช้าลง",
+            "safety": ""
+          },
+          {
+            "strength": "เสริม**ซิงค์** ซึ่งช่วยให้หายเร็วขึ้นและลดการเป็นซ้ำ",
+            "weigh": "ซิงค์ต้องกินทุกวันต่อไปอีกหลายวันหลังจากนี้ แม่จึงควรรู้ไว้ตั้งแต่ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "วางจุดประเมินซ้ำที่ 4 ชม. ให้แผนปรับตามการตอบสนองของเด็ก",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Follows **WHO Plan B**, matching 750 mL to her weight of 10 kg.",
+            "weigh": "If she vomits, WHO advises waiting 10 minutes and then giving ORS more slowly.",
+            "safety": ""
+          },
+          {
+            "strength": "Adds **zinc**, which shortens the illness and lowers the chance of another episode.",
+            "weigh": "Zinc continues daily for well over a week, which the mother needs to hear now.",
+            "safety": ""
+          },
+          {
+            "strength": "Plans a fixed recheck at 4 hours, so the plan adapts to her response.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "clinic": {
+        "th": [
+          {
+            "strength": "ป้อน ORS **ทีละน้อย** ซึ่งเด็กที่อาเจียนมักเก็บไว้ได้",
+            "weigh": "การป้อน 750 มล. ใน 4 ชม. ต้องอาศัยความสม่ำเสมอ แม่จึงต้องการคนช่วย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ปริมาณครบตามที่ขาด ร่วมกับ**ซิงค์**และนัดประเมินซ้ำ",
+            "weigh": "ซิงค์ต้องกินทุกวันต่อไปอีกหลายวันหลังจากนี้ แม่จึงควรรู้ไว้ตั้งแต่ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ทดแทนน้ำที่เสียไปทันที ด้วยการให้**เสริมหลังถ่าย**",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Feeds ORS in **small sips**, which a vomiting toddler usually keeps down.",
+            "weigh": "Sipping 750 mL over 4 hours takes steady effort, so her mother will need support.",
+            "safety": ""
+          },
+          {
+            "strength": "Pairs the full deficit volume with **zinc** and a set recheck.",
+            "weigh": "Zinc continues daily for well over a week, which the mother needs to hear now.",
+            "safety": ""
+          },
+          {
+            "strength": "Replaces stool losses as they happen, with more **after each stool**.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "ondan": {
+        "th": [
+          {
+            "strength": "มองว่าอาเจียนคือสิ่งที่ขวางการดื่ม ORS และแก้ที่จุดนั้น",
+            "weigh": "ให้ครั้งเดียวมักปลอดภัย แต่อาจทำให้ถ่ายเหลวมากขึ้นเล็กน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้**ออนแดนซีตรอน**กิน 1 ครั้ง เพื่อให้ ORS อยู่ในท้องได้",
+            "weigh": "ยาจะช่วยได้เมื่อแผนการให้ ORS รอบ ๆ นั้นชัดเจนและทำตามได้",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้หลักฐานว่ายาครั้งเดียวช่วยให้เด็กดื่มน้ำทางปากได้ครบมากขึ้น",
+            "weigh": "WHO ไม่ได้ใส่ออนแดนซีตรอนไว้ในแผนรักษาอุจจาระร่วง การใช้จึงต่างกันไปในแต่ละโรงพยาบาล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Treats vomiting as the barrier to ORS and removes it.",
+            "weigh": "One dose is generally safe, though it can make the diarrhoea a little worse.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a single **oral ondansetron** dose to help ORS stay down.",
+            "weigh": "The dose helps only if the ORS plan around it is clear and followed.",
+            "safety": ""
+          },
+          {
+            "strength": "Draws on evidence that one dose helps more children finish rehydrating by mouth.",
+            "weigh": "Ondansetron is not in the WHO diarrhoea plan, so local practice varies.",
+            "safety": ""
+          }
+        ]
+      },
+      "orsonly": {
+        "th": [
+          {
+            "strength": "ทดแทนน้ำที่ขาด**ทางปากภายใน 4 ชม.**",
+            "weigh": "ระหว่าง 4 ชม. เด็กยังถ่ายอยู่ ซึ่งเพิ่มน้ำที่ขาด ควรคิดเผื่อไว้",
+            "safety": ""
+          },
+          {
+            "strength": "คิดปริมาณ 750 มล. จากน้ำหนัก 10 กก. ตามที่ WHO แนะนำ",
+            "weigh": "การประเมินซ้ำเมื่อครบ 4 ชม. จะบอกได้ว่าทดแทนครบจริงหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ ORS อย่างเดียว เป็นแผนง่ายที่แม่ทำตามได้",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Replaces the deficit **by mouth** over 4 hours.",
+            "weigh": "Ongoing stools add to the deficit during the 4 hours, which is worth accounting for.",
+            "safety": ""
+          },
+          {
+            "strength": "Sets the 750 mL volume from her weight of 10 kg, as WHO advises.",
+            "weigh": "A recheck at the end of 4 hours tells whether the deficit is truly replaced.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses ORS alone, a simple plan a mother can follow.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "abx": {
+        "th": [
+          {
+            "strength": "ยังให้ **ORS** เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรียไปด้วย",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO มักไม่ต้องใช้ยาปฏิชีวนะ",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณาว่าแบคทีเรียอาจเป็นต้นเหตุของไข้และถ่ายเหลว",
+            "weigh": "ยาปฏิชีวนะอาจทำให้ถ่ายเหลวมากขึ้นและมีผลข้างเคียง โดยไม่ช่วยให้หายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำทดแทนและครอบคลุมสาเหตุจากแบคทีเรียไว้ด้วย",
+            "weigh": "การใช้ยาปฏิชีวนะเกินจำเป็นเพิ่มเชื้อดื้อยา ซึ่งเป็นต้นทุนจริงของโรคที่พบบ่อย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps **ORS** at the centre while thinking about a bacterial cause.",
+            "weigh": "Watery stools without blood rarely need an antibiotic under WHO guidance.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers whether bacteria could be driving her fever and diarrhoea.",
+            "weigh": "Antibiotics can worsen diarrhoea and add side effects without speeding recovery here.",
+            "safety": ""
+          },
+          {
+            "strength": "Rehydrates her while covering a possible bacterial cause.",
+            "weigh": "Unneeded antibiotics feed resistance, a real cost for a common illness.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.W": {
+      "clinic": {
+        "th": [
+          {
+            "strength": "ป้อน ORS **ทีละน้อย** ซึ่งเด็กที่อาเจียนมักเก็บไว้ได้",
+            "weigh": "การป้อน 750 มล. ใน 4 ชม. ต้องอาศัยความสม่ำเสมอ แม่จึงต้องการคนช่วย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ปริมาณครบตามที่ขาด ร่วมกับ**ซิงค์**และนัดประเมินซ้ำ",
+            "weigh": "ซิงค์ต้องกินทุกวันต่อไปอีกหลายวันหลังจากนี้ แม่จึงควรรู้ไว้ตั้งแต่ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ทดแทนน้ำที่เสียไปทันที ด้วยการให้**เสริมหลังถ่าย**",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Feeds ORS in **small sips**, which a vomiting toddler usually keeps down.",
+            "weigh": "Sipping 750 mL over 4 hours takes steady effort, so her mother will need support.",
+            "safety": ""
+          },
+          {
+            "strength": "Pairs the full deficit volume with **zinc** and a set recheck.",
+            "weigh": "Zinc continues daily for well over a week, which the mother needs to hear now.",
+            "safety": ""
+          },
+          {
+            "strength": "Replaces stool losses as they happen, with more **after each stool**.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "planb": {
+        "th": [
+          {
+            "strength": "ใช้**แผน B WHO** ซึ่งให้ 750 มล. ตามน้ำหนัก 10 กก. ของเด็ก",
+            "weigh": "ถ้าอาเจียน WHO แนะนำให้รอ 10 นาที แล้วให้ ORS ช้าลง",
+            "safety": ""
+          },
+          {
+            "strength": "เสริม**ซิงค์** ซึ่งช่วยให้หายเร็วขึ้นและลดการเป็นซ้ำ",
+            "weigh": "ซิงค์ต้องกินทุกวันต่อไปอีกหลายวันหลังจากนี้ แม่จึงควรรู้ไว้ตั้งแต่ตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "วางจุดประเมินซ้ำที่ 4 ชม. ให้แผนปรับตามการตอบสนองของเด็ก",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Follows **WHO Plan B**, matching 750 mL to her weight of 10 kg.",
+            "weigh": "If she vomits, WHO advises waiting 10 minutes and then giving ORS more slowly.",
+            "safety": ""
+          },
+          {
+            "strength": "Adds **zinc**, which shortens the illness and lowers the chance of another episode.",
+            "weigh": "Zinc continues daily for well over a week, which the mother needs to hear now.",
+            "safety": ""
+          },
+          {
+            "strength": "Plans a fixed recheck at 4 hours, so the plan adapts to her response.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "iv": {
+        "th": [
+          {
+            "strength": "เตรียม IV ไว้เป็นทางสำรอง ใช้เมื่อ ORS ไม่ได้ผลเท่านั้น",
+            "weigh": "อาเจียนเพียง 3 ครั้ง เด็กอาจดื่ม ORS ได้ จึงควรให้โอกาสลอง ORS อย่างเต็มที่",
+            "safety": ""
+          },
+          {
+            "strength": "มีขั้นยกระดับการรักษาที่ชัด เมื่อลอง ORS แล้ว**อาเจียนออกซ้ำ ๆ**",
+            "weigh": "แทงเส้นในเด็กเล็กที่ขาดน้ำทำได้ยาก ควรเตรียมการไว้",
+            "safety": ""
+          },
+          {
+            "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
+            "weigh": "กำหนดไว้ก่อนว่าแค่ไหนถือว่าไม่ได้ผล ช่วยให้เปลี่ยนแผนได้ทันเวลา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps IV as a backup, used only **if ORS fails**.",
+            "weigh": "With only 3 vomits, she may well manage ORS, so the trial deserves a fair chance.",
+            "safety": ""
+          },
+          {
+            "strength": "Has a clear escalation step ready when ORS keeps coming back up.",
+            "weigh": "Cannulating a dehydrated toddler can be hard, which is worth planning for.",
+            "safety": ""
+          },
+          {
+            "strength": "Chooses **Ringer's lactate**, a fluid suited to replacing stool losses.",
+            "weigh": "Defining failure in advance, such as how much vomiting, keeps the switch timely.",
+            "safety": ""
+          }
+        ]
+      },
+      "orsonly": {
+        "th": [
+          {
+            "strength": "ทดแทนน้ำที่ขาด**ทางปากภายใน 4 ชม.**",
+            "weigh": "ระหว่าง 4 ชม. เด็กยังถ่ายอยู่ ซึ่งเพิ่มน้ำที่ขาด ควรคิดเผื่อไว้",
+            "safety": ""
+          },
+          {
+            "strength": "คิดปริมาณ 750 มล. จากน้ำหนัก 10 กก. ตามที่ WHO แนะนำ",
+            "weigh": "การประเมินซ้ำเมื่อครบ 4 ชม. จะบอกได้ว่าทดแทนครบจริงหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ ORS อย่างเดียว เป็นแผนง่ายที่แม่ทำตามได้",
+            "weigh": "ปริมาณนี้เป็นแนวทาง ถ้าเด็กยังอยากดื่มก็ให้เพิ่มได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Replaces the deficit **by mouth** over 4 hours.",
+            "weigh": "Ongoing stools add to the deficit during the 4 hours, which is worth accounting for.",
+            "safety": ""
+          },
+          {
+            "strength": "Sets the 750 mL volume from her weight of 10 kg, as WHO advises.",
+            "weigh": "A recheck at the end of 4 hours tells whether the deficit is truly replaced.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses ORS alone, a simple plan a mother can follow.",
+            "weigh": "The volume is a guide, so she can have more if she still wants to drink.",
+            "safety": ""
+          }
+        ]
+      },
+      "abx": {
+        "th": [
+          {
+            "strength": "ยังให้ **ORS** เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรียไปด้วย",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO มักไม่ต้องใช้ยาปฏิชีวนะ",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณาว่าแบคทีเรียอาจเป็นต้นเหตุของไข้และถ่ายเหลว",
+            "weigh": "ยาปฏิชีวนะอาจทำให้ถ่ายเหลวมากขึ้นและมีผลข้างเคียง โดยไม่ช่วยให้หายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำทดแทนและครอบคลุมสาเหตุจากแบคทีเรียไว้ด้วย",
+            "weigh": "การใช้ยาปฏิชีวนะเกินจำเป็นเพิ่มเชื้อดื้อยา ซึ่งเป็นต้นทุนจริงของโรคที่พบบ่อย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps **ORS** at the centre while thinking about a bacterial cause.",
+            "weigh": "Watery stools without blood rarely need an antibiotic under WHO guidance.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers whether bacteria could be driving her fever and diarrhoea.",
+            "weigh": "Antibiotics can worsen diarrhoea and add side effects without speeding recovery here.",
+            "safety": ""
+          },
+          {
+            "strength": "Rehydrates her while covering a possible bacterial cause.",
+            "weigh": "Unneeded antibiotics feed resistance, a real cost for a common illness.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.B": {
+      "plana": {
+        "th": [
+          {
+            "strength": "เปลี่ยนเป็น**แผน A** เมื่อหายขาดน้ำแล้ว ตามแนวทาง WHO",
+            "weigh": "แผน A ขึ้นอยู่กับแม่ ความมั่นใจของแม่ในการให้ ORS จึงสำคัญ",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่ม**อาหารปกติ**อีกครั้ง ซึ่งช่วยให้ลำไส้ฟื้นตัว",
+            "weigh": "ORS 50 ถึง 100 มล. ต่อครั้งที่ถ่าย เหมาะกับเด็กอายุต่ำกว่า 2 ปี",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ ORS ตามน้ำที่เสียต่อเนื่อง **50-100 มล.** หลังถ่ายแต่ละครั้ง",
+            "weigh": "ซิงค์ต้องให้ครบคอร์ส ซึ่งมักลืมเมื่อกลับบ้าน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Moves to **Plan A** once dehydration has cleared, as WHO advises.",
+            "weigh": "Plan A rests on the mother, so her confidence with ORS matters.",
+            "safety": ""
+          },
+          {
+            "strength": "Restarts **her usual food**, which helps the gut recover.",
+            "weigh": "ORS of 50 to 100 mL per stool fits her age under 2 years.",
+            "safety": ""
+          },
+          {
+            "strength": "Matches ORS to ongoing losses at **50-100 mL** per loose stool.",
+            "weigh": "Continuing zinc for the full course is easy to forget at home.",
+            "safety": ""
+          }
+        ]
+      },
+      "teach": {
+        "th": [
+          {
+            "strength": "ให้แม่**ผสมและป้อน ORS** ให้ดูก่อนกลับบ้าน",
+            "weigh": "ผสมกับน้ำตามปริมาณบนซองให้พอดี เพราะผสมเข้มเกินอาจทำให้โซเดียมสูง",
+            "safety": ""
+          },
+          {
+            "strength": "เปลี่ยนคำแนะนำให้เป็นทักษะที่แม่ทำให้เจ้าหน้าที่เห็นแล้ว",
+            "weigh": "เอกสารหรือภาพประกอบช่วยให้แม่จำขั้นตอนได้เมื่อกลับบ้าน",
+            "safety": ""
+          },
+          {
+            "strength": "เข้าใจว่าการดูแลที่บ้านขึ้นอยู่กับความมั่นใจของแม่",
+            "weigh": "น้ำสะอาดและภาชนะตวงที่บ้านเป็นเรื่องที่ควรคุยกับแม่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Checks the mother can **mix and give ORS** before she leaves.",
+            "weigh": "Mixing with the exact water volume on the packet matters, as an overly strong mix can raise sodium.",
+            "safety": ""
+          },
+          {
+            "strength": "Turns instructions into a skill the mother has shown in front of staff.",
+            "weigh": "A written or picture guide helps her remember the steps at home.",
+            "safety": ""
+          },
+          {
+            "strength": "Recognises that home care depends on the mother's confidence.",
+            "weigh": "Clean water and a measuring container at home are worth discussing with her.",
+            "safety": ""
+          }
+        ]
+      },
+      "onehour": {
+        "th": [
+          {
+            "strength": "ให้แน่ใจว่าเด็ก**เก็บน้ำไว้ได้**ก่อนตัดสินใจขั้นต่อไป",
+            "weigh": "เด็กดูไม่ขาดน้ำแล้ว ชั่วโมงที่เพิ่มจึงช่วยเรื่องความมั่นใจเป็นหลัก",
+            "safety": ""
+          },
+          {
+            "strength": "เพิ่มช่วงสังเกตอาการสั้น ๆ เป็นการระวังอีกขั้น",
+            "weigh": "การอยู่นานขึ้นทำให้ครอบครัวเสียเวลา ควรชั่งกับความมั่นใจที่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อีก 1 ชม. ยืนยันว่าอาการดีขึ้นจริงและคงอยู่",
+            "weigh": "เหตุผลหลักคืออาเจียนก่อนหน้านี้ ถ้าหยุดแล้ว ชั่วโมงที่เพิ่มก็ช่วยไม่มาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Makes sure she **keeps fluids down** before deciding the next move.",
+            "weigh": "She already looks well hydrated, so the extra hour mainly adds reassurance.",
+            "safety": ""
+          },
+          {
+            "strength": "Builds in a short observation period, a cautious step.",
+            "weigh": "A longer stay costs the family time, which is worth weighing against the reassurance.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses an extra hour to confirm that improvement holds.",
+            "weigh": "Earlier vomiting is the main reason to watch; if it has settled, the hour adds little.",
+            "safety": ""
+          }
+        ]
+      },
+      "repeatb": {
+        "th": [
+          {
+            "strength": "ต้องการให้แน่ใจว่าทดแทนน้ำที่ขาดได้ครบ",
+            "weigh": "อาการขาดน้ำหายแล้ว WHO ถือว่าได้น้ำคืนครบ แผน B อีกรอบจึงเพิ่มประโยชน์ไม่มาก",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกความระมัดระวัง โดยคำนึงถึงน้ำที่ยังเสียต่อเนื่อง",
+            "weigh": "การให้ ORS ทดแทนอีกรอบในเด็กที่ได้น้ำครบแล้ว เพิ่มปริมาตรที่เด็กไม่ต้องการ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เด็กอยู่ในแผนที่มีโครงสร้างและมีจุดสิ้นสุดชัด",
+            "weigh": "อยู่ที่ห้องตรวจอีก 4 ชม. เป็นต้นทุนจริงของครอบครัวในขณะที่เด็กดีขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Aims to make certain the deficit is **fully replaced**.",
+            "weigh": "Once the signs of dehydration have cleared, WHO counts her as rehydrated, so more Plan B adds little.",
+            "safety": ""
+          },
+          {
+            "strength": "Errs on the side of caution with ongoing losses in mind.",
+            "weigh": "A second deficit round in a rehydrated child adds volume she no longer needs.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps her on a structured plan with a clear end point.",
+            "weigh": "Four more hours of treatment is a real cost to the family while she is improving.",
+            "safety": ""
+          }
+        ]
+      },
+      "elec": {
+        "th": [
+          {
+            "strength": "คิดถึง**โซเดียม**ที่อาจเปลี่ยนไปหลังเสียน้ำมาสองวัน",
+            "weigh": "เด็กฟื้นตัวดีด้วย ORS ทำให้โอกาสมีปัญหาโซเดียมรุนแรงน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ระวังปัญหาเกลือแร่ที่อุจจาระร่วงทำให้เกิดได้",
+            "weigh": "การเจาะเลือดเด็กที่กำลังดีขึ้น เพิ่มความทุกข์โดยแทบไม่เปลี่ยนการดูแล",
+            "safety": ""
+          },
+          {
+            "strength": "ต้องการตัวเลขที่วัดได้ก่อนตัดสินใจต่อ",
+            "weigh": "แนวทางของไทยแนะนำการตรวจนี้เป็นหลักเมื่อขาดน้ำรุนแรงหรือมีอาการไม่ตรงแบบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinks about shifts in **her sodium** after two days of losses.",
+            "weigh": "She has recovered well on ORS, which makes a serious sodium problem unlikely.",
+            "safety": ""
+          },
+          {
+            "strength": "Stays alert to salt problems that diarrhoea can cause.",
+            "weigh": "A needle in a toddler who is improving adds distress for little change in care.",
+            "safety": ""
+          },
+          {
+            "strength": "Wants objective numbers before moving on.",
+            "weigh": "Thai guidance reserves these mainly for severe dehydration or unusual signs.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.R": {
+      "repeatb": {
+        "th": [
+          {
+            "strength": "ทำตาม WHO เมื่อยังขาดน้ำอยู่ที่การประเมิน 4 ชม.",
+            "weigh": "ปริมาณ ORS ที่เด็กดื่มได้ใน 4 ชม. แรก ควรทบทวนกับแม่",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ลืม**เริ่มอาหาร** ซึ่ง WHO แนะนำระหว่างให้น้ำ",
+            "weigh": "รอบที่สองจะได้ผลเมื่อแก้เหตุที่รอบแรกยังไม่พอ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำทางปากต่อ เพราะเด็กตื่นดีและยังดื่มได้",
+            "weigh": "การประเมินซ้ำที่ชัดเมื่อจบรอบนี้ ช่วยไม่ให้แผนยืดเยื้อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Follows **WHO advice** for dehydration that remains at the 4 h check.",
+            "weigh": "How much ORS she managed in the first 4 hours is worth reviewing with the mother.",
+            "safety": ""
+          },
+          {
+            "strength": "Remembers to **offer food**, which WHO advises during rehydration.",
+            "weigh": "A second round works only if the reasons the first fell short are addressed.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps going by mouth, since she is alert and drinking.",
+            "weigh": "A firm recheck at the end of this round keeps the plan from drifting.",
+            "safety": ""
+          }
+        ]
+      },
+      "spoon": {
+        "th": [
+          {
+            "strength": "ลดความเร็วด้วยการ**ป้อนช้า ๆ ทีละช้อน** ให้ ORS อาเจียนออกน้อยลง",
+            "weigh": "การป้อนด้วยช้อนจนครบรอบต้องใช้ความอดทน แม่จึงต้องการคนช่วยและช่วงพัก",
+            "safety": ""
+          },
+          {
+            "strength": "ยังคงให้ทางปาก โดยเปลี่ยนวิธีให้ ไม่ได้เปลี่ยนสิ่งที่ให้",
+            "weigh": "การประเมินซ้ำที่ชัดเมื่อจบรอบนี้ ช่วยไม่ให้แผนยืดเยื้อ",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกวิธีให้ที่เหมาะกับเด็กที่ดื่มแล้วอาเจียน",
+            "weigh": "ถ้ายังอาเจียนแม้ป้อนทีละช้อน ควรกำหนดจุดเปลี่ยนแผนไว้ให้ชัด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Slows the pace with **slow spoonfuls**, so less ORS comes back up.",
+            "weigh": "Spoon-feeding a full round takes patience, so the mother will need support and breaks.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps the oral route by changing how, not what, she drinks.",
+            "weigh": "A firm recheck at the end of this round keeps the plan from drifting.",
+            "safety": ""
+          },
+          {
+            "strength": "Matches the method to a child who vomits sips.",
+            "weigh": "If vomiting continues despite spoonfuls, a clear point to change plan is worth setting.",
+            "safety": ""
+          }
+        ]
+      },
+      "ngt": {
+        "th": [
+          {
+            "strength": "ให้ ORS **ไหลช้าสม่ำเสมอ** ซึ่งเด็กที่อาเจียนทนได้ดี",
+            "weigh": "การใส่สายเป็นเรื่องไม่สบายสำหรับเด็กเล็ก และต้องคอยดูตำแหน่งสาย",
+            "safety": ""
+          },
+          {
+            "strength": "ยังใช้ทางเดินอาหารให้น้ำ แม้เด็กจิบแล้วอาเจียน",
+            "weigh": "ระหว่างให้ทางสาย ยังต้องประเมินการขาดน้ำและอาเจียนเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่า**สายให้อาหาร**เป็นช่องทางให้ ORS ที่ WHO รับรอง",
+            "weigh": "เด็กตื่นดีและดื่มเก่ง การใส่สายจึงควรชั่งกับความทุกข์ที่เด็กได้รับ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Delivers ORS in a **slow steady flow** that a vomiting child tolerates.",
+            "weigh": "Passing a tube is unpleasant for a toddler and needs staff to watch its position.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the gut for rehydration even when sipping fails.",
+            "weigh": "Tube feeding still needs regular checks of her hydration and vomiting.",
+            "safety": ""
+          },
+          {
+            "strength": "Recognises a **nasogastric tube** as a WHO-endorsed route for ORS.",
+            "weigh": "In an alert child who drinks eagerly, a tube is worth weighing against her distress.",
+            "safety": ""
+          }
+        ]
+      },
+      "iv": {
+        "th": [
+          {
+            "strength": "ทดแทน**น้ำที่ยังขาดอยู่**ทางหลอดเลือดได้แน่นอน",
+            "weigh": "เด็กตื่นดีและยังดื่มได้ ตามแนวทาง WHO ถือเป็นเหตุให้ให้น้ำทางปากต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "ได้ปริมาณน้ำแน่นอนโดยไม่ขึ้นกับการอาเจียน",
+            "weigh": "การแทงเส้นในเด็กเล็กทำให้เด็กทุกข์ทรมานและอาจไม่สำเร็จ ถือเป็นต้นทุนจริง",
+            "safety": ""
+          },
+          {
+            "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
+            "weigh": "การให้ IV ในเด็กที่ดื่มได้ เพิ่มความเสี่ยงเช่นน้ำเกินและปัญหาจากสาย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Replaces the **remaining deficit** reliably by vein.",
+            "weigh": "She is alert and drinking, which WHO treats as a reason to keep going by mouth.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives a guaranteed volume regardless of vomiting.",
+            "weigh": "Cannulating a toddler is distressing and can fail, which counts as a real cost.",
+            "safety": ""
+          },
+          {
+            "strength": "Chooses **Ringer's lactate**, suited to replacing losses from watery stools.",
+            "weigh": "IV fluids in a child who can drink add risks such as overload and line problems.",
+            "safety": ""
+          }
+        ]
+      },
+      "abxb": {
+        "th": [
+          {
+            "strength": "ยังให้**แผน B ซ้ำ**เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรีย",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO มักไม่ต้องใช้ยาปฏิชีวนะ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำทางปากต่อ และพิจารณาสาเหตุจากแบคทีเรีย",
+            "weigh": "ยาปฏิชีวนะอาจทำให้ถ่ายเหลวมากขึ้นและมีผลข้างเคียง โดยไม่ช่วยให้หายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "หาเหตุผลว่าทำไมเด็กดีขึ้นช้า",
+            "weigh": "การดีขึ้นช้าที่ 4 ชม. มักมาจากปริมาณที่ดื่มได้และที่เสียไป ไม่ใช่เพราะขาดยา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps **Plan B again** at the core while thinking about bacteria.",
+            "weigh": "Watery stools without blood rarely need an antibiotic under WHO guidance.",
+            "safety": ""
+          },
+          {
+            "strength": "Continues oral rehydration and considers a bacterial cause.",
+            "weigh": "Antibiotics can worsen diarrhoea and add side effects without speeding recovery here.",
+            "safety": ""
+          },
+          {
+            "strength": "Looks for a reason she is improving slowly.",
+            "weigh": "Slow progress at 4 hours usually reflects intake and losses, not a missing antibiotic.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.W": {
+      "ivlab": {
+        "th": [
+          {
+            "strength": "เริ่มให้น้ำและเจาะดู**เกลือแร่กับน้ำตาล**พร้อมกัน",
+            "weigh": "ปริมาณและอัตราควรเหมาะกับน้ำที่ยังขาด และประเมินเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "แทงเส้นครั้งเดียวได้ทั้งให้น้ำและเจาะเลือด เด็กไม่ต้องเจ็บซ้ำ",
+            "weigh": "แทงเส้นในเด็กเล็กที่ขาดน้ำทำได้ยาก ควรเตรียมการไว้",
+            "safety": ""
+          },
+          {
+            "strength": "มองการอาเจียนซ้ำ ๆ เป็นเหตุให้เปิดเส้นและตรวจเลือดไปพร้อมกัน",
+            "weigh": "ผลเลือดมีความหมายเมื่อนำไปปรับชนิดหรืออัตราสารน้ำ ควรคิดไว้ล่วงหน้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starts the drip and checks **sodium and sugar** from one cannula.",
+            "weigh": "Volume and rate are worth matching to her remaining deficit, with regular checks.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses one needle for both fluids and bloods, sparing her a second stick.",
+            "weigh": "Cannulating a dehydrated toddler can be hard, which is worth planning for.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats repeated vomiting as a reason to secure the route and check her chemistry.",
+            "weigh": "Results matter most if they change the fluid type or rate, which is worth deciding in advance.",
+            "safety": ""
+          }
+        ]
+      },
+      "ngt": {
+        "th": [
+          {
+            "strength": "ให้ ORS **ไหลช้าสม่ำเสมอ** ซึ่งเด็กที่อาเจียนทนได้ดี",
+            "weigh": "การใส่สายเป็นเรื่องไม่สบายสำหรับเด็กเล็ก และต้องคอยดูตำแหน่งสาย",
+            "safety": ""
+          },
+          {
+            "strength": "ยังใช้ทางเดินอาหารให้น้ำ แม้เด็กจิบแล้วอาเจียน",
+            "weigh": "ระหว่างให้ทางสาย ยังต้องประเมินการขาดน้ำและอาเจียนเป็นระยะ",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่า**สายให้อาหาร**เป็นช่องทางให้ ORS ที่ WHO รับรอง",
+            "weigh": "เด็กตื่นดีและดื่มเก่ง การใส่สายจึงควรชั่งกับความทุกข์ที่เด็กได้รับ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Delivers ORS in a **slow steady flow** that a vomiting child tolerates.",
+            "weigh": "Passing a tube is unpleasant for a toddler and needs staff to watch its position.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses the gut for rehydration even when sipping fails.",
+            "weigh": "Tube feeding still needs regular checks of her hydration and vomiting.",
+            "safety": ""
+          },
+          {
+            "strength": "Recognises a **nasogastric tube** as a WHO-endorsed route for ORS.",
+            "weigh": "In an alert child who drinks eagerly, a tube is worth weighing against her distress.",
+            "safety": ""
+          }
+        ]
+      },
+      "ivstop": {
+        "th": [
+          {
+            "strength": "สังเกตได้ว่า**ยาปฏิชีวนะ**เองอาจทำให้อาเจียนมากขึ้น",
+            "weigh": "แทงเส้นในเด็กเล็กที่ขาดน้ำทำได้ยาก ควรเตรียมการไว้",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำ**ทางหลอดเลือด**เมื่อดื่ม ORS แล้วอาเจียนออก",
+            "weigh": "การหยุดยาช่วยได้ถ้ายาเป็นต้นเหตุจริง จึงควรติดตามการอาเจียนต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "แก้ทั้งน้ำที่ขาดและสาเหตุจากยาที่อาจทำให้อาเจียนไปพร้อมกัน",
+            "weigh": "ปริมาณและอัตราควรเหมาะกับน้ำที่ยังขาด และประเมินเป็นระยะ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Spots that the **antibiotic** itself may be adding to the vomiting.",
+            "weigh": "Cannulating a dehydrated toddler can be hard, which is worth planning for.",
+            "safety": ""
+          },
+          {
+            "strength": "Rehydrates **by vein** when ORS keeps coming back up.",
+            "weigh": "Stopping a drug helps only if it was the cause, so vomiting is worth watching after.",
+            "safety": ""
+          },
+          {
+            "strength": "Addresses both the deficit and a possible drug cause of vomiting.",
+            "weigh": "Volume and rate are worth matching to her remaining deficit, with regular checks.",
+            "safety": ""
+          }
+        ]
+      },
+      "ondan": {
+        "th": [
+          {
+            "strength": "ลดอาเจียนเพื่อให้**ลองดื่ม ORS ใหม่**ได้",
+            "weigh": "ให้ครั้งเดียวมักปลอดภัย แต่อาจทำให้ถ่ายเหลวมากขึ้นเล็กน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "วาง**ประเมินซ้ำใน 1 ชม.**ไว้ชัด แผนจึงไม่ยืดเยื้อ",
+            "weigh": "WHO ไม่ได้ใส่ออนแดนซีตรอนไว้ในแผนรักษาอุจจาระร่วง การใช้จึงต่างกันไปในแต่ละโรงพยาบาล",
+            "safety": ""
+          },
+          {
+            "strength": "รักษาทางปากไว้ ด้วยการแก้ที่อาการอาเจียนโดยตรง",
+            "weigh": "ควรตกลงไว้ก่อนว่าแค่ไหนจึงถือว่าลองแล้วไม่ได้ผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Settles the vomiting so a **fresh ORS trial** has a chance.",
+            "weigh": "One dose is generally safe, though it can make the diarrhoea a little worse.",
+            "safety": ""
+          },
+          {
+            "strength": "Sets a firm recheck **within 1 h**, so the plan cannot drift.",
+            "weigh": "Ondansetron is not in the WHO diarrhoea plan, so local practice varies.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps the oral route open by treating the vomiting itself.",
+            "weigh": "A clear point at which the trial counts as failed is worth agreeing in advance.",
+            "safety": ""
+          }
+        ]
+      },
+      "ivculture": {
+        "th": [
+          {
+            "strength": "ให้น้ำ**ทางหลอดเลือด**เมื่ออาเจียนจนดื่ม ORS ไม่ได้",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อมักไม่เปลี่ยนการดูแล และต้องรอหลายวัน",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำได้แน่นอนและหาสาเหตุของอาการถ่ายเหลวไปด้วย",
+            "weigh": "แทงเส้นในเด็กเล็กที่ขาดน้ำทำได้ยาก ควรเตรียมการไว้",
+            "safety": ""
+          },
+          {
+            "strength": "คิดว่าทำไมยังถ่ายอยู่ ไม่ใช่แค่ผลที่ตามมา",
+            "weigh": "ตอนนี้ชนิดของเชื้อสำคัญน้อยกว่าการคืนน้ำให้เด็ก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Rehydrates **by vein** when vomiting stops ORS working.",
+            "weigh": "For watery stools without blood, a culture rarely changes care and takes days.",
+            "safety": ""
+          },
+          {
+            "strength": "Secures fluids and seeks the cause of the diarrhoea.",
+            "weigh": "Cannulating a dehydrated toddler can be hard, which is worth planning for.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinks about why the diarrhoea continues, not only its effects.",
+            "weigh": "The organism matters less now than restoring her fluids.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.B": {
+      "home": {
+        "th": [
+          {
+            "strength": "ให้กลับบ้านพร้อม**สอนอาการอันตราย**ที่ชัดเจน",
+            "weigh": "ให้แม่ทวนอาการอันตรายด้วยคำพูดของตัวเอง จะช่วยให้จำได้ดีขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้แม่มีเหตุผลชัด ๆ สามข้อที่ต้อง**กลับมาทันที**",
+            "weigh": "แผน A ขึ้นอยู่กับแม่ ปริมาณ ORS หลังถ่ายแต่ละครั้งจึงต้องชัดเจน",
+            "safety": ""
+          },
+          {
+            "strength": "ไว้ใจให้เด็กที่กำลังฟื้นตัวกลับไปดูแลที่บ้านตาม**แผน A**",
+            "weigh": "ระยะทางและการเดินทางกลับมาควรคิดไว้ เผื่อต้องกลับมาด่วน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sends her home with clear **danger-sign teaching**.",
+            "weigh": "Teaching sticks when the mother repeats the signs back in her own words.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives the mother three concrete reasons to **come back at once**.",
+            "weigh": "Plan A rests on the mother, so how much ORS to give after each stool needs to be clear.",
+            "safety": ""
+          },
+          {
+            "strength": "Trusts a recovering child to home care under **Plan A**.",
+            "weigh": "Distance and transport are worth thinking about in case she needs to return quickly.",
+            "safety": ""
+          }
+        ]
+      },
+      "followup": {
+        "th": [
+          {
+            "strength": "ให้**ซิงค์ 10-14 วัน**ครบ ช่วยลดโอกาสเป็นซ้ำ",
+            "weigh": "การนัด 5 วันมีประโยชน์เมื่อครอบครัวกลับมาได้สะดวก",
+            "safety": ""
+          },
+          {
+            "strength": "วางนัดติดตามที่ช่วยจับอาการถ่ายเหลวที่นานเกินคาด",
+            "weigh": "ซิงค์มักลืมให้เมื่ออยู่บ้าน การผูกกับกิจวัตรประจำวันช่วยได้",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ **ORS หลังถ่ายทุกครั้ง** ทดแทนน้ำที่เสียที่บ้าน",
+            "weigh": "แม่อาจหยุด ORS เมื่ออุจจาระเริ่มเป็นก้อน ควรคุยเรื่องนี้ไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Completes the **zinc 10-14 days** course, which lowers the chance of another bout.",
+            "weigh": "A 5-day review is useful only if the family can return easily.",
+            "safety": ""
+          },
+          {
+            "strength": "Builds in a review that catches diarrhoea lasting beyond the expected course.",
+            "weigh": "Zinc doses are easy to miss at home, so a simple daily routine helps.",
+            "safety": ""
+          },
+          {
+            "strength": "Matches home losses with **ORS after each stool**.",
+            "weigh": "The mother may stop ORS once stools firm up, which is worth discussing.",
+            "safety": ""
+          }
+        ]
+      },
+      "overnight": {
+        "th": [
+          {
+            "strength": "ใช้**หอผู้ป่วย**ยืนยันว่าเด็กยังดื่มได้และปัสสาวะออกดี",
+            "weigh": "อาการขาดน้ำหายแล้ว การนอนค้างคืนจึงช่วยเรื่องความมั่นใจเป็นหลัก",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกทางที่ระมัดระวังสำหรับเด็กเล็กที่เพิ่งขาดน้ำมา",
+            "weigh": "การนอนโรงพยาบาลเป็นภาระของครอบครัว และเสี่ยงติดเชื้อในหอผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "เฝ้าดูเผื่อน้ำที่เสียมากกว่าที่ดื่มได้",
+            "weigh": "เมื่อกลับบ้านพรุ่งนี้ ยังต้องมีแผนการดูแลที่บ้านอยู่ดี",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses a **night on the ward** to confirm she keeps drinking and passing urine.",
+            "weigh": "Her dehydration has cleared, so the night mainly adds reassurance.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes a cautious path for a toddler who was dehydrated.",
+            "weigh": "A hospital night costs the family and exposes her to ward infections.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps her under observation in case losses outpace intake.",
+            "weigh": "Discharge in the morning still needs a plan for home.",
+            "safety": ""
+          }
+        ]
+      },
+      "recheck": {
+        "th": [
+          {
+            "strength": "นัด**ตรวจซ้ำพรุ่งนี้** เพื่อจับการกลับไปขาดน้ำได้เร็ว",
+            "weigh": "แม่ยังต้องรู้ว่าจะทำอย่างไรถ้าเด็กแย่ลงก่อนถึงนัด",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ดูแลที่บ้านควบคู่กับตาข่ายความปลอดภัยที่ใกล้ชิด",
+            "weigh": "การนัดวันรุ่งขึ้นมีประโยชน์เมื่อครอบครัวเดินทางกลับมาได้สะดวก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ครอบครัวมีจุดติดต่อที่แน่นอน ขณะที่ยังถ่ายเหลวอยู่",
+            "weigh": "เด็กที่ดื่มได้ดีและปัสสาวะออก มักไม่จำเป็นต้องนัดเร็วขนาดนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Plans a **recheck tomorrow** to catch any slide back early.",
+            "weigh": "The mother still needs to know what to do if she worsens before then.",
+            "safety": ""
+          },
+          {
+            "strength": "Balances home care with a close safety net.",
+            "weigh": "A next-day visit is only useful if the family can travel back easily.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives the family a fixed point of contact while stools are still loose.",
+            "weigh": "Children who drink well and pass urine often need no visit so soon.",
+            "safety": ""
+          }
+        ]
+      },
+      "abxhome": {
+        "th": [
+          {
+            "strength": "ให้กลับบ้านพร้อม **ORS** โดยยังให้น้ำเป็นหลัก",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO มักไม่ต้องใช้ยาปฏิชีวนะ",
+            "safety": ""
+          },
+          {
+            "strength": "พิจารณาสาเหตุจากแบคทีเรียระหว่างพักฟื้นที่บ้าน",
+            "weigh": "ยาปฏิชีวนะอาจทำให้ถ่ายเหลวมากขึ้นและมีผลข้างเคียง โดยไม่ช่วยให้หายเร็วขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ไว้ใจการดูแลที่บ้านสำหรับเด็กที่กำลังดีขึ้น",
+            "weigh": "การใช้ยาปฏิชีวนะเกินจำเป็นเพิ่มเชื้อดื้อยา ซึ่งเป็นต้นทุนจริงของโรคที่พบบ่อย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sends her home on **ORS**, keeping rehydration central.",
+            "weigh": "Watery stools without blood rarely need an antibiotic under WHO guidance.",
+            "safety": ""
+          },
+          {
+            "strength": "Considers a bacterial cause while she recovers at home.",
+            "weigh": "Antibiotics can worsen diarrhoea and add side effects without speeding recovery here.",
+            "safety": ""
+          },
+          {
+            "strength": "Trusts home care for a child who is now improving.",
+            "weigh": "Unneeded antibiotics feed resistance, a real cost for a common illness.",
+            "safety": ""
+          }
+        ]
+      },
+      "admitiv": {
+        "th": [
+          {
+            "strength": "ให้น้ำได้แน่นอน ระหว่างรอให้อาการถ่ายทุเลา",
+            "weigh": "เด็กดื่มได้ แนวทาง WHO ให้เด็กที่ดื่มได้รับน้ำทางปากต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่เสี่ยงกับเด็กเล็กที่เพิ่งขาดน้ำมา",
+            "weigh": "การแทงเส้นและนอนโรงพยาบาล เพิ่มความทุกข์ ความเสี่ยงติดเชื้อ และค่าใช้จ่าย",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้**สารน้ำทางหลอดเลือด**ให้ได้ปริมาณสม่ำเสมอ",
+            "weigh": "การให้ IV ในเด็กที่ดื่มได้ เพิ่มความเสี่ยงเช่นน้ำเกินและปัญหาจากสาย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Guarantees her intake while the stools settle.",
+            "weigh": "She can drink, and WHO keeps a child who drinks on fluids by mouth.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes no chances with a toddler who was dehydrated.",
+            "weigh": "A cannula and ward stay add distress, infection risk and cost for little gain.",
+            "safety": ""
+          },
+          {
+            "strength": "Uses a **drip** for a steady, measured supply.",
+            "weigh": "IV fluids in a child who can drink add risks such as overload and line problems.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.R": {
+      "admitors": {
+        "th": [
+          {
+            "strength": "ใช้ ORS **ทดแทนทุกครั้งที่ถ่าย** ให้ทันกับน้ำที่เสียทุกชั่วโมง",
+            "weigh": "การชั่งผ้าอ้อมช่วยวัดน้ำที่เสียทางอุจจาระ ทำให้ทดแทนได้ใกล้เคียงขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เด็กอยู่ในที่ที่เจ้าหน้าที่**ติดตามปัสสาวะ**ได้",
+            "weigh": "การนอนโรงพยาบาลเป็นภาระของครอบครัว ควรชั่งกับประโยชน์ที่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ยังให้น้ำทางปาก แม้เด็กถ่ายบ่อย",
+            "weigh": "ถ่ายบ่อยมากอาจเสียน้ำเร็วกว่าที่ดื่มได้ ควรกำหนดจุดเปลี่ยนแผนไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps pace with hourly losses by using ORS to **replace each stool**.",
+            "weigh": "Weighing nappies measures stool losses, which makes replacement more exact.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps her where staff can **track her urine**.",
+            "weigh": "A ward stay is a burden for the family, which is worth weighing against the gain.",
+            "safety": ""
+          },
+          {
+            "strength": "Stays with the oral route even with frequent stools.",
+            "weigh": "Very frequent stools can outpace intake, so a clear trigger to change plan is worth setting.",
+            "safety": ""
+          }
+        ]
+      },
+      "admitteach": {
+        "th": [
+          {
+            "strength": "ใช้ช่วงรับไว้ฝึกแม่ให้ **ORS และอาหาร** ได้เอง",
+            "weigh": "การฝึกได้ผลเมื่อพยาบาลมีเวลาดูการป้อนหลายครั้ง ไม่ใช่ครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "เตรียมแม่สำหรับการดูแลที่บ้าน ขณะที่ยังเสียน้ำมาก",
+            "weigh": "ถ่ายทุกชั่วโมง จึงต้องดูปริมาณที่เด็กได้รับระหว่างที่แม่ฝึก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้แม่ได้ลองทำโดยมี**พยาบาลอยู่ข้าง ๆ**",
+            "weigh": "การให้อาหารต่อระหว่างท้องเสียช่วยให้ลำไส้ฟื้น การฝึกช่วยย้ำเรื่องนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Uses the admission to build the mother's skill with **ORS and food**.",
+            "weigh": "Coaching works when the nurse has time to watch several feeds, not just one.",
+            "safety": ""
+          },
+          {
+            "strength": "Prepares for home while losses are still high.",
+            "weigh": "Hourly stools mean her intake needs watching while the mother learns.",
+            "safety": ""
+          },
+          {
+            "strength": "Lets the mother practise with **a nurse beside her** before going home.",
+            "weigh": "Feeding through diarrhoea helps the gut recover, which the coaching can reinforce.",
+            "safety": ""
+          }
+        ]
+      },
+      "homeors": {
+        "th": [
+          {
+            "strength": "ไว้ใจให้แม่ให้ **ORS หลังถ่ายทุกครั้ง** พร้อมคำแนะนำให้กลับมา",
+            "weigh": "ถ่ายทุกชั่วโมงต้องให้ ORS ปริมาณมากที่บ้าน เป็นภาระหนักของผู้ดูแล",
+            "safety": ""
+          },
+          {
+            "strength": "รวม**ซิงค์**และอาการอันตรายไว้ในแผนดูแลที่บ้าน",
+            "weigh": "เสียน้ำบ่อยขนาดนี้ เด็กอาจกลับไปขาดน้ำได้เร็วก่อนมีใครสังเกต",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ต้องรับเด็กที่ได้น้ำครบแล้วไว้ ครอบครัวจึงไม่ต้องนอนโรงพยาบาล",
+            "weigh": "ให้แม่ทวนอาการอันตรายก่อนกลับ จะช่วยให้มั่นใจว่าจำได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Trusts the mother with **ORS after each stool** and clear return advice.",
+            "weigh": "Hourly watery stools mean large volumes at home, a lot to ask of one carer.",
+            "safety": ""
+          },
+          {
+            "strength": "Combines **zinc** and danger signs into a full home plan.",
+            "weigh": "With losses this frequent, she can dry out again quickly before anyone notices.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps a rehydrated child out of hospital, sparing the family a stay.",
+            "weigh": "The danger signs are worth repeating back by the mother before she leaves.",
+            "safety": ""
+          }
+        ]
+      },
+      "recheck": {
+        "th": [
+          {
+            "strength": "**นัดตรวจพรุ่งนี้** เพื่อจับการกลับไปขาดน้ำได้เร็ว",
+            "weigh": "แม่ยังต้องรู้ว่าจะทำอย่างไรถ้าเด็กแย่ลงก่อนถึงนัด",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ดูแลที่บ้านควบคู่กับตาข่ายความปลอดภัยที่ใกล้ชิด",
+            "weigh": "การนัดวันรุ่งขึ้นมีประโยชน์เมื่อครอบครัวเดินทางกลับมาได้สะดวก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ครอบครัวมีจุดติดต่อที่แน่นอน ขณะที่ยังถ่ายเป็นน้ำอยู่",
+            "weigh": "ถ่ายเป็นน้ำแทบทุกชั่วโมงอาจเสียน้ำเร็วกว่าที่ดื่มได้ ก่อนจะถึงนัด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Plans a **recheck tomorrow** to catch any slide back early.",
+            "weigh": "The mother still needs to know what to do if she worsens before then.",
+            "safety": ""
+          },
+          {
+            "strength": "Balances home care with a close safety net.",
+            "weigh": "A next-day visit is only useful if the family can travel back easily.",
+            "safety": ""
+          },
+          {
+            "strength": "Gives the family a fixed point of contact while stools are still watery.",
+            "weigh": "Stools this frequent can outpace what she drinks before the visit comes.",
+            "safety": ""
+          }
+        ]
+      },
+      "ivnight": {
+        "th": [
+          {
+            "strength": "ครอบคลุมน้ำที่เสียทุกชั่วโมงตลอดคืนด้วย**สารน้ำทางหลอดเลือด**",
+            "weigh": "ตอนนี้เด็กดื่มได้ดี แนวทาง WHO ให้เด็กที่ดื่มได้รับน้ำทางปากต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "ลดความเสี่ยงที่การดื่มตอนกลางคืนจะตามไม่ทัน",
+            "weigh": "การแทงเส้นทำให้เด็กทุกข์ และอัตราคงที่อาจไม่ตรงกับน้ำที่เสียซึ่งเปลี่ยนตลอด",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนล่วงหน้าสำหรับช่วงที่แม่อาจหลับ",
+            "weigh": "การให้ IV ในเด็กที่ดื่มได้ เพิ่มความเสี่ยงเช่นน้ำเกินและปัญหาจากสาย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Covers hourly losses through the night with a **steady drip**.",
+            "weigh": "She drinks well now, and WHO keeps a child who drinks on fluids by mouth.",
+            "safety": ""
+          },
+          {
+            "strength": "Removes the risk that night-time drinking falls behind.",
+            "weigh": "A cannula adds distress, and a fixed rate may not match changing stool losses.",
+            "safety": ""
+          },
+          {
+            "strength": "Plans ahead for the hours when the mother may sleep.",
+            "weigh": "IV fluids in a child who can drink add risks such as overload and line problems.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.W": {
+      "restartb": {
+        "th": [
+          {
+            "strength": "ใช้แผน B กับน้ำที่ขาดใหม่ตามแนวทาง WHO เพราะเด็กตื่นดีและยังดื่มได้",
+            "weigh": "การหาว่าทำไมเด็กกลับไปขาดน้ำข้ามคืน ช่วยไม่ให้เกิดซ้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "วาง**ประเมินซ้ำที่ 4 ชม.** เพื่อกำหนดขั้นต่อไป",
+            "weigh": "ระหว่าง 4 ชม. เด็กยังถ่ายอยู่ ซึ่งเพิ่มน้ำที่ขาด ควรคิดเผื่อไว้",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เด็กอยู่ในหอผู้ป่วยที่ติดตามน้ำเข้าออกได้",
+            "weigh": "แม่ยังช่วยป้อนน้ำในหอผู้ป่วยได้ ซึ่งเป็นการเตรียมดูแลที่บ้านต่อ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Treats the new deficit with WHO Plan B, since she is alert and drinking.",
+            "weigh": "Finding why she slipped back overnight helps keep it from happening again.",
+            "safety": ""
+          },
+          {
+            "strength": "Builds in a fresh grading at 4 hours to guide the next step.",
+            "weigh": "Ongoing stools add to the deficit during the 4 hours, which is worth accounting for.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps her on the ward where intake and output can be watched.",
+            "weigh": "Her mother can keep giving the fluids on the ward, which prepares her for home.",
+            "safety": ""
+          }
+        ]
+      },
+      "restartlab": {
+        "th": [
+          {
+            "strength": "เห็นว่าเด็กที่**ขาดน้ำซ้ำ**ควรได้ตรวจโซเดียม",
+            "weigh": "การเจาะเลือดทำให้เด็กเจ็บ ผลที่ได้จึงควรนำไปใช้ตัดสินใจ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำทางปากต่อ ขณะหาปัญหาเกลือแร่",
+            "weigh": "ผลโซเดียมมักไม่เปลี่ยนแผน B เว้นแต่ค่าจะเปลี่ยนไปมาก",
+            "safety": ""
+          },
+          {
+            "strength": "เพิ่มการตรวจเลือดเพื่อความปลอดภัย โดยไม่ทิ้งการให้น้ำทางปาก",
+            "weigh": "การหาว่าทำไมเด็กกลับไปขาดน้ำข้ามคืน ช่วยไม่ให้เกิดซ้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sees that a child **dehydrated twice** warrants a sodium check.",
+            "weigh": "A needle adds distress, so the result is worth tying to a decision.",
+            "safety": ""
+          },
+          {
+            "strength": "Rehydrates **by mouth** while looking for a salt problem.",
+            "weigh": "Sodium results rarely change Plan B unless they are far from normal.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeps oral rehydration going while adding a safety check.",
+            "weigh": "Finding why she slipped back overnight helps keep it from happening again.",
+            "safety": ""
+          }
+        ]
+      },
+      "ivadmit": {
+        "th": [
+          {
+            "strength": "ได้**ปริมาณแน่นอน**ทุกชั่วโมง ไม่ขึ้นกับว่าเด็กดื่มได้แค่ไหน",
+            "weigh": "เด็กตื่นดีและยังดื่มได้ ตามแนวทาง WHO ถือเป็นเหตุให้ให้น้ำทางปากต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "ควบคุมการให้น้ำอย่างแน่นอน หลังเด็กกลับไปขาดน้ำซ้ำ",
+            "weigh": "การแทงเส้นในเด็กเล็กทำให้เด็กทุกข์ทรมานและอาจไม่สำเร็จ ถือเป็นต้นทุนจริง",
+            "safety": ""
+          },
+          {
+            "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
+            "weigh": "การให้ IV ในเด็กที่ดื่มได้ เพิ่มความเสี่ยงเช่นน้ำเกินและปัญหาจากสาย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Guarantees a **set rate every hour**, whatever she manages to drink.",
+            "weigh": "She is alert and drinking, which WHO treats as a reason to keep going by mouth.",
+            "safety": ""
+          },
+          {
+            "strength": "Takes firm control after a second slide into dehydration.",
+            "weigh": "Cannulating a toddler is distressing and can fail, which counts as a real cost.",
+            "safety": ""
+          },
+          {
+            "strength": "Chooses **Ringer's lactate**, suited to replacing losses from watery stools.",
+            "weigh": "IV fluids in a child who can drink add risks such as overload and line problems.",
+            "safety": ""
+          }
+        ]
+      },
+      "culture": {
+        "th": [
+          {
+            "strength": "ยังให้ **ORS** เป็นหลัก ขณะหาเชื้อแบคทีเรียที่เป็นต้นเหตุ",
+            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อมักไม่เปลี่ยนการดูแล และต้องรอหลายวัน",
+            "safety": ""
+          },
+          {
+            "strength": "หาว่าทำไมยังถ่ายอยู่ ไม่ใช่แค่ทดแทนน้ำที่เสีย",
+            "weigh": "น้ำที่ขาดใหม่ยังต้องกำหนดปริมาณและเวลาประเมินซ้ำ ไม่ว่าผลเพาะเชื้อเป็นอย่างไร",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำ**ทางปาก** ซึ่งเหมาะกับเด็กที่ดื่มได้",
+            "weigh": "ตอนนี้ชนิดของเชื้อสำคัญน้อยกว่าการคืนน้ำให้เด็ก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeps **ORS** central while looking for a bacterial cause.",
+            "weigh": "For watery stools without blood, a culture rarely changes care and takes days.",
+            "safety": ""
+          },
+          {
+            "strength": "Asks why the diarrhoea is lasting, not only how to replace it.",
+            "weigh": "The new deficit still needs a clear volume and recheck time, whatever the culture shows.",
+            "safety": ""
+          },
+          {
+            "strength": "Rehydrates **by mouth**, which suits a child who can drink.",
+            "weigh": "The organism matters less now than restoring her fluids.",
+            "safety": ""
+          }
+        ]
+      }
+    }
+  },
+  "safety_review": {
+    "model": "claude-opus-5-5",
+    "date": "2026-11-14",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank. Sources opened: WHO, The treatment of diarrhoea, a manual for physicians and other senior health workers, 4th revision (2005), cached text (Table 1 grading, skin pinch caveats, Plans A and B incl. vomiting wait 5-10 min, 50-100 mL per stool under 2 years, repeat Plan B with food, zinc 10-14 days and recurrence benefit, NG or IV Ringer's lactate when ORT fails, hypernatraemia from too concentrated drinks, antiemetics); WHO guideline on management of pneumonia and diarrhoea in children up to 10 years of age (2024), recommendations 1a-3c. The Thai 2019 paediatric acute diarrhoea guideline was not opened in this review; Thai-guidance claims (electrolytes mainly for severe or atypical cases, ondansetron allowed) were checked against the case's own safety review. Confirmed the earlier fixes: step2.B/W urineout[1] weigh, step5.W restartb[0] strength, ondansetron named in step3.B/R ondan[2] and step4.W ondan[1] weigh, glucose Thai fingerprick bold, electrolyte weigh lines credit Thai guidance. No must-fix: no wrong fact or dose, no reassurance of a harmful action, no delay of needed treatment, no ranking or later-step preview, no out-of-option drug, test or treatment named. Non-blocking notes: zinc benefit statements follow WHO, while the Thai guideline limits zinc (already on #470); WHO 2005 says antiemetics should never be given (older sedating drugs), which the ondansetron weigh softens to local practice varies; Thai/English nuance gaps that do not change meaning: step3 planb/clinic[1] weigh (Thai several more days vs well over a week), step1 intus[2] weigh (Thai states the signs are absent vs none is described), step3 iv[2] weigh (English example absent in Thai), step2 elec[1] weigh (thirsty vs dehydrated), step2 assess[1] strength (free absent in Thai); step4.R spoon th[0] strength reads slightly awkwardly. Tree sha256 4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4. Replies sha256 8ea230d2ff2cc284d74a01ddcadcc7a68ea987a664f01be7a3b0225a13709420.",
+    "tree_sha256": "4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4",
+    "replies_sha256": "8ea230d2ff2cc284d74a01ddcadcc7a68ea987a664f01be7a3b0225a13709420"
+  }
+}

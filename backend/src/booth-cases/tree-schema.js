@@ -142,36 +142,6 @@ const isAdmitted = (raw) => {
     && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
 };
 
-const STEP_WORD = { 3: 'three', 5: 'five' };
-
-/**
- * One event's pool (spec #370, #386), pure. `files` are its case files as { name, raw }, raw undefined when the file is
- * not readable JSON. The event's step count is the largest among its trees, admitted or not, so adding one five-step
- * tree moves the whole event to five steps and the pool never mixes counts. The pool is its admitted cases of that
- * count, parsed and sorted by case_id; every other file is left out with why.
- * @returns {{ steps: number, cases: object[], left: { name: string, why: string }[] }}
- */
-function eventPool(code, files) {
-  const steps = Math.max(0, ...files.filter((f) => f.raw).map((f) => treeSteps(f.raw.banks)));
-  const cases = [];
-  const left = [];
-  for (const { name, raw } of files) {
-    const why = (() => {
-      if (raw === undefined) return 'is not readable JSON';
-      const problems = caseTreeProblems(raw);
-      if (problems.length) return `has ${problems.length} problem(s), first ${problems[0]}`;
-      if (raw.case_id !== name.replace(/\.json$/, '') || raw.event_code !== code) return 'is not named after its case_id and event folder';
-      const own = treeSteps(raw.banks);
-      if (own !== steps) return `is a ${STEP_WORD[own]}-step case in a ${STEP_WORD[steps]}-step event`;
-      return isAdmitted(raw) ? null : 'is not admitted';
-    })();
-    if (why) left.push({ name, why });
-    else cases.push(CaseTreeSchema.parse(raw));
-  }
-  cases.sort((a, b) => (a.case_id < b.case_id ? -1 : a.case_id > b.case_id ? 1 : 0));
-  return { steps, cases, left };
-}
-
 /** A finished play's score, read from its case's path score table (ADR 0009): its tier path's domains, and their
  *  composite as the case's shape gives it. */
 const tableScore = (kase, tierPath) => {
@@ -272,4 +242,4 @@ function caseTreeProblems(raw) {
     .map((r) => r.test(t, ctx)).filter(Boolean).map((msg) => `${t.path}.${t.lang}: ${msg}`));
 }
 
-module.exports = { TIERS, MAX_STEPS, tierPaths, CaseTreeSchema, caseTreeProblems, isAdmitted, eventPool, tableScore };
+module.exports = { TIERS, MAX_STEPS, tierPaths, treeSteps, CaseTreeSchema, caseTreeProblems, isAdmitted, tableScore };
