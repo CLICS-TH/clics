@@ -88,6 +88,36 @@ describe('#474 stripPii keeps clinical text', () => {
   });
 });
 
+// A look-alike glued to an identifier folds only where it cannot join it (asciiView, JOINS): each of these was masked
+// before #474 because the look-alike read as an unknown character beside it.
+describe('#474 a look-alike glued to an identifier loses no mask', () => {
+  test.each([
+    ['circled digit before a phone', 'tel ①0812345678 x', /5678/],
+    ['circled digit after a phone', 'tel 0812345678① x', /5678/],
+    ['circled digit and slash before a date', 'on ①/20/10/2569 x', /2569/],
+    ['keycap before a phone', 'tel 1️⃣0812345678 x', /5678/],
+    ['math letter before a date', 'on 𝐀20/10/2569 x', /2569/],
+    ['math letters before an ID', 'id 𝐃𝐎𝐁1234567890123 x', /67890/],
+    ['math letter before HN', 'see 𝐀HN 1234567 x', /1234567/],
+    ['minus sign before a LINE id', 'add −line id abc_12 x', /abc_12/],
+  ])('%s', (_shape, input, raw) => {
+    expect(stripPii(input)).not.toMatch(raw);
+  });
+});
+
+// Residuals of #474, each masked before it: a look-alike now reads as the ASCII character it copies, so it takes that
+// character's exemption. Pinned until the owner rules on them.
+describe('#474 residual: a folded look-alike takes the exemption of its ASCII form', () => {
+  test.each([
+    // The middle dot reads as '.', so a date directly followed by "·<digit>" ends inside a decimal (NOT_IN_DECIMAL).
+    ['date then middle dot and digit', 'on 20/10/2569·5'],
+    // Mathematical letters read as ASCII, so a numbering label written in them exempts a dotted date (NUMBERING_LABEL).
+    ['math-letter version label before a dotted date', '𝐯𝐞𝐫𝐬𝐢𝐨𝐧 20.10.2026'],
+  ])('%s', (_shape, input) => {
+    expect(stripPii(input)).toBe(input);
+  });
+});
+
 describe('#474 booth label rule reads mathematical letters', () => {
   test.each([
     ['math bold Name', '𝐍𝐚𝐦𝐞: Somchai Jaidee', /Somchai|Jaidee/],
