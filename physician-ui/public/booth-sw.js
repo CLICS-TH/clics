@@ -12,6 +12,9 @@ const ID = '[a-z0-9][a-z0-9-]{0,31}';
 const CASE_ID = new RegExp(`^${ID}$`);
 const CASE_PATH = new RegExp(`^/booth-case/${ID}\\.json$`);
 const LEGACY_CASE_KEY = '/booth-case.json';
+// The backend on the Portal's own origin (vm1, #429). Its answers are live state (is the booth open, the board),
+// so they are never cached or served from the cache: offline must reach the page as a failed fetch.
+const API_PREFIX = '/api/';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -38,7 +41,7 @@ async function precache(urls) {
   for (const raw of urls) {
     let url;
     try { url = new URL(raw, self.location.origin); } catch { continue; }
-    if (url.origin !== self.location.origin || await cache.match(url.href)) continue;
+    if (url.origin !== self.location.origin || url.pathname.startsWith(API_PREFIX) || await cache.match(url.href)) continue;
     // One missing file (the promo before it ships) must not stop the rest.
     await cache.add(url.href).catch(() => {});
   }
@@ -48,7 +51,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin || url.pathname.startsWith(API_PREFIX)) return;
   if (CASE_PATH.test(url.pathname)) {
     event.respondWith(caches.open(CACHE).then((c) => c.match(url.pathname)).then((hit) => hit ?? new Response(null, { status: 404 })));
     return;
