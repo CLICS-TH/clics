@@ -1,15 +1,17 @@
 // The path score table build's sample walk (#373, ADR 0009): one transcript along a tier path, with a random question
-// variant and random same-tier options at each step and the case's sample replies as the AI's. Every step goes
-// through the booth API's own chatOutcome and the transcript through its evaluateRequest
+// variant and random same-tier options at each step. A five-step case's taps are replied from its reviewed reply bank
+// through the booth API's own bankOutcome, as the kiosk replies them (ADR 0011); a three-step case's from its sample
+// replies, through chatOutcome. The transcript goes through the API's evaluateRequest
 // (backend/src/services/booth-dialogue.js), so the evaluator scores what a kiosk play on that path would hold. Also the
-// checks on the sample replies and on the locked evaluator, and what a call is charged against the build's cap.
+// checks on the replies and on the locked evaluator, and what a call is charged against the build's cap.
 // CommonJS so the backend's jest suite can prove it.
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
-const { LETTER, bankAt, bankKey, stepCount, firstAsk, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { LETTER, bankAt, bankKey, stepCount, firstAsk, chatOutcome, bankOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { replyBankProblems } = require(path.join(SRC, 'booth-cases', 'reply-bank'));
 const { tierPaths } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
 const { ScoreSchema } = require(path.join(SRC, 'lib', 'schemas'));
 const { compositeScore, WEIGHTS } = require(path.join(SRC, 'services', 'ple-gate'));
@@ -45,14 +47,17 @@ function sampleRes(kase, replies, prefix, choice, letter) {
 }
 
 /** A sample along `tierPath`: at each step the random offered option of that tier, tapped. Step 1's ask is drawn as
- *  the booth draws it; each later ask is the sample's random pick, issued through chatOutcome. */
+ *  the booth draws it. A five-step case's `replies` are its reply bank's, and each reply and later ask come from
+ *  bankOutcome; a three-step case's are its sample replies, and each later ask is the sample's random pick, issued
+ *  through chatOutcome. */
 function sampleWalk(kase, replies, tierPath) {
   let d = { answers: [], replies: [], asks: [firstAsk(kase.banks.step1)], tierPath: '' };
   for (let step = 0; step < stepCount(kase); step += 1) {
     const bank = bankAt(kase, d.tierPath);
     const choice = d.asks[step].options.find((id) => tierOf(bank, id) === tierPath[step]);
     const walked = { ...d, answers: [...d.answers, { choice }], tierPath: d.tierPath + tierPath[step] };
-    const out = chatOutcome(kase, walked, sampleRes(kase, replies, d.tierPath, choice, tierPath[step]));
+    const out = banked(kase) ? bankOutcome(kase, walked, replies)
+      : chatOutcome(kase, walked, sampleRes(kase, replies, d.tierPath, choice, tierPath[step]));
     d = { answers: out.answers, replies: out.replies, asks: out.asks, tierPath: out.tierPath };
   }
   return d;
@@ -102,6 +107,19 @@ function readReplies(kase, dir = path.join(REPLIES_DIR, kase.event_code)) {
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (raw.case_id !== kase.case_id) throw new Error(`${file} is for ${raw.case_id}, not ${kase.case_id}`);
   return raw.replies;
+}
+
+/** Whether a case's taps are replied from a reply bank: a five-step case's are (ADR 0011), as the kiosk's are. */
+const banked = (kase) => stepCount(kase) === 5;
+
+/** A five-step case's reply bank from <dir>/replies/<case_id>.json, as the kiosk reads it (booth-cases/event-pool.js):
+ *  `{ replies }` when replyBankProblems finds nothing, else `{ why }`, which refuses the case. */
+function readBank(kase, dir) {
+  const file = path.join(dir, 'replies', `${kase.case_id}.json`);
+  let raw;
+  try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return { why: `has no readable reply bank at ${file}` }; }
+  const problems = replyBankProblems(kase, raw);
+  return problems.length ? { why: `has a reply bank with ${problems.length} problem(s), first ${problems[0]}` } : { replies: raw.replies };
 }
 
 /** Every evaluator call a build makes: `samples` per sampled tier path (`pathsOf` the case, by default every path of
@@ -168,18 +186,20 @@ async function scoreSample({ kase, replies, tierPath, evaluate, retries }) {
   };
 }
 
-// Checks the sample replies of the named cases: node scripts/booth/path-table-sample.js <case_id> [...]
+// Checks the named cases' replies, a five-step case's reply bank (readBank, replyBankProblems) and a three-step case's sample replies: node scripts/booth/path-table-sample.js <case_id> [...]
 if (require.main === module) {
   const { CaseTreeSchema } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
   const dir = path.join(SRC, 'booth-cases', 'NFCME-2026');
   let bad = 0;
   for (const id of process.argv.slice(2)) {
     const kase = CaseTreeSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, `${id}.json`), 'utf8')));
-    const problems = replyProblems(kase, readReplies(kase));
+    // A five-step case is checked through the reply bank a build replies from; a three-step case through its sample replies.
+    const bank = banked(kase) ? readBank(kase, dir) : null;
+    const problems = bank ? (bank.why ? [bank.why] : []) : replyProblems(kase, readReplies(kase));
     bad += problems.length;
     console.log(problems.length ? `${id}: ${problems.length} problem(s)\n${problems.join('\n')}` : `${id}: ok`);
   }
   process.exit(bad ? 1 : 0);
 }
 
-module.exports = { LOCKED, sampleWalk, replyProblems, readReplies, jobsFor, lockProblems, evaluateUsd, failedUsd, scoreSample };
+module.exports = { LOCKED, banked, sampleWalk, replyProblems, readReplies, readBank, jobsFor, lockProblems, evaluateUsd, failedUsd, scoreSample };

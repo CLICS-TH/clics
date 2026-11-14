@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { TIERS, caseTreeProblems, isAdmitted, tableScore } = require('../src/booth-cases/tree-schema');
 const { compositeScore } = require('../src/services/ple-gate');
-const { replyProblems, readReplies } = require('../../scripts/booth/path-table-sample');
 
 const DIR = path.join(__dirname, '../src/booth-cases');
 const FIXTURE = path.join(__dirname, 'fixtures/booth-case-tree.json');
@@ -294,17 +293,9 @@ describe('admission', () => {
   });
 });
 
-test('every staged case is a five-step tree whose staged sample replies the table build would take', () => {
-  const REPLIES = path.join(__dirname, '../../scripts/booth/sample-replies/staging');
-  const problems = STAGED.flatMap(({ name, file, event }) => {
-    const kase = read(file);
-    const steps = Object.keys(kase.banks).length;
-    if (steps !== 5) return [`${name}: has ${steps} steps`];
-    try {
-      return replyProblems(kase, readReplies(kase, path.join(REPLIES, event))).map((p) => `${name}: ${p}`);
-    } catch (err) { return [`${name}: ${err.message}`]; }
-  });
-  expect(problems).toEqual([]);
+// A staged case's table build reads its reply bank, which the reply bank tests below check with every other bank.
+test('every staged case is a five-step tree', () => {
+  expect(STAGED.map(({ name, file }) => [name, Object.keys(read(file).banks).length]).filter(([, steps]) => steps !== 5)).toEqual([]);
 });
 
 describe('the teaser budget the kiosk harness fits (scripts/booth/scenarios/draw.mjs)', () => {
@@ -340,12 +331,21 @@ describe('the reply bank', () => {
     ['a field over the cap', (r) => { r.step1.a.en[0].weigh = 'word '.repeat(30).trim(); }, 'replies.step1.a.en[0].weigh: is not as the server shows it'],
     ['a bold run quoting another option', (r) => { r.step1.a.en[0].weigh = 'Not **Acute bronchitis** here.'; }, 'replies.step1.a.en[0].weigh: is not as the server shows it'],
     ['a field naming another option\'s label', (r) => { r.step1.a.en[1].strength = 'Acute bronchitis fits less well.'; }, 'replies.step1.a.en[1].strength: names another option ("acute bronchitis")'],
+    // #494: an acronym under five letters (step2.B option c is "CBC and CRP"; step3.B option d is "Admit for IV ceftriaxone").
+    ['an English field naming another option\'s short acronym', (r) => { r['step2.B'].a.en[0].weigh = 'A CRP adds little today.'; }, 'replies.step2.B.a.en[0].weigh: names another option ("crp")'],
+    ['a Thai field naming another option\'s short acronym', (r) => { r['step3.B'].a.th[0].weigh = 'ยังไม่ต้องให้ยาทาง IV'; }, 'replies.step3.B.a.th[0].weigh: names another option ("iv")'],
     ['an English field in Thai script', (r) => { r.step1.a.en[2].weigh = 'ควรชั่งน้ำหนัก'; }, 'replies.step1.a.en[2].weigh: has Thai script'],
     ['a Thai field with no Thai script', (r) => { r.step1.a.th[2].weigh = 'Worth weighing.'; }, 'replies.step1.a.th[2].weigh: has no Thai script'],
     // step4.B shows SpO2 97% in v1 only: a visitor dealt v2 never saw it.
     ['a number only some variants show', (r) => { r['step4.B'].a.en[0].weigh = 'An SpO2 of 97 is reassuring.'; }, 'replies.step4.B.a.en[0].weigh: cites 97, which only some question variants'],
   ])('%s is a problem', (_name, change, problem) => {
     expect(after(change)).toEqual(expect.arrayContaining([expect.stringContaining(problem)]));
+  });
+
+  test('an acronym the chosen option or the vignette shows may be named, and a lower-case short word is no acronym', () => {
+    // step5.B option d is "Book a CT scan of the chest"; the vignette shows SpO2; "cbc" is not written as an acronym.
+    expect(after((r) => { r['step5.B'].d.en[0].weigh = 'A CT is rarely needed, and SpO2 was fine.'; })).toEqual([]);
+    expect(after((r) => { r['step2.B'].a.en[0].weigh = 'No need for a cbc-style panel.'; })).toEqual([]);
   });
 
   test('a number every variant shows, or none does, may be cited', () => {
@@ -361,8 +361,19 @@ describe('the reply bank', () => {
     expect(replyBankProblems(other, BANK5)).toEqual([expect.stringMatching(/^safety_review: does not bind this tree/)]);
   });
 
+  // Two reviewed banks name another option's short acronym, which #494's rule now catches; their tree tickets (spec
+  // #493) fix them and empty this list. Any other problem fails.
+  const SHORT_ACRONYMS = [
+    'NFCME-2026/melioidosis-farmer.json: replies.step3.B.b.en[1].strength: names another option ("iv")',
+    'NFCME-2026/melioidosis-farmer.json: replies.step3.W.b.en[1].strength: names another option ("iv")',
+    'NFCME-2026/melioidosis-farmer.json: replies.step4.W.d.en[2].strength: names another option ("iv")',
+    'NFCME-2026/toddler-gastro-dehydration.json: replies.step4.B.elec.th[0].weigh: names another option ("ors")',
+    'NFCME-2026/toddler-gastro-dehydration.json: replies.step4.B.elec.en[0].weigh: names another option ("ors")',
+    'NFCME-2026/toddler-gastro-dehydration.json: replies.step5.B.home.th[1].weigh: names another option ("ors")',
+    'NFCME-2026/toddler-gastro-dehydration.json: replies.step5.B.home.en[1].weigh: names another option ("ors")',
+  ];
   // Fails until every five-step case's bank is written and reviewed: a five-step case without one is never dealt.
-  test('every five-step case file, in place or staged, has a reply bank at replies/<case_id>.json with no problem', () => {
+  test('every five-step case file, in place or staged, has a reply bank at replies/<case_id>.json with no problem but the listed acronyms', () => {
     const problems = CASE_FILES.flatMap(({ name, file }) => {
       const kase = read(file);
       if (!kase.banks.step5) return [];
@@ -370,6 +381,6 @@ describe('the reply bank', () => {
       if (!fs.existsSync(bankFile)) return [`${name}: has no reply bank`];
       return replyBankProblems(kase, read(bankFile)).map((p) => `${name}: ${p}`);
     });
-    expect(problems).toEqual([]);
+    expect(problems).toEqual(SHORT_ACRONYMS);
   });
 });

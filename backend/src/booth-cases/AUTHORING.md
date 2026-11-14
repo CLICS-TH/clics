@@ -25,7 +25,7 @@ Put each case at `backend/src/booth-cases/<EVENT_CODE>/<case_id>.json`. There is
 - `case_id` uses lowercase letters, digits and hyphens, up to 32 characters. It equals the file name without `.json`.
 - `event_code` uses capital letters, digits and hyphens. It equals the folder name.
 - `version` is a non-empty string. Raise it whenever the case text changes, since each play records the version it used.
-- A new version of a case can wait at `staging/<EVENT_CODE>/<case_id>.json`, with its sample replies at `scripts/booth/sample-replies/staging/<EVENT_CODE>/<case_id>.json`, until it is moved into place (see Moving a staged case into place). The loader never reads `staging/`, so a staged case is never drawn. The contract test checks staged cases and their sample replies like any other. Build a staged case's table with `--cases backend/src/booth-cases/staging/<EVENT_CODE> --replies scripts/booth/sample-replies/staging/<EVENT_CODE>`.
+- A new version of a case can wait at `staging/<EVENT_CODE>/<case_id>.json`, with its reply bank at `staging/<EVENT_CODE>/replies/<case_id>.json`, until it is moved into place (see Moving a staged case into place). The loader never reads `staging/`, so a staged case is never drawn. The contract test checks staged cases and their reply banks like any other. Build a staged case's table with `--cases backend/src/booth-cases/staging/<EVENT_CODE>`.
 - Each admitted version keeps a study snapshot at `<EVENT_CODE>/versions/<case_id>@<version>.json`, written by `node scripts/booth/snapshot-case-versions.mjs`, so the auditor queue can still rebuild its plays. Snapshots are append-only: never edit or delete one.
 
 ## Tiers and banks
@@ -113,7 +113,7 @@ The table build also refuses a case whose review names no tree or another one (`
 
 A play's demo score is read from the case's path score table (ADR 0009). The same tier path then scores the same every time, at once, with no evaluator call.
 
-The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. A live build (`--go`) spends against one cap for every path-table build on the machine, kept in a spend ledger outside the checkout (`scripts/booth/spend-ledger.mjs`, #408). The $30.49 already spent is past the $25 cap, so a new case, or a case whose tree changed, gets a table once the owner opens a new budget. `--from` builds a table from a saved run's samples and spends nothing. The table sits under `path_score_table` in two parts.
+The table build script (`scripts/booth/build-path-tables.mjs`) writes the table. Never write or edit it by hand. A live build (`--go`) spends against one cap for every path-table build on the machine, kept in a spend ledger outside the checkout (`scripts/booth/spend-ledger.mjs`, #408): $70 since #494, of which $30.49 was spent before it. A five-step case's sample transcripts take each tapped reply from its reply bank, as the kiosk does (ADR 0011), and the build refuses a case whose bank has any problem, a bank reviewed against another tree included. A three-step case takes its sample replies (`scripts/booth/sample-replies`). `--from` builds a table from a saved run's samples and spends nothing. The table sits under `path_score_table` in two parts.
 
 Each machine creates its ledger once with `node scripts/booth/spend-ledger.mjs init`, seeded from the committed record `scripts/booth/path-table-runs/spend.jsonl`; init refuses a record that differs from the one at HEAD. Whatever its `--out`, every `--go` run writes an open line (the most it may spend) to that record before its first call and a charge line when it ends, and init counts an open with no charge at its open amount, so commit the record after every run.
 
@@ -156,7 +156,7 @@ The checker (`backend/src/booth-cases/reply-bank.js`) reports each of these as a
 - An empty `strength` or `weigh`. Only `safety` may be `""`.
 - A field the server would change before showing it: over 115 characters, extra spacing, more than two `**bold**` runs, or a bold run that quotes anything but the chosen option's own label and line (the server would also keep a run from the vignette or the question, but the bank holds itself to the option).
 - A Thai field with no Thai script, or an English field with some.
-- A field that names another option of the bank, by its whole label or by a Latin word of five letters or more from its label that the case does not already show.
+- A field that names another option of the bank, by its whole label or by a word from its label that the case does not already show: a Latin word of five letters or more, or an acronym of two to four capitals (CPAP, NIV, ICU) as written.
 
 Write and check a bank from the repo root:
 
@@ -171,7 +171,7 @@ node scripts/booth/reply-bank.mjs check backend/src/booth-cases/<EVENT_CODE>/<ca
 
 A staged case goes live in one change, the way the ten five-step NFCME-2026 cases did (#386) and the re-authored `dka-young-adult` will (#476).
 
-1. Move `staging/<EVENT_CODE>/<case_id>.json` over `<EVENT_CODE>/<case_id>.json`, and its sample replies over `scripts/booth/sample-replies/<EVENT_CODE>/<case_id>.json`. Change no tree field on the way: an edit needs a new review.
+1. Move `staging/<EVENT_CODE>/<case_id>.json` over `<EVENT_CODE>/<case_id>.json`, and its reply bank over `<EVENT_CODE>/replies/<case_id>.json`. Change no tree field on the way: an edit needs a new review.
 2. Give the moved file a `version` above every version the live file ever had, so it never shares a study snapshot with an old one.
 3. Keep `admission.safety_review` as reviewed, with the `tree_sha256` of the tree the reviewer read. A review that recorded the hash only in its `findings` gets it promoted into `tree_sha256`. Check it equals the moved file's hash with the command above.
 

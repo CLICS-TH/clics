@@ -105,7 +105,8 @@ test('the CLI reads stdin and exits 0 on PASS, 1 on FAIL, 2 on a bad flag', () =
   assert.equal(pass.code, 0);
   assert.equal(pass.out, [
     'scored n=5  unavailable=0', 'p50 21.0 s  p95 30.0 s  max 30.0 s', 'providers table=5', 'score PASS',
-    'replies n=30  empty=0  unavailable=0', 'reply p50 4.0 s  p95 4.0 s  max 9.0 s', 'reply providers anthropic=30', 'reply PASS',
+    'replies n=30  empty=0  unavailable=0', 'bank reply n=0  p50 -  p95 -  max -', 'ai reply n=30  p50 4.0 s  p95 4.0 s  max 9.0 s',
+    'reply providers anthropic=30', 'reply PASS',
     'PASS', '',
   ].join('\n'));
   assert.equal(run(both, ['--min', '6']).code, 1);
@@ -118,18 +119,18 @@ test('the CLI reads stdin and exits 0 on PASS, 1 on FAIL, 2 on a bad flag', () =
   assert.match(tooFew.out, /\nFAIL\n$/);
   const slowReplies = run(`${fiveFast}\n${twoSlow(16000)}`);
   assert.equal(slowReplies.code, 1);
-  assert.match(slowReplies.out, /^reply FAIL: p95 16\.0 s is not under 15 s$/m);
+  assert.match(slowReplies.out, /^reply FAIL: ai p95 16\.0 s is not under 15 s$/m);
   assert.equal(run(fiveFast).code, 1, 'no reply lines: the reply gate is TOO FEW');
 });
 
 test('the reply gate: p95 at 16 s fails, at 14 s passes, and 29 replies are too few', () => {
   const at = (n, slow) => summarizeReplies(parseLog(replies(n, slow)));
   const slow = (ms) => summarizeReplies(parseLog(twoSlow(ms)));
-  assert.deepEqual([slow(16000).verdict, slow(16000).failure, slow(16000).p95_s], ['FAIL', 'p95 16.0 s is not under 15 s', 16]);
-  assert.deepEqual([slow(14000).verdict, slow(14000).failure, slow(14000).p95_s], ['PASS', null, 14]);
+  assert.deepEqual([slow(16000).verdict, slow(16000).failure, slow(16000).ai.p95_s], ['FAIL', 'ai p95 16.0 s is not under 15 s', 16]);
+  assert.deepEqual([slow(14000).verdict, slow(14000).failure, slow(14000).ai.p95_s], ['PASS', null, 14]);
   assert.equal(slow(15000).verdict, 'FAIL');
   const few = at(29, 4000);
-  assert.deepEqual([few.verdict, few.failure, few.n, few.p95_s], ['TOO FEW', 'only 29 replies, need 30', 29, 4]);
+  assert.deepEqual([few.verdict, few.failure, few.n, few.ai.p95_s], ['TOO FEW', 'only 29 replies, need 30', 29, 4]);
   assert.equal(summarizeReplies(parseLog(replies(29, 16000))).verdict, 'TOO FEW', 'too few wins over a slow p95');
   assert.equal(summarizeReplies(parseLog(replies(29, 4000)), { min: 29 }).verdict, 'PASS');
 });
@@ -137,7 +138,7 @@ test('the reply gate: p95 at 16 s fails, at 14 s passes, and 29 replies are too 
 test('a reply line logged twice counts once, the first line kept', () => {
   const log = `${replies(29, 4000)}\n${replyLine(28, 4000)}\n${replyLine(28, 90000)}`;
   const s = summarizeReplies(parseLog(log));
-  assert.deepEqual([s.n, s.verdict, s.max_s], [29, 'TOO FEW', 4]);
+  assert.deepEqual([s.n, s.verdict, s.ai.max_s], [29, 'TOO FEW', 4]);
 });
 
 test('empty replies count in n and the p95; unavailable replies count in neither', () => {
@@ -145,7 +146,23 @@ test('empty replies count in n and the p95; unavailable replies count in neither
   const unavailable = [30, 31, 32].map((i) => `[booth] reply unavailable play=r${Math.floor(i / 3)} step=${(i % 3) + 1} ms=99000 reason=ceiling`);
   const s = summarizeReplies(parseLog(`${replies(28, 4000)}\n${empties}\n${unavailable.join('\n')}\n${unavailable[0]}`));
   assert.deepEqual(s, {
-    n: 30, empty: 2, unavailable: 3, p50_s: 4, p95_s: 30, max_s: 30, providers: { anthropic: 28, none: 2 },
-    verdict: 'FAIL', failure: 'p95 30.0 s is not under 15 s',
+    n: 30, empty: 2, unavailable: 3, bank: { n: 0, p50_s: null, p95_s: null, max_s: null },
+    ai: { n: 30, p50_s: 4, p95_s: 30, max_s: 30 }, providers: { anthropic: 28, none: 2 },
+    verdict: 'FAIL', failure: 'ai p95 30.0 s is not under 15 s',
   });
+});
+
+test('many near-instant bank replies do not hide a few slow AI replies: each group has its own p95', () => {
+  const bank = Array.from({ length: 40 }, (_, i) => replyLine(i, 5, 'replied', 'reply_bank'));
+  const typed = [40, 41].map((i) => replyLine(i, 40000));
+  const s = summarizeReplies(parseLog([...bank, ...typed].join('\n')));
+  assert.deepEqual([s.n, s.bank, s.ai], [42, { n: 40, p50_s: 0, p95_s: 0, max_s: 0 }, { n: 2, p50_s: 40, p95_s: 40, max_s: 40 }]);
+  assert.deepEqual([s.verdict, s.failure], ['FAIL', 'ai p95 40.0 s is not under 15 s']);
+  const fastAi = summarizeReplies(parseLog([...bank, ...[40, 41].map((i) => replyLine(i, 9000))].join('\n')));
+  assert.equal(fastAi.verdict, 'PASS');
+  const slowBank = summarizeReplies(parseLog([...Array.from({ length: 30 }, (_, i) => replyLine(i, 16000, 'replied', 'reply_bank')),
+    replyLine(30, 4000)].join('\n')));
+  assert.deepEqual([slowBank.verdict, slowBank.failure], ['FAIL', 'bank p95 16.0 s is not under 15 s']);
+  const bankOnly = summarizeReplies(parseLog(bank.join('\n')));
+  assert.deepEqual([bankOnly.verdict, bankOnly.failure], ['TOO FEW', 'no AI reply, so the AI p95 is not judged']);
 });

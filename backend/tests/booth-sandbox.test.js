@@ -9,6 +9,8 @@ const { tapping, personaChooser, playOnce, jobsFor, runPlays, rimplCalls, worstC
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const KASE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8'));
+const BANK5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-reply-bank-5.json'), 'utf8'));
+const { stamped, stampedBank } = require('./helpers/booth-tree');
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'booth', 'sandbox.mjs');
 const EVAL_OK = { d1: 3, d2: 4, d3: 3, d4: 2, d5: 3, d6: 2, d7: 3, input_tokens: 20000, output_tokens: 2000, provider: 'anthropic' };
 const CHAT_OK = { reply: { strength: 'นึกถึง **ไข้** ก่อน', weigh: 'worth weighing', safety: '' }, pick: null,
@@ -156,6 +158,26 @@ describe('runPlays', () => {
 });
 
 describe('sandbox.mjs', () => {
+  /** A cases folder holding the five-step fixture and its reply bank, reviewed against `bankTree` of the case. */
+  function fiveStepDir(bankTree = (k) => k) {
+    const dir = fixtureDir(stamped(KASE5));
+    fs.mkdirSync(path.join(dir, 'replies'));
+    fs.writeFileSync(path.join(dir, 'replies', `${KASE5.case_id}.json`), JSON.stringify(stampedBank(bankTree(stamped(KASE5)), BANK5)));
+    return dir;
+  }
+
+  test('refuses a five-step case whose reply bank is bound to another tree, and plays one whose bank binds it', () => {
+    const other = (k) => ({ ...k, teaser: { ...k.teaser, en: `${k.teaser.en}.` } });
+    const stale = sandbox(['--cases', fiveStepDir(other), '--case', KASE5.case_id]);
+    expect(stale.status).toBe(2);
+    expect(stale.stderr).toMatch(new RegExp(`skip ${KASE5.case_id}\\.json: it has a reply bank with 1 problem\\(s\\), first safety_review: does not bind this tree`));
+    expect(stale.stderr).toMatch(/no playable case/);
+    const bound = sandbox(['--cases', fiveStepDir(), '--case', KASE5.case_id]);
+    expect(bound.status).toBe(0);
+    expect(bound.stdout).toMatch(/18 plays\. Estimated spend/);
+  });
+
+
   test('without --go it prints the estimated spend and spends nothing', () => {
     const out = sandbox(['--cases', fixtureDir()]);
     expect(out.status).toBe(0);
@@ -214,12 +236,14 @@ describe('sandbox.mjs', () => {
 
   /** A stub rimpl on a free local port: CHAT_OK to every /chat, EVAL_OK to every /evaluate. */
   async function stubRimpl() {
+    const routes = [];
     const server = http.createServer((req, res) => {
+      routes.push(req.url);
       req.resume();
       req.on('end', () => res.end(JSON.stringify(req.url === '/evaluate' ? EVAL_OK : CHAT_OK)));
     });
     await new Promise((r) => server.listen(0, '127.0.0.1', r));
-    return { server, url: `http://127.0.0.1:${server.address().port}` };
+    return { server, routes, url: `http://127.0.0.1:${server.address().port}` };
   }
   const sandboxAsync = (args, env) => new Promise((resolve) => {
     const child = spawn(process.execPath, [SCRIPT, ...args], { env: { PATH: process.env.PATH, ...env } });
@@ -229,19 +253,21 @@ describe('sandbox.mjs', () => {
   });
 
   test.each([
-    ['three', KASE, ['BBB', 'BRW', 'WWW']],
-    ['five', KASE5, ['BBBBB', 'BRWRR', 'WWWWW']],
-  ])('a %s-step case\'s scripted plays tap its own best, mixed and weakest paths', async (_, kase, [best, mixed, weakest]) => {
+    ['three', () => fixtureDir(KASE), ['BBB', 'BRW', 'WWW'], 3 * 3],
+    ['five', () => fiveStepDir(), ['BBBBB', 'BRWRR', 'WWWWW'], 0],
+  ])('a %s-step case\'s scripted plays tap its own best, mixed and weakest paths, a five-step one with no chat call', async (_, casesDir, [best, mixed, weakest], chats) => {
     const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sandbox-out-'));
     const rimpl = await stubRimpl();
     try {
-      const out = await sandboxAsync(['--cases', fixtureDir(kase), '--persona-runs', '0', '--path-runs', '1', '--out', outDir, '--go'],
+      const out = await sandboxAsync(['--cases', casesDir(), '--persona-runs', '0', '--path-runs', '1', '--out', outDir, '--go'],
         { INTERNAL_TOKEN: 't', RIMPL_URL: rimpl.url });
       expect(out.stderr).toBe('');
       const [json] = fs.readdirSync(outDir).filter((f) => f.endsWith('.json'));
       const report = JSON.parse(fs.readFileSync(path.join(outDir, json), 'utf8'));
       expect(report.plays.map((p) => [p.group, p.tier_path, p.composite]))
         .toEqual([['best', best, 59], ['mixed', mixed, 59], ['weakest', weakest, 59]]);
+      expect(rimpl.routes.filter((r) => r === '/chat')).toHaveLength(chats);
+      expect(rimpl.routes.filter((r) => r === '/evaluate')).toHaveLength(3);
     } finally {
       rimpl.server.close();
     }

@@ -7,7 +7,7 @@ const os = require('os');
 const { spawn, spawnSync } = require('child_process');
 const { isValidAsk, evaluateRequest, bankKey } = require('../src/services/booth-dialogue');
 const { treeSha } = require('../src/booth-cases/tree-sha');
-const { stamped } = require('./helpers/booth-tree');
+const { stamped, stampedBank } = require('./helpers/booth-tree');
 const { sampleWalk, replyProblems, jobsFor, lockProblems } = require('../../scripts/booth/path-table-sample');
 const { PATHS, PATHS_BY_STEPS, worstCall } = require('../../scripts/booth/sandbox-play');
 const { costUsd } = require('../src/lib/pricing');
@@ -15,6 +15,7 @@ const MANIFEST = require('../../rimpl/src/model-manifest.json').expected.code;
 
 const KASE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree.json'), 'utf8'));
 const KASE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8'));
+const BANK5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-reply-bank-5.json'), 'utf8'));
 const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
 const RUNNER = path.join(__dirname, '..', '..', 'scripts', 'booth', 'build-path-tables.mjs');
 const LEDGER_TOOL = path.join(__dirname, '..', '..', 'scripts', 'booth', 'spend-ledger.mjs');
@@ -31,7 +32,10 @@ const repliesFor = (kase) => Object.fromEntries(banksOf(kase).map(([key, bank]) 
   strength: `เลือก **${o.label.th.slice(0, 6)}** โดยมีเหตุผล ${o.id}`, weigh: `ควรชั่งน้ำหนักข้อมูลเพิ่ม ${key}`, safety: '',
 }]))]));
 const REPLIES = repliesFor(KASE);
-const REPLIES5 = repliesFor(KASE5);
+const REPLIES5 = BANK5.replies;
+const { repliesSha } = require('../src/booth-cases/reply-bank');
+// Sample replies in the five-step layout: their checks still run, though a five-step build reads the reply bank.
+const SAMPLE5 = repliesFor(KASE5);
 const replyText = (r) => [r.strength, r.weigh, r.safety].map((s) => s.replaceAll('**', '')).filter(Boolean).join(' ');
 
 describe('a sample walk', () => {
@@ -47,7 +51,7 @@ describe('a sample walk', () => {
     expect(d.replies).toEqual(d.answers.map((a, i) => REPLIES[bankKey(KASE, tierPath.slice(0, i))][a.choice]));
   });
 
-  test.each(['BBBBB', 'WRBWB', 'RWWRB'])('five steps: %s taps the path\'s tier at each of five steps, from the bank keyed on the previous tier', (tierPath) => {
+  test.each(['BBBBB', 'WRBWB', 'RWWRB'])('five steps: %s taps the path\'s tier at each of five steps, from the bank keyed on the previous tier, replied from the reply bank', (tierPath) => {
     const d = sampleWalk(KASE5, REPLIES5, tierPath);
     expect(d.tierPath).toBe(tierPath);
     expect(d.answers).toHaveLength(5);
@@ -57,7 +61,7 @@ describe('a sample walk', () => {
       expect(isValidAsk(bank, ask)).toBe(true);
       expect(ask.options).toContain(chosen.id);
       expect(LETTER[chosen.tier]).toBe(tierPath[i]);
-      expect(d.replies[i]).toEqual(REPLIES5[key][chosen.id]);
+      expect(REPLIES5[key][chosen.id].th).toContainEqual(d.replies[i]);
     });
   });
 
@@ -123,11 +127,11 @@ describe('sample reply checks', () => {
   });
 
   test('five steps: replies on every option of its 13 banks pass, and a missing one is named by its previous-tier bank', () => {
-    expect(Object.keys(REPLIES5)).toHaveLength(13);
-    expect(replyProblems(KASE5, REPLIES5)).toEqual([]);
+    expect(Object.keys(SAMPLE5)).toHaveLength(13);
+    expect(replyProblems(KASE5, SAMPLE5)).toEqual([]);
     const id = KASE5.banks.step4.R.options[0].id;
-    const { [id]: _gone, ...rest } = REPLIES5['step4.R'];
-    expect(replyProblems(KASE5, { ...REPLIES5, 'step4.R': rest })).toEqual([`step4.R ${id}: no reply`]);
+    const { [id]: _gone, ...rest } = SAMPLE5['step4.R'];
+    expect(replyProblems(KASE5, { ...SAMPLE5, 'step4.R': rest })).toEqual([`step4.R ${id}: no reply`]);
   });
 
   test('a bold run naming an option the visitor did not choose is refused, since the booth would strip it', () => {
@@ -209,9 +213,9 @@ describe('the build runner', () => {
   });
 
   test.each([
-    ['--cap', '25.01', /--cap needs a number from 0\.01 to 25\b/],
+    ['--cap', '70.01', /--cap needs a number from 0\.01 to 70\b/],
     ['--samples', '2', /--samples must be odd/],
-  ])('refuses %s %s: the cap is at most $25 and a median needs an odd count', (flag, v, why) => {
+  ])('refuses %s %s: the cap is at most $70 and a median needs an odd count', (flag, v, why) => {
     const res = run([flag, v]);
     expect(res.status).toBe(2);
     expect(res.stderr).toMatch(why);
@@ -237,14 +241,18 @@ describe('the build runner', () => {
 
   /** A throwaway build: fixture cases under a fresh event code, committed in their own git repo (a safety review then
    *  reads the committed tree), with their sample replies. Nothing it writes is a tracked file of this repo. */
-  function throwawayBuild(kases = [KASE]) {
+  function throwawayBuild(kases = [KASE], { bankTree = (k) => k } = {}) {
     const build = `TST-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
     const dir = path.join(tmp(), build);
-    fs.mkdirSync(dir);
+    fs.mkdirSync(path.join(dir, 'replies'), { recursive: true });
     const replies = tmp();
     for (const kase of kases) {
-      fs.writeFileSync(path.join(dir, `${kase.case_id}.json`), `${JSON.stringify(stamped({ ...kase, event_code: build }), null, 2)}\n`);
+      const tree = stamped({ ...kase, event_code: build });
+      fs.writeFileSync(path.join(dir, `${kase.case_id}.json`), `${JSON.stringify(tree, null, 2)}\n`);
       fs.writeFileSync(path.join(replies, `${kase.case_id}.json`), JSON.stringify({ case_id: kase.case_id, replies: repliesFor(kase) }));
+      if (kase.banks.step5) {
+        fs.writeFileSync(path.join(dir, 'replies', `${kase.case_id}.json`), JSON.stringify(stampedBank(bankTree(tree), { ...BANK5, case_id: kase.case_id })));
+      }
     }
     const git = (...args) => spawnSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { cwd: dir });
     git('init', '-q');
@@ -453,7 +461,7 @@ describe('the build runner', () => {
     }
   });
 
-  test('init seeds the ledger with the committed record\'s $30.49, refuses to run twice, and so refuses every --go at the $25 cap', async () => {
+  test('init seeds the ledger with the committed record\'s $30.49, refuses to run twice, and so refuses every --go under a $30 cap', async () => {
     const home = tmp();
     const co = checkout();
     const init = () => initIn(co, home);
@@ -469,10 +477,10 @@ describe('the build runner', () => {
     expect(fs.readdirSync(path.dirname(ledgerFile(home)))).toEqual(['ledger.jsonl']);
     const rimpl = await stubRimpl({ answer: locked() });
     try {
-      const res = await runAsync([...throwawayBuild().args, '--go'], goEnv(home, rimpl));
+      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '30'], goEnv(home, rimpl));
       expect(rimpl.calls).toEqual([]);
       expect(res.status).toBe(2);
-      expect(res.stderr).toMatch(/have spent \$30\.49 of the \$25 cap/);
+      expect(res.stderr).toMatch(/have spent \$30\.49 of the \$30 cap/);
     } finally {
       rimpl.close();
     }
@@ -563,7 +571,7 @@ describe('the build runner', () => {
     const header = { run_id: 'ptb-five', date: '2026-11-11', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
     // A saved sample on every path, so whichever 27 the plan samples are all there.
     const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
-      tree_sha256: treeSha(kase), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
+      tree_sha256: treeSha(kase), replies_sha256: repliesSha(REPLIES5), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
     fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
     const res = run([...args, '--from', file]);
     expect([0, 1]).toContain(res.status);
@@ -578,6 +586,34 @@ describe('the build runner', () => {
     expect(built.path_score_table.paths.WRBWB).toEqual(DOMAINS);
   });
 
+  test('--from refuses a five-step case\'s samples walked with another reply bank, or recording none, with zero rimpl calls; the current bank is accepted', async () => {
+    const { dir, args } = throwawayBuild([KASE5]);
+    const kase = JSON.parse(fs.readFileSync(path.join(dir, `${KASE5.case_id}.json`), 'utf8'));
+    const out = args[args.indexOf('--out') + 1];
+    const header = { run_id: 'ptb-bank', date: '2026-11-11', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
+    const savedWith = (name, extra) => {
+      const file = path.join(out, name);
+      const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
+        tree_sha256: treeSha(kase), ...extra, tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
+      fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
+      return file;
+    };
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      const env = goEnv(homeWith(), rimpl);
+      const other = await runAsync([...args, '--from', savedWith('other.samples.jsonl', { replies_sha256: repliesSha({ ...REPLIES5, step1: {} }) })], env);
+      expect(other.status).toBe(2);
+      expect(other.stderr).toMatch(/--from .*: 729 sample\(s\) were not walked with the current reply bank/);
+      const none = await runAsync([...args, '--from', savedWith('none.samples.jsonl', {})], env);
+      expect(none.status).toBe(2);
+      expect(none.stderr).toMatch(/not walked with the current reply bank, first .* on no recorded reply bank/);
+      expect(rimpl.calls).toEqual([]);
+    } finally {
+      rimpl.close();
+    }
+    expect([0, 1]).toContain(run([...args, '--from', savedWith('ok.samples.jsonl', { replies_sha256: repliesSha(REPLIES5) })]).status);
+  });
+
   test('refuses a run of cases with different step counts, and builds either count once --case picks it', () => {
     const { args } = throwawayBuild([KASE, KASE5]);
     const mixed = run(args);
@@ -585,6 +621,27 @@ describe('the build runner', () => {
     expect(mixed.stderr).toMatch(/have (3 and 5|5 and 3) steps: a run builds one step count/);
     expect(run([...args, '--case', KASE.case_id]).status).toBe(0);
     expect(run([...args, '--case', KASE5.case_id]).status).toBe(0);
+  });
+
+  test('a five-step case whose reply bank is bound to another tree is refused, and --go then spends nothing', async () => {
+    const other = (tree) => ({ ...tree, teaser: { ...tree.teaser, en: `${tree.teaser.en}.` } });
+    const { args } = throwawayBuild([KASE5], { bankTree: other });
+    const refused = new RegExp(`^${KASE5.case_id}@${KASE5.version}: refused, it has a reply bank with 1 problem\\(s\\), first safety_review: does not bind this tree`, 'm');
+    const dry = run(args);
+    expect(dry.status).toBe(0);
+    expect(dry.stdout).toMatch(refused);
+    expect(dry.stdout).toMatch(/^0 case\(s\) to build, 0 evaluator calls/m);
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      const res = await runAsync([...args, '--go'], goEnv(homeWith(), rimpl));
+      expect(res.stdout).toMatch(refused);
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/no case can be built/);
+      expect(rimpl.calls).toEqual([]);
+    } finally {
+      rimpl.close();
+    }
+    expect(run(throwawayBuild([KASE5]).args).stdout).toMatch(/^1 case\(s\) to build, 81 evaluator calls/m);
   });
 
   test('--from refuses a run that went over the cap it ran under', () => {
@@ -609,12 +666,17 @@ describe('the build runner', () => {
     expect(res.stderr).toMatch(/1 sample\(s\) were not scored on the current tree, first adhf BBB#1 on no recorded tree/);
   });
 
-  test('without --go it checks every NFCME-2026 tree and spends nothing', () => {
+  test('without --go it checks every NFCME-2026 tree and reply bank, prints the plan and spends nothing', () => {
     const res = run([]);
     expect(res.status).toBe(0);
+    expect(res.stdout).toMatch(/^8 case\(s\) to build, 648 evaluator calls, about \$\d+\.\d\d typical\.$/m);
     expect(res.stdout).toMatch(/Nothing spent/);
-    // dka-young-adult is the three-step file, its review bound to no tree, until #476 re-authors it.
+    // dka-young-adult is the three-step file, its review bound to no tree, until #476 re-authors it. The two banks
+    // name another option's short acronym (#494's rule), which their tree tickets fix.
     expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([
-      'dka-young-adult@5: refused, it has a safety review that names no tree (no tree_sha256)']);
+      'dka-young-adult@5: refused, it has a safety review that names no tree (no tree_sha256)',
+      'melioidosis-farmer@4: refused, it has a reply bank with 3 problem(s), first replies.step3.B.b.en[1].strength: names another option ("iv")',
+      'toddler-gastro-dehydration@3: refused, it has a reply bank with 4 problem(s), first replies.step4.B.elec.th[0].weigh: names another option ("ors")',
+    ]);
   });
 });

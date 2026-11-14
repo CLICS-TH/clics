@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /*
  * Builds each booth case's path score table (#373, ADR 0009): for every sampled tier path, 3 sample transcripts walked
- * with a random question variant and random same-tier options, the case's sample replies as the AI's
- * (scripts/booth/sample-replies), scored by the locked PIS-7 evaluator through rimpl. A three-step case samples all 27
+ * with a random question variant and random same-tier options, each tap replied as the kiosk replies it (a five-step
+ * case from its reviewed reply bank, <cases>/replies/<case_id>.json, through the booth API's bankOutcome; a
+ * three-step case from its sample replies, scripts/booth/sample-replies), scored by the locked PIS-7 evaluator
+ * through rimpl. A three-step case samples all 27
  * paths and each entry is the median per domain; a five-step case samples a balanced 27 of its 243 and a median (L1)
  * regression of each domain on step × tier fills all 243 (#381, scripts/booth/path-fit.mjs). A run builds cases of
  * one step count. A case gets a table only when its tree is byte-identical to the tree its safety review read (from
- * git history) and every sampled path is fully scored; the table is written into the case file with its version
+ * git history), a five-step case only while replyBankProblems finds nothing in its reply bank (a bank bound
+ * to another tree included), and every sampled path is fully scored; the table is written into the case file with its version
  * bumped. The report re-runs ADR 0005's difficulty check: on the scripted paths' samples for three steps, on their
  * fitted entries for five.
  *
@@ -18,7 +21,7 @@
  * whole ledger, so runs at once share the cap; it is settled at its reported tokens plus the worst case of every
  * attempt rimpl retried, so a run killed mid-call stays charged its worst case. The first refused reservation stops
  * the run, and a missing or unreadable ledger refuses --go. The owner opens a new budget by raising CAP_USD in a
- * reviewed commit: until then the $30.49 already spent refuses every --go before any call.
+ * reviewed commit (#494 raised it from $25 to $70, over the $30.49 already spent).
  *
  *   node scripts/booth/build-path-tables.mjs                       # checks trees and replies, spends nothing
  *   node --env-file=rimpl/.env scripts/booth/build-path-tables.mjs --go
@@ -33,7 +36,7 @@
  *                     scripts/booth/path-table-runs); it never moves the ledger or the committed record
  *   --go              spend: without it the script stops after the checks
  *   --from <jsonl>    build the tables from a saved run's samples, spending nothing
- *   --replies <dir>   the cases' sample replies (default scripts/booth/sample-replies/<event code>)
+ *   --replies <dir>   a three-step case's sample replies (default scripts/booth/sample-replies/<event code>)
  *
  * Env for --go: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl. Its only calls are rimpl's
  * GET /manifest and POST /evaluate (shadow off). One probe call runs first: unless it was scored by the locked
@@ -45,7 +48,7 @@
  * with no charge at its open amount, so a killed or crashed run never seeds a machine below what it may have spent.
  *
  * --from refuses a run that went over the cap it ran under (its header's prior spend plus its own), a sample scored on
- * another tree, and a sample not scored by the locked evaluator. The build refuses to run with a database client
+ * another tree, a banked case's sample walked with a reply bank other than the current one (replies_sha256), and a sample not scored by the locked evaluator. The build refuses to run with a database client
  * loaded. Exit 0 when every case got a table and passes the re-check, 1 otherwise, 2 on a bad argument or setup.
  */
 import { createRequire } from 'node:module';
@@ -60,12 +63,13 @@ import { spent, reserve, settle, recordOpen, recordCharge, RECORD } from './spen
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
-const { LOCKED, replyProblems, readReplies, jobsFor, lockProblems, failedUsd, scoreSample } = require('./path-table-sample.js');
+const { LOCKED, banked, replyProblems, readReplies, readBank, jobsFor, lockProblems, failedUsd, scoreSample } = require('./path-table-sample.js');
+const { repliesSha } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'reply-bank'));
 const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
 
-const CAP_USD = 25;
+const CAP_USD = 70;
 // What an evaluate call cost on average in #264's sandbox runs (sandbox-play.js TYPICAL_TOKENS).
 const TYPICAL_EVALUATE = [4000, 405];
 
@@ -127,7 +131,9 @@ function loadCases(dir, only) {
     if (problems.length) fail(`${f}: ${problems[0]}`);
     const { history, why } = fileHistory(file);
     const tree = why ? { why } : reviewedTree(history, raw);
-    return [{ file, raw, kase: CaseTreeSchema.parse(raw), tree }];
+    const kase = CaseTreeSchema.parse(raw);
+    const bank = tree.why || !banked(kase) ? {} : readBank(kase, dir);
+    return [{ file, raw, kase, tree, why: tree.why ?? bank.why, replies: bank.replies }];
   });
   const missing = only.filter((id) => !cases.some((c) => c.kase.case_id === id));
   if (missing.length) fail(`no case ${missing.join(', ')} in ${dir}`);
@@ -138,9 +144,9 @@ function loadCases(dir, only) {
 const opts = parseArgs(process.argv.slice(2));
 const cases = loadCases(opts.cases, opts.only);
 for (const c of cases) {
-  console.log(`${c.kase.case_id}@${c.kase.version}: ${c.tree.why ? `refused, it ${c.tree.why}` : `tree ${c.tree.tree_sha256.slice(0, 12)} as reviewed in ${c.tree.reviewed_commit.slice(0, 8)}`}`);
+  console.log(`${c.kase.case_id}@${c.kase.version}: ${c.why ? `refused, it ${c.why}` : `tree ${c.tree.tree_sha256.slice(0, 12)} as reviewed in ${c.tree.reviewed_commit.slice(0, 8)}`}`);
 }
-const building = cases.filter((c) => !c.tree.why);
+const building = cases.filter((c) => !c.why);
 const stepsOf = (c) => Object.keys(c.kase.banks).length;
 // The re-check pools the cases of a run, so like must be compared with like.
 const stepCounts = [...new Set(building.map(stepsOf))];
@@ -149,7 +155,7 @@ const steps = stepCounts[0] ?? stepsOf(cases[0]);
 const scripted = PATHS_BY_STEPS[steps];
 let plan;
 try { plan = tablePlan(steps, scripted); } catch (err) { fail(err.message); }
-for (const c of building) {
+for (const c of building.filter((b) => !banked(b.kase))) {
   let problems;
   try { c.replies = readReplies(c.kase, opts.replies); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
   if (problems.length) fail(`${c.kase.case_id}: ${problems.length} sample reply problem(s), first ${problems[0]}`);
@@ -159,6 +165,9 @@ const jobs = jobsFor(building.map((c) => c.kase), opts.samples, () => plan.sampl
 console.log(`${building.length} case(s) to build, ${jobs.length} evaluator calls, about `
   + `$${(jobs.length * costUsd(...TYPICAL_EVALUATE, 'anthropic')).toFixed(2)} typical.`);
 const treeOf = Object.fromEntries(building.map((c) => [c.kase.case_id, c.tree.tree_sha256]));
+// A banked case's samples are walked with its reply bank: the hash of the bank this build would reply from, which a
+// saved sample must record (a three-step case has no bank and records none).
+const repliesOf = Object.fromEntries(building.filter((c) => banked(c.kase)).map((c) => [c.kase.case_id, repliesSha(c.replies)]));
 const keyOf = (caseId, tierPath, sample) => `${caseId} ${tierPath} ${sample}`;
 
 /** A run's header and samples from its .samples.jsonl: the first line is the header, each other line one sample. */
@@ -184,6 +193,11 @@ if (opts.from) {
   if (stale.length) {
     fail(`--from ${opts.from}: ${stale.length} sample(s) were not scored on the current tree, first ${stale[0].case_id} `
       + `${stale[0].tier_path_planned}#${stale[0].sample} on ${stale[0].tree_sha256 ?? 'no recorded tree'}`);
+  }
+  const unbanked = samples.filter((r) => r.case_id in repliesOf && r.replies_sha256 !== repliesOf[r.case_id]);
+  if (unbanked.length) {
+    fail(`--from ${opts.from}: ${unbanked.length} sample(s) were not walked with the current reply bank, first ${unbanked[0].case_id} `
+      + `${unbanked[0].tier_path_planned}#${unbanked[0].sample} on ${unbanked[0].replies_sha256 ?? 'no recorded reply bank'}`);
   }
   const byKey = new Map(samples.map((r) => [keyOf(r.case_id, r.tier_path_planned, r.sample), r]));
   run = {
@@ -226,7 +240,7 @@ if (opts.from) {
   const date = new Date().toISOString().slice(0, 10);
   const runId = `ptb-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
   const header = { run_id: runId, date, rimpl_url: rimplUrl, build, cap_usd: opts.cap, prior_usd: priorUsd,
-    provider_retries: retries, samples: opts.samples };
+    provider_retries: retries, samples: opts.samples, replies_sha256: repliesOf };
   mkdirSync(opts.out, { recursive: true });
   const savedPath = path.join(opts.out, `${runId}.samples.jsonl`);
   const outRecord = path.join(opts.out, 'spend.jsonl');
@@ -254,7 +268,7 @@ if (opts.from) {
           r = await scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate, retries });
         } catch (err) { r = { tier_path: job.tierPath, domains: null, error: err.message, usd: worst }; }
         appendFileSync(savedPath, `${JSON.stringify({ case_id: job.kase.case_id, tier_path_planned: job.tierPath, sample: job.sample,
-          tree_sha256: treeOf[job.kase.case_id], ...r })}\n`);
+          tree_sha256: treeOf[job.kase.case_id], ...(repliesOf[job.kase.case_id] ? { replies_sha256: repliesOf[job.kase.case_id] } : {}), ...r })}\n`);
         results[i] = r;
         done += 1;
         console.log(`[${done}] ${job.kase.case_id} ${job.tierPath}#${job.sample} ${r.composite ?? `unscored (${r.error})`} $${r.usd}`);
@@ -344,7 +358,7 @@ report.recheck = recheck(plan, built, {
 });
 for (const c of cases) {
   const id = c.kase.case_id;
-  if (c.tree.why) { report.cases[id] = { version: c.kase.version, why: c.tree.why, table: false }; continue; }
+  if (c.why) { report.cases[id] = { version: c.kase.version, why: c.why, table: false }; continue; }
   const { table } = built[id];
   const paths = table?.paths ?? null;
   let why = !paths ? 'not every path is fully scored' : !oneConfig ? 'not one locked evaluator configuration'

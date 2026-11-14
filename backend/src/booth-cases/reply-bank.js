@@ -46,11 +46,16 @@ const banksOf = (kase) => Object.entries(kase.banks).flatMap(([step, level]) => 
 const plain = (s) => comparable(s.replaceAll('**', ''));
 // Whole numbers as written (7.15, 120, 3), so "12" is not found inside "120".
 const numbers = (s) => new Set(s.match(/\d+(?:[.,]\d+)*/g) ?? []);
-// Latin words of five letters or more, in either language's text (a Thai field names a drug or test in Latin too:
-// NT-proBNP). Shorter acronyms (CPAP, NIV, ICU) are left to the safety review. Thai has no word-level rule: its word segments (และ, ให้, ส่ง) are too common to tell an option
-// apart, so a Thai field is held to the whole-label rule and the safety review.
+// Latin words of five letters or more, and acronyms of two to four capitals as written (CPAP, NIV, ICU, O2), in either
+// language's text (a Thai field names a drug or test in Latin too: NT-proBNP). A shorter word in lower case is too
+// common to tell an option apart. Thai has no word-level rule: its word segments (และ, ให้, ส่ง) are too common too, so
+// a Thai field is held to the whole-label rule and the safety review.
 const COMMON = new Set(['acute', 'chronic', 'their', 'there', 'these', 'those', 'which', 'while', 'about', 'after', 'before', 'other', 'first', 'again', 'still', 'patient']);
-const latinWords = (s) => new Set(plain(s).match(/[a-z][a-z0-9-]{4,}/g)?.filter((w) => !COMMON.has(w)) ?? []);
+const ACRONYM = /(?<![A-Za-z0-9])[A-Z][A-Z0-9]{1,3}(?![A-Za-z0-9])/g;
+const latinWords = (s) => new Set([
+  ...(plain(s).match(/[a-z][a-z0-9-]{4,}/g)?.filter((w) => !COMMON.has(w)) ?? []),
+  ...(s.normalize('NFC').replaceAll('**', '').match(ACRONYM) ?? []).map((w) => w.toLowerCase()),
+]);
 
 /** Every problem in the replies themselves, as "<path>: <message>": a key missing or extra, an entry without exactly
  *  three distinct alternatives, a field over the cap or with a bold run that quotes anything but the chosen option's
@@ -76,7 +81,7 @@ function replyContentProblems(kase, replies) {
       // antibiotics") may be quoted, and so may any word the case already shows with this question.
       const rest = bank.options.filter((o) => o.id !== option.id);
       const others = rest.flatMap((o) => LANGS.map((l) => comparable(o.label[l]))).filter((label) => !said.some((s) => s.includes(label)));
-      const shown = latinWords([...said, ...LANGS.flatMap((l) => [kase.vignette[l], ...bank.variants.map((v) => v.question[l])])].join(' '));
+      const shown = latinWords(LANGS.flatMap((l) => [option.label[l], option.line[l], kase.vignette[l], ...bank.variants.map((v) => v.question[l])]).join(' '));
       const theirs = [...latinWords(rest.flatMap((o) => LANGS.map((l) => o.label[l])).join(' '))].filter((w) => !shown.has(w));
       // A reply serves every variant of its bank, so it never cites a number that some variants show and others do
       // not (unless the vignette or the chosen option shows it): a visitor dealt another variant never saw it. A

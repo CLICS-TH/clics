@@ -2589,6 +2589,57 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
     expect(plays.get(p.id).steps.map((s) => s.reply)).toEqual(p.d.replies);
   });
 
+  /** Runs `play` with crypto.randomInt drawn from one seeded sequence, so two walks given the same seed draw the same
+   *  variants, options and reply alternatives in the same order. */
+  async function seeded(seed, play) {
+    let x = seed;
+    const draw = jest.spyOn(crypto, 'randomInt').mockImplementation((n) => {
+      x = (x * 1103515245 + 12345) % 2147483648;
+      return x % n;
+    });
+    try { return await play(); } finally { draw.mockRestore(); }
+  }
+  const PATH5 = ['best', 'reasonable', 'weaker', 'reasonable', 'best'];
+  /** A five-step play of PATH5 through the booth API, and the transcript it holds, as evaluateRequest builds it. */
+  const apiPlay = (seed) => seeded(seed, async () => {
+    const p = await begin(KASE5);
+    for (const given of PATH5) expect((await answer(p, given)).body.status).toBe('replied');
+    return { p, transcript: evaluateRequest(KASE5, { ...p.d, tierPath: p.path }).transcript };
+  });
+
+  test.each([1, 7, 42])('the path table build scores the transcript the booth API holds for the same tapped path, replies from the bank (seed %i)', async (seed) => {
+    const { sampleWalk } = require('../../scripts/booth/path-table-sample');
+    const { p, transcript } = await apiPlay(seed);
+    expect(rimplChat).not.toHaveBeenCalled();
+    const walked = await seeded(seed, async () => sampleWalk(KASE5, BANK5.replies, p.path));
+    expect(evaluateRequest(KASE5, walked).transcript).toEqual(transcript);
+  });
+
+  test('the sandbox replies every tap from the bank with no rimpl chat call, and evaluates the booth API\'s transcript', async () => {
+    const { playOnce } = require('../../scripts/booth/sandbox-play');
+    const seed = 9;
+    const { p, transcript } = await apiPlay(seed);
+    const ai = { chat: jest.fn(), evaluate: jest.fn(async () => ({ ...EVAL_OK })) };
+    const play = await seeded(seed, () => playOnce({ kase: KASE5, replies: BANK5.replies, ai, choose: ({ step }) => p.d.answers[step] }));
+    expect(ai.chat).not.toHaveBeenCalled();
+    expect(play.calls.map((c) => c.kind)).toEqual(['evaluate']);
+    expect(play.tier_path).toBe(p.path);
+    expect(ai.evaluate.mock.calls[0][0].transcript).toEqual(transcript);
+  });
+
+  test('the sandbox still sends a typed answer to rimpl chat, and only that one', async () => {
+    const { playOnce, tapping } = require('../../scripts/booth/sandbox-play');
+    const typedAt = 2;
+    const tap = tapping('BBBBB');
+    const chat = jest.fn(async () => ({ reply: null, tier: 'best', pick: null, input_tokens: 2000, output_tokens: 190, provider: 'anthropic' }));
+    const ai = { chat, evaluate: async () => ({ ...EVAL_OK }) };
+    const choose = (turn) => (turn.step === typedAt ? { text: 'ให้ยาฆ่าเชื้อ' } : tap(turn));
+    const play = await playOnce({ kase: KASE5, replies: BANK5.replies, ai, choose });
+    expect(chat).toHaveBeenCalledTimes(1);
+    expect(chat.mock.calls[0][0].booth_answer).toBe('ให้ยาฆ่าเชื้อ');
+    expect(play.calls.map((c) => c.kind)).toEqual(['chat', 'evaluate']);
+  });
+
   test('a bank reply follows the look the kiosk sent: the en look gets an English alternative', async () => {
     const p = await begin(KASE5);
     p.d.look = 'en';
