@@ -225,9 +225,20 @@ describe('#474 exact outputs', () => {
     ['an HN, a slash, a dashed phone', 'HN 1234567/081-234-5678', '[HN-1]/[PHONE-1]'],
     ['an HN, a slash, a spaced phone', 'HN 1234567/081 234 5678', '[HN-1]/[PHONE-1]'],
     ['an MRN, a slash, a landline', 'MRN 123456/02-123-4567', '[MRN-1]/[PHONE-1]'],
+    // A sub-number that opens no date or phone stays in the HN, whatever follows it.
+    ['an HN sub-number, then a count', 'HN 1234/67 2 ครั้ง', '[HN-1] 2 ครั้ง'],
+    ['an HN sub-number, then a phone', 'HN 1234567/12 081-234-5678', '[HN-1] [PHONE-1]'],
     ['an HN and a phone joined by middle dots', 'HN·1234567·081·234·5678', '[HN-1]·[PHONE-1]'],
     // A dashed day-first date never opens on the day of a dotted year-first date.
     ['a dotted year-first date, a hyphen, a dashed date', 'x 2026.10.20-11-12-69 ok', 'x [DATE-2]-[DATE-1] ok'],
+    // A list number glued to a dashed date: the date is masked whole, never cut at its day.
+    ['a list number, a dashed date', '1.5.20-10-2569', '1.5.[DATE-1]'],
+    ['a two-digit list number, a dashed date', '1.13.20-10-2569', '1.13.[DATE-1]'],
+    ['a list number, an en-dashed date', '1.5.20–10–2569', '1.5.[DATE-1]'],
+    // The run on master's view takes in the middle-dot-joined local pieces before an address.
+    ['a middle dot in an email local part', 'mail somchai·j@example.com now', 'mail [EMAIL-1] now'],
+    ['middle dots in an email local part', 'mail a·b·c@example.com now', 'mail [EMAIL-1] now'],
+    ['a date, a hyphen, a middle-dot email', 'x 20/10/2569-somchai·j@example.com', 'x [DATE-1]-[EMAIL-1]'],
     // A run that opens with a phone is two phones only when the rest of its number is one more phone.
     ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],
   ])('%s', (_shape, input, out) => {

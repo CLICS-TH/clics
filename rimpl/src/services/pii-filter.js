@@ -493,6 +493,16 @@ const DATE_SEP = String.raw`(?:\s{0,2}-\s{0,2}|\s{0,3})`;
 // No date ends right before a dose unit (10-12-14 mg, 20 Oct 10 mg). A unit ends where its word ends: G2P1 (gravida) and
 // L4-5 (a vertebral level) are no unit, so 11-12-69 G2P1A0 is a date.
 const NOT_DOSE = String.raw`(?!\s*(?:${['mg', 'mcg', 'µg', 'μg', 'g', 'ml', 'l', 'units', 'unit', 'iu', 'mmol', 'meq'].map(anyCase).join('|')})(?![A-Za-z0-9]))`;
+// A dashed day-month-year date (the dashed pass), and whether the day `day` with the text after it, `rest`, opens a real
+// one when the dash look-alikes read as '-': the dotted day-first pass leaves it to the dashed pass, so 1.5.20–10–2569
+// is never cut at its day.
+const DASHED_DMY = String.raw`(?:\d{1,2}-\d{1,2}-\d{4}|\d{2}-\d{2}-\d{2}${NOT_DOSE})\b`;
+let DASHED_DMY_START_RE = null;
+function opensDashedDate(day, rest) {
+  DASHED_DMY_START_RE ??= new RegExp(`^${DASHED_DMY}(?!\\.\\d)`);
+  const m = DASHED_DMY_START_RE.exec(day + rest.slice(0, 16).replace(DASH_LOOKALIKE_G_RE, '-'));
+  return Boolean(m) && dottedDateGuard(m[0]);
+}
 
 // No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
 // ".<digit>", and never right after "<digit>." when what follows reads as a decimal fraction, 1-8 digits not
@@ -521,9 +531,11 @@ function emailMiddleDotGuard(_seen, match) {
     && pieces(domain).slice(1).every((p) => p.toLowerCase().split('.').every((l) => EMAIL_TLDS.has(l)));
 }
 
-// The sub-number of an HN, MRN or AN: any digits after a '/', unless more digits follow them, alone or after a separator:
-// then they open a date or phone (/20/10/2569, /081-234-5678, / 02 123 4567), left to its own pass.
-const HN_TAIL = String.raw`(?:\s*\/\s*\d+(?!\s*[/.-]?\s*\d))?`;
+// The sub-number of an HN, MRN or AN: any digits after a '/', unless they open a date or a phone, left to its own pass:
+// a '/', '.' or '-' then a digit glued to them (/20/10/2569, /20.10.2569, /081-234-5678), a dotted date's spaced dot
+// (/20. 10. 2569), or a phone of 9 or 10 digits opening with 0 (/081 234 5678, / 02 123 4567). Other digits after them
+// are not theirs to refuse: HN 1234/67 2 ครั้ง keeps /67 in the HN, HN 1234567/12 081-234-5678 its /12.
+const HN_TAIL = String.raw`(?:\s*\/\s*(?!0\d(?:[\s().-]{0,8}\d){7,8}(?!\d))\d+(?!\d|[/.-]\d|\.\s{1,3}\d{1,2}\s{0,3}\.))?`;
 
 // A 13-digit run of the ID pass that is two phones: it opens with a grouped phone (081-234-5678 089-876-5432), or with
 // an ungrouped one whose number, read on to its end (`rest` is the view after the run), holds one more phone
@@ -563,6 +575,30 @@ function emailExecFrom(view, from) {
   return null;
 }
 
+// emailExecFrom for the run on master's view, where a middle dot ends the address (somchai·j@example.com reads
+// j@example.com): a match right after a middle dot takes in the middle-dot-joined local pieces before it, as the dots
+// run reads them (emailMiddleDotGuard): each piece is a word start, a letter, then [A-Za-z0-9_.%+], and the whole local
+// part holds at most EMAIL_LOCAL_MAX characters. The folded run then never sees the whole address, so the extension is
+// made here; it only widens the mask leftward, and is off with the folds (_setFoldsForTest).
+const EMAIL_PIECE_CHAR_RE = /[A-Za-z0-9_.%+]/;
+function emailPlainExecFrom(view, from) {
+  const m = emailExecFrom(view, from);
+  if (!m || !foldsOn) return m;
+  const at = m.index + m[0].indexOf('@');
+  let start = m.index;
+  while (start - 1 > from && MIDDLE_DOTS.has(view[start - 1])) {
+    let q = start - 1;
+    while (q > from && at - q < EMAIL_LOCAL_MAX && EMAIL_PIECE_CHAR_RE.test(view[q - 1])) q -= 1;
+    // A piece cut by `from` or the cap, or not opening with a letter, ends the address.
+    if (q === start - 1 || !/[A-Za-z]/.test(view[q]) || (q > 0 && EMAIL_PIECE_CHAR_RE.test(view[q - 1]))) break;
+    start = q;
+  }
+  if (start === m.index) return m;
+  const w = [view.slice(start, m.index + m[0].length)];
+  w.index = start;
+  return w;
+}
+
 // emailExecFrom for the dots run: the leftmost match after `from`, its local part capped at EMAIL_LOCAL_MAX characters.
 const EMAIL_LOCAL_CHAR_RE = /[A-Za-z0-9._%+-]/;
 const EMAIL_DOMAIN_RE = /@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/y;
@@ -594,7 +630,7 @@ const PASSES = [
   // Email addresses. Found by emailExecFrom, which makes the matches this regex makes in linear time.
   {
     re: EMAIL_RE,
-    execFrom: emailExecFrom,
+    execFrom: emailPlainExecFrom,
     dotsExecFrom: emailDotsExecFrom,
     cat: 'EMAIL',
     dots: '.', // somchai·j@example.com, somchai@example·com (MIDDLE_DOTS)
@@ -653,7 +689,7 @@ const PASSES = [
   // Allow internal spaces/dashes in the digit run (e.g. "HN 12-34567"); the
   // guard re-checks the total digit count so a loose run can't over-match.
   // A "/N…" sub-number (HN 1234/67, HN 1234 / 67, HN 1234/12345) is part of the code; the guard counts the digits before
-  // it. It is no sub-number when more digits follow it (HN 1234567 / 20/10/2569, HN 1234567/081-234-5678): see HN_TAIL.
+  // it. It is no sub-number when it opens a date or a phone (HN 1234567 / 20/10/2569, HN 1234567/081-234-5678): see HN_TAIL.
   {
     re: new RegExp(String.raw`\bHN(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'HN',
@@ -736,14 +772,15 @@ const PASSES = [
   { re: numericRe(String.raw`\b\d{4}-\d{1,2}-\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
   // Dashed day-month-year (11-12-2569). A two-digit year only after a two-digit day and month (11-12-69) and never
   // before a dose unit, so a dose range (5-10-15 mg, 10-12-14 mg) is no date. Never from the day of a dotted
-  // year-first date (2026.10.20-11-12-69), which the dotted pass below masks whole.
-  { re: numericRe(String.raw`\b(?<!\d\.\s{0,3}\d{1,2}\.\s{0,3})(?:\d{1,2}-\d{1,2}-\d{4}|\d{2}-\d{2}-\d{2}${NOT_DOSE})\b`), cat: 'DATE', guard: dottedDateGuard },
+  // year-first date (2026.10.20-11-12-69), which the dotted pass below masks whole; after a list number it is a date
+  // (1.13.20-10-2569).
+  { re: numericRe(String.raw`\b(?<!\d{4}\.\s{0,3}\d{1,2}\.\s{0,3})${DASHED_DMY}`), cat: 'DATE', guard: dottedDateGuard },
   // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
-  // section or version label.
+  // section or version label, and not a list number whose last group is the day of a dashed date (1.5.20-10-2569).
   {
     re: numericRe(String.raw`(?=\d)${NUMBERED}\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}\d{2,4}\b`),
     cat: 'DATE',
-    guard: dottedDateGuard,
+    guard: (m, _orig, rest = '') => dottedDateGuard(m) && !opensDashedDate(/\d+$/.exec(m)[0], rest),
     dots: '.', // 20·10·2569 (MIDDLE_DOTS)
   },
   // Dotted year-month-day (2026.10.20, 2569.1.2), under the same label and decimal rules.
@@ -1179,11 +1216,11 @@ function buildPlainView(s) {
 const MIDDLE_DOTS = new Set([0x00b7, 0x2027, 0x2219, 0x22c5, 0x30fb].map((c) => String.fromCodePoint(c)));
 const ANY_MIDDLE_DOT_RE = new RegExp(`[${[...MIDDLE_DOTS].join('')}]`);
 const NOT_MIDDLE_DOT_RE = new RegExp(`[^${[...MIDDLE_DOTS].join('')}]`, 'g');
+const DASH_LOOKALIKES = [0x2010, 0x2011, 0x2012, 0x2013, 0x2014, 0x2015, 0x2043, 0x2212, 0xfe58, 0xfe63].map((c) => String.fromCodePoint(c));
+const DASH_LOOKALIKE_G_RE = new RegExp(`[${DASH_LOOKALIKES.join('')}]`, 'g');
 const LOOKALIKE = (() => {
   const map = new Map();
-  for (const c of [0x2010, 0x2011, 0x2012, 0x2013, 0x2014, 0x2015, 0x2043, 0x2212, 0xfe58, 0xfe63]) {
-    map.set(String.fromCodePoint(c), '-');
-  }
+  for (const c of DASH_LOOKALIKES) map.set(c, '-');
   for (let c = 0x1d400; c <= 0x1d6a3; c += 1) {
     const to = String.fromCodePoint(c).normalize('NFKC');
     if (/^[A-Za-z]$/.test(to)) map.set(String.fromCodePoint(c), to);
