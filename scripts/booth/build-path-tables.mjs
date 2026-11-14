@@ -48,7 +48,7 @@
  * with no charge at its open amount, so a killed or crashed run never seeds a machine below what it may have spent.
  *
  * --from refuses a run that went over the cap it ran under (its header's prior spend plus its own), a sample scored on
- * another tree, and a sample not scored by the locked evaluator. The build refuses to run with a database client
+ * another tree, a banked case's sample walked with a reply bank other than the current one (replies_sha256), and a sample not scored by the locked evaluator. The build refuses to run with a database client
  * loaded. Exit 0 when every case got a table and passes the re-check, 1 otherwise, 2 on a bad argument or setup.
  */
 import { createRequire } from 'node:module';
@@ -64,6 +64,7 @@ const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
 const { LOCKED, banked, replyProblems, readReplies, readBank, jobsFor, lockProblems, failedUsd, scoreSample } = require('./path-table-sample.js');
+const { repliesSha } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'reply-bank'));
 const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
@@ -164,6 +165,9 @@ const jobs = jobsFor(building.map((c) => c.kase), opts.samples, () => plan.sampl
 console.log(`${building.length} case(s) to build, ${jobs.length} evaluator calls, about `
   + `$${(jobs.length * costUsd(...TYPICAL_EVALUATE, 'anthropic')).toFixed(2)} typical.`);
 const treeOf = Object.fromEntries(building.map((c) => [c.kase.case_id, c.tree.tree_sha256]));
+// A banked case's samples are walked with its reply bank: the hash of the bank this build would reply from, which a
+// saved sample must record (a three-step case has no bank and records none).
+const repliesOf = Object.fromEntries(building.filter((c) => banked(c.kase)).map((c) => [c.kase.case_id, repliesSha(c.replies)]));
 const keyOf = (caseId, tierPath, sample) => `${caseId} ${tierPath} ${sample}`;
 
 /** A run's header and samples from its .samples.jsonl: the first line is the header, each other line one sample. */
@@ -189,6 +193,11 @@ if (opts.from) {
   if (stale.length) {
     fail(`--from ${opts.from}: ${stale.length} sample(s) were not scored on the current tree, first ${stale[0].case_id} `
       + `${stale[0].tier_path_planned}#${stale[0].sample} on ${stale[0].tree_sha256 ?? 'no recorded tree'}`);
+  }
+  const unbanked = samples.filter((r) => r.case_id in repliesOf && r.replies_sha256 !== repliesOf[r.case_id]);
+  if (unbanked.length) {
+    fail(`--from ${opts.from}: ${unbanked.length} sample(s) were not walked with the current reply bank, first ${unbanked[0].case_id} `
+      + `${unbanked[0].tier_path_planned}#${unbanked[0].sample} on ${unbanked[0].replies_sha256 ?? 'no recorded reply bank'}`);
   }
   const byKey = new Map(samples.map((r) => [keyOf(r.case_id, r.tier_path_planned, r.sample), r]));
   run = {
@@ -231,7 +240,7 @@ if (opts.from) {
   const date = new Date().toISOString().slice(0, 10);
   const runId = `ptb-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${randomBytes(2).toString('hex')}`;
   const header = { run_id: runId, date, rimpl_url: rimplUrl, build, cap_usd: opts.cap, prior_usd: priorUsd,
-    provider_retries: retries, samples: opts.samples };
+    provider_retries: retries, samples: opts.samples, replies_sha256: repliesOf };
   mkdirSync(opts.out, { recursive: true });
   const savedPath = path.join(opts.out, `${runId}.samples.jsonl`);
   const outRecord = path.join(opts.out, 'spend.jsonl');
@@ -259,7 +268,7 @@ if (opts.from) {
           r = await scoreSample({ kase: job.kase, replies: job.replies, tierPath: job.tierPath, evaluate: rimpl.evaluate, retries });
         } catch (err) { r = { tier_path: job.tierPath, domains: null, error: err.message, usd: worst }; }
         appendFileSync(savedPath, `${JSON.stringify({ case_id: job.kase.case_id, tier_path_planned: job.tierPath, sample: job.sample,
-          tree_sha256: treeOf[job.kase.case_id], ...r })}\n`);
+          tree_sha256: treeOf[job.kase.case_id], ...(repliesOf[job.kase.case_id] ? { replies_sha256: repliesOf[job.kase.case_id] } : {}), ...r })}\n`);
         results[i] = r;
         done += 1;
         console.log(`[${done}] ${job.kase.case_id} ${job.tierPath}#${job.sample} ${r.composite ?? `unscored (${r.error})`} $${r.usd}`);

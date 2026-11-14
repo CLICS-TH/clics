@@ -186,14 +186,16 @@ async function scoreSample({ kase, replies, tierPath, evaluate, retries }) {
   };
 }
 
-// Checks the sample replies of the named cases: node scripts/booth/path-table-sample.js <case_id> [...]
+// Checks the named cases' replies, a five-step case's reply bank (readBank, replyBankProblems) and a three-step case's sample replies: node scripts/booth/path-table-sample.js <case_id> [...]
 if (require.main === module) {
   const { CaseTreeSchema } = require(path.join(SRC, 'booth-cases', 'tree-schema'));
   const dir = path.join(SRC, 'booth-cases', 'NFCME-2026');
   let bad = 0;
   for (const id of process.argv.slice(2)) {
     const kase = CaseTreeSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, `${id}.json`), 'utf8')));
-    const problems = replyProblems(kase, readReplies(kase));
+    // A five-step case is checked through the reply bank a build replies from; a three-step case through its sample replies.
+    const bank = banked(kase) ? readBank(kase, dir) : null;
+    const problems = bank ? (bank.why ? [bank.why] : []) : replyProblems(kase, readReplies(kase));
     bad += problems.length;
     console.log(problems.length ? `${id}: ${problems.length} problem(s)\n${problems.join('\n')}` : `${id}: ok`);
   }

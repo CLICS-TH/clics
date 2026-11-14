@@ -33,6 +33,7 @@ const repliesFor = (kase) => Object.fromEntries(banksOf(kase).map(([key, bank]) 
 }]))]));
 const REPLIES = repliesFor(KASE);
 const REPLIES5 = BANK5.replies;
+const { repliesSha } = require('../src/booth-cases/reply-bank');
 // Sample replies in the five-step layout: their checks still run, though a five-step build reads the reply bank.
 const SAMPLE5 = repliesFor(KASE5);
 const replyText = (r) => [r.strength, r.weigh, r.safety].map((s) => s.replaceAll('**', '')).filter(Boolean).join(' ');
@@ -570,7 +571,7 @@ describe('the build runner', () => {
     const header = { run_id: 'ptb-five', date: '2026-11-11', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
     // A saved sample on every path, so whichever 27 the plan samples are all there.
     const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
-      tree_sha256: treeSha(kase), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
+      tree_sha256: treeSha(kase), replies_sha256: repliesSha(REPLIES5), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
     fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
     const res = run([...args, '--from', file]);
     expect([0, 1]).toContain(res.status);
@@ -583,6 +584,34 @@ describe('the build runner', () => {
     expect(built.path_score_table.provenance).toMatchObject({ method: 'median-regression', run_id: 'ptb-five', tree_sha256: treeSha(kase) });
     expect(Object.keys(built.path_score_table.paths)).toHaveLength(243);
     expect(built.path_score_table.paths.WRBWB).toEqual(DOMAINS);
+  });
+
+  test('--from refuses a five-step case\'s samples walked with another reply bank, or recording none, with zero rimpl calls; the current bank is accepted', async () => {
+    const { dir, args } = throwawayBuild([KASE5]);
+    const kase = JSON.parse(fs.readFileSync(path.join(dir, `${KASE5.case_id}.json`), 'utf8'));
+    const out = args[args.indexOf('--out') + 1];
+    const header = { run_id: 'ptb-bank', date: '2026-11-11', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
+    const savedWith = (name, extra) => {
+      const file = path.join(out, name);
+      const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
+        tree_sha256: treeSha(kase), ...extra, tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
+      fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
+      return file;
+    };
+    const rimpl = await stubRimpl({ answer: locked() });
+    try {
+      const env = goEnv(homeWith(), rimpl);
+      const other = await runAsync([...args, '--from', savedWith('other.samples.jsonl', { replies_sha256: repliesSha({ ...REPLIES5, step1: {} }) })], env);
+      expect(other.status).toBe(2);
+      expect(other.stderr).toMatch(/--from .*: 729 sample\(s\) were not walked with the current reply bank/);
+      const none = await runAsync([...args, '--from', savedWith('none.samples.jsonl', {})], env);
+      expect(none.status).toBe(2);
+      expect(none.stderr).toMatch(/not walked with the current reply bank, first .* on no recorded reply bank/);
+      expect(rimpl.calls).toEqual([]);
+    } finally {
+      rimpl.close();
+    }
+    expect([0, 1]).toContain(run([...args, '--from', savedWith('ok.samples.jsonl', { replies_sha256: repliesSha(REPLIES5) })]).status);
   });
 
   test('refuses a run of cases with different step counts, and builds either count once --case picks it', () => {
