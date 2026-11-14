@@ -198,7 +198,8 @@ const FENCE_OPEN = '⟦';
 const FENCE_CLOSE = '⟧';
 
 // Each typed answer (inside a fence) loses everything from its first identifier label on (maskLabelledTail), on the raw
-// turn, before priming: no part of a labelled value can become a name alias or survive into the kept answer. An
+// turn, before priming: no part of a labelled value can survive into the kept answer, or become a name alias unless
+// master read it (a folded label cut before master's: pii-filter.js asMasterCut primes master's cut too). An
 // unfenced booth turn is a tapped option (vetted text) or a typed answer from a backend before #400; stripPii alone
 // reads it, as before.
 const FENCED_ANSWER_RE = new RegExp(`${FENCE_OPEN}([^${FENCE_OPEN}${FENCE_CLOSE}]*)${FENCE_CLOSE}`, 'g');
@@ -723,3 +724,5 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
+// Internal, for tests/pii-474-booth-differential.test.js only: the booth route's de-identification, run against master's.
+Object.defineProperty(module.exports, '_deidentifyBoothTurnForTest', { value: deidentifyBoothTurn });

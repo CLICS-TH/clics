@@ -265,21 +265,22 @@ describe('#474 exact outputs', () => {
     ['a dotted date, a slashed date', '20.10.25/12/2569', '[DATE-1]'],
     ['a two-digit list number, a slashed year-first date', '1.13.2026/4/3', '1.13.[DATE-1]'],
     // A chain of date groups: a pass master lacked may take a group of a date master masks; master's mask is then made
-    // with it, as one date (stripPii), whatever the chain's length.
-    ['a dotted date, three dashed groups', '20.6.2026-4-3-5', '[DATE-1]-5'],
-    ['a dotted date, three slashed groups', '17.3.2026/11/1/5', '[DATE-1]/5'],
-    ['a dotted date, four dashed groups', '20.6.2026-4-3-5-7', '[DATE-1]-5-7'],
-    ['a dotted date, four slashed groups', '17.3.2026/11/1/5/2', '[DATE-1]/5/2'],
+    // with it, as one date (stripPii), whatever the chain's length. The made mask is no longer the value of the pass's
+    // own token, so it takes a fresh one ([DATE-2]): a token is shared only between masks of one span (withMastersMasks).
+    ['a dotted date, three dashed groups', '20.6.2026-4-3-5', '[DATE-2]-5'],
+    ['a dotted date, three slashed groups', '17.3.2026/11/1/5', '[DATE-2]/5'],
+    ['a dotted date, four dashed groups', '20.6.2026-4-3-5-7', '[DATE-2]-5-7'],
+    ['a dotted date, four slashed groups', '17.3.2026/11/1/5/2', '[DATE-2]/5/2'],
     ['a dotted date, three en-dashed groups', '20.6.2026–4–3–5', '[DATE-1]–4–3–5'],
     ['a dotted date, mixed slash and en dash', '17.3.2026/11–1/5', '[DATE-1]/11–1/5'],
-    ['a dotted year-first date, a dot, a slashed date', 'x 2024.10.1.20/10/2569 y', 'x [DATE-1] y'],
+    ['a dotted year-first date, a dot, a slashed date', 'x 2024.10.1.20/10/2569 y', 'x [DATE-2] y'],
     ['a dotted year-first date, a dash, an ISO date', 'x 2024.10.1-2569-10-20 y', 'x [DATE-2]-[DATE-1] y'],
-    ['a house number running through date groups', 'บ้านเลขที่ 91/1-6-2026-11/14.2', '[ADDR-1].2'],
+    ['a house number running through date groups', 'บ้านเลขที่ 91/1-6-2026-11/14.2', '[ADDR-2].2'],
     // A run retried unit by unit may cut the match master made after it: master's mask is made with it (stripPii).
-    ['an 11-digit run, then a phone', '096-917-02553-0052-41867-18-4', '096-917-[PHONE-1]-18-4'],
+    ['an 11-digit run, then a phone', '096-917-02553-0052-41867-18-4', '096-917-[PHONE-2]-18-4'],
     // A folded match that changes what a later pass reads, so that it takes part of a date master masks: master's mask is
     // made with what took it (stripPii).
-    ['a dotted date, an ISO-shaped run, a folded ID', '14.12.2569-25-15.17-6‑⓪⑥⑤⑨⑥⑤①⓪⑧③, x', '[DATE-1].[ID-1], x'],
+    ['a dotted date, an ISO-shaped run, a folded ID', '14.12.2569-25-15.17-6‑⓪⑥⑤⑨⑥⑤①⓪⑧③, x', '[DATE-2].[ID-1], x'],
     ['a middle-dot HN that would put AN at a word start', 'HN· 0966744AN 2747256-4.12.25 x', '[HN-1][DATE-1] x'],
     // A group glued to a numbered section that a folded pass masked first still lifts the exemption (NUMBERED).
     ['a version number glued to a keycap phone', 'version 1.2.10/0️⃣8️⃣1️⃣-234-5678', 'version [DATE-1]/[PHONE-1]'],
@@ -309,13 +310,13 @@ describe('#474 exact outputs', () => {
     // mask of this filter's it overlaps, under master's category (stripPii).
     ['an ISO date, a 7-digit run', 'Seen 2026-01-02 0262769 ok', 'Seen [DATE-1] ok'],
     ['a landline-shaped run, a slashed date', '023 06454977 0/3/68', '023 [DATE-1]'],
-    ['a glued house number, phone groups', 'เลขที่07-093-980-135-12', '[ADDR-1]'],
+    ['a glued house number, phone groups', 'เลขที่07-093-980-135-12', '[ADDR-2]'],
     ['an ID across two runs, a slashed date', '042761118 0855 024-31/8/20', '[PHONE-1] [DATE-1]'],
     ['an unlabelled age, a middle-dot domain', 'Patient is 45 years old@example·com', 'Patient is [AGE-1]'],
     ['an unlabelled age, a middle-dot email', '45 years old·bob@example.com', '[AGE-1]'],
     ['an HN padded with 44 spaces, a 13-digit run', `HN${' '.repeat(44)}12 34–89012345678`, '[HN-1]'],
     ['a phone padded with spaces, a 13-digit run', `08${'        1'.repeat(6)}        5–123456789012`, '[PHONE-1]'],
-    ['a long house-number chain, a dashed date', `บ้านเลขที่ ${'1/'.repeat(20)}1-20-10-2569-55-6`, '[ADDR-1]'],
+    ['a long house-number chain, a dashed date', `บ้านเลขที่ ${'1/'.repeat(20)}1-20-10-2569-55-6`, '[ADDR-2]'],
     ['an HN sub-number that opens a spaced phone', 'HN5198/08        5    5    5    5    5  99', '[PHONE-1]'],
     ['a phone-shaped run, an ISO date, a slashed date', '040‑2024-04-28.0/8/29', '[DATE-2].[DATE-1]'],
     ['a keycap MRN, a dotted date, a slashed date', 'MRN664⃣9.3.10.9/8/25', '[DATE-2].[DATE-1]'],

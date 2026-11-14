@@ -114,8 +114,9 @@ function makeRegistry() {
   // Master's registry for this call (#474): stripPii runs master's passes on it, every text of the call, so a name master
   // learns in one text masks it in the next exactly as master did. Its tokens never reach the output: `tokens` maps
   // each to the token of this registry that stands for the same referent (withMastersMasks).
+  // `cuts` maps a booth answer this registry cut earlier than master did to master's cut of it (maskLabelledTail).
   let shadow = null;
-  token.shadow = () => (shadow ??= { registry: makeRegistry(), tokens: new Map() });
+  token.shadow = () => (shadow ??= { registry: makeRegistry(), tokens: new Map(), cuts: new Map() });
 
   token.alias = alias;
   token.wordAlias = wordAlias;
@@ -1699,24 +1700,27 @@ function runTraced(input, passes, token, hints) {
 }
 
 // `own.out` with each mask of master's that left a letter or digit in clear made, merged with every mask of `own` it
-// overlaps into one token of master's category, keyed by the input's plain view. One of `own`'s lends its number, else
-// the token an earlier text's union made for the same master token (`shadowTokens`), so a referent keeps one token
-// across the call.
+// overlaps into one token of master's category, keyed by the input's plain view. A token is shared only between masks of
+// one span, which hold one value, so two people are never merged (#474: "WARD:Prof John Brown" after "Prof John Smith",
+// where `own` masks only John). A master token maps to the token of a mask of `own`'s over exactly its span, or of a
+// union over exactly its span (`shadowTokens`); a union over exactly a mapped master mask's span takes that token, any
+// other takes its value's own. A referent may so split into two tokens, never two referents into one.
 function withMastersMasks(input, own, master, token, shadowTokens) {
   const clear = new Uint8Array(input.length);
   for (const x of own.src) if (x >= 0 && /[\p{L}\p{N}]/u.test(String.fromCodePoint(input.codePointAt(x)))) clear[x] = 1;
   const live = (r) => [...new Set(r.src.filter((x) => x < 0))].map((x) => r.masks[-1 - x]).filter((k) => k.a < k.b);
   const ofOwn = live(own).sort((x, y) => x.a - y.a);
   const ofMasters = live(master);
-  // A master token met first where this filter masked it too takes the token of `own`'s mask of its category over it, so
-  // a later text that masks the referent only through the union keeps that token (Dr. Somchai Jaidee, then Jaidee).
+  // A master token met first where this filter masked its very span too takes the token of `own`'s mask there, so a later
+  // text that masks the referent only through the union keeps that token (Dr. Somchai Jaidee, then Jaidee).
   for (const k of ofMasters) {
     if (!k.tok || shadowTokens.has(k.tok)) continue;
     let lo = 0;
     let hi = ofOwn.length;
-    while (lo < hi) { const mid = (lo + hi) >> 1; if (ofOwn[mid].b <= k.a) lo = mid + 1; else hi = mid; }
-    for (let j = lo; j < ofOwn.length && ofOwn[j].a < k.b; j += 1) {
-      if (ofOwn[j].cat === k.cat && ofOwn[j].tok) { shadowTokens.set(k.tok, ofOwn[j].tok); break; }
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (ofOwn[mid].a < k.a) lo = mid + 1; else hi = mid; }
+    for (let j = lo; j < ofOwn.length && ofOwn[j].a === k.a; j += 1) {
+      const o = ofOwn[j];
+      if (o.b === k.b && o.cat === k.cat && o.tok) { shadowTokens.set(k.tok, o.tok); break; }
     }
   }
   const leaked = ofMasters.filter((k) => clear.subarray(k.a, k.b).includes(1));
@@ -1743,12 +1747,11 @@ function withMastersMasks(input, own, master, token, shadowTokens) {
     else if (!g.done) {
       g.done = true;
       const value = buildPlainView(input.slice(g.a, g.b)).view;
-      const ofMaster = g.toks.filter((k) => k.master && k.tok && k.cat === g.cat);
-      const lend = g.toks.find((k) => !k.master && k.cat === g.cat)?.tok
-        ?? ofMaster.map((k) => shadowTokens.get(k.tok)).find(Boolean);
+      const whole = g.toks.filter((k) => k.master && k.tok && k.cat === g.cat && k.a === g.a && k.b === g.b);
+      const lend = whole.map((k) => shadowTokens.get(k.tok)).find(Boolean);
       if (lend) token.alias(g.cat, value, lend);
       const tok = token(g.cat, value);
-      for (const k of ofMaster) if (!shadowTokens.has(k.tok)) shadowTokens.set(k.tok, tok);
+      for (const k of whole) if (!shadowTokens.has(k.tok)) shadowTokens.set(k.tok, tok);
       out += tok;
     }
   }
@@ -1772,14 +1775,30 @@ function stripHistoryPii(history, hints = [], registry = makeRegistry()) {
 // away. Texts run in the given order, so token numbering is unchanged (prefix-stable). Each round is linear;
 // past SURNAME_MAX_ROUNDS it throws (fail closed).
 function primeRegistry(texts, registry, hints = []) {
+  const all = [...texts, ...asMasterCut(texts, registry)];
   let before = -1;
   for (let round = 0; round < SURNAME_MAX_ROUNDS; round++) {
-    for (const t of texts) stripPii(t, registry, hints);
+    for (const t of all) stripPii(t, registry, hints);
     const after = registry.size();
     if (after === before) return registry;
     before = after;
   }
   throw new Error('PII filter: surname search did not settle');
+}
+
+// Each text that holds a booth answer this filter cut earlier than master (maskLabelledTail), as master cut it (#474).
+// They are primed after the texts of the call, so numbering is unchanged: master read, and learnt names from, the text
+// between the two cuts (𝐍𝐚𝐦𝐞 Dr Somchai Jaidee, then Jaidee has fever), so both registries must too.
+function asMasterCut(texts, registry) {
+  const { cuts } = registry.shadow();
+  if (cuts.size === 0) return [];
+  const out = [];
+  for (const t of texts) {
+    let m = t;
+    for (const [own, theirs] of cuts) m = m.split(own).join(theirs);
+    if (m !== t) out.push(m);
+  }
+  return out;
 }
 
 // The identifier labels of a booth typed answer (maskLabelledTail). English matches in any case, with the words of a
@@ -1820,16 +1839,23 @@ const BOOTH_LABEL_RES = [
 // cause", "address hypoxia first"). A value typed after a label has no end a rule can find (each value-extent rule
 // tried in #422 leaked the next shape), so everything from the first label to the end of the answer becomes ONE token
 // of `registry`, fail closed. The token is not a NAME and registers no alias, so no part of the value is masked, or
-// learnt, anywhere else in the call.
+// learnt, anywhere else in the call, but for what master learnt: the text a fold cuts before master's cut (asMasterCut).
 // A label is looked for in master's view and in the folded view (𝐍𝐚𝐦𝐞:), and the earlier hit wins, so a fold only adds
-// hits: folded, the 𝐀 of 𝐀HN would hide the label's word start.
+// hits: folded, the 𝐀 of 𝐀HN would hide the label's word start. Where the fold cuts earlier, master's cut (its view
+// alone, its tail a token of the registry's shadow) is kept in `shadow.cuts` for primeRegistry (asMasterCut).
 function maskLabelledTail(answer, registry) {
   const text = answer.replace(ZERO_WIDTH_RE, '');
-  const starts = [buildPlainView(text), buildFoldedView(text, false)].flatMap(({ view, at }) => BOOTH_LABEL_RES
+  const labelAt = ({ view, at }) => Math.min(...BOOTH_LABEL_RES
     .map((re) => view.search(re)).filter((i) => i >= 0).map((i) => (at ? at[i] : i)));
-  if (starts.length === 0) return text;
-  const at = Math.min(...starts);
-  return `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
+  const plain = labelAt(buildPlainView(text));
+  const at = Math.min(plain, labelAt(buildFoldedView(text, false)));
+  if (at === Infinity) return text;
+  const out = `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
+  if (at < plain) {
+    const shadow = registry.shadow();
+    shadow.cuts.set(out, plain === Infinity ? text : `${text.slice(0, plain)}${shadow.registry('PII', text.slice(plain))}`);
+  }
+  return out;
 }
 
 module.exports = { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry, maskLabelledTail, BOOTH_ID_LABELS };
