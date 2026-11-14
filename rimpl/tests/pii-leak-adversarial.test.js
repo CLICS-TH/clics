@@ -1948,3 +1948,135 @@ describe('adversarial — the #474 passes run after master\'s and stop none of i
     expect(stripPii(input)).toBe(expected);
   });
 });
+
+// ===========================================================================
+// GATE OF PR #505, round 2: the #474 value shapes this PR does not close. A master pass that runs first (AGE, the
+// house-number ADDR pass, a NAME alias) takes one digit group or the month word of a #474 value, and the #474 passes,
+// which run after master's, find no whole shape left. The head then gives master's output exactly. This block lets a
+// #474 value digit survive outside a token only where the head equals master, and only by one of the mechanisms
+// docs/MIDDLEWARE-KNOWN-GAPS.md lists ("#474 shapes an earlier master pass splits"). Any other leak fails. All values are
+// synthetic.
+// ===========================================================================
+describe('adversarial — a #474 value left raw is a documented residual that equals master (gate of #505, round 2)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const { maskLabelledTail } = require('../src/services/pii-filter');
+  const master = require('./fixtures/pii-filter.master-9438d7a2');
+  const GAPS = fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'MIDDLEWARE-KNOWN-GAPS.md'), 'utf8');
+  const kc = (d) => [...d].map((c) => `${c}️⃣`).join('');
+  const circ = (d) => [...d].map((c) => (c === '0' ? '⓪' : String.fromCodePoint(0x245f + Number(c)))).join('');
+  const fw = (s) => s.replace(/[0-9]/g, (c) => String.fromCodePoint(c.charCodeAt(0) + 0xfee0));
+  // The #474 value shapes the gate's grid used, and the plain forms master already masks.
+  const VALUES = [...new Set([
+    '2569/12/11', '11-12-2569', '2026-1-5', '1999.  1.2', '20 Oct 1967', '20 ตุลาคม 2510', '20 October 1967',
+    'October 20, 1967', 'Oct 20 1967', '20/10/2569', '20.10.2569', '20-10-67', '2026-10-20', '1967/10/20', '20.10.69',
+    '๒๐/๑๐/๒๕๖๙', '20 ต.ค. 10', '20 ต.ค. 2510', '12/03/1967', '5. 1. 2026', '20. 10. 2569', '20th October 1967',
+    'June 5 2020', 'May 5 2020', '12 April 1960', '20 กันยายน 2510',
+    '081–234–5678', '081‑234‑5678', '081·234·5678', '081−234−5678', '081-234-5678', '081 234 5678', '0812345678',
+    '+66 81 234 5678', kc('0812345678'), circ('0812345678'), fw('0812345678'),
+    '1‑2345‑67890‑12‑3', '1–2345–67890–12–3', '1·2345·67890·12·3', '1.2345.67890.12.3', '1-2345-67890-12-3',
+    '1 2345 67890 12 3', '1234567890123', '๑๒๓๔๕๖๗๘๙๐๑๒๓',
+    'Ward: 5A', 'age = 45', 'HN 1234/67', 'บ้านเลขที่ 99 / 1', '5-10-2500',
+  ])];
+  const LABELS = ['', 'อายุ ', 'เลขที่ ', 'บ้านเลขที่ ', 'บัตรประชาชนเลขที่ ', 'โทรศัพท์เลขที่ '];
+  // A month or month-stem name registered as a NAME alias in an earlier turn.
+  const ALIASES = ['Mrs April Smith', 'Mrs June Smith', 'Mrs May Smith', 'Mr Oct Smith', 'Mr October Smith', 'nickname Oct',
+    'นางตุลา ใจดี', 'นางกันยา ใจดี'];
+  const SUFFIXES = ['', ' ปี', 'ปี', ' y/o', ' ค่ะ'];
+  const AGE_WORD = /^\s*(?:ปี|y\/o)/;
+  const strip = (s) => s.replace(/\[[A-Z]+-\d+\]/g, '');
+  const count = (s, p) => s.split(p).length - 1;
+  // The digit runs of the value that the output holds outside a token more often than the text around the value does.
+  const rawDigits = (value, out, context) => [...new Set(value.match(/[\p{L}\p{N}]+/gu) ?? [])]
+    .filter((p) => /\p{N}/u.test(p) && count(strip(out), p) > count(context, p));
+
+  // Each mechanism, with the example the gaps doc and the PR body cite: input, and the output of both head and master.
+  const KINDS = [
+    { name: 'an age word after the value: master\'s AGE pass takes the last digit group',
+      texts: ['1.2345.67890.12.3 ปี'], out: '1.2345.67890.12.[AGE-1]',
+      is: (r) => AGE_WORD.test(r.suffix) && /\[AGE-\d+\]/.test(r.out) },
+    { name: 'อายุ before the value: master\'s AGE pass takes the label and the first digit group',
+      texts: ['อายุ 081–234–5678'], out: '[AGE-1]–234–5678',
+      is: (r) => r.lead === 'อายุ ' && /\[AGE-\d+\]/.test(r.out) },
+    { name: 'เลขที่ or บ้านเลขที่ before the value: master\'s house-number ADDR pass takes the label and the first digit group',
+      texts: ['บัตรประชาชนเลขที่ 1.2345.67890.12.3'], out: 'บัตรประชาชน[ADDR-1].2345.67890.12.3',
+      is: (r) => /เลขที่ $/.test(r.lead) && /\[ADDR-\d+\]/.test(r.out) },
+    { name: 'a month-named alias before a day-first date: master\'s NAME alias pass takes the month word',
+      texts: ['นางตุลา ใจดี', '20 ตุลาคม 2510'], out: '20 [NAME-1]คม 2510',
+      is: (r) => r.alias && /\[NAME-\d+\]/.test(r.out) },
+    { name: 'a dash day-first date with a two-digit year: no pass on master or the head reads it',
+      texts: ['20-10-67'], out: '20-10-67',
+      is: (r) => r.value === '20-10-67' },
+  ];
+
+  function grid() {
+    const rows = [];
+    for (const value of VALUES) for (const suffix of SUFFIXES) {
+      for (const lead of LABELS) {
+        const input = `${lead}${value}${suffix}`;
+        rows.push({ input, value, lead, suffix, alias: null, out: stripPii(input), want: master.stripPii(input),
+          context: `${lead}${suffix}` });
+      }
+      for (const alias of ALIASES) for (const lead of ['', 'เกิด ']) {
+        const input = `${lead}${value}${suffix}`;
+        const history = [{ content: `${alias} seen` }, { content: input }];
+        const got = stripHistoryPii(history).map((m) => m.content);
+        const want = master.stripHistoryPii(history).map((m) => m.content);
+        rows.push({ input: `${alias} seen || ${input}`, value, lead, suffix, alias, out: got[1], want: want[1],
+          same: got.join('\n') === want.join('\n'), context: `${lead}${suffix}` });
+      }
+    }
+    return rows;
+  }
+  const ROWS = grid();
+  const RESIDUALS = ROWS.filter((r) => rawDigits(r.value, r.out, r.context).length);
+  // A residual the head does not share with master, as one line each.
+  const newLeaks = (rows) => rows.filter((r) => rawDigits(r.value, r.out, r.context).length)
+    .filter((r) => (r.alias ? !r.same : r.out !== r.want))
+    .map((r) => `${JSON.stringify(r.input)}: head ${JSON.stringify(r.out)}, master ${JSON.stringify(r.want)}`);
+
+  test('every input where a #474 value digit survives outside a token gives master\'s exact output', () => {
+    expect(newLeaks(ROWS)).toEqual([]);
+    expect(ROWS.length).toBeGreaterThan(4000);
+  });
+
+  test('every such residual is one of the mechanisms the gaps doc lists', () => {
+    const unlisted = RESIDUALS.filter((r) => !KINDS.some((k) => k.is(r)))
+      .map((r) => `${JSON.stringify(r.input)}: ${JSON.stringify(r.out)}`);
+    expect(unlisted).toEqual([]);
+    // Each mechanism is live in the grid: a kind the filter closes leaves the doc stale, and this fails.
+    for (const k of KINDS) expect([k.name, RESIDUALS.filter(k.is).length > 0]).toEqual([k.name, true]);
+  });
+
+  test.each(KINDS.map((k) => [k.name, k]))('%s: the example gives this output on head and master, and the gaps doc cites it', (_name, k) => {
+    const history = k.texts.map((content) => ({ content }));
+    const got = stripHistoryPii(history).map((m) => m.content);
+    const want = master.stripHistoryPii(history).map((m) => m.content);
+    expect(got[got.length - 1]).toBe(k.out);
+    expect(got).toEqual(want);
+    for (const s of [...k.texts, k.out]) expect(GAPS).toContain(`\`${s}\``);
+  });
+
+  // Shapes outside the grid above that leak on master and on the head alike, through stripPii (the unfenced paths:
+  // scored chat, a booth turn from a backend before #400) and, where noted, through the booth fence's label tail too.
+  test.each([
+    ['ID1234567890123', false], ['DOB12/03/1967', false], ['20 / 10 / 2569', true], ['HN-1234567', false],
+    ['Name: Dalton Carter', false], ['ชื่อ: Dalton Carter', false], ['𝐀𝐍 Dalton Carter', true],
+  ])('%j leaks on head and master alike, and the gaps doc lists it (fenced leak too: %s)', (input, fenced) => {
+    expect(stripPii(input)).toBe(input);
+    expect(master.stripPii(input)).toBe(input);
+    expect(maskLabelledTail(input, makeRegistry()) === input).toBe(fenced);
+    expect(master.maskLabelledTail(input, master.makeRegistry()) === input).toBe(fenced);
+    expect(GAPS).toContain(`\`${input}\``);
+  });
+
+  test('the guard sees a new leak: a head output that leaves a value digit raw and differs from master fails it', () => {
+    const input = 'โทร 081-234-5678';
+    const row = (out) => ({ input, value: '081-234-5678', alias: null, out, want: master.stripPii(input), context: 'โทร ' });
+    expect(row('').want).toBe('โทร [PHONE-1]');
+    expect(newLeaks([row('โทร [PHONE-1]-234-5678')])).toHaveLength(1); // master masks it whole: a new leak
+    expect(newLeaks([row('โทร [PHONE-1]')])).toEqual([]);
+    expect(newLeaks([{ ...row('2569/12/[AGE-1]'), input: '2569/12/11 ปี', value: '2569/12/11', want: '2569/12/[AGE-1]',
+      context: ' ปี' }])).toEqual([]); // the same leak as master: a residual
+  });
+});
