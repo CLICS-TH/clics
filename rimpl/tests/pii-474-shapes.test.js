@@ -259,6 +259,9 @@ describe('#474 exact outputs', () => {
     ['a middle-dot email with a two-label country domain', 'a·b@mail.mahidol.ac.th x', '[EMAIL-1] x'],
     // A run that opens with a phone is two phones only when the rest of its number is one more phone.
     ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],
+    // A rest that opens with no 0, or that no phone pass masks, is no second phone: the run stays master's ID.
+    ['a phone, then digits that are no phone', '0812345678 123 456789', '[ID-1] 456789'],
+    ['a phone, then groups that are no phone', '0812345678 123 456 7890', '[ID-1] 456 7890'],
   ])('%s', (_shape, input, out) => {
     expect(stripPii(input)).toBe(out);
   });

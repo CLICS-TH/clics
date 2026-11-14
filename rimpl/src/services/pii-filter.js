@@ -549,44 +549,59 @@ const hnWithoutTail = (m) => {
   return t ? m.slice(0, t.index) : null;
 };
 
+// The passes of `cats`, each with a sticky copy of its regex; built after PASSES.
+const shapesOf = (cats) => PASSES.filter((p) => p.re && cats.includes(p.cat))
+  .map((p) => ({ re: p.re, rx: new RegExp(p.re.source, p.re.flags.replace('g', '') + 'y'), guard: p.guard }));
+// Whether one of `shapes` masks a match that starts at the head of `s` and runs past its first `min` units, by its own
+// regex and guard, or a shorter match its guard takes (longestGuarded).
+function opensShape(shapes, s, min) {
+  for (const { re, rx, guard } of shapes) {
+    rx.lastIndex = 0;
+    const x = rx.exec(s);
+    if (!x || x[0].length <= min) continue;
+    const ok = (e, t) => t.length > min && (!guard || guard(t, t, s.slice(e)));
+    if (ok(x[0].length, x[0]) || longestGuarded(s, re, 0, x[0].length, ok)) return true;
+  }
+  return false;
+}
+
 // The HN, MRN and AN guard: 4 to 12 digits before the sub-number, and a sub-number that opens no phone, date or ID. It
 // asks every PHONE, DATE and ID pass, by its own regex and guard (or a shorter match its guard takes), whether it matches
 // from the sub-number's first digit past the sub-number's end: /20/10/2569, /20.10. 2569, /081-234-5678,
 // /66 81 234 5678, /66-812345678 are refused, and the pass falls back to the code alone (longestGuarded), so the phone,
-// date or ID is masked whole by its own pass. Other digits after a sub-number are not its to refuse: HN 1234/67 2 ครั้ง
-// keeps /67 in the HN, HN 1234567/12 081-234-5678 its /12, HN 1234/20.5 its /20.
-let TAIL_SHAPES = null; // the PHONE, DATE and ID passes, built after PASSES
+// date or ID is masked whole by its own pass. The passes are asked of the text as written and as the folded runs read it
+// (dash look-alikes as '-', middle dots as '.' and as a space): /081·234·5678 and /20–10–2569 are refused too, so the
+// folded run masks them whole. Other digits after a sub-number are not its to refuse: HN 1234/67 2 ครั้ง keeps /67 in
+// the HN, HN 1234567/12 081-234-5678 its /12, HN 1234/20.5 its /20.
+let TAIL_SHAPES = null;
 function hnGuard(m, _orig, rest = '') {
   const d = m.split('/')[0].replace(/\D/g, '').length;
   if (d < 4 || d > 12) return false;
   const tail = /\/\s*(\d+)$/.exec(m);
   if (!tail) return true;
-  TAIL_SHAPES ??= PASSES.filter((p) => p.re && ['PHONE', 'DATE', 'ID'].includes(p.cat))
-    .map((p) => ({ re: p.re, rx: new RegExp(p.re.source, p.re.flags.replace('g', '') + 'y'), guard: p.guard }));
+  TAIL_SHAPES ??= shapesOf(['PHONE', 'DATE', 'ID']);
   const digits = tail[1];
   const s = digits + rest;
-  for (const { re, rx, guard } of TAIL_SHAPES) {
-    rx.lastIndex = 0;
-    const x = rx.exec(s);
-    if (!x || x[0].length <= digits.length) continue;
-    const ok = (e, t) => t.length > digits.length && (!guard || guard(t, t, s.slice(e)));
-    if (ok(x[0].length, x[0]) || longestGuarded(s, re, 0, x[0].length, ok)) return false;
-  }
-  return true;
+  return !opensShape(TAIL_SHAPES, s, digits.length);
 }
 
 // A 13-digit run of the ID pass that is two phones: it opens with a grouped phone (081-234-5678 089-876-5432), or with
-// an ungrouped one whose number, read on to its end (`rest` is the view after the run), holds one more phone
-// (0812345678 081-234-5678). Read on, 0812345678-081-234-5678-02 123 4567 holds more, so it stays an ID: skipped,
-// the ID found next would take the middle phone's last group and leave its first ones in clear.
+// an ungrouped one whose number, read on to its end (`rest` is the view after the run), holds one more phone that opens
+// with 0 and that a phone pass masks (0812345678 081-234-5678). 0812345678 123 456789 holds no second phone: an ID.
+// Read on, 0812345678-081-234-5678-02 123 4567 holds more, so it stays an ID: skipped, the ID found next would take the
+// middle phone's last group and leave its first ones in clear.
 const OPENS_WITH_GROUPED_PHONE_RE = /^\(?0\d{1,2}\)?[\s-]+\d{3,4}[\s-]+\d{3,4}[\s-]/;
 const OPENS_WITH_PHONE_RE = /^0\d{8,9}[\s-]/;
+let PHONE_SHAPES = null;
 function isTwoPhones(m, rest = '') {
   if (OPENS_WITH_GROUPED_PHONE_RE.test(m)) return true;
   const open = OPENS_WITH_PHONE_RE.exec(m);
   if (!open) return false;
-  const d = (m.slice(open[0].length) + /^(?:[\s-]?\d)*/.exec(rest)[0]).replace(/\D/g, '').length;
-  return d >= 9 && d <= 10;
+  const second = m.slice(open[0].length);
+  const d = (second + /^(?:[\s-]?\d)*/.exec(rest)[0]).replace(/\D/g, '').length;
+  if (d < 9 || d > 10 || second[0] !== '0') return false;
+  PHONE_SHAPES ??= shapesOf(['PHONE']);
+  return opensShape(PHONE_SHAPES, second + rest, second.length);
 }
 
 const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
