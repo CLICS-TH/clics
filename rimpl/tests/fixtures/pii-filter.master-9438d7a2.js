@@ -1,5 +1,5 @@
-// Frozen copy of rimpl/src/services/pii-filter.js at master 9438d7a2, the oracle of tests/pii-filter-superset.test.js
-// (#474): every input this filter masks must be masked by the current one. Do not edit; never loaded by src/.
+// Frozen copy of rimpl/src/services/pii-filter.js at master 9438d7a2, the oracle of tests/pii-leak-adversarial.test.js,
+// block "adversarial — the filter masks every character master masks (no stopped mask, #474)". Do not edit; never loaded by src/.
 'use strict';
 
 // ---------------------------------------------------------------------------
@@ -32,8 +32,8 @@
 // later bare given-name occurrence ("สมชายบอกว่า...") resolve to the token the
 // full name "นายสมชาย ใจดี" already got — preserving coreference across turns
 // even when the surface form differs.
-const { TH_GIVEN_NAMES, TH_SURNAMES, TH_SURNAME_MORPHEMES } = require('../../src/services/pii-names.th');
-const { TH_CLINICAL_CONTINUATIONS } = require('../../src/services/pii-clinical-words.th');
+const { TH_GIVEN_NAMES, TH_SURNAMES, TH_SURNAME_MORPHEMES } = require('./pii-names.th');
+const { TH_CLINICAL_CONTINUATIONS } = require('./pii-clinical-words.th');
 
 function makeRegistry() {
   const counters = Object.create(null); // category -> next index

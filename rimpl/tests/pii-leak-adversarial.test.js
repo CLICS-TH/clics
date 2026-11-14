@@ -1671,7 +1671,8 @@ describe('adversarial — date, separator, label and non-decimal-digit shapes (#
 // GATE ROUND 1 OF PR #498 (review of f9f15f10). The wide ASCII view of #474 changed what a pass's edges read, and
 // masks that master made stopped: a letter-like character glued to a number folded into ASCII letters (no `\b`), a
 // folded dash before LINE met its `(?<![-\w])`, and the month-day DATE pass took a name after a title before the NAME
-// pass could register it. pii-filter-superset.test.js checks the whole class against master. All values are synthetic.
+// pass could register it. The block "adversarial — the filter masks every character master masks (no stopped mask,
+// #474)" at the end of this file checks the whole class against master. All values are synthetic.
 // ===========================================================================
 describe('adversarial — the wide view and the #474 passes stop no mask master made (gate round 1 of #498)', () => {
   const { maskLabelledTail } = require('../src/services/pii-filter');
@@ -1729,70 +1730,122 @@ describe('adversarial — the wide view and the #474 passes stop no mask master 
 
 // ===========================================================================
 // NO STOPPED MASK (#474, after #502). The oracle is master's own filter, frozen at 9438d7a2 in
-// tests/fixtures/pii-filter.master-9438d7a2.js: every character master masks in an input must be masked by the current
-// filter too, so this change carries no residual. The grid varies what #498's gate rounds found escapes in: the
-// character before a label, full-width marks and letters, Unicode whitespace and its runs, label case, and date shape;
-// then the #474 inputs and the #502 round-0 inputs. All values are synthetic.
+// tests/fixtures/pii-filter.master-9438d7a2.js with the two name lists it loads beside it: every character master
+// masks in an input must be masked by the current filter too, and every NAME alias master registers must be registered
+// too, so this change carries no residual. A generator takes the product of the character before a label, the label,
+// the separator after it and the value; a second one runs a multi-turn history through every NAME pass that registers
+// aliases, with month-word and common-word names. Then the #474 inputs, the #502 round-0 inputs and the gate notes.
+// All values are synthetic.
 // ===========================================================================
 describe('adversarial — the filter masks every character master masks (no stopped mask, #474)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const crypto = require('crypto');
   const master = require('./fixtures/pii-filter.master-9438d7a2');
+  const head = { stripPii, stripHistoryPii, makeRegistry };
   const TOKEN_RE = /\[[A-Z]+-\d+\]/g;
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // The input indexes a token replaced: the text between tokens is the input's own, in order. null if it is not.
+  // The input indexes a token replaced: the text between tokens is the input's own, in order. null if it is not. A
+  // title or label before a token may lose its dot and spaces or gain one space (master writes "Mrs. June" as
+  // "Mrs [NAME-1]" and "ชื่อสมชาย" as "ชื่อ [NAME-1]"), so a piece's closing spaces read any run of dots and spaces.
   function maskedIndexes(input, out) {
-    const pieces = out.split(TOKEN_RE);
-    const m = new RegExp(`^${pieces.map(esc).join('([\\s\\S]+?)')}$`, 'd').exec(input);
+    const pieces = out.split(TOKEN_RE).map((p, k, all) => (k < all.length - 1 ? esc(p).replace(/\s+$/, '[.\\s]*') : esc(p)));
+    const m = new RegExp(`^${pieces.join('([\\s\\S]+?)')}$`, 'd').exec(input);
     if (!m) return null;
     const masked = new Set();
     for (const [s, e] of m.indices.slice(1)) for (let i = s; i < e; i += 1) masked.add(i);
     return masked;
   }
-  // Every master-masked index the head leaves raw, as one line per input; [] when the head masks a superset. Whitespace
-  // is no PII, nor a label and its mark (master's WARD token takes `ward:` with it): `skip(k)` gives input k's label span.
-  function stopped(inputs, run, skip = () => [0, 0]) {
-    const lines = [];
+  // One line when the head leaves raw any character master masks in `input`, labels and marks included, or when an
+  // output does not align with the input; null when the head masks a superset. Whitespace is no PII, and where two
+  // tokens sit side by side the alignment cannot tell which one took the space between them, so it is not compared.
+  function stoppedOne(input, want, got) {
+    if (want === input) return null; // master masks nothing here
+    const w = maskedIndexes(input, want);
+    const g = maskedIndexes(input, got);
+    const line = `${JSON.stringify(input)}: master ${JSON.stringify(want)}, head ${JSON.stringify(got)}`;
+    if (!w || !g) return `unaligned | ${line}`;
+    for (const i of w) if (!g.has(i) && /\S/.test(input[i])) return line;
+    return null;
+  }
+  function stopped(inputs, run) {
     const masterOut = run(master);
-    const headOut = run({ stripPii, stripHistoryPii });
-    inputs.forEach((input, k) => {
-      const want = maskedIndexes(input, masterOut[k]);
-      const got = maskedIndexes(input, headOut[k]);
-      if (!want || !got) {
-        lines.push(`unaligned | ${JSON.stringify(input)} master ${JSON.stringify(masterOut[k])} head ${JSON.stringify(headOut[k])}`);
-        return;
-      }
-      const [s0, e0] = skip(k);
-      const raw = [...want].filter((i) => !got.has(i) && /\S/.test(input[i]) && (i < s0 || i >= e0));
-      if (raw.length) lines.push(`${JSON.stringify(input)}: master ${JSON.stringify(masterOut[k])}, head ${JSON.stringify(headOut[k])}`);
-    });
-    return lines;
+    const headOut = run(head);
+    return inputs.map((input, k) => stoppedOne(input, masterOut[k], headOut[k])).filter(Boolean);
   }
   const single = (inputs) => stopped(inputs, (f) => inputs.map((x) => f.stripPii(x)));
 
-  const BEFORE = ['', 'note ', 'note 1', 'note _', 'นัด', 'notea'];
-  const LABELS = ['', 'version', 'Version', 'VERSION', 'vERSION', 'ver', 'VER', 'ver.', 'v', 'V', 'rev', 'REV', 'Rev.',
-    'sec', 'SEC', 'Sec.', 'section', 'Section', 'SECTION', 'C-SECTION', 'chapter', 'Chapter', 'CHAPTER',
-    'ＶＥＲＳＩＯＮ', 'ｖｅｒｓｉｏｎ', 'Ｖ', 'ｓｅｃ', 'หัวข้อ', 'ข้อ', 'มาตรา', 'DOB', 'HN', 'AN',
-    'MRN', 'ward', 'Ward', 'ห้อง', 'age', 'aged', 'AGE', 'บ้านเลขที่', 'เลขที่'];
-  const WS = [' ', ' ', '　', ' ', '\t', '\r', '\n', '\r\n'];
-  const SEPS = [...new Set([
-    '',
-    ...WS,
-    ...[2, 3, 4, 5, 6, 7, 8].map((k) => ' '.repeat(k)),
-    ' '.repeat(4), '　　', '\t\t\t\t', '\r\n\r\n', ' \t\n ',
-    ...[':', '#', '：', '＃', '='].flatMap((p) => ['', ' '].flatMap((a) => ['', ' ', ' ', '   ', '\r\n'].map((b) => `${a}${p}${b}`))),
-  ])];
-  const DATES = [
-    '20.10.69', '1.2.10', '20.10.569', '20.10.2569', '20.10.2026', '5.1.2026', '20. 10. 2569', '20. 10. 2569',
-    '20.  10.2026', '2569.10.20', '2026.10.20', '2026.1.5', '2024.10.1', '1999.  1.2', '20/10/69', '20/10/2569',
-    '2026/10/20', '2569/12/11', '20-10-2569', '11-12-2569', '2026-10-20', '2026-1-5', '20-10-69',
-  ];
-
-  test.each(LABELS.map((l) => [l || '(no label)', l]))('after %s, any character before it, any separator, any date', (_name, label) => {
-    const cases = BEFORE.flatMap((b) => SEPS.flatMap((s) => DATES.map((d) => [`${b}${label}${s}${d}`, b.length, b.length + label.length + s.length])));
-    const inputs = cases.map(([x]) => x);
-    const lines = stopped(inputs, (f) => inputs.map((x) => f.stripPii(x)), (k) => cases[k].slice(1));
-    expect(lines).toEqual([]);
+  // The oracle is frozen: its filter is master's file byte for byte under a two-line header, and the name lists it
+  // loads are master's blobs. A git blob id is sha1("blob <bytes>\0" + content).
+  const blobId = (buf) => crypto.createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${buf.length}\0`), buf])).digest('hex');
+  test.each([
+    ['pii-filter.master-9438d7a2.js', '34f871050dc87bd3772967d846aaa72d3e1f4289', 2],
+    ['pii-names.th.js', 'f7ecf43f407d49884e0ae0ad8be0edebee07ba25', 0],
+    ['pii-clinical-words.th.js', 'e8d6318f48c422b4a228df2e2139cee56dc37f0c', 0],
+  ])('the oracle file fixtures/%s is master 9438d7a2\'s blob', (file, blob, header) => {
+    const text = fs.readFileSync(path.join(__dirname, 'fixtures', file), 'utf8');
+    expect(blobId(Buffer.from(text.split('\n').slice(header).join('\n')))).toBe(blob);
   });
+  test('every test file a comment of the oracle or this suite names exists', () => {
+    const named = ['fixtures/pii-filter.master-9438d7a2.js', 'pii-leak-adversarial.test.js']
+      .flatMap((f) => fs.readFileSync(path.join(__dirname, f), 'utf8').match(/[\w-]+\.test\.js/g) ?? []);
+    expect(named.filter((f) => !fs.existsSync(path.join(__dirname, f)))).toEqual([]);
+  });
+
+  // --- Generator 1: the character before × the label × the separator after it × the value. ---
+  const PREFIXES = ['', ' ', '7', '_', 'ก', 'x', '1.', 'No. 3.', 'Hb 12.', 'Ｘ', '№', '™'];
+  const LABELS = ['', 'ID', 'HN', 'AN', 'MRN', 'LINE', 'ไลน์', 'DOB', 'ward', 'age', 'บ้านเลขที่', 'เลขที่', 'version',
+    'VERSION', 'sec', 'หัวข้อ'];
+  const SEPARATORS = ['', ' ', '  ', '   ', '    ', '     ', '      ', '       ', '        ', '-',
+    '–', '—', '‑', '−', '·', '‒', '―', '⁃', '‐', '•', ':', '：', '＃', ' ', '　', ' ', '\t', '\r', '\n', '\r\n'];
+  const VALUES = [
+    '1234567890123', '1-2345-67890-12-3', '1.2345.67890.12.3', '1·2345·67890·12·3',
+    '0812345678', '081 234 5678', '081-234-5678', '081.234.5678',
+    '20/10/2569', '20.10.2569', '20. 10. 2569', '20.  10.  2569', '2569/12/11', '2026-1-5', '11-12-2569', '2026.10.20',
+    '5-10-2500', '20 Oct 1967', 'June 5 2020', '20 ตุลาคม 2510', '20 ต.ค. 2510',
+    'somchai.k@example.com', 'somchai_99', '@somchai99',
+  ];
+  test.each(LABELS.map((l) => [l || '(no label)', l]))('after %s: any character before it, any separator, any value', (_name, label) => {
+    const lines = [];
+    for (const p of PREFIXES) for (const s of SEPARATORS) for (const v of VALUES) {
+      const input = `${p}${label}${s}${v} ok`;
+      const want = master.stripPii(input);
+      if (want === input) continue;
+      const line = stoppedOne(input, want, stripPii(input));
+      if (line) lines.push(line);
+    }
+    expect(lines).toEqual([]);
+  }, 60000);
+
+  // --- Generator 2: a history through every NAME pass that registers aliases. A name that is also a month or a common
+  // word, then a date or nothing after it; a later mention in another turn or the same text; with and without the name
+  // as an intake hint. Every character master masks stays masked, and every alias master registers is registered. ---
+  const NAME_LEADS = ['Mr ', 'Dr ', 'Mrs. ', 'Dr Smith ', 'nickname ', 'Nickname ', 'ชื่อเล่น ', 'ชื่อ ', 'ชื่อ: ', 'Name: ',
+    'นายสมชาย ', 'คุณ', 'ผู้ป่วย '];
+  const NAMES = ['June', 'May', 'Jan', 'March', 'Aug', 'june', 'Hope', 'Will', 'Grace', 'มีนา'];
+  const AFTER = ['', ' 5 2020', ' 5, 2020', '-5-2020', ' 20 Oct 1967'];
+  const aliasesOf = (registry) => new Set(['knownAliases', 'knownWordAliases'].flatMap((k) => Object.keys(registry[k]('NAME'))));
+  test.each(NAME_LEADS)('a name after "%s" keeps every mask and alias master makes, in every turn', (lead) => {
+    const lines = [];
+    for (const name of NAMES) for (const after of AFTER) for (const hints of [[], [name]]) {
+      const first = `${lead}${name}${after} seen`;
+      for (const texts of [[first, `${name} said ok`], [first, `ok ${name}.`], [`${first}; ${name} said ok`]]) {
+        const history = texts.map((content) => ({ content }));
+        const rm = master.makeRegistry();
+        const rh = makeRegistry();
+        const want = master.stripHistoryPii(history, hints, rm).map((m) => m.content);
+        const got = stripHistoryPii(history, hints, rh).map((m) => m.content);
+        texts.forEach((t, k) => {
+          const line = stoppedOne(t, want[k], got[k]);
+          if (line) lines.push(`${JSON.stringify(hints)} ${line}`);
+        });
+        const has = aliasesOf(rh);
+        const lost = [...aliasesOf(rm)].filter((a) => !has.has(a));
+        if (lost.length) lines.push(`aliases lost ${JSON.stringify(lost)} | ${JSON.stringify(texts)} ${JSON.stringify(hints)}`);
+      }
+    }
+    expect(lines).toEqual([]);
+  }, 60000);
 
   const bold = (s) => [...s].map((c) => (/[A-Z]/.test(c) ? String.fromCodePoint(0x1d400 + c.charCodeAt(0) - 65)
     : /[a-z]/.test(c) ? String.fromCodePoint(0x1d41a + c.charCodeAt(0) - 97) : c)).join('');
@@ -1813,6 +1866,14 @@ describe('adversarial — the filter masks every character master masks (no stop
     'see this version＃2026.10.20 ok', 'ＶＥＲＳＩＯＮ 20.10.69', 'version     20.10.69', 'Version\r\n\r\n2026.10.20',
     'version\t\t\t\t2026.10.20', 'VERSION 2024.10.1', 'ECG software version: 2024.10.1', 'Version: 1.2.10',
     'HN-1234567', 'HN–1234567', 'HN 1234‑567', 'AN 123456–78', '•20 Oct 1967', '1.20 ตุลาคม 2510', 'REV 20.10.2569',
+    // the gate of #505: a date after a numbered-list mark and a wide gap, a LINE label before a look-alike dash, and a
+    // house number that reads as a date
+    '1.  20. 10. 2569', '1.\r\n20. 10. 2569', 'No. 3.  20. 10. 2569 seen', 'Hb 12.  20. 10. 2569',
+    'ไลน์–081 234 5678', 'ไลน์—20/10/2569', 'LINE:‑1 2345 67890 12 3', 'ไลน์·1 2345 67890 12 3',
+    'บ้านเลขที่ 5-10-2500 ค่ะ', 'เลขที่ 2569/12/11 ค่ะ', 'เลขที่ 1999/1/5 ค่ะ', 'บ้านเลขที่ 2026-1-5',
+    // a later master pass that takes a label or a word with the value: the #474 passes run after it
+    'ward: 5 years old', 'HN 1234/5 years old', 'HN 1234/20.10.2569', 'HN 1234/081 234 5678', 'บ้านเลขที่ 99 - 45 ปี',
+    'อายุ 5 ต.ค. 2510', 'age 20 Oct 1967', '5 ต.ค. 69 ปี', '20 Oct 69 yo', 'ห้อง 5 ต.ค. 2510', '1.2345.67890.12.3 ปี',
     ...LETTER_LIKE.flatMap((c) => SHAPES.flatMap((s) => [`${c}${s}`, `${s}${c}`, `บัตร${c}${s} ค่ะ`, `${c}HN ${s}`])),
     ...[...'‐‑‒–—―−˗⁃➖﹘··•‧∙⋅・･⸱⁄∕⧸'].flatMap((c) => [`ติดต่อ${c}LINE: somchai_99`, `081-234-5678${c}LINE @somchai99`]),
   ];
@@ -1820,21 +1881,70 @@ describe('adversarial — the filter masks every character master masks (no stop
     expect(single(FIXED)).toEqual([]);
   });
 
-  test('a name after a title that is also a month word (Mr June 5 2020) is masked in every later turn', () => {
-    const histories = [
-      ['Mr June 5 2020 seen', 'June said ok'],
-      ['Dr Smith June 5 2020 seen', 'June and Smith said ok'],
-      ['คุณ June 5 2020', 'June ok'],
-    ];
-    for (const h of histories) {
-      const inputs = h;
-      const run = (f) => f.stripHistoryPii(h.map((content) => ({ content }))).map((m) => m.content);
-      expect(stopped(inputs, run)).toEqual([]);
+  test('the oracle sees a stopped mask: a head that leaves a phone raw fails it', () => {
+    expect(stoppedOne('โทร 0812345678', master.stripPii('โทร 0812345678'), 'โทร 0812345678')).not.toBeNull();
+    expect(stoppedOne('บ้านเลขที่ 5-10-2500', '[ADDR-1]', 'บ้านเลขที่ [DATE-1]')).not.toBeNull(); // a label left raw counts
+  });
+});
+
+// ===========================================================================
+// GATE OF PR #505 (review of 3f257821). Masks master made that the #474 passes stopped: a month-word date taken before
+// the nickname pass could register the name, a wide-gap dotted date that started on a numbered-list mark, failed its
+// guard and skipped the real date, a LINE label that took the first digits after a look-alike dash, and a date pass
+// that ran before the house-number pass. The #474 passes now run after every pass master has, and the wide view after
+// every narrow one. All values are synthetic.
+// ===========================================================================
+describe('adversarial — the #474 passes run after master\'s and stop none of its masks (gate of #505)', () => {
+  test.each(['nickname ', 'Nickname ', 'ชื่อเล่น ', 'นายสมชาย '])('a month-word name after "%s" is registered: its later mentions are masked', (lead) => {
+    for (const name of ['June', 'May', 'Jan', 'Mar', 'Aug']) {
+      const out = stripHistoryPii([{ content: `${lead}${name} 5 2020` }, { content: `${name} said ok` }]).map((m) => m.content);
+      expect(out[0]).not.toContain(name);
+      expect(out[1]).toBe('[NAME-1] said ok');
+      expect(stripPii(`${lead}${name} 5 2020; ${name} said ok`)).not.toContain(name);
+    }
+  });
+  test('the nickname case of the gate, exactly', () => {
+    expect(stripHistoryPii([{ content: 'nickname June 5 2020' }, { content: 'June said ok' }])[1].content).toBe('[NAME-1] said ok');
+  });
+
+  test.each([
+    ['1.  20. 10. 2569', '1.  [DATE-1]'],
+    ['1.\r\n20. 10. 2569', '1.\r\n[DATE-1]'],
+    ['No. 3.  20. 10. 2569 seen', 'No. 3.  [DATE-1] seen'],
+    ['Hb 12.  20. 10. 2569', 'Hb 12.  [DATE-1]'],
+  ])('a dotted date after a numbered-list mark and a wide gap: %j is masked as on master', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+  // A match that fails its guard no longer hides a date that starts inside it, in any #474 pass.
+  test.each([
+    ['1.  20.  10.  2569 ok', '1.  [DATE-1] ok'],
+    ['40 Oct 20 Oct 1967 ok', '40 Oct [DATE-1] ok'],
+    ['40 ตุลาคม 20 ตุลาคม 2510 ok', '40 ตุลาคม [DATE-1] ok'],
+    ['ward: ward: 5A ok', 'ward: [WARD-1] ok'],
+  ])('%j: the value inside a match its guard refused is masked', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+
+  test.each([
+    ['ไลน์–081 234 5678', 'ไลน์–[PHONE-1]'],
+    ['ไลน์—20/10/2569', 'ไลน์—[DATE-1]'],
+    ['LINE:‑1 2345 67890 12 3', 'LINE:‑[ID-1]'],
+    ['ไลน์·1 2345 67890 12 3', 'ไลน์·[ID-1]'],
+  ])('a LINE label before a look-alike dash leaves the value to its own pass: %j', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+  test.each([...'–—‑−·‒―⁃‐•'])('after ไลน์ or LINE: and %s, no digit of a phone, a date or an ID is left raw', (c) => {
+    for (const v of ['081 234 5678', '20/10/2569', '1 2345 67890 12 3']) {
+      for (const label of ['ไลน์', 'LINE:']) expect(stripPii(`${label}${c}${v}`).replace(/\[[A-Z]+-\d+\]/g, '')).not.toMatch(/\d/);
     }
   });
 
-  test('the oracle sees a stopped mask: a head that leaves a phone raw fails it', () => {
-    const lines = stopped(['โทร 0812345678'], (f) => (f === master ? master.stripPii('โทร 0812345678') : 'โทร 0812345678').split('\0'));
-    expect(lines).toHaveLength(1);
+  test.each([
+    ['บ้านเลขที่ 5-10-2500 ค่ะ', '[ADDR-1] ค่ะ'],
+    ['เลขที่ 2569/12/11 ค่ะ', '[ADDR-1] ค่ะ'],
+    ['เลขที่ 1999/1/5 ค่ะ', '[ADDR-1] ค่ะ'],
+    ['บ้านเลขที่ 2026-1-5', '[ADDR-1]'],
+  ])('a house number that reads as a date stays one address token, as on master: %j', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
   });
 });
