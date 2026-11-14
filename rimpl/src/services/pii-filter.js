@@ -495,8 +495,8 @@ const DATE_SEP = String.raw`(?:\s{0,2}-\s{0,2}|\s{0,3})`;
 const NOT_DOSE = String.raw`(?!\s*(?:${['mg', 'mcg', 'µg', 'μg', 'g', 'ml', 'l', 'units', 'unit', 'iu', 'mmol', 'meq'].map(anyCase).join('|')})(?![A-Za-z0-9]))`;
 // A dashed day-month-year date (the dashed pass).
 const DASHED_DMY = String.raw`(?:\d{1,2}-\d{1,2}-\d{4}|\d{2}-\d{2}-\d{2}${NOT_DOSE})\b`;
-// A dotted day-first date whose year opens a dashed date (20.10.25-12-2569, 20.6.2026-4-3): both are dates only when
-// the dotted one is (a real day and month, a year of two or more digits) and the dashed one is.
+// A dotted day-first date whose year opens a dashed or slashed date (20.10.25-12-2569, 20.6.2026-4-3, 17.3.2026/11/1):
+// both are dates only when the dotted one is (a real day and month, a year of two or more digits) and the other one is.
 function dottedThenDashedGuard(m) {
   const [d, mo, y, a, b] = m.split(/\D+/);
   if (y.length < 2 || !dottedDateGuard(`${d}.${mo}`)) return false;
@@ -523,7 +523,9 @@ const EMAIL_TLDS = new Set(['com', 'net', 'org', 'edu', 'gov', 'mil', 'int', 'in
 // so each '@' costs at most that much and the run stays linear.
 const EMAIL_LOCAL_MAX = 64;
 // How much of `domain` an address read through a middle dot keeps: up to its last top-level label when a word follows
-// one (example.com.age 65 keeps example.com, so the label and its value keep their own pass); all of it otherwise.
+// one (somchai·@example.com.age 65 keeps example.com, so the label and its value keep their own pass); all of it
+// otherwise. Only where master's regex matched no address: when the '@' follows a plain local character and the domain
+// holds no middle dot, master masked the whole domain (a.b@x.co.thward), and the match keeps it.
 const isTld = (l) => EMAIL_TLDS.has(l.toLowerCase());
 function emailDomainEnd(domain) {
   const labels = domain.split(ANY_MIDDLE_DOT_RE).flatMap((p) => p.split('.'));
@@ -536,8 +538,9 @@ function emailMiddleDotGuard(_seen, match) {
   if (!ANY_MIDDLE_DOT_RE.test(match)) return true;
   const [local, domain] = match.split('@');
   const pieces = (s) => s.split(ANY_MIDDLE_DOT_RE);
+  const mastersDomain = !ANY_MIDDLE_DOT_RE.test(local.slice(-1)) && !ANY_MIDDLE_DOT_RE.test(domain);
   return /^[A-Za-z][A-Za-z0-9_.%+]*$/.test(pieces(local)[0])
-    && emailDomainEnd(domain) === domain.length
+    && (mastersDomain || emailDomainEnd(domain) === domain.length)
     && pieces(domain).slice(1).every((p) => p.split('.').every(isTld));
 }
 
@@ -648,8 +651,7 @@ function emailPlainExecFrom(view, from) {
     start = q;
   }
   if (start === m.index) return m;
-  const end = at + 1 + emailDomainEnd(view.slice(at + 1, m.index + m[0].length));
-  const w = [view.slice(start, end)];
+  const w = [view.slice(start, m.index + m[0].length)];
   w.index = start;
   return w;
 }
@@ -817,16 +819,17 @@ const PASSES = [
   },
 
   // --- Dates (kept stable category so repeated dates collapse) ---
-  { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE' },
-  { re: numericRe(String.raw`\b\d{4}\/\d{1,2}\/\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
-  // A dotted day-first date whose year opens a dashed date is one date, masked whole before either pass below takes
-  // its own part (20.10.25-12-2569, 1.5.20-10-2569, 20.6.2026-4-3). Refused when the dotted part is no date
-  // (1.13.20-10-2569): the dashed pass masks 20-10-2569.
+  // A dotted day-first date whose year opens a dashed or slashed date is one date, masked whole before any pass below
+  // takes its own part (20.10.25-12-2569, 1.5.20-10-2569, 20.6.2026-4-3, 17.3.2026/11/1). Refused when the dotted part
+  // is no date (1.13.20-10-2569): the dashed pass masks 20-10-2569.
   {
-    re: numericRe(String.raw`\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}(?:${DASHED_DMY}|\d{4}-\d{1,2}-\d{1,2}\b)`),
+    re: numericRe(String.raw`\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}`
+      + String.raw`(?:${DASHED_DMY}|\d{1,2}\/\d{1,2}\/\d{2,4}\b|\d{4}([-/])\d{1,2}\1\d{1,2}\b)`),
     cat: 'DATE',
     guard: dottedThenDashedGuard,
   },
+  { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE' },
+  { re: numericRe(String.raw`\b\d{4}\/\d{1,2}\/\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
   { re: numericRe(String.raw`\b\d{4}-\d{2}-\d{2}\b`), cat: 'DATE' },
   { re: numericRe(String.raw`\b\d{4}-\d{1,2}-\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
   // Dashed day-month-year (11-12-2569). A two-digit year only after a two-digit day and month (11-12-69) and never
@@ -872,7 +875,7 @@ const PASSES = [
   // a Thai keyword): without it "toward the left" became "to[WARD-n] left".
   // wardGuard lets English prose after "ward" through (ward round, ward is). A colon or # needs no space (Ward:5A);
   // without one a space is required, so "wards" and "wardrobe" are not a ward.
-  { re: /(?:\bward|ห้อง|หอผู้ป่วย)(?:\s*[:：#]\s*|\s+)[A-Za-z0-9]+/gi, cat: 'WARD', guard: wardGuard },
+  { re: /(?:\bward|ห้อง|หอผู้ป่วย)(?:\s*[:：#]\s*|\s+)[A-Za-z0-9]+/gi, cat: 'WARD', guard: wardGuard, labelled: true },
 
   // --- Home address (Thai) ---
   // House number: "บ้านเลขที่ 99/1" / "เลขที่ 99 / 1". Capture the number token
@@ -885,7 +888,7 @@ const PASSES = [
   // NOTE: the bare abbreviation "ม.5" is deliberately NOT matched — "ม." is an
   // overloaded Thai abbreviation (มัธยม = school grade, มหาวิทยาลัย, มาตรา) and
   // masking it would over-mask common non-address text. Spelled-out หมู่ only.
-  { re: /หมู่(?!บ้าน)\s*(?:ที่)?\s*[0-9]+/g, cat: 'ADDR' },
+  { re: /หมู่(?!บ้าน)\s*(?:ที่)?\s*[0-9]+/g, cat: 'ADDR', labelled: true },
   // Administrative place names: ตำบล/ต. อำเภอ/อ. จังหวัด/จ. + the place token.
   // The place is a glued Thai run. We exclude a few demonstrative/pronoun leads
   // (นี้ "this", นั้น "that") so prose like "ตำบลนี้" survives. The province
@@ -926,14 +929,14 @@ const PASSES = [
   // --- Age (AFTER ids/phones so it never eats their digits) ---
   // Thai: "อายุ 45 ปี", "45 ปี", "อายุ 45". No trailing \b after ปี — \b is
   // ASCII-only and would fail to match at a Thai/space transition.
-  { re: /อายุ(?:\s*[:：=])?\s*\d{1,3}\s*ปี?/g, cat: 'AGE' },
+  { re: /อายุ(?:\s*[:：=])?\s*\d{1,3}\s*ปี?/g, cat: 'AGE', labelled: true },
   { re: /\b\d{1,3}\s*ปี/g, cat: 'AGE' },
-  { re: /อายุ(?:\s*[:：=])?\s*\d{1,3}\b/g, cat: 'AGE' },
+  { re: /อายุ(?:\s*[:：=])?\s*\d{1,3}\b/g, cat: 'AGE', labelled: true },
   // English: require an explicit age marker ("old" or "y/o" or "age NN") so
   // that bare durations like "for 5 years" / "3 years ago" SURVIVE.
   { re: /\b\d{1,3}[\s-]?(?:years?|yrs?)[\s-]?old\b/gi, cat: 'AGE' }, // 45 years old / 45-year-old
   { re: /\b\d{1,3}\s?y\/?o\b/gi, cat: 'AGE' },                       // 62 y/o, 30yo
-  { re: /\bage[d]?(?:\s*[:#=])?\s*\d{1,3}\b/gi, cat: 'AGE' },        // age 55, aged 30, age = 45
+  { re: /\bage[d]?(?:\s*[:#=])?\s*\d{1,3}\b/gi, cat: 'AGE', labelled: true }, // age 55, aged 30, age = 45
 ];
 
 // Register each whitespace-separated part of a name as an alias of `tok`, so a
@@ -1370,13 +1373,16 @@ function longestGuarded(view, re, at, len, accept) {
 // (1️⃣ 081 234 5678 20/10/2569 would read an ID that takes the date's day), or a phone or date that only the folded
 // runs read (HN·1234567·081·234·5678 would read an HN or ID that takes the phone's first group). `start` and `end` are
 // indexes in the original text, so views of different lengths are compared through their `at`. `views` holds master's
-// view of `text` and its folded view with the middle dots as '.' (cutViews).
+// view of `text` and its folded view with the middle dots as '.' (cutViews). In master's view a label and its value
+// (`labelled`: age 65, ward 5A, หมู่ 7) count too, so a folded match never takes the label and leaves the value
+// (a·b·@example.com❶.age 65 would read the email on through age). A house number is not one of them: its value runs on
+// through dash and slash groups (บ้านเลขที่ 91/1-9-5098-42538) that a folded ID may mask whole.
 const STRADDLE_WINDOW = 48;
 let CUT_SHAPES = null; // the shapes looked for in each of `views`, built after PASSES
 const cutViews = (text) => [viewOf(text, null), viewOf(text, '.')];
 function cutsIdentifier(text, start, end, views) {
-  CUT_SHAPES ??= [['ID', 'HN', 'MRN', 'PHONE', 'DATE'], ['PHONE', 'DATE']].map((cats) => PASSES
-    .filter((p) => p.re && cats.includes(p.cat))
+  CUT_SHAPES ??= [['ID', 'HN', 'MRN', 'PHONE', 'DATE'], ['PHONE', 'DATE']].map((cats, i) => PASSES
+    .filter((p) => p.re && (cats.includes(p.cat) || (i === 0 && p.labelled)))
     .map((p) => ({ rx: new RegExp(p.re.source, p.re.flags), guard: p.guard })));
   for (let i = 0; i < views.length; i += 1) {
     const v = views[i];

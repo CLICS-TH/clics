@@ -253,6 +253,10 @@ describe('#474 exact outputs', () => {
     ['a list number that reads as a date, an en-dashed date', '1.5.20–10–2569', '[DATE-1]'],
     ['a two-digit list number, an en-dashed date', '1.13.20–10–2569', '1.13.[DATE-1]'],
     ['a two-digit list number, a dashed year-first date', '1.13.2026-4-3', '1.13.[DATE-1]'],
+    ['a dotted date, a slashed year-first date', '17.3.2026/11/1–69', '[DATE-1]–69'],
+    ['an HN, a dotted date, a slashed year-first date', '𝐇𝐍 5556512-7.10.2569/5/4–69', '[HN-1]-[DATE-1]–69'],
+    ['a dotted date, a slashed date', '20.10.25/12/2569', '[DATE-1]'],
+    ['a two-digit list number, a slashed year-first date', '1.13.2026/4/3', '1.13.[DATE-1]'],
     // The run on master's view takes in the middle-dot-joined local pieces before an address.
     ['a middle dot in an email local part', 'mail somchai·j@example.com now', 'mail [EMAIL-1] now'],
     ['middle dots in an email local part', 'mail a·b·c@example.com now', 'mail [EMAIL-1] now'],
@@ -260,8 +264,14 @@ describe('#474 exact outputs', () => {
     // An address read through a middle dot ends at its last top-level label: a label glued after it keeps its own pass.
     ['a middle-dot email, then an age label', 'somchai·@example.com.age 65 K 3.5', '[EMAIL-1].[AGE-1] K 3.5'],
     ['a middle-dot email, then a ward label', 'somchai·@example.com.ward 5A', '[EMAIL-1].[WARD-1]'],
-    ['a middle-dot local part, then an age label', 'somchai·j@example.com.age 65', '[EMAIL-1].[AGE-1]'],
+    // An address master's regex matched keeps master's whole domain.
+    ['a middle-dot local part, then an age label', 'somchai·j@example.com.age 65', '[EMAIL-1] 65'],
+    ['a middle-dot local part, a glued word after the domain', 'aspirin·a.b@x.co.thward 5A', '[EMAIL-1] 5A'],
     ['a middle-dot email with a two-label country domain', 'a·b@mail.mahidol.ac.th x', '[EMAIL-1] x'],
+    // No folded match takes a label and leaves its value (cutsIdentifier, `labelled`): a look-alike digit glued to the
+    // domain hides its top-level label, so the address is refused and the label keeps its pass, as on master.
+    ['a middle-dot email, a circled digit, an age label', 'a·b·@example.com❶.age 65', 'a·b·@example.com❶.[AGE-1]'],
+    ['a middle-dot email, a circled digit, a ward label', 'x·y@example.com❶.ward 5A', '[EMAIL-1]❶.[WARD-1]'],
     // A run that opens with a phone is two phones only when the rest of its number is one more phone.
     ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],
     // A rest that opens with no 0, or that no phone pass masks, is no second phone: the run stays master's ID.
