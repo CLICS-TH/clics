@@ -1089,9 +1089,20 @@ const NARROW_VIEW = (() => {
   for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
   return map;
 })();
-// A character only the wide view folds: without one, the wide view of a text is its narrow view.
-const WIDE_ONLY_RE = new RegExp(`[${[...ASCII_VIEW.keys()].filter((c) => !NARROW_VIEW.has(c))
-  .map((c) => `\\u{${c.codePointAt(0).toString(16)}}`).join('')}]`, 'u');
+// A character only the wide view folds: without one, the wide view of a text is its narrow view. Written as ranges
+// of code points, so the class stays small enough to scan a long text fast.
+const WIDE_ONLY_RE = (() => {
+  const cps = [...ASCII_VIEW.keys()].filter((c) => !NARROW_VIEW.has(c)).map((c) => c.codePointAt(0)).sort((a, b) => a - b);
+  const hex = (cp) => `\\u{${cp.toString(16)}}`;
+  let cls = '';
+  for (let i = 0; i < cps.length;) {
+    let j = i;
+    while (j + 1 < cps.length && cps[j + 1] === cps[j] + 1) j += 1;
+    cls += i === j ? hex(cps[i]) : `${hex(cps[i])}-${hex(cps[j])}`;
+    i = j + 1;
+  }
+  return new RegExp(`[${cls}]`, 'u');
+})();
 // A fold can change a character's length (a two-unit 𝐀 is one unit in the view, ⑳ two, a keycap mark none), and past
 // the first such fold the indexes part. `at` then maps every view index to where its character starts in the text,
 // and `atEnd` every view index used as the END of a match to the text's: the end of the character when the index falls
@@ -1169,7 +1180,7 @@ function applyPass(text, pass, token, hints) {
   if (cat === 'NAME') return applyRegexPass(text, pass, token, { view: text, at: null, atEnd: null });
   // The narrow view first, then the wide one (see NARROW_VIEW); text with nothing only the wide view folds runs once.
   const narrowed = applyRegexPass(text, pass, token, asciiView(text, false));
-  return WIDE_ONLY_RE.test(narrowed) ? applyRegexPass(narrowed, pass, token, asciiView(narrowed)) : narrowed;
+  return NEEDS_FOLD_RE.test(narrowed) && WIDE_ONLY_RE.test(narrowed) ? applyRegexPass(narrowed, pass, token, asciiView(narrowed)) : narrowed;
 }
 
 // The original-text spans of the name an English title leads (Mr June, Dr Smith June): what EN_NAME_RE takes.
