@@ -1895,35 +1895,35 @@
       "reservoir": {
         "th": [
           {
-            "strength": "เพิ่มออกซิเจนด้วย**หน้ากากถุงสำรอง** พร้อมขับน้ำออกจากปอดต่อ",
-            "weigh": "การขับน้ำออกจากปอดให้พอด้วยยาขับปัสสาวะใช้เวลาหลายชั่วโมง ช้าเกินไปสำหรับการหายใจที่กำลังล้มเหลวตอนนี้",
+            "strength": "เพิ่มออกซิเจนทันทีและตาม**แพทย์อาวุโส**มาที่ข้างเตียง",
+            "weigh": "การตามคนช่วยถูกต้อง แต่การหายใจที่กำลังล้มเหลวต้องได้การช่วยหายใจ ไม่ใช่แค่ความเห็นเพิ่ม",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
-            "strength": "ตอบสนองทันทีต่อออกซิเจนที่ต่ำ และยัง**ลดน้ำในปอด**ต่อเนื่อง",
-            "weigh": "ผู้ป่วยกำลังเหนื่อยมาก หากหมดแรงจะทรุดเร็ว จึงต้องเฝ้าดูใกล้ชิด",
+            "strength": "ขอความช่วยเหลือเร็ว เหมาะเมื่อผู้ป่วยที่ได้ออกซิเจนแล้วยังแย่ลง",
+            "weigh": "ออกซิเจนที่มากขึ้นอาจทำให้ SpO2 ดูดีขึ้น และบังว่าผู้ป่วยยังหายใจหนักอยู่",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
-            "strength": "ใช้อุปกรณ์และยาที่มีทุกหอผู้ป่วย เริ่มได้เร็วข้างเตียง",
-            "weigh": "SpO2 ที่ดีขึ้นอาจทำให้มองข้ามว่าการหายใจยังหนักอยู่",
+            "strength": "ใช้หน้ากากที่มีทุกหอผู้ป่วย และเรียกคนช่วยได้ทันที",
+            "weigh": "น้ำยังท่วมปอดอยู่ และแผนนี้ไม่ได้เพิ่มการรักษาใหม่เพื่อขับน้ำออก",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           }
         ],
         "en": [
           {
-            "strength": "Raises the oxygen with a **reservoir mask** while still treating the lung fluid.",
-            "weigh": "Clearing enough lung fluid with diuretics takes hours, too slow for breathing that is failing now.",
+            "strength": "Gives more oxygen at once and brings a **senior doctor** to the bedside.",
+            "weigh": "Calling for help is right, yet breathing that is failing now needs support begun, not only a second opinion.",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
-            "strength": "Responds at once to low oxygen and keeps working to **clear his lungs**.",
-            "weigh": "He is tiring, and if he exhausts himself he will crash quickly, so watch closely.",
+            "strength": "Escalates early, which is right when a patient on oxygen gets worse.",
+            "weigh": "More oxygen can lift the SpO2 and hide how hard he is still working to breathe.",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
-            "strength": "Uses kit and drugs every ward has, quick to put in place at the bedside.",
-            "weigh": "A better SpO2 can hide how hard he is still working to breathe.",
+            "strength": "Uses a mask every ward has and gets help moving straight away.",
+            "weigh": "Fluid still floods his lungs, and this plan adds nothing new to clear it.",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           }
         ]

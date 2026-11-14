@@ -915,12 +915,12 @@
             "id": "reservoir",
             "tier": "weaker",
             "label": {
-              "th": "หน้ากากถุงสำรอง ฟูโรซีไมด์ซ้ำ",
-              "en": "Reservoir mask, repeat furosemide"
+              "th": "หน้ากากถุงสำรอง ตามแพทย์อาวุโส",
+              "en": "Reservoir mask, call a senior"
             },
             "line": {
-              "th": "เพิ่มออกซิเจนและให้ยาขับปัสสาวะซ้ำเพื่อลดน้ำในปอด",
-              "en": "More oxygen and another diuretic dose to clear his lungs."
+              "th": "เพิ่มออกซิเจนทันที ขณะแพทย์อาวุโสมาดูข้างเตียง",
+              "en": "More oxygen at once while a senior doctor comes to the bedside."
             }
           }
         ],
