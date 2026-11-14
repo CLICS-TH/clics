@@ -532,7 +532,12 @@ function emailMiddleDotGuard(_seen, match) {
 }
 
 // The sub-number of an HN, MRN or AN: the digits after a '/'. hnGuard refuses one that opens a phone, date or ID.
-const HN_TAIL = String.raw`(?:\s*\/\s*\d+(?!\d))?`;
+// Its spaces are bounded, so the match stays short; withoutTail gives the code alone.
+const HN_TAIL = String.raw`(?:\s{0,3}\/\s{0,3}\d+(?!\d))?`;
+const hnWithoutTail = (m) => {
+  const t = /\s{0,3}\/\s{0,3}\d+$/.exec(m);
+  return t ? m.slice(0, t.index) : null;
+};
 
 // The HN, MRN and AN guard: 4 to 12 digits before the sub-number, and a sub-number that opens no phone, date or ID. It
 // asks every PHONE, DATE and ID pass, by its own regex and guard (or a shorter match its guard takes), whether it matches
@@ -717,6 +722,7 @@ const PASSES = [
     re: new RegExp(String.raw`\bHN(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'HN',
     guard: hnGuard,
+    withoutTail: hnWithoutTail,
     dots: ' ', // HN·1234567 (MIDDLE_DOTS)
   },
   // MRN / AN explicit code fields (same internal-separator tolerance).
@@ -724,6 +730,7 @@ const PASSES = [
     re: new RegExp(String.raw`\b(?:MRN|AN)(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'MRN',
     guard: hnGuard,
+    withoutTail: hnWithoutTail,
     dots: ' ',
   },
 
@@ -1382,7 +1389,7 @@ function applyPass(text, pass, token, hints) {
 }
 // `fold` null reads master's view; otherwise the folded view, with the middle dots read as `fold` (false: as written).
 function applyPassOn(text, pass, token, hints, fold) {
-  const { re, cat, guard, kind, rejectWhole } = pass;
+  const { re, cat, guard, kind, rejectWhole, withoutTail } = pass;
   const dots = fold !== null && fold;
   const execFrom = dots && pass.dotsExecFrom ? pass.dotsExecFrom : pass.execFrom;
 
@@ -1413,8 +1420,11 @@ function applyPassOn(text, pass, token, hints, fold) {
     if ((guard || folded) && !accept(m.index, m.index + seen.length, seen)) {
       // A loose run can take the next number too (โทร 081-234-5678 2 ครั้ง) and fail its guard as a whole: fall back
       // to the longest shorter match the guard accepts at the same start, so the identifier is still masked.
+      // An HN, MRN or AN whose sub-number is refused is the code alone, tried first so a refused tail never unmasks it.
+      const code = withoutTail && withoutTail(seen);
       const shorter = cat === 'NAME' ? null
-        : longestGuarded(view, re, m.index, seen.length, (end, s) => accept(m.index, end, s));
+        : code && accept(m.index, m.index + code.length, code) ? code
+          : longestGuarded(view, re, m.index, seen.length, (end, s) => accept(m.index, end, s));
       if (shorter) return [token(cat, shorter), shorter.length];
       // A run longer than GUARD_FALLBACK_MAX is given back whole: retried from each unit, it would be quadratic.
       const end = m.index + seen.length;
