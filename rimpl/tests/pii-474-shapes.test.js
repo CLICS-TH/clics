@@ -57,7 +57,7 @@ const LEAK = [
   ['AN tail, spaced', 'AN 1234 / 67 seen', /67/],
   ['house no tail', 'บ้านเลขที่ 99 / 1 ถนน', /\/ 1/],
   ['house no dash tail', 'เลขที่ 99 - 1 ถนน', /- 1/],
-  // Review round: a sub-number tail never takes a following date's day.
+  // A sub-number tail never takes a following date's day.
   ['HN then a slash date', 'HN 1234567 / 20/10/2569 seen', /2569|\/10\//],
   ['AN glued to a slash date', 'AN 123456/20/10/69 seen', /10\/69/],
   ['HN then a dotted date', 'HN 1234567 / 20.10.2569 seen', /2569/],
@@ -98,10 +98,15 @@ const LEAK = [
   ['parenthesized phone', 'tel ⓪⑻⑴⑵⑶⑷⑸⑹⑺⑻ x', /⑻⑴⑵/],
   ['full-stop phone', 'tel ⓪⒏⒈⒉⒊⒋⒌⒍⒎⒏ x', /⒏⒈⒉/],
   ['parenthesized ID', 'id ⑴⑵⑶⑷⑸⑹⑺⑻⑼⑴⑵⑶⑷ x', /⑴⑵⑶/],
-  // Round 3: middle dots read as spaces in the ID, HN and MRN passes.
+  // Middle dots read as spaces in the ID, HN and MRN passes.
   ['middle-dot ID', 'id 1·2345·67890·12·3 x', /67890/],
   ['middle-dot HN', 'HN·1234567 seen', /1234567/],
   ['middle-dot MRN', 'MRN·123456 seen', /123456/],
+  // The ID's middle-dot rule counts separators, whatever script its digits are in.
+  ['middle-dot ID, Thai digits', 'id ๑·๒๓๔๕·๖๗๘๙๐·๑๒·๓ x', /๖๗๘๙๐/],
+  ['middle-dot ID, full-width digits', 'id １·２３４５·６７８９０·１２·３ x', /６７８９０/],
+  // A local part past 64 characters is read from its last 64.
+  ['middle-dot email, long local part', `mail ${'a'.repeat(70)}@example·com now`, /example/],
   // A numbered list item before a look-alike-dash phone or ID.
   ['numbered item, en-dash phone', '1. 081–234–5678', /234|5678/],
   ['numbered item, en-dash ID', '1. 1–2345–67890–12–3', /67890/],
@@ -164,8 +169,8 @@ describe('#474 stripPii keeps clinical text', () => {
   });
 });
 
-// A look-alike glued to an identifier folds only where it cannot join it (asciiView, JOINS): each of these was masked
-// before #474 because the look-alike read as an unknown character beside it.
+// Master masks each of these, reading the look-alike as an unknown character beside the identifier. The first run of
+// each pass reads master's view, so it makes the same mask (applyPass).
 describe('#474 a look-alike glued to an identifier loses no mask', () => {
   test.each([
     ['circled digit before a phone', 'tel ①0812345678 x', /5678/],
@@ -175,10 +180,12 @@ describe('#474 a look-alike glued to an identifier loses no mask', () => {
     ['math letter before a date', 'on 𝐀20/10/2569 x', /2569/],
     ['math letters before an ID', 'id 𝐃𝐎𝐁1234567890123 x', /67890/],
     ['math letter before HN', 'see 𝐀HN 1234567 x', /1234567/],
+    // Once a residual: the folded run reads a mathematical-letter label glued to its digits.
+    ['math-letter HN glued to digits', 'see 𝐇𝐍1234567 x', /1234567/],
     ['minus sign before a LINE id', 'add −line id abc_12 x', /abc_12/],
     // A middle dot reads as a space, never a decimal point, so the date does not end inside a decimal (NOT_IN_DECIMAL).
     ['date then middle dot and digit', 'seen 20/10/2569·5 x', /2569/],
-    // The dotted-date passes read mathematical letters as written, so a label in them takes no NUMBERING_LABEL exemption.
+    // The first run reads the mathematical letters as written, so they take no NUMBERING_LABEL exemption.
     ['math-letter version label before a dotted date', '𝐯𝐞𝐫𝐬𝐢𝐨𝐧 20.10.2026', /2026/],
   ])('%s', (_shape, input, raw) => {
     expect(stripPii(input)).not.toMatch(raw);
@@ -192,10 +199,10 @@ describe('#474 exact outputs', () => {
     ['a dashed day-first two-digit year is a date', '11-12-69 seen', '[DATE-1] seen'],
     ['the short number before a landline stays', 'call 05–021234567 now', 'call 05–[PHONE-1] now'],
     ['a middle-dot phone', 'call 081·234·5678 now', 'call [PHONE-1] now'],
-    // A / or - group glued to a numbered section takes its label's exemption away, as before #474 (NUMBERED).
+    // A / or - group glued to a numbered section takes its label's exemption away (NUMBERED).
     ['a section number glued to a slash date', 'Section: 1.2.1020/10/2569', 'Section: [DATE-1]/10/2569'],
-    // A text with a dash look-alike is read first with the dashes as written (applyPass), and a look-alike run never cuts a
-    // date or phone in two (cutsIdentifier): each output is master's.
+    // A text with a look-alike is read first in master's view (applyPass), and the folded run never cuts an identifier in
+    // two (cutsIdentifier): each output is master's.
     ['an HN, an en dash, a slash date', 'HN 1234567–20/10/2569 seen', '[HN-1]–[DATE-1] seen'],
     ['an MRN, an en dash, a slash date', 'MRN 123456–20/10/2569 seen', '[MRN-1]–[DATE-1] seen'],
     ['an HN, an en dash, an ISO date', 'HN 1234567–2026-10-20 seen', '[HN-1]–[DATE-1] seen'],
@@ -207,18 +214,32 @@ describe('#474 exact outputs', () => {
     // An email read through middle dots ends where the next address starts.
     ['two emails joined by a middle dot', 'a@x.com·info@jaidee-clinic.co.th', '[EMAIL-1]·[EMAIL-2]'],
     ['two emails joined by a middle dot, short TLD word', 'a@x.com·me@somchai.net', '[EMAIL-1]·[EMAIL-2]'],
+    // The folded run never cuts what master's view masks: a keycap or circled digit read as 1 would open a 13-digit ID
+    // that takes the date's day, or leave the ID's last digit.
+    ['a keycap, a phone, a date', '1️⃣ 081 234 5678 20/10/2569', '1️⃣ [PHONE-1] [DATE-1]'],
+    ['a circled digit, a phone, a date', '① 081 234 5678 20/10/2569', '① [PHONE-1] [DATE-1]'],
+    ['a parenthesized digit, an ID', '⑴ 1 2345 67890 12 3', '⑴ [ID-1]'],
+    // A keycap is three units in master's view and one in the folded view: positions are compared in the text.
+    ['keycaps and dashes, an HN, a phone', '1️⃣–2️⃣–3️⃣–4️⃣–5️⃣– HN 12–34567–081 234 5678 ok', '1️⃣–2️⃣–3️⃣–4️⃣–5️⃣– [HN-1]–[PHONE-1] ok'],
+    // An HN sub-number never opens a phone, and a middle dot ends an HN before a phone the folded run reads.
+    ['an HN, a slash, a dashed phone', 'HN 1234567/081-234-5678', '[HN-1]/[PHONE-1]'],
+    ['an HN, a slash, a spaced phone', 'HN 1234567/081 234 5678', '[HN-1]/[PHONE-1]'],
+    ['an MRN, a slash, a landline', 'MRN 123456/02-123-4567', '[MRN-1]/[PHONE-1]'],
+    ['an HN and a phone joined by middle dots', 'HN·1234567·081·234·5678', '[HN-1]·[PHONE-1]'],
+    // A dashed day-first date never opens on the day of a dotted year-first date.
+    ['a dotted year-first date, a hyphen, a dashed date', 'x 2026.10.20-11-12-69 ok', 'x [DATE-2]-[DATE-1] ok'],
+    // A run that opens with a phone is two phones only when the rest of its number is one more phone.
+    ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],
   ])('%s', (_shape, input, out) => {
     expect(stripPii(input)).toBe(out);
   });
 });
 
-// Accepted residuals (#474 owner ruling): a two-digit enclosed number and a mathematical-letter label glued to its digits
-// stay as written.
+// Accepted residual (#474 owner ruling): a two-digit enclosed number stays as written.
 describe('#474 residuals stay as written', () => {
   test.each([
     ['circled ten and up', 'tel ⑩⑧①②③④⑤⑥⑦⑧ x'],
     ['double circled ten', 'tel ⓾⓼⓵⓶⓷⓸⓹⓺⓻⓼ x'],
-    ['math-letter HN glued to digits', 'see 𝐇𝐍1234567 x'],
   ])('%s', (_shape, input) => {
     expect(stripPii(input)).toBe(input);
   });
@@ -233,7 +254,7 @@ describe('#474 booth label rule reads mathematical letters', () => {
   });
 });
 
-// #474 comment: "LINE" then a long run of spaces and no id backtracked quadratically (909 ms at n = 40000).
+// "LINE" then a long run of spaces and no id must not backtrack quadratically.
 test('a LINE label followed by 40000 spaces finishes in linear time', () => {
   const input = `LINE${' '.repeat(40000)}!`;
   const t0 = process.hrtime.bigint();
@@ -241,10 +262,8 @@ test('a LINE label followed by 40000 spaces finishes in linear time', () => {
   expect(Number(process.hrtime.bigint() - t0) / 1e6).toBeLessThan(100);
 });
 
-// The email scan tried every start of a long run of address characters (emailExecFrom); the look-alikes of #474 make
-// more text such a run. Before: about 3 s each at this length.
-// A run longer than GUARD_FALLBACK_MAX is no longer retried unit by unit, and the dots run caps an email's local part
-// (EMAIL_LOCAL_MAX). Before: 75 s and 6.3 s (the second at n = 10000).
+// The email scan tries one start per run of address characters (emailExecFrom), a run longer than GUARD_FALLBACK_MAX
+// is not retried unit by unit, and the dots run caps an email's local part (EMAIL_LOCAL_MAX), so each stays linear.
 test.each([
   ['digits and middle dots before an @', `${'1·'.repeat(40000)}@a·com`],
   ['letters and middle dots before an email', `${'a·'.repeat(40000)}a@example·xyz`],
