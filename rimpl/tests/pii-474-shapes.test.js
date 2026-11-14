@@ -237,10 +237,17 @@ describe('#474 exact outputs', () => {
     ['an HN and a phone joined by middle dots', 'HN·1234567·081·234·5678', '[HN-1]·[PHONE-1]'],
     // A dashed day-first date never opens on the day of a dotted year-first date.
     ['a dotted year-first date, a hyphen, a dashed date', 'x 2026.10.20-11-12-69 ok', 'x [DATE-2]-[DATE-1] ok'],
-    // A list number glued to a dashed date: the date is masked whole, never cut at its day.
-    ['a list number, a dashed date', '1.5.20-10-2569', '1.5.[DATE-1]'],
+    // A dotted date whose year opens a dashed date: when both are dates both are masked, as one token. When the dotted
+    // part is no date (month 13) the dashed date is masked whole, never cut at its day.
+    ['a dotted date, a dashed date', '20.10.25-12-2569', '[DATE-1]'],
+    ['a dotted date, an en-dashed date', '20.10.25–12–2569', '[DATE-1]'],
+    ['a dotted date, a dashed year-first date', 'x 20.6.2026-4-3.', 'x [DATE-1].'],
+    ['a dotted date, an en-dashed year-first date', 'x 20.6.2026–4–3.', 'x [DATE-1].'],
+    ['a list number that reads as a date, a dashed date', '1.5.20-10-2569', '[DATE-1]'],
     ['a two-digit list number, a dashed date', '1.13.20-10-2569', '1.13.[DATE-1]'],
-    ['a list number, an en-dashed date', '1.5.20–10–2569', '1.5.[DATE-1]'],
+    ['a list number that reads as a date, an en-dashed date', '1.5.20–10–2569', '[DATE-1]'],
+    ['a two-digit list number, an en-dashed date', '1.13.20–10–2569', '1.13.[DATE-1]'],
+    ['a two-digit list number, a dashed year-first date', '1.13.2026-4-3', '1.13.[DATE-1]'],
     // The run on master's view takes in the middle-dot-joined local pieces before an address.
     ['a middle dot in an email local part', 'mail somchai·j@example.com now', 'mail [EMAIL-1] now'],
     ['middle dots in an email local part', 'mail a·b·c@example.com now', 'mail [EMAIL-1] now'],

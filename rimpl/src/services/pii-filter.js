@@ -493,15 +493,14 @@ const DATE_SEP = String.raw`(?:\s{0,2}-\s{0,2}|\s{0,3})`;
 // No date ends right before a dose unit (10-12-14 mg, 20 Oct 10 mg). A unit ends where its word ends: G2P1 (gravida) and
 // L4-5 (a vertebral level) are no unit, so 11-12-69 G2P1A0 is a date.
 const NOT_DOSE = String.raw`(?!\s*(?:${['mg', 'mcg', 'µg', 'μg', 'g', 'ml', 'l', 'units', 'unit', 'iu', 'mmol', 'meq'].map(anyCase).join('|')})(?![A-Za-z0-9]))`;
-// A dashed day-month-year date (the dashed pass), and whether the day `day` with the text after it, `rest`, opens a real
-// one when the dash look-alikes read as '-': the dotted day-first pass leaves it to the dashed pass, so 1.5.20–10–2569
-// is never cut at its day.
+// A dashed day-month-year date (the dashed pass).
 const DASHED_DMY = String.raw`(?:\d{1,2}-\d{1,2}-\d{4}|\d{2}-\d{2}-\d{2}${NOT_DOSE})\b`;
-let DASHED_DMY_START_RE = null;
-function opensDashedDate(day, rest) {
-  DASHED_DMY_START_RE ??= new RegExp(`^${DASHED_DMY}(?!\\.\\d)`);
-  const m = DASHED_DMY_START_RE.exec(day + rest.slice(0, 16).replace(DASH_LOOKALIKE_G_RE, '-'));
-  return Boolean(m) && dottedDateGuard(m[0]);
+// A dotted day-first date whose year opens a dashed date (20.10.25-12-2569, 20.6.2026-4-3): both are dates only when
+// the dotted one is (a real day and month, a year of two or more digits) and the dashed one is.
+function dottedThenDashedGuard(m) {
+  const [d, mo, y, a, b] = m.split(/\D+/);
+  if (y.length < 2 || !dottedDateGuard(`${d}.${mo}`)) return false;
+  return y.length === 4 ? yearFirstDateGuard(`${y}-${a}-${b}`) : dottedDateGuard(`${y}-${a}`);
 }
 
 // No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
@@ -804,6 +803,14 @@ const PASSES = [
   // --- Dates (kept stable category so repeated dates collapse) ---
   { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE' },
   { re: numericRe(String.raw`\b\d{4}\/\d{1,2}\/\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
+  // A dotted day-first date whose year opens a dashed date is one date, masked whole before either pass below takes
+  // its own part (20.10.25-12-2569, 1.5.20-10-2569, 20.6.2026-4-3). Refused when the dotted part is no date
+  // (1.13.20-10-2569): the dashed pass masks 20-10-2569.
+  {
+    re: numericRe(String.raw`\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}(?:${DASHED_DMY}|\d{4}-\d{1,2}-\d{1,2}\b)`),
+    cat: 'DATE',
+    guard: dottedThenDashedGuard,
+  },
   { re: numericRe(String.raw`\b\d{4}-\d{2}-\d{2}\b`), cat: 'DATE' },
   { re: numericRe(String.raw`\b\d{4}-\d{1,2}-\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
   // Dashed day-month-year (11-12-2569). A two-digit year only after a two-digit day and month (11-12-69) and never
@@ -812,11 +819,11 @@ const PASSES = [
   // (1.13.20-10-2569).
   { re: numericRe(String.raw`\b(?<!\d{4}\.\s{0,3}\d{1,2}\.\s{0,3})${DASHED_DMY}`), cat: 'DATE', guard: dottedDateGuard },
   // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
-  // section or version label, and not a list number whose last group is the day of a dashed date (1.5.20-10-2569).
+  // section or version label.
   {
     re: numericRe(String.raw`(?=\d)${NUMBERED}\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}\d{2,4}\b`),
     cat: 'DATE',
-    guard: (m, _orig, rest = '') => dottedDateGuard(m) && !opensDashedDate(/\d+$/.exec(m)[0], rest),
+    guard: dottedDateGuard,
     dots: '.', // 20·10·2569 (MIDDLE_DOTS)
   },
   // Dotted year-month-day (2026.10.20, 2569.1.2), under the same label and decimal rules.
@@ -1253,7 +1260,6 @@ const MIDDLE_DOTS = new Set([0x00b7, 0x2027, 0x2219, 0x22c5, 0x30fb].map((c) => 
 const ANY_MIDDLE_DOT_RE = new RegExp(`[${[...MIDDLE_DOTS].join('')}]`);
 const NOT_MIDDLE_DOT_RE = new RegExp(`[^${[...MIDDLE_DOTS].join('')}]`, 'g');
 const DASH_LOOKALIKES = [0x2010, 0x2011, 0x2012, 0x2013, 0x2014, 0x2015, 0x2043, 0x2212, 0xfe58, 0xfe63].map((c) => String.fromCodePoint(c));
-const DASH_LOOKALIKE_G_RE = new RegExp(`[${DASH_LOOKALIKES.join('')}]`, 'g');
 const LOOKALIKE = (() => {
   const map = new Map();
   for (const c of DASH_LOOKALIKES) map.set(c, '-');
