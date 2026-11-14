@@ -3,6 +3,8 @@
  * Physician sandbox (#252, ADR 0005): plays every candidate booth case through rimpl, booth chat then the unchanged
  * evaluator, and reports whether the cases score alike. Per case: the scripted best, mixed and weakest paths and the
  * strong, average and weak GP personas, 3 times each by default; personas tap, and type at about one step in four.
+ * A five-step case's taps are replied from its reviewed reply bank (<cases>/replies/<case_id>.json) as the kiosk replies
+ * them, with no chat call; a case whose bank has any problem (one bound to another tree included) is refused.
  *
  *   node scripts/booth/sandbox.mjs                       # prints the plan and its estimated spend, spends nothing
  *   node --env-file=backend/.env --env-file=rimpl/.env scripts/booth/sandbox.mjs --go --cap 30
@@ -20,8 +22,8 @@
  *   --go              spend: without it the script stops after the estimate
  *
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
- * It writes no database row and never calls the booth API: its only calls are rimpl's /chat and /evaluate (with
- * shadow off) and the persona model, and it refuses to run with a database client loaded.
+ * It writes no database row and never calls the booth API: its only calls are rimpl's /chat (typed answers, and every
+ * answer of a case without a reply bank) and /evaluate (with shadow off) and the persona model, and it refuses to run with a database client loaded.
  * An unscored play fails its own case only; a run stopped at the cap or spent over it passes no case.
  * A run plays one step count: three-step and five-step composites sit on different scales, so one pool would fail both.
  * Exit 0 when every case passes, 1 when one fails, 2 on a bad argument or setup.
@@ -40,6 +42,7 @@ const { GROUPS, PATHS, PATHS_BY_STEPS, ANTHROPIC_MODEL, tapping, personaChooser,
   personaCall } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { stepCount } = require(path.join(ROOT, 'backend', 'src', 'services', 'booth-dialogue'));
+const { readBank } = require('./path-table-sample.js');
 
 const fail = (msg) => { console.error(msg); process.exit(2); };
 
@@ -69,7 +72,9 @@ function parseArgs(argv) {
   return opts;
 }
 
+/** The playable cases, and each five-step case's reply bank by case_id. */
 function loadCases(dir, only) {
+  const banks = {};
   let files;
   try { files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort(); } catch { fail(`no case folder at ${dir}`); }
   const cases = files.flatMap((f) => {
@@ -77,18 +82,24 @@ function loadCases(dir, only) {
     try { raw = JSON.parse(readFileSync(path.join(dir, f), 'utf8')); } catch { console.warn(`skip ${f}: not readable JSON`); return []; }
     const problems = caseTreeProblems(raw);
     if (problems.length) { console.warn(`skip ${f}: ${problems[0]}`); return []; }
-    return [CaseTreeSchema.parse(raw)];
-  }).filter((k) => !only.length || only.includes(k.case_id));
+    const kase = CaseTreeSchema.parse(raw);
+    if (only.length && !only.includes(kase.case_id)) return [];
+    if (stepCount(kase) !== 5) return [kase];
+    const { replies, why } = readBank(kase, dir);
+    if (why) { console.warn(`skip ${f}: it ${why}`); return []; }
+    banks[kase.case_id] = replies;
+    return [kase];
+  });
   const missing = only.filter((id) => !cases.some((k) => k.case_id === id));
   if (missing.length) fail(`no playable case ${missing.join(', ')} in ${dir}`);
   if (!cases.length) fail(`no playable case in ${dir}`);
-  return cases;
+  return { cases, banks };
 }
 
 const opts = parseArgs(process.argv.slice(2));
 // Scripted-only runs (--persona-runs 0) are judged on the scripted groups alone.
 const groups = opts.personaRuns > 0 ? GROUPS : Object.keys(PATHS);
-const cases = loadCases(opts.cases, opts.only);
+const { cases, banks } = loadCases(opts.cases, opts.only);
 const steps = stepCount(cases[0]);
 let pool;
 let earlier;
@@ -108,7 +119,8 @@ if (opts.pool) {
 }
 const stepProblem = stepCountProblem(cases.map(stepCount), opts.pool ? earlier : null);
 if (stepProblem) fail(stepProblem);
-const jobs = jobsFor(cases, { pathRuns: opts.pathRuns, personaRuns: opts.personaRuns });
+const jobs = jobsFor(cases, { pathRuns: opts.pathRuns, personaRuns: opts.personaRuns })
+  .map((job) => ({ ...job, replies: banks[job.kase.case_id] }));
 const est = estimate(jobs);
 console.log(`${cases.length} case(s): ${cases.map((k) => `${k.case_id}@${k.version}`).join(', ')}`);
 console.log(`${est.plays} plays. Estimated spend $${est.typical_usd} typical, $${est.worst_usd} if every call bills its worst case. Cap $${opts.cap}.`);
@@ -130,7 +142,7 @@ let done = 0;
 const { results, spent_usd, stopped, over_cap } = await runPlays(jobs, {
   capUsd: opts.cap,
   concurrency: opts.concurrency,
-  play: (job) => playOnce({ kase: job.kase, ai,
+  play: (job) => playOnce({ kase: job.kase, replies: job.replies, ai,
     choose: job.persona ? personaChooser(job.group) : tapping(PATHS_BY_STEPS[steps][job.group]) }),
   onDone: (job, r) => {
     done += 1;

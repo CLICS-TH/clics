@@ -9,8 +9,10 @@
  * Score gate: counts distinct plays, not lines. PASS needs at least --min scored plays (default 5), no unavailable
  * play, p95 under 60 s and every scored play on provider table (ADR 0009: read from the case's path score table).
  * Reply gate: counts distinct (play, step) replies, an empty one included (the visitor waited for it too). PASS needs
- * p95 under 15 s over at least --min-replies (default 30); fewer is TOO FEW. Empty and unavailable replies and the
- * providers are reported but do not fail it.
+ * at least --min-replies (default 30), fewer is TOO FEW, and a p95 under 15 s in each of its two groups, judged apart:
+ * bank replies (provider=reply_bank, a tap on a five-step case, ADR 0011) and AI replies (every other, a typed answer's
+ * included), so many near-instant bank replies never hide slow AI ones. A group with no reply has no p95 and does not
+ * fail. Empty and unavailable replies and the providers are reported but do not fail it.
  * Exit 0 when both gates pass, 1 otherwise, 2 on a bad argument.
  */
 import { readFileSync } from 'node:fs';
@@ -22,6 +24,7 @@ const SCORED = /\[booth\] score scored play=(\S+) ms=(\d+) provider=(\S+)/;
 const REPLAY = 'replay';
 const UNAVAILABLE = /\[booth\] score unavailable play=(\S+) ms=(\d+) reason=(\S+)/;
 const REPLY_P95_LIMIT_MS = 15_000;
+const BANK = 'reply_bank';
 const REPLY = /\[booth\] reply (replied|empty|unavailable) play=(\S+) step=(\S+) ms=(\d+)(?: provider=(\S+))?/;
 
 /**
@@ -94,25 +97,35 @@ export function summarizeReplies({ replies }, { min = 30 } = {}) {
   const first = new Map();
   for (const r of replies) if (!first.has(`${r.play} ${r.step}`)) first.set(`${r.play} ${r.step}`, r);
   const answered = [...first.values()].filter((r) => r.kind !== 'unavailable');
-  const ms = answered.map((r) => r.ms).sort((a, b) => a - b);
   const providers = {};
   for (const r of answered) providers[r.provider] = (providers[r.provider] ?? 0) + 1;
-  const p95 = nearestRank(ms, 95);
+  const groups = {
+    bank: latencies(answered.filter((r) => r.provider === BANK)),
+    ai: latencies(answered.filter((r) => r.provider !== BANK)),
+  };
+  const slow = Object.entries(groups).filter(([, g]) => g.p95_ms != null && g.p95_ms >= REPLY_P95_LIMIT_MS)
+    .map(([name, g]) => `${name} p95 ${(g.p95_ms / 1000).toFixed(1)} s is not under 15 s`);
   let verdict = 'PASS';
   let failure = null;
-  if (ms.length < min) [verdict, failure] = ['TOO FEW', `only ${ms.length} replies, need ${min}`];
-  else if (p95 >= REPLY_P95_LIMIT_MS) [verdict, failure] = ['FAIL', `p95 ${(p95 / 1000).toFixed(1)} s is not under 15 s`];
+  if (answered.length < min) [verdict, failure] = ['TOO FEW', `only ${answered.length} replies, need ${min}`];
+  else if (slow.length) [verdict, failure] = ['FAIL', slow.join('; ')];
+  const shown = ({ p95_ms: _, ...g }) => g;
   return {
-    n: ms.length,
+    n: answered.length,
     empty: answered.filter((r) => r.kind === 'empty').length,
     unavailable: first.size - answered.length,
-    p50_s: seconds(nearestRank(ms, 50)),
-    p95_s: seconds(p95),
-    max_s: seconds(ms.at(-1) ?? null),
+    bank: shown(groups.bank),
+    ai: shown(groups.ai),
     providers,
     verdict,
     failure,
   };
+}
+
+function latencies(replies) {
+  const ms = replies.map((r) => r.ms).sort((a, b) => a - b);
+  const p95 = nearestRank(ms, 95);
+  return { n: ms.length, p50_s: seconds(nearestRank(ms, 50)), p95_s: seconds(p95), max_s: seconds(ms.at(-1) ?? null), p95_ms: p95 };
 }
 
 const fmt = (x) => (x == null ? '-' : `${x.toFixed(1)} s`);
@@ -125,7 +138,7 @@ export function report(s, r) {
     `providers ${listed(s.providers)}`,
     s.pass ? 'score PASS' : `score FAIL: ${s.failures.join('; ')}`,
     `replies n=${r.n}  empty=${r.empty}  unavailable=${r.unavailable}`,
-    `reply p50 ${fmt(r.p50_s)}  p95 ${fmt(r.p95_s)}  max ${fmt(r.max_s)}`,
+    ...['bank', 'ai'].map((g) => `${g} reply n=${r[g].n}  p50 ${fmt(r[g].p50_s)}  p95 ${fmt(r[g].p95_s)}  max ${fmt(r[g].max_s)}`),
     `reply providers ${listed(r.providers)}`,
     r.failure ? `reply ${r.verdict}: ${r.failure}` : 'reply PASS',
     s.pass && r.verdict === 'PASS' ? 'PASS' : 'FAIL',

@@ -1,12 +1,13 @@
 // The physician sandbox's play loop (#252, ADR 0005): one booth grill play of a candidate case through rimpl's booth
 // chat and the unchanged evaluator, with the booth API's own request and transcript builders
-// (backend/src/services/booth-dialogue.js). It reaches rimpl and the persona model over HTTP and loads no database
+// (backend/src/services/booth-dialogue.js). A tap on a case with a reply bank is replied from it, as the kiosk replies
+// it (ADR 0011), with no chat call. It reaches rimpl and the persona model over HTTP and loads no database
 // client. CommonJS so the backend's jest suite can prove it sends what the booth API sends.
 const crypto = require('crypto');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', '..', 'backend', 'src');
-const { LETTER, bankAt, stepCount, firstAsk, replyText, chatRequest, chatOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
+const { LETTER, bankAt, stepCount, firstAsk, replyText, chatRequest, chatOutcome, bankOutcome, evaluateRequest } = require(path.join(SRC, 'services', 'booth-dialogue'));
 const { ScoreSchema } = require(path.join(SRC, 'lib', 'schemas'));
 const { compositeScore, WEIGHTS } = require(path.join(SRC, 'services', 'ple-gate'));
 const { costUsd } = require(path.join(SRC, 'lib', 'pricing'));
@@ -110,10 +111,11 @@ const personaChooser = (persona, { typeRate = TYPE_RATE, random = Math.random } 
  * One booth grill play of `kase`. `ai` holds the calls: `chat` and `evaluate` reach rimpl, `persona` the persona model.
  * Each call's cost is read from the tokens it reports. A failed chat takes the booth's own fallback (no reply and the
  * bank's default trio); a failed evaluate leaves the play unscored, and so does a `choose` that answers `{ abandon }`.
- * @param {{ kase: object, choose: Function, ai: Record<string, Function>, start?: object }} play
- *   `start` is step 1's ask (default: drawn the way the booth draws it).
+ * @param {{ kase: object, choose: Function, ai: Record<string, Function>, replies?: object, start?: object }} play
+ *   `replies` is the case's reviewed reply bank (reply-bank.js), which answers every tap; a typed answer still goes to
+ *   chat. `start` is step 1's ask (default: drawn the way the booth draws it).
  */
-async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }) {
+async function playOnce({ kase, choose, ai, replies, start = firstAsk(kase.banks.step1) }) {
   const ple_id = crypto.randomUUID();
   const calls = [];
   let fallbacks = 0;
@@ -154,7 +156,8 @@ async function playOnce({ kase, choose, ai, start = firstAsk(kase.banks.step1) }
     const walked = 'choice' in answer
       ? { ...d, answers: [...d.answers, answer], tierPath: d.tierPath + tierOf(bank, answer.choice) }
       : { ...d, answers: [...d.answers, answer], unsorted: true };
-    const out = chatOutcome(kase, walked, await call('chat', { ple_id, ...chatRequest(kase, walked) }));
+    const out = replies && !walked.unsorted ? bankOutcome(kase, walked, replies)
+      : chatOutcome(kase, walked, await call('chat', { ple_id, ...chatRequest(kase, walked) }));
     d = { answers: out.answers, replies: out.replies, asks: out.asks, tierPath: out.tierPath };
   }
   const domains = DomainsSchema.safeParse(await call('evaluate', { ple_id, ...evaluateRequest(kase, d) }));
@@ -169,10 +172,15 @@ function jobsFor(cases, { pathRuns = 3, personaRuns = 3 } = {}) {
   ]);
 }
 
-const playCost = (call) => (job) => stepCount(job.kase) * (call('chat') + (job.persona ? call('persona') : 0)) + call('evaluate');
-const worstPlay = playCost(worstCall);
+// A job on a case with a reply bank (`job.replies`) makes a chat call only where a persona types: at every step at
+// worst, at the type rate typically.
+const playCost = (call, typeRate) => (job) => {
+  const chats = !job.replies ? stepCount(job.kase) : job.persona ? stepCount(job.kase) * typeRate : 0;
+  return chats * call('chat') + (job.persona ? stepCount(job.kase) * call('persona') : 0) + call('evaluate');
+};
+const worstPlay = playCost(worstCall, 1);
 const typicalCall = (kind) => costUsd(...TYPICAL_TOKENS[kind], 'anthropic');
-const typicalPlay = playCost(typicalCall);
+const typicalPlay = playCost(typicalCall, TYPE_RATE);
 const sum = (jobs, f) => Math.round(jobs.reduce((acc, j) => acc + f(j), 0) * 100) / 100;
 
 /** What the plays would cost: typically, and at the worst case every call could bill. */
