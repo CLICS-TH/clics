@@ -98,6 +98,21 @@ const LEAK = [
   ['parenthesized phone', 'tel ⓪⑻⑴⑵⑶⑷⑸⑹⑺⑻ x', /⑻⑴⑵/],
   ['full-stop phone', 'tel ⓪⒏⒈⒉⒊⒋⒌⒍⒎⒏ x', /⒏⒈⒉/],
   ['parenthesized ID', 'id ⑴⑵⑶⑷⑸⑹⑺⑻⑼⑴⑵⑶⑷ x', /⑴⑵⑶/],
+  // Round 3: middle dots read as spaces in the ID, HN and MRN passes.
+  ['middle-dot ID', 'id 1·2345·67890·12·3 x', /67890/],
+  ['middle-dot HN', 'HN·1234567 seen', /1234567/],
+  ['middle-dot MRN', 'MRN·123456 seen', /123456/],
+  // A numbered list item before a look-alike-dash phone or ID.
+  ['numbered item, en-dash phone', '1. 081–234–5678', /234|5678/],
+  ['numbered item, en-dash ID', '1. 1–2345–67890–12–3', /67890/],
+  // A look-alike-dash ID in any grouping.
+  ['en-dash ID, 1-5-5-1-1', 'id 1–23456–78901–2–3 x', /23456|78901/],
+  ['en-dash ID, 2-3-5-1-2', 'id 12–345–67890–1–23–4 x', /67890/],
+  ['HN tail of five digits', 'HN 1234/12345 seen', /12345/],
+  // G2P1 and L4-5 are no dose unit.
+  ['dashed date before G2P1A0', 'LMP 11-12-69 G2P1A0', /11-12-69/],
+  ['dashed date before L4-5', 'op 11-12-69 L4-5 fusion', /11-12-69/],
+  ['month-name date before G2P1', 'DOB 20 Oct 67 G2P1', /20 Oct 67/],
 ];
 
 const KEEP = [
@@ -124,6 +139,11 @@ const KEEP = [
   ...['mg', 'MG', 'mcg', 'µg', 'g', 'mL', 'ml', 'L', 'units', 'unit', 'IU', 'mmol', 'mEq']
     .map((u) => [`dose range before ${u}`, `titrate 10-12-14 ${u}`]),
   ['dose range, unit glued', 'titrate 10-12-14mg'],
+  ['dose range, unit glued, alone', '10-12-14mg'],
+  ['vertebral level', 'op L4-5 fusion'],
+  ['obstetric score', 'G2P1A0 at 32 weeks'],
+  ['middle-dot sodium trend', 'Na 140·00 139·50'],
+  ['middle-dot potassium range', 'K 3·5–5·0'],
   ['day, month and a dose', 'given 2 May 10 mg'],
   ['day, month and a time', 'on 3 Jan 10:30 seen'],
   ['full-stop list', '⒈ aspirin ⒉ clopidogrel'],
@@ -174,6 +194,19 @@ describe('#474 exact outputs', () => {
     ['a middle-dot phone', 'call 081·234·5678 now', 'call [PHONE-1] now'],
     // A / or - group glued to a numbered section takes its label's exemption away, as before #474 (NUMBERED).
     ['a section number glued to a slash date', 'Section: 1.2.1020/10/2569', 'Section: [DATE-1]/10/2569'],
+    // A text with a dash look-alike is read first with the dashes as written (applyPass), and a look-alike run never cuts a
+    // date or phone in two (cutsIdentifier): each output is master's.
+    ['an HN, an en dash, a slash date', 'HN 1234567–20/10/2569 seen', '[HN-1]–[DATE-1] seen'],
+    ['an MRN, an en dash, a slash date', 'MRN 123456–20/10/2569 seen', '[MRN-1]–[DATE-1] seen'],
+    ['an HN, an en dash, an ISO date', 'HN 1234567–2026-10-20 seen', '[HN-1]–[DATE-1] seen'],
+    ['a landline, an en dash, a slash date', 'โทร 02 123 4567–5/10/2569 seen', 'โทร [PHONE-1]–[DATE-1] seen'],
+    ['a short number, a landline, a phone', 'x 05–021234567 02-123-4567 y', 'x 05–[PHONE-1] [PHONE-2] y'],
+    ['a short number, a landline, a date', 'call 05–021234567 20/10/2569', 'call 05–[PHONE-1] [DATE-1]'],
+    ['an HN, a middle dot, a slash date', 'HN 1234567·20/10/2569', '[HN-1]·[DATE-1]'],
+    ['a dotted year-first date, an en dash, a dashed date', 'seen 2026.10.20–11-12-69', 'seen [DATE-2]–[DATE-1]'],
+    // An email read through middle dots ends where the next address starts.
+    ['two emails joined by a middle dot', 'a@x.com·info@jaidee-clinic.co.th', '[EMAIL-1]·[EMAIL-2]'],
+    ['two emails joined by a middle dot, short TLD word', 'a@x.com·me@somchai.net', '[EMAIL-1]·[EMAIL-2]'],
   ])('%s', (_shape, input, out) => {
     expect(stripPii(input)).toBe(out);
   });
@@ -210,6 +243,17 @@ test('a LINE label followed by 40000 spaces finishes in linear time', () => {
 
 // The email scan tried every start of a long run of address characters (emailExecFrom); the look-alikes of #474 make
 // more text such a run. Before: about 3 s each at this length.
+// A run longer than GUARD_FALLBACK_MAX is no longer retried unit by unit, and the dots run caps an email's local part
+// (EMAIL_LOCAL_MAX). Before: 75 s and 6.3 s (the second at n = 10000).
+test.each([
+  ['digits and middle dots before an @', `${'1·'.repeat(40000)}@a·com`],
+  ['letters and middle dots before an email', `${'a·'.repeat(40000)}a@example·xyz`],
+])('%s at n = 40000 finishes in linear time', (_kind, input) => {
+  const t0 = process.hrtime.bigint();
+  stripPii(input);
+  expect(Number(process.hrtime.bigint() - t0) / 1e6).toBeLessThan(200);
+});
+
 test.each([
   ['hyphens', '05-'.repeat(20000)],
   ['en dashes', '05–'.repeat(20000)],

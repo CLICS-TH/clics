@@ -490,8 +490,9 @@ const TH_MONTH = `(?:มกราคม|กุมภาพันธ์|มีน
     .map((a) => a.replace(/\./g, '\\.').replace(/\\\.(?=.)/, '\\.\\s{0,2}')).join('|')})`;
 // A day, a month name and a year are joined by spaces or one dash (20 Oct 1967, 20-Oct-1967, 20-ต.ค.-2510).
 const DATE_SEP = String.raw`(?:\s{0,2}-\s{0,2}|\s{0,3})`;
-// No date ends right before a dose unit (10-12-14 mg, 20 Oct 10 mg).
-const NOT_DOSE = String.raw`(?!\s*(?:${['mg', 'mcg', 'µg', 'μg', 'g', 'ml', 'l', 'units', 'unit', 'iu', 'mmol', 'meq'].map(anyCase).join('|')})(?![A-Za-z]))`;
+// No date ends right before a dose unit (10-12-14 mg, 20 Oct 10 mg). A unit ends where its word ends: G2P1 (gravida) and
+// L4-5 (a vertebral level) are no unit, so 11-12-69 G2P1A0 is a date.
+const NOT_DOSE = String.raw`(?!\s*(?:${['mg', 'mcg', 'µg', 'μg', 'g', 'ml', 'l', 'units', 'unit', 'iu', 'mmol', 'meq'].map(anyCase).join('|')})(?![A-Za-z0-9]))`;
 
 // No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
 // ".<digit>", and never right after "<digit>." when what follows reads as a decimal fraction, 1-8 digits not
@@ -508,6 +509,9 @@ const numericRe = (src, tail) => new RegExp(NOT_IN_DECIMAL(src, tail), 'g');
 const EMAIL_TLDS = new Set(['com', 'net', 'org', 'edu', 'gov', 'mil', 'int', 'info', 'biz', 'io', 'ai', 'app', 'dev', 'me', 'co',
   'ac', 'go', 'or', 'in', 'mi', 'th', 'uk', 'us', 'jp', 'cn', 'sg', 'my', 'la', 'kh', 'vn', 'au', 'de', 'fr', 'hotmail', 'gmail',
   'yahoo', 'outlook', 'icloud', 'live']);
+// The dots run never takes a local part longer than an address may hold (RFC 5321: 64): one that runs on (a·a·a·…a@,
+// 1·1·…1·@) is left to the run on the text as written, as before #474, and the run stays linear.
+const EMAIL_LOCAL_MAX = 64;
 function emailMiddleDotGuard(_seen, match) {
   if (!ANY_MIDDLE_DOT_RE.test(match)) return true;
   const [local, domain] = match.split('@');
@@ -515,6 +519,9 @@ function emailMiddleDotGuard(_seen, match) {
   return /^[A-Za-z][A-Za-z0-9_.%+]*$/.test(pieces(local)[0])
     && pieces(domain).slice(1).every((p) => p.toLowerCase().split('.').every((l) => EMAIL_TLDS.has(l)));
 }
+
+// The sub-number of an HN, MRN or AN: any digits after a '/', unless they open a full date (/20/10/2569, / 20.10.2569).
+const HN_TAIL = String.raw`(?:\s*\/\s*\d+(?!\d|\s*[/.-]\s*\d{1,2}\s*[/.-]\s*\d))?`;
 
 // A 13-digit run that opens with a whole phone, grouped or not (the ID pass).
 const OPENS_WITH_PHONE_RE = /^\(?0\d{1,2}\)?[\s-]+\d{3,4}[\s-]+\d{3,4}[\s-]|^0\d{8,9}[\s-]/;
@@ -543,6 +550,28 @@ function emailExecFrom(view, from) {
   return null;
 }
 
+// emailExecFrom for the dots run: the leftmost match after `from` whose local part holds at most EMAIL_LOCAL_MAX characters
+// and is not cut from a longer run of address characters. Each '@' is read once, so the scan is linear.
+const EMAIL_LOCAL_CHAR_RE = /[A-Za-z0-9._%+-]/;
+const EMAIL_DOMAIN_RE = /@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/y;
+function emailDotsExecFrom(view, from) {
+  for (let a = view.indexOf('@', from); a >= 0; a = view.indexOf('@', a + 1)) {
+    let s = a;
+    while (s > from && a - s < EMAIL_LOCAL_MAX + 1 && EMAIL_LOCAL_CHAR_RE.test(view[s - 1])) s -= 1;
+    if (a - s > EMAIL_LOCAL_MAX) continue; // runs on past the cap
+    let p = s;
+    while (p < a && isWordChar(view[p - 1]) === isWordChar(view[p])) p += 1; // the first \b
+    if (p >= a) continue;
+    EMAIL_DOMAIN_RE.lastIndex = a;
+    const d = EMAIL_DOMAIN_RE.exec(view);
+    if (!d) continue;
+    const m = [view.slice(p, a + d[0].length)];
+    m.index = p;
+    return m;
+  }
+  return null;
+}
+
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
   // --- Structured identifiers FIRST (longest / most specific) ---
@@ -551,8 +580,9 @@ const PASSES = [
   {
     re: EMAIL_RE,
     execFrom: emailExecFrom,
+    dotsExecFrom: emailDotsExecFrom,
     cat: 'EMAIL',
-    dots: true, // somchai·j@example.com, somchai@example·com (MIDDLE_DOTS)
+    dots: '.', // somchai·j@example.com, somchai@example·com (MIDDLE_DOTS)
     guard: emailMiddleDotGuard,
   },
 
@@ -592,38 +622,40 @@ const PASSES = [
     // otherwise straddle unrelated numbers separated by spaces).
     // A run that opens with a whole phone, grouped or not (081-234-5678 089-876-5432, 0812345678 081-234-5678), is two
     // phones, not one ID; an ID in category 0 (0-1234-56789-12-3, 0123456789012) never groups that way.
-    // A run joined by a look-alike dash (#474) is an ID only in the card's own 1-4-5-2-1 layout (1‑2345‑67890‑12‑3): before
-    // #474 the look-alike broke the run, and a loose one (05–021234567 20/10/2569) would take a date's day or a phone's
-    // area code.
+    // Read through middle dots (1·2345·67890·12·3), a run is an ID only when middle dots are its only separators: a lab
+    // trend (Hb 12·5 11·8 10·2 9·6 9·1 8·7) mixes them with spaces. A look-alike run never cuts a date or phone (applyPassOn).
     guard: (m, orig = m) => m.replace(/\D/g, '').length === 13 && !OPENS_WITH_PHONE_RE.test(m)
-      && (!DASH_LOOKALIKE_RE.test(orig) || /^\d[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d$/.test(m)),
+      && !(ANY_MIDDLE_DOT_RE.test(orig) && /[^\d\u00b7\u2027\u2219\u22c5\u30fb]/.test(orig)),
     // A run rejected as two phones is skipped whole: retried inside, a 13-digit window would straddle the two phones
     // (081-[ID]-5432) and keep their outer groups from the phone passes. A run rejected for its layout is retried.
     rejectWhole: (m) => OPENS_WITH_PHONE_RE.test(m),
+    dots: ' ', // 1·2345·67890·12·3, after the run on the text as written (MIDDLE_DOTS)
   },
 
   // HN (hospital number) explicit code field — kept as its own category since
   // it is the primary local patient identifier and distinct from MRN/AN.
   // Allow internal spaces/dashes in the digit run (e.g. "HN 12-34567"); the
   // guard re-checks the total digit count so a loose run can't over-match.
-  // A "/NN" sub-number (HN 1234/67, HN 1234 / 67) is part of the code; the guard counts the digits before it. It is no
-  // sub-number when another / . - group follows it (HN 1234567 / 20/10/2569): that is a date's day, left to the dates.
+  // A "/N…" sub-number (HN 1234/67, HN 1234 / 67, HN 1234/12345) is part of the code; the guard counts the digits before
+  // it. It is no sub-number when it opens a full date (HN 1234567 / 20/10/2569): that is a date's day, left to the dates.
   {
-    re: /\bHN(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}(?:\s*\/\s*\d{1,4}(?!\d|\s*[/.-]\s*\d))?/gi,
+    re: new RegExp(String.raw`\bHN(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'HN',
     guard: (m) => {
       const d = m.split('/')[0].replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
     },
+    dots: ' ', // HN·1234567, after the run on the text as written (MIDDLE_DOTS)
   },
   // MRN / AN explicit code fields (same internal-separator tolerance).
   {
-    re: /\b(?:MRN|AN)(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}(?:\s*\/\s*\d{1,4}(?!\d|\s*[/.-]\s*\d))?/gi,
+    re: new RegExp(String.raw`\b(?:MRN|AN)(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'MRN',
     guard: (m) => {
       const d = m.split('/')[0].replace(/\D/g, '').length;
       return d >= 4 && d <= 12;
     },
+    dots: ' ',
   },
 
   // Phone numbers — international +66 / 66 forms and Thai national forms.
@@ -678,7 +710,7 @@ const PASSES = [
       const nat = m.replace(/\D/g, '').slice(intl ? 2 : 0);
       return nat.length >= (intl ? 8 : 9) && nat.length <= 10; // the same counts as the two passes above
     },
-    dots: true, // 081·234·5678 (MIDDLE_DOTS)
+    dots: '.', // 081·234·5678 (MIDDLE_DOTS)
   },
 
   // --- Dates (kept stable category so repeated dates collapse) ---
@@ -693,19 +725,19 @@ const PASSES = [
   // section or version label. Both dotted passes read mathematical letters as written (letters: false), as before #474:
   // folded, 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 20.10.2026 would take the version label's exemption.
   {
-    re: numericRe(String.raw`${NUMBERED}\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}\d{2,4}\b`),
+    re: numericRe(String.raw`(?=\d)${NUMBERED}\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}\d{2,4}\b`),
     cat: 'DATE',
     guard: dottedDateGuard,
     letters: false,
-    dots: true, // 20·10·2569 (MIDDLE_DOTS)
+    dots: '.', // 20·10·2569 (MIDDLE_DOTS)
   },
   // Dotted year-month-day (2026.10.20, 2569.1.2), under the same label and decimal rules.
   {
-    re: numericRe(String.raw`${NUMBERED}\b\d{4}\.\s{0,3}\d{1,2}\.\s{0,3}\d{1,2}\b`),
+    re: numericRe(String.raw`(?=\d)${NUMBERED}\b\d{4}\.\s{0,3}\d{1,2}\.\s{0,3}\d{1,2}\b`),
     cat: 'DATE',
     guard: yearFirstDateGuard,
     letters: false,
-    dots: true, // 2026·10·20
+    dots: '.', // 2026·10·20
   },
   // A month name with a day and a year: 20 Oct 1967, 20th Oct 1967, 20-Oct-1967, Oct 20th, 1967, 20 Oct 67,
   // 20 ตุลาคม 2510, 20 ต.ค. 10, 20 ต.ค. พ.ศ. 2510. A day is needed: a month and a year (since October 2024) is no date.
@@ -1107,9 +1139,10 @@ const ASCII_VIEW = (() => {
   for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
   return map;
 })();
-// The middle-dot look-alikes (#474) read as '.' only in the passes that ask for them (`dots`: the dotted phone, both
-// dotted dates, the email): 081·234·5678, 20·10·2569, somchai@example·com. Every other pass sees them as written, as
-// before #474, so a lab trend (Cr 1·05 1·12 1·20) never joins into a phone or an ID there, and 12·5 stays as written.
+// The middle-dot look-alikes (#474) read as '.' in the dotted phone, both dotted dates and the email (`dots: '.'`):
+// 081·234·5678, 20·10·2569, somchai@example·com; and as a space in the ID, HN and MRN passes (`dots: ' '`):
+// 1·2345·67890·12·3, HN·1234567. Every other pass sees them as written, as before #474, so 12·5 stays as written, and a
+// lab trend (Cr 1·05 1·12 1·20) is kept from the ID pass by its 13-digit count and its separator rule.
 const MIDDLE_DOTS = new Set([0x00b7, 0x2027, 0x2219, 0x22c5, 0x30fb].map((c) => String.fromCodePoint(c)));
 const ANY_MIDDLE_DOT_RE = new RegExp(`[${[...MIDDLE_DOTS].join('')}]`);
 // Look-alikes folded by the run they stand in (#474, see JOINS): the dash look-alikes as '-', the mathematical letters
@@ -1154,55 +1187,78 @@ const JOINS = {
 // one the indexes part: `at` then maps every view index, and the view's end, to the original's; a keycap's marks fall
 // in the cut of its digit. `at` is null while the view is index-for-index (no fold is longer than its source, so equal
 // lengths mean no fold shortened anything).
-// `letters` false leaves the mathematical letters as written (the dotted-date passes, see NUMBERING_LABEL); `dots` true
-// reads the middle dots as '.' (see MIDDLE_DOTS).
+// `letters` false leaves the mathematical letters as written (the dotted-date passes, see NUMBERING_LABEL); `dots` ('.' or
+// ' ') reads the middle dots as that character (see MIDDLE_DOTS); `dashes` false leaves the dash look-alikes as written.
+// No option changes the view's length, so every view of one text shares its indexes.
 // Every non-NAME pass asks for the view of the text, which most passes hand on unchanged: the last one of each kind is kept.
 const lastView = new Map();
-function asciiView(s, letters = true, dots = false) {
-  const k = `${letters}|${dots}`;
-  if (lastView.get(k)?.s !== s) lastView.set(k, { s, r: buildAsciiView(s, letters, dots) });
+function asciiView(s, letters = true, dots = false, dashes = true) {
+  const k = `${letters}|${dots}|${dashes}`;
+  if (lastView.get(k)?.s !== s) lastView.set(k, { s, r: buildAsciiView(s, letters, dots, dashes) });
   return lastView.get(k).r;
 }
-function buildAsciiView(s, letters, dots) {
+const KIND_CODE = { letter: 1, digit: 2, dash: 3 };
+const KIND_NAME = [null, 'letter', 'digit', 'dash'];
+function buildAsciiView(s, letters, dots, dashes) {
   if (!ANY_FOLD_RE.test(s)) return { view: s, at: null };
-  const plain = (c) => (dots && MIDDLE_DOTS.has(c) ? '.' : ASCII_VIEW.get(c) ?? c);
-  const units = []; // [start, end, folded, look-alike kind or null]
+  const plain = (c) => (dots && MIDDLE_DOTS.has(c) ? dots : ASCII_VIEW.get(c) ?? c);
+  // ASCII and Thai letters read as written; an ASCII digit only when no keycap mark follows it.
+  const asIs = (i) => {
+    const code = s.charCodeAt(i);
+    if (code >= 0x0e01 && code <= 0x0e4f) return true;
+    if (code >= 0x80) return false;
+    const next = s.charCodeAt(i + 1);
+    return !(code >= 0x30 && code <= 0x39 && (next === 0xfe0f || next === 0x20e3));
+  };
+  // One unit per code point (a keycap with its marks): units [starts[u], starts[u + 1]) of s, read as folded[u], of
+  // look-alike kind kinds[u] (0: none).
+  const starts = [];
+  const folded = [];
+  const kinds = new Uint8Array(s.length);
   for (let i = 0; i < s.length;) {
+    const u = starts.length;
+    starts.push(i);
+    if (asIs(i)) { folded.push(s[i]); i += 1; continue; }
     const c = String.fromCodePoint(s.codePointAt(i));
     const base = plain(c);
     const keycap = /^[0-9]$/.test(base) && KEYCAP_MARKS_RE.exec(s.slice(i + c.length, i + c.length + 2));
     const look = LOOKALIKE.get(c);
-    const folds = look && (letters || look[1] !== 'letter');
-    const end = i + c.length + (keycap ? keycap[0].length : 0);
-    units.push(keycap ? [i, end, base, 'digit'] : folds ? [i, end, ...look] : [i, end, base, null]);
-    i = end;
+    const folds = look && (letters || look[1] !== 'letter') && (dashes || look[1] !== 'dash');
+    folded.push(keycap ? base : folds ? look[0] : base);
+    kinds[u] = keycap ? KIND_CODE.digit : folds ? KIND_CODE[look[1]] : 0;
+    i += c.length + (keycap ? keycap[0].length : 0);
   }
-  let view = '';
+  const n = starts.length;
+  starts.push(s.length);
+  const parts = [];
   const at = [];
-  const emitPlain = (start, end) => { // each code point under ASCII_VIEW alone, as before #474
-    for (let i = start; i < end;) {
+  const emitPlain = (u) => { // each code point under ASCII_VIEW alone, as before #474
+    for (let i = starts[u]; i < starts[u + 1];) {
+      if (asIs(i)) { parts.push(s[i]); at.push(i); i += 1; continue; }
       const c = String.fromCodePoint(s.codePointAt(i));
-      const folded = plain(c);
-      view += folded;
-      for (let k = 0; k < folded.length; k += 1) at.push(folded === c ? i + k : i);
+      const f = plain(c);
+      parts.push(f);
+      for (let k = 0; k < f.length; k += 1) at.push(f === c ? i + k : i);
       i += c.length;
     }
   };
-  for (let u = 0; u < units.length;) {
-    const kind = units[u][3];
-    if (!kind) { emitPlain(units[u][0], units[u][1]); u += 1; continue; }
+  for (let u = 0; u < n;) {
+    const kind = kinds[u];
+    if (!kind) { emitPlain(u); u += 1; continue; }
     let v = u;
-    while (v < units.length && units[v][3] === kind) v += 1;
-    const before = u > 0 ? units[u - 1][2].slice(-1) : '';
-    const after = v < units.length ? units[v][2].slice(0, 1) : '';
-    // A dash run right after a dotted number stays as written: 20.10.2569–11-12-69 would read as a year-first date
-    // (2569-11-12) and cut the dotted date in front of it.
-    const fold = !JOINS[kind](before) && !JOINS[kind](after) && !(kind === 'dash' && /\d\.\s{0,3}\d+$/.test(view.slice(-40)));
+    while (v < n && kinds[v] === kind) v += 1;
+    const before = u > 0 ? folded[u - 1].slice(-1) : '';
+    const after = v < n ? folded[v].slice(0, 1) : '';
+    // A run that would cut a date or phone in two once folded (20.10.2569–11-12-69 read as 2569-11-12) is refused by
+    // cutsIdentifier in applyPassOn, not here.
+    const join = JOINS[KIND_NAME[kind]];
+    const fold = !join(before) && !join(after);
     for (let w = u; w < v; w += 1) {
-      if (fold) { view += units[w][2]; at.push(units[w][0]); } else emitPlain(units[w][0], units[w][1]);
+      if (fold) { parts.push(folded[w]); at.push(starts[w]); } else emitPlain(w);
     }
     u = v;
   }
+  const view = parts.join('');
   if (view.length === s.length) return { view, at: null };
   at.push(s.length);
   return { view, at };
@@ -1213,29 +1269,79 @@ function buildAsciiView(s, letters, dots) {
 // at each candidate end, so its own pattern still decides every shorter match; the cut point is checked against the
 // full text, which the cut hides from the regex's lookahead.
 const GUARD_FALLBACK_MAX = 128; // above the longest loose phone run (13 digits, gaps of up to 8)
-// `cut(a, b)` is the original text of view [a, b), the guard's second argument.
-function longestGuarded(view, re, at, len, guard, cut) {
+// `accept(end, seen)` decides a candidate that ends at view index `end`. The regex reads the view from at most
+// LOOKBEHIND_MAX units before `at` (longer than any lookbehind in PASSES), so each try costs the match's length, not the
+// text's.
+const LOOKBEHIND_MAX = 64;
+function longestGuarded(view, re, at, len, accept) {
   if (len > GUARD_FALLBACK_MAX) return null;
   const rx = new RegExp(re.source, re.flags.replace('g', '') + 'y');
+  const base = Math.max(0, at - LOOKBEHIND_MAX);
   for (let e = len - 1; e > 0; e -= 1) {
     const next = view.slice(at + e, at + e + 2);
     if (/^[A-Za-z0-9]|^\.\d/.test(next)) continue;
-    rx.lastIndex = at;
-    const m = rx.exec(view.slice(0, at + e));
-    if (m && m[0].length === e && guard(m[0], cut(at, at + e))) return m[0];
+    rx.lastIndex = at - base;
+    const m = rx.exec(view.slice(base, at + e));
+    if (m && m[0].length === e && accept(at + e, m[0])) return m[0];
   }
   return null;
 }
 
-// Apply one pass, threading the shared registry so tokens are stable per call. A `dots` pass reads the middle dots as
-// '.' first (somchai·j@example.com masks whole), then runs again on the text as written, as before #474: a middle dot
-// beside an ASCII dotted date reads as a decimal point in the first run (20.10.2569·5), and the second masks it.
-function applyPass(text, pass, token, hints) {
-  if (!pass.dots || !ANY_MIDDLE_DOT_RE.test(text)) return applyPassOn(text, pass, token, hints, false);
-  return applyPassOn(applyPassOn(text, pass, token, hints, true), pass, token, hints, false);
+// A run that reads a look-alike (a folded dash, a middle dot) must not cut in two a date or phone that the text as
+// written holds: HN 1234567–20/10/2569 would take the date's day, 05–021234567 20/10/2569 an ID with it, and
+// 20.10.2569–11-12-69 a year-first date from the dotted date's year. `plain` is the view with the dash look-alikes and
+// middle dots as written; a date or phone found in it that starts before `edge` and ends after it is cut there.
+const STRADDLE_WINDOW = 48;
+const LOOSE_SEP_RE = new RegExp(`${DASH_LOOKALIKE_RE.source}|${ANY_MIDDLE_DOT_RE.source}`);
+let SHAPES = null; // the phone and date passes, built after PASSES
+function cutsIdentifier(plain, start, end) {
+  SHAPES ??= PASSES.filter((p) => p.re && (p.cat === 'PHONE' || p.cat === 'DATE'))
+    .map((p) => ({ rx: new RegExp(p.re.source, p.re.flags), guard: p.guard }));
+  for (const edge of [start, end]) {
+    if (edge <= 0 || edge >= plain.length) continue;
+    // No date or phone holds a dash look-alike or a middle dot as written, so none spans an edge beside one.
+    if (LOOSE_SEP_RE.test(plain[edge - 1]) || LOOSE_SEP_RE.test(plain[edge])) continue;
+    const w0 = Math.max(0, edge - STRADDLE_WINDOW);
+    const win = plain.slice(w0, edge + STRADDLE_WINDOW);
+    for (const { rx, guard } of SHAPES) {
+      rx.lastIndex = 0;
+      // As the pass reads it: a match its guard refuses gives way to the longest shorter one at its start, then to a
+      // match from the next unit (05–021234567 02-123-4567: the loose run 021234567 02 hides the phone 02-123-4567).
+      for (let m; (m = rx.exec(win)) !== null;) {
+        const a = w0 + m.index;
+        if (a >= edge) break;
+        const ok = !guard || guard(m[0], m[0]);
+        const len = ok ? m[0].length : longestGuarded(win, rx, m.index, m[0].length, (_e, s) => guard(s, s))?.length ?? 0;
+        if (a + len > edge) return true;
+        if (!ok) rx.lastIndex = m.index + 1;
+      }
+    }
+  }
+  return false;
 }
-function applyPassOn(text, pass, token, hints, dots) {
-  const { re, cat, guard, kind, letters, rejectWhole, execFrom } = pass;
+
+// Apply one pass, threading the shared registry so tokens are stable per call.
+// A text with a dash look-alike is read twice: first with the dashes as written, as before #474, so every mask the pass
+// made then is made again, at the same extent; then with them folded to '-', which only adds masks in what is left
+// (081–234–5678). Read the other way, a folded dash let a run read on into the next identifier (HN 1234567–20/10/2569
+// took the date's day).
+// A `dots: '.'` pass reads the middle dots as '.' first (somchai·j@example.com masks whole), then runs again on the text
+// as written, as before #474: a middle dot beside an ASCII dotted date reads as a decimal point in the first run
+// (20.10.2569·5), and the second masks it. A `dots: ' '` pass (ID, HN, MRN) reads the text as written first.
+function applyPass(text, pass, token, hints) {
+  if (!pass.re) return applyPassOn(text, pass, token, hints, false, false);
+  const dotOrder = !pass.dots || !ANY_MIDDLE_DOT_RE.test(text) ? [false]
+    : pass.dots === '.' ? [pass.dots, false] : [false, pass.dots];
+  let out = text;
+  for (const dots of dotOrder) {
+    out = applyPassOn(out, pass, token, hints, dots, false);
+    if (pass.cat !== 'NAME' && DASH_LOOKALIKE_RE.test(out)) out = applyPassOn(out, pass, token, hints, dots, true);
+  }
+  return out;
+}
+function applyPassOn(text, pass, token, hints, dots, dashes) {
+  const { re, cat, guard, kind, letters, rejectWhole } = pass;
+  const execFrom = dots && pass.dotsExecFrom ? pass.dotsExecFrom : pass.execFrom;
 
   if (kind === 'bare-name') return applyBareNamePass(text, token);
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
@@ -1247,22 +1353,35 @@ function applyPassOn(text, pass, token, hints, dots) {
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
-  const { view, at } = cat === 'NAME' ? { view: text, at: null } : asciiView(text, letters !== false, dots);
+  if (cat !== 'NAME' && dashes) {
+    // The folded run: nothing to add when no dash look-alike folds.
+    if (asciiView(text, letters !== false, dots, true).view === asciiView(text, letters !== false, dots, false).view) return text;
+  }
+  const { view, at } = cat === 'NAME' ? { view: text, at: null } : asciiView(text, letters !== false, dots, dashes);
+  // A run that reads a look-alike as a separator (see cutsIdentifier and emailDotsExecFrom).
+  const loose = cat !== 'NAME' && (dashes || Boolean(dots));
+  const plain = loose ? asciiView(text, letters !== false, false, false).view : null;
+  const cut = (a, b) => (at ? text.slice(at[a], at[b]) : text.slice(a, b));
+  const accept = (start, end, seen) => (!guard || guard(seen, cut(start, end)))
+    && !(loose && cutsIdentifier(plain, start, end))
+    // An email read through middle dots ends where the next one starts: a·x.com·info@… is two addresses.
+    && !(dots && cat === 'EMAIL' && view[end] === '@');
   return replaceResumable(text, re, (m) => {
     // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
     // every return that masks nothing must give back unchanged.
     const [seen, g1, g2, g3] = m;
-    const match = at ? text.slice(at[m.index], at[m.index + seen.length]) : text.slice(m.index, m.index + seen.length);
-    if (guard && !guard(seen, match)) {
+    const match = cut(m.index, m.index + seen.length);
+    if ((guard || loose) && !accept(m.index, m.index + seen.length, seen)) {
       // A loose run can take the next number too (โทร 081-234-5678 2 ครั้ง) and fail its guard as a whole: fall back
       // to the longest shorter match the guard accepts at the same start, so the identifier is still masked.
-      const cut = (a, b) => (at ? text.slice(at[a], at[b]) : text.slice(a, b));
-      const shorter = cat === 'NAME' ? null : longestGuarded(view, re, m.index, seen.length, guard, cut);
+      const shorter = cat === 'NAME' ? null
+        : longestGuarded(view, re, m.index, seen.length, (end, s) => accept(m.index, end, s));
       if (shorter) return [token(cat, shorter), shorter.length];
-      if (cat === 'NAME' || (rejectWhole && rejectWhole(seen))) return match;
+      // A run longer than GUARD_FALLBACK_MAX is given back whole, as before #474: retried from each unit it was quadratic.
+      if (cat === 'NAME' || (rejectWhole && rejectWhole(seen)) || seen.length > GUARD_FALLBACK_MAX) return match;
       // Nothing at this start passes: give back one view unit and scan on from the next, so an identifier that starts
       // inside the rejected run is still found (05-021234567: 11 digits from 05, a landline from its 0).
-      return [at ? text.slice(at[m.index], at[m.index + 1]) : text[m.index], 1];
+      return [cut(m.index, m.index + 1), 1];
     }
 
     if (cat === 'NAME') {
