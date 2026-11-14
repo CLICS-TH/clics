@@ -490,8 +490,10 @@ jobs:
     needs: fast-checks
     # Two selections share this job's Chromium: `responsive` (the portal smokes and the mobile audit, which
     # never open a booth page) and `booth_kiosk` (the booth harness, ~15 min, which serves only the booth
-    # pages and the shared assets they load). A portal-only PR skips the harness; a booth-only PR skips the
-    # smokes. The push to master selects both.
+    # pages and the shared assets they load). A PR touching only backend/src/booth-cases/ or scripts/booth/
+    # skips the smokes. A booth front-end PR under physician-ui/public/ still runs them (responsive-smoke.mjs
+    # scans every Portal file). A Portal PR skips the harness only when it leaves the shared assets (js/ui.js,
+    # icons.js, config.js, css/fonts.css, fonts/, favicon.svg) alone. The push to master selects both.
     if: ${{ !cancelled() && (needs.fast-checks.outputs.responsive == 'true' || needs.fast-checks.outputs.booth_kiosk == 'true') }}
     env:
       RUN_RESPONSIVE: ${{ needs.fast-checks.outputs.responsive }}
