@@ -625,17 +625,20 @@ const PASSES = [
   // range (5-10-15 mg) is no date.
   { re: numericRe(String.raw`\b(?:\d{1,2}-\d{1,2}-\d{4}|\d{2}-\d{2}-\d{2})\b`), cat: 'DATE', guard: dottedDateGuard },
   // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
-  // section or version label.
+  // section or version label. Both dotted passes read mathematical letters as written (letters: false), as before #474:
+  // folded, 𝐯𝐞𝐫𝐬𝐢𝐨𝐧 20.10.2026 would take the version label's exemption.
   {
     re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}\d{2,4}\b`),
     cat: 'DATE',
     guard: dottedDateGuard,
+    letters: false,
   },
   // Dotted year-month-day (2026.10.20, 2569.1.2), under the same label and decimal rules.
   {
     re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{4}\.\s{0,3}\d{1,2}\.\s{0,3}\d{1,2}\b`),
     cat: 'DATE',
     guard: yearFirstDateGuard,
+    letters: false,
   },
   // A month name with a day and a year: 20 Oct 1967, Oct 20, 1967, 20 ตุลาคม 2510, 20 ต.ค. 10.
   {
@@ -1014,7 +1017,8 @@ function applyGivenSurnamePass(text, token) {
 // Devanagari, the mathematical 𝟎–𝟗 of pasted "bold" text …) as 0–9, and the full-width ASCII block (＋ － ． （ ） Ｈ Ｎ …)
 // as its ASCII letter. A pass matches on the view and cuts the original, so text left unmasked keeps its own digits.
 // Unicode lays every decimal digit set out as a run of ten from zero, and none lies above U+1FFFF.
-// #474 adds the middle-dot look-alikes as '.'. Superscripts, subscripts and fractions stay as they are: 10³/µL and 10⁹/L
+// #474 adds the middle-dot look-alikes as a space: they read as a phone's group separator (081·234·5678) and never as a
+// decimal point, so a date right before "·5" is no decimal and 12·5 stays as written. Superscripts, subscripts and fractions stay as they are: 10³/µL and 10⁹/L
 // are not 103 and 109.
 const ASCII_VIEW = (() => {
   const map = new Map();
@@ -1025,7 +1029,7 @@ const ASCII_VIEW = (() => {
     if (run) map.set(ch, String.fromCharCode(0x30 + ((run - 1) % 10)));
   }
   for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
-  for (const c of [0x00b7, 0x2027, 0x2219, 0x22c5, 0x30fb]) map.set(String.fromCodePoint(c), '.');
+  for (const c of [0x00b7, 0x2027, 0x2219, 0x22c5, 0x30fb]) map.set(String.fromCodePoint(c), ' ');
   return map;
 })();
 // Look-alikes folded by the run they stand in (#474, see JOINS): the dash look-alikes as '-', the mathematical letters
@@ -1064,13 +1068,15 @@ const JOINS = {
 // one the indexes part: `at` then maps every view index, and the view's end, to the original's; a keycap's marks fall
 // in the cut of its digit. `at` is null while the view is index-for-index (no fold is longer than its source, so equal
 // lengths mean no fold shortened anything).
-// Every non-NAME pass asks for the view of the text, which most passes hand on unchanged: the last one is kept.
-let lastView = { s: '', r: { view: '', at: null } };
-function asciiView(s) {
-  if (lastView.s !== s) lastView = { s, r: buildAsciiView(s) };
-  return lastView.r;
+// `letters` false leaves the mathematical letters as written (the dotted-date passes, see NUMBERING_LABEL).
+// Every non-NAME pass asks for the view of the text, which most passes hand on unchanged: the last one of each kind is kept.
+const lastView = { true: { s: '', r: { view: '', at: null } }, false: { s: '', r: { view: '', at: null } } };
+function asciiView(s, letters = true) {
+  const k = String(letters);
+  if (lastView[k].s !== s) lastView[k] = { s, r: buildAsciiView(s, letters) };
+  return lastView[k].r;
 }
-function buildAsciiView(s) {
+function buildAsciiView(s, letters) {
   if (!ANY_FOLD_RE.test(s)) return { view: s, at: null };
   const units = []; // [start, end, folded, look-alike kind or null]
   for (let i = 0; i < s.length;) {
@@ -1078,8 +1084,9 @@ function buildAsciiView(s) {
     const base = ASCII_VIEW.get(c) ?? c;
     const keycap = /^[0-9]$/.test(base) && KEYCAP_MARKS_RE.exec(s.slice(i + c.length, i + c.length + 2));
     const look = LOOKALIKE.get(c);
+    const folds = look && (letters || look[1] !== 'letter');
     const end = i + c.length + (keycap ? keycap[0].length : 0);
-    units.push(keycap ? [i, end, base, 'digit'] : look ? [i, end, ...look] : [i, end, base, null]);
+    units.push(keycap ? [i, end, base, 'digit'] : folds ? [i, end, ...look] : [i, end, base, null]);
     i = end;
   }
   let view = '';
@@ -1131,7 +1138,7 @@ function longestGuarded(view, re, at, len, guard) {
 
 // Apply one pass, threading the shared registry so tokens are stable per call.
 function applyPass(text, pass, token, hints) {
-  const { re, cat, guard, kind } = pass;
+  const { re, cat, guard, kind, letters } = pass;
 
   if (kind === 'bare-name') return applyBareNamePass(text, token);
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
@@ -1143,7 +1150,7 @@ function applyPass(text, pass, token, hints) {
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
-  const { view, at } = cat === 'NAME' ? { view: text, at: null } : asciiView(text);
+  const { view, at } = cat === 'NAME' ? { view: text, at: null } : asciiView(text, letters !== false);
   return replaceResumable(text, re, (m) => {
     // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
     // every return that masks nothing must give back unchanged.

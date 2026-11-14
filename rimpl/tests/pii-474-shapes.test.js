@@ -100,21 +100,12 @@ describe('#474 a look-alike glued to an identifier loses no mask', () => {
     ['math letters before an ID', 'id 𝐃𝐎𝐁1234567890123 x', /67890/],
     ['math letter before HN', 'see 𝐀HN 1234567 x', /1234567/],
     ['minus sign before a LINE id', 'add −line id abc_12 x', /abc_12/],
+    // A middle dot reads as a space, never a decimal point, so the date does not end inside a decimal (NOT_IN_DECIMAL).
+    ['date then middle dot and digit', 'seen 20/10/2569·5 x', /2569/],
+    // The dotted-date passes read mathematical letters as written, so a label in them takes no NUMBERING_LABEL exemption.
+    ['math-letter version label before a dotted date', '𝐯𝐞𝐫𝐬𝐢𝐨𝐧 20.10.2026', /2026/],
   ])('%s', (_shape, input, raw) => {
     expect(stripPii(input)).not.toMatch(raw);
-  });
-});
-
-// Residuals of #474, each masked before it: a look-alike now reads as the ASCII character it copies, so it takes that
-// character's exemption. Pinned until the owner rules on them.
-describe('#474 residual: a folded look-alike takes the exemption of its ASCII form', () => {
-  test.each([
-    // The middle dot reads as '.', so a date directly followed by "·<digit>" ends inside a decimal (NOT_IN_DECIMAL).
-    ['date then middle dot and digit', 'on 20/10/2569·5'],
-    // Mathematical letters read as ASCII, so a numbering label written in them exempts a dotted date (NUMBERING_LABEL).
-    ['math-letter version label before a dotted date', '𝐯𝐞𝐫𝐬𝐢𝐨𝐧 20.10.2026'],
-  ])('%s', (_shape, input) => {
-    expect(stripPii(input)).toBe(input);
   });
 });
 
