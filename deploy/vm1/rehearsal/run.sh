@@ -1,10 +1,13 @@
 #!/bin/bash
 # Drives the sign-in rehearsal (#427). README.md in this directory says when to run which command.
 #
-#   rehearsal/run.sh hermetic            synthetic data, mail captured by mailpit: CI and a laptop with docker
+#   rehearsal/run.sh hermetic            synthetic data, stand-ins for Google and Resend's SMTP relay
+#                                        (docker-compose.hermetic.yml): CI and a laptop with docker
 #   rehearsal/run.sh vm1-env ENV_DIR     vm1: fresh secrets for the rehearsal stack into a root-only ENV_DIR
 #   rehearsal/run.sh vm1-up ENV_DIR      vm1: database, roles, restore from Supabase (URL on stdin), then the stack
 #   rehearsal/run.sh vm1-paths ENV_DIR   vm1: replay the sign-in paths against it
+#   rehearsal/run.sh vm1-mail ENV_DIR    vm1: recreate GoTrue (after gotrue.env's SMTP lines changed) and ask it
+#                                        for one recovery mail to the address on stdin
 #   rehearsal/run.sh down [ENV_DIR]      stop and remove the rehearsal project; the tmpfs database goes with it
 #
 # Everything runs under the compose project `clics-rehearsal`, never `clics`. The rehearsal backend has no host
@@ -16,9 +19,14 @@ cd "$(dirname "$0")/.."
 PROJECT=clics-rehearsal
 log() { echo "[rehearsal] $*"; }
 die() { echo "[rehearsal] ERROR: $*" >&2; exit 1; }
+PKI_VOLUME=clics-rehearsal-pki
+# HERMETIC=1 adds the stand-ins for Google and Resend. Only the hermetic command sets it; one inherited from
+# the caller's shell is dropped here.
+HERMETIC=
 dc() {
-  docker compose -p "$PROJECT" -f docker-compose.yml -f docker-compose.auth.yml \
-    -f rehearsal/docker-compose.rehearsal.yml "$@"
+  local files=(-f docker-compose.yml -f docker-compose.auth.yml -f rehearsal/docker-compose.rehearsal.yml)
+  [ -z "$HERMETIC" ] || files+=(-f rehearsal/docker-compose.hermetic.yml)
+  docker compose -p "$PROJECT" "${files[@]}" "$@"
 }
 
 # supabase/postgres creates the API and auth roles without a usable password; the stack logs in as two of
@@ -57,6 +65,31 @@ up_stack() {
 load_schema() {
   log "loading db/schema.sql"
   dc exec -T db psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q < ../../db/schema.sql
+}
+
+# Hermetic only: a throwaway CA, a certificate for each stand-in (accounts.google.com, smtp.resend.com) and the
+# relay's SMTP AUTH file, made fresh per run into the pki volume. Nothing here is a real credential, and the
+# volume goes when the run ends.
+make_pki() {
+  local d=$1/pki name
+  mkdir -m 700 "$d"
+  openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=CLICS rehearsal CA" \
+    -addext basicConstraints=critical,CA:TRUE -addext keyUsage=critical,keyCertSign \
+    -keyout "$d/ca.key" -out "$d/ca.crt" 2>/dev/null
+  for name in google:accounts.google.com smtp:smtp.resend.com; do
+    openssl req -newkey rsa:2048 -nodes -subj "/CN=${name#*:}" -keyout "$d/${name%%:*}.key" -out "$d/${name%%:*}.csr" 2>/dev/null
+    printf 'subjectAltName=DNS:%s\nextendedKeyUsage=serverAuth\n' "${name#*:}" > "$d/${name%%:*}.ext"
+    openssl x509 -req -in "$d/${name%%:*}.csr" -CA "$d/ca.crt" -CAkey "$d/ca.key" -CAcreateserial -days 1 \
+      -extfile "$d/${name%%:*}.ext" -out "$d/${name%%:*}.crt" 2>/dev/null
+  done
+  printf 'resend:%s\n' "$(sed -n 's/^GOTRUE_SMTP_PASS=//p' "$1/gotrue.env")" > "$d/smtp-auth"
+  rm -f "$d"/*.csr "$d"/*.ext "$d"/*.srl "$d/ca.key"
+  docker volume rm -f "$PKI_VOLUME" >/dev/null
+  docker volume create "$PKI_VOLUME" >/dev/null
+  # The stand-ins and GoTrue run as other uids: the throwaway files are world-readable inside the volume.
+  tar -C "$d" -cf - . | docker run --rm -i --network none --user 0 --entrypoint sh -v "$PKI_VOLUME:/pki" \
+    "clics-backend:$CLICS_RELEASE" -c 'tar -x -C /pki && chmod 755 /pki && chmod 644 /pki/*'
+  log "throwaway CA made for the Google and SMTP stand-ins"
 }
 
 paths() { # [extra docker run args...]
@@ -112,24 +145,25 @@ mint_role_keys() {
 }
 
 # Env files for a throwaway stack: fresh secrets, the role keys minted from them, nothing reused.
-hermetic_env() {
-  local d=$1 jwt db
+hermetic_env() { # <dir> [hermetic]: hermetic points GoTrue's mail at the Resend-shaped relay stand-in
+  local d=$1 jwt db smtp_host=mailpit smtp_port=1025 smtp_user=rehearsal smtp_pass=unused
+  [ "${2:-}" != hermetic ] || { smtp_host=smtp.resend.com smtp_port=465 smtp_user=resend smtp_pass=$(openssl rand -hex 16); }
   jwt=$(openssl rand -base64 48 | tr -d '\n')
   db=$(openssl rand -hex 24)
   umask 077
   cat > "$d/gotrue.env" <<EOF
 GOTRUE_JWT_SECRET=$jwt
 GOTRUE_DB_DATABASE_URL=postgres://supabase_auth_admin:$db@db:5432/postgres
-GOTRUE_SMTP_PASS=unused
-GOTRUE_EXTERNAL_GOOGLE_SECRET=rehearsal-not-a-secret
+GOTRUE_SMTP_PASS=$smtp_pass
+GOTRUE_EXTERNAL_GOOGLE_SECRET=$(openssl rand -hex 16)
 API_EXTERNAL_URL=http://localhost:3102
 GOTRUE_JWT_ISSUER=http://localhost:3102/auth/v1
 GOTRUE_JWT_EXP=3600
 GOTRUE_SITE_URL=http://portal.rehearsal.invalid
 GOTRUE_URI_ALLOW_LIST=http://portal.rehearsal.invalid/auth/callback,http://portal.rehearsal.invalid/reset
-GOTRUE_SMTP_HOST=mailpit
-GOTRUE_SMTP_PORT=1025
-GOTRUE_SMTP_USER=rehearsal
+GOTRUE_SMTP_HOST=$smtp_host
+GOTRUE_SMTP_PORT=$smtp_port
+GOTRUE_SMTP_USER=$smtp_user
 GOTRUE_SMTP_ADMIN_EMAIL=noreply@rehearsal.invalid
 GOTRUE_SMTP_SENDER_NAME=CLICS
 GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID=rehearsal.apps.googleusercontent.com
@@ -166,21 +200,29 @@ export_env() { # <env dir>: what the compose files interpolate
 
 case "${1:-}" in
   hermetic)
+    HERMETIC=1
     ENV_DIR=$(mktemp -d)
     # KEEP=1 leaves the stack up for a look (`run.sh down` removes it); otherwise it goes when this exits.
     if [ -z "${KEEP:-}" ]; then
-      trap 'dc --profile mail down -v --remove-orphans >/dev/null 2>&1 || true; rm -rf "$ENV_DIR"' EXIT
+      trap 'dc --profile mail down -v --remove-orphans >/dev/null 2>&1 || true; docker volume rm -f "$PKI_VOLUME" >/dev/null 2>&1 || true; rm -rf "$ENV_DIR"' EXIT
     else
       log "KEEP=1: env in $ENV_DIR"
     fi
-    hermetic_env "$ENV_DIR"
+    hermetic_env "$ENV_DIR" hermetic
     export_env "$ENV_DIR"
+    # The Google client the stand-in accepts is the one GoTrue is configured with (docker-compose.hermetic.yml).
+    REHEARSAL_GOOGLE_CLIENT_ID=$(sed -n 's/^GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID=//p' "$ENV_DIR/gotrue.env")
+    REHEARSAL_GOOGLE_SECRET=$(sed -n 's/^GOTRUE_EXTERNAL_GOOGLE_SECRET=//p' "$ENV_DIR/gotrue.env")
+    export REHEARSAL_GOOGLE_CLIENT_ID REHEARSAL_GOOGLE_SECRET
     [ -n "${SKIP_BUILD:-}" ] || dc build backend
+    make_pki "$ENV_DIR"
     dc --profile mail up -d mailpit
     up_db
     up_stack schema
+    dc up -d --no-deps --wait --wait-timeout 60 fake-google
     assert_surface
-    paths -e MAILPIT_URL=http://mailpit:8025
+    paths -e MAILPIT_URL=http://mailpit:8025 -v "$PKI_VOLUME:/pki:ro" -e NODE_EXTRA_CA_CERTS=/pki/ca.crt \
+      -e FAKE_GOOGLE=https://accounts.google.com -e SMTP_STANDIN=smtp.resend.com:465
     assert_logs_clean
     ;;
   vm1-env)
@@ -255,9 +297,27 @@ case "${1:-}" in
     [ -f "$2/hosted-settings.json" ] && extra+=(-e HOSTED_SETTINGS=/rehearsal/hosted-settings.json)
     paths -e MAILPIT_URL=http://mailpit:8025 "${extra[@]}"
     ;;
+  vm1-mail)
+    # Owner step 2 (README.md): one real mail through the relay gotrue.env names. The address comes on stdin, so
+    # it is in no argv; only GoTrue's HTTP status is printed (its log level hides the SMTP error itself).
+    [ -n "${2:-}" ] || die "usage: run.sh vm1-mail ENV_DIR < address"
+    IFS= read -r TO || die "no address on stdin"
+    export_env "$2"
+    dc up -d --no-deps --force-recreate --wait --wait-timeout 180 gotrue
+    printf '%s\n' "$TO" | dc run --rm --no-deps -T backend node -e '
+      let to = ""; process.stdin.on("data", (d) => { to += d; }).on("end", async () => {
+        const r = await fetch(`${process.env.SUPABASE_URL}/auth/v1/recover`, { method: "POST",
+          headers: { apikey: process.env.SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email: to.trim() }) });
+        console.log(`[rehearsal] GoTrue /recover answered ${r.status} (200: handed to the relay; 5xx: the send failed)`);
+        process.exit(r.ok ? 0 : 1);
+      });'
+    unset TO
+    ;;
   down)
     if [ -n "${2:-}" ]; then export_env "$2"; else export_env "$(mktemp -d)"; fi
     dc --profile mail down -v --remove-orphans
+    docker volume rm -f "$PKI_VOLUME" >/dev/null 2>&1 || true
     ;;
-  *) die "usage: run.sh hermetic | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | down [ENV_DIR]" ;;
+  *) die "usage: run.sh hermetic | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | down [ENV_DIR]" ;;
 esac

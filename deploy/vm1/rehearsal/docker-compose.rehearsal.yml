@@ -50,7 +50,8 @@ services:
     ports: !reset []
 
   # Captures GoTrue's mail so the replay can read the OTP and reset mails, in the hermetic run and on vm1
-  # alike. Delivery through Resend's SMTP is proved separately (README.md, step 6).
+  # alike. The hermetic run puts it behind TLS and SMTP AUTH as smtp.resend.com (docker-compose.hermetic.yml);
+  # delivery through the real Resend is an owner step (README.md, What only the owner can run).
   mailpit:
     image: axllent/mailpit:v1.27.0
     profiles: ["mail"]

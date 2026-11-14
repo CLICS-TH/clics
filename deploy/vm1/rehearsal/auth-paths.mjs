@@ -8,12 +8,17 @@
 //   OLD_PASSWORDS a file of `email<TAB>password` lines: accounts in the restored database whose password must
 //                 still verify (the "Added 2026-11-11" check). Only their line numbers are printed.
 //   HOSTED_SETTINGS  a file holding the hosted project's GET /auth/v1/settings, compared field by field
+//   FAKE_GOOGLE   hermetic only: the Google stand-in (fake-google.mjs) answering as accounts.google.com. Set,
+//                 the four Google paths run against GoTrue's real Google code; unset (vm1), they are skipped
+//                 here and run by hand against the real Google (README.md).
+//   SMTP_STANDIN  hermetic only: host:port of the Resend-shaped relay stand-in, for its refusal controls
 //
-// Google paths (in-page id_token with nonce, redirect, invite with Google, Link Google) need Google and a
-// browser; README.md lists them as manual steps. Every account this script creates is synthetic
-// (@rehearsal.invalid) and is deleted at the end. Prints no token, key or password.
+// Every account this script creates is synthetic (@rehearsal.invalid) and is deleted at the end. Prints no
+// token, key or password.
 import { readFileSync } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
+import { connect as tlsConnect } from 'node:tls';
+import { connect as netConnect } from 'node:net';
 
 const SB = process.env.SUPABASE_URL;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -179,6 +184,45 @@ async function otpFor(addr, subject) {
   return r.json.email_otp;
 }
 
+// The OTP and reset mails below reach mailpit only through GoTrue's SMTP client. In the hermetic run mailpit is
+// the Resend-shaped relay: smtp.resend.com:465, implicit TLS with a certificate GoTrue must verify, and SMTP
+// AUTH as `resend`. This shows the relay refuses anything less, so the mails that do arrive came that way.
+if (process.env.SMTP_STANDIN) {
+  await step('the relay stand-in takes only implicit TLS with SMTP AUTH (controls for the mail steps)', async () => {
+    const [host, port] = process.env.SMTP_STANDIN.split(':');
+    // A reply line from the relay, or the way the connection ended.
+    const talk = (sock, lines) => new Promise((resolve) => {
+      let buf = '';
+      const out = [];
+      sock.setTimeout(5000, () => { sock.destroy(); resolve([...out, 'timeout']); });
+      sock.on('data', (d) => {
+        buf += d.toString();
+        const done = buf.split('\r\n');
+        buf = done.pop();
+        for (const l of done) {
+          if (/^\d{3} /.test(l)) {
+            out.push(l.slice(0, 3));
+            const nextLine = lines.shift();
+            if (nextLine === undefined) { sock.end(); resolve(out); return; }
+            sock.write(`${nextLine}\r\n`);
+          }
+        }
+      });
+      sock.on('error', (e) => resolve([...out, e.code || 'error']));
+      sock.on('close', () => resolve([...out, 'closed']));
+    });
+    // Plain SMTP to the TLS port: no greeting is ever read in clear text.
+    const plain = await talk(netConnect(Number(port), host), ['EHLO rehearsal.invalid', 'QUIT']);
+    expect(!plain.includes('220'), `a clear-text client got a greeting: ${plain.join(' ')}`);
+    // TLS, verified against the rehearsal CA, but no AUTH: the relay refuses the sender.
+    const tls = tlsConnect({ host, port: Number(port), servername: host });
+    const noAuth = await talk(tls, ['EHLO rehearsal.invalid', 'MAIL FROM:<noreply@rehearsal.invalid>', 'QUIT']);
+    expect(noAuth[0] === '220', `the TLS greeting was ${noAuth[0]}`);
+    expect(/^5/.test(noAuth[2] || ''), `MAIL FROM without AUTH answered ${noAuth[2]}`);
+    return `clear text: ${plain.join(' ')}; TLS without AUTH: MAIL FROM ${noAuth[2]}`;
+  });
+}
+
 await step('invite accepted with a password: OTP mail from GoTrue, then the token', async () => {
   const addr = email('invitee');
   const inv = want(await backend('/admin/invites', { method: 'POST', token: superToken, body: { email: addr, role: 'physician', council_id: council.id, position: 'staff', ...(specialty ? { specialty_id: specialty.id } : {}) } }), 201, 'POST /admin/invites');
@@ -229,6 +273,120 @@ await step('global sign-out revokes the token: the next request is 401', async (
   want(await backend('/auth/logout', { method: 'POST', token: t }), 200, 'POST /auth/logout');
   want(await backend('/auth/me', { token: t }), 401, 'after sign-out');
 });
+
+// ---- Google (hermetic: the stand-in; vm1: by hand against the real Google, README.md) ----
+// The Portal's two ways in, as google-signin.js and oauth-callback.js drive them:
+//   in-page  Google Identity Services hands the Portal an id_token whose nonce is SHA-256(raw); the Portal
+//            calls signInWithIdToken({ provider: 'google', token, nonce: raw }), which is this POST.
+//   redirect signInWithOAuth: /authorize -> Google -> GoTrue's /callback -> the Portal's /auth/callback#tokens.
+// Either session then goes to the same backend route as in the Portal.
+const G = process.env.FAKE_GOOGLE;
+const sha256hex = (v) => createHash('sha256').update(v).digest('hex');
+async function google(path, body) {
+  const r = await fetch(`${G}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  return r.status === 204 ? null : r.json();
+}
+// What google-signin.js sends GoTrue: the raw nonce, with Google's token carrying its hash.
+async function inPage(addr, { nonce = randomBytes(32).toString('hex'), sentNonce = nonce, ...mint } = {}) {
+  const { id_token } = await google('/__mint', { email: addr, name: `Rehearsal ${addr.split('@')[0]}`, nonce_hash: sha256hex(nonce), ...mint });
+  return call(AUTH, '/token?grant_type=id_token', { method: 'POST', key: ANON, body: { provider: 'google', id_token, ...(sentNonce === null ? {} : { nonce: sentNonce }) } });
+}
+async function googleSession(addr, what) {
+  const r = want(await inPage(addr), 200, what);
+  const c = claims(r.json.access_token);
+  expect(c.app_metadata?.providers?.includes('google'), `${what}: app_metadata.providers is ${JSON.stringify(c.app_metadata?.providers)}`);
+  return r.json.access_token;
+}
+// onboarding is what oauth-callback.js posts once the council (and, for a council with specialties, the
+// training level and specialty) has been picked.
+const onboarding = () => ({ council_id: council.id, ...(specialty ? { specialty_id: specialty.id, position: 'staff' } : {}) });
+
+if (G) {
+  await step('Google in-page: id_token with nonce signs up through /auth/oauth/google/complete', async () => {
+    const t = await googleSession(email('g-inpage'), 'id_token grant');
+    created.push(claims(t).sub);
+    want(await backend('/auth/oauth/google/complete', { method: 'POST', body: { access_token: t } }), 400, 'complete without a council');
+    want(await backend('/auth/oauth/google/complete', { method: 'POST', body: { access_token: t, ...onboarding() } }), 201, 'complete with a council');
+    const me = want(await backend('/auth/me', { token: t }), 200, 'GET /auth/me').json.user;
+    expect(me.role === 'physician' && me.status === 'active', `the new account is ${me.role}/${me.status}`);
+    return 'GoTrue session providers incl. google; the backend provisioned an active physician';
+  });
+
+  await step('Google in-page controls: GoTrue refuses a wrong or missing nonce, a foreign key and another audience', async () => {
+    const addr = email('g-refused');
+    const cases = {
+      'wrong nonce': await inPage(addr, { sentNonce: randomBytes(32).toString('hex') }),
+      'nonce withheld': await inPage(addr, { sentNonce: null }),
+      'signed by a key not in /certs': await inPage(addr, { foreign_key: true }),
+      'audience of another client': await inPage(addr, { aud: 'someone-else.apps.googleusercontent.com' }),
+    };
+    const got = Object.entries(cases).map(([k, r]) => `${k} ${r.status}`);
+    expect(Object.values(cases).every((r) => r.status >= 400 && r.status < 500 && !r.json?.access_token), `not all refused: ${got.join(', ')}`);
+    const left = want(await call(AUTH, '/admin/users?per_page=1000'), 200, 'list auth users').json.users;
+    expect(Array.isArray(left) && !left.some((u) => u.email === addr), 'a refused id_token still created an auth user');
+    return got.join(', ');
+  });
+
+  await step('Google redirect fallback: /authorize, Google, /callback, a session in the Portal callback hash', async () => {
+    const addr = email('g-redirect');
+    const portalCallback = 'http://portal.rehearsal.invalid/auth/callback';
+    const a = await call(AUTH, `/authorize?provider=google&redirect_to=${encodeURIComponent(portalCallback)}`, { key: null });
+    expect(a.status === 302 && a.location?.startsWith(`${G}/`), `/authorize answered ${a.status} to ${a.location && new URL(a.location).origin}`);
+    await google('/__next', { email: addr, name: 'Rehearsal Redirect' });
+    const consent = await fetch(a.location, { redirect: 'manual' });
+    const back = new URL(consent.headers.get('location'));
+    // Google sends the browser to GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI; inside the network that is supabase-gw.
+    const cb = await call(AUTH, `/callback${back.search}`, { key: null });
+    expect(cb.status === 302 || cb.status === 303, `/callback answered ${cb.status} (${reason(cb)})`);
+    const land = new URL(cb.location);
+    expect(`${land.origin}${land.pathname}` === portalCallback, `/callback sent the browser to ${land.origin}${land.pathname}`);
+    const hash = new URLSearchParams(land.hash.slice(1));
+    const t = hash.get('access_token');
+    expect(t && hash.get('refresh_token'), `no session in the callback hash (${hash.get('error_description') || 'no error'})`);
+    created.push(claims(t).sub);
+    expect(claims(t).app_metadata?.providers?.includes('google'), 'the redirect session is not a Google session');
+    want(await backend('/auth/oauth/google/complete', { method: 'POST', body: { access_token: t, ...onboarding() } }), 201, 'complete with a council');
+    return `landed on ${land.origin}${land.pathname} with a session`;
+  });
+
+  await step('invite accepted with Google: the invited email only', async () => {
+    const addr = email('g-invitee');
+    // The global sign-out step above revoked superToken: sign the superadmin in again.
+    const admin = want(await login(email('super'), superPw), 200, 'superadmin sign-in').json.access_token;
+    const inv = want(await backend('/admin/invites', { method: 'POST', token: admin, body: { email: addr, role: 'physician', council_id: council.id, position: 'staff', ...(specialty ? { specialty_id: specialty.id } : {}) } }), 201, 'POST /admin/invites');
+    const token = new URL(inv.json.accept_url).searchParams.get('token');
+    const other = await googleSession(email('g-not-invited'), 'id_token grant (other address)');
+    created.push(claims(other).sub);
+    want(await backend(`/auth/invite/${token}/accept`, { method: 'POST', body: { method: 'google', access_token: other } }), 403, 'accept with another Google account');
+    const t = await googleSession(addr, 'id_token grant (invited address)');
+    created.push(claims(t).sub);
+    const done = want(await backend(`/auth/invite/${token}/accept`, { method: 'POST', body: { method: 'google', access_token: t } }), 201, 'accept with the invited Google account');
+    expect(done.json.user?.role === 'physician' && done.json.status === 'active', `accepted as ${done.json.user?.role}/${done.json.status}`);
+    return 'another Google account 403, the invited one 201 as an active physician';
+  });
+
+  await step('Link Google: same-email linking puts Google on the password account, not a second account', async () => {
+    const addr = email('g-link');
+    const password = pw();
+    const u = await adminCreate('g-link', { password });
+    await insertProfessional({ id: u.id, role: 'physician', council_id: council.id, full_name_th: 'เชื่อมกูเกิล', full_name_en: `Rehearsal Link ${RUN}`, status: 'active' });
+    const clics = want(await login(addr, password), 200, 'password sign-in').json.access_token;
+    const before = want(await backend('/auth/me', { token: clics }), 200, 'GET /auth/me').json.user.linked_providers || [];
+    expect(!before.includes('google'), `linked_providers before linking is ${JSON.stringify(before)}`);
+    // Control: a Google account with another address resolves to another auth user, and the backend refuses it.
+    const stranger = await googleSession(email('g-stranger'), 'id_token grant (other address)');
+    created.push(claims(stranger).sub);
+    want(await backend('/auth/link-google', { method: 'POST', token: clics, body: { access_token: stranger } }), 409, 'link another Google account');
+    const g = await googleSession(addr, 'id_token grant (same address)');
+    expect(claims(g).sub === u.id, 'GoTrue made a second account instead of linking Google to the password account');
+    const linked = want(await backend('/auth/link-google', { method: 'POST', token: clics, body: { access_token: g } }), 200, 'POST /auth/link-google');
+    expect(linked.json.linked_providers?.includes('google'), `linked_providers is ${JSON.stringify(linked.json.linked_providers)}`);
+    const ids = want(await call(AUTH, `/admin/users/${u.id}`), 200, 'read the auth user').json.identities.map((i) => i.provider).sort();
+    expect(ids.join() === 'email,google', `the auth user's identities are ${ids.join()}`);
+    want(await login(addr, password), 200, 'the password still signs in after linking');
+    return 'one auth user with identities email and google; the password still signs in';
+  });
+}
 
 if (process.env.OLD_PASSWORDS) {
   await step('old passwords from the restored database still verify', async () => {

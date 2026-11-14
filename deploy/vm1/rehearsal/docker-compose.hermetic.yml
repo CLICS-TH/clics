@@ -1,0 +1,55 @@
+# Hermetic run only (rehearsal/run.sh hermetic): stand-ins for the two outside services GoTrue talks to, so
+# the Google paths and the TLS mail path run with GoTrue's real code instead of being skipped (#427).
+#   * fake-google answers as https://accounts.google.com (rehearsal/fake-google.mjs).
+#   * mailpit answers as smtp.resend.com:465, implicit TLS and SMTP AUTH only, the shape of Resend's relay.
+# Both present certificates from a throwaway CA that run.sh makes per run into the `pki` volume. GoTrue
+# trusts that CA alone (SSL_CERT_FILE; SSL_CERT_DIR names a directory that does not exist, so Go reads no
+# /etc/ssl/certs and no other file, not even the stand-ins' own certificates in /pki), and the network is
+# internal: when a stand-in is stopped (the failed-send probe stops mailpit) its name falls through to public
+# DNS, and only `internal` keeps GoTrue from then dialling the real host. A vm1 rehearsal never loads this
+# file: there GoTrue reaches the real Google and Resend.
+services:
+  fake-google:
+    image: clics-backend:${CLICS_RELEASE:?set by rehearsal/run.sh}
+    command: ["node", "/fake-google.mjs"]
+    environment:
+      GOOGLE_CLIENT_ID: ${REHEARSAL_GOOGLE_CLIENT_ID:?set by rehearsal/run.sh}
+      GOOGLE_CLIENT_SECRET: ${REHEARSAL_GOOGLE_SECRET:?set by rehearsal/run.sh}
+      TLS_CERT: /pki/google.crt
+      TLS_KEY: /pki/google.key
+    volumes:
+      - ./rehearsal/fake-google.mjs:/fake-google.mjs:ro
+      - pki:/pki:ro
+    networks:
+      clics:
+        aliases: [accounts.google.com]
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(443,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  mailpit:
+    command: ["--smtp", "[::]:465", "--smtp-require-tls", "--smtp-tls-cert", "/pki/smtp.crt",
+              "--smtp-tls-key", "/pki/smtp.key", "--smtp-auth-file", "/pki/smtp-auth"]
+    volumes:
+      - pki:/pki:ro
+    networks:
+      clics:
+        aliases: [smtp.resend.com]
+
+  gotrue:
+    environment:
+      SSL_CERT_FILE: /pki/ca.crt
+      SSL_CERT_DIR: /nonexistent
+    volumes:
+      - pki:/pki:ro
+
+networks:
+  clics:
+    internal: true
+
+volumes:
+  pki:
+    name: clics-rehearsal-pki
+    external: true

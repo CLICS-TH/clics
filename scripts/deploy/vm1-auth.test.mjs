@@ -150,6 +150,27 @@ test('the rehearsal never takes the live backend\'s port and keeps its database 
   assert.match(read('rehearsal', 'run.sh'), /^PROJECT=clics-rehearsal$/m, 'its own compose project, never clics');
 });
 
+// The Google and Resend stand-ins replace the real services, so a vm1 rehearsal must never load them: there
+// GoTrue has to reach the real Google and the real relay with the system's trust store.
+test('the Google and SMTP stand-ins load only in the hermetic run, never on vm1', () => {
+  const run = read('rehearsal', 'run.sh');
+  const overlay = read('rehearsal', 'docker-compose.hermetic.yml');
+  assert.equal(run.match(/^\s*HERMETIC=1$/gm)?.length, 1, 'HERMETIC=1 is set in one place');
+  assert.match(run, /^ {2}hermetic\)\n {4}HERMETIC=1$/m, 'and that place is the hermetic command');
+  assert.match(run, /^HERMETIC=$/m, 'a HERMETIC inherited from the caller is dropped');
+  assert.match(run, /\[ -z "\$HERMETIC" \] \|\| files\+=\(-f rehearsal\/docker-compose\.hermetic\.yml\)/, 'dc() adds the overlay only under HERMETIC');
+  assert.equal(run.match(/-f rehearsal\/docker-compose\.hermetic\.yml/g)?.length, 1, 'no other line loads the overlay');
+  assert.match(run, /^ {4}hermetic_env "\$2"$/m, 'vm1-env writes the vm1 mail settings, not the stand-in relay');
+  assert.match(overlay, /aliases: \[accounts\.google\.com\]/);
+  assert.match(overlay, /aliases: \[smtp\.resend\.com\]/);
+  assert.match(overlay, /SSL_CERT_FILE: \/pki\/ca\.crt\n {6}SSL_CERT_DIR: \/nonexistent\n/, 'GoTrue trusts the rehearsal CA and nothing from /etc/ssl/certs');
+  assert.match(overlay, /^networks:\n {2}clics:\n {4}internal: true$/m, 'a stopped stand-in cannot hand its name to the real host');
+  for (const f of [['docker-compose.auth.yml'], ['docker-compose.yml'], ['rehearsal', 'docker-compose.rehearsal.yml']]) {
+    const config = read(...f).split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+    assert.ok(!/SSL_CERT_FILE|accounts\.google\.com|smtp\.resend\.com|fake-google/.test(config), `${f.join('/')} configures no stand-in`);
+  }
+});
+
 // docker's own rendering of the merged files, when docker is installed (CI, or a Mac with colima).
 const hasDocker = spawnSync('docker', ['compose', 'version'], { encoding: 'utf8' }).status === 0;
 test('docker renders the merged files with GoTrue on 127.0.0.1:3102 and no port for PostgREST or supabase-gw', { skip: !hasDocker && 'docker is not installed' }, () => {
