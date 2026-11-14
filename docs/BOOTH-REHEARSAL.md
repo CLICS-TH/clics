@@ -11,8 +11,8 @@ like every other play (ADR 0010). `NFCME-2026` already holds the visitor plays o
 ## The five-step cutover (#386)
 
 From #386 on, `NFCME-2026` plays five steps. The event's step count is the largest among its case files, so moving the
-five-step trees into `backend/src/booth-cases/NFCME-2026/` is the cutover: the three-step `dka-young-adult` is left
-out until #476 re-authors it, and the board ranks only five-step plays. The three-step plays of 3–4 Nov stay in the
+five-step trees into `backend/src/booth-cases/NFCME-2026/` is the cutover: `dka-young-adult` joined as a five-step
+tree in #495, and the board ranks only five-step plays. The three-step plays of 3–4 Nov stay in the
 table and keep their study snapshots; they no longer rank.
 
 - [ ] **The backend and Portal deploys wait for the owner's go-ahead, and go together.** The Portal ships the

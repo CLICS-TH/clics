@@ -1,6 +1,6 @@
 {
   "case_id": "organophosphate",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชาวนาวัย 45 ปี อาเจียน เหงื่อท่วม และหอบเหนื่อยหลังกลับจากนา ที่โรงพยาบาลชุมชน",
@@ -165,14 +165,14 @@
           },
           {
             "id": "e",
-            "tier": "weaker",
+            "tier": "reasonable",
             "label": {
               "th": "เอกซเรย์ปอด",
               "en": "Chest X-ray"
             },
             "line": {
-              "th": "หาสาเหตุในปอดของเสียงวี้ด",
-              "en": "Looks for a lung cause of the wheeze."
+              "th": "หาการสำลักลงปอด ในผู้ป่วยซึมที่อาเจียน",
+              "en": "Looks for aspiration in a drowsy man who vomits."
             }
           }
         ],
@@ -250,21 +250,21 @@
           },
           {
             "id": "e",
-            "tier": "weaker",
+            "tier": "reasonable",
             "label": {
               "th": "เอกซเรย์ปอด",
               "en": "Chest X-ray"
             },
             "line": {
-              "th": "หาสาเหตุในปอดของเสียงวี้ด",
-              "en": "Looks for a lung cause of the wheeze."
+              "th": "หาการสำลักลงปอด ในผู้ป่วยซึมที่อาเจียน",
+              "en": "Looks for aspiration in a drowsy man who vomits."
             }
           }
         ],
         "default_trio": [
           "a",
-          "c",
-          "e"
+          "e",
+          "d"
         ]
       },
       "W": {
@@ -594,48 +594,48 @@
             "id": "b",
             "tier": "reasonable",
             "label": {
-              "th": "อะโทรปีน IV และพราลิดอกซีม",
-              "en": "IV atropine and pralidoxime"
+              "th": "ดูดเสมหะ O2 อะโทรปีน ออกซีม",
+              "en": "Suction, O2, atropine, pralidoxime"
             },
             "line": {
-              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
-              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+              "th": "ดูดเสมหะ เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
+              "en": "Clears secretions; atropine doubled to a dry chest, plus an oxime."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "อะโทรปีน IV ปรับจนปอดแห้ง",
-              "en": "IV atropine titrated to a dry chest"
+              "th": "ดูดเสมหะ O2 อะโทรปีนจนปอดแห้ง",
+              "en": "Suction, O2, atropine to a dry chest"
             },
             "line": {
-              "th": "เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
-              "en": "Doubles the dose every 5 minutes to a dry chest."
+              "th": "ดูดเสมหะ เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
+              "en": "Clears secretions; doubles the dose every 5 minutes to a dry chest."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "อะโทรปีน IV ทีมใส่ถุงมือล้างตัว",
-              "en": "IV atropine, gloved team washes him"
+              "th": "ดูดเสมหะ O2 อะโทรปีน ทีมล้างตัว",
+              "en": "Suction, O2, atropine; team washes"
             },
             "line": {
-              "th": "ต้านอะเซทิลโคลีน ถอดชุดและล้างสารพิษบนผิว",
-              "en": "Blocks excess acetylcholine; strips and washes poison off the skin."
+              "th": "ดูดเสมหะ ต้านอะเซทิลโคลีน ล้างสารพิษบนผิว",
+              "en": "Clears secretions, blocks acetylcholine, washes poison off his skin."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
-              "en": "IV atropine and salbutamol nebuliser"
+              "th": "ดูดเสมหะ O2 อะโทรปีน ยาพ่น",
+              "en": "Suction, O2, atropine, nebuliser"
             },
             "line": {
-              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
-              "en": "Opens the narrowed airways behind the wheeze."
+              "th": "ดูดเสมหะ และขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Clears secretions and opens the narrowed airways behind the wheeze."
             }
           }
         ],
@@ -839,32 +839,32 @@
             "id": "b",
             "tier": "reasonable",
             "label": {
-              "th": "อะโทรปีน IV และพราลิดอกซีม",
-              "en": "IV atropine and pralidoxime"
+              "th": "ดูดเสมหะ O2 อะโทรปีน ออกซีม",
+              "en": "Suction, O2, atropine, pralidoxime"
             },
             "line": {
-              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
-              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+              "th": "ดูดเสมหะ เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
+              "en": "Clears secretions; atropine doubled to a dry chest, plus an oxime."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "อะโทรปีน IV ปรับจนปอดแห้ง",
-              "en": "IV atropine titrated to a dry chest"
+              "th": "ดูดเสมหะ O2 อะโทรปีนจนปอดแห้ง",
+              "en": "Suction, O2, atropine to a dry chest"
             },
             "line": {
-              "th": "เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
-              "en": "Doubles the dose every 5 minutes to a dry chest."
+              "th": "ดูดเสมหะ เพิ่มยาเท่าตัวทุก 5 นาทีจนปอดแห้ง",
+              "en": "Clears secretions; doubles the dose every 5 minutes to a dry chest."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "อะโทรปีน IV และดูดเสมหะบ่อย ๆ",
-              "en": "IV atropine and frequent suction"
+              "th": "อะโทรปีน O2 ดูดเสมหะบ่อย ๆ",
+              "en": "Atropine, oxygen, frequent suction"
             },
             "line": {
               "th": "ดูดเสมหะที่คั่งในปากและคอออก",
@@ -875,12 +875,12 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะโทรปีน IV และพ่นซัลบูทามอล",
-              "en": "IV atropine and salbutamol nebuliser"
+              "th": "ดูดเสมหะ O2 อะโทรปีน ยาพ่น",
+              "en": "Suction, O2, atropine, nebuliser"
             },
             "line": {
-              "th": "ช่วยขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
-              "en": "Opens the narrowed airways behind the wheeze."
+              "th": "ดูดเสมหะ และขยายหลอดลมที่ตีบจนมีเสียงวี้ด",
+              "en": "Clears secretions and opens the narrowed airways behind the wheeze."
             }
           }
         ],
@@ -1128,9 +1128,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Fresh reviewer that did not write the case, 2026-11-13, tree sha256 ef275414163ac98a3c665692054c82c63f50854ad8e851d01d5d4c42c9cc6b70. Sources fetched and read: Ramathibodi Poison Center protocol 40, Organophosphorus and Carbamate (updated 2022) and its NHSO pesticide poisoning notes (2021); WHO Clinical management of acute pesticide intoxication (2008); Eddleston et al., Lancet 2008. Checked every variant and option for facts, tiers, safety of weaker options, the airway and ICU rules on every path, and Thai-English parity: atropine 1.8-3 mg doubled every 5 min to a dry chest, 10-20% hourly infusion, oxime when atropine is needed, washing, intubation for flooding secretions, ICU-capable care for symptomatic patients. Fixed this round: the gate's airway and ICU findings, which the previous review had declined. Intubation options refer to ICU, step-5 best options arrange ICU-capable care while he needs atropine, keeping him here on an infusion is gone, and step-3 atropine-plus-oxime without airway is reasonable where he floods and grows drowsy. Step 3.R no longer drops SpO2 to 89%, and step 5.W no longer says he tires.",
-      "tree_sha256": "ef275414163ac98a3c665692054c82c63f50854ad8e851d01d5d4c42c9cc6b70"
+      "date": "2026-11-14",
+      "findings": "Fresh review by a non-author of five-step version 5, then a confirm review after its fixes: every variant and option of all 13 banks, Thai and English. Sources opened: Eddleston et al., Lancet 2008 (UKPMC author manuscript UKMS1630; PMC2493390 returned a reCAPTCHA): atropine 1-3 mg doubled at 5-minute reviews to pulse >80, systolic >80 and a clear chest, an infusion of 10-20% of the loading dose per hour, high-flow oxygen, intubation when airway or breathing is compromised, pupils not a useful early end point, rapid unconsciousness and vomiting raise aspiration risk, oxime benefit varies and is lost once the enzyme ages; Ramathibodi Poison Center protocol 40, Organophosphorus and Carbamate (1 June 2022): wash skin, airway, low oxygen and circulation first, intubate when unconsciousness or secretions obstruct the airway, atropine 1.8-3 mg IV doubled every 5 minutes, pralidoxime 1-2 g then 0.5-1 g/h, hotline 1367. No WHO source was opened. step2.B/R chest X-ray moved to reasonable: looking for aspiration in a drowsy man who vomits is defensible; step2.R default trio a,e,d holds one per tier. step3.W and step4.W (chest floods, drowsier, SpO2 87-88%): every non-best option now carries suction and oxygen (step3.W d \"Suction, O2, atropine; team washes\"; step3.W e and step4.W e \"Suction, O2, atropine, nebuliser\", whose line makes the bronchodilator clear; step4.W d atropine, oxygen, frequent suction), so all are safe as weaker; b and c are fair as reasonable; intubation with ICU stays the only best. step5.W d (phone 1367) is right as weaker: good Thai practice, but the call neither moves a man on high-dose atropine at 36 h to ICU-capable care nor treats him, and its replies carry a safety sentence. No wrong facts, no withholding wording; Thai and English agree. MUST-FIX: none. Reviewed tree sha256 6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f.",
+      "tree_sha256": "6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f"
     }
   }
 }
