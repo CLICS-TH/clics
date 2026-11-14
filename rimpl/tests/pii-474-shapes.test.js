@@ -208,8 +208,8 @@ describe('#474 exact outputs', () => {
     ['Section colon', 'Section: 1.2.10', 'Section: [DATE-1]'],
     ['version colon', 'ECG software version: 2024.10.1', 'ECG software version: [DATE-1]'],
     ['chapter colon', 'chapter: 3.1.10', 'chapter: [DATE-1]'],
-    // A text with a look-alike is read first in master's view (applyPass), and the folded run never cuts an identifier in
-    // two (cutsIdentifier): each output is master's.
+    // A text with a look-alike is read first in master's view (applyPass), so the folded run reads only what that run
+    // left: each output is master's.
     ['an HN, an en dash, a slash date', 'HN 1234567–20/10/2569 seen', '[HN-1]–[DATE-1] seen'],
     ['an MRN, an en dash, a slash date', 'MRN 123456–20/10/2569 seen', '[MRN-1]–[DATE-1] seen'],
     ['an HN, an en dash, an ISO date', 'HN 1234567–2026-10-20 seen', '[HN-1]–[DATE-1] seen'],
@@ -264,22 +264,23 @@ describe('#474 exact outputs', () => {
     ['an HN, a dotted date, a slashed year-first date', '𝐇𝐍 5556512-7.10.2569/5/4–69', '[HN-1]-[DATE-1]–69'],
     ['a dotted date, a slashed date', '20.10.25/12/2569', '[DATE-1]'],
     ['a two-digit list number, a slashed year-first date', '1.13.2026/4/3', '1.13.[DATE-1]'],
-    // A chain of date groups: no pass master lacked takes a group of a date master masks (cutsMasterSpan), whatever the
-    // chain's length, so the dotted date keeps master's mask.
-    ['a dotted date, three dashed groups', '20.6.2026-4-3-5', '[DATE-1]-4-3-5'],
-    ['a dotted date, three slashed groups', '17.3.2026/11/1/5', '[DATE-1]/11/1/5'],
-    ['a dotted date, four dashed groups', '20.6.2026-4-3-5-7', '[DATE-1]-4-3-5-7'],
-    ['a dotted date, four slashed groups', '17.3.2026/11/1/5/2', '[DATE-1]/11/1/5/2'],
+    // A chain of date groups: a pass master lacked may take a group of a date master masks; master's mask is then made
+    // with it, as one date (stripPii), whatever the chain's length.
+    ['a dotted date, three dashed groups', '20.6.2026-4-3-5', '[DATE-1]-5'],
+    ['a dotted date, three slashed groups', '17.3.2026/11/1/5', '[DATE-1]/5'],
+    ['a dotted date, four dashed groups', '20.6.2026-4-3-5-7', '[DATE-1]-5-7'],
+    ['a dotted date, four slashed groups', '17.3.2026/11/1/5/2', '[DATE-1]/5/2'],
     ['a dotted date, three en-dashed groups', '20.6.2026–4–3–5', '[DATE-1]–4–3–5'],
     ['a dotted date, mixed slash and en dash', '17.3.2026/11–1/5', '[DATE-1]/11–1/5'],
-    ['a dotted year-first date, a dot, a slashed date', 'x 2024.10.1.20/10/2569 y', 'x [DATE-2].[DATE-1] y'],
+    ['a dotted year-first date, a dot, a slashed date', 'x 2024.10.1.20/10/2569 y', 'x [DATE-1] y'],
     ['a dotted year-first date, a dash, an ISO date', 'x 2024.10.1-2569-10-20 y', 'x [DATE-2]-[DATE-1] y'],
     ['a house number running through date groups', 'บ้านเลขที่ 91/1-6-2026-11/14.2', '[ADDR-1].2'],
-    // A run retried unit by unit never cuts the match master made after it (cutsResumed).
-    ['an 11-digit run, then a phone', '096-917-02553-0052-41867-18-4', '096-917-02553-[PHONE-1]-18-4'],
-    // A folded match never changes the text so that a later pass takes part of a date master masks (changesMasterSpans).
-    ['a dotted date, an ISO-shaped run, a folded ID', '14.12.2569-25-15.17-6‑⓪⑥⑤⑨⑥⑤①⓪⑧③, x', '[DATE-1]-25-15.17-6‑[PHONE-1], x'],
-    ['a middle-dot HN that would put AN at a word start', 'HN· 0966744AN 2747256-4.12.25 x', 'HN· 0966744AN 2747256-[DATE-1] x'],
+    // A run retried unit by unit may cut the match master made after it: master's mask is made with it (stripPii).
+    ['an 11-digit run, then a phone', '096-917-02553-0052-41867-18-4', '096-917-[PHONE-1]-18-4'],
+    // A folded match that changes what a later pass reads, so that it takes part of a date master masks: master's mask is
+    // made with what took it (stripPii).
+    ['a dotted date, an ISO-shaped run, a folded ID', '14.12.2569-25-15.17-6‑⓪⑥⑤⑨⑥⑤①⓪⑧③, x', '[DATE-1].[ID-1], x'],
+    ['a middle-dot HN that would put AN at a word start', 'HN· 0966744AN 2747256-4.12.25 x', '[HN-1][DATE-1] x'],
     // A group glued to a numbered section that a folded pass masked first still lifts the exemption (NUMBERED).
     ['a version number glued to a keycap phone', 'version 1.2.10/0️⃣8️⃣1️⃣-234-5678', 'version [DATE-1]/[PHONE-1]'],
     // A dotted date, then a slashed date: the dotted year opens none, so each keeps its own pass (as on master).
@@ -296,13 +297,29 @@ describe('#474 exact outputs', () => {
     ['a middle-dot local part, then an age label', 'somchai·j@example.com.age 65', '[EMAIL-1] 65'],
     ['a middle-dot local part, a glued word after the domain', 'aspirin·a.b@x.co.thward 5A', '[EMAIL-1] 5A'],
     ['a middle-dot email with a two-label country domain', 'a·b@mail.mahidol.ac.th x', '[EMAIL-1] x'],
-    // No folded match takes a label and leaves its value (cutsIdentifier, `labelled`). A look-alike digit glued to the
-    // top-level label ends the address there, so the address is masked and the label keeps its pass (master masked
-    // neither the address nor the digit).
-    ['a middle-dot email, a circled digit, an age label', 'a·b·@example.com❶.age 65', '[EMAIL-1]❶.[AGE-1]'],
+    // A folded match that takes a label master masks with its value is merged with master's mask, under master's
+    // category (stripPii). A look-alike digit glued to the top-level label ends the address only when no address
+    // follows (master masked neither the address nor the digit).
+    ['a middle-dot email, a circled digit, an age label', 'a·b·@example.com❶.age 65', '[AGE-1]'],
     ['a middle-dot email, a circled digit', 'a·b·@example.com❶ x', '[EMAIL-1]❶ x'],
-    ['a middle-dot email, a digit, an age label', 'a·b·@example.com1.age 65', '[EMAIL-1]1.[AGE-1]'],
+    ['a middle-dot email, a digit, an age label', 'a·b·@example.com1.age 65', '[AGE-1]'],
+    ['a middle-dot email, a circled digit, a second domain', 'a·b·@example.com❶.example.org', '[EMAIL-1]'],
     ['a middle-dot email, a circled digit, a ward label', 'x·y@example.com❶.ward 5A', '[EMAIL-1]❶.[WARD-1]'],
+    // Round 5 of review: each mask of master's this filter left a letter or digit of in clear is made, merged with every
+    // mask of this filter's it overlaps, under master's category (stripPii).
+    ['an ISO date, a 7-digit run', 'Seen 2026-01-02 0262769 ok', 'Seen [DATE-1] ok'],
+    ['a landline-shaped run, a slashed date', '023 06454977 0/3/68', '023 [DATE-1]'],
+    ['a glued house number, phone groups', 'เลขที่07-093-980-135-12', '[ADDR-1]'],
+    ['an ID across two runs, a slashed date', '042761118 0855 024-31/8/20', '[PHONE-1] [DATE-1]'],
+    ['an unlabelled age, a middle-dot domain', 'Patient is 45 years old@example·com', 'Patient is [AGE-1]'],
+    ['an unlabelled age, a middle-dot email', '45 years old·bob@example.com', '[AGE-1]'],
+    ['an HN padded with 44 spaces, a 13-digit run', `HN${' '.repeat(44)}12 34–89012345678`, '[HN-1]'],
+    ['a phone padded with spaces, a 13-digit run', `08${'        1'.repeat(6)}        5–123456789012`, '[PHONE-1]'],
+    ['a long house-number chain, a dashed date', `บ้านเลขที่ ${'1/'.repeat(20)}1-20-10-2569-55-6`, '[ADDR-1]'],
+    ['an HN sub-number that opens a spaced phone', 'HN5198/08        5    5    5    5    5  99', '[PHONE-1]'],
+    ['a phone-shaped run, an ISO date, a slashed date', '040‑2024-04-28.0/8/29', '[DATE-2].[DATE-1]'],
+    ['a keycap MRN, a dotted date, a slashed date', 'MRN664⃣9.3.10.9/8/25', '[DATE-2].[DATE-1]'],
+    ['a bold HN, a dotted date, a slashed date', '𝐇𝐍95-10.8.26.3/8/23', '[DATE-2].[DATE-1]'],
     // A run that opens with a phone is two phones only when the rest of its number is one more phone.
     ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],
     // A rest that opens with no 0, or that no phone pass masks, is no second phone: the run stays master's ID.
