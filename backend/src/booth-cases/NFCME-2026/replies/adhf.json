@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author (claude-opus-5-5), 2026-11-14, of every reply in all 13 banks of adhf version 6, all three alternatives, Thai and English, read against every question variant. Checked clinical truth against the ESC 2021 acute HF recommendations, the Cochrane 2019 NIV summary, Aliti 2013 and FRESH-UP, plus leaks, fit and Thai-English match. The six rewritten step4.W.reservoir replies are correct, name no other option and each carries the line that he needs ventilatory support now; reservoir[0] weigh (diuresis takes hours) and step4.B.fluid_limit[2] weigh (weak evidence, kept for severe cases or low sodium) are right. No must-fix. Optional: step4.W.double_dose[1] weigh could name the need for ventilatory support, and reservoir[1] weigh ends on watch closely. Tree sha256 68a3a7162c28489decb88a8b75324c52330a877aa733e8056fa94be870182cb3, replies sha256 f50763c042c0feb51cfb356c9f62768238791628a4163ad2aa9e3be7e75c3c53.",
-    "tree_sha256": "68a3a7162c28489decb88a8b75324c52330a877aa733e8056fa94be870182cb3",
-    "replies_sha256": "f50763c042c0feb51cfb356c9f62768238791628a4163ad2aa9e3be7e75c3c53"
+    "findings": "Fresh review by a non-author (claude-opus-5-5), 2026-11-14, of every reply in all 13 banks of adhf version 6, all three alternatives, Thai and English, read against every question variant. Checked against the ESC 2021 acute HF recommendations (via Wikidoc), Mauro 2023, BJ Cardiology and FRESH-UP, plus leaks, fit and Thai-English match. The six step4.W.reservoir replies are correct, name no other option, and each says he needs ventilatory support now; step4.B.fluid_limit[2] weigh (weak evidence, mostly kept for severe cases or low sodium) is right. No must-fix. Optional: a safety line on step4.W.double_dose, whose [1] weigh speaks only of bloods and urine. Tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94, replies sha256 e7f2af9c63ffb47e57966dbf84291c50c4d32bfa287dfbbf1aa181f328d8b449.",
+    "tree_sha256": "9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94",
+    "replies_sha256": "e7f2af9c63ffb47e57966dbf84291c50c4d32bfa287dfbbf1aa181f328d8b449"
   }
 }
