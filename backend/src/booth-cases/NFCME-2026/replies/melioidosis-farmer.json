@@ -702,7 +702,7 @@
             "safety": ""
           },
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
+            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น เหมาะกับการติดเชื้อรุนแรงของผู้ป่วยรายนี้",
             "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
             "safety": ""
           },
@@ -719,7 +719,7 @@
             "safety": ""
           },
           {
-            "strength": "Starting **IV ceftazidime** from the outset fits the organism behind his illness.",
+            "strength": "Starting **IV ceftazidime** from the outset fits his severe infection.",
             "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
             "safety": ""
           },
@@ -733,7 +733,7 @@
       "b": {
         "th": [
           {
-            "strength": "การ**คุมน้ำตาล**ไปพร้อมกับรักษาเชื้อ แก้ปัจจัยเสี่ยงที่ทำให้โรคนี้รุนแรงและกลับเป็นซ้ำ",
+            "strength": "การ**คุมน้ำตาล**ไปพร้อมกับรักษาเชื้อ ดูแลปัญหาที่มีอยู่ทั้งสองเรื่องในคราวเดียว",
             "weigh": "การให้อินซูลินระหว่างป่วยหนักต้องเจาะน้ำตาลถี่ เพื่อเลี่ยงทั้งน้ำตาลสูงและต่ำ",
             "safety": ""
           },
@@ -743,24 +743,24 @@
             "safety": ""
           },
           {
-            "strength": "การมองผู้ป่วยทั้งคน ทั้งเชื้อและเบาหวาน ช่วยลดโอกาสกลับเป็นซ้ำในระยะยาว",
+            "strength": "การมองผู้ป่วยทั้งคน ทั้งเชื้อและเบาหวาน ช่วยวางรากฐานที่ดีให้การรักษาระยะยาว",
             "weigh": "ยาที่กินนานหลายเดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้กินยาครบ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Bringing **the glucose down** alongside antibiotics treats a risk factor for severity and recurrence.",
+            "strength": "Bringing **the glucose down** alongside antibiotics treats both of his active problems.",
             "weigh": "Insulin during a severe infection needs frequent glucose checks to avoid both highs and lows.",
             "safety": ""
           },
           {
-            "strength": "The plan **treats both phases**, from IV drug to the long oral course.",
+            "strength": "The plan **treats both phases**, from the injected drug to the long oral course.",
             "weigh": "Long-term TMP-SMX side effects deserve a monitoring plan from the start.",
             "safety": ""
           },
           {
-            "strength": "Treating the whole patient, infection and diabetes, lowers the chance of recurrence later.",
+            "strength": "Treating the whole patient, infection and diabetes, gives the long course a firm start.",
             "weigh": "Months of oral treatment need strong adherence, so weigh how to support him.",
             "safety": ""
           }
@@ -841,7 +841,7 @@
       "d": {
         "th": [
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
+            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก เหมาะกับการติดเชื้อรุนแรงของผู้ป่วยรายนี้",
             "weigh": "โคอะม็อกซิคลาฟเป็นยารองในระยะกำจัดเชื้อ จึงควรชั่งโอกาสกลับเป็นซ้ำที่สูงกว่า",
             "safety": ""
           },
@@ -858,7 +858,7 @@
         ],
         "en": [
           {
-            "strength": "Starting **IV ceftazidime** fits the organism behind his illness.",
+            "strength": "Starting **IV ceftazidime** fits his severe infection.",
             "weigh": "As a **second-line drug** for eradication, co-amoxiclav carries a higher relapse risk worth weighing.",
             "safety": ""
           },
@@ -889,7 +889,7 @@
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะตั้งแต่วันแรก ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
+            "strength": "การวางแผนสองระยะไว้ล่วงหน้า ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
             "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
             "safety": ""
           }
@@ -906,7 +906,7 @@
             "safety": ""
           },
           {
-            "strength": "Setting out both phases on day one helps him and the team expect a long course.",
+            "strength": "Setting out both phases up front helps him and the team expect a long course.",
             "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
             "safety": ""
           }
@@ -926,7 +926,7 @@
           },
           {
             "strength": "การกำหนดระยะยาให้ชัดตั้งแต่ต้น ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาถึงเมื่อใด",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงของการกลับเป็นซ้ำ ที่ควรดูแลไปพร้อมกัน",
+            "weigh": "น้ำตาล 342 มก./ดล. ควรมีแผนรักษาของตัวเองไปพร้อมกับยาฆ่าเชื้อ",
             "safety": ""
           }
         ],
@@ -943,7 +943,7 @@
           },
           {
             "strength": "A clear duration from the start lets him know how long the tablets continue.",
-            "weigh": "A glucose of 342 is a recurrence risk factor that deserves attention alongside the antibiotics.",
+            "weigh": "A glucose of 342 deserves its own treatment plan alongside the antibiotics.",
             "safety": ""
           }
         ]
@@ -1071,7 +1071,7 @@
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะตั้งแต่วันแรก ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
+            "strength": "การวางแผนสองระยะไว้ล่วงหน้า ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
             "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
             "safety": ""
           }
@@ -1088,7 +1088,7 @@
             "safety": ""
           },
           {
-            "strength": "Setting out both phases on day one helps him and the team expect a long course.",
+            "strength": "Setting out both phases up front helps him and the team expect a long course.",
             "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
             "safety": ""
           }
@@ -1097,7 +1097,7 @@
       "b": {
         "th": [
           {
-            "strength": "การ**คุมน้ำตาล**ไปพร้อมกับรักษาเชื้อ แก้ปัจจัยเสี่ยงที่ทำให้โรคนี้รุนแรงและกลับเป็นซ้ำ",
+            "strength": "การ**คุมน้ำตาล**ไปพร้อมกับรักษาเชื้อ ดูแลปัญหาที่มีอยู่ทั้งสองเรื่องในคราวเดียว",
             "weigh": "การให้อินซูลินระหว่างป่วยหนักต้องเจาะน้ำตาลถี่ เพื่อเลี่ยงทั้งน้ำตาลสูงและต่ำ",
             "safety": ""
           },
@@ -1107,24 +1107,24 @@
             "safety": ""
           },
           {
-            "strength": "การมองผู้ป่วยทั้งคน ทั้งเชื้อและเบาหวาน ช่วยลดโอกาสกลับเป็นซ้ำในระยะยาว",
+            "strength": "การมองผู้ป่วยทั้งคน ทั้งเชื้อและเบาหวาน ช่วยวางรากฐานที่ดีให้การรักษาระยะยาว",
             "weigh": "ยาที่กินนานหลายเดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้กินยาครบ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Bringing **the glucose down** alongside antibiotics treats a risk factor for severity and recurrence.",
+            "strength": "Bringing **the glucose down** alongside antibiotics treats both of his active problems.",
             "weigh": "Insulin during a severe infection needs frequent glucose checks to avoid both highs and lows.",
             "safety": ""
           },
           {
-            "strength": "The plan **treats both phases**, from IV drug to the long oral course.",
+            "strength": "The plan **treats both phases**, from the injected drug to the long oral course.",
             "weigh": "Long-term TMP-SMX side effects deserve a monitoring plan from the start.",
             "safety": ""
           },
           {
-            "strength": "Treating the whole patient, infection and diabetes, lowers the chance of recurrence later.",
+            "strength": "Treating the whole patient, infection and diabetes, gives the long course a firm start.",
             "weigh": "Months of oral treatment need strong adherence, so weigh how to support him.",
             "safety": ""
           }
@@ -1507,7 +1507,7 @@
             "safety": ""
           },
           {
-            "strength": "การตรวจเหล่านี้ทำได้เร็วในโรงพยาบาลส่วนใหญ่ และเทียบกับผลเดิมได้",
+            "strength": "การตรวจเหล่านี้ทำได้เร็วในโรงพยาบาลส่วนใหญ่ และทำซ้ำได้ง่าย",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายตั้งแต่แรก ยังเป็นข้อมูลที่ควรชั่งร่วมกับผลชุดนี้",
             "safety": ""
           }
@@ -1524,7 +1524,7 @@
             "safety": ""
           },
           {
-            "strength": "These tests are quick in most hospitals and compare directly with earlier results.",
+            "strength": "These tests are quick in most hospitals and easy to repeat.",
             "weigh": "The left upper abdominal tenderness from the start still deserves weight beside these results.",
             "safety": ""
           }
@@ -1534,12 +1534,12 @@
         "th": [
           {
             "strength": "การ**เพิ่ม TMP-SMX** แสดงความตั้งใจขยายความครอบคลุมเมื่อไข้ยังไม่ลงสนิท",
-            "weigh": "ไข้ที่ลงช้าในโรคนี้มักไม่ได้มาจากยาไม่ครอบคลุม จึงควรชั่งประโยชน์ของยาตัวที่สอง",
+            "weigh": "ไข้ที่ลงช้าในโรคนี้มักไม่ได้มาจากยาไม่ครอบคลุม จึงควรชั่งประโยชน์ของยากินกำจัดเชื้อที่เพิ่มเข้ามา",
             "safety": ""
           },
           {
-            "strength": "การใช้ยาสองตัวที่ออกฤทธิ์ต่อเชื้อนี้ทั้งคู่ สะท้อนความระวังต่อโรคที่รุนแรง",
-            "weigh": "ยาตัวที่สองเพิ่มผลข้างเคียง เช่น ผื่นหรือเม็ดเลือดต่ำ ซึ่งควรชั่งไว้",
+            "strength": "การเพิ่ม**TMP-SMX**ซึ่งออกฤทธิ์ต่อเชื้อนี้ สะท้อนความระวังต่อโรคที่รุนแรง",
+            "weigh": "ยาที่ให้เพิ่มมีผลข้างเคียง เช่น ผื่นหรือเม็ดเลือดต่ำ ซึ่งควรชั่งไว้",
             "safety": ""
           },
           {
@@ -1551,12 +1551,12 @@
         "en": [
           {
             "strength": "Choosing to **add TMP-SMX** aims to widen cover while fever has not fully settled.",
-            "weigh": "Slow fever in this disease rarely reflects a cover gap, so weigh what a second drug adds.",
+            "weigh": "Slow fever in this disease rarely reflects a cover gap, so weigh what the added oral eradication drug adds.",
             "safety": ""
           },
           {
-            "strength": "Using **two drugs** active against the organism reflects caution in a serious disease.",
-            "weigh": "A second drug adds side effects such as rash or low cell counts, which deserve weight.",
+            "strength": "Adding **TMP-SMX**, active against the organism, reflects caution in a serious disease.",
+            "weigh": "An added drug brings side effects such as rash or low cell counts, which deserve weight.",
             "safety": ""
           },
           {
@@ -1618,7 +1618,7 @@
           },
           {
             "strength": "การกลับไปใช้ยาฉีดแล้วต่อยากิน เป็นการเริ่มรักษาใหม่ครบทั้งสองระยะ",
-            "weigh": "น้ำตาลที่คุมไม่ดีเป็นปัจจัยเสี่ยงของการกลับเป็นซ้ำ จึงควรทบทวนการดูแลเบาหวานไปพร้อมกัน",
+            "weigh": "เบาหวานเป็นปัจจัยเสี่ยงสำคัญของโรคนี้ จึงควรทบทวนการดูแลน้ำตาลไปพร้อมกัน",
             "safety": ""
           }
         ],
@@ -1635,7 +1635,7 @@
           },
           {
             "strength": "Returning to IV then oral treatment restarts both phases in full.",
-            "weigh": "Poor glucose control is a risk factor for recurrence, so his diabetes care deserves review alongside.",
+            "weigh": "Diabetes is a major risk factor for this infection, so his glucose care deserves review alongside.",
             "safety": ""
           }
         ]
@@ -1742,7 +1742,7 @@
             "safety": ""
           },
           {
-            "strength": "Restarting IV before the oral phase makes this round complete in both phases.",
+            "strength": "Restarting the injected drug before the oral phase makes this round complete in both phases.",
             "weigh": "Weigh how regularly he took his tablets, since it shapes the eradication plan this time.",
             "safety": ""
           }
@@ -1764,7 +1764,7 @@
           },
           {
             "strength": "การกำหนดระยะยาให้ชัด ทำให้ผู้ป่วยรู้ว่าต้องกินยาถึงเมื่อใด",
-            "weigh": "เบาหวานที่คุมไม่ดีเป็นปัจจัยเสี่ยงของการกลับเป็นซ้ำ ซึ่งควรดูแลไปพร้อมกัน",
+            "weigh": "เบาหวานที่คุมไม่ดีควรมีแผนดูแลของตัวเองไปพร้อมกับยากิน",
             "safety": ""
           }
         ],
@@ -1781,7 +1781,7 @@
           },
           {
             "strength": "A clear duration lets him know exactly how long the tablets continue.",
-            "weigh": "His poorly controlled diabetes is a recurrence risk factor that deserves attention alongside.",
+            "weigh": "His poorly controlled diabetes deserves its own plan alongside the tablets.",
             "safety": ""
           }
         ]
@@ -1789,7 +1789,7 @@
       "b": {
         "th": [
           {
-            "strength": "การรวม**คุมน้ำตาล**เข้ากับยากิน แก้ปัจจัยเสี่ยงที่ทำให้โรคนี้กลับเป็นซ้ำ",
+            "strength": "การรวม**คุมน้ำตาล**เข้ากับยากิน ดูแลปัจจัยเสี่ยงสำคัญของโรคนี้ไปพร้อมกัน",
             "weigh": "ยากินในโรคนี้ใช้เวลาหลายเดือน จึงควรชั่งวิธีช่วยให้ผู้ป่วยกินยาครบ",
             "safety": ""
           },
@@ -1806,7 +1806,7 @@
         ],
         "en": [
           {
-            "strength": "Adding **glucose care** to the tablets treats a risk factor for recurrence.",
+            "strength": "Adding **glucose care** to the tablets tackles a major risk factor for this disease.",
             "weigh": "The oral phase runs for months, so weigh how to support him to finish it.",
             "safety": ""
           },
@@ -1904,7 +1904,7 @@
             "safety": ""
           },
           {
-            "strength": "การคุมน้ำตาลร่วมกับยากินระยะยาว ช่วยลดโอกาสที่โรคจะกลับมาอีก",
+            "strength": "การคุมน้ำตาลร่วมกับยากินระยะยาว ช่วยดูแลเบาหวานต่อเนื่องตลอดหลายเดือน",
             "weigh": "ควรชั่งว่าผู้ป่วยมาตามนัดได้จริง ระหว่างที่ยังต้องกินยาอีกหลายเดือน",
             "safety": ""
           },
@@ -1921,7 +1921,7 @@
             "safety": ""
           },
           {
-            "strength": "**Glucose control** alongside the long oral course lowers his risk of the illness coming back.",
+            "strength": "**Glucose control** alongside the long oral course keeps his diabetes in view for months.",
             "weigh": "Weigh whether he can realistically attend, with months of tablets still ahead.",
             "safety": ""
           },
@@ -1976,7 +1976,7 @@
             "safety": ""
           },
           {
-            "strength": "การมองว่าเบาหวานต้องดูแลระยะยาว ช่วยลดปัจจัยเสี่ยงของการกลับเป็นซ้ำ",
+            "strength": "การมองว่าเบาหวานต้องดูแลระยะยาว ช่วยดูแลปัจจัยเสี่ยงสำคัญของโรคนี้",
             "weigh": "ระหว่างรอคิวคลินิก ควรชั่งว่าใครเป็นผู้ดูแลน้ำตาลของผู้ป่วยในช่วงนี้",
             "safety": ""
           },
@@ -1993,7 +1993,7 @@
             "safety": ""
           },
           {
-            "strength": "Treating diabetes as long-term care lowers a risk factor for recurrence.",
+            "strength": "Treating diabetes as long-term care addresses a major risk factor for this disease.",
             "weigh": "While he waits for the clinic, weigh who manages his glucose in the meantime.",
             "safety": ""
           },
@@ -2008,7 +2008,7 @@
         "th": [
           {
             "strength": "การใช้**ยาเดิม**ที่ผู้ป่วยคุ้นเคย ช่วยให้กินยาง่ายระหว่างกินยาฆ่าเชื้อนาน",
-            "weigh": "น้ำตาลยังสูงกับยาเดิม และการรอ 4 สัปดาห์นานพอควรสำหรับปัจจัยเสี่ยงนี้",
+            "weigh": "น้ำตาลยังสูงกับยาเดิม และ 4 สัปดาห์เป็นช่วงที่นานก่อนได้ปรับยา",
             "safety": ""
           },
           {
@@ -2018,14 +2018,14 @@
           },
           {
             "strength": "การนัดดูน้ำตาลไว้ล่วงหน้า แสดงว่ายังติดตามเรื่องเบาหวานต่อหลังกลับบ้าน",
-            "weigh": "เบาหวานที่คุมไม่ดีเสี่ยงต่อการกลับเป็นซ้ำ จึงควรชั่งช่วงเวลาที่น้ำตาลยังสูง",
+            "weigh": "น้ำตาลที่สูงนานหลายสัปดาห์ทำให้เบาหวานยังรักษาไม่พอระหว่างฟื้นตัว ซึ่งควรชั่งไว้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeping **the pills he knows** makes tablets simpler during a long antibiotic course.",
-            "weigh": "Glucose is still high on these pills, and 4 weeks is a long gap for a recurrence risk factor.",
+            "weigh": "Glucose is still high on these pills, and 4 weeks is a long gap before the next change.",
             "safety": ""
           },
           {
@@ -2035,7 +2035,7 @@
           },
           {
             "strength": "Booking a glucose recheck shows diabetes care continues after discharge.",
-            "weigh": "Poor glucose control raises his risk of the illness coming back, so the time left uncontrolled deserves weight.",
+            "weigh": "Weeks of high glucose leave his diabetes undertreated while he recovers, which deserves weight.",
             "safety": ""
           }
         ]
@@ -2191,8 +2191,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh reviewer that did not write the replies, 2026-11-14, case version 4. Sources: the case admission review (Thai DDC melioidosis measures citing the DDC Guideline of Melioidosis 2021: IV ceftazidime, imipenem or meropenem at least 10-14 days then co-trimoxazole 12-20 weeks, co-amoxiclav second-line, boots; Darwin 2024 guideline: deep-seated collection 4 weeks IV; WHO SEARO IMAI District Clinician Manual 2021); opened the Laos recurrent melioidosis cohort (PMC4889735), which restates ceftazidime at least 10-14 days then co-trimoxazole 12-20 weeks and dropping doxycycline after MERTH 2014, plus web review summaries on diabetes as the main risk factor and 3 months as the minimum eradication length. Read all 13 banks, every option, all 3 alternatives in Thai and English against every question variant and every B/R/W entry path. Confirmed this round: step2.W.c[2] and step2.B.d[2] weigh now say the set does not show spread beyond the lung; step2.R.b[2], step2.W.b[2] and step2.W.d[2] weigh now carry the lab-notification line with no mud cue, so step2.R and step2.W replies name or hint no diagnosis the visitor has not chosen. Checked doses, durations, IHA background positivity, throat-swab yield, ceftazidime renal dosing, TMP-SMX side effects and sulfonylurea interaction, doxycycline photosensitivity, fever clearance, ranking words, questions and acronym leaks (IV, ICU, CT, CBC, U/S, IHA, TMP-SMX, doxy, รพ., อสม. all trace to the label, line or vignette). No must-fix. Non-blocking: blood culture alone misses some cases reads as an understatement on TB and leptospirosis paths; step3.B fits the organism behind his illness (a[1], d[0]) asserts an organism before any culture on paths from a non-melioidosis step1 answer, though the option lines already say this organism; step3.R.b[1] matches the organism the lab reports fits v2 better than v1 (Gram stain only); step2.R.b[0] weigh still points to rainy-season mud work, a vignette fact; step2.W.b[0] says the rapid test answers the mud question though its sensitivity is limited (its weigh says so); diabetes as a recurrence risk factor rests mainly on reinfection; step5.R.d carries no safety line though its weigh names the TMP-SMX hypoglycaemia interaction. Tree sha256 7b602e688b2b380dc8d89a03ada77e7282b9c0ed81293662963e0c84ae67509b. Replies sha256 d4d9296f2f40bb73e28feae58ff5548c2bc22dce29d4cd467db45cfa6fea0207.",
-    "tree_sha256": "7b602e688b2b380dc8d89a03ada77e7282b9c0ed81293662963e0c84ae67509b",
-    "replies_sha256": "d4d9296f2f40bb73e28feae58ff5548c2bc22dce29d4cd467db45cfa6fea0207"
+    "findings": "Fresh reviewer that did not write the replies, 2026-11-14, case version 5. Read all 13 banks, every option, all 3 alternatives in Thai and English against every variant and entry path. No reply ties diabetes or glucose control to relapse or recurrence; the 12 rewritten pairs (step3.B b, step3.W b, step3.R b, step4.W a, step5.B a/b, step5.R a/c/d) now make no relapse claim, say the same in both languages, and where they call diabetes a major risk factor for the infection Currie 2010 and Darwin 2024 agree. step3.B b en[1], step3.W b en[1] and step4.W d en[2] say the injected drug and leak no label word. No must-fix. Non-blocking, carried over: step3.B a[1] and d[0] name the organism before culture on non-melioidosis paths; step5.R d has no safety line though its weigh names the TMP-SMX hypoglycaemia interaction. Tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50, replies sha256 35def2ab17c0953de206e9eda86c4df5ad09a0fc5c9fd683a5c827aa5a140de7. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
+    "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50",
+    "replies_sha256": "35def2ab17c0953de206e9eda86c4df5ad09a0fc5c9fd683a5c827aa5a140de7"
   }
 }

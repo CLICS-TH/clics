@@ -1387,7 +1387,7 @@
       "c": {
         "th": [
           {
-            "strength": "การตรวจเลือดซ้ำ ช่วยยืนยันด้วยตัวเลขว่าเกล็ดเลือดกลับขึ้นและไตยังปกติ",
+            "strength": "การตรวจเลือดซ้ำ ช่วยยืนยันด้วยตัวเลขว่าเกล็ดเลือดกลับขึ้นและไตเป็นอย่างไร",
             "weigh": "อาการดีขึ้นชัดเจนแล้ว จึงควรชั่งว่าผลเลือดซ้ำจะเปลี่ยนการดูแลได้มากน้อยเพียงใด",
             "safety": ""
           },
@@ -1404,7 +1404,7 @@
         ],
         "en": [
           {
-            "strength": "Repeating bloods checks with numbers whether platelets are rising and the kidneys stay normal.",
+            "strength": "Repeating bloods checks with numbers whether platelets are rising and how the kidneys are doing.",
             "weigh": "He is clearly better, so weigh how much a repeat result would change his care.",
             "safety": ""
           },
@@ -1497,13 +1497,13 @@
       "b": {
         "th": [
           {
-            "strength": "การ**นัดดูทุกวัน** ช่วยจับตาเหลืองหรือปัสสาวะน้อยได้ตั้งแต่เริ่มมีอาการ",
-            "weigh": "การนัดดูทุกวันใช้เวลาทั้งผู้ป่วยและทีม ซึ่งควรชั่งกับความเสี่ยงของเขา",
+            "strength": "การ**ประเมินทุกวัน** ช่วยจับตาเหลืองหรือปัสสาวะน้อยได้ตั้งแต่เริ่มมีอาการ",
+            "weigh": "การประเมินทุกวันใช้เวลาทั้งผู้ป่วยและทีม ซึ่งควรชั่งกับความเสี่ยงของเขา",
             "safety": ""
           },
           {
             "strength": "การให้ยาต่อพร้อมเฝ้าดูใกล้ชิด ให้เวลายาออกฤทธิ์โดยไม่ละเลยสัญญาณอันตราย",
-            "weigh": "ไข้ที่ลดช้าในช่วงแรกของยายังพบได้ การนัดดูจึงควรมีเกณฑ์ว่าเมื่อใดต้องทำเพิ่ม",
+            "weigh": "ไข้ที่ลดช้าในช่วงแรกของยายังพบได้ การติดตามจึงควรมีเกณฑ์ว่าเมื่อใดต้องทำเพิ่ม",
             "safety": ""
           },
           {
@@ -1904,7 +1904,7 @@
             "safety": ""
           },
           {
-            "strength": "การยืนยันว่าเกล็ดเลือดกลับมาเต็มที่ ช่วยปิดประเด็นค่าที่ต่ำระหว่างป่วย",
+            "strength": "การยืนยันว่าเกล็ดเลือดและไตกลับมาเต็มที่ ช่วยปิดประเด็นว่าโรคทิ้งผลไว้หรือไม่",
             "weigh": "ควรชั่งว่าผลนี้จะเปลี่ยนการดูแลอย่างไร ในผู้ป่วยที่ไม่มีไข้แล้ว",
             "safety": ""
           },
@@ -1921,7 +1921,7 @@
             "safety": ""
           },
           {
-            "strength": "Confirming that platelets are fully back closes out an abnormality seen during the illness.",
+            "strength": "Confirming platelets and kidneys are fully back settles whether the illness left lasting effects.",
             "weigh": "Weigh how the results would change care in a patient who is now free of fever.",
             "safety": ""
           },
@@ -1981,7 +1981,7 @@
             "safety": ""
           },
           {
-            "strength": "การยังคงติดต่อหลังรักษาครบ แสดงความต่อเนื่องของการดูแลโดยไม่เป็นภาระ",
+            "strength": "การยังคงติดต่อหลังรักษา แสดงความต่อเนื่องของการดูแลโดยไม่เป็นภาระ",
             "weigh": "ควรตกลงเวลาโทรที่ผู้ป่วยสะดวกรับสายได้จริง",
             "safety": ""
           }
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank and every path into it (B, R, W from a best, reasonable or weaker answer at the step before, e.g. step4.R from azithromycin or admitted doxycycline, step4.W only from IV regimens in hospital, step5.B/R reachable after the oliguric step4.W path). Sources opened: CDC leptospirosis clinical overview (doxycycline 100 mg twice daily 7 days, azithromycin 3 days alternative, IV penicillin or ceftriaxone for severe disease, start without waiting for results, incubation 2-30 days) and the WHO leptospirosis outbreak toolbox (case definitions, PCR and IgM confirmation, flood exposure); the case's own DDC 2564 and WHO/ILS 2003 findings were relied on for referral and potassium thresholds, as the DDC guideline could not be reached. Confirmed the round's fixes: step1.a.th[0].weigh, step2.B.e[0].weigh, step3.{B,R,W}.c.en[0].weigh, step4.W.a/c.th[0].strength, step4.W.b[2].weigh, step5.B.a.en[1].strength, step5.W.c.th[0].strength. Checked clinical truth (culture growth, PCR window, RDT and dengue IgM timing, Weil-Felix, doxycycline cautions, paracetamol and platelets, renal recovery, uveitis timing), safety sentences on the ultrasound options in step4.W.d and step5.W.d (no alternative named), leaks (no option graded or ranked, no test, drug or diagnosis outside its own label; acronyms CBC, RDT, PCR, NS1, IgM, IV, K, ECG, EKG each appear only under a label that carries them), fit and Thai/English equivalence. Non-blocking notes: step5.B.a[1].weigh Thai says the same season where English says the same fields; step5.B.a.en[1].strength 'blocks entry' is firmer than the Thai 'matches the entry route'; step4.W.b.en[0].strength 'gets him to dialysis' reads firmer than the Thai 'reach a place with dialysis'; step5.W.d.en[1].strength drops the Thai 'that could stress the kidneys'; step5.R.a.en[0].weigh 'normal bloods may not end it' is awkward; step1.a.en[0].weigh drops 'normally'; earlier notes (step4.B.d[0], step5.W.d[2], step2.B.e[2] 'his work', stiff Thai in step3.*.a.th[2] and step5.B.a.th[1]) stand as non-blocking. Tree sha256 f581f8083a1e4f0bea03e0d3722d149f764566d1ec776ed68cc5a70fa9206b39. Replies sha256 82a16a7b84e6623403b03537adf59f6e750388a603953e32549c8ddd3963bfc9.",
-    "tree_sha256": "f581f8083a1e4f0bea03e0d3722d149f764566d1ec776ed68cc5a70fa9206b39",
-    "replies_sha256": "82a16a7b84e6623403b03537adf59f6e750388a603953e32549c8ddd3963bfc9"
+    "findings": "Fresh reviewer that did not write the bank, 2026-11-14, case version 5. Read every reply in all 13 banks, Thai and English. The step4.R b replies now say assess or follow up daily instead of a daily appointment, so they fit an outpatient on azithromycin and an admitted patient on oral doxycycline alike; no other step4.R reply assumes one path. Facts checked against DDC 2564, the DDC alert of 2567, MSF, MSD and the Thai doxycycline versus azithromycin trial: RDT and IgM limits early in fever, doxycycline photosensitivity and oesophageal advice, fluids with overload checks in oliguria, potassium before transfer, paracetamol dose, uveitis late. No unsafe advice, no claim the case does not state, Thai and English agree. No must-fix. Tree sha256 b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311, replies sha256 b2347bf43b3de5cc5e6fdec99b06a18e02e464e4992b24483093390f3c633532. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
+    "tree_sha256": "b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311",
+    "replies_sha256": "b2347bf43b3de5cc5e6fdec99b06a18e02e464e4992b24483093390f3c633532"
   }
 }

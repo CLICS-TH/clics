@@ -1,6 +1,6 @@
 {
   "case_id": "adhf",
-  "version": "5",
+  "version": "6",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี มาโรงพยาบาลชุมชน หอบเหนื่อยและนอนราบไม่ได้มา 5 วัน",
@@ -915,12 +915,12 @@
             "id": "reservoir",
             "tier": "weaker",
             "label": {
-              "th": "เปลี่ยนเป็นหน้ากากมีถุงสำรอง",
-              "en": "Switch to a reservoir mask"
+              "th": "หน้ากากถุงสำรอง ตามแพทย์อาวุโส",
+              "en": "Reservoir mask, call a senior"
             },
             "line": {
-              "th": "หน้ากากมีถุงสำรองให้ออกซิเจนเข้มข้นสูงขึ้นมาก",
-              "en": "A reservoir mask gives a much higher oxygen concentration."
+              "th": "เพิ่มออกซิเจนทันที ขณะแพทย์อาวุโสมาดูข้างเตียง",
+              "en": "More oxygen at once while a senior doctor comes to the bedside."
             }
           }
         ],
@@ -1180,9 +1180,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Review of version 5 (five steps). Thai: Heart Failure Council of Thailand 2019 Heart Failure Guideline: Acute Heart Failure (J Med Assoc Thai 2019;102:373-379), Tables 3-10, opened in full; Thai and English searches found only the HFCT 2022 and 2023 focused updates, which cover chronic HFrEF and HFpEF drugs, so the 2019 part stays the current Thai acute HF source. WHO: IMAI District Clinician Manual, Hospital care for adolescents and adults (WHO 2011), volume 1 section 3.2.5, pages 118-124, acute pulmonary oedema (oxygen, IV furosemide, nitrate, reassessment), with its WHO South-East Asia edition (2021). Also ESC 2021 HF guidelines (Figure 13); the ESC 2023 focused update could not be opened. Fixed after the first review: discharge home with persisting oedema is gone, replaced by an in-hospital fluid limit; the step-5 discharge stems state the oedema has cleared; the ICU transfer option names oxygen. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: oxygen below SpO2 90% and CPAP at RR above 25 (HFCT Table 3); IV furosemide 20-40 mg, doubled for poor urine output (HFCT Table 4, WHO page 123, ESC Figure 13); a sublingual nitrate for high BP (WHO page 123); antibiotics only as weaker without fever; echo then disease-modifying drugs and a 1-2-week review; no path leaves him hypoxic or congested or sends him home congested; Thai and English agree. Remains, listed on #470: a thiazide offered before the loop dose is raised, invasive BP monitoring with IV nitrate, the reservoir-mask tier, empty safety lines. Tree sha256 9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8.",
-      "tree_sha256": "9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8"
+      "date": "2026-11-14",
+      "findings": "Fresh re-check by a non-author reviewer that did not write the case (claude-opus-5-5) of the final tree, 2026-11-14, version 6: all 13 banks, every question variant and option, Thai and English, against every path into each bank. Sources opened: Wikidoc ADHF page quoting the ESC 2021 acute HF recommendations (oxygen at SpO2 below 90% I-C, NIV at RR above 25 or SpO2 below 90% IIa-B, intubation for progressive failure on oxygen or NIV I-C, loop dose doubled after a poor response, IV vasodilator above SBP 110 IIb-B); Mauro et al., J Clin Med 2023 AHF review; BJ Cardiology HF module 6 (1.5-2 L limit for congestion, scant evidence); PACE-CME FRESH-UP report. The ESC 2021 EHJ page opened but cut off before the acute section; the HFCT repository record gave no readable text, so the Thai source, Heart Failure Council of Thailand 2019 acute HF guideline (J Med Assoc Thai 2019;102:373-9), was opened in full in the confirm read below. Item 1: step4.W reservoir, now reservoir mask and a senior at the bedside, is safe as weaker: it treats SpO2 85% and escalates, and is less complete than refer_now; its ranking below double_dose is arguable, since that option adds no oxygen. Item 2: strict_fluid 1 L stays weaker and is safe for a monitored inpatient; the fluid_limit[2] weigh is right. double_dose is not unsafe. Thai and English agree. No must-fix. Thiazide order and IV nitrate monitoring stay on #470. Reviewed tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94. Confirm read 2026-11-14 of the Thai and WHO sources by a second non-author reviewer, made against the earlier reservoir wording, whose NIV threshold reasoning still holds: HFCT 2019 acute HF Tables 3-4 and text and WHO SEARO IMAI 2021 sec 3.2.5 agree: NIV at RR >25 and SpO2 <90% and no aggressive fluid limit keep reservoir and strict_fluid weaker, though WHO's next step is more oxygen and double furosemide.",
+      "tree_sha256": "9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94"
     }
   }
 }

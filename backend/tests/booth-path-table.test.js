@@ -669,11 +669,8 @@ describe('the build runner', () => {
   test('without --go it checks every NFCME-2026 tree and reply bank, prints the plan and spends nothing', () => {
     const res = run([]);
     expect(res.status).toBe(0);
-    expect(res.stdout).toMatch(/^10 case\(s\) to build, 810 evaluator calls, about \$\d+\.\d\d typical\.$/m);
+    expect(res.stdout).toMatch(/^11 case\(s\) to build, 891 evaluator calls, about \$\d+\.\d\d typical\.$/m);
     expect(res.stdout).toMatch(/Nothing spent/);
-    // melioidosis-farmer's bank names another option's short acronym (#494's rule), which its tree ticket (#496) fixes.
-    expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([
-      'melioidosis-farmer@4: refused, it has a reply bank with 3 problem(s), first replies.step3.B.b.en[1].strength: names another option ("iv")',
-    ]);
+    expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([]);
   });
 });

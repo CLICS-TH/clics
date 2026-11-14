@@ -1,6 +1,6 @@
 {
   "case_id": "sjs-ten-allopurinol",
-  "version": "5",
+  "version": "6",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 58 ปี มาโรงพยาบาลชุมชน มีไข้ แผลในปาก และผื่นลามมา 2 วัน",
@@ -162,8 +162,8 @@
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "ตรวจยีน HLA-B*5801",
-              "en": "HLA-B*5801 gene test"
+              "th": "ตรวจยีน HLA-B*58:01",
+              "en": "HLA-B*58:01 gene test"
             },
             "line": {
               "th": "บอกความเสี่ยงทางพันธุกรรมต่อการแพ้อัลโลพูรินอล",
@@ -247,8 +247,8 @@
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ตรวจยีน HLA-B*5801",
-              "en": "HLA-B*5801 gene test"
+              "th": "ตรวจยีน HLA-B*58:01",
+              "en": "HLA-B*58:01 gene test"
             },
             "line": {
               "th": "บอกความเสี่ยงทางพันธุกรรมต่อการแพ้อัลโลพูรินอล",
@@ -897,8 +897,8 @@
             "id": "hla",
             "tier": "reasonable",
             "label": {
-              "th": "ตรวจ HLA-B*5801 แนะนำญาติ",
-              "en": "HLA-B*5801 test to advise family"
+              "th": "ตรวจ HLA-B*58:01 แนะนำญาติ",
+              "en": "HLA-B*58:01 test to advise family"
             },
             "line": {
               "th": "ญาติสายตรงอาจมียีนเดียวกัน ควรตรวจก่อนเริ่มอัลโลพูรินอล",
@@ -982,8 +982,8 @@
             "id": "hla",
             "tier": "reasonable",
             "label": {
-              "th": "ตรวจ HLA-B*5801 แนะนำญาติ",
-              "en": "HLA-B*5801 test to advise family"
+              "th": "ตรวจ HLA-B*58:01 แนะนำญาติ",
+              "en": "HLA-B*58:01 test to advise family"
             },
             "line": {
               "th": "ญาติสายตรงอาจมียีนเดียวกัน ควรตรวจก่อนเริ่มอัลโลพูรินอล",
@@ -1067,8 +1067,8 @@
             "id": "hla",
             "tier": "reasonable",
             "label": {
-              "th": "ตรวจ HLA-B*5801 แนะนำญาติ",
-              "en": "HLA-B*5801 test to advise family"
+              "th": "ตรวจ HLA-B*58:01 แนะนำญาติ",
+              "en": "HLA-B*58:01 test to advise family"
             },
             "line": {
               "th": "ญาติสายตรงอาจมียีนเดียวกัน ควรตรวจก่อนเริ่มอัลโลพูรินอล",
@@ -1111,9 +1111,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Two fresh claude-opus-5-5 reviewers, neither of which wrote the case, checked every bank of five-step version 5 against sources opened on the web: BAD 2016 SJS/TEN guideline (Creamer et al., Br J Dermatol 2016;174:1194-227), WHO/ICRC Basic Emergency Care 2018 and its shock quick card, and Thai HLA-B*58:01 and HPVC work (Sukasem et al., Front Pharmacol 2016; Jantararoungtong et al., Clin Transl Allergy 2014; Thai J Clin Pharm 2024). Round 3 removed the fever-only IV antibiotic (step3.R, step3.W) and the prophylactic antibiotic eye ointment (step4.R d, now lubricant drops alone, weaker); BAD 2016 allows systemic antibiotics only with clinical signs of infection. Burn-formula fluids are gone: at BP 94/60 with oliguria, fluids titrated to urine output are weaker and saline bolus plus albumin is reasonable, since a bolus comes first (WHO BEC 2018) and BAD 2016 guides ongoing fluids by urine output. The first reviewer's must-fix (those two tiers) and two wording fixes were applied; the confirm reviewer found no must-fix. Open: HLA-B*5801 spelling in step 2 and three optional TH/EN line alignments (#468). Reviewed tree sha256 4ffdf7f66e1e0266eb54d23ea1945784d6fe862ec385d97576b34a410516643d.",
-      "tree_sha256": "4ffdf7f66e1e0266eb54d23ea1945784d6fe862ec385d97576b34a410516643d"
+      "date": "2026-11-14",
+      "findings": "Fresh claude-opus-5-5 reviewer that did not write the case, 2026-11-14, version 6: read all 13 banks (every variant and option, Thai and English) and the diff from version 5. Sources opened: hla.alleles.org allele naming and its April 2010 update (colon-delimited fields); BAD 2016 SJS/TEN guideline (Creamer et al., Br J Dermatol 2016;174:1194-227, OUP full text); ACR 2020 gout guideline release (conditional HLA-B*58:01 testing before allopurinol in Southeast Asian, e.g. Thai, patients); Saokaew et al., PLoS One 2014 (HLA-B*58:01 and allopurinol SJS/TEN in Thais); Thai FDA Health Products Vigilance Center page. Ticket item: HLA-B*58:01 in step2.B e, step2.R d and step5.B/R/W hla is the correct WHO notation; tiers kept (weaker at step 2, reasonable at step 5) and labels in budget. #468 notes: the step4.B b, step4.W b and step4.W d English lines say slightly more than the Thai (first days, early sepsis, hold fluid in the vessels) with the same clinical meaning, not must-fix. step4.R c numbing mouthwash, soft diet stays reasonable: BAD 2016 names benzydamine or viscous lidocaine mouth care, the option rules out no fluids and best option b gives them; keep it on the sandbox watch list. Checked stems against every path in, tiers, safety of weaker options and TH/EN. No must-fix. Reviewed tree sha256 45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9. Confirm read 2026-11-14 by a second non-author reviewer: WHO HLA nomenclature (hla.alleles.org) confirms HLA-B*58:01, WHO SEARO IMAI 2021 sec 10.1 has no gene test in acute care, and Thai J Pharm Sci 2024 backs pre-allopurinol screening; agree. Thai FDA HPVC did not open.",
+      "tree_sha256": "45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9"
     }
   }
 }

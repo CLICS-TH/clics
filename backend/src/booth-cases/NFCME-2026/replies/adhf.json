@@ -1434,7 +1434,7 @@
           },
           {
             "strength": "วางแผนที่ผู้ป่วยมีส่วนร่วมได้เอง และนำไปใช้ต่อที่บ้านได้",
-            "weigh": "การจำกัดน้ำมีประโยชน์ชัดในบางกลุ่ม ส่วนผู้ป่วยทั่วไปยังมีข้อมูลน้อย",
+            "weigh": "หลักฐานว่าการจำกัดน้ำช่วยได้ยังมีน้อย มักใช้ในรายที่รุนแรงหรือโซเดียมในเลือดต่ำ",
             "safety": ""
           }
         ],
@@ -1451,7 +1451,7 @@
           },
           {
             "strength": "A plan he can take part in himself and carry on at home.",
-            "weigh": "Restriction helps clearly in some groups, while for most patients the data are thin.",
+            "weigh": "Evidence that restriction helps is weak, and it is mostly kept for severe cases or low sodium.",
             "safety": ""
           }
         ]
@@ -1465,7 +1465,7 @@
           },
           {
             "strength": "ใช้อาการที่ดีขึ้นจริงเป็นสัญญาณในการวางแผนขั้นต่อไป",
-            "weigh": "ขณะที่ลำไส้ยังบวมน้ำ ยากินอาจดูดซึมได้น้อยกว่าที่คาด",
+            "weigh": "ถ้ายังมีน้ำเกิน ลำไส้อาจดูดซึมยากินได้น้อยกว่าที่คาด",
             "safety": ""
           },
           {
@@ -1482,7 +1482,7 @@
           },
           {
             "strength": "Reads real improvement as a cue to plan the next phase.",
-            "weigh": "While the gut is still swollen, tablets may be absorbed less than expected.",
+            "weigh": "If fluid overload remains, the gut may absorb tablets less than expected.",
             "safety": ""
           },
           {
@@ -1895,36 +1895,36 @@
       "reservoir": {
         "th": [
           {
-            "strength": "แก้ SpO2 ที่ต่ำลงได้เร็วด้วย**ออกซิเจนเข้มข้น**สูงขึ้น",
-            "weigh": "ออกซิเจนที่มากขึ้นช่วยตัวเลข แต่ไม่ได้ลดงานการหายใจหรือน้ำในปอด",
-            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว อาจหยุดหายใจได้ในไม่ช้า"
+            "strength": "เพิ่มออกซิเจนทันทีและตาม**แพทย์อาวุโส**มาที่ข้างเตียง",
+            "weigh": "การตามคนช่วยถูกต้อง แต่การหายใจที่กำลังล้มเหลวต้องได้การช่วยหายใจ ไม่ใช่แค่ความเห็นเพิ่ม",
+            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
-            "strength": "ตอบสนองทันทีต่อออกซิเจนที่ต่ำ ซึ่งเป็นภัยเร่งด่วน",
-            "weigh": "ผู้ป่วยกำลังเหนื่อยมาก หากหมดแรงจะทรุดเร็ว จึงต้องเฝ้าดูใกล้ชิด",
-            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว อาจหยุดหายใจได้ในไม่ช้า"
+            "strength": "ขอความช่วยเหลือเร็ว เหมาะเมื่อผู้ป่วยที่ได้ออกซิเจนแล้วยังแย่ลง",
+            "weigh": "ออกซิเจนที่มากขึ้นอาจทำให้ SpO2 ดูดีขึ้น และบังว่าผู้ป่วยยังหายใจหนักอยู่",
+            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
-            "strength": "หน้ากากมีถุงสำรองหาได้ทุกที่และใส่ได้เร็ว",
-            "weigh": "SpO2 ที่ดีขึ้นอาจทำให้มองข้ามว่าการหายใจยังหนักอยู่",
-            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว อาจหยุดหายใจได้ในไม่ช้า"
+            "strength": "ใช้หน้ากากที่มีทุกหอผู้ป่วย และเรียกคนช่วยได้ทันที",
+            "weigh": "น้ำยังท่วมปอดอยู่ และแผนนี้ไม่ได้เพิ่มการรักษาใหม่เพื่อขับน้ำออก",
+            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           }
         ],
         "en": [
           {
-            "strength": "Lifts a falling SpO2 quickly with a **much higher oxygen** concentration.",
-            "weigh": "More oxygen improves the number but does not ease his work of breathing or lung fluid.",
-            "safety": "Falling SpO2 and harder breathing on oxygen mean respiratory failure is advancing and he may arrest soon."
+            "strength": "Gives more oxygen at once and brings a **senior doctor** to the bedside.",
+            "weigh": "Calling for help is right, yet breathing that is failing now needs support begun, not only a second opinion.",
+            "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
-            "strength": "Responds at once to low oxygen, an immediate danger.",
-            "weigh": "He is tiring, and if he exhausts himself he will crash quickly, so watch closely.",
-            "safety": "Falling SpO2 and harder breathing on oxygen mean respiratory failure is advancing and he may arrest soon."
+            "strength": "Escalates early, which is right when a patient on oxygen gets worse.",
+            "weigh": "More oxygen can lift the SpO2 and hide how hard he is still working to breathe.",
+            "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
-            "strength": "A reservoir mask is available everywhere and is quick to put on.",
-            "weigh": "A better SpO2 can hide how hard he is still working to breathe.",
-            "safety": "Falling SpO2 and harder breathing on oxygen mean respiratory failure is advancing and he may arrest soon."
+            "strength": "Uses a mask every ward has and gets help moving straight away.",
+            "weigh": "Fluid still floods his lungs, and this plan adds nothing new to clear it.",
+            "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           }
         ]
       }
@@ -2087,7 +2087,7 @@
             "safety": ""
           },
           {
-            "strength": "ใช้ภาพเป็นข้อมูลเทียบกับภาพแรกตอนมาโรงพยาบาล",
+            "strength": "ใช้ภาพเป็นข้อมูลอีกอย่างประกอบการประเมินการฟื้นตัว",
             "weigh": "น้ำหนักตัว ขาบวม และการหายใจ บอกความพร้อมกลับบ้านได้อยู่แล้ว",
             "safety": ""
           }
@@ -2104,7 +2104,7 @@
             "safety": ""
           },
           {
-            "strength": "Uses the film as a comparison with the one from admission.",
+            "strength": "Uses the film as one more check of his recovery.",
             "weigh": "Weight, leg swelling and breathing already show whether he is ready to go.",
             "safety": ""
           }
@@ -2229,7 +2229,7 @@
           },
           {
             "strength": "เตรียมความพร้อมกลับบ้านโดยไม่ทิ้งการเฝ้าดูใกล้ชิด",
-            "weigh": "ขณะลำไส้ยังบวมน้ำ ยากินอาจดูดซึมได้น้อย จึงควรดูการตอบสนองให้แน่ใจ",
+            "weigh": "ถ้ายังมีน้ำเกิน ยากินอาจดูดซึมได้น้อย จึงควรดูการตอบสนองให้แน่ใจ",
             "safety": ""
           },
           {
@@ -2246,7 +2246,7 @@
           },
           {
             "strength": "Prepares for home without giving up close watching.",
-            "weigh": "While the gut is still swollen, tablets may be absorbed less, so confirm he responds.",
+            "weigh": "If overload remains, tablets may be absorbed less, so confirm he responds.",
             "safety": ""
           },
           {
@@ -2302,7 +2302,7 @@
             "safety": ""
           },
           {
-            "strength": "รู้ขีดจำกัดของหอผู้ป่วยทั่วไป เมื่อรักษาเต็มที่แล้วยังไม่ดีขึ้น",
+            "strength": "รู้ขีดจำกัดของหอผู้ป่วยทั่วไป เมื่อรักษาแล้วยังไม่ดีขึ้น",
             "weigh": "ผู้ป่วยอาจทรุดระหว่างทาง จึงควรมีพยาบาลที่ดูแลการหายใจได้ไปด้วย",
             "safety": ""
           },
@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank, including non-numeric variants. Sources: the case admission review names HFCT 2019 Acute Heart Failure (J Med Assoc Thai 2019;102:373-379), WHO IMAI District Clinician Manual (2011) section 3.2.5 and ESC 2021 HF guidelines; this pass found the HFCT record on the Mahidol repository but its full text is a file and was not downloaded, and the ESC 2021 page opened but cut off before the acute heart failure section, so the facts were checked against those guidelines as known (oxygen below SpO2 90%, CPAP at fast breathing with SpO2 under 90%, IV furosemide doubled for poor urine output, nitrate held below a systolic of about 110, urine sodium as a response check, no routine catheter, weak evidence for fluid restriction, 2 kg in 3 days as a return trigger, ototoxicity with fast large boluses, gut oedema slowing oral absorption) and against the source-checked admission review. Confirmed the requested fixes: safety sentences on step4.W.reservoir and step5.W.abx in all alternatives, naming no alternative; step4.W.reservoir[2] strength; ntprobnp[2] strength with no referral preview; step4.W.double_dose[0] weigh no longer times diuresis; step1.c[1] weigh; step5.B.early_review th[1] lists side effects; step5.W.transfer_ccu en[1]. Checked clinical truth, safety, leaks (every uppercase acronym in a reply also appears in that option label or line or the vignette), fit, Thai naturalness and Thai-English equivalence: no must-fix. Non-blocking notes: step4.W.double_dose and step4.W.refer_now and step5.W.ward_iv_up are reasonable-tier options taken while he is deteriorating and carry no safety sentence; refer_now and ward_iv_up warn in every weigh, but double_dose[1] weigh speaks only of kidney function, potassium and urine, so a line on the worsening breathing there would help. step4.B.fluid_limit[2] weigh says restriction helps clearly in some groups, which overstates weak evidence. step4.B.serial_trop[2] weigh ranks an ECG change above troponin, which is arguable. step1.a[0] bolds a different phrase in Thai and English. step5.W.iv_up_transfer en[1] frequent urine on board reads awkwardly. Tree sha256 9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8. Replies sha256 51fa2554eff22b6f3a3bcd1355ab9ea02a91ccf6b9f1c78473e60713fd850ed5.",
-    "tree_sha256": "9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8",
-    "replies_sha256": "51fa2554eff22b6f3a3bcd1355ab9ea02a91ccf6b9f1c78473e60713fd850ed5"
+    "findings": "Fresh review by a non-author (claude-opus-5-5), 2026-11-14, of every reply in all 13 banks of adhf version 6, all three alternatives, Thai and English, read against every question variant. Checked against the ESC 2021 acute HF recommendations (via Wikidoc), Mauro 2023, BJ Cardiology and FRESH-UP, plus leaks, fit and Thai-English match. The six step4.W.reservoir replies are correct, name no other option, and each says he needs ventilatory support now; step4.B.fluid_limit[2] weigh (weak evidence, mostly kept for severe cases or low sodium) is right. No must-fix. Optional: a safety line on step4.W.double_dose, whose [1] weigh speaks only of bloods and urine. Tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94, replies sha256 2508bfb81d771c09041e5fd9c9f7b8d670e16a38d0137d0a34d5320265ca3454. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
+    "tree_sha256": "9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94",
+    "replies_sha256": "2508bfb81d771c09041e5fd9c9f7b8d670e16a38d0137d0a34d5320265ca3454"
   }
 }

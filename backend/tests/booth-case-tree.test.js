@@ -360,13 +360,9 @@ describe('the reply bank', () => {
     expect(replyBankProblems(other, BANK5)).toEqual([expect.stringMatching(/^safety_review: does not bind this tree/)]);
   });
 
-  // Two reviewed banks name another option's short acronym, which #494's rule now catches; their tree tickets (spec
-  // #493) fix them and empty this list. Any other problem fails.
-  const SHORT_ACRONYMS = [
-    'NFCME-2026/melioidosis-farmer.json: replies.step3.B.b.en[1].strength: names another option ("iv")',
-    'NFCME-2026/melioidosis-farmer.json: replies.step3.W.b.en[1].strength: names another option ("iv")',
-    'NFCME-2026/melioidosis-farmer.json: replies.step4.W.d.en[2].strength: names another option ("iv")',
-  ];
+  // #494's rule catches a reply that names another option's short acronym. Spec #493's tree tickets fixed every bank
+  // it flagged, so the list is empty: any problem fails.
+  const SHORT_ACRONYMS = [];
   // Fails until every five-step case's bank is written and reviewed: a five-step case without one is never dealt.
   test('every five-step case file, in place or staged, has a reply bank at replies/<case_id>.json with no problem but the listed acronyms', () => {
     const problems = CASE_FILES.flatMap(({ name, file }) => {
