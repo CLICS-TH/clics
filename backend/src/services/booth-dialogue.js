@@ -299,6 +299,19 @@ function chatOutcome(kase, d, res) {
   return { tierPath, bank, ask, answers, replies: [...d.replies, reply], asks: ask ? [...d.asks, ask] : d.asks };
 }
 
+/** The dialogue once a tapped answer to `d`'s last step is replied from the case's reply bank (ADR 0011), the same
+ *  shape as chatOutcome: one of the reviewed alternatives for that bank, option and reply language, checked as an AI
+ *  reply is, and the next ask drawn as a first ask is (none after the last step). No AI wrote the ask, so it has no
+ *  bridge. `replies` is the bank file's replies (reply-bank.js). */
+function bankOutcome(kase, d, replies) {
+  const n = d.answers.length;
+  const key = bankKey(kase, d.tierPath.slice(0, n - 1));
+  const reply = checkedReply(randomOf(replies[key][d.answers[n - 1].choice][replyLanguage(d)]), quotesFor(kase, d));
+  const bank = n < stepCount(kase) ? bankAt(kase, d.tierPath) : null;
+  const ask = bank && firstAsk(bank);
+  return { tierPath: d.tierPath, bank, ask, answers: d.answers, replies: [...d.replies, reply], asks: ask ? [...d.asks, ask] : d.asks };
+}
+
 /** rimpl's evaluate request for a finished play, less ple_id. shadow MUST be false: rimpl's shadow evaluation
  *  upserts shadow_evaluations, whose ple_id references ples, and a booth play is not a PLE. */
 const evaluateRequest = (kase, d) => ({
@@ -399,5 +412,5 @@ function studyTranscript(kase, steps, look) {
 module.exports = {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, stepCount, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
-  replyText, sortedTier, chatRequest, chatOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
+  comparable, checkedField, replyText, sortedTier, chatRequest, chatOutcome, bankOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
 };

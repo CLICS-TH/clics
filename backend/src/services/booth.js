@@ -1,4 +1,3 @@
-const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
 const { z } = require('zod');
@@ -6,11 +5,12 @@ const { supabase } = require('../lib/supabase');
 const { costUsd } = require('../lib/pricing');
 const { WEIGHTS } = require('./ple-gate');
 const { rimplChat } = require('./rimpl-client');
-const { TIERS, MAX_STEPS, eventPool, tableScore } = require('../booth-cases/tree-schema');
+const { TIERS, MAX_STEPS, tableScore } = require('../booth-cases/tree-schema');
+const { readEventFiles, eventPool } = require('../booth-cases/event-pool');
 const { readStudyCase } = require('../booth-cases/study-snapshot');
 const {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
-  LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, stepTiers,
+  LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, bankOutcome, stepTiers,
   stepRecords, bankKey, stepCount, echoesAnswer, replyLanguage,
 } = require('./booth-dialogue');
 
@@ -95,19 +95,15 @@ const UNAVAILABLE = Object.freeze({ body: Object.freeze({ status: 'unavailable' 
 const PAST_STARTED = new Set(['not_started', 'not_found']);
 const usd = (x) => Math.round(x * 1e6) / 1e6;
 
-const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return undefined; } };
-
-/** Pure but for the read: one event's pool under `dir` (tree-schema eventPool). */
+/** Pure but for the read: one event's pool under `dir` (event-pool.js). */
 function readEventCases(dir, code) {
-  let names;
-  try { names = fs.readdirSync(path.join(dir, code)).filter((f) => f.endsWith('.json')); } catch { return { steps: 0, cases: [] }; }
-  const { steps, cases, left } = eventPool(code, names.map((name) => ({ name, raw: readJson(path.join(dir, code, name)) })));
+  const { steps, cases, replyBanks, left } = eventPool(code, readEventFiles(dir, code));
   // Left-out cases are logged because a booth with none left reads only as 'misconfigured'.
   for (const { name, why } of left) console.warn(`[booth] case ${code}/${name} left out: it ${why}`);
-  return { steps, cases };
+  return { steps, cases, replyBanks };
 }
 
-const NO_POOL = Object.freeze({ steps: 0, cases: [] });
+const NO_POOL = Object.freeze({ steps: 0, cases: [], replyBanks: {} });
 
 function eventPoolOf(code) {
   if (typeof code !== 'string' || !SAFE_EVENT_CODE.test(code)) return NO_POOL;
@@ -550,9 +546,28 @@ async function keepReply(kase, d, res, issued) {
   }
 }
 
+/** A tapped answer on a case with a reply bank (ADR 0011): a reviewed reply and a drawn next ask, with no AI call, so
+ *  nothing is reserved or settled. The step is still claimed, so a re-posted reply is refused as on the AI path. */
+async function bankReplyOutcome(playId, event, kase, dialogue, replies) {
+  const n = dialogue.answers.length;
+  const claimed = await claimStep(playId, event, n);
+  if (claimed !== 'claimed') {
+    return claimed === 'replayed' ? { result: { refused: 'replayed' }, reason: 'replayed' } : { result: { refused: 'unavailable' }, reason: 'claim' };
+  }
+  const issued = bankOutcome(kase, dialogue, replies);
+  const { bank, ask } = issued;
+  const body = {
+    status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
+    ...(ask ? { next: nextOf(bank, ask) } : {}),
+  };
+  return { result: { body }, provider: 'reply_bank', reason: '' };
+}
+
 /** The reply call's outcome once the dialogue is read, and what its latency line needs: `reason` unless the AI
- *  replied, `provider` when the AI answered. */
+ *  replied, `provider` when the AI or the reply bank answered. */
 async function replyOutcome(playId, event, kase, dialogue) {
+  const replies = dialogue.unsorted ? null : eventPoolOf(event.code).replyBanks[kase.case_id];
+  if (replies) return bankReplyOutcome(playId, event, kase, dialogue, replies);
   const reserved = await reserve(playId, event, REPLY_RESERVE_USD);
   if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
   if (PAST_STARTED.has(reserved)) return { result: { refused: reserved }, reason: reserved };

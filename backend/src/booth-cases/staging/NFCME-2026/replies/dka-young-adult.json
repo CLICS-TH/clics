@@ -1,0 +1,1946 @@
+{
+  "case_id": "dka-young-adult",
+  "replies": {
+    "step1": {
+      "a": {
+        "th": [
+          {
+            "strength": "เชื่อมอาการกระหายน้ำและน้ำหนักลดสองสัปดาห์เข้ากับ**หายใจหอบลึก**ได้เป็นภาพเดียว",
+            "weigh": "อาการซึมและชีพจร 120 บอกความรุนแรงได้มากพอ ๆ กับชื่อของภาวะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "อธิบายทั้งอาเจียน กระหายน้ำ และหายใจลึกเร็วได้ด้วยสาเหตุเดียว",
+            "weigh": "ความดัน 100/62 ร่วมกับอาการซึม บอกว่าผู้ป่วยหนักแค่ไหน ซึ่งสำคัญไม่แพ้ชื่อโรค",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้ประวัติ**ผอมลง**ช่วงสองสัปดาห์ ไม่ได้ดูแค่อาการอาเจียนวันนี้",
+            "weigh": "ปวดท้องมักดีขึ้นเมื่อภาวะกรดลดลง หากยังปวดอยู่ควรประเมินท้องซ้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It ties two weeks of thirst and weight loss to today's **deep breathing** in one explanation.",
+            "weigh": "Her drowsiness and pulse of 120 say as much about severity as the name of the crisis does.",
+            "safety": ""
+          },
+          {
+            "strength": "It explains the vomiting, the thirst and the deep, rapid breathing with a single unifying cause.",
+            "weigh": "With a BP of 100/62 and drowsiness, how unwell she is matters as much as the label.",
+            "safety": ""
+          },
+          {
+            "strength": "It makes use of the two-week history of **weight loss**, not just today's vomiting.",
+            "weigh": "Abdominal pain often settles as the acidosis is treated, so pain that persists is worth a second look.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "บอกทั้งโรคพื้นฐานและภาวะวิกฤต โดยอาศัย**อายุน้อย**และน้ำหนักที่ลดเร็ว",
+            "weigh": "ชนิดของเบาหวานตอนนี้ยังเป็นการวินิจฉัยเบื้องต้น มักยืนยันได้เมื่อติดตามต่อ",
+            "safety": ""
+          },
+          {
+            "strength": "มองเห็นโรคที่ซ่อนอยู่หลังภาวะฉุกเฉิน ช่วยวางแผนดูแลระยะยาวต่อได้",
+            "weigh": "การมาด้วยภาวะกรดคีโตนสนับสนุนชนิดที่ 1 แต่ควรยืนยันชนิดอีกครั้งเมื่อติดตามอาการ",
+            "safety": ""
+          },
+          {
+            "strength": "อ่านอายุ น้ำหนักที่ลดเร็ว และภาวะกรดคีโตน รวมเป็นเรื่องเดียวกัน",
+            "weigh": "ความรุนแรงที่เห็นจากอาการซึมและความดัน 100/62 ควรได้รับความสนใจพอ ๆ กับสาเหตุ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It names the disease behind the crisis, drawing on her youth and **losing weight fast**.",
+            "weigh": "The diabetes type is a working label at this stage and is usually confirmed over the following weeks.",
+            "safety": ""
+          },
+          {
+            "strength": "Seeing a new diagnosis behind the emergency opens the door to the long-term care she will need.",
+            "weigh": "Ketoacidosis at presentation supports the label, though the type is usually settled on follow-up.",
+            "safety": ""
+          },
+          {
+            "strength": "Her age, the fast weight loss and the ketoacidosis are read together as one story.",
+            "weigh": "Severity, shown by her drowsiness and BP of 100/62, deserves as much attention as the cause.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "จับภาวะน้ำตาลสูงวิกฤตได้จากกระหายน้ำ ปัสสาวะมาก และ**ขาดน้ำชัดเจน**",
+            "weigh": "หายใจลึกเร็วและลมหายใจกลิ่นผลไม้ในคนอายุ 20 ปี มักไม่ใช่ลักษณะของภาวะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ความสำคัญกับการขาดน้ำ ซึ่งเป็นการเสียน้ำปริมาณมากจากน้ำตาลที่สูงมาก",
+            "weigh": "ภาวะนี้มักเกิดช้า ๆ หลายวันในผู้สูงอายุ อายุและการหายใจของเธอจึงเข้ากันได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ประเมินระดับการขาดน้ำ ซึ่งในรายนี้มากและต้องรีบแก้",
+            "weigh": "อาการซึมเข้ากับการขาดน้ำรุนแรง แต่กลิ่นผลไม้และหายใจหอบลึกบอกว่ามีมากกว่านั้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It recognises a hyperglycaemic crisis from the thirst, heavy urine output and **marked dehydration**.",
+            "weigh": "Deep rapid breathing and fruity breath in a 20-year-old are features this state does not usually explain.",
+            "safety": ""
+          },
+          {
+            "strength": "Taking the dehydration seriously points toward the large fluid losses that come with very high glucose.",
+            "weigh": "This state usually develops in older adults, and her age and breathing pattern fit it less easily.",
+            "safety": ""
+          },
+          {
+            "strength": "It weighs the degree of dehydration, which here is clearly large and urgent.",
+            "weigh": "Her drowsiness fits severe dehydration, yet the fruity breath and deep breathing point to more than water loss.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "เริ่มจากสาเหตุที่โรงพยาบาลชุมชนพบบ่อยของอาเจียนและ**ปวดท้อง**",
+            "weigh": "กระหายน้ำ ปัสสาวะบ่อย น้ำหนักลด 4 กก. มาสองสัปดาห์ก่อนอาเจียน ยังต้องหาคำอธิบาย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ความสำคัญกับภาวะ**ขาดน้ำ** ซึ่งต้องแก้ไม่ว่าสาเหตุจะเป็นอะไร",
+            "weigh": "หายใจลึก 30 ครั้ง/นาทีและกลิ่นผลไม้ ไม่ใช่ลักษณะลำไส้อักเสบ ควรมองให้กว้างขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "นึกถึงโรคที่พบบ่อยก่อน เป็นจุดเริ่มที่มีเหตุผลสำหรับอาเจียนและปวดท้อง",
+            "weigh": "อาการซึมกับหายใจลึกเร็ว บ่งว่าภาวะนี้รุนแรงกว่าการเสียน้ำทางลำไส้อย่างเดียว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It starts from what a community hospital sees most often with vomiting and **abdominal pain**.",
+            "weigh": "Two weeks of thirst, frequent urination and 4 kg weight loss came before the vomiting and need explaining too.",
+            "safety": ""
+          },
+          {
+            "strength": "It takes the dehydration seriously, which matters here whatever the cause.",
+            "weigh": "Deep breathing at 30/min and fruity breath are not usual in gastroenteritis and call for a wider look.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinking of common causes first is a reasonable start for vomiting and pain in a young adult.",
+            "weigh": "Her drowsiness and deep, rapid breathing suggest a process more severe than fluid loss from the gut alone.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "ไม่ปล่อยให้สาเหตุทางศัลยกรรมของ**ปวดท้อง**ในคนหนุ่มสาวหลุดไป",
+            "weigh": "กดเจ็บทั่วท้องเล็กน้อย กระหายน้ำและผอมลงสองสัปดาห์ ไม่ค่อยเข้ากับไส้ติ่งอักเสบ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้น้ำหนักกับปวดท้องร่วมอาเจียนใน**คนหนุ่มสาว** ช่วยกันการพลาดภาวะทางศัลยกรรม",
+            "weigh": "หายใจลึกเร็วและกลิ่นผลไม้ชี้ไปนอกช่องท้อง จึงควรหาคำอธิบายให้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "ถือว่าปวดท้องอาจเป็นภาวะทางศัลยกรรมไว้ก่อน เป็นความระมัดระวังที่มีเหตุผล",
+            "weigh": "ปวดท้องและอาเจียนเกิดร่วมกับโรคทั้งระบบได้ จึงควรอ่านประวัติทั้งหมดไปด้วยกัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It keeps a surgical cause of **abdominal pain** in a young adult from being missed.",
+            "weigh": "Tenderness here is mild and diffuse, and the two-week thirst and weight loss sit poorly with appendicitis.",
+            "safety": ""
+          },
+          {
+            "strength": "Taking abdominal pain with vomiting seriously in a **young adult** protects against a missed surgical problem.",
+            "weigh": "Deep, rapid breathing and fruity breath point beyond the abdomen and deserve their own explanation.",
+            "safety": ""
+          },
+          {
+            "strength": "It treats abdominal pain as possibly surgical until shown otherwise, a careful default.",
+            "weigh": "Abdominal pain and vomiting can accompany a body-wide illness, so the full history is worth reading together.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "เจาะครั้งเดียว**วัดความเป็นกรด** ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
+            "weigh": "K แรกรับที่ดูปกติอาจซ่อนการขาด K ทั้งร่างกาย จึงควรแปลผลด้วยความระวัง",
+            "safety": ""
+          },
+          {
+            "strength": "ตอบได้ทั้งว่าเป็นภาวะใดและรุนแรงแค่ไหน ในผลตรวจชุดเดียว",
+            "weigh": "ผลชุดนี้เป็นค่าตั้งต้น แนวโน้มในชั่วโมงถัดไปจะสำคัญไม่แพ้กัน",
+            "safety": ""
+          },
+          {
+            "strength": "ได้**ค่า K** ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
+            "weigh": "ในโรงพยาบาลชุมชน เวลารอผล VBG และเกลือแร่อาจเป็นตัวกำหนดจังหวะการดูแล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "One draw **measures acidity** and K as well as glucose and ketones, covering severity and type.",
+            "weigh": "A first K that looks normal can hide a total-body shortfall, so read it with that in mind.",
+            "safety": ""
+          },
+          {
+            "strength": "It answers both what the crisis is and how severe it is in a single set of results.",
+            "weigh": "This is a baseline; how these values move over the next hours will matter as much.",
+            "safety": ""
+          },
+          {
+            "strength": "Getting K early gives the number that most shapes how safely she can be treated.",
+            "weigh": "At a community hospital, the time a VBG and electrolytes take to come back can set the pace.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ตรวจข้างเตียงและ**ได้ผลเร็ว** รู้ผลในไม่กี่นาทีก่อนผลแล็บจะออก",
+            "weigh": "ยืนยันคีโตนได้ แต่ยังไม่รู้ว่าเลือดเป็นกรดแค่ไหนและค่าเคมีอื่นเป็นอย่างไร",
+            "safety": ""
+          },
+          {
+            "strength": "ค่าคีโตนจากปลายนิ้วยืนยันสิ่งสำคัญได้ที่ข้างเตียงโดยไม่ต้องรอ",
+            "weigh": "เครื่องตรวจข้างเตียงมีขีดบน ค่าที่สูงมากอาจขึ้นเพียง HI",
+            "safety": ""
+          },
+          {
+            "strength": "**ยืนยันคีโตนสูงได้**ทันที ทำให้ภาพทางคลินิกชัดขึ้นมาก",
+            "weigh": "สองค่านี้ไม่บอกว่าเลือดเป็นกรดมากเพียงใด จึงยังไม่รู้ความรุนแรง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Quick bedside tests** give an answer within minutes, before any lab result is back.",
+            "weigh": "Bedside readings confirm ketosis but leave her blood acidity and other chemistry unmeasured.",
+            "safety": ""
+          },
+          {
+            "strength": "A capillary ketone reading confirms the key finding at the bedside without waiting.",
+            "weigh": "Bedside meters have an upper limit, so a very high reading may show only as HI.",
+            "safety": ""
+          },
+          {
+            "strength": "It confirms **high ketones** straight away, which makes the picture much clearer.",
+            "weigh": "How acidic she is, and so how severe this is, is not shown by these two readings.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ทั้งสองอย่างมีทุกหอผู้ป่วย ได้น้ำตาลในเลือดและ**คีโตนในปัสสาวะ**ทันที",
+            "weigh": "คีโตนในปัสสาวะสะท้อนช่วงหลายชั่วโมงก่อน อาจต่ำกว่าระดับในเลือดตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ต้องพึ่งแล็บ ซึ่งสำคัญมากในนาทีแรกของโรงพยาบาลชุมชน",
+            "weigh": "ทั้งสองอย่างไม่บอกว่าเลือดเป็นกรดแค่ไหน ซึ่งเป็นตัวบอกความรุนแรง",
+            "safety": ""
+          },
+          {
+            "strength": "**ทำข้างเตียงทันที** ยืนยันได้ทั้งน้ำตาลสูงและคีโตนโดยไม่ต้องรอ",
+            "weigh": "ผู้ป่วยที่ขาดน้ำอาจปัสสาวะออกน้อย ทำให้ได้ผลแถบตรวจช้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Both tests are on every ward and give blood glucose plus **urine ketones** at once.",
+            "weigh": "Urine ketones lag behind the blood and can understate how ketotic she is at this moment.",
+            "safety": ""
+          },
+          {
+            "strength": "It needs no lab, which matters at a community hospital in the first minutes.",
+            "weigh": "Neither test shows how acidic her blood is, which is what gauges severity.",
+            "safety": ""
+          },
+          {
+            "strength": "**Bedside and instant**, it confirms both high sugar and ketones without delay.",
+            "weigh": "A dehydrated patient may pass little urine, which can delay the dipstick result.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "ยืนยัน**น้ำตาลสูง**ได้ในนาทีเดียวด้วยการตรวจที่ง่ายมาก",
+            "weigh": "น้ำตาลอย่างเดียวไม่บอกว่าเลือดเป็นกรดแค่ไหน หรือภาวะนี้รุนแรงเพียงใด",
+            "safety": ""
+          },
+          {
+            "strength": "ได้ตัวเลขสำคัญหนึ่งค่าทันที ไม่ต้องรอแล็บ",
+            "weigh": "น้ำตาลสูงพบได้ในภาวะวิกฤตมากกว่าหนึ่งชนิด ค่านี้อย่างเดียวจึงแยกกันไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "**ตรวจง่าย**จนทำได้ตั้งแต่วินาทีแรกที่ผู้ป่วยมาถึง",
+            "weigh": "อาการซึมและหายใจลึกต้องการตัวชี้ความรุนแรงที่น้ำตาลอย่างเดียวให้ไม่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It confirms **high glucose** within a minute using the simplest test available.",
+            "weigh": "A glucose level alone does not show how acidic she is or how severe this crisis has become.",
+            "safety": ""
+          },
+          {
+            "strength": "It gets one key number immediately, with no wait for a lab.",
+            "weigh": "High glucose is shared by more than one crisis, so this alone cannot tell them apart.",
+            "safety": ""
+          },
+          {
+            "strength": "Its simplicity means it can be done the moment she arrives.",
+            "weigh": "Her drowsiness and deep breathing need a measure of severity that glucose alone cannot give.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "เจาะครั้งเดียว**วัดความเป็นกรด** ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
+            "weigh": "K แรกรับที่ดูปกติอาจซ่อนการขาด K ทั้งร่างกาย จึงควรแปลผลด้วยความระวัง",
+            "safety": ""
+          },
+          {
+            "strength": "ตอบได้ทั้งว่าเป็นภาวะใดและรุนแรงแค่ไหน ในผลตรวจชุดเดียว",
+            "weigh": "ผลชุดนี้เป็นค่าตั้งต้น แนวโน้มในชั่วโมงถัดไปจะสำคัญไม่แพ้กัน",
+            "safety": ""
+          },
+          {
+            "strength": "ได้**ค่า K** ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
+            "weigh": "ในโรงพยาบาลชุมชน เวลารอผล VBG และเกลือแร่อาจเป็นตัวกำหนดจังหวะการดูแล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "One draw **measures acidity** and K as well as glucose and ketones, covering severity and type.",
+            "weigh": "A first K that looks normal can hide a total-body shortfall, so read it with that in mind.",
+            "safety": ""
+          },
+          {
+            "strength": "It answers both what the crisis is and how severe it is in a single set of results.",
+            "weigh": "This is a baseline; how these values move over the next hours will matter as much.",
+            "safety": ""
+          },
+          {
+            "strength": "Getting K early gives the number that most shapes how safely she can be treated.",
+            "weigh": "At a community hospital, the time a VBG and electrolytes take to come back can set the pace.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**แยก DKA ออกจาก HHS** และได้ค่า K ในการเจาะครั้งเดียว",
+            "weigh": "ออสโมลาลิตีที่คำนวณได้มักเร็วกว่าการวัดจริง และพอสำหรับแยกชนิดของภาวะวิกฤต",
+            "safety": ""
+          },
+          {
+            "strength": "การเพิ่มออสโมลาลิตีช่วยจับรายที่มีทั้งสองภาวะซ้อนกันได้",
+            "weigh": "K แรกรับอาจดูปกติทั้งที่ร่างกายขาด K อยู่ จึงควรแปลผลอย่างระวัง",
+            "safety": ""
+          },
+          {
+            "strength": "แยกชนิดของภาวะวิกฤตและได้ค่า K พร้อมกัน ไม่ต้องเจาะซ้ำ",
+            "weigh": "ค่าเหล่านี้เป็นค่าตั้งต้น การเปลี่ยนแปลงในชั่วโมงถัดไปจะช่วยนำการรักษาไม่แพ้กัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It **tells DKA from HHS** and gets K in the same draw, so type and safety come together.",
+            "weigh": "A calculated osmolality is usually quicker than a measured one and is enough to sort the crisis.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding osmolality covers the overlap, where both crises can exist in one patient.",
+            "weigh": "The first K may look normal while the body is short of it, so read it with care.",
+            "safety": ""
+          },
+          {
+            "strength": "It sorts the type of crisis and gets K at the same time, saving a second draw.",
+            "weigh": "These are first values; their change over the next hours will guide care as much.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ทั้งสองอย่างมีทุกหอผู้ป่วย ได้น้ำตาลในเลือดและ**คีโตนในปัสสาวะ**ทันที",
+            "weigh": "คีโตนในปัสสาวะสะท้อนช่วงหลายชั่วโมงก่อน อาจต่ำกว่าระดับในเลือดตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ต้องพึ่งแล็บ ซึ่งสำคัญมากในนาทีแรกของโรงพยาบาลชุมชน",
+            "weigh": "ทั้งสองอย่างไม่บอกว่าเลือดเป็นกรดแค่ไหน ซึ่งเป็นตัวบอกความรุนแรง",
+            "safety": ""
+          },
+          {
+            "strength": "**ทำข้างเตียงทันที** ยืนยันได้ทั้งน้ำตาลสูงและคีโตนโดยไม่ต้องรอ",
+            "weigh": "ผู้ป่วยที่ขาดน้ำอาจปัสสาวะออกน้อย ทำให้ได้ผลแถบตรวจช้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Both tests are on every ward and give blood glucose plus **urine ketones** at once.",
+            "weigh": "Urine ketones lag behind the blood and can understate how ketotic she is at this moment.",
+            "safety": ""
+          },
+          {
+            "strength": "It needs no lab, which matters at a community hospital in the first minutes.",
+            "weigh": "Neither test shows how acidic her blood is, which is what gauges severity.",
+            "safety": ""
+          },
+          {
+            "strength": "**Bedside and instant**, it confirms both high sugar and ketones without delay.",
+            "weigh": "A dehydrated patient may pass little urine, which can delay the dipstick result.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "ยืนยัน**น้ำตาลสูง**ได้ในนาทีเดียวด้วยการตรวจที่ง่ายมาก",
+            "weigh": "น้ำตาลอย่างเดียวไม่บอกว่าเลือดเป็นกรดแค่ไหน หรือภาวะนี้รุนแรงเพียงใด",
+            "safety": ""
+          },
+          {
+            "strength": "ได้ตัวเลขสำคัญหนึ่งค่าทันที ไม่ต้องรอแล็บ",
+            "weigh": "น้ำตาลสูงพบได้ในภาวะวิกฤตมากกว่าหนึ่งชนิด ค่านี้อย่างเดียวจึงแยกกันไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "**ตรวจง่าย**จนทำได้ตั้งแต่วินาทีแรกที่ผู้ป่วยมาถึง",
+            "weigh": "อาการซึมและหายใจลึกต้องการตัวชี้ความรุนแรงที่น้ำตาลอย่างเดียวให้ไม่ได้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It confirms **high glucose** within a minute using the simplest test available.",
+            "weigh": "A glucose level alone does not show how acidic she is or how severe this crisis has become.",
+            "safety": ""
+          },
+          {
+            "strength": "It gets one key number immediately, with no wait for a lab.",
+            "weigh": "High glucose is shared by more than one crisis, so this alone cannot tell them apart.",
+            "safety": ""
+          },
+          {
+            "strength": "Its simplicity means it can be done the moment she arrives.",
+            "weigh": "Her drowsiness and deep breathing need a measure of severity that glucose alone cannot give.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "เจาะครั้งเดียว**วัดความเป็นกรด** ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
+            "weigh": "K แรกรับที่ดูปกติอาจซ่อนการขาด K ทั้งร่างกาย จึงควรแปลผลด้วยความระวัง",
+            "safety": ""
+          },
+          {
+            "strength": "ตอบได้ทั้งว่าเป็นภาวะใดและรุนแรงแค่ไหน ในผลตรวจชุดเดียว",
+            "weigh": "ผลชุดนี้เป็นค่าตั้งต้น แนวโน้มในชั่วโมงถัดไปจะสำคัญไม่แพ้กัน",
+            "safety": ""
+          },
+          {
+            "strength": "ได้**ค่า K** ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
+            "weigh": "ในโรงพยาบาลชุมชน เวลารอผล VBG และเกลือแร่อาจเป็นตัวกำหนดจังหวะการดูแล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "One draw **measures acidity** and K as well as glucose and ketones, covering severity and type.",
+            "weigh": "A first K that looks normal can hide a total-body shortfall, so read it with that in mind.",
+            "safety": ""
+          },
+          {
+            "strength": "It answers both what the crisis is and how severe it is in a single set of results.",
+            "weigh": "This is a baseline; how these values move over the next hours will matter as much.",
+            "safety": ""
+          },
+          {
+            "strength": "Getting K early gives the number that most shapes how safely she can be treated.",
+            "weigh": "At a community hospital, the time a VBG and electrolytes take to come back can set the pace.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ตรวจข้างเตียงและ**ได้ผลเร็ว** รู้ผลในไม่กี่นาทีก่อนผลแล็บจะออก",
+            "weigh": "ยืนยันคีโตนได้ แต่ยังไม่รู้ว่าเลือดเป็นกรดแค่ไหนและค่าเคมีอื่นเป็นอย่างไร",
+            "safety": ""
+          },
+          {
+            "strength": "ค่าคีโตนจากปลายนิ้วยืนยันสิ่งสำคัญได้ที่ข้างเตียงโดยไม่ต้องรอ",
+            "weigh": "เครื่องตรวจข้างเตียงมีขีดบน ค่าที่สูงมากอาจขึ้นเพียง HI",
+            "safety": ""
+          },
+          {
+            "strength": "**ยืนยันคีโตนสูงได้**ทันที ทำให้ภาพทางคลินิกชัดขึ้นมาก",
+            "weigh": "สองค่านี้ไม่บอกว่าเลือดเป็นกรดมากเพียงใด จึงยังไม่รู้ความรุนแรง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Quick bedside tests** give an answer within minutes, before any lab result is back.",
+            "weigh": "Bedside readings confirm ketosis but leave her blood acidity and other chemistry unmeasured.",
+            "safety": ""
+          },
+          {
+            "strength": "A capillary ketone reading confirms the key finding at the bedside without waiting.",
+            "weigh": "Bedside meters have an upper limit, so a very high reading may show only as HI.",
+            "safety": ""
+          },
+          {
+            "strength": "It confirms **high ketones** straight away, which makes the picture much clearer.",
+            "weigh": "How acidic she is, and so how severe this is, is not shown by these two readings.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ทั้งสองอย่างมีทุกหอผู้ป่วย ได้น้ำตาลในเลือดและ**คีโตนในปัสสาวะ**ทันที",
+            "weigh": "คีโตนในปัสสาวะสะท้อนช่วงหลายชั่วโมงก่อน อาจต่ำกว่าระดับในเลือดตอนนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ไม่ต้องพึ่งแล็บ ซึ่งสำคัญมากในนาทีแรกของโรงพยาบาลชุมชน",
+            "weigh": "ทั้งสองอย่างไม่บอกว่าเลือดเป็นกรดแค่ไหน ซึ่งเป็นตัวบอกความรุนแรง",
+            "safety": ""
+          },
+          {
+            "strength": "**ทำข้างเตียงทันที** ยืนยันได้ทั้งน้ำตาลสูงและคีโตนโดยไม่ต้องรอ",
+            "weigh": "ผู้ป่วยที่ขาดน้ำอาจปัสสาวะออกน้อย ทำให้ได้ผลแถบตรวจช้า",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Both tests are on every ward and give blood glucose plus **urine ketones** at once.",
+            "weigh": "Urine ketones lag behind the blood and can understate how ketotic she is at this moment.",
+            "safety": ""
+          },
+          {
+            "strength": "It needs no lab, which matters at a community hospital in the first minutes.",
+            "weigh": "Neither test shows how acidic her blood is, which is what gauges severity.",
+            "safety": ""
+          },
+          {
+            "strength": "**Bedside and instant**, it confirms both high sugar and ketones without delay.",
+            "weigh": "A dehydrated patient may pass little urine, which can delay the dipstick result.",
+            "safety": ""
+          }
+        ]
+      },
+      "f": {
+        "th": [
+          {
+            "strength": "มองไกลกว่าน้ำตาล โดย**หาการติดเชื้อ**ที่อาจเป็นตัวกระตุ้น",
+            "weigh": "เม็ดเลือดขาวสูงได้จากความเครียดในผู้ป่วยหนัก ค่าสูงจึงไม่ได้แปลว่าติดเชื้อเสมอ",
+            "safety": ""
+          },
+          {
+            "strength": "การหาตัวกระตุ้นตั้งแต่ต้นเป็นนิสัยที่มักเปลี่ยนการดูแลได้",
+            "weigh": "ทั้งสองค่าไม่บอกว่าเลือดเป็นกรดแค่ไหน ซึ่งเป็นตัวบอกความรุนแรง",
+            "safety": ""
+          },
+          {
+            "strength": "จับคู่การตรวจน้ำตาลที่ได้ผลเร็วกับการค้นหาสาเหตุเบื้องหลัง",
+            "weigh": "อุณหภูมิ 37.2 องศาเกือบปกติ แต่การติดเชื้อมีได้แม้ไม่มีไข้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It thinks beyond the sugar and searches for **an infection** that may have set this off.",
+            "weigh": "The white count often rises from stress alone in very unwell patients, so a high value may mislead.",
+            "safety": ""
+          },
+          {
+            "strength": "Looking for a trigger early is a habit that often changes management.",
+            "weigh": "Neither test shows how acidic her blood is, which is what tells how severe this is.",
+            "safety": ""
+          },
+          {
+            "strength": "It pairs a quick sugar check with a search for the cause behind it.",
+            "weigh": "Her temperature of 37.2 °C is near normal, though infection can still be present without fever.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "**สารน้ำก่อน** ช่วยฟื้นการไหลเวียนก่อนอินซูลินจะพาน้ำตาลและ K เข้าเซลล์",
+            "weigh": "K 4.6 จะลดลงเมื่อเริ่มอินซูลิน จึงควรตรวจซ้ำภายในไม่กี่ชั่วโมง",
+            "safety": ""
+          },
+          {
+            "strength": "**เติม K** ตั้งแต่แรกเข้ากับระดับ 4.6 ที่อินซูลินจะดึงให้ลดลงในไม่ช้า",
+            "weigh": "อัตราสารน้ำหลังลิตรแรกควรปรับตามความดันโลหิตและปริมาณปัสสาวะ",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้อัตราคงที่ตามน้ำหนัก 0.1 ยูนิต/กก./ชม. ทำได้ง่ายและตรวจสอบได้",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลจึงอาจดูดีกว่าสภาพจริงของผู้ป่วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Fluids first** restores circulation before insulin starts moving glucose and potassium into cells.",
+            "weigh": "With K at 4.6, it will fall once insulin runs, so it is worth rechecking within a few hours.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding K from the outset matches a level of 4.6, which insulin will soon drive down.",
+            "weigh": "The fluid rate after the first litre is worth tailoring to her blood pressure and urine output.",
+            "safety": ""
+          },
+          {
+            "strength": "It follows a fixed weight-based rate of 0.1 units/kg/h, which is easy to run and audit.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so the sugar can look better than she is.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "ตรวจ**น้ำตาลทุก ชม.** จับการลดลงเร็วได้ทันและปรับการหยดยาได้ปลอดภัย",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลอย่างเดียวจึงอาจดูดีเกินจริง",
+            "safety": ""
+          },
+          {
+            "strength": "รวมสารน้ำ อินซูลิน และ K ไว้ด้วยกัน พร้อมการตรวจดูการตอบสนองของน้ำตาล",
+            "weigh": "K 4.6 จะถูกอินซูลินดึงให้ลดลง จึงต้องตรวจซ้ำเป็นระยะด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "อัตรา 0.1 ยูนิต/กก./ชม. ตั้งง่ายและส่งต่อเวรได้ชัดเจน",
+            "weigh": "อัตราสารน้ำหลังลิตรแรกควรปรับตามความดันโลหิตและปริมาณปัสสาวะ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Hourly glucose** checks catch a fast fall early and keep the drip safely adjusted.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so the sugar alone can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "It puts fluids, insulin and K together with a built-in check on how glucose responds.",
+            "weigh": "With K at 4.6, insulin will push it down, so it needs its own regular recheck.",
+            "safety": ""
+          },
+          {
+            "strength": "A weight-based rate of 0.1 units/kg/h is simple to set and to hand over.",
+            "weigh": "The fluid rate after the first litre is worth matching to her blood pressure and urine output.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**ฉีดนำ 0.1 ยูนิต/กก.** ทำให้อินซูลินออกฤทธิ์ทันทีระหว่างที่การหยดยาเริ่มทำงาน",
+            "weigh": "ฉีดนำเพิ่มประโยชน์น้อยเมื่อหยด 0.1 ยูนิต/กก./ชม. อยู่แล้ว และอาจทำให้ K ลดเร็ว",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นแนวทางที่ใช้ในผู้ใหญ่ และทำให้อินซูลินเริ่มออกฤทธิ์โดยไม่รอ",
+            "weigh": "K 4.6 กับการฉีดนำ ทำให้การตรวจ K ซ้ำในชั่วโมงแรก ๆ ยิ่งสำคัญ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ K ไปพร้อมการฉีดนำตั้งแต่ต้น แสดงว่าคิดล่วงหน้าถึงระดับ K ที่จะลดลง",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลจึงอาจดูดีกว่าสภาพจริง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "The **0.1 units/kg bolus** starts insulin action at once while the drip builds up.",
+            "weigh": "A bolus adds little once the drip runs at 0.1 units/kg/h, and it can pull K down faster early on.",
+            "safety": ""
+          },
+          {
+            "strength": "It follows a recognised adult regimen and gets insulin working without delay.",
+            "weigh": "With K at 4.6, an early bolus makes a close K recheck in the first hours more pressing.",
+            "safety": ""
+          },
+          {
+            "strength": "Pairing the bolus with K from the start shows attention to where K will go next.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so the sugar can look better than she is.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ลดน้ำตาล**อย่างนุ่มนวล** แสดงความระวังไม่ให้สมดุลน้ำและเกลือแร่เปลี่ยนเร็วเกินไป",
+            "weigh": "ในผู้ใหญ่ที่มีภาวะกรดระดับปานกลาง อัตราครึ่งหนึ่งอาจล้างภาวะกรดได้ช้า ขณะที่น้ำตาลยังลดลง",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ NSS และ K ร่วมกับอินซูลินอัตราระวัง เพื่อเลี่ยงการลดลงฉับพลัน",
+            "weigh": "หน้าที่หลักของอินซูลินตอนนี้คือหยุดการสร้างคีโตน อัตราต่ำอาจทำได้ช้ากว่า",
+            "safety": ""
+          },
+          {
+            "strength": "ระวังไม่ให้น้ำตาลลดเร็วเกินไป สะท้อนความเข้าใจว่าการลดฮวบมีความเสี่ยง",
+            "weigh": "ที่ 0.05 ยูนิต/กก./ชม. ภาวะกรดอาจค้างนานกว่าที่ตัวเลขน้ำตาลบอก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Lowering **glucose gently** reflects concern about rapid shifts in fluid and salts.",
+            "weigh": "In an adult with moderate acidosis, half the usual rate may clear it slowly while glucose still falls.",
+            "safety": ""
+          },
+          {
+            "strength": "It pairs saline and K with a cautious insulin rate, aiming to avoid an abrupt drop.",
+            "weigh": "Insulin's main task here is switching off ketone production, which a lower rate may do more slowly.",
+            "safety": ""
+          },
+          {
+            "strength": "Caution about falling too fast shows awareness that rapid glucose drops carry risk.",
+            "weigh": "At 0.05 units/kg/h, the acid may clear more slowly than glucose falls, so the acidosis can linger.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "**เริ่มสารน้ำทันที** ส่วนอินซูลินรอ K ปลอดภัย ช่วยกัน K ลดฮวบ",
+            "weigh": "ในโรงพยาบาลชุมชนผล K อาจออกช้า การตามผลจึงช่วยไม่ให้อินซูลินต้องรอนาน",
+            "safety": ""
+          },
+          {
+            "strength": "รอ K ก่อนเริ่มอินซูลิน ช่วยปกป้องหัวใจจาก K ที่ลดลงเร็ว",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลจึงอาจดูดีกว่าสภาพจริง",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มสารน้ำโดยไม่รอ แก้ภาวะขาดน้ำระหว่างรอผล K",
+            "weigh": "เมื่อเริ่มอินซูลินแล้ว K จะลดลง จึงควรตรวจซ้ำภายในไม่กี่ชั่วโมง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Fluids start at once, while insulin waits for **a safe K level**, guarding against a dangerous K drop.",
+            "weigh": "At a community hospital the K result can take time, so chasing it keeps insulin from waiting too long.",
+            "safety": ""
+          },
+          {
+            "strength": "Waiting for K before insulin protects her heart from a sharp K fall.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so glucose readings can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting fluids without delay treats the dehydration while the K result is pending.",
+            "weigh": "Once insulin runs, K will fall, so it needs rechecking within a few hours.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**ตรวจน้ำตาลทุก ชม.** จับการลดลงเร็วได้ทันหลังเริ่มอินซูลิน",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขที่ลดลงจึงอาจดูดีกว่าสภาพจริงของผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "รออินซูลินจน K ปลอดภัย และวางการติดตามใกล้ชิดไว้ตั้งแต่ต้น",
+            "weigh": "เมื่อเริ่มอินซูลิน K จะลดตามมา จึงต้องตรวจ K ซ้ำเป็นระยะด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้**สารน้ำทันที** แก้ภาวะขาดน้ำได้ระหว่างรอผล K",
+            "weigh": "ในโรงพยาบาลชุมชน ผล K ที่ออกช้าอาจทำให้เริ่มอินซูลินช้า จึงควรตามผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "An **hourly sugar** check catches a fast fall early once insulin is running.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so a falling sugar can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "It holds insulin until K is safe and builds in close monitoring from the start.",
+            "weigh": "Once insulin runs, K will fall too, so it needs its own regular recheck.",
+            "safety": ""
+          },
+          {
+            "strength": "Fluids begin straight away, so the dehydration is treated while the K result is pending.",
+            "weigh": "At a community hospital, a slow K result can hold insulin back, so it is worth chasing.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ฉีดนำ**เมื่อ K ปลอดภัย**เท่านั้น ช่วยไม่ให้อินซูลินช่วงแรกก่ออันตราย",
+            "weigh": "การฉีดนำเพิ่มประโยชน์ได้น้อยเมื่อมีการหยดต่อ และอาจทำให้ K ลดเร็วในชั่วโมงแรก",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นแนวทางที่ใช้ในผู้ใหญ่ และยังรอผล K ก่อนเริ่มอินซูลิน",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลจึงอาจดูดีกว่าสภาพจริง",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มสารน้ำทันทีระหว่างรอ K แก้ภาวะขาดน้ำได้โดยไม่เสียเวลา",
+            "weigh": "หลังฉีดนำ K อาจลดเร็ว การตรวจซ้ำในชั่วโมงแรก ๆ จึงสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving the bolus only **once K is safe** keeps the early insulin effect from causing harm.",
+            "weigh": "A bolus adds little when a drip follows, and it can pull K down faster in the first hours.",
+            "safety": ""
+          },
+          {
+            "strength": "It follows a recognised adult regimen and still waits for K before any insulin.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so glucose readings can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting saline at once while waiting for K treats the dehydration without delay.",
+            "weigh": "After a bolus, K can drop quickly, so a recheck within the first hours matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "เริ่มอินซูลิน**หลัง K ปลอดภัย** และใช้อัตราที่ระมัดระวัง",
+            "weigh": "ในผู้ใหญ่ อัตรา 0.05 ยูนิต/กก./ชม. อาจล้างคีโตนได้ช้ากว่าที่น้ำตาลลด",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มสารน้ำทันที แก้ภาวะขาดน้ำระหว่างรอผล K",
+            "weigh": "หน้าที่หลักของอินซูลินตอนนี้คือหยุดการสร้างคีโตน อัตราต่ำอาจทำได้ช้ากว่า",
+            "safety": ""
+          },
+          {
+            "strength": "อัตราอินซูลินที่นุ่มนวลสะท้อนความระวังไม่ให้น้ำตาลลดเร็วเกินไป",
+            "weigh": "ที่ 0.05 ยูนิต/กก./ชม. ภาวะกรดอาจค้างอยู่หลังน้ำตาลลดลงแล้ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Insulin starts only **once K is safe**, and at a cautious rate.",
+            "weigh": "In an adult, 0.05 units/kg/h may clear ketones more slowly than glucose falls.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting fluids immediately treats the dehydration while K is checked.",
+            "weigh": "Insulin's main job here is switching off ketone production, which a lower rate may do more slowly.",
+            "safety": ""
+          },
+          {
+            "strength": "A gentle insulin rate reflects concern about lowering glucose too fast.",
+            "weigh": "At 0.05 units/kg/h, the acidosis may linger after glucose has come down.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "**เริ่มสารน้ำทันที** ส่วนอินซูลินรอ K ปลอดภัย ช่วยกัน K ลดฮวบ",
+            "weigh": "ในโรงพยาบาลชุมชนผล K อาจออกช้า การตามผลจึงช่วยไม่ให้อินซูลินต้องรอนาน",
+            "safety": ""
+          },
+          {
+            "strength": "รอ K ก่อนเริ่มอินซูลิน ช่วยปกป้องหัวใจจาก K ที่ลดลงเร็ว",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลจึงอาจดูดีกว่าสภาพจริง",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มสารน้ำโดยไม่รอ แก้ภาวะขาดน้ำระหว่างรอผล K",
+            "weigh": "เมื่อเริ่มอินซูลินแล้ว K จะลดลง จึงควรตรวจซ้ำภายในไม่กี่ชั่วโมง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Fluids start at once, while insulin waits for **a safe K level**, guarding against a dangerous K drop.",
+            "weigh": "At a community hospital the K result can take time, so chasing it keeps insulin from waiting too long.",
+            "safety": ""
+          },
+          {
+            "strength": "Waiting for K before insulin protects her heart from a sharp K fall.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so glucose readings can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting fluids without delay treats the dehydration while the K result is pending.",
+            "weigh": "Once insulin runs, K will fall, so it needs rechecking within a few hours.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**ตรวจน้ำตาลทุก ชม.** จับการลดลงเร็วได้ทันหลังเริ่มอินซูลิน",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขที่ลดลงจึงอาจดูดีกว่าสภาพจริงของผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "รออินซูลินจน K ปลอดภัย และวางการติดตามใกล้ชิดไว้ตั้งแต่ต้น",
+            "weigh": "เมื่อเริ่มอินซูลิน K จะลดตามมา จึงต้องตรวจ K ซ้ำเป็นระยะด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้**สารน้ำทันที** แก้ภาวะขาดน้ำได้ระหว่างรอผล K",
+            "weigh": "ในโรงพยาบาลชุมชน ผล K ที่ออกช้าอาจทำให้เริ่มอินซูลินช้า จึงควรตามผล",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "An **hourly sugar** check catches a fast fall early once insulin is running.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so a falling sugar can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "It holds insulin until K is safe and builds in close monitoring from the start.",
+            "weigh": "Once insulin runs, K will fall too, so it needs its own regular recheck.",
+            "safety": ""
+          },
+          {
+            "strength": "Fluids begin straight away, so the dehydration is treated while the K result is pending.",
+            "weigh": "At a community hospital, a slow K result can hold insulin back, so it is worth chasing.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ฉีดนำ**เมื่อ K ปลอดภัย**เท่านั้น ช่วยไม่ให้อินซูลินช่วงแรกก่ออันตราย",
+            "weigh": "การฉีดนำเพิ่มประโยชน์ได้น้อยเมื่อมีการหยดต่อ และอาจทำให้ K ลดเร็วในชั่วโมงแรก",
+            "safety": ""
+          },
+          {
+            "strength": "เป็นแนวทางที่ใช้ในผู้ใหญ่ และยังรอผล K ก่อนเริ่มอินซูลิน",
+            "weigh": "น้ำตาลมักลดเร็วกว่าภาวะกรด ตัวเลขน้ำตาลจึงอาจดูดีกว่าสภาพจริง",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มสารน้ำทันทีระหว่างรอ K แก้ภาวะขาดน้ำได้โดยไม่เสียเวลา",
+            "weigh": "หลังฉีดนำ K อาจลดเร็ว การตรวจซ้ำในชั่วโมงแรก ๆ จึงสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving the bolus only **once K is safe** keeps the early insulin effect from causing harm.",
+            "weigh": "A bolus adds little when a drip follows, and it can pull K down faster in the first hours.",
+            "safety": ""
+          },
+          {
+            "strength": "It follows a recognised adult regimen and still waits for K before any insulin.",
+            "weigh": "Glucose usually falls faster than the acidosis clears, so glucose readings can look better than she is.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting saline at once while waiting for K treats the dehydration without delay.",
+            "weigh": "After a bolus, K can drop quickly, so a recheck within the first hours matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "เริ่มอินซูลิน**หลัง K ปลอดภัย** และใช้อัตราที่ระมัดระวัง",
+            "weigh": "ในผู้ใหญ่ อัตรา 0.05 ยูนิต/กก./ชม. อาจล้างคีโตนได้ช้ากว่าที่น้ำตาลลด",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มสารน้ำทันที แก้ภาวะขาดน้ำระหว่างรอผล K",
+            "weigh": "หน้าที่หลักของอินซูลินตอนนี้คือหยุดการสร้างคีโตน อัตราต่ำอาจทำได้ช้ากว่า",
+            "safety": ""
+          },
+          {
+            "strength": "อัตราอินซูลินที่นุ่มนวลสะท้อนความระวังไม่ให้น้ำตาลลดเร็วเกินไป",
+            "weigh": "ที่ 0.05 ยูนิต/กก./ชม. ภาวะกรดอาจค้างอยู่หลังน้ำตาลลดลงแล้ว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Insulin starts only **once K is safe**, and at a cautious rate.",
+            "weigh": "In an adult, 0.05 units/kg/h may clear ketones more slowly than glucose falls.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting fluids immediately treats the dehydration while K is checked.",
+            "weigh": "Insulin's main job here is switching off ketone production, which a lower rate may do more slowly.",
+            "safety": ""
+          },
+          {
+            "strength": "A gentle insulin rate reflects concern about lowering glucose too fast.",
+            "weigh": "At 0.05 units/kg/h, the acidosis may linger after glucose has come down.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "ให้**เดกซ์โทรส 5%** ที่ระดับน้ำตาลนี้ ทำให้หยดอินซูลินต่อได้โดยไม่เสี่ยงน้ำตาลต่ำ",
+            "weigh": "การลดอินซูลินปลอดภัยเมื่อคีโตนยังลดลงต่อเนื่อง เพราะเป้าหมายยังคือล้างคีโตน",
+            "safety": ""
+          },
+          {
+            "strength": "ปรับตามน้ำตาลที่ลดลงก่อนจะต่ำเกินไป และยังคงหยดอินซูลินไว้",
+            "weigh": "เมื่ออินซูลินอัตราต่ำลง คีโตนอาจหยุดลด จึงควรติดตามอย่างใกล้ชิด",
+            "safety": ""
+          },
+          {
+            "strength": "ใช้เกณฑ์ชัดเจนที่**น้ำตาล 250** ในการปรับแผนการรักษา",
+            "weigh": "ขณะที่ยังให้อินซูลินและสารน้ำอยู่ ยังควรเฝ้าดู K ต่อไป",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Adding **5% dextrose** at this glucose level lets insulin keep running without a fall into low sugar.",
+            "weigh": "The cut is safe only while ketones keep falling, since clearing them is still the goal.",
+            "safety": ""
+          },
+          {
+            "strength": "It responds to the falling glucose before it drops too low, keeping the drip going.",
+            "weigh": "At the lower insulin rate, ketones can stall, so they are worth tracking closely.",
+            "safety": ""
+          },
+          {
+            "strength": "It uses a clear threshold, **250 mg/dL**, for changing the plan.",
+            "weigh": "With insulin still running, K is worth keeping an eye on as fluids continue.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "เดกซ์โทรสร่วมกับอินซูลิน **0.05 ยูนิต/กก./ชม.** คุมน้ำตาลไว้ขณะอินซูลินยังทำงาน",
+            "weigh": "ลดอินซูลินครึ่งหนึ่งได้เมื่อคีโตนยังลดลงต่อ เพราะการล้างคีโตนยังเป็นเป้าหมาย",
+            "safety": ""
+          },
+          {
+            "strength": "ตั้งเป้า**น้ำตาลราว 200** ชัดเจน ทำให้ปรับการหยดยาได้ง่าย",
+            "weigh": "K ยังลดลงได้อีกขณะให้อินซูลิน จึงควรตรวจซ้ำต่อไป",
+            "safety": ""
+          },
+          {
+            "strength": "การเพิ่มเดกซ์โทรสทำให้ให้อินซูลินต่อได้ งานล้างคีโตนจึงเดินหน้าต่อ",
+            "weigh": "หลังปรับยา การตรวจน้ำตาลทุกชั่วโมงยังมีประโยชน์จนกว่าสมดุลใหม่จะคงที่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Dextrose with **0.05 units/kg/h** holds glucose steady while insulin keeps working.",
+            "weigh": "Halving the rate works only while ketones keep falling, since their clearance is still the endpoint.",
+            "safety": ""
+          },
+          {
+            "strength": "It sets a clear glucose target near 200 mg/dL, which makes the drip easy to adjust.",
+            "weigh": "K can still drift down with insulin running, so it stays worth checking.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding dextrose keeps insulin running, so the work of clearing ketones goes on.",
+            "weigh": "Hourly glucose checks remain useful after the change, as the new balance settles.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "คงอัตราเดิมให้อินซูลิน**ล้างคีโตนต่อ** โดยมีเดกซ์โทรสกันน้ำตาลต่ำ",
+            "weigh": "เดกซ์โทรสเข้มข้นขึ้นกับอินซูลินอัตราเดิม ต้องตรวจน้ำตาลถี่เพื่อให้สมดุลกัน",
+            "safety": ""
+          },
+          {
+            "strength": "เน้นการแก้ภาวะกรด มากกว่ามองแค่ตัวเลขน้ำตาล",
+            "weigh": "เมื่อให้อินซูลินอัตราเดิม K อาจลดต่อได้ จึงควรตรวจซ้ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้เดกซ์โทรสเมื่อ**น้ำตาลต่ำกว่า 250** มองน้ำตาลเป็นเชื้อเพลิงที่อินซูลินต้องใช้",
+            "weigh": "เมื่อมีเดกซ์โทรสหยดร่วมด้วย ปริมาณสารน้ำรวมจะเพิ่มขึ้น ควรนับยอดรวมไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Holding the rate steady keeps insulin **clearing ketones**, with dextrose guarding against low sugar.",
+            "weigh": "A stronger dextrose with an unchanged insulin rate needs close glucose checks to keep the two in balance.",
+            "safety": ""
+          },
+          {
+            "strength": "It keeps the focus on the acidosis rather than on the glucose number.",
+            "weigh": "With insulin unchanged, K can keep drifting down, so it stays worth rechecking.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding dextrose **below 250** treats glucose as the fuel insulin needs, not the target.",
+            "weigh": "Fluid volume adds up with dextrose running too, so her total intake is worth tallying.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ให้เดกซ์โทรสเมื่อน้ำตาลลด ป้องกันน้ำตาลต่ำ และ**แถบตรวจปัสสาวะ**ทำซ้ำได้ง่าย",
+            "weigh": "คีโตนในปัสสาวะอาจยังบวกได้นานหลังในเลือดดีขึ้นแล้ว จึงอาจชี้จังหวะคลาดเคลื่อน",
+            "safety": ""
+          },
+          {
+            "strength": "เลือกการตรวจที่**ราคาถูก**และมีทุกหอผู้ป่วย เหมาะกับโรงพยาบาลชุมชน",
+            "weigh": "คีโตนในปัสสาวะตามหลังระดับในเลือด จึงบอกการฟื้นตัวได้ช้าและไม่แม่นยำ",
+            "safety": ""
+          },
+          {
+            "strength": "ทำให้การติดตามต่อเนื่องด้วยเครื่องมือที่ทุกเวรใช้ได้",
+            "weigh": "ผลปัสสาวะขึ้นกับปริมาณที่ออกและตามหลังเลือด ภาพจึงอาจไม่ชัด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Adding dextrose as glucose falls guards against low sugar, and **a urine dipstick** is easy to repeat.",
+            "weigh": "Urine ketones can stay positive for a day after the blood has cleared, so they may mislead on timing.",
+            "safety": ""
+          },
+          {
+            "strength": "It chooses a test that is cheap and **on every ward**, which suits a community hospital.",
+            "weigh": "Urine ketones lag behind the blood, so they track recovery slowly and imprecisely.",
+            "safety": ""
+          },
+          {
+            "strength": "It keeps monitoring going with a tool that any shift can use.",
+            "weigh": "Urine results depend on how much she passes and lag the blood, so they blur the picture.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "ใช้เป้าคีโตนลดชั่วโมงละ **0.5 mmol/L** ตัดสินว่าขนาดยาพอหรือไม่",
+            "weigh": "ก่อนเพิ่มอัตรา ควรเช็กว่าสายและเครื่องหยดยาทำงานตามที่สั่ง",
+            "safety": ""
+          },
+          {
+            "strength": "**ตรวจซ้ำใน 1 ชม.** ได้คำตอบเร็วว่าขนาดยาที่เพิ่มได้ผลหรือไม่",
+            "weigh": "K 4.0 จะถูกอินซูลินที่เพิ่มขึ้นดึงให้ต่ำลงอีก จึงควรเฝ้าดู",
+            "safety": ""
+          },
+          {
+            "strength": "ตอบสนองต่อคีโตนที่ลดช้า แทนที่จะรอให้ตัวเลขน้ำตาลบอก",
+            "weigh": "น้ำตาลจะลดลงอีกเมื่อเพิ่มอินซูลิน จึงควรเฝ้าระดับน้ำตาลไปพร้อมกัน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It uses a clear target, **0.5 mmol/L an hour**, to judge whether the dose is enough.",
+            "weigh": "Before raising the rate, it is worth confirming the drip and line are running as prescribed.",
+            "safety": ""
+          },
+          {
+            "strength": "Rechecking in an hour gives quick feedback on whether the higher dose is working.",
+            "weigh": "With K at 4.0, a higher insulin rate will push it lower, which is worth watching.",
+            "safety": ""
+          },
+          {
+            "strength": "It acts on the slow fall in ketones rather than waiting for glucose to tell the story.",
+            "weigh": "Glucose will fall further with more insulin, so it is worth watching as the dose climbs.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "หาว่าทำไมตอบสนองช้า และมุ่ง**รักษาต้นเหตุด้วย** ไม่ใช่แค่ตัวเลข",
+            "weigh": "การหาสาเหตุทำคู่ไปกับการปรับขนาดยาได้ โดยไม่ต้องรอ",
+            "safety": ""
+          },
+          {
+            "strength": "เชื่อมคีโตนที่ลดช้าเข้ากับ**การติดเชื้อ** แสดงการมองผู้ป่วยทั้งตัว",
+            "weigh": "K 4.0 จะลดลงอีกเมื่อเพิ่มอินซูลิน จึงควรเฝ้าดูใกล้ชิด",
+            "safety": ""
+          },
+          {
+            "strength": "มองการตอบสนองช้าเป็นเบาะแส ไม่ใช่แค่ปัญหาขนาดยา",
+            "weigh": "บางครั้งก็หาสาเหตุไม่พบ ขนาดยายังต้องทบทวนตามแนวโน้มคีโตน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It looks for why the response is slow and aims to **treat the cause** as well as the numbers.",
+            "weigh": "The search for a cause can run alongside the dose change rather than delay it.",
+            "safety": ""
+          },
+          {
+            "strength": "Linking slow ketone clearance to a possible infection shows a wider view of the patient.",
+            "weigh": "With K at 4.0, more insulin will push it lower, which is worth watching.",
+            "safety": ""
+          },
+          {
+            "strength": "It treats the slow response as a clue, not just a dosing problem.",
+            "weigh": "A cause is not always found, and the dose still needs reviewing against the ketone trend.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ตอบสนองต่อคีโตนที่ลดช้าด้วยการ**เพิ่มอินซูลิน**โดยไม่รอ",
+            "weigh": "หลังปรับขนาดยา สี่ชั่วโมงนานพอที่น้ำตาลหรือ K จะลดเกินคาด",
+            "safety": ""
+          },
+          {
+            "strength": "**เจาะเลือดห่างขึ้น** ลดการเจาะซ้ำให้ผู้ป่วยและประหยัดเวลาเจ้าหน้าที่",
+            "weigh": "K 4.0 กับขนาดยาที่เพิ่มขึ้น อาจลดลงภายในไม่กี่ชั่วโมงก่อนเจาะครั้งถัดไป",
+            "safety": ""
+          },
+          {
+            "strength": "เห็นว่าการตอบสนองช้าเกินไป และลงมือที่ขนาดอินซูลิน",
+            "weigh": "ระหว่างรอเจาะเลือด การตรวจน้ำตาลข้างเตียงยังสำคัญขณะยาขนาดใหม่ออกฤทธิ์",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It responds to slow ketone clearance and chooses to **raise insulin** without delay.",
+            "weigh": "After a dose change, four hours is long enough for glucose or K to fall further than expected.",
+            "safety": ""
+          },
+          {
+            "strength": "Spacing out blood draws spares her repeated needles and saves staff time.",
+            "weigh": "With K at 4.0 and a higher dose, K can fall within hours, before the next draw.",
+            "safety": ""
+          },
+          {
+            "strength": "It recognises the response is too slow and acts on the insulin dose.",
+            "weigh": "Glucose checks at the bedside still matter between draws while the new dose takes effect.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "เห็นว่าสารน้ำ**เพิ่มการไหลเวียน** ซึ่งช่วยให้อินซูลินไปออกฤทธิ์ได้จริง",
+            "weigh": "NSS เพิ่มอย่างเดียวอาจไม่เปลี่ยนคีโตนที่ลดช้า และปริมาณมากยังเพิ่มภาระกรดได้",
+            "safety": ""
+          },
+          {
+            "strength": "ภาวะขาดน้ำที่ยังเหลือเป็นเหตุให้ตอบสนองช้าได้จริง และไม่ถูกมองข้าม",
+            "weigh": "สารน้ำอย่างเดียวมักไม่เร่งการลดคีโตน และการให้สารน้ำเพิ่มอาจทำให้ K 4.0 ลดลงอีก",
+            "safety": ""
+          },
+          {
+            "strength": "ให้ความสำคัญกับการไหลเวียนที่ต้องฟื้นเต็มที่ ซึ่งอินซูลินต้องพึ่ง",
+            "weigh": "แต่ละลิตรที่เพิ่มควรชั่งกับความดันโลหิต ปัสสาวะ และการฟังปอด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It recognises that more fluid **improves perfusion**, which does help insulin reach its targets.",
+            "weigh": "More saline alone may leave the slow ketone fall unchanged, and large volumes bring their own acid load.",
+            "safety": ""
+          },
+          {
+            "strength": "Ongoing dehydration is a real reason for a slow response, and it is not overlooked here.",
+            "weigh": "More fluid alone rarely speeds a slow ketone fall, and volume expansion can lower her K of 4.0 further.",
+            "safety": ""
+          },
+          {
+            "strength": "It checks that her circulation is fully restored, which insulin depends on.",
+            "weigh": "Each extra litre is worth weighing against her blood pressure, urine output and lung findings.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "ใช้**ขนาดเต็ม**แก้ภาวะกรดที่ยังค้างอยู่หลัง 4 ชม. โดยดูแล K ไปพร้อมกัน",
+            "weigh": "K 3.7 อยู่เหนือระดับที่มักต้องหยุดอินซูลินเพียงเล็กน้อย จึงควรตรวจซ้ำเร็ว",
+            "safety": ""
+          },
+          {
+            "strength": "เพิ่มอินซูลินคู่กับ K ที่เพิ่ม รับกับความเสี่ยงที่ K จะลดลงอีก",
+            "weigh": "ก่อนปรับอัตรา ควรเช็กว่าสายและเครื่องหยดยาให้ยาได้ตามที่สั่ง",
+            "safety": ""
+          },
+          {
+            "strength": "มองว่าคีโตนที่ลดช้าเป็นเรื่องขนาดยา และแก้ตรงจุด",
+            "weigh": "น้ำตาลจะลดลงอีกที่อัตรานี้ ควรตรวจทุกชั่วโมงขณะคีโตนค่อย ๆ หมดไป",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Going to **the full dose** targets the acidosis still present after 4 hours, with K covered.",
+            "weigh": "At 3.7, K sits just above the level where insulin is usually paused, so a recheck soon matters.",
+            "safety": ""
+          },
+          {
+            "strength": "It pairs more insulin with **extra K**, matching the risk that K falls further.",
+            "weigh": "Before changing the rate, it is worth confirming the drip and line deliver what is prescribed.",
+            "safety": ""
+          },
+          {
+            "strength": "It treats slow ketone clearance as a dose problem and acts on it directly.",
+            "weigh": "Glucose will fall further at this rate, so it is worth watching hourly as the ketones clear.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "มอง**การตอบสนองช้า**ว่าอาจมีการติดเชื้อซ่อนอยู่ ไม่ใช่แค่เรื่องขนาดยา",
+            "weigh": "การหาสาเหตุทำไปพร้อมการปรับขนาดยาได้ ไม่ต้องรอกัน",
+            "safety": ""
+          },
+          {
+            "strength": "ครอบคลุมสามเรื่องพร้อมกัน ทั้งขนาดยา K ที่ลดลง และสาเหตุเบื้องหลัง",
+            "weigh": "K 3.7 ใกล้ระดับที่มักต้องหยุดอินซูลิน จึงควรตรวจซ้ำเร็ว",
+            "safety": ""
+          },
+          {
+            "strength": "การหา**การติดเชื้อ**ทำให้ยังมองผู้ป่วยทั้งตัวขณะแก้ตัวเลข",
+            "weigh": "บางครั้งหาสาเหตุไม่พบ ขนาดยายังต้องทบทวนตามแนวโน้มคีโตน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It reads **a slow response** as a possible sign of hidden infection, not only a dosing issue.",
+            "weigh": "Searching for a trigger can run alongside the dose change rather than hold it up.",
+            "safety": ""
+          },
+          {
+            "strength": "It covers three things at once: the dose, the falling K and the cause behind it.",
+            "weigh": "At 3.7, K is close to the level where insulin is usually paused, so recheck it soon.",
+            "safety": ""
+          },
+          {
+            "strength": "Looking for **an infection** keeps the wider patient in view while the numbers are fixed.",
+            "weigh": "A trigger is not always found, and the dose still needs reviewing against the ketone trend.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**ปรับทีละน้อย** ช่วยคุมไม่ให้น้ำตาลและ K ลดเร็ว พร้อมเติม K ไปด้วย",
+            "weigh": "ภาวะกรดยังค้างหลัง 4 ชม. การเพิ่มทีละ 1 ยูนิต/ชม. อาจต้องใช้อีกหลายชั่วโมงจึงเห็นผล",
+            "safety": ""
+          },
+          {
+            "strength": "ตอบสนองต่อคีโตนที่ลดช้า และให้ K เพิ่มไปพร้อมการปรับยา",
+            "weigh": "K 3.7 ใกล้ระดับที่มักต้องหยุดอินซูลิน จึงควรตรวจซ้ำเร็ว",
+            "safety": ""
+          },
+          {
+            "strength": "การปรับเป็นขั้นติดตามง่ายและถอยกลับได้ถ้าน้ำตาลลดเร็ว",
+            "weigh": "ก่อนปรับอัตรา ควรเช็กว่าสายและเครื่องหยดยาทำงานตามที่สั่ง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Small steps** limit how fast glucose and K fall, with K added alongside.",
+            "weigh": "With acidosis still present after 4 hours, a 1 unit/h step may take several more hours to show.",
+            "safety": ""
+          },
+          {
+            "strength": "It responds to the slow fall in ketones and pairs the change with more K.",
+            "weigh": "At 3.7, K sits close to the level where insulin is usually paused, so recheck it soon.",
+            "safety": ""
+          },
+          {
+            "strength": "A stepwise change is easy to track and to reverse if glucose drops quickly.",
+            "weigh": "Before changing the rate, it is worth confirming the drip and line deliver what is prescribed.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ให้ความสำคัญกับ K ที่ลดลง และ**เพิ่ม K** ไปกับสารน้ำ",
+            "weigh": "ภาวะกรดยังค้างหลัง 4 ชม. การให้สารน้ำและ K อย่างเดียวอาจไม่ช่วยให้ดีขึ้น",
+            "safety": ""
+          },
+          {
+            "strength": "เติมสารน้ำเพราะเห็นว่าภาวะขาดน้ำทำให้อินซูลินออกฤทธิ์ช้าได้",
+            "weigh": "แต่ละลิตรที่เพิ่มควรชั่งกับความดันโลหิต ปัสสาวะ และการฟังปอด",
+            "safety": ""
+          },
+          {
+            "strength": "เติม K ตอนนี้ช่วยกันไม่ให้ K ลดลงอีกขณะ**อินซูลินที่ให้อยู่**ทำงาน",
+            "weigh": "ภาวะกรดที่ยังค้างหลังให้อินซูลินเดิม 4 ชม. อาจไม่ดีขึ้นด้วยสารน้ำอย่างเดียว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It takes the falling K seriously and adds **more K** with the fluid.",
+            "weigh": "With acidosis still present after 4 hours, fluid and K alone may leave it where it is.",
+            "safety": ""
+          },
+          {
+            "strength": "Topping up fluid recognises that dehydration can slow the response to insulin.",
+            "weigh": "Each extra litre is worth weighing against her blood pressure, urine output and chest findings.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding K now protects against a further fall while the insulin already running works.",
+            "weigh": "Acidosis still present after 4 hours on the current insulin is something fluid alone may not change.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "**ทับซ้อนกัน 2 ชม.** ปิดช่องว่าง คีโตนจึงไม่กลับมาเมื่อหยุดหยด",
+            "weigh": "ขนาดเริ่มต้นมักคิดตามน้ำหนัก และช่วงแรกควรตรวจน้ำตาลถี่เพื่อจับภาวะน้ำตาลต่ำ",
+            "safety": ""
+          },
+          {
+            "strength": "วางแผนการเปลี่ยนจากหยดยาเป็นยาฉีดไว้ล่วงหน้า ไม่ให้มีช่วงที่ขาดยา",
+            "weigh": "เธอเพิ่งได้รับการวินิจฉัย การรับมือกับยาที่บ้านจะเป็นตัวกำหนดผลการรักษา",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่ายาหยดหมดฤทธิ์เร็ว จึงกันไม่ให้**คีโตนกลับมา**",
+            "weigh": "การฉีดวันละ 4 ครั้งยืดหยุ่นเรื่องอาหาร แต่เป็นภาระไม่น้อยสำหรับคนที่เพิ่งรู้ตัว",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**The 2-hour overlap** covers the gap so ketones do not return when the drip stops.",
+            "weigh": "Starting doses usually come from her weight, and the first days need close glucose checks for lows.",
+            "safety": ""
+          },
+          {
+            "strength": "It plans the handover from drip to injections so there is no gap in cover.",
+            "weigh": "She is newly diagnosed, so how she copes with the regimen at home will shape how well it works.",
+            "safety": ""
+          },
+          {
+            "strength": "It allows for how quickly the drip wears off and guards against ketones returning.",
+            "weigh": "A four-injection plan suits flexible eating but asks a lot of someone just diagnosed.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "สอน**กฎวันป่วย**ตั้งแต่แรก ช่วยให้เธอป้องกันภาวะวิกฤตครั้งต่อไปได้",
+            "weigh": "วินิจฉัยใหม่ตอนอายุ 20 มีเรื่องต้องเรียนมาก การสอนสั้น ๆ หลายครั้งช่วยให้จำได้",
+            "safety": ""
+          },
+          {
+            "strength": "มองไกลกว่าหอผู้ป่วยถึงชีวิตที่บ้าน พร้อม**นัดตรวจ**ไว้ล่วงหน้า",
+            "weigh": "ขนาดเริ่มต้นมักคิดตามน้ำหนัก และช่วงแรกควรตรวจน้ำตาลถี่เพื่อจับน้ำตาลต่ำ",
+            "safety": ""
+          },
+          {
+            "strength": "ให้อินซูลินคู่กับความรู้ มองว่านี่คือจุดเริ่มของการดูแลระยะยาว",
+            "weigh": "ในฐานะนักศึกษา เวลากินและนอนอาจไม่แน่นอน ควรนำมาคิดในแผนด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Teaching **sick-day rules** early gives her a way to prevent the next crisis.",
+            "weigh": "A new diagnosis at 20 brings a lot to learn at once, so short, repeated teaching tends to stick.",
+            "safety": ""
+          },
+          {
+            "strength": "It looks beyond the ward to life at home, with a visit set **within 2 weeks**.",
+            "weigh": "Starting doses usually come from her weight, and early days need close glucose checks for lows.",
+            "safety": ""
+          },
+          {
+            "strength": "It pairs insulin with education, treating this as the start of lifelong care.",
+            "weigh": "As a student, her meals and sleep may vary, which is worth building into the plan.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "ฉีดวันละ 2 ครั้ง**เริ่มง่ายและราคาถูก** ช่วยให้ทำต่อเนื่องที่บ้านได้",
+            "weigh": "ยาผสมสำเร็จขนาดคงที่ต้องกินอาหารตรงเวลา ซึ่งชีวิตนักศึกษาอาจทำไม่ได้เสมอ",
+            "safety": ""
+          },
+          {
+            "strength": "คำนึงถึงค่าใช้จ่ายและความง่าย ซึ่งสำคัญต่อการใช้ยาระยะยาว",
+            "weigh": "สัดส่วนยาที่คงที่ปรับตามมื้ออาหารได้น้อย ซึ่งสำคัญกับคนหนุ่มสาวที่ชีวิตไม่แน่นอน",
+            "safety": ""
+          },
+          {
+            "strength": "ฉีดน้อยครั้งต่อวัน ช่วยให้สัปดาห์แรกที่บ้านจัดการได้ง่ายขึ้น",
+            "weigh": "ถ้ากินช้าหรืองดมื้อขณะใช้ขนาดคงที่ จะเสี่ยงน้ำตาลต่ำ ควรอธิบายให้เธอเข้าใจ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Two injections a day are **simple and cheap**, which can help her keep going at home.",
+            "weigh": "Fixed premixed doses need meals at regular times, which a student's days may not always allow.",
+            "safety": ""
+          },
+          {
+            "strength": "It weighs cost and simplicity, which matter for long-term use in a Thai setting.",
+            "weigh": "Fixed ratios leave less room to match insulin to what she eats, which matters for a young, active adult.",
+            "safety": ""
+          },
+          {
+            "strength": "Fewer daily injections can make the first weeks at home easier to manage.",
+            "weigh": "Missed or late meals on fixed doses raise the risk of low glucose, which is worth explaining to her early.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ให้ความสำคัญกับการ**คุมน้ำตาลให้คงที่**ระหว่างที่เธอฟื้นตัวจากภาวะรุนแรง",
+            "weigh": "เมื่อภาวะกรดหายและกินได้แล้ว การหยดยาทำให้ติดเตียงและเลื่อนการฝึกดูแลตนเอง",
+            "safety": ""
+          },
+          {
+            "strength": "ความระวังหลังภาวะรุนแรง สะท้อนว่าตระหนักถึงอาการหนักที่เธอเพิ่งผ่านมา",
+            "weigh": "หยดต่ออีก 2 วัน หมายถึงคาสายนานขึ้นและเริ่มฝึกฉีดยาเองช้าลง",
+            "safety": ""
+          },
+          {
+            "strength": "การหยดยาให้การคุมที่แม่นยำ ระหว่างที่เธอฟื้นแรงและความอยากอาหาร",
+            "weigh": "pH, HCO3 และการกินได้บ่งว่าฟื้นตัวแล้ว ประโยชน์ของการหยดต่ออีกสองวันจึงน้อย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It values keeping **glucose steady** while she recovers from a serious illness.",
+            "weigh": "Once the acidosis has resolved and she is eating, a drip ties her to bed and delays learning self-care.",
+            "safety": ""
+          },
+          {
+            "strength": "Caution after a severe episode reflects respect for how ill she has been.",
+            "weigh": "Two more days on a drip means more line days and a later start to practising her own injections.",
+            "safety": ""
+          },
+          {
+            "strength": "A drip gives precise control while she regains strength and appetite.",
+            "weigh": "Her pH, HCO3 and eating already show recovery, so the drip's benefit over two days is small.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "รับมือความกลัวตรง ๆ ด้วย**ปากกาฉีดเข็มเล็ก**และการฝึกจริง",
+            "weigh": "ฉีดวันละ 4 ครั้งเป็นภาระมากสำหรับคนกลัวเข็ม การดูแลช่วงแรกจึงสำคัญ",
+            "safety": ""
+          },
+          {
+            "strength": "สอนให้**ฉีดได้เอง** สร้างความมั่นใจที่เธอต้องใช้เมื่อกลับบ้าน",
+            "weigh": "ขนาดเริ่มต้นมักคิดตามน้ำหนัก และช่วงแรกควรตรวจน้ำตาลถี่เพื่อจับน้ำตาลต่ำ",
+            "safety": ""
+          },
+          {
+            "strength": "มองความกลัวเข็มเป็นสิ่งที่การฝึกและอุปกรณ์ที่นุ่มนวลช่วยได้",
+            "weigh": "ความกลัวมักลดลงหลังฉีดครั้งแรกโดยมีคนดูแล บรรยากาศที่ไม่เร่งรีบช่วยได้มาก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It meets her fear head-on with **a fine needle** and hands-on practice.",
+            "weigh": "Four injections a day is a lot for someone afraid of needles, so early support matters.",
+            "safety": ""
+          },
+          {
+            "strength": "Teaching her to **inject herself** builds the confidence she will need at home.",
+            "weigh": "Starting doses usually come from her weight, and the first days need close glucose checks for lows.",
+            "safety": ""
+          },
+          {
+            "strength": "It treats needle fear as something practice and a gentler device can ease.",
+            "weigh": "Fear often eases with a first supervised injection, and a calm, unhurried session helps with that.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**ทับซ้อนกัน 2 ชม.** กันคีโตนกลับมาเมื่อหยุดหยด",
+            "weigh": "ความกลัวเข็มทำให้การเปลี่ยนยาต้องมีแผนที่เธอทำเองได้จริงด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "วางจังหวะเปลี่ยนจากหยดยาเป็นยาฉีดไว้ ไม่ให้มีช่วงที่ขาดยา",
+            "weigh": "ขนาดเริ่มต้นมักคิดตามน้ำหนัก และช่วงแรกควรตรวจน้ำตาลถี่เพื่อจับน้ำตาลต่ำ",
+            "safety": ""
+          },
+          {
+            "strength": "รู้ว่ายาหยดหมดฤทธิ์เร็ว จึงกันไม่ให้**คีโตนกลับมา**",
+            "weigh": "ฉีดหลายครั้งต่อวันเป็นเรื่องหนักสำหรับคนกลัวเข็ม การดูแลช่วงแรกจึงสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**The 2-hour overlap** keeps ketones from returning as the drip ends.",
+            "weigh": "Her fear of needles means the switch also needs a plan she can manage on her own.",
+            "safety": ""
+          },
+          {
+            "strength": "It times the handover from drip to injections so there is no gap in cover.",
+            "weigh": "Starting doses usually come from her weight, and the first days need close glucose checks for lows.",
+            "safety": ""
+          },
+          {
+            "strength": "It allows for how quickly the drip wears off and guards against ketones returning.",
+            "weigh": "Several injections a day is a lot to face with needle fear, so support early on matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**ฉีดน้อยครั้งลง** เคารพความกลัวของเธอ และอาจทำให้ยอมรับแผนได้ง่ายขึ้น",
+            "weigh": "ยาผสมสำเร็จขนาดคงที่ต้องกินอาหารตรงเวลา ซึ่งชีวิตนักศึกษาอาจทำไม่ได้เสมอ",
+            "safety": ""
+          },
+          {
+            "strength": "ปรับแผนยาตามความกลัวเข็มของเธอ ช่วยให้ใช้ยาได้ต่อเนื่อง",
+            "weigh": "สัดส่วนยาที่คงที่ปรับตามมื้ออาหารได้น้อย ซึ่งสำคัญสำหรับคนหนุ่มสาว",
+            "safety": ""
+          },
+          {
+            "strength": "ฉีดวันละ 2 ครั้งเป็นด่านที่เล็กกว่าสำหรับคนที่กลัวเข็ม",
+            "weigh": "ถ้ากินช้าหรืองดมื้อขณะใช้ขนาดคงที่ จะเสี่ยงน้ำตาลต่ำ ควรอธิบายให้เธอเข้าใจ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Fewer injections** respect her fear and may make the plan easier to accept.",
+            "weigh": "Fixed premixed doses need meals at regular times, which a student's days may not always allow.",
+            "safety": ""
+          },
+          {
+            "strength": "It shapes the regimen around her fear of needles, which helps her stay with it.",
+            "weigh": "Fixed ratios leave less room to match insulin to what she eats, which matters for a young adult.",
+            "safety": ""
+          },
+          {
+            "strength": "Two injections a day is a smaller hurdle for someone who fears needles.",
+            "weigh": "Missed or late meals on fixed doses raise the risk of low glucose, which is worth explaining to her early.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "ให้ความสำคัญกับความกลัว และ**ให้เวลาผู้ป่วยทำใจ**",
+            "weigh": "การหยดยาก็ต้องใช้เข็ม และอีก 2 วันจะเลื่อนการฝึกที่มักช่วยลดความกลัว",
+            "safety": ""
+          },
+          {
+            "strength": "การเคารพความพร้อมทางใจช่วยสร้างความไว้ใจสำหรับการดูแลระยะยาว",
+            "weigh": "pH, HCO3 และการกินได้บ่งว่าฟื้นตัวแล้ว การหยดต่อจึงเพิ่มประโยชน์ทางการแพทย์น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "ยอมรับว่าความกลัวเข็มเป็นเรื่องจริง และไม่เร่งให้เริ่มฉีดยาเอง",
+            "weigh": "หยดต่ออีก 2 วัน หมายถึงคาสายนานขึ้นและเริ่มฝึกฉีดยาเองช้าลง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It takes her fear seriously and gives her **time to feel ready**.",
+            "weigh": "A drip is itself a needle, and two more days delay the practice that usually eases the fear.",
+            "safety": ""
+          },
+          {
+            "strength": "Respecting her emotional readiness can build trust for the long road ahead.",
+            "weigh": "Her pH, HCO3 and eating already show recovery, so the drip adds little medical benefit now.",
+            "safety": ""
+          },
+          {
+            "strength": "It sees needle fear as real and gives space before self-injection begins.",
+            "weigh": "Two more days on a drip means more line days and a later start to her own injections.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "มองอาการ**ซึมลง**เป็นเหตุให้ต้องดูแลใกล้ชิดในหอวิกฤตโดยไม่ช้า",
+            "weigh": "การส่งต่อปลอดภัยขึ้นเมื่อยังหยดยาต่อเนื่อง และส่งผลตรวจตามเวลาไปพร้อมผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "ให้**อินซูลินขนาดเต็ม** แก้ภาวะกรดที่แย่ลงระหว่างยกระดับการดูแล",
+            "weigh": "K 3.9 จะลดลงอีกเมื่อให้ขนาดเต็ม จึงต้องตรวจ K ก่อนและระหว่างเดินทาง",
+            "safety": ""
+          },
+          {
+            "strength": "ปรับระดับการดูแลให้เท่ากับความรุนแรงที่เพิ่มขึ้น",
+            "weigh": "อาการซึมที่แย่ลงทำให้ต้องเฝ้าทางเดินหายใจและระดับความรู้สึกตัวระหว่างทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It treats her worsening drowsiness as a reason for **close ICU care** without delay.",
+            "weigh": "Transfer is safest when the drip keeps running and the timeline of results travels with her.",
+            "safety": ""
+          },
+          {
+            "strength": "Giving the full insulin dose addresses the rising acid while care is escalated.",
+            "weigh": "At K 3.9, a full dose will push K lower, so it needs checking before and during the journey.",
+            "safety": ""
+          },
+          {
+            "strength": "It matches the level of care to how much sicker she has become.",
+            "weigh": "Worsening drowsiness means her airway and level of consciousness need watching on the way.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**แก้ขนาดยาก่อนเดินทาง** ทำให้ผู้ป่วยไปถึงในสภาพที่ปลอดภัยขึ้น",
+            "weigh": "การปรับยาก่อนออกเดินทางไม่ควรทำให้การส่งต่อช้า ทำคู่กันได้",
+            "safety": ""
+          },
+          {
+            "strength": "แก้ทั้งการรักษาและยกระดับการดูแล ครอบคลุมทั้งตัวเลขและสถานที่",
+            "weigh": "K 3.9 จะลดลงอีกเมื่อปรับอินซูลิน จึงต้องตรวจ K ก่อนและระหว่างเดินทาง",
+            "safety": ""
+          },
+          {
+            "strength": "เห็นว่าผู้ป่วยแย่ลง และ**ส่งต่อด่วน**โดยไม่รอ",
+            "weigh": "อาการซึมที่แย่ลงทำให้ต้องเฝ้าทางเดินหายใจและความรู้สึกตัวระหว่างทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Correcting the dose first means she travels in **a safer state**.",
+            "weigh": "Stabilising before departure should not hold up the referral; both can run together.",
+            "safety": ""
+          },
+          {
+            "strength": "It fixes the treatment and escalates care, addressing both the numbers and the setting.",
+            "weigh": "At K 3.9, more insulin will push K lower, so it needs checking before and during the journey.",
+            "safety": ""
+          },
+          {
+            "strength": "It recognises that she is worsening and refers her without waiting.",
+            "weigh": "Worsening drowsiness means her airway and consciousness need close watching on the way.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**ปรับทีละน้อย** เพื่อให้น้ำตาลและ K คงที่ระหว่างส่งต่อ ICU",
+            "weigh": "เมื่อซึมลงเรื่อย ๆ การปรับทีละน้อยอาจพลิกแนวโน้มไม่ทันก่อนถึงปลายทาง",
+            "safety": ""
+          },
+          {
+            "strength": "ลงมือทั้งเรื่องขนาดยาและวางแผนส่ง ICU เปลี่ยนทั้งการรักษาและสถานที่",
+            "weigh": "K 3.9 จะลดลงอีกเมื่อเพิ่มอินซูลิน จึงต้องตรวจ K ก่อนและระหว่างเดินทาง",
+            "safety": ""
+          },
+          {
+            "strength": "การปรับเป็นขั้นทำให้ทีมปลายทางคาดการณ์อาการระหว่างทางได้",
+            "weigh": "อาการซึมที่แย่ลงทำให้ต้องเฝ้าทางเดินหายใจและความรู้สึกตัวระหว่างทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**Small steps** aim to keep glucose and K steady on the way to ICU care.",
+            "weigh": "With her drowsiness getting worse, small steps may not turn the trend before she arrives.",
+            "safety": ""
+          },
+          {
+            "strength": "It acts on the dose and plans ICU care, so both treatment and setting change.",
+            "weigh": "At K 3.9, more insulin will push K lower, so it needs checking before and during the journey.",
+            "safety": ""
+          },
+          {
+            "strength": "A stepwise change keeps the journey predictable for the team that receives her.",
+            "weigh": "Worsening drowsiness means her airway and consciousness need close watching on the way.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "เห็นว่าเธอต้องการ**บุคลากรเฝ้าดู**มากกว่าที่โรงพยาบาลชุมชนมี",
+            "weigh": "การส่งต่ออย่างเดียวทำให้การรักษาเดิมไม่เปลี่ยนระหว่างทาง ขณะที่ผู้ป่วยแย่ลง",
+            "safety": ""
+          },
+          {
+            "strength": "ยกระดับไปโรงพยาบาลใหญ่เมื่ออาการแย่ลง แสดงว่ารู้ข้อจำกัดของสถานที่",
+            "weigh": "ผู้ป่วยที่ซึมและแย่ลงอาจทรุดลงระหว่างทาง การเดินทางจึงต้องมีแผนรองรับ",
+            "safety": ""
+          },
+          {
+            "strength": "ตัดสินจากแนวโน้ม ไม่ใช่ค่าเดียว และพาเธอไปหาการดูแลที่มากขึ้น",
+            "weigh": "K 3.9 และอาการซึมที่แย่ลง ทำให้ช่วงเวลาบนรถเป็นช่วงที่ต้องเฝ้าระวังใกล้ชิด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "It recognises she needs **more staff** to watch her than a community hospital can give.",
+            "weigh": "Referral alone leaves her current treatment unchanged during the journey while she is getting worse.",
+            "safety": ""
+          },
+          {
+            "strength": "Escalating to a larger centre as she worsens shows awareness of the limits of the setting.",
+            "weigh": "A drowsy patient who is getting worse can deteriorate on the road, so the journey itself needs a plan.",
+            "safety": ""
+          },
+          {
+            "strength": "It acts on the trend, not a single value, and moves her toward more support.",
+            "weigh": "Her K of 3.9 and worsening drowsiness make the hours on the road a period that needs close watching.",
+            "safety": ""
+          }
+        ]
+      }
+    }
+  },
+  "safety_review": {
+    "model": "claude-opus-5-5",
+    "date": "2026-11-14",
+    "findings": "Independent AI reviewer (did not write these replies), 2026-11-14. Sources opened: hyperglycaemic crises consensus, Diabetologia 2024;67:1455-79 (full text: fixed-rate 0.1 U/kg/h, bolus 0.1 U/kg, 5-10% dextrose and cut to 0.05 U/kg/h below 250 mg/dL, glucose near 200, K replacement below 5.0, insulin held below 3.5, K 2 h after insulin then 4-hourly, volume expansion lowers K, saline hyperchloraemic acidosis, urine ketones under- then over-estimate, POCT BOHB less accurate at >=5, calculated effective osmolality for HHS, abdominal pain should settle with acidosis, resolution pH>=7.3 or HCO3>=18, basal-bolus started 1-2 h before stopping IV insulin, weight-based 0.5-0.6 U/kg/day, follow-up 2-4 weeks); JBDS 02 DKA single-page pathway, Mar 2023 (partial text: FRIII 0.1 U/kg/h, check pump and line when ketones and glucose do not fall as expected, 10% dextrose 125 ml/h below 14 mmol/L, optional cut to 0.05). Thai DM CPG 2566 and WHO SEARO IMAI 2021 were not reachable online; their thresholds were taken from the page quotes in the case's own admission review (insulin only above K 3.3, cut to 0.02-0.05 at 250, WHO raise rate if glucose falls <50 mg/dL/h). Read all 13 banks, every option, all 3 alternatives, Thai and English, against every question variant: clinical truth, safety (no reply reassures about a harmful step or delays needed treatment; no option here needs a safety line, matching the case review's no-unsafe-option finding), no leak (no grading, ranking, best/correct wording, later-step preview, or test/drug/diagnosis outside the chosen option), fit, Thai naturalness and parity. The earlier requested edits read right: numbers only some variants show are gone; step4.R.d[1] weigh (volume expansion can lower K 4.0) matches the consensus; step3.R/W.d[0] weigh is true; step4.W a[0] strength, c[0], d[0], d[2] weigh fit both stems. Non-blocking notes for a later pass: step4.W.a[2] strength and c[1] strength still say slow ketone clearance, an inference (not a stated fact) under v2's pH 7.16; step4.W.b[1] and d[0] say the falling K, which v1 does not state; step3.B.d.en[0] weigh says half the usual rate (Thai only half rate; better to cite the option's own 0.05); step3.R/W.d[0] weigh is true at any rate, en[1]/en[2] make the rate-specific point better; step4.R.d.en[2] strength says checks where the option gives fluid (Thai: attends to); step5.W a[1], b[1], c[1] weigh ask for K checks during the journey, which an ambulance can rarely do; small Thai/English parity drifts: step1.c[1] weigh (Thai adds slowly over days), step1.d[2] strength (Thai omits young adult), step4.B.a[0] weigh (Thai omits only), step4.B.d[0] weigh (for a day vs Thai a long time), step5.B.c[1] strength (English adds in a Thai setting). Mechanical check: content ok; review pending. Tree sha256 efead070653aeb90076325229753afc6b30a9443875577933373dfc0731ef3fe. Replies sha256 5a40e2819127f9935a1cf0752df3b05824e597f70a5ec255ba8013c90d3c24bb.",
+    "tree_sha256": "efead070653aeb90076325229753afc6b30a9443875577933373dfc0731ef3fe",
+    "replies_sha256": "5a40e2819127f9935a1cf0752df3b05824e597f70a5ec255ba8013c90d3c24bb"
+  }
+}

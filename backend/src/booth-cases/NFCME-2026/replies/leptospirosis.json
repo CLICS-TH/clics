@@ -1,0 +1,2234 @@
+{
+  "case_id": "leptospirosis",
+  "replies": {
+    "step1": {
+      "a": {
+        "th": [
+          {
+            "strength": "การโยง**ลุยน้ำท่วม**เข้ากับปวดน่องและตาแดงในคนทำนา เป็นการใช้ประวัติสัมผัสได้ตรงจุด",
+            "weigh": "แม้ผู้ป่วยยังรู้สึกตัวดีและปัสสาวะปกติ ก็ยังควรประเมินความรุนแรงควบคู่กับการวินิจฉัย",
+            "safety": ""
+          },
+          {
+            "strength": "ปวดน่องร่วมกับตาแดงที่ไม่มีขี้ตา เป็นลักษณะทางคลินิกที่หนุนการวินิจฉัยนี้",
+            "weigh": "การวินิจฉัยจากอาการยังต้องการหลักฐานยืนยัน และควรดูว่ามีอวัยวะใดได้รับผลแล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "การนำอาชีพทำนาและน้ำท่วมมาร่วมคิด ทำให้การวินิจฉัยมีบริบทระบาดวิทยารองรับ",
+            "weigh": "โรคนี้มีตั้งแต่อาการน้อยจนรุนแรง การจับตาไต ตับ และภาวะเลือดออกจึงยังสำคัญ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Linking **flood-water exposure** to calf pain and red eyes uses the exposure history well.",
+            "weigh": "He is alert and passing urine, yet severity still needs weighing alongside the diagnosis.",
+            "safety": ""
+          },
+          {
+            "strength": "Calf tenderness with red eyes and no discharge is a clinical pattern that supports this diagnosis.",
+            "weigh": "A clinical diagnosis still needs confirming, and any organ involvement is worth looking for now.",
+            "safety": ""
+          },
+          {
+            "strength": "Putting rice farming and flood water together gives the diagnosis a solid epidemiological footing.",
+            "weigh": "This illness ranges from mild to severe, so watching kidneys, liver and bleeding still matters.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การใช้**ระยะฟักตัว**เชื่อมวันลุยน้ำกับวันเริ่มไข้ ทำให้มีเหตุผลด้านเวลารองรับ",
+            "weigh": "คำว่าระยะแรกบอกจังหวะของโรค แต่ยังต้องประเมินว่ามีอวัยวะใดได้รับผลแล้วบ้าง",
+            "safety": ""
+          },
+          {
+            "strength": "การนับวันจากการลุยน้ำถึงวันเริ่มไข้ เป็นการใช้ลำดับเวลาช่วยแยกโรคติดเชื้อ",
+            "weigh": "ระยะฟักตัวของโรคนี้ค่อนข้างกว้าง เวลาจึงหนุนการวินิจฉัยได้แต่ยังยืนยันไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "การมองว่าผู้ป่วยอยู่ใน**ระยะแรก**ของโรค ช่วยวางกรอบการดูแลตามจังหวะที่โรคดำเนิน",
+            "weigh": "อาการระยะแรกค่อนข้างไม่จำเพาะ จึงควรชั่งร่วมกับอาการปวดน่องและตาแดงที่ตรวจพบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Using the **incubation time** to link the wading and the fever gives the diagnosis a timeline.",
+            "weigh": "Early names the phase, but whether any organ is already affected still needs assessing.",
+            "safety": ""
+          },
+          {
+            "strength": "Counting days from the wading to the fever uses a timeline that helps sort infections.",
+            "weigh": "The incubation window is fairly wide, so timing supports the diagnosis without confirming it.",
+            "safety": ""
+          },
+          {
+            "strength": "Framing this as the **early** phase helps pace his care to the course of the illness.",
+            "weigh": "Early symptoms are fairly non-specific, so weigh them with the calf pain and red eyes found.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การนึกถึง**โรคสครับไทฟัส**ในคนทำงานกลางทุ่ง เป็นการคิดตามระบาดวิทยาของไข้ในชนบทไทย",
+            "weigh": "ควรชั่งว่าการไม่พบแผลสะเก็ดดำและการปวดน่องมาก เข้ากับการวินิจฉัยนี้เพียงใด",
+            "safety": ""
+          },
+          {
+            "strength": "การมองไข้และปวดศีรษะในคนทำงานกลางทุ่งเป็นโรคติดเชื้อชนบท เป็นมุมคิดที่มีเหตุผล",
+            "weigh": "ไข้และปวดศีรษะพบได้หลายโรค จึงควรให้น้ำหนักกับการลุยน้ำท่วมและน่องที่กดเจ็บด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การไม่มองข้ามโรคที่**พบบ่อยในชนบท** ช่วยกันไม่ให้พลาดสาเหตุไข้ที่สำคัญในพื้นที่",
+            "weigh": "การตรวจทั่วตัวไม่พบแผลสะเก็ดดำ จึงควรชั่งน้ำหนักของการวินิจฉัยนี้ให้รอบคอบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Considering **scrub typhus** in a field worker reflects the epidemiology of rural fever in Thailand.",
+            "weigh": "Weigh how a full skin check with no eschar and marked calf pain fit this diagnosis.",
+            "safety": ""
+          },
+          {
+            "strength": "Reading fever and headache in a field worker as a rural infection is a sound line of thought.",
+            "weigh": "Fever and headache are shared by many infections, so the flood wading and calf tenderness deserve weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeping a disease **common in rural** areas in view guards against missing a key local cause.",
+            "weigh": "No eschar was found on a full skin check, which is worth weighing against this diagnosis.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การนึกถึง**ไข้เลือดออก**เมื่อไข้สูงเฉียบพลันในหน้าฝน สอดคล้องกับโรคที่พบบ่อยในไทย",
+            "weigh": "ควรชั่งว่าการลุยน้ำท่วมและน่องที่กดเจ็บทั้งสองข้าง เข้ากับโรคนี้เพียงใด",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ความสำคัญกับฤดูกาลและไข้สูงเฉียบพลัน เป็นการคิดตามระบาดวิทยาของไข้หน้าฝน",
+            "weigh": "ปวดกล้ามเนื้อพบได้หลายโรค แต่การกดเจ็บเฉพาะที่น่องและตาแดงเป็นจุดที่ควรชั่งเพิ่ม",
+            "safety": ""
+          },
+          {
+            "strength": "การระวังโรคที่พบบ่อยและอาจรุนแรงในหน้าฝน ช่วยไม่ให้มองข้ามสาเหตุไข้ที่สำคัญ",
+            "weigh": "ตาแดงที่ไม่มีขี้ตาและการสัมผัสน้ำท่วม เป็นข้อมูลที่ควรชั่งกับการวินิจฉัยนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Thinking of **dengue** with sudden high fever in the rainy season fits a common Thai illness.",
+            "weigh": "Weigh how the flood-water wading and tenderness of both calves fit this diagnosis.",
+            "safety": ""
+          },
+          {
+            "strength": "Giving weight to the season and an abrupt high fever follows the epidemiology of rainy-season fever.",
+            "weigh": "Muscle pain is common to many infections, but calf-focused tenderness and red eyes deserve extra weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Watching for a common, potentially severe rainy-season illness avoids overlooking an important cause.",
+            "weigh": "Red eyes without discharge and the flood-water wading are details to weigh against this diagnosis.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "การเลือกตรวจที่**บอกความรุนแรง** ช่วยให้รู้ว่าไต ตับ และเกล็ดเลือดได้รับผลหรือยัง",
+            "weigh": "ชุดตรวจนี้วางระดับความรุนแรงได้ แต่ยังไม่ได้ยืนยันว่าเชื้อก่อโรคคืออะไร",
+            "safety": ""
+          },
+          {
+            "strength": "การตรวจปัสสาวะร่วมด้วย ช่วยจับปัญหาที่ไตได้ก่อนปัสสาวะจะออกน้อยลง",
+            "weigh": "ผลชุดนี้ช่วยวางระดับความรุนแรง ส่วนการวินิจฉัยยังอาศัยประวัติและการตรวจร่างกาย",
+            "safety": ""
+          },
+          {
+            "strength": "การประเมินหลายอวัยวะพร้อมกันตั้งแต่ต้น ช่วยให้วางแผนดูแลตามความรุนแรงจริง",
+            "weigh": "ผลที่ปกติในวันนี้ยังเปลี่ยนได้ตามการดำเนินโรค จึงควรแปลผลร่วมกับอาการที่ติดตาม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing tests that **set the severity** shows whether kidneys, liver and platelets are already involved.",
+            "weigh": "This panel grades severity well but does not confirm the causative organism.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding a **urinalysis** can pick up kidney involvement before urine output falls.",
+            "weigh": "These results set severity, while the diagnosis still rests mainly on history and examination.",
+            "safety": ""
+          },
+          {
+            "strength": "Assessing several organs at the start lets care match the real severity of the illness.",
+            "weigh": "Normal results today can change as the illness evolves, so read them alongside his clinical course.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**ชุดตรวจเร็วฉี่หนู**ร่วมกับการดูอวัยวะ ให้ทั้งความรุนแรงและหลักฐานในวันเดียว",
+            "weigh": "ชุดตรวจเร็วในไข้วันที่ 3 อาจยังให้ผลลบ ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "การประเมินไต ตับ และเกล็ดเลือดไปพร้อมกัน ช่วยให้รู้ระดับความรุนแรงตั้งแต่วันนี้",
+            "weigh": "ความไวของชุดตรวจเร็วในช่วงไม่กี่วันแรกยังจำกัด จึงควรแปลผลร่วมกับอาการเสมอ",
+            "safety": ""
+          },
+          {
+            "strength": "ผลที่ได้วันนี้ช่วยให้ตัดสินใจที่โรงพยาบาลชุมชนได้ทันที โดยไม่ต้องรอผลจากที่อื่น",
+            "weigh": "ผลบวกช่วยสนับสนุน แต่ผลลบในระยะแรกไม่ควรทำให้ทิ้งการวินิจฉัยทางคลินิก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing a **Leptospira RDT** with organ checks gives severity and diagnostic support on the same day.",
+            "weigh": "On day 3 of fever the RDT may still be negative, so a negative result does not exclude it.",
+            "safety": ""
+          },
+          {
+            "strength": "Checking kidneys, liver and platelets together grades his severity from today.",
+            "weigh": "Rapid test sensitivity is limited in the first few days, so read the result alongside the clinical picture.",
+            "safety": ""
+          },
+          {
+            "strength": "Results today let the community hospital act at once without waiting on outside labs.",
+            "weigh": "A positive result supports the diagnosis, but an early negative should not override the clinical picture.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การเลือก**ชุดตรวจเร็วฉี่หนู** ช่วยให้ได้หลักฐานสนับสนุนการวินิจฉัยตั้งแต่วันนี้",
+            "weigh": "ภาพความรุนแรงจากชุดนี้อาศัยเกล็ดเลือดและไตเป็นหลัก ควรชั่งว่าครอบคลุมพอหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตได้ในวันนี้ ช่วยจับภาวะแทรกซ้อนสำคัญของโรคได้เร็ว",
+            "weigh": "ชุดตรวจเร็วในไข้วันที่ 3 อาจยังให้ผลลบ ผลลบจึงยังไม่ตัดการวินิจฉัยทางคลินิก",
+            "safety": ""
+          },
+          {
+            "strength": "ชุดตรวจนี้กระชับ ได้ผลเร็ว และทำได้จริงในโรงพยาบาลชุมชน",
+            "weigh": "ความไวของชุดตรวจเร็วช่วงแรกยังจำกัด จึงควรแปลผลร่วมกับประวัติลุยน้ำและอาการ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing a **Leptospira RDT** gives some support for the diagnosis today.",
+            "weigh": "The severity picture here rests on platelets and kidneys, so weigh whether that is complete enough.",
+            "safety": ""
+          },
+          {
+            "strength": "Seeing platelets and kidneys today catches the key complications of this illness quickly.",
+            "weigh": "On day 3 of fever the RDT may still be negative, which would not rule out the clinical diagnosis.",
+            "safety": ""
+          },
+          {
+            "strength": "This is a lean, fast panel that a community hospital can run today.",
+            "weigh": "Rapid test sensitivity is limited early, so read it with the flood wading and his symptoms.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การเลือก **PCR ฉี่หนู** ในสัปดาห์แรก ตรงกับช่วงที่ยังพบดีเอ็นเอเชื้อในเลือดได้",
+            "weigh": "ควรชั่งว่าโรงพยาบาลชุมชนส่งตรวจนี้ได้ไหม และผลจะทันการตัดสินใจวันนี้หรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "การหาดีเอ็นเอเชื้อในสัปดาห์แรก ใช้จังหวะของโรคให้เป็นประโยชน์ต่อการวินิจฉัย",
+            "weigh": "การตรวจนี้มักต้องส่งห้องปฏิบัติการอื่น ผลจึงอาจช้ากว่าการวางแผนดูแลวันนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตร่วมด้วย ช่วยให้ได้ภาพความรุนแรงพื้นฐานไปพร้อมกัน",
+            "weigh": "ภาพความรุนแรงจากชุดนี้อาศัยเกล็ดเลือดและไตเป็นหลัก ควรชั่งว่าครอบคลุมพอไหม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Sending **Leptospira PCR** in week 1 matches the window when its DNA is still detectable.",
+            "weigh": "Weigh whether a community hospital can send this test and get results back in time for today's decisions.",
+            "safety": ""
+          },
+          {
+            "strength": "Targeting its DNA in the first week puts the timing of the illness to diagnostic use.",
+            "weigh": "This test usually goes to an outside lab, so results may lag behind today's plan.",
+            "safety": ""
+          },
+          {
+            "strength": "Including platelets and kidneys gives a baseline severity picture at the same time.",
+            "weigh": "The severity picture here rests on platelets and kidneys, so weigh whether that covers enough.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การหาเชื้อในกระแสเลือด สะท้อนความระวังต่อการติดเชื้อในกระแสเลือดที่อาจรุนแรง",
+            "weigh": "เชื้อที่สงสัยขึ้นยากหรือไม่ขึ้นเลยในการเพาะเชื้อทั่วไป ผลจึงอาจไม่ช่วยวันนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตร่วมกับเพาะเชื้อ ให้ทั้งภาพความรุนแรงและโอกาสพบเชื้อก่อโรค",
+            "weigh": "การเพาะเชื้อทั่วไปใช้เวลาหลายวัน จึงควรชั่งว่าจะช่วยการตัดสินใจวันนี้ได้แค่ไหน",
+            "safety": ""
+          },
+          {
+            "strength": "การเก็บเลือดเพาะเชื้อตั้งแต่ต้น เป็นนิสัยที่ปลอดภัยในผู้ป่วยไข้สูง",
+            "weigh": "ควรชั่งว่าเชื้อที่สงสัยจากประวัติลุยน้ำ ขึ้นในการเพาะเชื้อทั่วไปได้เพียงใด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looking for bacteria in the blood shows caution about a bloodstream infection that could turn severe.",
+            "weigh": "The organism suspected here grows poorly or not at all in routine bottles, so results may not help today.",
+            "safety": ""
+          },
+          {
+            "strength": "Pairing platelets and kidneys with a **blood culture** gives severity and a chance to find the organism.",
+            "weigh": "Routine cultures take days, so weigh how much this changes today's decisions.",
+            "safety": ""
+          },
+          {
+            "strength": "Drawing a culture early is a safe habit in a patient with high fever.",
+            "weigh": "Weigh how well the organisms suggested by his work and the wading grow in a routine culture.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "การเลือกตรวจที่**บอกความรุนแรง** ช่วยให้รู้ว่าไต ตับ และเกล็ดเลือดได้รับผลหรือยัง",
+            "weigh": "ชุดตรวจนี้วางระดับความรุนแรงได้ แต่ยังไม่ได้ยืนยันว่าเชื้อก่อโรคคืออะไร",
+            "safety": ""
+          },
+          {
+            "strength": "การตรวจปัสสาวะร่วมด้วย ช่วยจับปัญหาที่ไตได้ก่อนปัสสาวะจะออกน้อยลง",
+            "weigh": "ผลชุดนี้ช่วยวางระดับความรุนแรง ส่วนการวินิจฉัยยังอาศัยประวัติและการตรวจร่างกาย",
+            "safety": ""
+          },
+          {
+            "strength": "การประเมินหลายอวัยวะพร้อมกันตั้งแต่ต้น ช่วยให้วางแผนดูแลตามความรุนแรงจริง",
+            "weigh": "ผลที่ปกติในวันนี้ยังเปลี่ยนได้ตามการดำเนินโรค จึงควรแปลผลร่วมกับอาการที่ติดตาม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing tests that **set the severity** shows whether kidneys, liver and platelets are already involved.",
+            "weigh": "This panel grades severity well but does not confirm the causative organism.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding a **urinalysis** can pick up kidney involvement before urine output falls.",
+            "weigh": "These results set severity, while the diagnosis still rests mainly on history and examination.",
+            "safety": ""
+          },
+          {
+            "strength": "Assessing several organs at the start lets care match the real severity of the illness.",
+            "weigh": "Normal results today can change as the illness evolves, so read them alongside his clinical course.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**RDT สครับไทฟัส** ร่วมกับการดูอวัยวะ ให้ทั้งความรุนแรงและข้อมูลแยกโรคในวันเดียว",
+            "weigh": "ความไวของชุดตรวจเร็วยังจำกัด ผลลบจึงตัดโรคนี้ไม่ได้ และควรแปลผลร่วมกับอาการ",
+            "safety": ""
+          },
+          {
+            "strength": "การดูไต ตับ และเกล็ดเลือดไปพร้อมกัน ช่วยวางระดับความรุนแรงได้ครบตั้งแต่ต้น",
+            "weigh": "การไม่พบแผลสะเก็ดดำและอาการปวดน่องมาก ยังเป็นข้อมูลที่ควรชั่งร่วมกับผลตรวจนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ข้อมูลแยกโรคที่ได้วันนี้ ช่วยให้โรงพยาบาลชุมชนตัดสินใจได้โดยไม่ต้องรอที่อื่น",
+            "weigh": "ผลบวกช่วยสนับสนุน แต่ผลลบไม่ควรทำให้ทิ้งเหตุผลทางคลินิกที่มีอยู่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing a **scrub typhus RDT** with organ checks gives severity and diagnostic help on one day.",
+            "weigh": "Rapid test sensitivity is limited, so a negative result does not exclude it and needs clinical context.",
+            "safety": ""
+          },
+          {
+            "strength": "Checking kidneys, liver and platelets together grades severity fully from the start.",
+            "weigh": "The absent eschar and the marked calf pain still deserve weight alongside this result.",
+            "safety": ""
+          },
+          {
+            "strength": "Getting diagnostic help today lets the community hospital decide without waiting on outside labs.",
+            "weigh": "A positive result supports the idea, but a negative one should not override the clinical reasoning.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การเลือก**ชุดตรวจสครับไทฟัส** ช่วยหาหลักฐานแยกโรคได้ตั้งแต่วันนี้",
+            "weigh": "ภาพความรุนแรงจากชุดนี้อาศัยเกล็ดเลือดและไตเป็นหลัก ควรชั่งว่าครอบคลุมพอหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตได้ในวันนี้ ช่วยจับภาวะแทรกซ้อนสำคัญได้เร็ว",
+            "weigh": "การไม่พบแผลสะเก็ดดำและอาการปวดน่องมาก ยังเป็นข้อมูลที่ควรชั่งร่วมกับผลตรวจนี้",
+            "safety": ""
+          },
+          {
+            "strength": "ชุดตรวจนี้กระชับ ได้ผลเร็ว และทำได้จริงในโรงพยาบาลชุมชน",
+            "weigh": "ความไวของชุดตรวจเร็วยังจำกัด ผลลบจึงยังไม่ตัดการวินิจฉัยทางคลินิก",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing a **scrub typhus RDT** looks for diagnostic support from today.",
+            "weigh": "The severity picture here rests on platelets and kidneys, so weigh whether that is complete enough.",
+            "safety": ""
+          },
+          {
+            "strength": "Seeing platelets and kidneys today catches key complications quickly.",
+            "weigh": "The absent eschar and the marked calf pain still deserve weight alongside this result.",
+            "safety": ""
+          },
+          {
+            "strength": "This is a lean, fast panel that a community hospital can run today.",
+            "weigh": "Rapid test sensitivity is limited, so a negative result does not settle the question.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การเลือก **Weil-Felix** ที่ถูกและหาง่าย แสดงการคิดถึงทรัพยากรของโรงพยาบาลชุมชน",
+            "weigh": "Weil-Felix มีความไวและความจำเพาะต่ำ ผลบวกหรือลบจึงชี้ขาดการวินิจฉัยได้ยาก",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตร่วมด้วย ช่วยให้ได้ภาพความรุนแรงพื้นฐานในวันนี้",
+            "weigh": "ในไข้ระยะแรกการตรวจนี้มักยังไม่ขึ้น ผลลบจึงไม่ได้บอกว่าไม่ใช่โรคที่สงสัย",
+            "safety": ""
+          },
+          {
+            "strength": "การใช้การตรวจที่**มีในหลายโรงพยาบาล** ทำให้แผนนี้ทำได้จริงในพื้นที่",
+            "weigh": "ความแม่นยำของการตรวจนี้จำกัด จึงควรให้น้ำหนักกับประวัติและอาการมากกว่าผลตรวจ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing the cheap, **widely available** Weil-Felix shows awareness of community hospital resources.",
+            "weigh": "Weil-Felix has low sensitivity and specificity, so neither result settles the diagnosis.",
+            "safety": ""
+          },
+          {
+            "strength": "Including platelets and kidneys gives a baseline severity picture today.",
+            "weigh": "Early in a fever this test is often still negative, so a negative says little.",
+            "safety": ""
+          },
+          {
+            "strength": "Using a test found in many hospitals keeps the plan workable locally.",
+            "weigh": "Its accuracy is limited, so history and examination should carry more weight than the result.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การหาเชื้อในกระแสเลือด สะท้อนความระวังต่อการติดเชื้อในกระแสเลือดที่อาจรุนแรง",
+            "weigh": "เชื้อที่สงสัยขึ้นยากหรือไม่ขึ้นเลยในการเพาะเชื้อทั่วไป ผลจึงอาจไม่ช่วยวันนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตร่วมกับเพาะเชื้อ ให้ทั้งภาพความรุนแรงและโอกาสพบเชื้อก่อโรค",
+            "weigh": "การเพาะเชื้อทั่วไปใช้เวลาหลายวัน จึงควรชั่งว่าจะช่วยการตัดสินใจวันนี้ได้แค่ไหน",
+            "safety": ""
+          },
+          {
+            "strength": "การเก็บเลือดเพาะเชื้อตั้งแต่ต้น เป็นนิสัยที่ปลอดภัยในผู้ป่วยไข้สูง",
+            "weigh": "ควรชั่งว่าเชื้อที่สงสัยจากประวัติลุยน้ำ ขึ้นในการเพาะเชื้อทั่วไปได้เพียงใด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looking for bacteria in the blood shows caution about a bloodstream infection that could turn severe.",
+            "weigh": "The organisms in question here grow poorly or not at all in routine bottles, so results may not help today.",
+            "safety": ""
+          },
+          {
+            "strength": "Pairing platelets and kidneys with a **blood culture** gives severity and a chance to find the organism.",
+            "weigh": "Routine cultures take days, so weigh how much this changes today's decisions.",
+            "safety": ""
+          },
+          {
+            "strength": "Drawing a culture early is a safe habit in a patient with high fever.",
+            "weigh": "Weigh how well the organisms suggested by his work and the wading grow in a routine culture.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step2.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "การเลือกตรวจที่**บอกความรุนแรง** ช่วยให้รู้ว่าไต ตับ และเกล็ดเลือดได้รับผลหรือยัง",
+            "weigh": "ชุดตรวจนี้วางระดับความรุนแรงได้ แต่ยังไม่ได้ยืนยันว่าเชื้อก่อโรคคืออะไร",
+            "safety": ""
+          },
+          {
+            "strength": "การตรวจปัสสาวะร่วมด้วย ช่วยจับปัญหาที่ไตได้ก่อนปัสสาวะจะออกน้อยลง",
+            "weigh": "ผลชุดนี้ช่วยวางระดับความรุนแรง ส่วนการวินิจฉัยยังอาศัยประวัติและการตรวจร่างกาย",
+            "safety": ""
+          },
+          {
+            "strength": "การประเมินหลายอวัยวะพร้อมกันตั้งแต่ต้น ช่วยให้วางแผนดูแลตามความรุนแรงจริง",
+            "weigh": "ผลที่ปกติในวันนี้ยังเปลี่ยนได้ตามการดำเนินโรค จึงควรแปลผลร่วมกับอาการที่ติดตาม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing tests that **set the severity** shows whether kidneys, liver and platelets are already involved.",
+            "weigh": "This panel grades severity well but does not confirm the causative organism.",
+            "safety": ""
+          },
+          {
+            "strength": "Adding a **urinalysis** can pick up kidney involvement before urine output falls.",
+            "weigh": "These results set severity, while the diagnosis still rests mainly on history and examination.",
+            "safety": ""
+          },
+          {
+            "strength": "Assessing several organs at the start lets care match the real severity of the illness.",
+            "weigh": "Normal results today can change as the illness evolves, so read them alongside his clinical course.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "**NS1 ไข้เลือดออก** ร่วมกับการดูไต ตับ และเกล็ดเลือด ให้คำตอบหลายด้านในคราวเดียว",
+            "weigh": "NS1 ช่วยตอบเรื่องไข้เลือดออก แต่การลุยน้ำท่วมและน่องที่กดเจ็บยังควรได้รับน้ำหนัก",
+            "safety": ""
+          },
+          {
+            "strength": "ไข้วันที่ 3 อยู่ในช่วงที่ NS1 ตรวจพบได้ดี เป็นการเลือกตรวจตามจังหวะของโรค",
+            "weigh": "ผล NS1 ลบลดโอกาสไข้เลือดออกลง แต่ยังไม่ได้บอกว่าไข้ครั้งนี้เกิดจากอะไร",
+            "safety": ""
+          },
+          {
+            "strength": "การประเมินความรุนแรงและหาสาเหตุไปพร้อมกัน ช่วยประหยัดเวลาในโรงพยาบาลชุมชน",
+            "weigh": "เกล็ดเลือดต่ำพบได้ในหลายโรคติดเชื้อ จึงควรแปลผลร่วมกับประวัติสัมผัสน้ำท่วม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing **dengue NS1** with kidney, liver and platelet checks answers several questions in one go.",
+            "weigh": "NS1 addresses dengue, but the flood wading and tender calves still deserve weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Day 3 of fever is when NS1 detects well, so the test fits the timing of the illness.",
+            "weigh": "A negative NS1 makes dengue less likely but does not explain what is causing this fever.",
+            "safety": ""
+          },
+          {
+            "strength": "Grading severity and seeking a cause together saves time at a community hospital.",
+            "weigh": "Low platelets occur in many infections, so read them alongside the flood-water wading.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การเลือก **NS1 ไข้เลือดออก** ในไข้วันที่ 3 ตรงกับช่วงที่การตรวจนี้พบได้ดี",
+            "weigh": "ภาพความรุนแรงจากชุดนี้อาศัยเกล็ดเลือดและไตเป็นหลัก ควรชั่งว่าครอบคลุมพอหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตได้เร็ว ช่วยจับภาวะแทรกซ้อนสำคัญของไข้หน้าฝนได้ทันเวลา",
+            "weigh": "ผล NS1 ลบลดโอกาสไข้เลือดออกลง แต่ยังไม่ได้บอกว่าไข้ครั้งนี้เกิดจากอะไร",
+            "safety": ""
+          },
+          {
+            "strength": "ชุดตรวจนี้กระชับ ได้ผลเร็ว และทำได้จริงในโรงพยาบาลชุมชน",
+            "weigh": "การลุยน้ำท่วมและน่องที่กดเจ็บทั้งสองข้าง ยังเป็นข้อมูลที่ควรชั่งร่วมกับผลตรวจนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **dengue NS1** on day 3 of fever matches when the test detects well.",
+            "weigh": "The severity picture here rests on platelets and kidneys, so weigh whether that is complete enough.",
+            "safety": ""
+          },
+          {
+            "strength": "Seeing platelets and kidneys fast catches key complications of rainy-season fever in time.",
+            "weigh": "A negative NS1 makes dengue less likely but does not explain what is causing this fever.",
+            "safety": ""
+          },
+          {
+            "strength": "This is a lean, fast panel that a community hospital can run today.",
+            "weigh": "The flood wading and tenderness of both calves still deserve weight next to this result.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การเลือกตรวจที่**เร็วและถูก** ช่วยให้เห็นเกล็ดเลือดและไตได้ทันทีในโรงพยาบาลชุมชน",
+            "weigh": "ชุดนี้ไม่มีการตรวจที่มุ่งหาสาเหตุ การวินิจฉัยจึงยังอาศัยประวัติและอาการทั้งหมด",
+            "safety": ""
+          },
+          {
+            "strength": "เกล็ดเลือดและไตเป็นสองค่าที่บอกภาวะแทรกซ้อนสำคัญของไข้หน้าฝนได้",
+            "weigh": "ภาพความรุนแรงจากชุดนี้อาศัยเกล็ดเลือดและไตเป็นหลัก ควรชั่งว่าครอบคลุมพอหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "การตรวจขั้นต่ำที่ได้ผลทันที ช่วยการตัดสินใจเบื้องต้นในพื้นที่ที่ทรัพยากรจำกัด",
+            "weigh": "การลุยน้ำท่วมและน่องที่กดเจ็บทั้งสองข้าง ยังเป็นข้อมูลที่ควรชั่งในการหาสาเหตุ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing quick, cheap tests shows platelets and **kidney function** at once.",
+            "weigh": "None of these tests seeks a cause, so the diagnosis still rests entirely on history and examination.",
+            "safety": ""
+          },
+          {
+            "strength": "Platelets and kidney function flag the key complications of rainy-season fever.",
+            "weigh": "The severity picture here rests on platelets and kidneys, so weigh whether that is complete enough.",
+            "safety": ""
+          },
+          {
+            "strength": "A minimal panel with results at once supports first decisions where resources are tight.",
+            "weigh": "The flood wading and tenderness of both calves still deserve weight in finding the cause.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การมองหาภูมิต่อไข้เลือดออก เป็นการคิดถึงสาเหตุที่พบบ่อยของไข้ในหน้าฝน",
+            "weigh": "IgM มักเริ่มตรวจพบราววันที่ 5 ของไข้ ผลลบในไข้วันที่ 3 จึงบอกได้น้อย",
+            "safety": ""
+          },
+          {
+            "strength": "การดูเกล็ดเลือดและไตร่วมด้วย ช่วยให้ได้ภาพความรุนแรงพื้นฐานในวันนี้",
+            "weigh": "ภาพความรุนแรงจากชุดนี้อาศัยเกล็ดเลือดและไตเป็นหลัก ควรชั่งว่าครอบคลุมพอหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "การใช้ **IgM ไข้เลือดออก** ช่วยหาหลักฐานของการติดเชื้อที่กำลังเกิดขึ้น",
+            "weigh": "การลุยน้ำท่วมและน่องที่กดเจ็บ ยังควรได้รับน้ำหนักไม่น้อยกว่าผลตรวจนี้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looking for **dengue antibodies** targets a common cause of rainy-season fever.",
+            "weigh": "IgM usually appears from about day 5 of fever, so a day-3 negative says little.",
+            "safety": ""
+          },
+          {
+            "strength": "Including platelets and kidneys gives a baseline severity picture today.",
+            "weigh": "The severity picture here rests on platelets and kidneys, so weigh whether that is complete enough.",
+            "safety": ""
+          },
+          {
+            "strength": "Using **dengue IgM** seeks evidence of a current infection.",
+            "weigh": "The flood wading and tender calves deserve at least as much weight as this result.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "การเลือก**ดอกซีไซคลินกิน 7 วัน** ครอบคลุมทั้งสองโรคที่สงสัยด้วยยาตัวเดียว",
+            "weigh": "ควรกินพร้อมน้ำมากพอและไม่นอนทันทีหลังกินยา เพื่อลดการระคายเคืองหลอดอาหาร",
+            "safety": ""
+          },
+          {
+            "strength": "การรักษาด้วยยากิน สอดคล้องกับผู้ป่วยที่ยังรู้สึกตัวดีและปัสสาวะออกปกติ",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด ซึ่งสำคัญกับคนที่ทำงานกลางแจ้งอย่างชาวนา",
+            "safety": ""
+          },
+          {
+            "strength": "คอร์ส 7 วันชัดเจน ผู้ป่วยเข้าใจง่ายและกินครบได้จริง",
+            "weigh": "คำว่าอาการน้อยในวันนี้ยังเปลี่ยนได้ จึงควรชั่งจังหวะการประเมินอาการซ้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **oral doxycycline** covers both suspected infections with a single drug.",
+            "weigh": "Taking it with plenty of water and staying upright afterwards lowers the risk of oesophageal irritation.",
+            "safety": ""
+          },
+          {
+            "strength": "Treating by mouth fits a patient who is alert and passing urine normally.",
+            "weigh": "It makes skin sensitive to sunlight, which matters for a farmer working outdoors.",
+            "safety": ""
+          },
+          {
+            "strength": "A clear 7-day course is easy to explain and realistic to complete.",
+            "weigh": "Mild today can change as the illness runs on, so the timing of reassessment deserves thought.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การเริ่มยาวันนี้พร้อม**นัดดูพรุ่งนี้** ทำให้จับการเปลี่ยนแปลงของโรคได้ภายในหนึ่งวัน",
+            "weigh": "การนัดพรุ่งนี้ต้องดูว่าผู้ป่วยเดินทางกลับมาได้จริง โดยเฉพาะคนที่บ้านไกล",
+            "safety": ""
+          },
+          {
+            "strength": "การอธิบายอาการที่ต้องกลับมาทันที ทำให้ผู้ป่วยเป็นส่วนหนึ่งของการเฝ้าระวังโรค",
+            "weigh": "ควรบอกอาการเตือนด้วยภาษาง่าย เช่น ตาเหลืองหรือปัสสาวะน้อยลง ให้ญาติจำได้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การ**เริ่มยาวันนี้**โดยไม่รอผลยืนยัน สอดคล้องกับโรคที่การรักษาเร็วช่วยลดภาวะแทรกซ้อน",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด ซึ่งควรบอกคนที่ทำงานกลางแจ้งอย่างชาวนาไว้ด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting treatment today with a **review tomorrow** catches any change within a day.",
+            "weigh": "A next-day visit depends on whether he can realistically travel back, especially from far away.",
+            "safety": ""
+          },
+          {
+            "strength": "Explaining the signs to return at once makes him part of watching his own illness.",
+            "weigh": "Warning signs stick when said in plain words, like yellow eyes or less urine, to him and family.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting today without waiting for confirmation fits an illness where prompt treatment limits complications.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight, worth telling a farmer who works outdoors.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**อะซิโทรมัยซิน**กินวันละครั้ง 3 วัน ครอบคลุมทั้งสองโรคและช่วยให้กินครบง่าย",
+            "weigh": "หลักฐานการใช้ยานี้ในทั้งสองโรคมาจากการศึกษาจำนวนไม่มาก จึงควรชั่งข้อนี้ไว้",
+            "safety": ""
+          },
+          {
+            "strength": "การกินยาวันละครั้งเพียง 3 วัน ช่วยให้ผู้ป่วยที่ต้องกลับไปทำงานกินยาได้ครบ",
+            "weigh": "ควรชั่งเรื่องราคาและการมียาในโรงพยาบาลชุมชน เพราะส่งผลต่อการได้ยาจริงของผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "การเลือกยาที่ครอบคลุมทั้งสองโรคที่สงสัย ทำให้เริ่มยาได้โดยไม่ต้องรอผลตรวจแยกโรค",
+            "weigh": "คอร์สสั้นจบเร็ว จึงควรชั่งว่าจะติดตามอาการอย่างไรหลังกินยาครบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **oral azithromycin** covers both infections with a once-daily dose that is easy to finish.",
+            "weigh": "Evidence for this drug across both infections rests on a small number of trials, which is worth weighing.",
+            "safety": ""
+          },
+          {
+            "strength": "One dose a day for 3 days helps a working farmer finish the course.",
+            "weigh": "Cost and stock at a community hospital affect whether he actually gets the drug.",
+            "safety": ""
+          },
+          {
+            "strength": "A drug covering both suspected infections means treatment need not wait for tests that sort them.",
+            "weigh": "A short course ends quickly, so weigh how his progress will be checked afterwards.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การ**รับนอน**เพื่อเฝ้าดูอาการ ช่วยให้จับการเปลี่ยนแปลงของโรคได้เร็วในโรงพยาบาล",
+            "weigh": "ควรชั่งว่าการนอนโรงพยาบาลเพิ่มประโยชน์แค่ไหนในระยะนี้ของโรค",
+            "safety": ""
+          },
+          {
+            "strength": "ยากินครอบคลุมสองโรคพร้อมการสังเกตอาการใกล้ชิด ให้ความมั่นใจทั้งผู้ป่วยและทีม",
+            "weigh": "การนอนโรงพยาบาลมีต้นทุนต่อผู้ป่วยและครอบครัว และเตียงโรงพยาบาลชุมชนก็มีจำกัด",
+            "safety": ""
+          },
+          {
+            "strength": "การเฝ้าดูในโรงพยาบาล ช่วยให้เห็นแนวโน้มของปัสสาวะและอาการได้ต่อเนื่อง",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด และควรกินพร้อมน้ำมากพอโดยไม่นอนทันทีหลังกินยา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Admitting him keeps a close **watch on his course**, catching any change quickly.",
+            "weigh": "Weigh how much a hospital stay adds for him at this stage of the illness.",
+            "safety": ""
+          },
+          {
+            "strength": "Oral treatment covering both infections, with close observation, reassures both him and the team.",
+            "weigh": "A hospital stay costs him and his family, and community hospital beds are limited.",
+            "safety": ""
+          },
+          {
+            "strength": "Watching him in hospital shows the trend in urine output and symptoms as it happens.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight and should be taken upright with plenty of water.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การให้**เซฟไตรอะโซน IV** ร่วมกับยากิน ครอบคลุมทั้งสองโรคระหว่างเฝ้าดูใกล้ชิด",
+            "weigh": "การให้ยาทางหลอดเลือดควรชั่งกับความรุนแรงจริงของโรคในระยะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การเฝ้าดูใกล้ชิดในโรงพยาบาล ช่วยให้ตอบสนองได้ทันหากโรคแย่ลง",
+            "weigh": "ยาฉีดร่วมยากินในผู้ป่วยอาการน้อย ควรชั่งเรื่องเชื้อดื้อยา ค่าใช้จ่าย และเตียง",
+            "safety": ""
+          },
+          {
+            "strength": "การครอบคลุมทั้งสองโรคตั้งแต่ต้น ช่วยลดความกังวลว่าจะรักษาไม่ครอบคลุม",
+            "weigh": "การนอนโรงพยาบาลและให้ยาฉีดเป็นภาระทั้งผู้ป่วยและโรงพยาบาลชุมชน ซึ่งควรชั่งไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**IV ceftriaxone** with doxycycline gives broad cover for both infections under a close watch.",
+            "weigh": "IV treatment deserves weighing against how unwell he really is at this stage.",
+            "safety": ""
+          },
+          {
+            "strength": "A close watch in hospital allows a quick response if the illness worsens.",
+            "weigh": "Pairing IV and oral drugs in a mild case raises questions of resistance, cost and beds.",
+            "safety": ""
+          },
+          {
+            "strength": "Covering both infections from the start eases worry about missing either.",
+            "weigh": "A hospital stay with IV drugs places a burden on him and the community hospital worth weighing.",
+            "safety": ""
+          }
+        ]
+      },
+      "f": {
+        "th": [
+          {
+            "strength": "การให้**เพนิซิลลิน IV** ร่วมกับยากิน ครอบคลุมทั้งสองโรคระหว่างนอนโรงพยาบาล",
+            "weigh": "การให้ยาทางหลอดเลือดควรชั่งกับความรุนแรงจริงของโรคในระยะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "เพนิซิลลินเป็นยาที่ใช้มานาน ราคาไม่แพงและมีในโรงพยาบาลส่วนใหญ่",
+            "weigh": "การให้ยาฉีดหลายครั้งต่อวันต้องใช้แรงพยาบาลและเตียง ซึ่งควรชั่งในผู้ป่วยอาการน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "การครอบคลุมทั้งสองโรคตั้งแต่ต้น ช่วยลดความกังวลว่าจะรักษาไม่ครอบคลุม",
+            "weigh": "ยาฉีดร่วมยากินในผู้ป่วยอาการน้อย ควรชั่งเรื่องเชื้อดื้อยา ค่าใช้จ่าย และเตียง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**IV penicillin** with doxycycline covers both infections during the admission.",
+            "weigh": "IV treatment deserves weighing against how unwell he really is at this stage.",
+            "safety": ""
+          },
+          {
+            "strength": "Penicillin is long established, cheap and stocked in most hospitals.",
+            "weigh": "Dosing an IV drug several times a day takes nursing time and a bed, worth weighing in a mild case.",
+            "safety": ""
+          },
+          {
+            "strength": "Covering both infections from the start eases worry about missing either.",
+            "weigh": "Pairing IV and oral drugs in a mild case raises questions of resistance, cost and beds.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "การเลือก**ดอกซีไซคลินกิน 7 วัน** ครอบคลุมทั้งสองโรคที่สงสัยด้วยยาตัวเดียว",
+            "weigh": "ควรกินพร้อมน้ำมากพอและไม่นอนทันทีหลังกินยา เพื่อลดการระคายเคืองหลอดอาหาร",
+            "safety": ""
+          },
+          {
+            "strength": "การรักษาด้วยยากิน สอดคล้องกับผู้ป่วยที่ยังรู้สึกตัวดีและปัสสาวะออกปกติ",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด ซึ่งสำคัญกับคนที่ทำงานกลางแจ้งอย่างชาวนา",
+            "safety": ""
+          },
+          {
+            "strength": "คอร์ส 7 วันชัดเจน ผู้ป่วยเข้าใจง่ายและกินครบได้จริง",
+            "weigh": "คำว่าอาการน้อยในวันนี้ยังเปลี่ยนได้ จึงควรชั่งจังหวะการประเมินอาการซ้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **oral doxycycline** covers both suspected infections with a single drug.",
+            "weigh": "Taking it with plenty of water and staying upright afterwards lowers the risk of oesophageal irritation.",
+            "safety": ""
+          },
+          {
+            "strength": "Treating by mouth fits a patient who is alert and passing urine normally.",
+            "weigh": "It makes skin sensitive to sunlight, which matters for a farmer working outdoors.",
+            "safety": ""
+          },
+          {
+            "strength": "A clear 7-day course is easy to explain and realistic to complete.",
+            "weigh": "Mild today can change as the illness runs on, so the timing of reassessment deserves thought.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การเริ่มยาพร้อม**สอนอาการเตือน** ทำให้ผู้ป่วยรู้ว่าเมื่อใดต้องกลับมาทันที",
+            "weigh": "ควรบอกอาการเตือนด้วยภาษาง่าย เช่น ตาเหลืองหรือปัสสาวะน้อยลง ให้ญาติจำได้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ผู้ป่วยรู้อาการที่ต้องกลับมา ทำให้เขาเป็นส่วนหนึ่งของการเฝ้าระวังโรค",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด ซึ่งควรบอกคนที่ทำงานกลางแจ้งอย่างชาวนาไว้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การเริ่มยาโดยไม่รอผลยืนยัน สอดคล้องกับโรคที่การรักษาเร็วช่วยลดภาวะแทรกซ้อน",
+            "weigh": "คำแนะนำจะได้ผลเมื่อผู้ป่วยกลับมาได้เร็ว จึงควรชั่งเรื่องระยะทางและการเดินทาง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting treatment with **warning-sign advice** tells him exactly when to return at once.",
+            "weigh": "Warning signs stick when said in plain words, like yellow eyes or less urine, to him and family.",
+            "safety": ""
+          },
+          {
+            "strength": "Naming the signs to come back for makes him part of watching his own illness.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight, worth telling a farmer who works outdoors.",
+            "safety": ""
+          },
+          {
+            "strength": "Starting without waiting for confirmation fits an illness where prompt treatment limits complications.",
+            "weigh": "Advice works only if he can get back quickly, so distance and transport are worth weighing.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**อะซิโทรมัยซิน**กินวันละครั้ง 3 วัน ครอบคลุมทั้งสองโรคและช่วยให้กินครบง่าย",
+            "weigh": "หลักฐานการใช้ยานี้ในทั้งสองโรคมาจากการศึกษาจำนวนไม่มาก จึงควรชั่งข้อนี้ไว้",
+            "safety": ""
+          },
+          {
+            "strength": "การกินยาวันละครั้งเพียง 3 วัน ช่วยให้ผู้ป่วยที่ต้องกลับไปทำงานกินยาได้ครบ",
+            "weigh": "ควรชั่งเรื่องราคาและการมียาในโรงพยาบาลชุมชน เพราะส่งผลต่อการได้ยาจริงของผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "การเลือกยาที่ครอบคลุมทั้งสองโรคที่สงสัย ทำให้เริ่มยาได้โดยไม่ต้องรอผลตรวจแยกโรค",
+            "weigh": "คอร์สสั้นจบเร็ว จึงควรชั่งว่าจะติดตามอาการอย่างไรหลังกินยาครบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **oral azithromycin** covers both infections with a once-daily dose that is easy to finish.",
+            "weigh": "Evidence for this drug across both infections rests on a small number of trials, which is worth weighing.",
+            "safety": ""
+          },
+          {
+            "strength": "One dose a day for 3 days helps a working farmer finish the course.",
+            "weigh": "Cost and stock at a community hospital affect whether he actually gets the drug.",
+            "safety": ""
+          },
+          {
+            "strength": "A drug covering both suspected infections means treatment need not wait for tests that sort them.",
+            "weigh": "A short course ends quickly, so weigh how his progress will be checked afterwards.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การ**รับนอน**เพื่อเฝ้าดูอาการ ช่วยให้จับการเปลี่ยนแปลงของโรคได้เร็วในโรงพยาบาล",
+            "weigh": "ควรชั่งว่าการนอนโรงพยาบาลเพิ่มประโยชน์แค่ไหนในระยะนี้ของโรค",
+            "safety": ""
+          },
+          {
+            "strength": "ยากินครอบคลุมสองโรคพร้อมการสังเกตอาการใกล้ชิด ให้ความมั่นใจทั้งผู้ป่วยและทีม",
+            "weigh": "การนอนโรงพยาบาลมีต้นทุนต่อผู้ป่วยและครอบครัว และเตียงโรงพยาบาลชุมชนก็มีจำกัด",
+            "safety": ""
+          },
+          {
+            "strength": "การเฝ้าดูในโรงพยาบาล ช่วยให้เห็นแนวโน้มของปัสสาวะและอาการได้ต่อเนื่อง",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด และควรกินพร้อมน้ำมากพอโดยไม่นอนทันทีหลังกินยา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Admitting him keeps a close **watch on his course**, catching any change quickly.",
+            "weigh": "Weigh how much a hospital stay adds for him at this stage of the illness.",
+            "safety": ""
+          },
+          {
+            "strength": "Oral treatment covering both infections, with close observation, reassures both him and the team.",
+            "weigh": "A hospital stay costs him and his family, and community hospital beds are limited.",
+            "safety": ""
+          },
+          {
+            "strength": "Watching him in hospital shows the trend in urine output and symptoms as it happens.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight and should be taken upright with plenty of water.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การให้**เซฟไตรอะโซน IV** ร่วมกับยากิน ครอบคลุมทั้งสองโรคระหว่างเฝ้าดูใกล้ชิด",
+            "weigh": "การให้ยาทางหลอดเลือดควรชั่งกับความรุนแรงจริงของโรคในระยะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การเฝ้าดูใกล้ชิดในโรงพยาบาล ช่วยให้ตอบสนองได้ทันหากโรคแย่ลง",
+            "weigh": "ยาฉีดร่วมยากินในผู้ป่วยอาการน้อย ควรชั่งเรื่องเชื้อดื้อยา ค่าใช้จ่าย และเตียง",
+            "safety": ""
+          },
+          {
+            "strength": "การครอบคลุมทั้งสองโรคตั้งแต่ต้น ช่วยลดความกังวลว่าจะรักษาไม่ครอบคลุม",
+            "weigh": "การนอนโรงพยาบาลและให้ยาฉีดเป็นภาระทั้งผู้ป่วยและโรงพยาบาลชุมชน ซึ่งควรชั่งไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**IV ceftriaxone** with doxycycline gives broad cover for both infections under a close watch.",
+            "weigh": "IV treatment deserves weighing against how unwell he really is at this stage.",
+            "safety": ""
+          },
+          {
+            "strength": "A close watch in hospital allows a quick response if the illness worsens.",
+            "weigh": "Pairing IV and oral drugs in a mild case raises questions of resistance, cost and beds.",
+            "safety": ""
+          },
+          {
+            "strength": "Covering both infections from the start eases worry about missing either.",
+            "weigh": "A hospital stay with IV drugs places a burden on him and the community hospital worth weighing.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step3.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "การเลือก**ดอกซีไซคลินกิน 7 วัน** ครอบคลุมทั้งสองโรคที่สงสัยด้วยยาตัวเดียว",
+            "weigh": "ควรกินพร้อมน้ำมากพอและไม่นอนทันทีหลังกินยา เพื่อลดการระคายเคืองหลอดอาหาร",
+            "safety": ""
+          },
+          {
+            "strength": "การรักษาด้วยยากิน สอดคล้องกับผู้ป่วยที่ยังรู้สึกตัวดีและปัสสาวะออกปกติ",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด ซึ่งสำคัญกับคนที่ทำงานกลางแจ้งอย่างชาวนา",
+            "safety": ""
+          },
+          {
+            "strength": "คอร์ส 7 วันชัดเจน ผู้ป่วยเข้าใจง่ายและกินครบได้จริง",
+            "weigh": "คำว่าอาการน้อยในวันนี้ยังเปลี่ยนได้ จึงควรชั่งจังหวะการประเมินอาการซ้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **oral doxycycline** covers both suspected infections with a single drug.",
+            "weigh": "Taking it with plenty of water and staying upright afterwards lowers the risk of oesophageal irritation.",
+            "safety": ""
+          },
+          {
+            "strength": "Treating by mouth fits a patient who is alert and passing urine normally.",
+            "weigh": "It makes skin sensitive to sunlight, which matters for a farmer working outdoors.",
+            "safety": ""
+          },
+          {
+            "strength": "A clear 7-day course is easy to explain and realistic to complete.",
+            "weigh": "Mild today can change as the illness runs on, so the timing of reassessment deserves thought.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การเริ่มยาพร้อม**ตรวจตับวันนี้** ทำให้ประเมินความรุนแรงครบโดยไม่ชะลอการรักษา",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด ซึ่งควรบอกคนที่ทำงานกลางแจ้งอย่างชาวนาไว้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การเติมค่าตับที่ยังขาดอยู่ ช่วยให้ภาพความรุนแรงครบทุกด้านตั้งแต่ต้น",
+            "weigh": "ค่าตับสูงเล็กน้อยพบบ่อยในโรคนี้ ควรแปลผลร่วมกับอาการ ไม่ใช่ดูตัวเลขอย่างเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "การไม่รอผลตับก่อนเริ่มยา ช่วยให้ผู้ป่วยได้รับการรักษาเร็ว",
+            "weigh": "ควรกินยาพร้อมน้ำมากพอและไม่นอนทันทีหลังกินยา เพื่อลดการระคายเคืองหลอดอาหาร",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Starting treatment while adding **liver tests today** completes the severity picture without delaying care.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight, worth telling a farmer who works outdoors.",
+            "safety": ""
+          },
+          {
+            "strength": "Filling in the missing liver results rounds out the severity check from the start.",
+            "weigh": "Mild liver changes are common in this illness, so read them with his symptoms, not alone.",
+            "safety": ""
+          },
+          {
+            "strength": "Not waiting for liver results before the first dose gets treatment started promptly.",
+            "weigh": "Taking it with plenty of water and staying upright afterwards lowers the risk of oesophageal irritation.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "**อะซิโทรมัยซิน**กินวันละครั้ง 3 วัน ครอบคลุมทั้งสองโรคและช่วยให้กินครบง่าย",
+            "weigh": "หลักฐานการใช้ยานี้ในทั้งสองโรคมาจากการศึกษาจำนวนไม่มาก จึงควรชั่งข้อนี้ไว้",
+            "safety": ""
+          },
+          {
+            "strength": "การกินยาวันละครั้งเพียง 3 วัน ช่วยให้ผู้ป่วยที่ต้องกลับไปทำงานกินยาได้ครบ",
+            "weigh": "ควรชั่งเรื่องราคาและการมียาในโรงพยาบาลชุมชน เพราะส่งผลต่อการได้ยาจริงของผู้ป่วย",
+            "safety": ""
+          },
+          {
+            "strength": "การเลือกยาที่ครอบคลุมทั้งสองโรคที่สงสัย ทำให้เริ่มยาได้โดยไม่ต้องรอผลตรวจแยกโรค",
+            "weigh": "คอร์สสั้นจบเร็ว จึงควรชั่งว่าจะติดตามอาการอย่างไรหลังกินยาครบ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing **oral azithromycin** covers both infections with a once-daily dose that is easy to finish.",
+            "weigh": "Evidence for this drug across both infections rests on a small number of trials, which is worth weighing.",
+            "safety": ""
+          },
+          {
+            "strength": "One dose a day for 3 days helps a working farmer finish the course.",
+            "weigh": "Cost and stock at a community hospital affect whether he actually gets the drug.",
+            "safety": ""
+          },
+          {
+            "strength": "A drug covering both suspected infections means treatment need not wait for tests that sort them.",
+            "weigh": "A short course ends quickly, so weigh how his progress will be checked afterwards.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การ**รับนอน**เพื่อเฝ้าดูอาการ ช่วยให้จับการเปลี่ยนแปลงของโรคได้เร็วในโรงพยาบาล",
+            "weigh": "ควรชั่งว่าการนอนโรงพยาบาลเพิ่มประโยชน์แค่ไหนในระยะนี้ของโรค",
+            "safety": ""
+          },
+          {
+            "strength": "ยากินครอบคลุมสองโรคพร้อมการสังเกตอาการใกล้ชิด ให้ความมั่นใจทั้งผู้ป่วยและทีม",
+            "weigh": "การนอนโรงพยาบาลมีต้นทุนต่อผู้ป่วยและครอบครัว และเตียงโรงพยาบาลชุมชนก็มีจำกัด",
+            "safety": ""
+          },
+          {
+            "strength": "การเฝ้าดูในโรงพยาบาล ช่วยให้เห็นแนวโน้มของปัสสาวะและอาการได้ต่อเนื่อง",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด และควรกินพร้อมน้ำมากพอโดยไม่นอนทันทีหลังกินยา",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Admitting him keeps a close **watch on his course**, catching any change quickly.",
+            "weigh": "Weigh how much a hospital stay adds for him at this stage of the illness.",
+            "safety": ""
+          },
+          {
+            "strength": "Oral treatment covering both infections, with close observation, reassures both him and the team.",
+            "weigh": "A hospital stay costs him and his family, and community hospital beds are limited.",
+            "safety": ""
+          },
+          {
+            "strength": "Watching him in hospital shows the trend in urine output and symptoms as it happens.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight and should be taken upright with plenty of water.",
+            "safety": ""
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การให้**เซฟไตรอะโซน IV** ร่วมกับยากิน ครอบคลุมทั้งสองโรคระหว่างเฝ้าดูใกล้ชิด",
+            "weigh": "การให้ยาทางหลอดเลือดควรชั่งกับความรุนแรงจริงของโรคในระยะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การเฝ้าดูใกล้ชิดในโรงพยาบาล ช่วยให้ตอบสนองได้ทันหากโรคแย่ลง",
+            "weigh": "ยาฉีดร่วมยากินในผู้ป่วยอาการน้อย ควรชั่งเรื่องเชื้อดื้อยา ค่าใช้จ่าย และเตียง",
+            "safety": ""
+          },
+          {
+            "strength": "การครอบคลุมทั้งสองโรคตั้งแต่ต้น ช่วยลดความกังวลว่าจะรักษาไม่ครอบคลุม",
+            "weigh": "การนอนโรงพยาบาลและให้ยาฉีดเป็นภาระทั้งผู้ป่วยและโรงพยาบาลชุมชน ซึ่งควรชั่งไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**IV ceftriaxone** with doxycycline gives broad cover for both infections under a close watch.",
+            "weigh": "IV treatment deserves weighing against how unwell he really is at this stage.",
+            "safety": ""
+          },
+          {
+            "strength": "A close watch in hospital allows a quick response if the illness worsens.",
+            "weigh": "Pairing IV and oral drugs in a mild case raises questions of resistance, cost and beds.",
+            "safety": ""
+          },
+          {
+            "strength": "Covering both infections from the start eases worry about missing either.",
+            "weigh": "A hospital stay with IV drugs places a burden on him and the community hospital worth weighing.",
+            "safety": ""
+          }
+        ]
+      },
+      "f": {
+        "th": [
+          {
+            "strength": "การให้**เพนิซิลลิน IV** ร่วมกับยากิน ครอบคลุมทั้งสองโรคระหว่างนอนโรงพยาบาล",
+            "weigh": "การให้ยาทางหลอดเลือดควรชั่งกับความรุนแรงจริงของโรคในระยะนี้",
+            "safety": ""
+          },
+          {
+            "strength": "เพนิซิลลินเป็นยาที่ใช้มานาน ราคาไม่แพงและมีในโรงพยาบาลส่วนใหญ่",
+            "weigh": "การให้ยาฉีดหลายครั้งต่อวันต้องใช้แรงพยาบาลและเตียง ซึ่งควรชั่งในผู้ป่วยอาการน้อย",
+            "safety": ""
+          },
+          {
+            "strength": "การครอบคลุมทั้งสองโรคตั้งแต่ต้น ช่วยลดความกังวลว่าจะรักษาไม่ครอบคลุม",
+            "weigh": "ยาฉีดร่วมยากินในผู้ป่วยอาการน้อย ควรชั่งเรื่องเชื้อดื้อยา ค่าใช้จ่าย และเตียง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "**IV penicillin** with doxycycline covers both infections during the admission.",
+            "weigh": "IV treatment deserves weighing against how unwell he really is at this stage.",
+            "safety": ""
+          },
+          {
+            "strength": "Penicillin is long established, cheap and stocked in most hospitals.",
+            "weigh": "Dosing an IV drug several times a day takes nursing time and a bed, worth weighing in a mild case.",
+            "safety": ""
+          },
+          {
+            "strength": "Covering both infections from the start eases worry about missing either.",
+            "weigh": "Pairing IV and oral drugs in a mild case raises questions of resistance, cost and beds.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "การให้ยาจน**ครบ 7 วัน**ตามแผนเดิม สอดคล้องกับอาการที่ดีขึ้นชัด",
+            "weigh": "อาการดีขึ้นแล้วอาจทำให้ผู้ป่วยหยุดยาเอง จึงควรชั่งว่าจะช่วยให้กินครบได้อย่างไร",
+            "safety": ""
+          },
+          {
+            "strength": "การยึดคอร์สเดิมเมื่ออาการตอบสนอง ช่วยหลีกเลี่ยงการใช้ยาเกินจำเป็น",
+            "weigh": "การดีขึ้นเร็วเป็นสัญญาณที่น่าอุ่นใจ แต่โรคนี้ยังมีภาวะแทรกซ้อนช่วงหลังได้",
+            "safety": ""
+          },
+          {
+            "strength": "การอ่านการตอบสนองจากอาการและสภาพผู้ป่วย เป็นการประเมินทางคลินิกที่ดี",
+            "weigh": "ยานี้ยังทำให้ผิวไวต่อแดด ซึ่งสำคัญกับชาวนาที่ทำงานกลางแจ้งตลอดคอร์ส",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Keeping to the **planned course** fits a clear clinical improvement.",
+            "weigh": "Feeling better can tempt him to stop the drug, so adherence is worth weighing.",
+            "safety": ""
+          },
+          {
+            "strength": "Holding to the original course once he responds avoids more antibiotic than he needs.",
+            "weigh": "Early improvement is reassuring, though this illness can still bring later complications.",
+            "safety": ""
+          },
+          {
+            "strength": "Reading the response from how he looks and feels is a sound clinical assessment.",
+            "weigh": "Doxycycline still makes skin sensitive to sunlight, which matters for a farmer working outdoors.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การให้ยาครบพร้อม**สอนอาการเตือน** ทำให้ผู้ป่วยรู้ว่าเมื่อใดต้องกลับมาทันที",
+            "weigh": "ควรบอกอาการเตือนด้วยภาษาง่าย เช่น ตาเหลืองหรือปัสสาวะน้อยลง ให้ญาติจำได้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การจบการรักษาโดยให้ผู้ป่วยช่วยเฝ้าระวังเอง ลดการนัดที่ไม่จำเป็นในคนที่ดีขึ้นแล้ว",
+            "weigh": "อาการดีขึ้นแล้วอาจทำให้ผู้ป่วยหยุดยาเอง จึงควรเน้นให้กินยาจนครบ",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ยาครบตามแผนเมื่ออาการดีขึ้น หลีกเลี่ยงการใช้ยาเกินจำเป็น",
+            "weigh": "ควรชั่งว่าผู้ป่วยเดินทางกลับมาได้เร็วเพียงใดหากมีอาการเตือน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Finishing the course with **return advice** tells him exactly when to come back at once.",
+            "weigh": "Warning signs stick when said in plain words, like yellow eyes or less urine, to him and family.",
+            "safety": ""
+          },
+          {
+            "strength": "Ending treatment with him watching for signs avoids extra visits once he is better.",
+            "weigh": "Feeling better can tempt him to stop the drug, so adherence is worth stressing.",
+            "safety": ""
+          },
+          {
+            "strength": "Completing the planned treatment as he improves avoids more antibiotic than he needs.",
+            "weigh": "Weigh how quickly he could get back if a warning sign appeared.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การตรวจเลือดซ้ำ ช่วยยืนยันด้วยตัวเลขว่าเกล็ดเลือดกลับขึ้นและไตยังปกติ",
+            "weigh": "อาการดีขึ้นชัดเจนแล้ว จึงควรชั่งว่าผลเลือดซ้ำจะเปลี่ยนการดูแลได้มากน้อยเพียงใด",
+            "safety": ""
+          },
+          {
+            "strength": "การไม่ตัดสินจากอาการอย่างเดียว แสดงความรอบคอบต่อภาวะแทรกซ้อนที่อาจไม่มีอาการ",
+            "weigh": "การเจาะเลือดซ้ำมีค่าใช้จ่ายและใช้เวลาผู้ป่วย ควรชั่งกับประโยชน์ในคนที่ดีขึ้นแล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "การดูว่า**เกล็ดเลือดกลับขึ้น** เป็นวิธีติดตามการฟื้นตัวที่วัดได้ชัด",
+            "weigh": "ในผู้ป่วยที่อาการดีขึ้น ผลตรวจซ้ำอาจไม่เปลี่ยนแผน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Repeating bloods checks with numbers whether platelets are rising and the kidneys stay normal.",
+            "weigh": "He is clearly better, so weigh how much a repeat result would change his care.",
+            "safety": ""
+          },
+          {
+            "strength": "Not judging on symptoms alone shows care about complications that can be silent.",
+            "weigh": "Repeat bloods cost him money and time, worth weighing against the gain in a recovering patient.",
+            "safety": ""
+          },
+          {
+            "strength": "Watching whether **platelets are rising** gives a measurable sign of recovery.",
+            "weigh": "In a patient who is improving, a repeat count may not change the plan.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การใส่ใจความมั่นใจของผู้ป่วยต่อการรักษา เป็นมุมมองที่ช่วยสร้างความร่วมมือ",
+            "weigh": "ยาที่นานขึ้นเพิ่มผลข้างเคียงและเชื้อดื้อยา ขณะที่อาการตอบสนองดีอยู่แล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ยาที่ผู้ป่วยทนได้อยู่แล้วต่อไป ทำให้ไม่ต้องเปลี่ยนยาหรือปรับวิธีกิน",
+            "weigh": "การใช้ยาปฏิชีวนะนานเกินความจำเป็น เพิ่มโอกาสเชื้อดื้อยาในชุมชน ซึ่งควรชั่งไว้",
+            "safety": ""
+          },
+          {
+            "strength": "การคิดถึงความกังวลของผู้ป่วยหลังเจ็บป่วย สะท้อนการดูแลที่เห็นผู้ป่วยเป็นคน",
+            "weigh": "ยานี้ทำให้ผิวไวต่อแดด การกินนานขึ้นจึงยืดช่วงเสี่ยงของชาวนาที่ทำงานกลางแจ้ง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Attending to his confidence in treatment shows respect for his perspective.",
+            "weigh": "His response on the present course is clear, so weigh the added side effects and resistance of a longer one.",
+            "safety": ""
+          },
+          {
+            "strength": "Staying on a drug he already tolerates avoids any switch or new dosing to learn.",
+            "weigh": "Antibiotic use beyond need adds to resistance in the community, which is worth weighing.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinking about his worries after an illness reflects patient-centred care.",
+            "weigh": "Doxycycline makes skin sensitive to sunlight, so a longer course stretches the risk for an outdoor farmer.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "การ**ตรวจเลือดซ้ำวันนี้**เมื่อหายช้า ช่วยจับการเปลี่ยนของไต ตับ และเกล็ดเลือดได้ทัน",
+            "weigh": "ไข้ที่ลดช้าในช่วงแรกของยายังพบได้ จึงควรแปลผลเลือดร่วมกับแนวโน้มอาการ",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ยาต่อโดยไม่เปลี่ยนเร็วเกินไป ให้เวลายาออกฤทธิ์ขณะยังเฝ้าดูความรุนแรง",
+            "weigh": "ค่าที่เพี้ยนเล็กน้อยพบได้ระหว่างฟื้นตัว จึงควรดูแนวโน้มมากกว่าตัวเลขครั้งเดียว",
+            "safety": ""
+          },
+          {
+            "strength": "การไม่นิ่งนอนใจเมื่อการตอบสนองช้ากว่าคาด แสดงการเฝ้าระวังภาวะแทรกซ้อนอย่างรอบคอบ",
+            "weigh": "ควรชั่งว่าผลที่ได้จะเปลี่ยนการดูแลอย่างไร ทั้งเมื่อผลปกติและไม่ปกติ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Choosing to **repeat bloods today** for a slow recovery catches kidney, liver or platelet change in time.",
+            "weigh": "A fever easing slowly early in treatment is not unusual, so read bloods alongside the trend.",
+            "safety": ""
+          },
+          {
+            "strength": "Continuing the drug without changing too soon gives it time to work while severity is watched.",
+            "weigh": "Mild abnormalities can occur during recovery, so the trend matters more than a single value.",
+            "safety": ""
+          },
+          {
+            "strength": "Not settling when the response is slower than expected shows careful watch for complications.",
+            "weigh": "Weigh how the results would change his care, whether they come back normal or not.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การ**นัดดูทุกวัน** ช่วยจับตาเหลืองหรือปัสสาวะน้อยได้ตั้งแต่เริ่มมีอาการ",
+            "weigh": "การนัดดูทุกวันใช้เวลาทั้งผู้ป่วยและทีม ซึ่งควรชั่งกับความเสี่ยงของเขา",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ยาต่อพร้อมเฝ้าดูใกล้ชิด ให้เวลายาออกฤทธิ์โดยไม่ละเลยสัญญาณอันตราย",
+            "weigh": "ไข้ที่ลดช้าในช่วงแรกของยายังพบได้ การนัดดูจึงควรมีเกณฑ์ว่าเมื่อใดต้องทำเพิ่ม",
+            "safety": ""
+          },
+          {
+            "strength": "การพบผู้ป่วยทุกวันทำให้เห็นแนวโน้มของไข้และปวดน่อง ซึ่งบอกการตอบสนองต่อยาได้ตรง",
+            "weigh": "ควรตกลงกับผู้ป่วยว่าหากตาเหลืองหรือปัสสาวะน้อย ให้แจ้งทันทีไม่ต้องรอรอบดูอาการถัดไป",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **daily review** catches jaundice or low urine as soon as they begin.",
+            "weigh": "Daily review takes his and the team's time, worth weighing against his risk.",
+            "safety": ""
+          },
+          {
+            "strength": "Continuing the drug with close watch gives it time to work without missing danger signs.",
+            "weigh": "A fever easing slowly early in treatment is not unusual, so set clear triggers for doing more.",
+            "safety": ""
+          },
+          {
+            "strength": "Seeing him each day shows the trend in fever and calf pain, a direct read of his response.",
+            "weigh": "Agree with him that yellow eyes or little urine mean telling staff at once, not waiting for the next review.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การให้**ยาเดิมจนครบคอร์ส** สอดคล้องกับไข้ที่ลดลงบางส่วน และไม่เปลี่ยนยาเร็วเกินไป",
+            "weigh": "การตอบสนองที่ช้ากว่าคาดยังเกิดภาวะแทรกซ้อนได้ จึงควรชั่งว่าจะเฝ้าระวังอย่างไร",
+            "safety": ""
+          },
+          {
+            "strength": "การให้เวลายาออกฤทธิ์ เป็นการยอมรับว่าไข้ในโรคนี้อาจลดลงทีละน้อย",
+            "weigh": "ควรชั่งว่าอาการแบบใดจะบอกว่าโรคไม่ไปตามคาด",
+            "safety": ""
+          },
+          {
+            "strength": "การยึดแผนเดิมเมื่ออาการดีขึ้นบ้าง ทำให้การรักษาเรียบง่ายและผู้ป่วยทำตามได้ง่าย",
+            "weigh": "ไข้ที่ลดช้ากว่าคาดควรชั่งว่า หากเกิดภาวะแทรกซ้อนระหว่างนี้จะรู้ได้อย่างไร",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Staying with the **course in hand** fits a partly settled fever and avoids switching too soon.",
+            "weigh": "A slower-than-expected response can still bring complications, so weigh how he will be watched.",
+            "safety": ""
+          },
+          {
+            "strength": "Giving the drug time to work accepts that fever in this illness may ease gradually.",
+            "weigh": "Weigh which signs would show the illness is going off track.",
+            "safety": ""
+          },
+          {
+            "strength": "Holding to the plan as he improves keeps his treatment simple and easy to follow.",
+            "weigh": "A fever easing more slowly than expected is worth weighing for how a complication would be noticed.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การ**คุมไข้**ให้ผู้ป่วยกินและนอนได้ เป็นการใส่ใจความสุขสบายระหว่างรอยาออกฤทธิ์",
+            "weigh": "ยาลดไข้ทำให้สบายขึ้น แต่ไม่ได้ตอบคำถามว่าทำไมผู้ป่วยหายช้ากว่าคาด",
+            "safety": ""
+          },
+          {
+            "strength": "การให้พาราเซตามอลตามเวลา ช่วยให้ไข้ไม่ขึ้นลงจนผู้ป่วยอ่อนเพลีย",
+            "weigh": "การคุมไข้ตลอดเวลาอาจบดบังเส้นไข้ ที่ใช้บอกว่าผู้ป่วยตอบสนองต่อการรักษาหรือไม่",
+            "safety": ""
+          },
+          {
+            "strength": "พาราเซตามอลลดไข้ได้โดยไม่กระทบเกล็ดเลือด ซึ่งสำคัญในไข้ติดเชื้อชนบท",
+            "weigh": "ควรชั่งขนาดยารวมต่อวันให้ปลอดภัยต่อตับ โดยเฉพาะเมื่อกินทุก 6 ชั่วโมง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Controlling the fever so he can **eat and sleep** attends to his comfort while treatment works.",
+            "weigh": "Fever relief eases him but does not answer why his recovery is slower than expected.",
+            "safety": ""
+          },
+          {
+            "strength": "Scheduled paracetamol keeps the fever from swinging and wearing him out.",
+            "weigh": "Round-the-clock fever control can mask the fever curve that shows whether treatment is working.",
+            "safety": ""
+          },
+          {
+            "strength": "Paracetamol relieves fever without affecting platelets, which matters in a rural fever.",
+            "weigh": "Weigh the total dose per day to keep the liver safe when it is given every 6 hours.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step4.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "การให้**สารน้ำอย่างระวัง**พร้อมติดตามปัสสาวะ ช่วยชดเชยน้ำที่อาจขาดโดยไม่ให้น้ำเกิน",
+            "weigh": "ควรกำหนดเกณฑ์ไว้ล่วงหน้าว่าปัสสาวะหรือโพแทสเซียมระดับใดที่ต้องเปลี่ยนแผน",
+            "safety": ""
+          },
+          {
+            "strength": "การติดตามโพแทสเซียมใกล้ชิด ช่วยจับระดับที่อันตรายต่อหัวใจได้ก่อนเกิดปัญหา",
+            "weigh": "ควรชั่งว่าโรงพยาบาลติดตามค่าเหล่านี้ได้ถี่พอหรือไม่ ในช่วงที่ไตกำลังแย่ลง",
+            "safety": ""
+          },
+          {
+            "strength": "การวัดปริมาณปัสสาวะต่อเนื่อง ทำให้เห็นแนวโน้มของไตได้ทุกชั่วโมงที่ผ่านไป",
+            "weigh": "การให้สารน้ำในผู้ป่วยปัสสาวะน้อยต้องประเมินน้ำในร่างกายบ่อย เพื่อไม่ให้น้ำเกิน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving **careful fluids** while tracking urine makes up any deficit without overloading him.",
+            "weigh": "Set thresholds in advance for the urine output or potassium that would change the plan.",
+            "safety": ""
+          },
+          {
+            "strength": "Close tracking of **potassium** catches a level dangerous to the heart before it causes harm.",
+            "weigh": "Weigh whether the hospital can check these often enough while his kidneys are worsening.",
+            "safety": ""
+          },
+          {
+            "strength": "Measuring urine output continuously shows the trend in his kidneys hour by hour.",
+            "weigh": "Fluids in a patient passing little urine need frequent volume checks so he is not overloaded.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การส่งต่อตั้งแต่ปัสสาวะเริ่มลด ช่วยให้ไปถึงที่**ฟอกไต**ได้ก่อนเข้าสู่ภาวะวิกฤต",
+            "weigh": "ควรชั่งว่าผู้ป่วยคงที่พอสำหรับการเดินทาง และใครจะดูแลระหว่างทาง",
+            "safety": ""
+          },
+          {
+            "strength": "การมองไปข้างหน้าว่าปัสสาวะที่ลดลงอาจต้องฟอกไต เป็นการวางแผนล่วงหน้าที่ปลอดภัย",
+            "weigh": "ไตในโรคนี้มักฟื้นตัวได้ จึงควรอธิบายเหตุผลของการส่งต่อให้ผู้ป่วยและญาติเข้าใจ",
+            "safety": ""
+          },
+          {
+            "strength": "การส่งต่อเร็วช่วยให้ผู้ป่วยอยู่ในที่ที่พร้อมรับมือหากไตแย่ลงอย่างรวดเร็ว",
+            "weigh": "การส่งข้อมูลปัสสาวะและผลเลือดล่าสุดให้ปลายทาง ช่วยให้รับช่วงดูแลได้ต่อเนื่อง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Referring as urine falls gets him to **dialysis** before a crisis forces the move.",
+            "weigh": "Weigh whether he is stable enough to travel and who will watch him on the way.",
+            "safety": ""
+          },
+          {
+            "strength": "Looking ahead to the chance of dialysis is forward planning that keeps him safe.",
+            "weigh": "Renal function in this illness often recovers, so explain the reason for transfer to him and family.",
+            "safety": ""
+          },
+          {
+            "strength": "Early transfer puts him where rapid renal decline can be met.",
+            "weigh": "Sending his urine output and latest blood results ahead helps the receiving team pick up care smoothly.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การให้**น้ำเกลือ** ช่วยแก้ภาวะขาดน้ำที่อาจมีร่วม ซึ่งพบบ่อยในไข้สูงและอาจซ้ำเติมให้ปัสสาวะลดลง",
+            "weigh": "ในผู้ป่วยปัสสาวะน้อย ปริมาณสารน้ำควรอิงการประเมินน้ำในร่างกาย เพื่อไม่ให้น้ำเกิน",
+            "safety": ""
+          },
+          {
+            "strength": "การใช้ครีเอตินีนครั้งถัดไปเป็นตัววัด ทำให้เห็นทิศทางของไตจากตัวเลขที่ชัดเจน",
+            "weigh": "ครีเอตินีนเปลี่ยนช้ากว่าปัสสาวะ ควรชั่งว่าจะรู้ทันอย่างไรหากไตแย่ลงระหว่างรอผล",
+            "safety": ""
+          },
+          {
+            "strength": "การลองให้สารน้ำเป็นขั้นแรกที่ทำได้ทันทีในโรงพยาบาลชุมชน",
+            "weigh": "ควรตั้งเกณฑ์ว่าหลังให้สารน้ำ ปัสสาวะหรือครีเอตินีนแบบใดที่บอกว่าต้องเปลี่ยนแผน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving **IV saline** treats any dehydration, common in high fever, that may be adding to the falling urine.",
+            "weigh": "With little urine, the volume given should follow a fluid-status check so he is not overloaded.",
+            "safety": ""
+          },
+          {
+            "strength": "Using the next creatinine as the gauge reads the kidneys from a clear number.",
+            "weigh": "Creatinine moves more slowly than urine does, so weigh how a decline would be caught while waiting.",
+            "safety": ""
+          },
+          {
+            "strength": "A fluid trial is a first step the community hospital can take at once.",
+            "weigh": "Set in advance which urine or creatinine result after the fluid means the plan must change.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การมองหา**การอุดกั้น** แสดงว่าไม่ด่วนสรุปสาเหตุของปัสสาวะที่น้อยลง",
+            "weigh": "ในไข้จากการติดเชื้อแบบนี้ การอุดกั้นพบไม่บ่อย จึงควรชั่งว่าผลจะเปลี่ยนแผนแค่ไหน",
+            "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
+          },
+          {
+            "strength": "อัลตราซาวด์ทำได้ข้างเตียง ไม่เจ็บ และไม่ใช้สารทึบรังสีที่อาจกระทบไต",
+            "weigh": "ระหว่างรอตรวจ ปัสสาวะอาจลดลงต่อได้เร็ว จึงควรชั่งเรื่องเวลา",
+            "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
+          },
+          {
+            "strength": "การแยกสาเหตุหลังไตออก เป็นหลักคิดพื้นฐานเมื่อปัสสาวะลดลง",
+            "weigh": "ผลอัลตราซาวด์ที่ปกติจะไม่ได้ช่วยดูแลไตที่บาดเจ็บจากการติดเชื้อโดยตรง",
+            "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Looking for a **blockage** shows a refusal to assume the cause of falling urine.",
+            "weigh": "In this febrile infection a blockage is uncommon, so weigh how much the result would change the plan.",
+            "safety": "Falling urine in this infection can turn dangerous within hours."
+          },
+          {
+            "strength": "An ultrasound is bedside, painless and needs no contrast that could stress the kidneys.",
+            "weigh": "Urine output can fall further while he waits for the scan, so timing is worth weighing.",
+            "safety": "Falling urine in this infection can turn dangerous within hours."
+          },
+          {
+            "strength": "Excluding a post-renal cause is a basic step in reading falling urine output.",
+            "weigh": "A normal scan does not by itself help kidneys injured by the infection.",
+            "safety": "Falling urine in this infection can turn dangerous within hours."
+          }
+        ]
+      }
+    },
+    "step5.B": {
+      "a": {
+        "th": [
+          {
+            "strength": "การ**สอนป้องกันโรค**ก่อนจำหน่าย ใช้จังหวะที่ผู้ป่วยเพิ่งป่วยมาและพร้อมรับฟัง",
+            "weigh": "บูทและถุงมือช่วยได้เมื่อผู้ป่วยหาได้และใส่ทำงานได้จริง จึงควรชั่งข้อจำกัดในนา",
+            "safety": ""
+          },
+          {
+            "strength": "การเน้นบูทและถุงมือเมื่อลุยน้ำ ตรงกับทางเข้าของเชื้อจากน้ำและดินที่ปนเปื้อน",
+            "weigh": "ผู้ป่วยกลับไปทำนาในฤดูเดิม ความเสี่ยงจึงยังอยู่ และคำแนะนำต้องปฏิบัติได้จริง",
+            "safety": ""
+          },
+          {
+            "strength": "การมองไปที่การติดเชื้อครั้งหน้า ทำให้การดูแลครอบคลุมเกินกว่าการรักษาครั้งนี้",
+            "weigh": "แผลที่มือและเท้าเป็นทางเข้าของเชื้อ จึงควรชั่งเรื่องการดูแลแผลระหว่างทำนาด้วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Giving **prevention advice** at discharge uses a moment when he has just been ill and is ready to listen.",
+            "weigh": "Boots and gloves help only if he can get them and work in them, so weigh field realities.",
+            "safety": ""
+          },
+          {
+            "strength": "Stressing boots and gloves in flood water blocks entry through skin from contaminated water and soil.",
+            "weigh": "He is going back to the same fields, so the risk remains and the advice must be practical.",
+            "safety": ""
+          },
+          {
+            "strength": "Looking ahead to the next exposure extends his care beyond this episode.",
+            "weigh": "Cuts on hands and feet let the organism in, so wound care during field work deserves weight.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การสอน**อาการทางตา**ก่อนจำหน่าย ช่วยให้จับม่านตาอักเสบที่มาช้าได้ทัน",
+            "weigh": "ควรบอกอาการให้จับต้องได้ เช่น ตาแดง ปวดตา ตาพร่า หรือเห็นจุดลอย และให้รีบมาพบ",
+            "safety": ""
+          },
+          {
+            "strength": "การรู้ว่า**ม่านตาอักเสบ**อาจตามมาหลายเดือน แสดงความเข้าใจภาวะแทรกซ้อนระยะหลังของโรค",
+            "weigh": "ตาแดงตอนป่วยอาจทำให้ผู้ป่วยสับสน จึงควรอธิบายความต่างของอาการใหม่ให้ชัด",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ผู้ป่วยรู้สัญญาณเตือนเอง ช่วยเฝ้าระวังได้ต่อเนื่องโดยไม่ต้องนัดถี่",
+            "weigh": "ภาวะนี้เกิดไม่บ่อยแต่กระทบการมองเห็น ควรชั่งว่าจะสื่ออย่างไรให้จำได้นานหลายเดือน",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Teaching **eye warning signs** at discharge helps catch late uveitis in time.",
+            "weigh": "Make the signs concrete, such as a red or painful eye, blurred vision or floaters, needing prompt review.",
+            "safety": ""
+          },
+          {
+            "strength": "Knowing **uveitis** can follow by months shows grasp of the illness's late complications.",
+            "weigh": "His red eyes during the illness may confuse him, so explain how new eye symptoms differ.",
+            "safety": ""
+          },
+          {
+            "strength": "Letting him know the warning signs keeps watch going without frequent visits.",
+            "weigh": "Uveitis is uncommon but threatens sight, so weigh how to make the message last for months.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การ**โทรติดตาม**สั้น ๆ ช่วยเช็กการฟื้นตัวโดยผู้ป่วยไม่ต้องเสียเวลาทำนา",
+            "weigh": "การโทรตรวจร่างกายไม่ได้ จึงควรชั่งว่าคำตอบแบบใดที่ต้องให้ผู้ป่วยมาพบ",
+            "safety": ""
+          },
+          {
+            "strength": "การติดตามที่ประหยัดสำหรับผู้ป่วยที่หายดีแล้ว ช่วยใช้ทรัพยากรได้พอดีกับความเสี่ยง",
+            "weigh": "ผู้ป่วยทำนาเป็นอาชีพ จึงควรนัดเวลาโทรที่เขารับสายได้จริง",
+            "safety": ""
+          },
+          {
+            "strength": "การยังคงติดต่อหลังหาย แสดงความต่อเนื่องของการดูแลโดยไม่เป็นภาระ",
+            "weigh": "ภาวะแทรกซ้อนบางอย่างอาจมาช้ากว่าหนึ่งสัปดาห์ ควรชั่งว่าโทรครั้งเดียวพอหรือไม่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A short **phone follow-up** checks recovery without costing him a day in the fields.",
+            "weigh": "A call cannot examine him, so weigh which answers would prompt a visit.",
+            "safety": ""
+          },
+          {
+            "strength": "Low-cost follow-up for a patient who is well uses resources in proportion.",
+            "weigh": "He farms for a living, so a call time he can actually answer matters.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeping in touch after recovery shows continuity of care without adding burden.",
+            "weigh": "Some complications of this illness can arise after a week, so weigh whether one call covers enough.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การใส่ใจเรื่องไตหลังป่วย แสดงการคำนึงถึงภาวะแทรกซ้อนสำคัญของโรคนี้",
+            "weigh": "การตรวจทุกเดือนนาน 6 เดือนควรชั่งกับค่าเดินทางและเวลาทำนาของเขา",
+            "safety": ""
+          },
+          {
+            "strength": "การตรวจสม่ำเสมอช่วยให้ผู้ป่วยมั่นใจและคลายความกังวลเรื่องไต",
+            "weigh": "ค่าไตที่ปกติหลังหายดีมักคงปกติต่อไป ผลที่ได้จึงอาจไม่เปลี่ยนการดูแล",
+            "safety": ""
+          },
+          {
+            "strength": "การนึกถึงมุมมองของผู้ป่วยต่อความกังวลเรื่องไต ช่วยสร้างความไว้วางใจ",
+            "weigh": "การตรวจถี่ขนาดนี้อาจเพิ่มความกังวลมากกว่าลด จึงควรชั่งประโยชน์กับภาระที่เกิดขึ้น",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Attention to the kidneys after illness reflects a key complication of this disease.",
+            "weigh": "Monthly checks for 6 months weigh against his travel and farm time.",
+            "safety": ""
+          },
+          {
+            "strength": "**Regular tests** can reassure him and ease worry about his kidneys.",
+            "weigh": "Kidney tests that are normal after recovery usually stay normal, so results may not change care.",
+            "safety": ""
+          },
+          {
+            "strength": "Considering his own worry about his kidneys helps build trust.",
+            "weigh": "Testing this often can raise worry rather than ease it, so weigh the gain against the burden.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.R": {
+      "a": {
+        "th": [
+          {
+            "strength": "การนัด**ตรวจค่าไตและ CBC** ยืนยันการฟื้นตัวด้วยตัวเลข ไม่ใช่จากความรู้สึกอย่างเดียว",
+            "weigh": "อ่อนเพลียหลังป่วยอาจนานหลายสัปดาห์ ผลเลือดที่ปกติจึงไม่ได้แปลว่าจะหายเพลียทันที",
+            "safety": ""
+          },
+          {
+            "strength": "การยืนยันว่าเกล็ดเลือดกลับมาเต็มที่ ช่วยปิดประเด็นค่าที่ต่ำระหว่างป่วย",
+            "weigh": "ควรชั่งว่าผลนี้จะเปลี่ยนการดูแลอย่างไร ในผู้ป่วยที่ไม่มีไข้แล้ว",
+            "safety": ""
+          },
+          {
+            "strength": "การนัดหนึ่งสัปดาห์ให้เวลาค่าต่าง ๆ ฟื้นตัวก่อนตรวจซ้ำ",
+            "weigh": "การมาเจาะเลือดมีค่าเดินทางและเวลาทำนา ซึ่งควรชั่งกับความเสี่ยงที่เหลืออยู่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Booking **kidney tests and CBC** confirms recovery with numbers, not impressions alone.",
+            "weigh": "Tiredness after this illness is common and can last weeks, so normal bloods may not end it.",
+            "safety": ""
+          },
+          {
+            "strength": "Confirming that platelets are fully back closes out an abnormality seen during the illness.",
+            "weigh": "Weigh how the results would change care in a patient who is now free of fever.",
+            "safety": ""
+          },
+          {
+            "strength": "A one-week gap gives the values time to recover before the recheck.",
+            "weigh": "A trip for bloods costs him travel and farm time, worth weighing against the remaining risk.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การ**นัดดูอาการ**ร่วมกับสอนอาการเตือน ทำให้มีทั้งวันนัดที่ชัดและทางกลับมาก่อนนัด",
+            "weigh": "ควรบอกอาการเตือนด้วยภาษาง่าย เช่น ตาเหลือง ปัสสาวะน้อย หรือไข้กลับมา",
+            "safety": ""
+          },
+          {
+            "strength": "การเห็นผู้ป่วยอีกครั้ง ช่วยประเมินอาการอ่อนเพลียด้วยการซักประวัติและตรวจร่างกาย",
+            "weigh": "อ่อนเพลียหลังป่วยอาจนานหลายสัปดาห์ การบอกไว้ก่อนช่วยให้ผู้ป่วยไม่กังวลเกินเหตุ",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ผู้ป่วยรู้ว่าอาการแบบใดควรมาก่อนนัด ทำให้เขามีส่วนร่วมในการเฝ้าระวัง",
+            "weigh": "ควรชั่งระยะนัดให้พอดีกับการเดินทางและงานในนาของผู้ป่วย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **clinic review** with warning signs gives both a set date and a route back sooner.",
+            "weigh": "Warning signs stick in plain words, like yellow eyes, little urine or returning fever, said to him clearly.",
+            "safety": ""
+          },
+          {
+            "strength": "Seeing him again lets history and examination judge the tiredness.",
+            "weigh": "Tiredness after this illness can last weeks, so telling him so may spare needless worry.",
+            "safety": ""
+          },
+          {
+            "strength": "Telling him which signs mean **come back sooner** makes him a partner in watching.",
+            "weigh": "Weigh the visit timing against his travel and his work in the fields.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การ**โทรติดตาม**สั้น ๆ ช่วยเช็กการฟื้นตัวโดยผู้ป่วยไม่ต้องเดินทาง",
+            "weigh": "อาการอ่อนเพลียประเมินทางโทรศัพท์ได้จำกัด จึงควรชั่งว่าคำตอบแบบใดที่ต้องให้มาพบ",
+            "safety": ""
+          },
+          {
+            "strength": "การติดตามที่ประหยัด ช่วยให้ผู้ป่วยที่ไม่มีไข้แล้วยังได้รับการดูแลต่อเนื่อง",
+            "weigh": "การโทรไม่ได้ตรวจร่างกาย ซึ่งควรชั่งกับอาการอ่อนเพลียที่ยังเหลืออยู่",
+            "safety": ""
+          },
+          {
+            "strength": "การยังคงติดต่อหลังรักษาครบ แสดงความต่อเนื่องของการดูแลโดยไม่เป็นภาระ",
+            "weigh": "ควรตกลงเวลาโทรที่ผู้ป่วยสะดวกรับสายได้จริง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A short **phone follow-up** checks his recovery without a trip to hospital.",
+            "weigh": "Tiredness is hard to judge by phone, so weigh which answers would prompt a visit.",
+            "safety": ""
+          },
+          {
+            "strength": "Low-cost follow-up keeps care going for a patient who is now free of fever.",
+            "weigh": "A call cannot examine him, which matters while tiredness lingers.",
+            "safety": ""
+          },
+          {
+            "strength": "Keeping in touch after treatment shows continuity of care without adding burden.",
+            "weigh": "Agree on a call time he can realistically answer.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การใส่ใจความกังวลของผู้ป่วยที่ยังอ่อนเพลีย แสดงการรับฟังมุมมองของผู้ป่วย",
+            "weigh": "อ่อนเพลียหลังป่วยพบได้บ่อยและไม่ได้แปลว่ายังมีเชื้อ ยาเพิ่มจึงอาจไม่ช่วยอาการนี้",
+            "safety": ""
+          },
+          {
+            "strength": "การคิดถึงผู้ป่วยที่ยังไม่สดชื่นเต็มที่ สะท้อนความตั้งใจไม่ให้โรคหลงเหลือ",
+            "weigh": "ยาปฏิชีวนะที่เกินความจำเป็นเพิ่มผลข้างเคียงและเชื้อดื้อยา ซึ่งควรชั่งไว้ด้วย",
+            "safety": ""
+          },
+          {
+            "strength": "การให้ความสำคัญกับความมั่นใจของผู้ป่วย ช่วยให้เขาร่วมมือในการดูแลต่อ",
+            "weigh": "ควรชั่งว่าความเหนื่อยที่เขาเล่ามาจากเชื้อที่ยังอยู่จริงหรือไม่",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Taking his lingering tiredness seriously shows you are listening to his concerns.",
+            "weigh": "Tiredness after this illness is common and does not mean infection persists, so more drug may not help.",
+            "safety": ""
+          },
+          {
+            "strength": "Wanting nothing of the illness left behind reflects care for a patient still not fully well.",
+            "weigh": "Antibiotic beyond need adds side effects and resistance, which deserve weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Valuing his confidence in treatment helps keep him engaged in his care.",
+            "weigh": "Weigh whether ongoing infection really explains the tiredness he describes.",
+            "safety": ""
+          }
+        ]
+      }
+    },
+    "step5.W": {
+      "a": {
+        "th": [
+          {
+            "strength": "การส่งต่อเมื่อมีไข้ร่วมกับปัสสาวะน้อย ทำให้ไปถึงที่ฟอกไตได้ทันเวลา",
+            "weigh": "ควรชั่งว่าผู้ป่วยคงที่พอสำหรับการเดินทาง และใครจะดูแลระหว่างทาง",
+            "safety": ""
+          },
+          {
+            "strength": "การมองไข้กับไตที่แย่ลงเป็นภาพเดียวกัน ช่วยตัดสินใจเรื่องระดับการดูแลได้เร็ว",
+            "weigh": "การส่งข้อมูลปัสสาวะและอาการให้ปลายทางครบ ช่วยให้รับช่วงดูแลได้ต่อเนื่อง",
+            "safety": ""
+          },
+          {
+            "strength": "การ**ดูแลใกล้ชิด**ในที่ที่พร้อม ช่วยรับมือได้ทันหากไตแย่ลงอย่างรวดเร็ว",
+            "weigh": "ควรอธิบายเหตุผลของการส่งต่อให้ผู้ป่วยและญาติเข้าใจ เพราะอาจไม่ได้คาดไว้",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Referring for fever with little urine puts him where dialysis is ready in time.",
+            "weigh": "Weigh whether he is stable enough to travel and who will watch him on the way.",
+            "safety": ""
+          },
+          {
+            "strength": "Reading fever and **failing kidneys** as one picture speeds the decision on level of care.",
+            "weigh": "Sending a full account of his urine and symptoms ahead keeps his care continuous.",
+            "safety": ""
+          },
+          {
+            "strength": "**Close care** in a ready setting allows a quick response if the kidneys decline fast.",
+            "weigh": "Explain the reasons for transfer to him and his family, who may not expect it.",
+            "safety": ""
+          }
+        ]
+      },
+      "b": {
+        "th": [
+          {
+            "strength": "การดูแลในหอผู้ป่วยพร้อม**ตรวจไต เกลือแร่** ช่วยจับการเปลี่ยนแปลงที่อันตรายได้ทัน",
+            "weigh": "ควรกำหนดไว้ก่อนว่าค่าไต ปัสสาวะ หรือโพแทสเซียมระดับใดที่ต้องยกระดับการดูแล",
+            "safety": ""
+          },
+          {
+            "strength": "การจับโพแทสเซียมที่เปลี่ยนเร็ว ช่วยป้องกันอันตรายต่อหัวใจในผู้ป่วยที่ไตแย่ลง",
+            "weigh": "ไข้ร่วมกับปัสสาวะน้อยอาจแย่ลงเร็วเกินกว่าหอผู้ป่วยทั่วไปรับได้ ควรชั่งไว้",
+            "safety": ""
+          },
+          {
+            "strength": "การดูแลใกล้ชิดในหอผู้ป่วย ทำให้เห็นแนวโน้มของปัสสาวะและอาการได้ต่อเนื่อง",
+            "weigh": "ควรชั่งว่าโรงพยาบาลตรวจค่าเหล่านี้ได้ถี่และเร็วพอหรือไม่ ในช่วงที่ไตกำลังแย่ลง",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Ward care with **kidney tests and K** catches dangerous changes in time.",
+            "weigh": "Set in advance which kidney, urine or potassium values would escalate his care at once.",
+            "safety": ""
+          },
+          {
+            "strength": "Catching **potassium shifts** early protects the heart while the kidneys worsen.",
+            "weigh": "Fever with little urine can outpace what a general ward can manage, which deserves weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Close ward care shows the trend in urine and symptoms as it unfolds.",
+            "weigh": "Weigh whether the hospital can run these tests often and fast enough while the kidneys decline.",
+            "safety": ""
+          }
+        ]
+      },
+      "c": {
+        "th": [
+          {
+            "strength": "การให้**สารน้ำอย่างระวัง**แล้วดูปัสสาวะ ช่วยแยกว่ามีส่วนที่เกิดจากภาวะขาดน้ำหรือไม่",
+            "weigh": "ในผู้ป่วยปัสสาวะน้อย ควรประเมินน้ำในร่างกายบ่อย ๆ เพื่อไม่ให้สารน้ำเกิน",
+            "safety": ""
+          },
+          {
+            "strength": "การใช้การตอบสนองของปัสสาวะเป็นตัววัด ทำให้รู้ผลภายในไม่กี่ชั่วโมง",
+            "weigh": "ควรตั้งเกณฑ์ไว้ก่อนว่า หากปัสสาวะไม่เพิ่มหลังให้สารน้ำ จะเปลี่ยนแผนเมื่อใด",
+            "safety": ""
+          },
+          {
+            "strength": "การดูแลในหอผู้ป่วยทำให้ปรับสารน้ำได้ใกล้ชิดตามอาการ",
+            "weigh": "ไข้ร่วมกับปัสสาวะน้อยอาจแย่ลงเร็ว จึงควรชั่งเวลาที่ใช้ทดลองให้สารน้ำ",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "A **careful fluid trial** with urine watched separates out any dehydration.",
+            "weigh": "With little urine, the volume given should follow frequent fluid-status checks so he is not overloaded.",
+            "safety": ""
+          },
+          {
+            "strength": "Using urine response as the gauge shows the effect within hours.",
+            "weigh": "Set in advance when the plan changes if urine does not pick up after fluid.",
+            "safety": ""
+          },
+          {
+            "strength": "Ward care allows fluid to be adjusted closely to his condition.",
+            "weigh": "Fever with little urine can worsen fast, so weigh how long the trial runs.",
+            "safety": ""
+          }
+        ]
+      },
+      "d": {
+        "th": [
+          {
+            "strength": "การมองหาสาเหตุของปัสสาวะที่ลดลง แสดงว่าไม่ด่วนสรุปไปทางใดทางหนึ่ง",
+            "weigh": "ในไข้จากการติดเชื้อแบบนี้ สาเหตุที่ทางเดินปัสสาวะพบไม่บ่อย ผลอาจไม่เปลี่ยนแผนมาก",
+            "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
+          },
+          {
+            "strength": "**อัลตราซาวด์ไต**ทำได้ข้างเตียง ไม่เจ็บ และไม่ใช้สารทึบรังสีที่อาจกระทบไต",
+            "weigh": "ขณะรอตรวจ ปัสสาวะอาจลดลงต่อและผู้ป่วยอาจแย่ลงเร็ว จึงควรชั่งเรื่องเวลา",
+            "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
+          },
+          {
+            "strength": "การดูทั้งไตและ**ทางเดินปัสสาวะ** เป็นหลักคิดพื้นฐานของการหาสาเหตุปัสสาวะลดลง",
+            "weigh": "ผลอัลตราซาวด์ที่ปกติจะไม่ได้ช่วยดูแลไตที่บาดเจ็บจากการติดเชื้อโดยตรง",
+            "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
+          }
+        ],
+        "en": [
+          {
+            "strength": "Seeking the cause of the falling urine shows a refusal to jump to conclusions.",
+            "weigh": "In this febrile infection a cause in the urinary tract is uncommon, so the result may change little.",
+            "safety": "Falling urine in this infection can turn dangerous within hours."
+          },
+          {
+            "strength": "A **kidney ultrasound** is bedside, painless and needs no contrast.",
+            "weigh": "While he waits for the scan, urine can fall further and he can worsen fast, so timing deserves weight.",
+            "safety": "Falling urine in this infection can turn dangerous within hours."
+          },
+          {
+            "strength": "Looking at the kidneys and **tract** follows the basic pre-renal, renal, post-renal frame.",
+            "weigh": "A normal scan does not by itself help kidneys injured by the infection.",
+            "safety": "Falling urine in this infection can turn dangerous within hours."
+          }
+        ]
+      },
+      "e": {
+        "th": [
+          {
+            "strength": "การ**ตรวจ K และ EKG** ก่อนเดินทาง ช่วยหาโพแทสเซียมสูงที่อาจอันตรายระหว่างทาง",
+            "weigh": "การรอผลตรวจไม่ควรทำให้การส่งต่อช้าออกไป จึงควรชั่งจังหวะให้ดี",
+            "safety": ""
+          },
+          {
+            "strength": "การส่งต่อไปฟอกไตโดยรู้ค่าโพแทสเซียมแล้ว ช่วยให้ทั้งสองโรงพยาบาลวางแผนได้ปลอดภัย",
+            "weigh": "ควรชั่งว่าผู้ป่วยคงที่พอสำหรับการเดินทาง และใครจะดูแลระหว่างทาง",
+            "safety": ""
+          },
+          {
+            "strength": "การคิดถึงอันตรายที่อาจเกิดระหว่างเดินทาง แสดงการส่งต่ออย่างรอบคอบ",
+            "weigh": "หากพบโพแทสเซียมสูง ควรชั่งว่าโรงพยาบาลต้นทางพร้อมรับมือก่อนออกเดินทางเพียงใด",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Checking **K and ECG** before the trip finds a potassium level that could be dangerous on the road.",
+            "weigh": "Waiting for results should not slow the transfer, so the timing deserves weight.",
+            "safety": ""
+          },
+          {
+            "strength": "Referring for **dialysis** with a known potassium lets both hospitals plan safely.",
+            "weigh": "Weigh whether he is stable enough to travel and who will watch him on the way.",
+            "safety": ""
+          },
+          {
+            "strength": "Thinking about harm that could arise in transit shows a careful transfer.",
+            "weigh": "If potassium is high, weigh how ready the sending hospital is to manage it before departure.",
+            "safety": ""
+          }
+        ]
+      }
+    }
+  },
+  "safety_review": {
+    "model": "claude-opus-5-5",
+    "date": "2026-11-14",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank and every path into it (B, R, W from a best, reasonable or weaker answer at the step before, e.g. step4.R from azithromycin or admitted doxycycline, step4.W only from IV regimens in hospital, step5.B/R reachable after the oliguric step4.W path). Sources opened: CDC leptospirosis clinical overview (doxycycline 100 mg twice daily 7 days, azithromycin 3 days alternative, IV penicillin or ceftriaxone for severe disease, start without waiting for results, incubation 2-30 days) and the WHO leptospirosis outbreak toolbox (case definitions, PCR and IgM confirmation, flood exposure); the case's own DDC 2564 and WHO/ILS 2003 findings were relied on for referral and potassium thresholds, as the DDC guideline could not be reached. Confirmed the round's fixes: step1.a.th[0].weigh, step2.B.e[0].weigh, step3.{B,R,W}.c.en[0].weigh, step4.W.a/c.th[0].strength, step4.W.b[2].weigh, step5.B.a.en[1].strength, step5.W.c.th[0].strength. Checked clinical truth (culture growth, PCR window, RDT and dengue IgM timing, Weil-Felix, doxycycline cautions, paracetamol and platelets, renal recovery, uveitis timing), safety sentences on the ultrasound options in step4.W.d and step5.W.d (no alternative named), leaks (no option graded or ranked, no test, drug or diagnosis outside its own label; acronyms CBC, RDT, PCR, NS1, IgM, IV, K, ECG, EKG each appear only under a label that carries them), fit and Thai/English equivalence. Non-blocking notes: step5.B.a[1].weigh Thai says the same season where English says the same fields; step5.B.a.en[1].strength 'blocks entry' is firmer than the Thai 'matches the entry route'; step4.W.b.en[0].strength 'gets him to dialysis' reads firmer than the Thai 'reach a place with dialysis'; step5.W.d.en[1].strength drops the Thai 'that could stress the kidneys'; step5.R.a.en[0].weigh 'normal bloods may not end it' is awkward; step1.a.en[0].weigh drops 'normally'; earlier notes (step4.B.d[0], step5.W.d[2], step2.B.e[2] 'his work', stiff Thai in step3.*.a.th[2] and step5.B.a.th[1]) stand as non-blocking. Tree sha256 f581f8083a1e4f0bea03e0d3722d149f764566d1ec776ed68cc5a70fa9206b39. Replies sha256 82a16a7b84e6623403b03537adf59f6e750388a603953e32549c8ddd3963bfc9.",
+    "tree_sha256": "f581f8083a1e4f0bea03e0d3722d149f764566d1ec776ed68cc5a70fa9206b39",
+    "replies_sha256": "82a16a7b84e6623403b03537adf59f6e750388a603953e32549c8ddd3963bfc9"
+  }
+}
