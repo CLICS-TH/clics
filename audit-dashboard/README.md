@@ -52,5 +52,8 @@ without it signs you out to prod. Set it to `http://localhost:3000` locally.
   requires all 7 domains set before submit (no silent-0 default).
 - **Never `sbClient.auth.signOut()`** after storing the token (it revokes the Supabase session → 401s).
 
-Deploy: `vercel --prod --yes` (ensure `NEXT_PUBLIC_API_URL` is set on Vercel).
+Deploy: after the vm1 cutover, `deploy/vm1/deploy.sh` builds and starts the dashboard with the backend. From
+#429 on, `vercel.json` here is a redirect to `https://clics.ccme.or.th/audit/`, so `vercel --prod --yes` from
+this tree moves every dashboard user there. Before the cutover, deploy to Vercel only from a pre-#429 ref (with
+`NEXT_PUBLIC_API_URL` set on Vercel); the owner deploys this tree's redirect at cutover step 4.
 See [../docs/deployment.md](../docs/deployment.md).

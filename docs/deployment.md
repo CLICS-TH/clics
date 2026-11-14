@@ -39,7 +39,9 @@ deploy path and, after the cutover, the rollback, which keeps running unchanged 
 - **Vercel is redirects only.** `physician-ui/vercel.json` sends every path 1:1 to `https://clics.ccme.or.th`
   (query string included: invite links carry `?token=<invite>`); `audit-dashboard/vercel.json` sends every
   path under `/audit/` and blanks a `?token=` (it was a session). The owner deploys both at cutover step 4
-  (`vercel --prod --yes` in each directory). A Vercel deploy of this repo before then moves the users early.
+  (`vercel --prod --yes` in each directory). A Vercel deploy of this repo before then moves the users early,
+  so until that step a front-end deploy to Vercel comes from a pre-#429 ref (the Portal's from one before #472,
+  `deploy/vm1/README.md` §5); after it the front ends deploy to vm1 only.
 - **`NEXT_PUBLIC_API_URL`** (dashboard, inlined at build time): unset means `/api` on the dashboard's own
   origin, which is right on vm1 and behind `npm run dev`'s `:3080`. Set it only to point a local build at
   another backend (e.g. `http://localhost:3001`).
@@ -154,7 +156,8 @@ booth card's audit counts read. Production did not have it on 2026-11-10. Run in
 2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then `/health/deep` reports
    `"service":"backend"`.
 3. **Dashboard.** `cd audit-dashboard && vercel --prod --yes`. This is what shows auditors the "Booth case studies"
-   link.
+   link. Before the vm1 cutover deploy it only from a pre-#429 ref: from #429 on this ships the redirect to
+   `https://clics.ccme.or.th`. After the cutover the dashboard deploys to vm1 with `deploy/vm1/deploy.sh`.
 
 Until the migration is applied, every `/auditor/booth` call (queue, study and submit) answers 502, and the
 superadmin booth card shows "—" for audits. The kiosk never reads `booth_audits`, so plays are unaffected.
@@ -167,7 +170,9 @@ CLICS token. The backend is unaffected: it uses the service-role key. **Deploy t
 owner applies the migration.** The backend reports `not_installed` until the function exists. Run in this order:
 
 1. **Dashboard.** This round does not change it. Check that #228's build (`25cb3061`) is the live production
-   dashboard. If it is not, deploy the dashboard first (`cd audit-dashboard && vercel --prod --yes`).
+   dashboard. If it is not, deploy the dashboard first (`cd audit-dashboard && vercel --prod --yes`, from a
+   pre-#429 ref only: from #429 on this ships the redirect to `https://clics.ccme.or.th`; after the vm1 cutover
+   the dashboard deploys to vm1 with `deploy/vm1/deploy.sh`).
 2. **Backend.** `cd backend && railway up . --path-as-root --service backend --ci`. Then
    `curl -s https://backend-production-c12e4.up.railway.app/health/deep` (this step deploys to Railway; use the vm1 origin once Railway is stopped) reports `"service":"backend"` and
    `checks.postgrest_surface.status` is `"not_installed"`.
@@ -189,6 +194,8 @@ owner applies the migration.** The backend reports `not_installed` until the fun
    The function reads catalog metadata only, never a table row. Only `service_role` can execute it.
 7. **Portal.** Deploy the Privacy page change (`cd physician-ui && vercel --prod --yes`) only after production
    reads `closed`. Until then the page's auditor line would claim a protection the database does not have.
+   Before the vm1 cutover deploy it only from a pre-#429 ref (one before #472, `deploy/vm1/README.md` §5): from
+   #429 on this ships the redirect to `https://clics.ccme.or.th`. After the cutover the Portal deploys to vm1.
 
 The migration header records whether `supabase_admin`'s default privileges could be changed. If they could not,
 a table created later through the dashboard can reopen the surface. `checks.postgrest_surface` covers that

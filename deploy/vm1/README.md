@@ -232,13 +232,28 @@ is enabled), all env files are filled in, `RECONCILE_INTERVAL_MS=0` is set on vm
    the frames arrive within 300 ms of each other. Then sign in at `https://clics.ccme.or.th/login` with a
    staff test account and open the dashboard from the Portal: it must open signed in.
 
-4. **Move the users (owner).** In one sitting:
+4. **Move the users (owner).** Before you start, each of these must hold; if one does not, stop here:
+   - **#487 is merged** (PR #491): the booth service worker skips same-origin `/api`. On this origin the
+     booth API is `/api` on the kiosk's own origin, and the worker before #491 caches it, so an offline kiosk
+     could read a stale `{open:true}` from `/api/booth/status`. The release vm1 runs (step 1, or a `deploy.sh`
+     re-run since) must include it.
+   - **The kiosk URL changes.** The kiosk opens `https://clics.ccme.or.th/booth` from now on; the #370 owner
+     (the booth spec) has been told and changes the kiosk's start page in this sitting.
+   - **The redirect period is set.** The owner has decided how long the two Vercel projects keep redirecting
+     here before they are removed, and noted the end date.
+   - **The front end is public on vm1** (the #429 addendum of 2026-11-11): the owner confirms that the Portal
+     and the dashboard are served to the internet from vm1 at `https://clics.ccme.or.th` (physicians are not
+     on the tailnet), and that only the database and the models stay private.
+
+   In one sitting:
    - **Supabase** *Site URL*: `https://clics.ccme.or.th`.
    - **Vercel**: deploy both projects from the commit that carries their redirect `vercel.json`
      (`cd physician-ui && vercel --prod --yes`, then `cd audit-dashboard && vercel --prod --yes`). Every
      Portal path goes to the same path here, query string included (an invite link is
      `/invite.html?token=<invite>`); every dashboard path goes under `/audit/`, with any `?token=` blanked
      (it was a session). Both redirects are temporary (307), so a rollback is not stuck in browser caches.
+     This is the one Vercel deploy of a #429-or-later tree: it ships the redirect to `https://clics.ccme.or.th`.
+     Any Vercel deploy before this step came from a pre-#429 ref; from here on the front ends deploy to vm1.
    - Users sign in once more: `localStorage` belongs to an origin, so the Vercel sessions do not move.
 
 5. **Watch** for the first day:
@@ -275,7 +290,8 @@ if they still exist; otherwise they are rebuilt from the release directory.
 back, from a commit before #472 (the one Vercel ran before step 4; #472 already pointed `config.js` at
 this origin's root, which after #429 is the Portal, not the backend).
 1. Deploy that commit to both Vercel projects (`vercel --prod --yes` in `physician-ui` and in
-   `audit-dashboard`). Its `vercel.json` files serve the apps again instead of redirecting, and its
+   `audit-dashboard`). It is a pre-#429 ref, so its `vercel.json` files serve the apps again instead of
+   redirecting to `https://clics.ccme.or.th` (the front ends on vm1 may keep running), and its
    `config.js` and the dashboard's `NEXT_PUBLIC_API_URL` point at Railway.
 2. Set Supabase's *Site URL* back to the Vercel Portal.
 3. vm1 may keep running (its drain is safe to leave on). If vm1 itself is the problem, stop it:
