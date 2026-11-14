@@ -228,6 +228,12 @@ describe('#474 exact outputs', () => {
     // A sub-number that opens no date or phone stays in the HN, whatever follows it.
     ['an HN sub-number, then a count', 'HN 1234/67 2 ครั้ง', '[HN-1] 2 ครั้ง'],
     ['an HN sub-number, then a phone', 'HN 1234567/12 081-234-5678', '[HN-1] [PHONE-1]'],
+    // A sub-number that opens a phone, date or ID that its own pass masks is left to that pass (hnGuard).
+    ['an HN, a slash, a country-code phone', 'HN 1234567/66 81 234 5678', '[HN-1]/[PHONE-1]'],
+    ['an MRN, a slash, a country-code landline', 'MRN 123456/66 2 123 4567', '[MRN-1]/[PHONE-1]'],
+    ['an HN, a slash, a dashed country-code phone', 'HN 1234/66-812345678', '[HN-1]/[PHONE-1]'],
+    ['an HN, a slash, a spaced dotted date', 'HN 1234/20.10. 2569', '[HN-1]/[DATE-1]'],
+    ['an HN, a slash, a dashed ID', 'HN 1234567 / 1-2345-67890-12-3', '[HN-1] / [ID-1]'],
     ['an HN and a phone joined by middle dots', 'HN·1234567·081·234·5678', '[HN-1]·[PHONE-1]'],
     // A dashed day-first date never opens on the day of a dotted year-first date.
     ['a dotted year-first date, a hyphen, a dashed date', 'x 2026.10.20-11-12-69 ok', 'x [DATE-2]-[DATE-1] ok'],

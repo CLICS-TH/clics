@@ -531,12 +531,34 @@ function emailMiddleDotGuard(_seen, match) {
     && pieces(domain).slice(1).every((p) => p.toLowerCase().split('.').every((l) => EMAIL_TLDS.has(l)));
 }
 
-// The sub-number of an HN, MRN or AN: any digits after a '/', unless they open a date or a phone, left to its own pass:
-// two more groups glued by '/', '.' or '-' (/20/10/2569, /20.10.2569, /2569-10-20), a dotted date's spaced dots
-// (/20. 10. 2569), or a phone of 9 or 10 digits opening with 0 (/081-234-5678, / 02 123 4567). Other digits after them
-// are not theirs to refuse: HN 1234/67 2 ครั้ง keeps /67 in the HN, HN 1234567/12 081-234-5678 its /12, HN 1234/20.5 its
-// /20.
-const HN_TAIL = String.raw`(?:\s*\/\s*(?!0\d(?:[\s().-]{0,8}\d){7,8}(?!\d))\d+(?!\d|[/.-]\d{1,2}[/.-]\d|\.\s{1,3}\d{1,2}\s{0,3}\.))?`;
+// The sub-number of an HN, MRN or AN: the digits after a '/'. hnGuard refuses one that opens a phone, date or ID.
+const HN_TAIL = String.raw`(?:\s*\/\s*\d+(?!\d))?`;
+
+// The HN, MRN and AN guard: 4 to 12 digits before the sub-number, and a sub-number that opens no phone, date or ID. It
+// asks every PHONE, DATE and ID pass, by its own regex and guard (or a shorter match its guard takes), whether it matches
+// from the sub-number's first digit past the sub-number's end: /20/10/2569, /20.10. 2569, /081-234-5678,
+// /66 81 234 5678, /66-812345678 are refused, and the pass falls back to the code alone (longestGuarded), so the phone,
+// date or ID is masked whole by its own pass. Other digits after a sub-number are not its to refuse: HN 1234/67 2 ครั้ง
+// keeps /67 in the HN, HN 1234567/12 081-234-5678 its /12, HN 1234/20.5 its /20.
+let TAIL_SHAPES = null; // the PHONE, DATE and ID passes, built after PASSES
+function hnGuard(m, _orig, rest = '') {
+  const d = m.split('/')[0].replace(/\D/g, '').length;
+  if (d < 4 || d > 12) return false;
+  const tail = /\/\s*(\d+)$/.exec(m);
+  if (!tail) return true;
+  TAIL_SHAPES ??= PASSES.filter((p) => p.re && ['PHONE', 'DATE', 'ID'].includes(p.cat))
+    .map((p) => ({ re: p.re, rx: new RegExp(p.re.source, p.re.flags.replace('g', '') + 'y'), guard: p.guard }));
+  const digits = tail[1];
+  const s = digits + rest;
+  for (const { re, rx, guard } of TAIL_SHAPES) {
+    rx.lastIndex = 0;
+    const x = rx.exec(s);
+    if (!x || x[0].length <= digits.length) continue;
+    const ok = (e, t) => t.length > digits.length && (!guard || guard(t, t, s.slice(e)));
+    if (ok(x[0].length, x[0]) || longestGuarded(s, re, 0, x[0].length, ok)) return false;
+  }
+  return true;
+}
 
 // A 13-digit run of the ID pass that is two phones: it opens with a grouped phone (081-234-5678 089-876-5432), or with
 // an ungrouped one whose number, read on to its end (`rest` is the view after the run), holds one more phone
@@ -690,24 +712,18 @@ const PASSES = [
   // Allow internal spaces/dashes in the digit run (e.g. "HN 12-34567"); the
   // guard re-checks the total digit count so a loose run can't over-match.
   // A "/N…" sub-number (HN 1234/67, HN 1234 / 67, HN 1234/12345) is part of the code; the guard counts the digits before
-  // it. It is no sub-number when it opens a date or a phone (HN 1234567 / 20/10/2569, HN 1234567/081-234-5678): see HN_TAIL.
+  // it. It is no sub-number when it opens a phone, date or ID (HN 1234567 / 20/10/2569, HN 1234567/081-234-5678): see hnGuard.
   {
     re: new RegExp(String.raw`\bHN(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'HN',
-    guard: (m) => {
-      const d = m.split('/')[0].replace(/\D/g, '').length;
-      return d >= 4 && d <= 12;
-    },
+    guard: hnGuard,
     dots: ' ', // HN·1234567 (MIDDLE_DOTS)
   },
   // MRN / AN explicit code fields (same internal-separator tolerance).
   {
     re: new RegExp(String.raw`\b(?:MRN|AN)(?:\s*[:#])?\s*\d(?:[\s-]?\d){3,13}${HN_TAIL}`, 'gi'),
     cat: 'MRN',
-    guard: (m) => {
-      const d = m.split('/')[0].replace(/\D/g, '').length;
-      return d >= 4 && d <= 12;
-    },
+    guard: hnGuard,
     dots: ' ',
   },
 
