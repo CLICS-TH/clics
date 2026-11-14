@@ -1739,11 +1739,12 @@ describe('adversarial — the wide view and the #474 passes stop no mask master 
   test.each(labelled)('%s: the date is masked', (input) => expectNoDigitLeft(stripPii(input), 'DATE'));
   test.each(['VERSION 2024.10.1', 'ECG software version: 2024.10.1', 'Version: 1.2.10', 'VERSION 1.2.10', 'version 1.2.10',
     'v1.2.10', 'หัวข้อ 1.2.10'])('%s survives byte-for-byte (a version-shaped number)', (text) => assertSurvives(text));
-  // ACCEPTED RESIDUAL, pinned per kind: whatever master masked only because a version word was written in a case
-  // other than "version" / "Version" or had ':' / '#' before the number, when that number is a dotted date with a two-
-  // or three-digit year (day first) or a Christian-era year (year first). These are the shapes of a version number
-  // (#465), so the label exempts them, as it exempts "VERSION 2024.10.1".
-  test.each(['VERSION 20.10.69', 'Version: 20.10.69', 'version: 2026.10.20', 'VERSION # 2026.10.20'])(
+  // ACCEPTED RESIDUAL, pinned per kind: whatever master masked only because the version word was written VERSION, or
+  // had ':' / '#' glued to it, with at most three whitespace characters before the number, when that number is a
+  // dotted date with a two- or three-digit year (day first) or a Christian-era year (year first). These are the shapes
+  // of a version number (#465), so the label exempts them, as it exempts "VERSION 2024.10.1". The generated test of
+  // gate round 2 below pins the whole set.
+  test.each(['VERSION 20.10.69', 'Version: 20.10.69', 'version: 2026.10.20', 'VERSION#2026.10.20'])(
     'RESIDUAL: %s stays unmasked (a version-shaped date after a version word)', (text) => assertSurvives(text)
   );
 
@@ -1760,4 +1761,97 @@ describe('adversarial — the wide view and the #474 passes stop no mask master 
     '%s: the dotted national ID is masked', (input) => expectNoDigitLeft(stripPii(input), 'ID')
   );
   test.each(['Na 140.0 139.5 141.2 138.0', 'Cr 1.2 1.3 1.4 1.5 1.6 1.7 1.8'])('%s survives byte-for-byte', (text) => assertSurvives(text));
+});
+
+// ===========================================================================
+// GATE ROUND 2 OF PR #498 (review of 960530b5). VERSION_LABEL read `version\s{0,3}[:#]?\s{0,3}` in any case: with no
+// ':' / '#' it allowed six whitespace characters where master's `[Vv]ersion\s{0,3}` allowed three, so "version     20.10.69"
+// and "Version\r\n\r\n2026.10.20", masked on master, stayed raw. A class guard, not a case: every label word below, after
+// every separator, before every date shape, in two contexts, is masked unless its kind is pinned here. Two kinds are
+// master's own and unchanged (KEPT); two are what this PR stops (RESIDUAL), and nothing else is. All values are synthetic.
+// ===========================================================================
+describe('adversarial — a version-like label exempts only its pinned forms (gate round 2 of #498)', () => {
+  const LABELS = ['version', 'Version', 'VERSION', 'vERSION', 'ver', 'VER', 'v', 'V', 'rev', 'REV', 'section', 'Section',
+    'SECTION', 'sec', 'SEC', 'chapter', 'Chapter', 'CHAPTER'];
+  // The label forms master's NUMBERING_LABEL exempts (`[Ss]ection|[Ss]ec|[Cc]hapter|[Vv]ersion|[Vv]er|[Rr]ev|[Vv]`).
+  const MASTER_FORMS = new Set(['version', 'Version', 'ver', 'v', 'V', 'rev', 'section', 'Section', 'sec', 'chapter', 'Chapter']);
+  // 0-4 whitespace characters on each side of a mark.
+  const AROUND = ['', ' ', '  ', '   ', '    ', '\t', '\r\n', ' \t\n '];
+  const SEPS = [
+    '', // glued
+    ...[1, 2, 3, 4, 5, 6, 7, 8].map((k) => ' '.repeat(k)),
+    ...[1, 2, 3, 4].map((k) => '\t'.repeat(k)),
+    '\r', '\n', '\r\n', '\r\n\r\n', '\n\n', '\t\n\t', ' \r\n ', '\r\r\r',
+    ...[':', '#', '=', '-'].flatMap((p) => AROUND.flatMap((a) => AROUND.map((b) => `${a}${p}${b}`))),
+  ];
+  // Each date with how the filter reads it.
+  const DATES = [
+    ['20.10.69', 'day-first, short year'], ['1.2.10', 'day-first, short year'], ['20.10.569', 'day-first, short year'],
+    ['26.10.20', 'day-first, short year'], // a year-first 2-digit year reads as day first
+    ['20.10.2569', 'day-first, 4-digit year'], ['20.10.2026', 'day-first, 4-digit year'],
+    ['2569.10.20', 'year-first, Buddhist era'], ['2026.10.20', 'year-first, Christian era'],
+    ['20/10/69', 'slash or dash'], ['20/10/569', 'slash or dash'], ['20/10/2569', 'slash or dash'], ['20/10/2026', 'slash or dash'],
+    ['2569/10/20', 'slash or dash'], ['2026/10/20', 'slash or dash'],
+    ['20-10-2569', 'slash or dash'], ['2026-10-20', 'slash or dash'], ['2569-10-20', 'slash or dash'],
+    // A dash day-first date with a 2-3-digit year is a dose or score triple (RI 10-10-10), and a 3-digit year-first
+    // dotted number no date, on master and the head alike.
+    ['20-10-69', 'no date'], ['20-10-569', 'no date'], ['569.10.20', 'no date'],
+  ];
+  const CONTEXTS = [(x) => x, (x) => `ECG software ${x} ค่ะ`];
+  const SHORT_OR_CE = new Set(['day-first, short year', 'year-first, Christian era']);
+
+  // The kind of `label + sep + date`. Only 'mask' must be masked; every other kind must survive byte-for-byte.
+  function kindOf(label, sep, reading) {
+    if (reading === 'no date') return 'KEPT: no date shape (master alike)';
+    if (sep === '') return 'KEPT: glued to a letter, no word boundary for a DATE pass (master alike)';
+    const exemptable = SHORT_OR_CE.has(reading);
+    if (/^\s{0,3}$/.test(sep)) {
+      if (MASTER_FORMS.has(label) && (exemptable || reading === 'year-first, Buddhist era')) {
+        return "KEPT: master's label form, at most 3 whitespace characters";
+      }
+      if (label === 'VERSION' && exemptable) return 'RESIDUAL 1: VERSION, at most 3 whitespace characters';
+    }
+    if (/^[:#]\s{0,3}$/.test(sep) && ['version', 'Version', 'VERSION'].includes(label) && exemptable) {
+      return "RESIDUAL 2: version / Version / VERSION with ':' or '#' glued, then at most 3 whitespace characters";
+    }
+    return 'mask';
+  }
+  const DIGIT = /\p{Nd}/u;
+  const isMasked = (out) => !DIGIT.test(out.replace(/\[[A-Z]+-\d+\]/g, '')) && /\[DATE-\d+\]/.test(out);
+
+  test('every date shape is masked with no label, and every "no date" one is not', () => {
+    for (const [date, reading] of DATES) {
+      for (const ctx of CONTEXTS) {
+        const out = stripPii(ctx(`นัด ${date}`));
+        expect([date, reading === 'no date' ? out === ctx(`นัด ${date}`) : isMasked(out)]).toEqual([date, true]);
+      }
+    }
+  });
+
+  test.each(LABELS)('after "%s", every separator and date shape: masked unless its kind is pinned', (label) => {
+    const wrong = [];
+    for (const sep of SEPS) {
+      for (const [date, reading] of DATES) {
+        const kind = kindOf(label, sep, reading);
+        for (const ctx of CONTEXTS) {
+          const input = ctx(`${label}${sep}${date}`);
+          const out = stripPii(input);
+          if (kind === 'mask' ? !isMasked(out) : out !== input) wrong.push(`${kind} | ${JSON.stringify(input)} -> ${JSON.stringify(out)}`);
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
+  });
+
+  test('the pinned residual is the two kinds and holds the #465 version numbers', () => {
+    const kinds = new Set(LABELS.flatMap((l) => SEPS.flatMap((s) => DATES.map(([, r]) => kindOf(l, s, r)))));
+    expect([...kinds].filter((k) => k.startsWith('RESIDUAL')).sort()).toEqual([
+      'RESIDUAL 1: VERSION, at most 3 whitespace characters',
+      "RESIDUAL 2: version / Version / VERSION with ':' or '#' glued, then at most 3 whitespace characters",
+    ]);
+    expect(kindOf('VERSION', ' ', 'day-first, short year')).toMatch(/^RESIDUAL 1/); // VERSION 1.2.10
+    expect(kindOf('VERSION', ' ', 'year-first, Christian era')).toMatch(/^RESIDUAL 1/); // VERSION 2024.10.1
+    expect(kindOf('Version', ': ', 'day-first, short year')).toMatch(/^RESIDUAL 2/); // Version: 1.2.10
+    expect(kindOf('version', ': ', 'year-first, Christian era')).toMatch(/^RESIDUAL 2/); // software version: 2024.10.1
+  });
 });

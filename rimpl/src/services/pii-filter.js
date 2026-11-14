@@ -476,12 +476,15 @@ function yearFirstDateGuard(m) {
 const dashedDateGuard = (m) => dottedDateGuard(m.split('-').join('.'));
 // A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10, VERSION: 2024.10.1) is no
 // date. NUMBERING_LABEL holds the labels in the forms they had before #474, the English ones now only at a word start
-// (Prev, DOV and Adv are no "v" / "rev" label). VERSION_LABEL adds the word version in any case and with a colon or #
-// before the number (the ECG "software version: 2024.10.1"). A label never exempts a day-first date with a four-digit
-// year, and the added version forms never a year-first one in a Buddhist-era year: those are calendar dates (the
-// lookaheads of the two dotted DATE passes).
+// (Prev, DOV and Adv are no "v" / "rev" label). VERSION_LABEL adds two exact forms and fails closed on every other:
+// VERSION in capitals, and version / Version / VERSION with ':' or '#' glued to it (the ECG "software version:
+// 2024.10.1"); then at most three whitespace characters, master's bound. Any other case (vERSION), a space before the
+// ':' / '#', a longer gap, or another mark (=, -) exempts nothing. A label never exempts a day-first date with a
+// four-digit year, and the added version forms never a year-first one in a Buddhist-era year: those are calendar dates
+// (the lookaheads of the two dotted DATE passes). The generated test "a version-like label exempts only its pinned
+// forms" (pii-leak-adversarial) pins this set.
 const NUMBERING_LABEL = String.raw`(?<!(?:(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา)|(?<![A-Za-z])(?:[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv]))\s{0,3})`;
-const VERSION_LABEL = String.raw`(?<!(?<![A-Za-z])[Vv][Ee][Rr][Ss][Ii][Oo][Nn]\s{0,3}[:#]?\s{0,3})`;
+const VERSION_LABEL = String.raw`(?<!(?<![A-Za-z])(?:VERSION|(?:[Vv]ersion|VERSION)[:#])\s{0,3})`;
 // The gap after a date's dot: spaces and tabs, with at most one line break among them (the old `\s?` allowed one).
 const DATE_GAP = String.raw`[^\S\r\n]*(?:(?:\r\n?|\n)[^\S\r\n]*)?`;
 // Month names. English in any case except May, which as "may" is a verb ("may 20 mg be given"); then an optional dot.
