@@ -369,31 +369,42 @@ describe('#474 booth label rule reads mathematical letters', () => {
 });
 
 // "LINE" then a long run of spaces and no id must not backtrack quadratically.
+// Wall-clock limits fail on a slow or instrumented runner, so these compare doubling n: quadratic work takes
+// about 4x, linear about 2x. Under 20 ms at 2n is too small to time and far below any quadratic run at these sizes.
+function ms(input) {
+  let best = Infinity;
+  for (let i = 0; i < 3; i++) {
+    const t0 = process.hrtime.bigint();
+    stripPii(input);
+    best = Math.min(best, Number(process.hrtime.bigint() - t0) / 1e6);
+  }
+  return best;
+}
+
+function expectLinear(make, n) {
+  const once = ms(make(n));
+  const twice = ms(make(2 * n));
+  if (twice >= 20) expect(twice / once).toBeLessThan(3.3);
+}
+
 test('a LINE label followed by 40000 spaces finishes in linear time', () => {
-  const input = `LINE${' '.repeat(40000)}!`;
-  const t0 = process.hrtime.bigint();
-  stripPii(input);
-  expect(Number(process.hrtime.bigint() - t0) / 1e6).toBeLessThan(100);
+  expectLinear((n) => `LINE${' '.repeat(n)}!`, 40000);
 });
 
 // The email scan tries one start per run of address characters (emailExecFrom), a run longer than GUARD_FALLBACK_MAX
 // is not retried unit by unit, and the dots run caps an email's local part (EMAIL_LOCAL_MAX), so each stays linear.
 test.each([
-  ['digits and middle dots before an @', `${'1·'.repeat(40000)}@a·com`],
-  ['letters and middle dots before an email', `${'a·'.repeat(40000)}a@example·xyz`],
-])('%s at n = 40000 finishes in linear time', (_kind, input) => {
-  const t0 = process.hrtime.bigint();
-  stripPii(input);
-  expect(Number(process.hrtime.bigint() - t0) / 1e6).toBeLessThan(200);
+  ['digits and middle dots before an @', (n) => `${'1·'.repeat(n)}@a·com`],
+  ['letters and middle dots before an email', (n) => `${'a·'.repeat(n)}a@example·xyz`],
+])('%s at n = 40000 finishes in linear time', (_kind, make) => {
+  expectLinear(make, 40000);
 });
 
 test.each([
-  ['hyphens', '05-'.repeat(20000)],
-  ['en dashes', '05–'.repeat(20000)],
-  ['middle dots', '1·'.repeat(20000)],
-  ['dots', '1.'.repeat(20000)],
-])('a long run of digits and %s, then an @, finishes in linear time', (_kind, run) => {
-  const t0 = process.hrtime.bigint();
-  stripPii(`${run}@ x`);
-  expect(Number(process.hrtime.bigint() - t0) / 1e6).toBeLessThan(1500);
+  ['hyphens', '05-'],
+  ['en dashes', '05–'],
+  ['middle dots', '1·'],
+  ['dots', '1.'],
+])('a long run of digits and %s, then an @, finishes in linear time', (_kind, unit) => {
+  expectLinear((n) => `${unit.repeat(n)}@ x`, 20000);
 });
