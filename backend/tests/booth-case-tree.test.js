@@ -364,9 +364,6 @@ describe('the reply bank', () => {
   // Two reviewed banks name another option's short acronym, which #494's rule now catches; their tree tickets (spec
   // #493) fix them and empty this list. Any other problem fails.
   const SHORT_ACRONYMS = [
-    'NFCME-2026/melioidosis-farmer.json: replies.step3.B.b.en[1].strength: names another option ("iv")',
-    'NFCME-2026/melioidosis-farmer.json: replies.step3.W.b.en[1].strength: names another option ("iv")',
-    'NFCME-2026/melioidosis-farmer.json: replies.step4.W.d.en[2].strength: names another option ("iv")',
     'NFCME-2026/toddler-gastro-dehydration.json: replies.step4.B.elec.th[0].weigh: names another option ("ors")',
     'NFCME-2026/toddler-gastro-dehydration.json: replies.step4.B.elec.en[0].weigh: names another option ("ors")',
     'NFCME-2026/toddler-gastro-dehydration.json: replies.step5.B.home.th[1].weigh: names another option ("ors")',

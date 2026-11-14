@@ -1,6 +1,6 @@
 {
   "case_id": "alcohol-pancreatitis",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 45 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน ปวดท้องลิ้นปี่รุนแรงหลังดื่มหนักช่วงสุดสัปดาห์",
@@ -459,8 +459,8 @@
               "en": "Fluids, pain relief, nil by mouth"
             },
             "line": {
-              "th": "งดน้ำงดอาหารช่วงคลื่นไส้เป็นวิธีที่ใช้กันมานาน",
-              "en": "Nil by mouth during the nausea is a long-standing practice."
+              "th": "งดน้ำงดอาหารช่วงคลื่นไส้ช่วยให้ผู้ป่วยสบายขึ้น",
+              "en": "Nil by mouth during the nausea keeps him comfortable."
             }
           },
           {
@@ -556,8 +556,8 @@
               "en": "Fluids, pain relief, nil by mouth"
             },
             "line": {
-              "th": "งดน้ำงดอาหารช่วงคลื่นไส้เป็นวิธีที่ใช้กันมานาน",
-              "en": "Nil by mouth during the nausea is a long-standing practice."
+              "th": "งดน้ำงดอาหารช่วงคลื่นไส้ช่วยให้ผู้ป่วยสบายขึ้น",
+              "en": "Nil by mouth during the nausea keeps him comfortable."
             }
           },
           {
@@ -1251,8 +1251,8 @@
               "en": "Give a low-fat diet leaflet"
             },
             "line": {
-              "th": "อาหารไขมันต่ำช่วยลดภาระของตับอ่อน",
-              "en": "A low-fat diet eases the load on the pancreas."
+              "th": "บางคนเชื่อว่าอาหารไขมันต่ำช่วยลดภาระของตับอ่อน",
+              "en": "Some say a low-fat diet eases the load on the pancreas."
             }
           },
           {
@@ -1279,9 +1279,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Fresh claude-opus-5-5 reviewer, five-step version (step 3 merged, steps 4 and 5 new), checked against ACG 2024, AGA 2018, revised Atlanta 2012 and WATERFALL (NEJM 2022) for pancreatitis; CIWA-Ar symptom-triggered benzodiazepine dosing with thiamine before glucose for alcohol withdrawal; and the Thai MoPH / Department of Mental Health AUDIT-based screening and brief intervention programme with the WHO AUDIT zones. Found two unsafe step-4 weaker options in active withdrawal (faster IV fluids, removed; a relative at the bedside, now with PRN diazepam), a best withdrawal option without thiamine on paths that never gave it, two path-inconsistent questions (an unordered lipase result, eating after nil by mouth), five weaker-option lines stating false facts (CT, continued IV fluids, a longer stay), one Thai/English mismatch and several Thai wording fixes. All are fixed in this version.\n A second fresh reviewer then re-read steps 3 to 5 and found no must-fix: every step-4.W option is safe in active withdrawal and both best options give thiamine with diazepam; its path-fit and Thai wording polish (lipase wording, eating at 48 hours, bed near the nurses) is applied. Reviewed tree sha256 fe09f513a0696d36032597702a13954756e0290e0b0cb121c068407a59bd3f6a.",
-      "tree_sha256": "fe09f513a0696d36032597702a13954756e0290e0b0cb121c068407a59bd3f6a"
+      "date": "2026-11-14",
+      "findings": "Fresh claude-opus-5-5 reviewer that did not write the case, 2026-11-14, version 5. Sources opened: ACG 2024 acute pancreatitis guideline full text (Tenner et al., Am J Gastroenterol 2024;119:419-37), ASAM 2020 Clinical Practice Guideline on Alcohol Withdrawal Management full text, a Thai community-hospital CIWA-Ar-tiered diazepam guideline study (Nadun Hospital, J Prev Med Assoc Thai 2019;9(2):207) and the WHO AUDIT primary care guidelines page. Checked every variant and option of all 13 banks for facts, safety, tiers, Thai-English match and fit to every path. Ticket items: (1) 3.B/3.R npo line and reasonable tier right; ACG recommendation 10 is early oral feeding within 24-48 h as tolerated (not 24-72 h) and asks for no significant nausea or vomiting, so nil by mouth while nauseated is defensible. (2) 4.W relative stays weaker: it gives a benzodiazepine on a staffed ward, so it is safe, but ASAM prefers scale-triggered dosing and the Thai study found dosing only when signs are obvious leaves treatment late and short, so it is the least good. (3) 5.W diet line right as a hedged belief; ACG ties recurrence of alcoholic pancreatitis to ongoing drinking and names a low-fat diet only for refeeding. No must-fix. Optional: step3.R v1 shows a lipase result on paths that ordered none. Reviewed tree sha256 77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e.",
+      "tree_sha256": "77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e"
     }
   }
 }

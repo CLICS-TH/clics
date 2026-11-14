@@ -1434,7 +1434,7 @@
           },
           {
             "strength": "วางแผนที่ผู้ป่วยมีส่วนร่วมได้เอง และนำไปใช้ต่อที่บ้านได้",
-            "weigh": "การจำกัดน้ำมีประโยชน์ชัดในบางกลุ่ม ส่วนผู้ป่วยทั่วไปยังมีข้อมูลน้อย",
+            "weigh": "หลักฐานว่าการจำกัดน้ำช่วยได้ยังมีน้อย มักใช้ในรายที่รุนแรงหรือโซเดียมในเลือดต่ำ",
             "safety": ""
           }
         ],
@@ -1451,7 +1451,7 @@
           },
           {
             "strength": "A plan he can take part in himself and carry on at home.",
-            "weigh": "Restriction helps clearly in some groups, while for most patients the data are thin.",
+            "weigh": "Evidence that restriction helps is weak, and it is mostly kept for severe cases or low sodium.",
             "safety": ""
           }
         ]
@@ -1895,36 +1895,36 @@
       "reservoir": {
         "th": [
           {
-            "strength": "แก้ SpO2 ที่ต่ำลงได้เร็วด้วย**ออกซิเจนเข้มข้น**สูงขึ้น",
-            "weigh": "ออกซิเจนที่มากขึ้นช่วยตัวเลข แต่ไม่ได้ลดงานการหายใจหรือน้ำในปอด",
-            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว อาจหยุดหายใจได้ในไม่ช้า"
+            "strength": "เพิ่มออกซิเจนด้วย**หน้ากากถุงสำรอง** พร้อมขับน้ำออกจากปอดต่อ",
+            "weigh": "การขับน้ำออกจากปอดให้พอด้วยยาขับปัสสาวะใช้เวลาหลายชั่วโมง ช้าเกินไปสำหรับการหายใจที่กำลังล้มเหลวตอนนี้",
+            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
-            "strength": "ตอบสนองทันทีต่อออกซิเจนที่ต่ำ ซึ่งเป็นภัยเร่งด่วน",
+            "strength": "ตอบสนองทันทีต่อออกซิเจนที่ต่ำ และยัง**ลดน้ำในปอด**ต่อเนื่อง",
             "weigh": "ผู้ป่วยกำลังเหนื่อยมาก หากหมดแรงจะทรุดเร็ว จึงต้องเฝ้าดูใกล้ชิด",
-            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว อาจหยุดหายใจได้ในไม่ช้า"
+            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
-            "strength": "หน้ากากมีถุงสำรองหาได้ทุกที่และใส่ได้เร็ว",
+            "strength": "ใช้อุปกรณ์และยาที่มีทุกหอผู้ป่วย เริ่มได้เร็วข้างเตียง",
             "weigh": "SpO2 ที่ดีขึ้นอาจทำให้มองข้ามว่าการหายใจยังหนักอยู่",
-            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว อาจหยุดหายใจได้ในไม่ช้า"
+            "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           }
         ],
         "en": [
           {
-            "strength": "Lifts a falling SpO2 quickly with a **much higher oxygen** concentration.",
-            "weigh": "More oxygen improves the number but does not ease his work of breathing or lung fluid.",
-            "safety": "Falling SpO2 and harder breathing on oxygen mean respiratory failure is advancing and he may arrest soon."
+            "strength": "Raises the oxygen with a **reservoir mask** while still treating the lung fluid.",
+            "weigh": "Clearing enough lung fluid with diuretics takes hours, too slow for breathing that is failing now.",
+            "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
-            "strength": "Responds at once to low oxygen, an immediate danger.",
+            "strength": "Responds at once to low oxygen and keeps working to **clear his lungs**.",
             "weigh": "He is tiring, and if he exhausts himself he will crash quickly, so watch closely.",
-            "safety": "Falling SpO2 and harder breathing on oxygen mean respiratory failure is advancing and he may arrest soon."
+            "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
-            "strength": "A reservoir mask is available everywhere and is quick to put on.",
+            "strength": "Uses kit and drugs every ward has, quick to put in place at the bedside.",
             "weigh": "A better SpO2 can hide how hard he is still working to breathe.",
-            "safety": "Falling SpO2 and harder breathing on oxygen mean respiratory failure is advancing and he may arrest soon."
+            "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           }
         ]
       }
@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank, including non-numeric variants. Sources: the case admission review names HFCT 2019 Acute Heart Failure (J Med Assoc Thai 2019;102:373-379), WHO IMAI District Clinician Manual (2011) section 3.2.5 and ESC 2021 HF guidelines; this pass found the HFCT record on the Mahidol repository but its full text is a file and was not downloaded, and the ESC 2021 page opened but cut off before the acute heart failure section, so the facts were checked against those guidelines as known (oxygen below SpO2 90%, CPAP at fast breathing with SpO2 under 90%, IV furosemide doubled for poor urine output, nitrate held below a systolic of about 110, urine sodium as a response check, no routine catheter, weak evidence for fluid restriction, 2 kg in 3 days as a return trigger, ototoxicity with fast large boluses, gut oedema slowing oral absorption) and against the source-checked admission review. Confirmed the requested fixes: safety sentences on step4.W.reservoir and step5.W.abx in all alternatives, naming no alternative; step4.W.reservoir[2] strength; ntprobnp[2] strength with no referral preview; step4.W.double_dose[0] weigh no longer times diuresis; step1.c[1] weigh; step5.B.early_review th[1] lists side effects; step5.W.transfer_ccu en[1]. Checked clinical truth, safety, leaks (every uppercase acronym in a reply also appears in that option label or line or the vignette), fit, Thai naturalness and Thai-English equivalence: no must-fix. Non-blocking notes: step4.W.double_dose and step4.W.refer_now and step5.W.ward_iv_up are reasonable-tier options taken while he is deteriorating and carry no safety sentence; refer_now and ward_iv_up warn in every weigh, but double_dose[1] weigh speaks only of kidney function, potassium and urine, so a line on the worsening breathing there would help. step4.B.fluid_limit[2] weigh says restriction helps clearly in some groups, which overstates weak evidence. step4.B.serial_trop[2] weigh ranks an ECG change above troponin, which is arguable. step1.a[0] bolds a different phrase in Thai and English. step5.W.iv_up_transfer en[1] frequent urine on board reads awkwardly. Tree sha256 9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8. Replies sha256 51fa2554eff22b6f3a3bcd1355ab9ea02a91ccf6b9f1c78473e60713fd850ed5.",
-    "tree_sha256": "9bb61afcdd4c27e457246871591fd80e824224d8ee3945272825eb2b179d91a8",
-    "replies_sha256": "51fa2554eff22b6f3a3bcd1355ab9ea02a91ccf6b9f1c78473e60713fd850ed5"
+    "findings": "Fresh review by a non-author (claude-opus-5-5), 2026-11-14, of every reply in all 13 banks of adhf version 6, all three alternatives, Thai and English, read against every question variant. Checked clinical truth against the ESC 2021 acute HF recommendations, the Cochrane 2019 NIV summary, Aliti 2013 and FRESH-UP, plus leaks, fit and Thai-English match. The six rewritten step4.W.reservoir replies are correct, name no other option and each carries the line that he needs ventilatory support now; reservoir[0] weigh (diuresis takes hours) and step4.B.fluid_limit[2] weigh (weak evidence, kept for severe cases or low sodium) are right. No must-fix. Optional: step4.W.double_dose[1] weigh could name the need for ventilatory support, and reservoir[1] weigh ends on watch closely. Tree sha256 68a3a7162c28489decb88a8b75324c52330a877aa733e8056fa94be870182cb3, replies sha256 f50763c042c0feb51cfb356c9f62768238791628a4163ad2aa9e3be7e75c3c53.",
+    "tree_sha256": "68a3a7162c28489decb88a8b75324c52330a877aa733e8056fa94be870182cb3",
+    "replies_sha256": "f50763c042c0feb51cfb356c9f62768238791628a4163ad2aa9e3be7e75c3c53"
   }
 }

@@ -1,6 +1,6 @@
 {
   "case_id": "melioidosis-farmer",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชาวนาเบาหวานวัย 55 ปี มาโรงพยาบาลชุมชนด้วยไข้และไอ 10 วัน",
@@ -950,8 +950,8 @@
               "en": "TMP-SMX, insulin, review in 2 weeks"
             },
             "line": {
-              "th": "คุมน้ำตาลและติดตามผลยา ช่วยลดโรคกำเริบ",
-              "en": "Glucose control and drug checks cut the risk of relapse."
+              "th": "คุมน้ำตาลและติดตามผลยาตั้งแต่ต้น ให้คอร์สยายาวราบรื่น",
+              "en": "Glucose control and early drug checks keep the long course on track."
             }
           },
           {
@@ -1075,9 +1075,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Fresh reviewer that did not write the case, 2026-11-13, five-step version 4, tree sha256 7b602e688b2b380dc8d89a03ada77e7282b9c0ed81293662963e0c84ae67509b. Sources read: Thai DDC melioidosis surveillance and control measures (16 Nov 2024, citing the DDC Guideline of Melioidosis 2021): IV ceftazidime, imipenem or meropenem at least 10-14 days, then co-trimoxazole 12-20 weeks, co-amoxiclav if allergic, boots in the field. Darwin 2024 guideline (Currie et al., NT Disease Control Bulletin, Dec 2023, Table 1): deep-seated collection 4 weeks IV minimum, eradication 3 months. WHO SEARO IMAI District Clinician Manual (2021): IV at least 10 days, oral at least 3 months, co-trimoxazole first, co-amoxiclav second. WHO has no melioidosis fact sheet. Checked every bank, variant and option for drug choice, IV and eradication lengths, relapse care, diabetes care, discharge, tiers and Thai-English parity. This round's fix holds: with splenic abscesses no option above weaker ends the IV phase at 14 days (step4.B c keeps the IV drug and asks an internist). No must-fix found. The case states no doses.",
-      "tree_sha256": "7b602e688b2b380dc8d89a03ada77e7282b9c0ed81293662963e0c84ae67509b"
+      "date": "2026-11-14",
+      "findings": "Fresh reviewer that did not write the case, 2026-11-14, five-step version 5. Sources opened: Anunnatsiri et al., Clin Infect Dis 2021 (12 vs 20 weeks TMP-SMX); Limmathurotsakul et al., Clin Infect Dis 2006 and PLoS NTD 2008 abstracts; Currie, Ward, Cheng, PLoS NTD 2010 (Darwin cohort); 2024 Darwin Melioidosis Treatment Guideline (NT Disease Control Bulletin, Dec 2023, Tables 1 and 3); PLoS NTD 2023 network meta-analysis (TMP-SMX alone 20 weeks is the Thai recommendation). The Thai DDC guideline itself was not opened. Checked all 13 banks, every variant and option for drug choice, IV and eradication lengths, relapse and diabetes care, discharge, tiers, stems on each entry path and Thai-English parity. Ticket items: step3.R b stays best, since 20 weeks is the Thai standard and the 2021 trial missed its primary non-inferiority test (recurrence 2% vs 1%, HR 2.66, 0.52-13.69) and randomised only patients with no residual abscess. The step5.R a line now makes no relapse claim, which is right: diabetes was tied to relapse in Darwin but not in the Thai cohort, and early TMP-SMX checks are standard (Darwin Table 3). No must-fix. Non-blocking: step4.R d (add TMP-SMX to the IV drug) is weaker for its stated reason, though Darwin 2024 now starts graded TMP-SMX in the intensive phase. Reviewed tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50.",
+      "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50"
     }
   }
 }
