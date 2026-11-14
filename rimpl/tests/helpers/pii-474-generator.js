@@ -45,6 +45,17 @@ function generator(seed, { ascii = false } = {}) {
   };
   const day = () => String(1 + Math.floor(r() * 28));
   const month = () => String(1 + Math.floor(r() * 12));
+  // A chain of 3 to 7 date numbers joined by '.', '-', '/' and the look-alike dashes (20.6.2026-4-3-5,
+  // 17.3.2026/11/1/5, 2024.10.1.20/10/2569): no pass may cut a date master masks in it. Half open with a dotted date.
+  const chain = () => {
+    const nums = () => pick([day, month, day, () => pick(['2569', '2026', '2024', '69', '25'])])();
+    const dotted = r() < 0.5;
+    const out = [dotted ? `${day()}.${month()}.${pick(['2569', '2026', '25'])}` : nums()];
+    for (let n = dotted ? 1 + Math.floor(r() * 4) : 2 + Math.floor(r() * 5); n > 0; n -= 1) {
+      out.push(pick(['.', '-', '/', ...dashes]), nums());
+    }
+    return out.join('');
+  };
   const ID = [
     () => groups([3, 3, 4], 0),
     () => groups([2, 3, 4], 0),
@@ -55,6 +66,8 @@ function generator(seed, { ascii = false } = {}) {
     () => `${pick(['HN', 'HN:', 'MRN', 'AN', '𝐇𝐍', 'HN·'])} ${groups([pick([4, 6, 7])])}${pick(['', '', `/${digits(2).join('')}`])}`,
     () => `${day()}${pick(['/', '.', '-', '·', '–'])}${month()}${pick(['/', '.', '-', '·', '–'])}${pick(['2569', '2026', '69'])}`,
     () => `${pick(['2569', '2026'])}${pick(['-', '.', '/', '·', '–'])}${month()}${pick(['-', '.', '/', '·', '–'])}${day()}`,
+    chain,
+    chain,
     () => `${day()} ${pick(['Oct', 'ต.ค.', 'ตุลาคม', 'March'])} ${pick(['1967', '2510', '67'])}`,
     () => `${pick(['somchai', 'a.b', 'jd_12'])}${pick(['@', '·@'])}${pick(['example.com', 'example·com', 'x.co.th'])}`,
     () => `อายุ ${digits(2, 4).join('')} ปี`,
@@ -63,8 +76,8 @@ function generator(seed, { ascii = false } = {}) {
     () => `บ้านเลขที่ ${digits(2, 9).join('')}/1`,
   ];
   const CLINICAL = ['BP 120/80', 'Na 140', 'Hb 12·5', 'K 3.5–5.0', 'Cr 1·05 1·12 1·20', 'dose 5–10 mg', 'titrate 10-12-14 mg',
-    '⑴ ASA ⑵ P2Y12', '⒈ aspirin', 'VERSION 2024.10.1', 'Section: 1.2.10', 'ปวดท้อง', 'ผู้ป่วยมีไข้', 'G2P1A0', 'L4-5',
-    'WBC 12 x 10³/µL', 'pH 7·35', 'on 3 Jan 10:30', 'since October 2024', 'grade 2-3', 'seen'];
+    '⑴ ASA ⑵ P2Y12', '⒈ aspirin', 'VERSION 2024.10.1', 'Section: 1.2.10', 'version 1.2.10', 'Section 5.10.69', 'ปวดท้อง',
+    'ผู้ป่วยมีไข้', 'G2P1A0', 'L4-5', 'WBC 12 x 10³/µL', 'pH 7·35', 'on 3 Jan 10:30', 'since October 2024', 'grade 2-3', 'seen'];
   const MARKS = ['1️⃣', '①', '⑴', '⒈', '𝐀', '𝐇𝐍', '❶', '𝟏', '⓵', '2⃣'];
   const JOIN = ['', ' ', ' ', '/', '-', ', ', ...dashes, ...dots, ' – ', ' · '];
   return () => {
