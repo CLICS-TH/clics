@@ -20,11 +20,8 @@ const viaPrime = (f, texts, registry = f.makeRegistry()) => {
 };
 const ROUTES = [['stripHistoryPii', viaHistory], ['primeRegistry', viaPrime]];
 
-// Each token of this branch whose restore entries hold values master gave different tokens: two referents merged.
-// `taken` marks the one kind left (#474 residual), where the extra value is a word this branch's own surname pass took
-// next to a name (takeSurnames, master's rule): a pass of this branch ate the context master read that word in ("Mr
-// Brown∙x.y@hospital.com", "Dr May 28, 2024", "Ward: Dr. Lee"), so master knew it as another person and this branch
-// as the surname beside the name. The word stays masked; it shares that name's token. No union makes one.
+// Each token of this branch whose restore entries hold values master gave different tokens: two referents merged. No
+// kind is exempt (#474).
 function merged(texts) {
   const out = [];
   for (const [route, run] of ROUTES) {
@@ -39,9 +36,7 @@ function merged(texts) {
       if (t) byToken.set(e.token, [...(byToken.get(e.token) ?? []), { ...e, of: t }]);
     }
     for (const [token, es] of byToken) {
-      if (new Set(es.map((e) => e.of)).size < 2) continue;
-      const rest = es.filter((e) => h.knownWordAliases(e.category)[e.value] !== token);
-      out.push({ route, texts, token, of: es.map((e) => `${e.of}=${e.value}`), taken: new Set(rest.map((e) => e.of)).size < 2 });
+      if (new Set(es.map((e) => e.of)).size > 1) out.push({ route, texts, token, of: es.map((e) => `${e.of}=${e.value}`) });
     }
   }
   return out;
@@ -69,11 +64,12 @@ describe('#474 against master, the texts of one call', () => {
     [['Ward: Mr Smith', 'Smith reports chest pain'], ['[WARD-1] [NAME-1]', '[NAME-1] reports chest pain']],
     [['Smith reports chest pain', 'Ward: Mr Smith'], ['[NAME-1] reports chest pain', '[WARD-1] [NAME-1]']],
     [['Seen by Dr. June 5, 2024', 'June has fever'], ['Seen by Dr. [DATE-1]', '[NAME-1] has fever']],
-    [['ward: Dr Somchai Jaidee', 'Jaidee called back'], ['[WARD-1] [NAME-1]', '[NAME-1] called back']],
+    // The union over master's name binds its parts as master does (aliasLikeMaster), so the bare surname keeps its token.
+    [['ward: Dr Somchai Jaidee', 'Jaidee called back'], ['[WARD-1] [NAME-1] [NAME-1]', '[NAME-1] called back']],
     [['Ward#Mrs Brown', 'Brown is stable'], ['[WARD-1] [NAME-1]', '[NAME-1] is stable']],
-    // This branch masks the given name as a name and the surname inside the email, so no mask of its spans master's
-    // name: the bare surname takes a token of its own (one person split, never two merged).
-    [['Dr. Somchai Jaidee·md@hospital.com', 'Jaidee called back'], ['Dr [NAME-1] [EMAIL-1]', '[NAME-2] called back']],
+    // This branch masks the given name as a name and the surname inside the email: the name's token learns the surname
+    // master binds to it (aliasLikeMaster), so the bare surname keeps that token.
+    [['Dr. Somchai Jaidee·md@hospital.com', 'Jaidee called back'], ['Dr [NAME-1] [EMAIL-1]', '[NAME-1] called back']],
   ])('%j', (texts, expected) => {
     expect(viaHistory(head, texts)).toEqual(expected);
     expect(viaPrime(head, texts)).toEqual(expected);
@@ -101,17 +97,40 @@ describe('#474 against master, the texts of one call', () => {
     expect(merged(texts)).toEqual([]);
   });
 
-  // The residual kind `merged` lets through, pinned: the word is masked, under the name's token.
+  // A word master knew as another person, read in context a pass of this branch eats, is not bound to a name of this
+  // branch, as a taken surname or an alias (heldByAnother); the union masks it under a token of its own (#474).
   test.each([
-    [['นางสมชาย ใจดี Brown has fever', 'Mr Brown∙x.y@hospital.com'], ['นาง[NAME-1] [NAME-1] [NAME-1] has fever', 'Mr [EMAIL-1]']],
-    [['คุณสมศรี ทองคำ May', 'with Dr May 28, 2024'], ['คุณ[NAME-1] [NAME-1] [NAME-1]', 'with Dr [DATE-1]']],
-  ])('residual, a surname taken beside a name: %j', (texts, expected) => {
+    [['นางสมชาย ใจดี Brown has fever', 'Mr Brown∙x.y@hospital.com'], ['นาง[NAME-1] [NAME-1] [NAME-2] has fever', 'Mr [EMAIL-1]']],
+    [['คุณสมศรี ทองคำ May', 'with Dr May 28, 2024'], ['คุณ[NAME-1] [NAME-1] [NAME-2]', 'with Dr [DATE-1]']],
+    [['คุณสมศรี ทองคำ Lee', 'Ward: Dr. Lee'], ['คุณ[NAME-1] [NAME-1] [NAME-2]', '[WARD-1]. [NAME-2]']],
+    [['Dr Brown∙jb@hosp.org', 'Mr Brown Smith, Called Smith back', 'Brown +66 99 231 3039', 'Called Brown back',
+      'with Dr Brown Smith 3 2025', 'Dr Brown'],
+    ['Dr [EMAIL-1]', 'Mr [NAME-2], Called [NAME-2] back', '[NAME-1] [PHONE-1]', 'Called [NAME-1] back', 'with Dr [NAME-2] 3 2025',
+      'Dr [NAME-1]']],
+    // The union mints by its own value, never by master's token: the two registries reach one span through aliases
+    // bound first-wins, so one span may stand for two people (Brown of ทองคำ here, of Smith Brown in master).
+    [['นางทองคำ Brown', 'ward#Mr Smith Brown, Brown.', 'Mr Smith Brown'],
+      ['นาง[NAME-1] [NAME-3]', '[WARD-1] [NAME-3] [NAME-3], [NAME-3].', 'Mr [NAME-3]']],
+    [['Ward: Dr. ทองคำ สมชาย, April', 'Ward# Mrs June April April has fever', 'Prof June April'],
+      ['[WARD-1]. [NAME-1] [NAME-1], [NAME-3]', '[WARD-2] [NAME-3] [NAME-3] [NAME-3] has fever', 'Prof [NAME-3]']],
+    // Master's name pass reads "Lee Dr" as one name: the Dr is masked, as master masks it.
+    [['HN 1234567 ศรีสุข สมศรี, Lee∙x.y@hospital.com', 'Name: Lee', 'ศรีสุขมาด้วยไข้', 'WARD:Prof Lee Dr Lee'],
+      ['[HN-1] [NAME-1] [NAME-1], [EMAIL-1]', 'Name: [NAME-2]', '[NAME-1]มาด้วยไข้', '[WARD-1] [NAME-2] [NAME-3] [NAME-2]']],
+  ])('two people master keeps apart stay apart: %j', (texts, expected) => {
     expect(viaHistory(head, texts)).toEqual(expected);
     expect(viaPrime(head, texts)).toEqual(expected);
     expect(lost(texts)).toEqual([]);
-    const m = merged(texts);
-    expect(m.length).toBe(2);
-    expect(m.every((x) => x.taken)).toBe(true);
+    expect(merged(texts)).toEqual([]);
+  });
+
+  // Master takes MRN, glued to a value master does not read as one, for a surname. A Latin alias matches inside a token,
+  // so binding it would break this branch's [MRN-1] into [[NAME-2]-1] (aliasLikeMaster never binds a token's category).
+  test('a word that is a token category is never bound as a name part', () => {
+    const texts = ['คุณสมชาย, MRN ②⑨⑨③①⑤② ok', 'MRN noted'];
+    expect(viaHistory(head, texts)[0]).toBe('คุณ[NAME-1], [MRN-1] ok');
+    expect(viaPrime(head, texts)[0]).toBe('คุณ[NAME-1], [MRN-1] ok');
+    expect(lost(texts)).toEqual([]);
+    expect(merged(texts)).toEqual([]);
   });
 
   test.each(SEEDS)('seed %i: two people who share a name part are never merged', (seed) => {
@@ -143,7 +162,7 @@ describe('#474 against master, the texts of one call', () => {
         const texts = next();
         // Master masks some text differently than it does alone: what it learnt in another text of the call counts.
         if (viaHistory(master, texts).some((t, i) => t !== master.stripPii(texts[i]))) crossText += 1;
-        found.push(...lost(texts), ...merged(texts).filter((x) => !x.taken));
+        found.push(...lost(texts), ...merged(texts));
       }
       expect(found.slice(0, 5)).toEqual([]);
       expect(crossText).toBeGreaterThan(N * 0.6); // not vacuous: 135 to 145 of 150 on the 24 seeds today

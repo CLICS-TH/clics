@@ -169,8 +169,10 @@ function moreInClear(head, master) {
 
 // The texts of one call (2 to 4), for the multi-text differential. A person is written in full in one text, in a shape
 // where a pass of this branch can eat the context master's name pass reads (a Latin title after Ward: or ward#, a
-// given name that is also a month, a name before a middle-dot email, a Thai name after คุณ, นาย or ชื่อ), and by a bare
-// part in the others, before or after it; the identifier strings of `generator` fill the rest.
+// given name that is also a month, a name before a middle-dot email or a month date, a Thai name after คุณ, นาย or ชื่อ),
+// or as a Thai given name with a Latin or Thai part beside it that another person of the call may hold (นางทองคำ Brown:
+// takeSurnames binds that part to this third person first), and by a bare part in the others, before or after it; the
+// identifier strings of `generator` fill the rest.
 function historyGenerator(seed, { ascii = false } = {}) {
   const r = rng(seed);
   const pick = (xs) => xs[Math.floor(r() * xs.length)];
@@ -187,8 +189,17 @@ function historyGenerator(seed, { ascii = false } = {}) {
       const tail = pick([` ${1 + Math.floor(r() * 28)}, 2024`, ` ${1 + Math.floor(r() * 28)} 2025`, '', ' 3']);
       return { full: `${pick(['Seen by ', '', 'with '])}${title()} ${n.join(' ')}${tail}`, parts: n };
     },
-    () => { const n = pick(LATIN); return { full: `${pick(['', 'Dr. ', 'Mr '])}${n.join(' ')}${pick(['·', '・', '∙'])}${pick(['md', 'j', 'x.y'])}@${pick(['hospital.com', 'x.com', 'x.co.th'])}`, parts: n }; },
+    () => { const n = pick(LATIN); return { full: `${pick(['', 'Dr. ', 'Mr ', 'Dr '])}${n.join(' ')}${pick(['·', '・', '∙'])}${pick(['md', 'j', 'x.y', 'jb'])}@${pick(['hospital.com', 'x.com', 'x.co.th', 'hosp.org'])}`, parts: n }; },
     () => { const n = pick(THAI); return { full: `${pick(['คุณ', 'นาย', 'นาง', 'ชื่อ ', 'ชื่อ'])}${n.join(' ')}`, parts: n }; },
+    () => {
+      const n = pick(LATIN);
+      return { full: `${pick(['with ', 'Seen by ', ''])}${title()} ${n.join(' ')} ${pick([`${pick(MONTHS)} `, ''])}${1 + Math.floor(r() * 28)}${pick([', 2024', ' 2025'])}`, parts: n };
+    },
+    () => {
+      const g = pick(THAI)[0];
+      const shared = pick([...LATIN.flat(), ...MONTHS, ...THAI.flatMap((t) => t.slice(1))]);
+      return { full: `${pick(['นาง', 'คุณ', 'นาย'])}${g} ${shared}${pick(['', ' has fever', ' มาด้วยไข้'])}`, parts: [g, shared] };
+    },
   ];
   const bare = (part) => (/[ก-๛]/.test(part)
     ? pick([`${part}มาด้วยไข้`, `ญาติของ${part}โทรมา`, `${part} บอกว่าปวดท้อง`, part])
@@ -220,7 +231,9 @@ function twoPeopleGenerator(seed) {
   ];
   const title = (thai) => pick(thai ? ['คุณ', 'นาย', 'นาง', 'ชื่อ '] : ['Mr', 'Mrs', 'Dr', 'Dr.', 'Prof']);
   const eaten = (thai) => pick(thai ? ['', 'ward: '] : ['Ward:', 'WARD:', 'ward#', 'Ward# ', 'Seen by ']);
-  const full = (n, thai, eat) => `${eat ? eaten(thai) : ''}${title(thai)}${thai ? '' : ' '}${n.join(' ')}`;
+  // A Latin name glued to a middle-dot email or a date eats master's context too (Dr Brown∙jb@hosp.org, Dr Lee 3 2025).
+  const glued = (thai) => (thai ? '' : pick(['', '', '∙x.y@hospital.com', '∙jb@hosp.org', ' 28, 2024', ' May 28, 2024', ' 3 2025']));
+  const full = (n, thai, eat) => `${eat ? eaten(thai) : ''}${title(thai)}${thai ? '' : ' '}${n.join(' ')}${eat ? glued(thai) : ''}`;
   const bare = (part) => (/[ก-๛]/.test(part) ? pick([`${part}มาด้วยไข้`, `ญาติของ${part}โทรมา`, `${part} บอกว่าปวดท้อง`])
     : pick([`${part} reports chest pain`, `${part} has fever`, `Called ${part} back`]));
   return () => {
@@ -231,6 +244,8 @@ function twoPeopleGenerator(seed) {
     const texts = people.map((p, i) => full(p.full, thai, i === eat || r() < 0.3));
     if (r() < 0.5) texts.push(texts.shift());
     if (r() < 0.3) texts.splice(1, 0, `${full(people[0].full, thai, false)}, ${full(people[1].full, thai, true)}`);
+    // A third person, a Thai given name with a part of the pair beside it: takeSurnames may bind that part to her first.
+    if (r() < 0.3) texts.splice(Math.floor(r() * (texts.length + 1)), 0, `${pick(['นาง', 'คุณ'])}${pick(['ทองคำ', 'สมศรี', 'วีระ'])} ${pick(pair.flat())}`);
     const mentions = people.flatMap((p, i) => Array.from({ length: 1 + Math.floor(r() * 2) }, () => ({ i, text: bare(p.own) })));
     for (const m of mentions) texts.splice(Math.floor(r() * (texts.length + 1)), 0, m.text);
     return { texts, people, mentions };
