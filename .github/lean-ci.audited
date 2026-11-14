@@ -1,4 +1,4 @@
-workflows: efed2c71114da94cefcde9f74ba6085971ce63db
+workflows: 25db27af55f6d77abdd1e9aeb5e817b4f8e54311
 date: 2026-11-14
 # billed minutes per case (skipped jobs excluded: GitHub bills no runner for them)
 # case                                          before  after (est.)
