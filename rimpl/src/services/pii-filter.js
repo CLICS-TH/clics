@@ -33,12 +33,11 @@
 const { TH_GIVEN_NAMES, TH_SURNAMES, TH_SURNAME_MORPHEMES } = require('./pii-names.th');
 const { TH_CLINICAL_CONTINUATIONS } = require('./pii-clinical-words.th');
 
-function makeRegistry(from) {
-  const copy = (m) => Object.fromEntries(Object.keys(m ?? {}).map((c) => [c, Object.assign(Object.create(null), m[c])]));
-  const counters = Object.assign(Object.create(null), from?.counters); // category -> next index
-  const seen = Object.assign(Object.create(null), copy(from?.seen));     // category -> { surfaceForm -> token }
-  const aliases = Object.assign(Object.create(null), copy(from?.aliases));  // category -> { alias -> token }
-  const wordAliases = Object.assign(Object.create(null), copy(from?.wordAliases)); // category -> { whole-word-only alias -> token }
+function makeRegistry() {
+  const counters = Object.create(null); // category -> next index
+  const seen = Object.create(null);     // category -> { surfaceForm -> token }
+  const aliases = Object.create(null);  // category -> { alias -> token }
+  const wordAliases = Object.create(null); // category -> { whole-word-only alias -> token }
 
   function ensure(category) {
     if (!seen[category]) {
@@ -112,21 +111,25 @@ function makeRegistry(from) {
     return out;
   }
 
+  // Master's registry for this call (#474): stripPii runs master's passes on it, every text of the call, so a name master
+  // learns in one text masks it in the next exactly as master did. Its tokens never reach the output: `tokens` maps
+  // each to the token of this registry that stands for the same referent (withMastersMasks).
+  let shadow = null;
+  token.shadow = () => (shadow ??= { registry: makeRegistry(), tokens: new Map() });
+
   token.alias = alias;
   token.wordAlias = wordAlias;
   token.knownAliases = knownAliases;
   token.knownWordAliases = knownWordAliases;
-  // How many surface forms the registry knows: primeRegistry stops when a round adds none.
+  // How many surface forms the registry and its shadow know: primeRegistry stops when a round adds none.
   function size() {
-    let n = 0;
+    let n = shadow ? shadow.registry.size() + shadow.tokens.size : 0;
     for (const m of [seen, aliases, wordAliases]) for (const c of Object.keys(m)) n += Object.keys(m[c]).length;
     return n;
   }
 
   token.entries = entries;
   token.size = size;
-  // A copy that learns on its own: stripPii runs master's passes on one (see stripPii).
-  token.fork = () => makeRegistry({ counters, seen, aliases, wordAliases });
   return token;
 }
 
@@ -1673,11 +1676,12 @@ function stripPii(text, registry, hints = []) {
   // Zero-width characters split a word for the regexes without changing what a reader sees
   // ("นายสมชาย\u200Bใจดี"); they carry nothing clinical, so they go first.
   const input = text.replace(ZERO_WIDTH_RE, '').replace(SURNAME_MARK_RE, '');
-  // Never less than master (#474): master's passes run on a fork of the registry, then every mask of master's that this
-  // filter left a letter or digit of in clear is made (withMastersMasks).
-  const master = runTraced(input, MASTER_PASSES, token.fork(), hints);
+  // Never less than master (#474): master's passes run on the registry's shadow (master's registry for the call), then
+  // every mask of master's that this filter left a letter or digit of in clear is made (withMastersMasks).
+  const shadow = token.shadow();
+  const master = runTraced(input, MASTER_PASSES, shadow.registry, hints);
   const own = runTraced(input, PASSES, token, hints);
-  return withMastersMasks(input, own, master, token).replace(SURNAME_MARK_RE, '');
+  return withMastersMasks(input, own, master, token, shadow.tokens).replace(SURNAME_MARK_RE, '');
 }
 
 // Runs `passes` over `input`, traced: { out, src, masks } (see `trace`). Fails closed if the trace lost its place.
@@ -1695,15 +1699,30 @@ function runTraced(input, passes, token, hints) {
 }
 
 // `own.out` with each mask of master's that left a letter or digit in clear made, merged with every mask of `own` it
-// overlaps into one token of master's category, keyed by the input's plain view (one of `own`'s lends its number).
-function withMastersMasks(input, own, master, token) {
+// overlaps into one token of master's category, keyed by the input's plain view. One of `own`'s lends its number, else
+// the token an earlier text's union made for the same master token (`shadowTokens`), so a referent keeps one token
+// across the call.
+function withMastersMasks(input, own, master, token, shadowTokens) {
   const clear = new Uint8Array(input.length);
   for (const x of own.src) if (x >= 0 && /[\p{L}\p{N}]/u.test(String.fromCodePoint(input.codePointAt(x)))) clear[x] = 1;
   const live = (r) => [...new Set(r.src.filter((x) => x < 0))].map((x) => r.masks[-1 - x]).filter((k) => k.a < k.b);
-  const leaked = live(master).filter((k) => clear.subarray(k.a, k.b).includes(1));
+  const ofOwn = live(own).sort((x, y) => x.a - y.a);
+  const ofMasters = live(master);
+  // A master token met first where this filter masked it too takes the token of `own`'s mask of its category over it, so
+  // a later text that masks the referent only through the union keeps that token (Dr. Somchai Jaidee, then Jaidee).
+  for (const k of ofMasters) {
+    if (!k.tok || shadowTokens.has(k.tok)) continue;
+    let lo = 0;
+    let hi = ofOwn.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (ofOwn[mid].b <= k.a) lo = mid + 1; else hi = mid; }
+    for (let j = lo; j < ofOwn.length && ofOwn[j].a < k.b; j += 1) {
+      if (ofOwn[j].cat === k.cat && ofOwn[j].tok) { shadowTokens.set(k.tok, ofOwn[j].tok); break; }
+    }
+  }
+  const leaked = ofMasters.filter((k) => clear.subarray(k.a, k.b).includes(1));
   if (leaked.length === 0) return own.out;
   const groups = [];
-  for (const k of [...leaked.map((x) => ({ ...x, cat: x.cat ?? 'PII', master: true })), ...live(own)]
+  for (const k of [...leaked.map((x) => ({ ...x, cat: x.cat ?? 'PII', master: true })), ...ofOwn]
     .sort((x, y) => x.a - y.a)) {
     const g = groups[groups.length - 1];
     if (g && k.a < g.b) {
@@ -1724,9 +1743,13 @@ function withMastersMasks(input, own, master, token) {
     else if (!g.done) {
       g.done = true;
       const value = buildPlainView(input.slice(g.a, g.b)).view;
-      const lend = g.toks.find((k) => !k.master && k.cat === g.cat);
-      if (lend) token.alias(g.cat, value, lend.tok);
-      out += token(g.cat, value);
+      const ofMaster = g.toks.filter((k) => k.master && k.tok && k.cat === g.cat);
+      const lend = g.toks.find((k) => !k.master && k.cat === g.cat)?.tok
+        ?? ofMaster.map((k) => shadowTokens.get(k.tok)).find(Boolean);
+      if (lend) token.alias(g.cat, value, lend);
+      const tok = token(g.cat, value);
+      for (const k of ofMaster) if (!shadowTokens.has(k.tok)) shadowTokens.set(k.tok, tok);
+      out += tok;
     }
   }
   return out;
