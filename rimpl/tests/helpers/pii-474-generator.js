@@ -1,6 +1,7 @@
 // #474: the seeded string generator and the mask alignment the folds-only-add and master-differential tests share.
 // The generator mixes identifiers, look-alikes and clinical text; it writes no name, so stripPii only replaces spans
-// with [CAT-n] tokens and maskedSet can tell which input characters were masked.
+// with [CAT-n] tokens and maskedSet can tell which input characters were masked. historyGenerator writes names too, for
+// the texts of one call, so it is checked by clearCounts alone.
 // mulberry32: a small seeded generator, so a failure replays.
 function rng(seed) {
   let a = seed >>> 0;
@@ -151,4 +152,59 @@ function counted(input, notCountedRe) {
   return out;
 }
 
-module.exports = { generator, maskedSet, counted };
+// Each letter or digit outside the [CAT-n] tokens of `out`, with how many times it appears. Needs no alignment. A
+// separator between two masks (-, /) is no identifier and is not counted.
+const TOKENS_RE = /\[[A-Z]+-\d+\]/g;
+function clearCounts(out) {
+  const n = new Map();
+  for (const c of out.replace(TOKENS_RE, '')) if (/[\p{L}\p{N}]/u.test(c)) n.set(c, (n.get(c) ?? 0) + 1);
+  return n;
+}
+
+// The letters and digits `head` leaves in clear more often than `master` does.
+function moreInClear(head, master) {
+  const m = clearCounts(master);
+  return [...clearCounts(head)].filter(([c, k]) => k > (m.get(c) ?? 0)).map(([c]) => c);
+}
+
+// The texts of one call (2 to 4), for the multi-text differential. A person is written in full in one text, in a shape
+// where a pass of this branch can eat the context master's name pass reads (a Latin title after Ward: or ward#, a
+// given name that is also a month, a name before a middle-dot email, a Thai name after คุณ, นาย or ชื่อ), and by a bare
+// part in the others, before or after it; the identifier strings of `generator` fill the rest.
+function historyGenerator(seed, { ascii = false } = {}) {
+  const r = rng(seed);
+  const pick = (xs) => xs[Math.floor(r() * xs.length)];
+  const text = generator(seed + 7919, { ascii });
+  const LATIN = [['Smith'], ['Brown'], ['Lee'], ['Somchai', 'Jaidee'], ['John', 'Smith'], ['Mary', 'Brown']];
+  const MONTHS = ['June', 'May', 'April', 'March', 'August'];
+  const THAI = [['สมชาย', 'ใจดี'], ['สมศรี', 'ทองคำ'], ['มานี', 'มีสุข'], ['วีระ'], ['ประเสริฐ', 'ศรีสุข']];
+  const title = () => pick(['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Dr.', 'Prof']);
+  const people = [
+    () => { const n = pick(LATIN); return { full: `${pick(['Ward:', 'ward#', 'Ward#', 'ward: ', 'Ward: ', 'WARD:'])}${pick(['', ' '])}${title()} ${n.join(' ')}`, parts: n }; },
+    () => {
+      const g = pick(MONTHS);
+      const n = r() < 0.5 ? [g] : [g, pick(['Smith', 'Lee'])];
+      const tail = pick([` ${1 + Math.floor(r() * 28)}, 2024`, ` ${1 + Math.floor(r() * 28)} 2025`, '', ' 3']);
+      return { full: `${pick(['Seen by ', '', 'with '])}${title()} ${n.join(' ')}${tail}`, parts: n };
+    },
+    () => { const n = pick(LATIN); return { full: `${pick(['', 'Dr. ', 'Mr '])}${n.join(' ')}${pick(['·', '・', '∙'])}${pick(['md', 'j', 'x.y'])}@${pick(['hospital.com', 'x.com', 'x.co.th'])}`, parts: n }; },
+    () => { const n = pick(THAI); return { full: `${pick(['คุณ', 'นาย', 'นาง', 'ชื่อ ', 'ชื่อ'])}${n.join(' ')}`, parts: n }; },
+  ];
+  const bare = (part) => (/[ก-๛]/.test(part)
+    ? pick([`${part}มาด้วยไข้`, `ญาติของ${part}โทรมา`, `${part} บอกว่าปวดท้อง`, part])
+    : pick([`${part} reports chest pain`, `${part} has fever`, `Called ${part} back`, `${part}.`, part]));
+  return () => {
+    const texts = Array.from({ length: 2 + Math.floor(r() * 3) }, () => (r() < 0.6 ? text() : ''));
+    for (let n = 1 + Math.floor(r() * 2); n > 0; n -= 1) {
+      const p = pick(people)();
+      const at = Math.floor(r() * texts.length);
+      texts[at] = [texts[at], p.full].filter(Boolean).join(pick([' ', ', ', '. ']));
+      texts.forEach((t, i) => {
+        if (i !== at) texts[i] = [t, bare(pick(p.parts))].filter(Boolean).join(pick([' ', '. ']));
+      });
+    }
+    return texts;
+  };
+}
+
+module.exports = { generator, historyGenerator, maskedSet, counted, clearCounts, moreInClear };

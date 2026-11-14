@@ -6,20 +6,11 @@
 // so nothing is exempt. The owner-approved dose range (titrate 10-12-14 mg) is no exemption either: master masks none.
 const { stripPii } = require('../src/services/pii-filter');
 const master = require('./fixtures/pii-filter.master-474');
-const { generator, maskedSet, counted } = require('./helpers/pii-474-generator');
+const { generator, maskedSet, counted, moreInClear } = require('./helpers/pii-474-generator');
 
 const SEEDS = [474, 1, 2, 3, 4, 5];
 const N = 3000;
 const NOTHING = /(?!)/g;
-
-// Each letter or digit outside the [CAT-n] tokens of `out`, with how many times it appears. Needs no alignment, so it
-// also checks the strings maskedSet cannot place. A separator between two masks (-, /) is no identifier and is not counted.
-const TOKEN_RE = /\[[A-Z]+-\d+\]/g;
-function clearCounts(out) {
-  const n = new Map();
-  for (const c of out.replace(TOKEN_RE, '')) if (/[\p{L}\p{N}]/u.test(c)) n.set(c, (n.get(c) ?? 0) + 1);
-  return n;
-}
 
 describe.each([
   ['look-alike', false],
@@ -36,8 +27,8 @@ describe.each([
       const m = master.stripPii(input);
       const h = stripPii(input);
       if (m !== input) masterMasked += 1;
-      const mc = clearCounts(m);
-      const extra = [...clearCounts(h)].filter(([c, k]) => k > (mc.get(c) ?? 0)).map(([c]) => c);
+      // Counted per letter or digit (moreInClear): needs no alignment, so it also checks the strings maskedSet cannot place.
+      const extra = moreInClear(h, m);
       if (extra.length) more.push({ input, master: m, head: h, extra });
       if (/[[\]]/.test(input)) continue;
       const a = maskedSet(input, m);
