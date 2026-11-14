@@ -1,4 +1,4 @@
-// #474: identifier shapes stripPii and the booth label rule let through, and a version string they over-masked.
+// #474: identifier shapes stripPii and the booth label rule let through.
 // One row per shape: [shape, input, a pattern of the raw identifier that must be gone]. Keep rows hold clinical text
 // that must come back exactly as written.
 const { stripPii, maskLabelledTail, makeRegistry } = require('../src/services/pii-filter');
@@ -77,7 +77,7 @@ const LEAK = [
   ['short number then a landline, hyphen', 'call 05-021234567 now', /1234567/],
   ['short number, landline, then a date', 'call 05–021234567 20/10/2569', /1234567|2569/],
   ['phone then an ID-shaped run', 'tel 0812345678 081-234-5678 x', /234|5678/],
-  // Numbering labels: any case and a colon only for section, version, chapter.
+  // Numbering labels: master's spellings, then spaces only.
   ...['V: ', 'Rev: ', 'ข้อ: ', 'SEC ', 'VER ', 'v: ', 'Ver: '].map((l) => [`dotted date after ${JSON.stringify(l)}`, `${l}20.10.2569`, /2569/]),
   ['dotted date then a dash look-alike and a dashed date', 'seen 20.10.2569–11-12-69', /2569|11-12/],
   // Full dates with an ordinal day, a two-digit year, dashes, the era, a spaced abbreviation.
@@ -121,10 +121,10 @@ const LEAK = [
 ];
 
 const KEEP = [
-  ['VERSION caps', 'VERSION 2024.10.1'],
-  ['version colon', 'ECG software version: 2024.10.1'],
-  ['Section colon', 'Section: 1.2.10'],
-  ['SECTION caps', 'see SECTION 1.2.10'],
+  // Master's numbering labels: the spellings listed, then spaces.
+  ['version', 'version 1.2.10'],
+  ['Section', 'see Section 1.2.10'],
+  ['chapter', 'Chapter 3.1.10'],
   ['BP', 'BP 120/80 HR 90'],
   ['lab', 'Na 140.00 139.50'],
   ['dose range', 'titrate 5-10-15 mg'],
@@ -153,8 +153,6 @@ const KEEP = [
   ['day, month and a time', 'on 3 Jan 10:30 seen'],
   ['full-stop list', '⒈ aspirin ⒉ clopidogrel'],
   ['parenthesized list', '⑴ ASA ⑵ P2Y12'],
-  ['ECG software version', 'ECG software version: 2024.10.1'],
-  ['chapter colon', 'chapter: 3.1.10'],
 ];
 
 describe('#474 stripPii masks each shape', () => {
@@ -200,7 +198,16 @@ describe('#474 exact outputs', () => {
     ['the short number before a landline stays', 'call 05–021234567 now', 'call 05–[PHONE-1] now'],
     ['a middle-dot phone', 'call 081·234·5678 now', 'call [PHONE-1] now'],
     // A / or - group glued to a numbered section takes its label's exemption away (NUMBERED).
-    ['a section number glued to a slash date', 'Section: 1.2.1020/10/2569', 'Section: [DATE-1]/10/2569'],
+    ['a section number glued to a slash date', 'Section 1.2.1020/10/2569', 'Section [DATE-1]/10/2569'],
+    // #474 owner ruling: master's numbering labels exactly. Any other case or a colon is no label, so the number is a
+    // date, as on master (an accepted over-mask).
+    ['VERSION caps', 'VERSION 2024.10.1', 'VERSION [DATE-1]'],
+    ['VERSION caps, a day-first date', 'VERSION 20.10.2569', 'VERSION [DATE-1]'],
+    ['Version colon', 'Version: 2026.10.20', 'Version: [DATE-1]'],
+    ['SECTION caps', 'seen SECTION 5.10.69', 'seen SECTION [DATE-1]'],
+    ['Section colon', 'Section: 1.2.10', 'Section: [DATE-1]'],
+    ['version colon', 'ECG software version: 2024.10.1', 'ECG software version: [DATE-1]'],
+    ['chapter colon', 'chapter: 3.1.10', 'chapter: [DATE-1]'],
     // A text with a look-alike is read first in master's view (applyPass), and the folded run never cuts an identifier in
     // two (cutsIdentifier): each output is master's.
     ['an HN, an en dash, a slash date', 'HN 1234567–20/10/2569 seen', '[HN-1]–[DATE-1] seen'],
@@ -257,6 +264,24 @@ describe('#474 exact outputs', () => {
     ['an HN, a dotted date, a slashed year-first date', '𝐇𝐍 5556512-7.10.2569/5/4–69', '[HN-1]-[DATE-1]–69'],
     ['a dotted date, a slashed date', '20.10.25/12/2569', '[DATE-1]'],
     ['a two-digit list number, a slashed year-first date', '1.13.2026/4/3', '1.13.[DATE-1]'],
+    // A chain of date groups: no pass master lacked takes a group of a date master masks (cutsMasterSpan), whatever the
+    // chain's length, so the dotted date keeps master's mask.
+    ['a dotted date, three dashed groups', '20.6.2026-4-3-5', '[DATE-1]-4-3-5'],
+    ['a dotted date, three slashed groups', '17.3.2026/11/1/5', '[DATE-1]/11/1/5'],
+    ['a dotted date, four dashed groups', '20.6.2026-4-3-5-7', '[DATE-1]-4-3-5-7'],
+    ['a dotted date, four slashed groups', '17.3.2026/11/1/5/2', '[DATE-1]/11/1/5/2'],
+    ['a dotted date, three en-dashed groups', '20.6.2026–4–3–5', '[DATE-1]–4–3–5'],
+    ['a dotted date, mixed slash and en dash', '17.3.2026/11–1/5', '[DATE-1]/11–1/5'],
+    ['a dotted year-first date, a dot, a slashed date', 'x 2024.10.1.20/10/2569 y', 'x [DATE-2].[DATE-1] y'],
+    ['a dotted year-first date, a dash, an ISO date', 'x 2024.10.1-2569-10-20 y', 'x [DATE-2]-[DATE-1] y'],
+    ['a house number running through date groups', 'บ้านเลขที่ 91/1-6-2026-11/14.2', '[ADDR-1].2'],
+    // A run retried unit by unit never cuts the match master made after it (cutsResumed).
+    ['an 11-digit run, then a phone', '096-917-02553-0052-41867-18-4', '096-917-02553-[PHONE-1]-18-4'],
+    // A folded match never changes the text so that a later pass takes part of a date master masks (changesMasterSpans).
+    ['a dotted date, an ISO-shaped run, a folded ID', '14.12.2569-25-15.17-6‑⓪⑥⑤⑨⑥⑤①⓪⑧③, x', '[DATE-1]-25-15.17-6‑[PHONE-1], x'],
+    ['a middle-dot HN that would put AN at a word start', 'HN· 0966744AN 2747256-4.12.25 x', 'HN· 0966744AN 2747256-[DATE-1] x'],
+    // A group glued to a numbered section that a folded pass masked first still lifts the exemption (NUMBERED).
+    ['a version number glued to a keycap phone', 'version 1.2.10/0️⃣8️⃣1️⃣-234-5678', 'version [DATE-1]/[PHONE-1]'],
     // A dotted date, then a slashed date: the dotted year opens none, so each keeps its own pass (as on master).
     ['a dotted date, a slash, a slashed date', 'x 20.10.2569/5/10/2569 ok', 'x [DATE-2]/[DATE-1] ok'],
     ['a circled digit, a dotted date, a slash, a slashed date', 'x ① 20.10.2569/5/10/2569 ok', 'x ① [DATE-2]/[DATE-1] ok'],
@@ -271,9 +296,12 @@ describe('#474 exact outputs', () => {
     ['a middle-dot local part, then an age label', 'somchai·j@example.com.age 65', '[EMAIL-1] 65'],
     ['a middle-dot local part, a glued word after the domain', 'aspirin·a.b@x.co.thward 5A', '[EMAIL-1] 5A'],
     ['a middle-dot email with a two-label country domain', 'a·b@mail.mahidol.ac.th x', '[EMAIL-1] x'],
-    // No folded match takes a label and leaves its value (cutsIdentifier, `labelled`): a look-alike digit glued to the
-    // domain hides its top-level label, so the address is refused and the label keeps its pass, as on master.
-    ['a middle-dot email, a circled digit, an age label', 'a·b·@example.com❶.age 65', 'a·b·@example.com❶.[AGE-1]'],
+    // No folded match takes a label and leaves its value (cutsIdentifier, `labelled`). A look-alike digit glued to the
+    // top-level label ends the address there, so the address is masked and the label keeps its pass (master masked
+    // neither the address nor the digit).
+    ['a middle-dot email, a circled digit, an age label', 'a·b·@example.com❶.age 65', '[EMAIL-1]❶.[AGE-1]'],
+    ['a middle-dot email, a circled digit', 'a·b·@example.com❶ x', '[EMAIL-1]❶ x'],
+    ['a middle-dot email, a digit, an age label', 'a·b·@example.com1.age 65', '[EMAIL-1]1.[AGE-1]'],
     ['a middle-dot email, a circled digit, a ward label', 'x·y@example.com❶.ward 5A', '[EMAIL-1]❶.[WARD-1]'],
     // A run that opens with a phone is two phones only when the rest of its number is one more phone.
     ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],

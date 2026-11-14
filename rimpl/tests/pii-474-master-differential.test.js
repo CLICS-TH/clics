@@ -7,11 +7,9 @@ const master = require('./fixtures/pii-filter.master-474');
 const { generator, maskedSet, counted } = require('./helpers/pii-474-generator');
 
 // Text that is not counted. The label word of an identifier whose value another pass masked first (age 66·05… masks 66
-// in a phone, leaving the word age; บ้านเลขที่ 93/1/… in a date), the same words the folds-only-add test exempts. And,
-// pending an owner ruling, the version and section numbers this branch no longer reads as dates in any case or after a
-// colon (VERSION 2024.10.1, Section: 1.2.10), which master masked, with the digits master's date read glued after them
-// (VERSION 2024.10.1３ is the date 2024.10.13 to master).
-const NOT_COUNTED_RE = /(?:VERSION 2024\.10\.1|Section: 1\.2\.10)\p{N}{0,2}|age|อายุ|ปี|บ้านเลขที่|HN|MRN|AN/gu;
+// in a phone, leaving the word age; บ้านเลขที่ 93/1/… in a date), the same words the folds-only-add test exempts.
+// Version and section numbers are counted: this branch keeps master's numbering labels exactly (#474 owner ruling).
+const NOT_COUNTED_RE = /age|อายุ|ปี|บ้านเลขที่|HN|MRN|AN/gu;
 
 const SEEDS = [474, 1, 2, 3, 4, 5];
 const N = 3000;

@@ -476,13 +476,14 @@ const monthDateGuard = (m) => {
   return d >= 1 && d <= 31;
 };
 const anyCase = (s) => s.replace(/[A-Za-z]/g, (c) => `[${c.toUpperCase()}${c.toLowerCase()}]`);
-// A section, clause or version number written like a date (หัวข้อ 1.2.10, VERSION 1.2.10, Section: 1.2.10) is no
-// date, unless a / or - group is glued to its end (Section: 1.2.1020/10/2569 holds a date: see NUMBERED). Only the
-// full words section, version and chapter take any case and a ':' or '#'; every other label takes only the spellings
-// listed and no colon, so V: 20.10.2569 and SEC 20.10.2569 stay dates. A Latin label must start a word: otherwise the v
-// of "Nov 20.10.2026" read as a version label.
-const NUMBERING_LABEL = String.raw`(?<!(?:(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|(?<![A-Za-z])(?:[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv]))\s{0,3}|(?<![A-Za-z])(?:${anyCase('section')}|${anyCase('version')}|${anyCase('chapter')})\s{0,3}(?:[:：#]\s{0,3})?))`;
-const NUMBERED = String.raw`(?:${NUMBERING_LABEL}|(?=\d{1,4}\.\s{0,3}\d{1,4}\.\s{0,3}\d{1,4}[/-]\d))`;
+// A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date, unless a / or -
+// group is glued to its end (Section 1.2.1020/10/2569 holds a date: see NUMBERED). Master's labels exactly (#474 owner
+// ruling): the spellings listed, then spaces only, so VERSION 2024.10.1, Version: 2026.10.20 and SECTION 5.10.69 stay
+// dates. A Latin label must start a word: otherwise the v of "Nov 20.10.2026" read as a version label.
+const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|(?<![A-Za-z])(?:[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv]))\s{0,3})`;
+// A group glued on is a digit, or an identifier an earlier pass already masked (version 1.2.10/0️⃣8️⃣1️⃣-234-5678: the
+// folded phone pass masks the group first), so the order of the passes never gives the exemption back.
+const NUMBERED = String.raw`(?:${NUMBERING_LABEL}|(?=\d{1,4}\.\s{0,3}\d{1,4}\.\s{0,3}\d{1,4}[/-](?:\d|\[[A-Z]+-\d+\])))`;
 const EN_MONTH = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?![a-z])';
 // The abbreviations also spaced (ต. ค.).
 const TH_MONTH = `(?:มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม|${
@@ -659,6 +660,15 @@ function emailPlainExecFrom(view, from) {
 // emailExecFrom for the dots run: the leftmost match after `from`, its local part capped at EMAIL_LOCAL_MAX characters.
 const EMAIL_LOCAL_CHAR_RE = /[A-Za-z0-9._%+-]/;
 const EMAIL_DOMAIN_RE = /@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/y;
+// A domain with a digit glued after a top-level label, which the dots run reads as part of the label
+// (a·b·@example.com❶.age 65 reads example.com1.age): the address ends at that label, so the address is masked and the
+// digit and what follows keep their own passes (the label age and its value).
+const EMAIL_DOMAIN_BEFORE_DIGIT_RE = /@[A-Za-z0-9.-]+\.([A-Za-z]{2,})(?=\d)/y;
+function emailDomainBeforeDigit(view, a) {
+  EMAIL_DOMAIN_BEFORE_DIGIT_RE.lastIndex = a;
+  const d = EMAIL_DOMAIN_BEFORE_DIGIT_RE.exec(view);
+  return d && isTld(d[1]) ? d : null;
+}
 function emailDotsExecFrom(view, from) {
   for (let a = view.indexOf('@', from); a >= 0; a = view.indexOf('@', a + 1)) {
     let s = a;
@@ -671,7 +681,9 @@ function emailDotsExecFrom(view, from) {
       p = s;
     }
     EMAIL_DOMAIN_RE.lastIndex = a;
-    const d = EMAIL_DOMAIN_RE.exec(view);
+    const whole = EMAIL_DOMAIN_RE.exec(view);
+    const short = emailDomainBeforeDigit(view, a);
+    const d = short && (!whole || short[0].length < whole[0].length) ? short : whole;
     if (!d) continue;
     const m = [view.slice(p, a + d[0].length)];
     m.index = p;
@@ -819,6 +831,11 @@ const PASSES = [
   },
 
   // --- Dates (kept stable category so repeated dates collapse) ---
+  // Master's four date passes and its house-number pass are marked `masterSpan`: slash day-first, ISO, dotted
+  // day-first, dotted year-first, บ้านเลขที่. A date pass master did not have is marked `keepsMasterSpans`: no match of it
+  // starts or ends inside what one of those would mask (cutsMasterSpan), whatever the chain (20.6.2026-4-3-5,
+  // 17.3.2026/11/1/5, 2024.10.1.20/10/2569, บ้านเลขที่ 91/1-6-2026-11/14), so master's mask stays whole and its own
+  // pass makes it.
   // A dotted day-first date whose year opens a dashed or slashed date is one date, masked whole before any pass below
   // takes its own part (20.10.25-12-2569, 1.5.20-10-2569, 20.6.2026-4-3, 17.3.2026/11/1). Refused when the dotted part
   // is no date (1.13.20-10-2569): the dashed pass masks 20-10-2569. Never before another '-' or '/' group: in
@@ -828,16 +845,22 @@ const PASSES = [
       + String.raw`(?:${DASHED_DMY}|\d{1,2}\/\d{1,2}\/\d{2,4}\b|\d{4}([-/])\d{1,2}\1\d{1,2}\b)(?![-/]\d)`),
     cat: 'DATE',
     guard: dottedThenDashedGuard,
+    keepsMasterSpans: true,
   },
-  { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE' },
-  { re: numericRe(String.raw`\b\d{4}\/\d{1,2}\/\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
-  { re: numericRe(String.raw`\b\d{4}-\d{2}-\d{2}\b`), cat: 'DATE' },
-  { re: numericRe(String.raw`\b\d{4}-\d{1,2}-\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard },
+  { re: numericRe(String.raw`\b\d{1,2}\/\d{1,2}\/\d{2,4}\b`), cat: 'DATE', masterSpan: true },
+  { re: numericRe(String.raw`\b\d{4}\/\d{1,2}\/\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard, keepsMasterSpans: true },
+  { re: numericRe(String.raw`\b\d{4}-\d{2}-\d{2}\b`), cat: 'DATE', masterSpan: true },
+  { re: numericRe(String.raw`\b\d{4}-\d{1,2}-\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard, keepsMasterSpans: true },
   // Dashed day-month-year (11-12-2569). A two-digit year only after a two-digit day and month (11-12-69) and never
   // before a dose unit, so a dose range (5-10-15 mg, 10-12-14 mg) is no date. Never from the day of a dotted
   // year-first date (2026.10.20-11-12-69), which the dotted pass below masks whole; after a list number it is a date
   // (1.13.20-10-2569).
-  { re: numericRe(String.raw`\b(?<!\d{4}\.\s{0,3}\d{1,2}\.\s{0,3})${DASHED_DMY}`), cat: 'DATE', guard: dottedDateGuard },
+  {
+    re: numericRe(String.raw`\b(?<!\d{4}\.\s{0,3}\d{1,2}\.\s{0,3})${DASHED_DMY}`),
+    cat: 'DATE',
+    guard: dottedDateGuard,
+    keepsMasterSpans: true,
+  },
   // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
   // section or version label.
   {
@@ -845,6 +868,7 @@ const PASSES = [
     cat: 'DATE',
     guard: dottedDateGuard,
     dots: '.', // 20·10·2569 (MIDDLE_DOTS)
+    masterSpan: true,
   },
   // Dotted year-month-day (2026.10.20, 2569.1.2), under the same label and decimal rules.
   {
@@ -852,6 +876,7 @@ const PASSES = [
     cat: 'DATE',
     guard: yearFirstDateGuard,
     dots: '.', // 2026·10·20
+    masterSpan: true,
   },
   // A month name with a day and a year: 20 Oct 1967, 20th Oct 1967, 20-Oct-1967, Oct 20th, 1967, 20 Oct 67,
   // 20 ตุลาคม 2510, 20 ต.ค. 10, 20 ต.ค. พ.ศ. 2510. A day is needed: a month and a year (since October 2024) is no date.
@@ -882,7 +907,11 @@ const PASSES = [
   // House number: "บ้านเลขที่ 99/1" / "เลขที่ 99 / 1". Capture the number token
   // (digits, optional /sub and -range). The keyword is distinctive. A spaced part is taken only when no '.' group
   // follows it (เลขที่ 99 - 20.10.2569): that is a dotted date's day, left to the dates. A / or - group is the next part.
-  { re: /(?:บ้านเลขที่|เลขที่)\s*[0-9]+(?:[/-][0-9]+|\s*[/-]\s*[0-9]+(?![0-9]|\s*\.\s*[0-9]))*/g, cat: 'ADDR' },
+  {
+    re: /(?:บ้านเลขที่|เลขที่)\s*[0-9]+(?:[/-][0-9]+|\s*[/-]\s*[0-9]+(?![0-9]|\s*\.\s*[0-9]))*/g,
+    cat: 'ADDR',
+    masterSpan: true,
+  },
   // Moo (village cluster) number: "หมู่ 5" / "หมู่ที่ 5".
   // Negative lookahead on บ้าน so the common word หมู่บ้าน (housing estate) is
   // NOT consumed; require a digit so prose "หมู่ที่..." without a number is safe.
@@ -1415,6 +1444,108 @@ function cutsIdentifier(text, start, end, views) {
   return false;
 }
 
+// Whether `start` or `end` (view indexes) falls inside what the `masterSpan` passes mask in `view`, run in master's
+// order as master runs them: each masks its matches before the next reads the text, and a match its guard refuses is
+// retried from its next unit. The order matters: in 2024.10.1.20/10/2569 the year-first date is a date only once the
+// slash date after it is masked (no date ends before ".<digit>"), and a house number runs on through the groups no date
+// took. Each pass here reads at least what master's did, so the set holds every such mask master makes from this point.
+const shapeOf = (p) => ({ rx: new RegExp(p.re.source, p.re.flags), guard: p.guard, keep: !!p.masterSpan });
+let MASTER_SPAN_SHAPES = null; // built after PASSES
+// The spans in `win` that the `keep` shapes among `shapes` mask, each shape run in turn on what the ones before it left.
+function masterSpans(win, shapes = (MASTER_SPAN_SHAPES ??= PASSES.filter((p) => p.masterSpan).map(shapeOf))) {
+  const spans = [];
+  let cur = win;
+  let at = Array.from({ length: win.length }, (_, i) => i); // win index of each unit of `cur`; -1 inside a mask
+  for (const { rx, guard, keep } of shapes) {
+    const hits = [];
+    rx.lastIndex = 0;
+    for (let m; (m = rx.exec(cur)) !== null;) {
+      if (!guard || guard(m[0], m[0], cur.slice(m.index + m[0].length))) hits.push([m.index, m.index + m[0].length]);
+      else rx.lastIndex = m.index + 1;
+    }
+    if (!hits.length) continue;
+    let next = '';
+    const nextAt = [];
+    let p = 0;
+    for (const [a, b] of hits) {
+      next += cur.slice(p, a) + MASK_STAND_IN;
+      nextAt.push(...at.slice(p, a), ...Array(MASK_STAND_IN.length).fill(-1));
+      if (keep) spans.push([at[a], at[b - 1] + 1]);
+      p = b;
+    }
+    cur = next + cur.slice(p);
+    at = nextAt.concat(at.slice(p));
+  }
+  return spans;
+}
+// What a mask reads as to the passes after it: a token.
+const MASK_STAND_IN = '[DATE-0]';
+function cutsMasterSpan(view, start, end) {
+  for (const o of [start, end]) {
+    if (o <= 0 || o >= view.length) continue;
+    const w0 = Math.max(0, o - STRADDLE_WINDOW);
+    const e = o - w0;
+    if (masterSpans(view.slice(w0, o + STRADDLE_WINDOW)).some(([a, b]) => a >= 0 && a < e && b > e)) return true;
+  }
+  return false;
+}
+
+// The first match master's scan of one pass makes from `from` on, starting before `limit`: master consumed a run its
+// guard refused whole (after the longest shorter match its guard took, if any) and scanned on from its end. As
+// [start, end] in `view`, or null. It reads `view` from LOOKBEHIND_MAX units before `from` to past the longest match
+// that can start before `limit`, so each call costs that window, not the text.
+function mastersNextMatch(view, re, guard, from, limit) {
+  const base = Math.max(0, from - LOOKBEHIND_MAX);
+  const win = view.slice(base, limit + GUARD_FALLBACK_MAX + 32);
+  const rx = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`);
+  const ok = (e, s) => !guard || guard(s, s, win.slice(e, e + 32));
+  rx.lastIndex = from - base;
+  for (let m; (m = rx.exec(win)) !== null && base + m.index < limit;) {
+    if (ok(m.index + m[0].length, m[0])) return [base + m.index, base + m.index + m[0].length];
+    const shorter = longestGuarded(win, re, m.index, m[0].length, ok);
+    if (shorter) return [base + m.index, base + m.index + shorter.length];
+    if (!m[0].length) rx.lastIndex += 1;
+  }
+  return null;
+}
+
+// Whether masking original [start, end) of `text` (a match of the folded run of PASSES[idx]) changes what the passes
+// after it read so that a number master masks there is no longer masked whole: the passes after it that read numbers
+// (`masterSpan`, and the ID, HN, MRN, phone and date passes master had) are run in master's view of a window around it,
+// as written and with the match masked, and every mask they make outside the match must still be covered. In
+// 14.12.2569-25-15.17-6‑⓪⑥… a folded ID that takes 17-6‑⓪⑥… ends the ".<digit>" that kept the ISO pass off 2569-25-15,
+// which would then take the dotted date's year; in HN· 0966744AN 2747256-4.12.25 a middle-dot HN puts AN at a word
+// start, and the AN pass would take the 4 of 4.12.25; in somchai·@example.com2-0809-13243-23-8 𝟏 an address that ends
+// before the 2 lets the ID pass open on it and leave the 𝟏.
+const CONTEXT_SHAPES = new Map(); // pass index -> its shapes
+function contextShapes(idx) {
+  if (!CONTEXT_SHAPES.has(idx)) {
+    const last = PASSES.findLastIndex((p) => p.masterSpan);
+    CONTEXT_SHAPES.set(idx, PASSES.slice(idx + 1, last + 1)
+      .filter((p) => p.re && !p.execFrom && !p.keepsMasterSpans
+        && (p.masterSpan || ['ID', 'HN', 'MRN', 'PHONE', 'DATE'].includes(p.cat)))
+      .map((p) => ({ ...shapeOf(p), keep: true })));
+  }
+  return CONTEXT_SHAPES.get(idx);
+}
+function changesMasterSpans(text, start, end, idx) {
+  const v = viewOf(text, null);
+  const a = start <= 0 ? 0 : viewIndex(v, start);
+  const b = end >= text.length ? v.view.length : viewIndex(v, end);
+  if (a < 0 || b < 0) return true;
+  const w0 = Math.max(0, a - STRADDLE_WINDOW);
+  const win = v.view.slice(w0, b + STRADDLE_WINDOW);
+  const [ra, rb] = [a - w0, b - w0];
+  const shapes = contextShapes(idx);
+  const shift = MASK_STAND_IN.length - (rb - ra);
+  const after = masterSpans(win.slice(0, ra) + MASK_STAND_IN + win.slice(rb), shapes);
+  return masterSpans(win, shapes).some(([s, e]) => {
+    if (s < rb && e > ra) return false; // the match itself, or one it cuts (cutsIdentifier)
+    const [x, y] = s >= rb ? [s + shift, e + shift] : [s, e];
+    return !after.some(([p, q]) => p <= x && q >= y);
+  });
+}
+
 // Off only in the property test (_setFoldsForTest).
 let foldsOn = true;
 
@@ -1447,10 +1578,25 @@ function applyPassOn(text, pass, token, hints, fold) {
   const { view, at } = cat === 'NAME' ? { view: text, at: null } : viewOf(text, fold);
   const folded = cat !== 'NAME' && fold !== null;
   const views = folded ? cutViews(text) : null;
+  const passIndex = folded ? PASSES.indexOf(pass) : -1;
   const orig = (i) => (at ? at[i] : i);
   const cut = (a, b) => text.slice(orig(a), orig(b));
+  // Where master scanned on after the run this pass last gave back to be retried unit by unit (below), and master's next
+  // match from there: a match that runs past that point never cuts that match (096-917-02553-0052-41867: master gave
+  // the 11-digit run back whole and masked 0052-41867; the retry must not mask 02553-0052 and leave 41867).
+  let resumed = -1;
+  let resumedNext;
+  const cutsResumed = (start, end) => {
+    if (pass.execFrom || !(start < resumed && end > resumed)) return false;
+    resumedNext ??= mastersNextMatch(view, re, guard, resumed, resumed + GUARD_FALLBACK_MAX) ?? [];
+    const [a, b] = resumedNext;
+    return a !== undefined && a < end && b > end;
+  };
   const accept = (start, end, seen) => (!guard || guard(seen, cut(start, end), view.slice(end, end + 32)))
+    && !cutsResumed(start, end)
     && !(folded && cutsIdentifier(text, orig(start), orig(end), views))
+    && !(folded && changesMasterSpans(text, orig(start), orig(end), passIndex))
+    && !(pass.keepsMasterSpans && cutsMasterSpan(view, start, end))
     // An email read through middle dots ends where the next one starts: a·x.com·info@… is two addresses.
     && !(dots && cat === 'EMAIL' && view[end] === '@');
   return replaceResumable(text, re, (m) => {
@@ -1474,6 +1620,10 @@ function applyPassOn(text, pass, token, hints, fold) {
       }
       // Nothing at this start passes: give back one view unit and scan on from the next, so an identifier that starts
       // inside the rejected run is still found (05-021234567: 11 digits from 05, a landline from its 0).
+      if (m.index >= resumed) {
+        resumed = end;
+        resumedNext = undefined;
+      }
       return [cut(m.index, m.index + 1), 1];
     }
 
