@@ -2060,7 +2060,7 @@ describe('adversarial — a #474 value left raw is a documented residual that eq
   // Shapes outside the grid above that leak on master and on the head alike, through stripPii (the unfenced paths:
   // scored chat, a booth turn from a backend before #400) and, where noted, through the booth fence's label tail too.
   test.each([
-    ['ID1234567890123', false], ['DOB12/03/1967', false], ['20 / 10 / 2569', true], ['HN-1234567', false],
+    ['ID1234567890123', false], ['DOB12/03/1967', false], ['20 / 10 / 2569', true], ['HN-1234567', false], ['HN–1234567', false],
     ['Name: Dalton Carter', false], ['ชื่อ: Dalton Carter', false], ['𝐀𝐍 Dalton Carter', true],
   ])('%j leaks on head and master alike, and the gaps doc lists it (fenced leak too: %s)', (input, fenced) => {
     expect(stripPii(input)).toBe(input);
