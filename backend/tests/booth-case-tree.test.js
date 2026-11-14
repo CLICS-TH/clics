@@ -278,10 +278,9 @@ describe('admission', () => {
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
     expect(cases).toHaveLength(11);
-    const five = cases.filter((k) => k.banks.step5);
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
-    expect(five.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    expect(five.filter((k) => k.path_score_table || k.admission.sandbox || k.admission.owner_waiver).map((k) => k.case_id)).toEqual([]);
+    expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    expect(cases.filter((k) => k.path_score_table || k.admission.sandbox || k.admission.owner_waiver).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter(isAdmitted).map((k) => k.case_id)).toEqual([]);
   });
 
