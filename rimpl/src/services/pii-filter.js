@@ -582,7 +582,8 @@ function hnGuard(m, _orig, rest = '') {
   TAIL_SHAPES ??= shapesOf(['PHONE', 'DATE', 'ID']);
   const digits = tail[1];
   const s = digits + rest;
-  return !opensShape(TAIL_SHAPES, s, digits.length);
+  const views = new Set([s, buildFoldedView(s, '.').view, buildFoldedView(s, ' ').view]);
+  return ![...views].some((v) => opensShape(TAIL_SHAPES, v, digits.length));
 }
 
 // A 13-digit run of the ID pass that is two phones: it opens with a grouped phone (081-234-5678 089-876-5432), or with

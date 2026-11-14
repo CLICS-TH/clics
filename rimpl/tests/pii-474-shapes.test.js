@@ -235,6 +235,11 @@ describe('#474 exact outputs', () => {
     ['an HN, a slash, a spaced dotted date', 'HN 1234/20.10. 2569', '[HN-1]/[DATE-1]'],
     ['an HN, a slash, a dashed ID', 'HN 1234567 / 1-2345-67890-12-3', '[HN-1] / [ID-1]'],
     ['an HN and a phone joined by middle dots', 'HN·1234567·081·234·5678', '[HN-1]·[PHONE-1]'],
+    // The sub-number is refused as the folded runs read it too: a phone or date joined by look-alike dashes or middle dots.
+    ['an HN, a slash, a middle-dot phone', 'HN 1234567/081·234·5678', '[HN-1]/[PHONE-1]'],
+    ['an HN, a slash, an en-dashed phone', 'HN 1234567/081–234–5678', '[HN-1]/[PHONE-1]'],
+    ['an HN, a slash, an en-dashed date', 'HN 1234567/20–10–2569', '[HN-1]/[DATE-1]'],
+    ['an HN, a slash, a middle-dot date', 'HN 1234567/20·10·2569', '[HN-1]/[DATE-1]'],
     // A dashed day-first date never opens on the day of a dotted year-first date.
     ['a dotted year-first date, a hyphen, a dashed date', 'x 2026.10.20-11-12-69 ok', 'x [DATE-2]-[DATE-1] ok'],
     // A dotted date whose year opens a dashed date: when both are dates both are masked, as one token. When the dotted
