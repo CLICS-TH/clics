@@ -160,7 +160,7 @@
           },
           {
             "strength": "ให้ความสำคัญกับอาการอาเจียน ไม่ด่วนสรุปว่าเป็นเรื่องธรรมดา",
-            "weigh": "ร้องกวนเป็นพัก ๆ ชันขา หรือถ่ายเป็นเลือด จะทำให้นึกถึงมากขึ้น แต่รายนี้ไม่มี",
+            "weigh": "ร้องกวนเป็นพัก ๆ ชันขา หรือถ่ายเป็นเลือด จะทำให้นึกถึงมากขึ้น แต่รายนี้ไม่ได้บรรยายไว้",
             "safety": ""
           }
         ],
@@ -296,7 +296,7 @@
         "th": [
           {
             "strength": "จับน้ำตาลต่ำได้เร็วด้วยการ**เจาะปลายนิ้ว**",
-            "weigh": "เด็กงอแงแต่ยังตื่นและดื่มน้ำได้ ทำให้โอกาสน้ำตาลต่ำน้อยลง",
+            "weigh": "เด็กงอแงและดื่มน้ำอย่างกระหาย ทำให้โอกาสน้ำตาลต่ำน้อยลง",
             "safety": ""
           },
           {
@@ -313,7 +313,7 @@
         "en": [
           {
             "strength": "Catches low sugar fast with a simple **fingerprick**.",
-            "weigh": "She is irritable but alert and drinking, which makes low sugar less likely.",
+            "weigh": "She is irritable and drinking eagerly, which makes low sugar less likely.",
             "safety": ""
           },
           {
@@ -478,7 +478,7 @@
         "th": [
           {
             "strength": "จับน้ำตาลต่ำได้เร็วด้วยการ**เจาะปลายนิ้ว**",
-            "weigh": "เด็กงอแงแต่ยังตื่นและดื่มน้ำได้ ทำให้โอกาสน้ำตาลต่ำน้อยลง",
+            "weigh": "เด็กงอแงและดื่มน้ำอย่างกระหาย ทำให้โอกาสน้ำตาลต่ำน้อยลง",
             "safety": ""
           },
           {
@@ -495,7 +495,7 @@
         "en": [
           {
             "strength": "Catches low sugar fast with a simple **fingerprick**.",
-            "weigh": "She is irritable but alert and drinking, which makes low sugar less likely.",
+            "weigh": "She is irritable and drinking eagerly, which makes low sugar less likely.",
             "safety": ""
           },
           {
@@ -2015,7 +2015,7 @@
             "safety": ""
           },
           {
-            "strength": "ให้ครอบครัวมีจุดติดต่อที่แน่นอน ขณะที่ยังถ่ายเหลวอยู่",
+            "strength": "ให้ครอบครัวมีจุดติดต่อที่แน่นอน ขณะที่ยังฟื้นตัวอยู่",
             "weigh": "เด็กที่ดื่มได้ดีและปัสสาวะออก มักไม่จำเป็นต้องนัดเร็วขนาดนี้",
             "safety": ""
           }
@@ -2032,7 +2032,7 @@
             "safety": ""
           },
           {
-            "strength": "Gives the family a fixed point of contact while stools are still loose.",
+            "strength": "Gives the family a fixed point of contact while she is still recovering.",
             "weigh": "Children who drink well and pass urine often need no visit so soon.",
             "safety": ""
           }
@@ -2297,7 +2297,7 @@
       "restartb": {
         "th": [
           {
-            "strength": "ใช้แผน B กับน้ำที่ขาดใหม่ตามแนวทาง WHO เพราะเด็กตื่นดีและยังดื่มได้",
+            "strength": "ใช้แผน B กับน้ำที่ขาดใหม่ตามแนวทาง WHO เพราะขาดน้ำเพียงเล็กน้อย",
             "weigh": "การหาว่าทำไมเด็กกลับไปขาดน้ำข้ามคืน ช่วยไม่ให้เกิดซ้ำ",
             "safety": ""
           },
@@ -2314,7 +2314,7 @@
         ],
         "en": [
           {
-            "strength": "Treats the new deficit with WHO Plan B, since she is alert and drinking.",
+            "strength": "Treats the new deficit with WHO Plan B, since the dehydration is only slight.",
             "weigh": "Finding why she slipped back overnight helps keep it from happening again.",
             "safety": ""
           },
@@ -2370,7 +2370,7 @@
         "th": [
           {
             "strength": "ได้**ปริมาณแน่นอน**ทุกชั่วโมง ไม่ขึ้นกับว่าเด็กดื่มได้แค่ไหน",
-            "weigh": "เด็กตื่นดีและยังดื่มได้ ตามแนวทาง WHO ถือเป็นเหตุให้ให้น้ำทางปากต่อ",
+            "weigh": "การขาดน้ำเพียงเล็กน้อย ตามแนวทาง WHO ถือเป็นเหตุที่จะให้น้ำทางปากต่อ",
             "safety": ""
           },
           {
@@ -2387,7 +2387,7 @@
         "en": [
           {
             "strength": "Guarantees a **set rate every hour**, whatever she manages to drink.",
-            "weigh": "She is alert and drinking, which WHO treats as a reason to keep going by mouth.",
+            "weigh": "Her dehydration is only slight, which WHO treats as a reason to keep going by mouth.",
             "safety": ""
           },
           {
@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (WHO 2005 Table 1, §4.3.2, §4.3.3, §4.3.6, Plan A, §2.6, §10; WHO 2024 recs 1a, 3a, 5; the Thai 2019 guideline could not be opened), then a confirm check after the fixes. step4.W ngt [2] weigh now reads \"ควรตั้งอัตราไหลของ ORS ทางสายให้เหมาะ เพื่อให้เด็กเก็บไว้ได้\" / \"The flow rate is worth setting so that she keeps the ORS down.\", replacing an \"alert child who drinks eagerly\" line neither stem supported. No step4.W reply says alert; every reply that mentions drinking describes ORS vomited back, which fits both stems; ivstop's \"the antibiotic itself may be adding to the vomiting\" matches stems that state the antibiotic. step4.R replies fit the \"vomits some ORS\" stems. step4.B elec [0] says oral rehydration, step5.B home [1] says how much to give after each stool, and step5.R recheck [0] bolds the new label (\"นัดดูพรุ่งนี้\" / \"review tomorrow\"). Clinical facts hold against WHO 2005. No ranking or grading, no later-step preview, no treatment outside the chosen option, no other option named; Thai reads naturally and matches the English. Non-blocking: step3 planb [0] says wait 10 minutes where WHO says 5-10. MUST-FIX: none. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Replies sha256 28b04e6a3e9df4272b98b8db5e99ed9ed326dffcbb027f12ed9d7d28c6c54484.",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (WHO 2005 Table 1, §4.3.2, §4.3.3, §4.3.6, Plan A, §2.6, §10; WHO 2024 recs 1a, 3a, 5; the Thai 2019 guideline could not be opened), then a confirm check after the fixes. step4.W ngt [2] weigh now reads \"ควรตั้งอัตราไหลของ ORS ทางสายให้เหมาะ เพื่อให้เด็กเก็บไว้ได้\" / \"The flow rate is worth setting so that she keeps the ORS down.\", replacing an \"alert child who drinks eagerly\" line neither stem supported. No step4.W reply says alert; every reply that mentions drinking describes ORS vomited back, which fits both stems; ivstop's \"the antibiotic itself may be adding to the vomiting\" matches stems that state the antibiotic. step4.R replies fit the \"vomits some ORS\" stems. step4.B elec [0] says oral rehydration, step5.B home [1] says how much to give after each stool, and step5.R recheck [0] bolds the new label (\"นัดดูพรุ่งนี้\" / \"review tomorrow\"). Clinical facts hold against WHO 2005. No ranking or grading, no later-step preview, no treatment outside the chosen option, no other option named; Thai reads naturally and matches the English. Non-blocking: step3 planb [0] says wait 10 minutes where WHO says 5-10. MUST-FIX: none. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 651777b177f5ec5bd08323dce72d28bf7b3c72d7a243f727d16fb1197a5eee66.",
     "tree_sha256": "b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef",
-    "replies_sha256": "28b04e6a3e9df4272b98b8db5e99ed9ed326dffcbb027f12ed9d7d28c6c54484"
+    "replies_sha256": "651777b177f5ec5bd08323dce72d28bf7b3c72d7a243f727d16fb1197a5eee66"
   }
 }

@@ -1868,7 +1868,7 @@
             "safety": ""
           },
           {
-            "strength": "เตรียมกลับบ้านตั้งแต่วันที่ 3 ช่วยให้นอนโรงพยาบาลสั้นเท่าที่อาการเอื้อ",
+            "strength": "เตรียมกลับบ้านตั้งแต่เนิ่น ๆ ช่วยให้นอนโรงพยาบาลสั้นเท่าที่อาการเอื้อ",
             "weigh": "ควรมีเป้าหมายการลดออกซิเจนให้ชัดควบคู่กับการสอน",
             "safety": ""
           },
@@ -1885,7 +1885,7 @@
             "safety": ""
           },
           {
-            "strength": "Planning for home from day 3 keeps the stay as short as his recovery allows.",
+            "strength": "Planning for home early keeps the stay as short as his recovery allows.",
             "weigh": "Worth weighing a clear target for weaning oxygen alongside the teaching.",
             "safety": ""
           },
@@ -1909,7 +1909,7 @@
             "safety": ""
           },
           {
-            "strength": "ภาพถ่ายปอดและผลเลือดในวันที่ 3 ให้มุมมองที่วัดได้เมื่ออาการไม่ก้าวหน้า",
+            "strength": "ภาพถ่ายปอดและผลเลือดตอนนี้ ให้มุมมองที่วัดได้เมื่ออาการไม่ก้าวหน้า",
             "weigh": "ควรคิดไว้ก่อนว่าจะทำอะไรต่อ หากผลทั้งสองไม่พบอะไรใหม่",
             "safety": ""
           }
@@ -1926,7 +1926,7 @@
             "safety": ""
           },
           {
-            "strength": "Imaging and bloods on day 3 give an objective view when progress stalls.",
+            "strength": "Imaging and bloods now give an objective view when progress stalls.",
             "weigh": "Worth weighing what you will change if both come back unremarkable.",
             "safety": ""
           }
@@ -2155,8 +2155,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Thai COPD guideline 2565 p.77, BTS/ICS AHRF 2016, GOLD 2025, NICE NG114), then a re-check of the levofloxacin replies after its tier returned to reasonable. That re-check found alternative 0's weigh (\"usually held back for Pseudomonas risk or failed first-line drugs\") false against Thai p.77; it now reads, in the reviewer's own words, \"UK advice keeps fluoroquinolones for when other first antibiotics do not suit, given rare disabling side effects.\" / \"แนวทางสหราชอาณาจักรเก็บยากลุ่มฟลูออโรควิโนโลนไว้เมื่อยาแนวแรกตัวอื่นไม่เหมาะ เพราะผลข้างเคียงที่พบน้อยแต่รุนแรง\". Alternatives 1 and 2 (TB masking in Thailand; tendon rupture, QT and glucose swings at 68) are true and fit a reasonable tier. step4.W NIV, gas and intubation rewrites match BTS (rousable drowsiness no bar to NIV, an escalation plan and ceiling of care first, a bed where someone can intubate, escalate at once if no better within the hour). No ranking or grading, no later-step preview, no other option named; \"tube\" in the NIV and gas replies quotes their own label and line. Thai reads naturally and matches the English; the checker reports content ok. Tree sha256 d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1. Replies sha256 ce60ed024ed1f9af7f1f8602a0faec702aebce89950ec001d84ea94985424c43.",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Thai COPD guideline 2565 p.77, BTS/ICS AHRF 2016, GOLD 2025, NICE NG114), then a re-check of the levofloxacin replies after its tier returned to reasonable. That re-check found alternative 0's weigh (\"usually held back for Pseudomonas risk or failed first-line drugs\") false against Thai p.77; it now reads, in the reviewer's own words, \"UK advice keeps fluoroquinolones for when other first antibiotics do not suit, given rare disabling side effects.\" / \"แนวทางสหราชอาณาจักรเก็บยากลุ่มฟลูออโรควิโนโลนไว้เมื่อยาแนวแรกตัวอื่นไม่เหมาะ เพราะผลข้างเคียงที่พบน้อยแต่รุนแรง\". Alternatives 1 and 2 (TB masking in Thailand; tendon rupture, QT and glucose swings at 68) are true and fit a reasonable tier. step4.W NIV, gas and intubation rewrites match BTS (rousable drowsiness no bar to NIV, an escalation plan and ceiling of care first, a bed where someone can intubate, escalate at once if no better within the hour). No ranking or grading, no later-step preview, no other option named; \"tube\" in the NIV and gas replies quotes their own label and line. Thai reads naturally and matches the English; the checker reports content ok. Tree sha256 d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 e2235c21c58a5afc06743da2fbb2e54d2dded3afad9bb843b526b1baffe26602.",
     "tree_sha256": "d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1",
-    "replies_sha256": "ce60ed024ed1f9af7f1f8602a0faec702aebce89950ec001d84ea94985424c43"
+    "replies_sha256": "e2235c21c58a5afc06743da2fbb2e54d2dded3afad9bb843b526b1baffe26602"
   }
 }

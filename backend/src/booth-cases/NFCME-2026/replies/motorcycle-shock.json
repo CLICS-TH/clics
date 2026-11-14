@@ -485,7 +485,7 @@
           },
           {
             "strength": "ขยายการตรวจไปที่ช่องอก ครอบคลุมทั้งสองช่องในการตรวจข้างเตียงครั้งเดียว",
-            "weigh": "เสียงหายใจเท่ากันและหลอดลมอยู่กลาง ภาพช่องอกจึงอาจเพิ่มข้อมูลน้อยกว่าภาพช่องท้อง",
+            "weigh": "เสียงหายใจเท่ากัน ภาพช่องอกจึงอาจเพิ่มข้อมูลน้อยกว่าภาพช่องท้อง",
             "safety": ""
           },
           {
@@ -1104,7 +1104,7 @@
             "safety": ""
           },
           {
-            "strength": "ถือว่าอาการที่ดีขึ้นยังไม่แน่นอน และเฝ้าดูใกล้ชิดระหว่างประสานส่งต่อ",
+            "strength": "ถือว่าอาการที่ดีขึ้นยังไม่แน่นอน และเฝ้าดูใกล้ชิดจนกว่าจะแก้ที่ต้นเหตุได้",
             "weigh": "การวัดถี่จะมีประโยชน์เมื่อมีคนที่ได้รับมอบหมายลงมือทันทีที่ความดันตก",
             "safety": ""
           },
@@ -1121,7 +1121,7 @@
             "safety": ""
           },
           {
-            "strength": "You treat the improvement as provisional and watch closely while the transfer is arranged.",
+            "strength": "You treat the improvement as provisional and watch closely until the source is dealt with.",
             "weigh": "Readings every 5 minutes help only if someone is named to act on a fall.",
             "safety": ""
           },
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Rossaint 2023 Rec 13, 15 and 23; CRASH-2), then a confirm check of the step4.W replies against the edited v1 stem. The step4.W entry for removed option a is gone. b's weigh \"Each extra task here should earn its place against the delay it causes.\" / \"งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป\" carries no time stamp and fits both stems; c and d fit BP 88/58 and pulse 124. No step4.W reply mentions TXA or a dose, so nothing double-doses or contradicts the stems. The step-3 e replies point to the missing antifibrinolytic without naming it (\"slowing that within 3 hours lowers deaths further\"), true to CRASH-2 and Rec 23. No ranking or grading, no later-step preview, no drug outside the chosen option, no other option named; Thai reads naturally and matches the English. Non-blocking: step4.B b th[0] says \"repeat examination\" where the English says \"a scan\"; \"near 90 is a floor\" leans above Rec 13's 80-90 range but is safe. MUST-FIX: none. Tree sha256 9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3. Replies sha256 be5afbd6dad108fcff7f80d51be2c40427b03a68d98dfe1d2f6e54d590a58010.",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Rossaint 2023 Rec 13, 15 and 23; CRASH-2), then a confirm check of the step4.W replies against the edited v1 stem. The step4.W entry for removed option a is gone. b's weigh \"Each extra task here should earn its place against the delay it causes.\" / \"งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป\" carries no time stamp and fits both stems; c and d fit BP 88/58 and pulse 124. No step4.W reply mentions TXA or a dose, so nothing double-doses or contradicts the stems. The step-3 e replies point to the missing antifibrinolytic without naming it (\"slowing that within 3 hours lowers deaths further\"), true to CRASH-2 and Rec 23. No ranking or grading, no later-step preview, no drug outside the chosen option, no other option named; Thai reads naturally and matches the English. Non-blocking: step4.B b th[0] says \"repeat examination\" where the English says \"a scan\"; \"near 90 is a floor\" leans above Rec 13's 80-90 range but is safe. MUST-FIX: none. Tree sha256 9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 a165c9fa32ebd39ee872f6267f36438df4ce7395523ef668c837c9c9783286d7.",
     "tree_sha256": "9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3",
-    "replies_sha256": "be5afbd6dad108fcff7f80d51be2c40427b03a68d98dfe1d2f6e54d590a58010"
+    "replies_sha256": "a165c9fa32ebd39ee872f6267f36438df4ce7395523ef668c837c9c9783286d7"
   }
 }

@@ -1642,7 +1642,7 @@
         "th": [
           {
             "strength": "มุ่งขยาย**หลอดลมที่ตีบ**ไปพร้อมกับให้อะโทรปีน",
-            "weigh": "เสียงกรอบแกรบที่กลับมาคือเสมหะ ซึ่งตอบสนองต่อขนาดอะโทรปีนมากกว่ายาพ่น",
+            "weigh": "เสมหะที่กลับมาตอบสนองต่อขนาดอะโทรปีนมากกว่ายาพ่น",
             "safety": ""
           },
           {
@@ -1659,7 +1659,7 @@
         "en": [
           {
             "strength": "You target the **narrowed airways** behind the wheeze while giving atropine.",
-            "weigh": "Returning crackles mean secretions, which respond to the atropine dose more than to a nebuliser.",
+            "weigh": "Returning secretions respond to the atropine dose more than to a nebuliser.",
             "safety": ""
           },
           {
@@ -1683,7 +1683,7 @@
           },
           {
             "strength": "เห็นการเสียน้ำต่อเนื่องที่มากับพิษนี้",
-            "weigh": "เหงื่อและเสมหะที่กลับมา บอกว่าฤทธิ์อะโทรปีนลดลง ซึ่งสารน้ำแก้ไม่ได้",
+            "weigh": "เสมหะที่กลับมา บอกว่าฤทธิ์อะโทรปีนลดลง ซึ่งสารน้ำแก้ไม่ได้",
             "safety": ""
           },
           {
@@ -1700,7 +1700,7 @@
           },
           {
             "strength": "You recognise the ongoing losses that come with this poisoning.",
-            "weigh": "Sweating and secretions coming back show the atropine effect is fading, which fluids will not restore.",
+            "weigh": "Secretions coming back show the atropine effect is fading, which fluids will not restore.",
             "safety": ""
           },
           {
@@ -1720,7 +1720,7 @@
             "safety": ""
           },
           {
-            "strength": "อ่านอาการซึมลงกับเสมหะที่มากขึ้นว่าทางเดินหายใจกำลังล้มเหลว แล้วลงมือก่อนทรุด",
+            "strength": "อ่านอาการทรุดลงกับเสมหะที่มากขึ้นว่าทางเดินหายใจกำลังล้มเหลว แล้วลงมือก่อนจะหยุดหายใจ",
             "weigh": "การส่งต่อผู้ป่วยใส่ท่อต้องมีทีมและอุปกรณ์พร้อมตลอดเส้นทาง",
             "safety": ""
           },
@@ -1737,7 +1737,7 @@
             "safety": ""
           },
           {
-            "strength": "You read his drowsiness and rising secretions as a failing airway and act ahead of collapse.",
+            "strength": "You read his worsening and rising secretions as a failing airway and act ahead of collapse.",
             "weigh": "Moving an intubated patient needs a team and equipment for the whole trip.",
             "safety": ""
           },
@@ -1752,7 +1752,7 @@
         "th": [
           {
             "strength": "**ดูดเสมหะ** เพิ่มอะโทรปีนเท่าตัวจนปอดแห้งร่วมออกซีม มุ่งทั้งเสมหะและเอนไซม์",
-            "weigh": "เขาซึมลงขณะเสมหะท่วมปอด การหายใจอาจล้มเหลวก่อนยาจะออกฤทธิ์ทัน",
+            "weigh": "เขาทรุดลงขณะเสมหะท่วมปอด การหายใจอาจล้มเหลวก่อนยาจะออกฤทธิ์ทัน",
             "safety": ""
           },
           {
@@ -1762,14 +1762,14 @@
           },
           {
             "strength": "เร่ง**เพิ่มอะโทรปีนเท่าตัว** รับมือเสมหะที่เพิ่มขึ้นโดยตรง",
-            "weigh": "หลักฐานของออกซีมยังไม่ชัด และอาการซึมที่มากขึ้นทำให้ต้องคิดเรื่องปกป้องการหายใจ",
+            "weigh": "หลักฐานของออกซีมยังไม่ชัด และอาการที่ทรุดลงทำให้ต้องคิดเรื่องปกป้องการหายใจ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction with atropine doubled to a **dry chest** and an oxime goes after both the secretions and the enzyme.",
-            "weigh": "He is drowsier as his chest floods, and his breathing may fail before the drugs take hold.",
+            "weigh": "He is getting worse as his chest floods, and his breathing may fail before the drugs take hold.",
             "safety": ""
           },
           {
@@ -1779,7 +1779,7 @@
           },
           {
             "strength": "Escalating with **atropine doubled** to a dry chest meets the surge in secretions head on.",
-            "weigh": "Oxime evidence is mixed, and his falling alertness puts protecting his breathing in play.",
+            "weigh": "Oxime evidence is mixed, and his decline puts protecting his breathing in play.",
             "safety": ""
           }
         ]
@@ -1788,7 +1788,7 @@
         "th": [
           {
             "strength": "ดูดเสมหะร่วมกับเพิ่มยาเท่าตัว**ทุก 5 นาที** รับมือเสมหะที่พุ่งขึ้นได้เร็วและวัดผลได้",
-            "weigh": "เสมหะเพิ่มขึ้นและเขาซึมลง การหายใจอาจล้มเหลวก่อนปอดจะแห้ง",
+            "weigh": "เสมหะเพิ่มขึ้นและเขาทรุดลง การหายใจอาจล้มเหลวก่อนปอดจะแห้ง",
             "safety": ""
           },
           {
@@ -1805,7 +1805,7 @@
         "en": [
           {
             "strength": "Suction plus doubling **every 5 minutes** answers the surge in secretions with a fast, measurable ramp.",
-            "weigh": "With secretions rising and him drowsier, his breathing may fail before the chest dries.",
+            "weigh": "With secretions rising and him worsening, his breathing may fail before the chest dries.",
             "safety": ""
           },
           {
@@ -1824,7 +1824,7 @@
         "th": [
           {
             "strength": "ดูดเสมหะบ่อย ๆ ร่วมกับ O2 เปิดปากและคอให้โล่ง ซื้อเวลาขณะอะโทรปีนออกฤทธิ์",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ ไม่ถึงเสมหะที่ท่วมในปอด ขณะที่เขาซึมลง",
+            "weigh": "การดูดเสมหะถึงแค่ลำคอ ไม่ถึงเสมหะที่ท่วมในปอด ขณะที่เขาทรุดลง",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
@@ -1841,7 +1841,7 @@
         "en": [
           {
             "strength": "Frequent **suction** with oxygen clears his mouth and throat, buying time while atropine works.",
-            "weigh": "Suction reaches the throat, not the secretions flooding his lungs, and he is drowsier.",
+            "weigh": "Suction reaches the throat, not the secretions flooding his lungs, and he is getting worse.",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
@@ -1870,7 +1870,7 @@
           },
           {
             "strength": "ใช้การดูดเสมหะและอะโทรปีนร่วมกับยาขยายหลอดลม เพื่อลดแรงที่เขาต้องใช้หายใจ",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ และเวลาที่ใช้กับยาพ่นคือเวลาที่อาการซึมยังรุกต่อ",
+            "weigh": "การดูดเสมหะถึงแค่ลำคอ และเวลาที่ใช้กับยาพ่นคือเวลาที่อาการของเขายังทรุดต่อ",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
@@ -1887,7 +1887,7 @@
           },
           {
             "strength": "Combining suction and atropine with a bronchodilator aims to ease his work of breathing.",
-            "weigh": "Suction reaches the throat only, and time on the nebuliser is time his drowsiness keeps advancing.",
+            "weigh": "Suction reaches the throat only, and time on the nebuliser is time his condition keeps worsening.",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -2225,7 +2225,7 @@
       "a": {
         "th": [
           {
-            "strength": "ย้ายไปที่มี **ICU** ขณะยังหายใจเองได้ ทำให้เครื่องช่วยหายใจพร้อมหากจำเป็น",
+            "strength": "ย้ายไปที่มี **ICU** ทำให้การช่วยหายใจเต็มรูปแบบพร้อมหากจำเป็น",
             "weigh": "ต้องให้อะโทรปีนขนาดสูงต่อระหว่างทาง การเดินทางจึงต้องมียาและผู้ดูแลที่ชำนาญ",
             "safety": ""
           },
@@ -2242,7 +2242,7 @@
         ],
         "en": [
           {
-            "strength": "Moving him to an **ICU** while he still breathes alone puts a ventilator within reach.",
+            "strength": "Moving him to an **ICU** puts full ventilator support within reach.",
             "weigh": "High-dose atropine must continue on the way, so the trip needs drugs and skilled hands.",
             "safety": ""
           },
@@ -2371,8 +2371,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Eddleston 2008 UKPMC manuscript, Ramathibodi protocol 40), then a confirm check after its fixes. step2 chest X-ray weighs no longer preview atropine or oxygen (\"The film rarely changes care in the first hour, which still rests on his chest sounds.\") and no longer use pupils as a target (\"His treatment now rests on his chest sounds, pulse and pressure, not on the film.\"), matching Eddleston's end points. step5.W d carries on every alternative \"A man still on high-dose atropine can tire and stop breathing; he needs a ventilator within reach.\" / \"ผู้ป่วยที่ยังต้องใช้อะโทรปีนขนาดสูงอาจหมดแรงและหยุดหายใจได้ ต้องอยู่ใกล้เครื่องช่วยหายใจ\", true and fitting both variants. step4.W d's vagal-pulse weigh no longer assumes a slow pulse. step3.W and step4.W b-e replies say suction reaches only the throat and a drowsy man may not guard his airway, carry the airway safety sentence on every d and e alternative, and none contradicts the added oxygen; \"nebuliser\" appears only in option e's own replies. No ranking or grading, no later-step preview, no treatment outside the chosen option, no other option named; Thai reads naturally and matches the English. MUST-FIX: none. Tree sha256 6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f. Replies sha256 7d8815c142214ef34944dd3c3a910c365d5f20718af3d4ad0a97b05bc79de72d.",
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Eddleston 2008 UKPMC manuscript, Ramathibodi protocol 40), then a confirm check after its fixes. step2 chest X-ray weighs no longer preview atropine or oxygen (\"The film rarely changes care in the first hour, which still rests on his chest sounds.\") and no longer use pupils as a target (\"His treatment now rests on his chest sounds, pulse and pressure, not on the film.\"), matching Eddleston's end points. step5.W d carries on every alternative \"A man still on high-dose atropine can tire and stop breathing; he needs a ventilator within reach.\" / \"ผู้ป่วยที่ยังต้องใช้อะโทรปีนขนาดสูงอาจหมดแรงและหยุดหายใจได้ ต้องอยู่ใกล้เครื่องช่วยหายใจ\", true and fitting both variants. step4.W d's vagal-pulse weigh no longer assumes a slow pulse. step3.W and step4.W b-e replies say suction reaches only the throat and a drowsy man may not guard his airway, carry the airway safety sentence on every d and e alternative, and none contradicts the added oxygen; \"nebuliser\" appears only in option e's own replies. No ranking or grading, no later-step preview, no treatment outside the chosen option, no other option named; Thai reads naturally and matches the English. MUST-FIX: none. Tree sha256 6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 d423400853216f07da89a21e1268158265ea014aede46f9f1c521bf84d56b248.",
     "tree_sha256": "6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f",
-    "replies_sha256": "7d8815c142214ef34944dd3c3a910c365d5f20718af3d4ad0a97b05bc79de72d"
+    "replies_sha256": "d423400853216f07da89a21e1268158265ea014aede46f9f1c521bf84d56b248"
   }
 }
