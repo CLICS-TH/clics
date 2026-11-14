@@ -111,12 +111,29 @@ function makeRegistry() {
     return out;
   }
 
+  // The token a surface form is bound to (seen, then alias, then word alias), or undefined. Mints nothing.
+  function lookup(category, surfaceForm) {
+    ensure(category);
+    const key = surfaceForm.trim();
+    return seen[category][key] ?? aliases[category][key] ?? wordAliases[category][key];
+  }
+
   // Master's registry for this call (#474): stripPii runs master's passes on it, every text of the call, so a name master
-  // learns in one text masks it in the next exactly as master did. Its tokens never reach the output: `tokens` maps
-  // each to the token of this registry that stands for the same referent (withMastersMasks).
-  // `cuts` maps a booth answer this registry cut earlier than master did to master's cut of it (maskLabelledTail).
+  // learns in one text masks it in the next exactly as master did. Its tokens never reach the output, and no token of this
+  // registry is ever taken from it: a union mints its own (withMastersMasks), and binds the parts master binds to that
+  // name (aliasLikeMaster). `known`, set while primeRegistry runs, is master's registry filled from every text of the call
+  // first, so an alias or a taken surname is refused for a word master knows as anyone else anywhere in the call
+  // (heldByAnother). `cuts` maps a booth answer this registry cut earlier than master did to master's cut of it
+  // (maskLabelledTail).
   let shadow = null;
-  token.shadow = () => (shadow ??= { registry: makeRegistry(), tokens: new Map(), cuts: new Map() });
+  token.shadow = () => {
+    if (!shadow) {
+      const registry = makeRegistry();
+      registry.isShadow = true;
+      shadow = { registry, known: null, cuts: new Map() };
+    }
+    return shadow;
+  };
 
   token.alias = alias;
   token.wordAlias = wordAlias;
@@ -124,12 +141,13 @@ function makeRegistry() {
   token.knownWordAliases = knownWordAliases;
   // How many surface forms the registry and its shadow know: primeRegistry stops when a round adds none.
   function size() {
-    let n = shadow ? shadow.registry.size() + shadow.tokens.size : 0;
+    let n = shadow ? shadow.registry.size() : 0;
     for (const m of [seen, aliases, wordAliases]) for (const c of Object.keys(m)) n += Object.keys(m[c]).length;
     return n;
   }
 
   token.entries = entries;
+  token.lookup = lookup;
   token.size = size;
   return token;
 }
@@ -1049,10 +1067,36 @@ const MASTER_PASSES = PASSES.filter((p) => p.master !== false).map((p) => ({ ...
 // (nameHead: อรุณ), so a later bare "อรุณ" folds in.
 function registerNameAliases(token, surface, tok) {
   for (const part of surface.split(/\s+/)) {
-    if (part.length >= 2 && !MED_SHIELD.has(part)) token.alias('NAME', part, tok);
+    if (part.length >= 2 && !MED_SHIELD.has(part) && !heldByAnother(token, part, tok)) token.alias('NAME', part, tok);
     const head = nameHead(part);
-    if (head) token.alias('NAME', head, tok);
+    if (head && !heldByAnother(token, head, tok)) token.alias('NAME', head, tok);
   }
+}
+
+// Whether master's registry for the call masks `word` wherever it stands bare (an alias or word alias there) under a NAME
+// token that none of `tok`'s surface forms has there: master knew the word as another person, read in context a pass of
+// this filter ate ("Mr Brown∙x.y@…", "Dr May 28, 2024", "Ward: Dr. Lee", "Dr Brown∙jb@…" then "Mr Brown Smith"), in this
+// text or in any other of the call (`known`: "นางทองคำ Brown" before "ward#Mr Smith Brown"). Binding it to `tok`, as an
+// alias or a taken surname, would merge the two (#474). Refusing cannot leak: master masks the word, so the union does
+// too (withMastersMasks), under the word's own token.
+function heldByAnother(token, word, tok) {
+  if (token.isShadow) return false;
+  const shadow = token.shadow().known ?? token.shadow().registry;
+  const key = word.trim();
+  // The binding master masks the bare word under: an alias first, as applyBareNamePass reads them.
+  const held = shadow.knownAliases('NAME')[key] ?? shadow.knownWordAliases('NAME')[key];
+  return held !== undefined && !mastersTokensOf(token, tok, shadow).has(held);
+}
+
+// The tokens master's registry gives the surface forms `tok` stands for in this one.
+function mastersTokensOf(token, tok, shadow) {
+  const of = new Set();
+  const add = (value) => { const t = shadow.lookup('NAME', value); if (t) of.add(t); };
+  for (const e of token.entries()) if (e.token === tok && e.category === 'NAME') add(e.value);
+  for (const map of [token.knownAliases('NAME'), token.knownWordAliases('NAME')]) {
+    for (const [value, t] of Object.entries(map)) if (t === tok) add(value);
+  }
+  return of;
 }
 
 // The bare-name pass: replace standalone occurrences of any name part already
@@ -1297,9 +1341,9 @@ function nameHead(word) {
 function aliasSurname(token, surname, tok) {
   token.wordAlias('NAME', surname, tok);
   const parts = surname.split(new RegExp(SURNAME_SEP));
-  if (parts.length > 1) for (const p of parts) if (p.length >= 3) token.wordAlias('NAME', p, tok); // ณ อยุธยา
+  if (parts.length > 1) for (const p of parts) if (p.length >= 3 && !heldByAnother(token, p, tok)) token.wordAlias('NAME', p, tok); // ณ อยุธยา
   const head = nameHead(surname);
-  if (head) token.wordAlias('NAME', head, tok);
+  if (head && !heldByAnother(token, head, tok)) token.wordAlias('NAME', head, tok);
 }
 function isSurnameCandidate(word, full, wordStart) {
   if (MED_SHIELD.has(word)) return false;
@@ -1321,6 +1365,7 @@ function takeSurnames(text, token) {
   let out = replaceTraced(text, TH_GIVEN_SURNAME_RE, (match, tok, sep, word, offset, full) => {
     if (!givenTokens.has(tok)) return match;
     if (!isSurnameCandidate(word, full, offset + tok.length + sep.length)) return match;
+    if (heldByAnother(token, word, tok)) return match;
     aliasSurname(token, word, tok);
     captured = true;
     return tok + sep + SURNAME_MARK + tok;
@@ -1329,7 +1374,7 @@ function takeSurnames(text, token) {
   // word before a name) must not stop the real surname after the given name from being taken.
   out = replaceTraced(out, TH_SURNAME_BEFORE_RE, (match, word, sep, title, tok) => {
     if (!givenTokens.has(tok) || word.length > SURNAME_BEFORE_MAX) return match;
-    if (MED_SHIELD.has(word) || isClinicalRun(word)) return match;
+    if (MED_SHIELD.has(word) || isClinicalRun(word) || heldByAnother(token, word, tok)) return match;
     aliasSurname(token, word, tok);
     captured = true;
     return SURNAME_MARK + tok + sep + title + tok;
@@ -1679,10 +1724,9 @@ function stripPii(text, registry, hints = []) {
   const input = text.replace(ZERO_WIDTH_RE, '').replace(SURNAME_MARK_RE, '');
   // Never less than master (#474): master's passes run on the registry's shadow (master's registry for the call), then
   // every mask of master's that this filter left a letter or digit of in clear is made (withMastersMasks).
-  const shadow = token.shadow();
-  const master = runTraced(input, MASTER_PASSES, shadow.registry, hints);
+  const master = runTraced(input, MASTER_PASSES, token.shadow().registry, hints);
   const own = runTraced(input, PASSES, token, hints);
-  return withMastersMasks(input, own, master, token, shadow.tokens).replace(SURNAME_MARK_RE, '');
+  return withMastersMasks(input, own, master, token).replace(SURNAME_MARK_RE, '');
 }
 
 // Runs `passes` over `input`, traced: { out, src, masks } (see `trace`). Fails closed if the trace lost its place.
@@ -1700,28 +1744,34 @@ function runTraced(input, passes, token, hints) {
 }
 
 // `own.out` with each mask of master's that left a letter or digit in clear made, merged with every mask of `own` it
-// overlaps into one token of master's category, keyed by the input's plain view. A token is shared only between masks of
-// one span, which hold one value, so two people are never merged (#474: "WARD:Prof John Brown" after "Prof John Smith",
-// where `own` masks only John). A master token maps to the token of a mask of `own`'s over exactly its span, or of a
-// union over exactly its span (`shadowTokens`); a union over exactly a mapped master mask's span takes that token, any
-// other takes its value's own. A referent may so split into two tokens, never two referents into one.
-function withMastersMasks(input, own, master, token, shadowTokens) {
+// overlaps into one token of master's category, keyed by the input's plain view: the token this registry gives that value,
+// never one read off master's token. One span is no proof of one person: the two registries reach a span by aliases bound
+// first-wins, so they may bind it to different people (#474: "นางทองคำ Brown" | "ward#Mr Smith Brown"). A referent may so
+// split into two tokens, never two referents into one ("WARD:Prof John Brown" after "Prof John Smith", where `own` masks
+// only John).
+function withMastersMasks(input, own, master, token) {
   const clear = new Uint8Array(input.length);
   for (const x of own.src) if (x >= 0 && /[\p{L}\p{N}]/u.test(String.fromCodePoint(input.codePointAt(x)))) clear[x] = 1;
   const live = (r) => [...new Set(r.src.filter((x) => x < 0))].map((x) => r.masks[-1 - x]).filter((k) => k.a < k.b);
   const ofOwn = live(own).sort((x, y) => x.a - y.a);
   const ofMasters = live(master);
-  // A master token met first where this filter masked its very span too takes the token of `own`'s mask there, so a later
-  // text that masks the referent only through the union keeps that token (Dr. Somchai Jaidee, then Jaidee).
+  // Each name of master's this filter masked in full learns its parts, as master binds them (aliasLikeMaster), in the text
+  // master learnt it in: under the one NAME token of this filter's over it ("Dr John Brown∙x.y@…", where it masks John
+  // alone), or, under none, a token of its own value ("Mrs April 3 2025", masked as a date). A part written bare in an
+  // earlier text is then masked in the next round under that token, as master masks it, and no union mints it a number
+  // after every name of the later turns (#474). Own masks are disjoint, so in order.
   for (const k of ofMasters) {
-    if (!k.tok || shadowTokens.has(k.tok)) continue;
+    if (k.cat !== 'NAME' || !k.tok || clear.subarray(k.a, k.b).includes(1)) continue;
     let lo = 0;
     let hi = ofOwn.length;
-    while (lo < hi) { const mid = (lo + hi) >> 1; if (ofOwn[mid].a < k.a) lo = mid + 1; else hi = mid; }
-    for (let j = lo; j < ofOwn.length && ofOwn[j].a === k.a; j += 1) {
-      const o = ofOwn[j];
-      if (o.b === k.b && o.cat === k.cat && o.tok) { shadowTokens.set(k.tok, o.tok); break; }
-    }
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (ofOwn[mid].b <= k.a) lo = mid + 1; else hi = mid; }
+    const toks = new Set();
+    for (let j = lo; j < ofOwn.length && ofOwn[j].a < k.b; j += 1) if (ofOwn[j].cat === 'NAME' && ofOwn[j].tok) toks.add(ofOwn[j].tok);
+    const text = input.slice(k.a, k.b);
+    const [one] = toks;
+    if (toks.size === 1 && aliasLikeMaster(token, text, k.tok, one)) continue;
+    const value = buildPlainView(text).view;
+    aliasLikeMaster(token, text, k.tok, token.lookup('NAME', value) ?? token('NAME', value));
   }
   const leaked = ofMasters.filter((k) => clear.subarray(k.a, k.b).includes(1));
   if (leaked.length === 0) return own.out;
@@ -1746,16 +1796,33 @@ function withMastersMasks(input, own, master, token, shadowTokens) {
     if (!g || a < g.a || b > g.b) out += own.out[i];
     else if (!g.done) {
       g.done = true;
-      const value = buildPlainView(input.slice(g.a, g.b)).view;
-      const whole = g.toks.filter((k) => k.master && k.tok && k.cat === g.cat && k.a === g.a && k.b === g.b);
-      const lend = whole.map((k) => shadowTokens.get(k.tok)).find(Boolean);
-      if (lend) token.alias(g.cat, value, lend);
-      const tok = token(g.cat, value);
-      for (const k of whole) if (!shadowTokens.has(k.tok)) shadowTokens.set(k.tok, tok);
+      const tok = token(g.cat, buildPlainView(input.slice(g.a, g.b)).view);
+      const names = g.toks.filter((k) => k.master && k.cat === 'NAME' && k.tok);
+      if (g.cat === 'NAME' && names.length === 1) aliasLikeMaster(token, input.slice(names[0].a, names[0].b), names[0].tok, tok);
       out += tok;
     }
   }
   return out;
+}
+
+// A union over one NAME mask of master's (`text`, master's token `person`) binds `tok` each part of `text` master binds to
+// that person, as master binds it (an alias or a word alias), so a later text that writes the part bare masks it under
+// `tok` in its first round, as master does: a token the union minted for it in a later round would be numbered after
+// every name of the later turns (#474). Nothing is bound when `tok` stands, to master, for anyone else, or when this filter
+// binds the part to another token already, so no two people are merged. A part that is a token's category ("คุณสมชาย,
+// MRN …": master takes MRN for a surname) is never bound: a Latin alias matches inside "[MRN-1]" and would break it.
+const TOKEN_CATEGORIES = new Set(['NAME', 'PII', ...PASSES.map((p) => p.cat).filter(Boolean)]);
+function aliasLikeMaster(token, text, person, tok) {
+  const shadow = token.shadow().registry;
+  if ([...mastersTokensOf(token, tok, shadow)].some((t) => t !== person)) return false;
+  for (const part of new Set(text.split(/\s+/).flatMap((p) => [p, nameHead(p)]).filter(Boolean))) {
+    if (TOKEN_CATEGORIES.has(part.toUpperCase())) continue;
+    const asAlias = shadow.knownAliases('NAME')[part] === person;
+    if (!asAlias && shadow.knownWordAliases('NAME')[part] !== person) continue;
+    if ((token.lookup('NAME', part) ?? tok) !== tok) continue;
+    if (asAlias) token.alias('NAME', part, tok); else token.wordAlias('NAME', part, tok);
+  }
+  return true;
 }
 
 // Mask every message in a history/transcript array under ONE shared registry,
@@ -1774,21 +1841,40 @@ function stripHistoryPii(history, hints = [], registry = makeRegistry()) {
 // text, then ทองคำ next to it), so the texts are run again until a round adds nothing; outputs are thrown
 // away. Texts run in the given order, so token numbering is unchanged (prefix-stable). Each round is linear;
 // past SURNAME_MAX_ROUNDS it throws (fail closed).
+// #474: master's passes alone fill a registry from every text first (the shadow's `known`, read by heldByAnother); the
+// union still reads the shadow as filled text by text, so a token it mints is numbered where master would number it. A
+// booth answer cut earlier than master cut it is read right after its own text, as master cut it (asMasterCut), so a name
+// learnt only from master's cut keeps its number when a later turn is added.
 function primeRegistry(texts, registry, hints = []) {
-  const all = [...texts, ...asMasterCut(texts, registry)];
+  const all = texts.flatMap((t) => [t, ...asMasterCut([t], registry)]);
+  const shadow = registry.shadow();
+  const known = makeRegistry();
+  known.isShadow = true;
+  const asMaster = (t) => runTraced(t.replace(ZERO_WIDTH_RE, '').replace(SURNAME_MARK_RE, ''), MASTER_PASSES, known, hints);
+  settle(() => { for (const t of all) if (typeof t === 'string' && t) asMaster(t); }, known);
+  shadow.known = known;
+  try {
+    settle(() => { for (const t of all) stripPii(t, registry, hints); }, registry);
+  } finally {
+    shadow.known = null;
+  }
+  return registry;
+}
+// Runs `round` until `registry` stops growing; past SURNAME_MAX_ROUNDS it throws (fail closed).
+function settle(round, registry) {
   let before = -1;
-  for (let round = 0; round < SURNAME_MAX_ROUNDS; round++) {
-    for (const t of all) stripPii(t, registry, hints);
+  for (let n = 0; n < SURNAME_MAX_ROUNDS; n++) {
+    round();
     const after = registry.size();
-    if (after === before) return registry;
+    if (after === before) return;
     before = after;
   }
   throw new Error('PII filter: surname search did not settle');
 }
 
-// Each text that holds a booth answer this filter cut earlier than master (maskLabelledTail), as master cut it (#474).
-// They are primed after the texts of the call, so numbering is unchanged: master read, and learnt names from, the text
-// between the two cuts (𝐍𝐚𝐦𝐞 Dr Somchai Jaidee, then Jaidee has fever), so both registries must too.
+// Each text that holds a booth answer this filter cut earlier than master (maskLabelledTail), as master cut it (#474):
+// master read, and learnt names from, the text between the two cuts (𝐍𝐚𝐦𝐞 Dr Somchai Jaidee, then Jaidee has fever),
+// so both registries must too.
 function asMasterCut(texts, registry) {
   const { cuts } = registry.shadow();
   if (cuts.size === 0) return [];
