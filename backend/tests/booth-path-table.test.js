@@ -669,14 +669,11 @@ describe('the build runner', () => {
   test('without --go it checks every NFCME-2026 tree and reply bank, prints the plan and spends nothing', () => {
     const res = run([]);
     expect(res.status).toBe(0);
-    expect(res.stdout).toMatch(/^8 case\(s\) to build, 648 evaluator calls, about \$\d+\.\d\d typical\.$/m);
+    expect(res.stdout).toMatch(/^10 case\(s\) to build, 810 evaluator calls, about \$\d+\.\d\d typical\.$/m);
     expect(res.stdout).toMatch(/Nothing spent/);
-    // dka-young-adult is the three-step file, its review bound to no tree, until #476 re-authors it. The two banks
-    // name another option's short acronym (#494's rule), which their tree tickets fix.
+    // melioidosis-farmer's bank names another option's short acronym (#494's rule), which its tree ticket (#496) fixes.
     expect(res.stdout.split('\n').filter((l) => / refused, it /.test(l))).toEqual([
-      'dka-young-adult@5: refused, it has a safety review that names no tree (no tree_sha256)',
       'melioidosis-farmer@4: refused, it has a reply bank with 3 problem(s), first replies.step3.B.b.en[1].strength: names another option ("iv")',
-      'toddler-gastro-dehydration@3: refused, it has a reply bank with 4 problem(s), first replies.step4.B.elec.th[0].weigh: names another option ("ors")',
     ]);
   });
 });

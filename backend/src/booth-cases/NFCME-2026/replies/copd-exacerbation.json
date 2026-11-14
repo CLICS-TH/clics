@@ -1169,35 +1169,35 @@
       "g": {
         "th": [
           {
-            "strength": "เลือก **levofloxacin** ให้ครอบคลุมเชื้อทางเดินหายใจกว้าง และกินวันละครั้ง",
-            "weigh": "levofloxacin เสี่ยงเส้นเอ็นฉีกขาดและหัวใจเต้นไม่สม่ำเสมอ ควรชั่งในวัย 68 ปี",
+            "strength": "เลือก **levofloxacin** ยากินที่ดูดซึมดี ครอบคลุมเชื้อทางเดินหายใจที่พบบ่อย",
+            "weigh": "แนวทางสหราชอาณาจักรเก็บยากลุ่มฟลูออโรควิโนโลนไว้เมื่อยาแนวแรกตัวอื่นไม่เหมาะ เพราะผลข้างเคียงที่พบน้อยแต่รุนแรง",
             "safety": ""
           },
           {
             "strength": "ต้องการครอบคลุม**เชื้อทางเดินหายใจ**ให้แน่นอน แสดงถึงความระวังเรื่องเชื้อดื้อยา",
-            "weigh": "ยาออกฤทธิ์กว้างกลุ่มนี้ควรเก็บสำรองไว้ เพื่อชะลอการดื้อยา",
+            "weigh": "ในไทยยากลุ่มนี้อาจกดอาการวัณโรคไว้และทำให้วินิจฉัยช้า ควรชั่งก่อนใช้",
             "safety": ""
           },
           {
             "strength": "สเตียรอยด์ระยะสั้นคู่ยาฆ่าเชื้อชนิดกินที่ดูดซึมดี ทำให้การดูแลง่าย",
-            "weigh": "ในผู้สูงอายุอาจทำให้สับสนหรือน้ำตาลต่ำได้ ควรชั่งกับความกว้างของการครอบคลุม",
+            "weigh": "ในวัย 68 ปีเสี่ยงเส้นเอ็นฉีกขาด QT ยาว และน้ำตาลในเลือดแกว่ง ควรชั่งกับความกว้างของการครอบคลุม",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You chose **levofloxacin** for broad respiratory cover with simple once-daily dosing.",
-            "weigh": "Levofloxacin carries tendon and heart rhythm risks, worth weighing in a 68-year-old.",
+            "strength": "You chose **levofloxacin**, a well-absorbed oral drug that covers the usual respiratory bacteria.",
+            "weigh": "UK advice keeps fluoroquinolones for when other first antibiotics do not suit, given rare disabling side effects.",
             "safety": ""
           },
           {
             "strength": "Wanting reliable cover of **respiratory bacteria** shows concern for a resistant trigger.",
-            "weigh": "Broad agents like this are worth keeping in reserve to slow resistance.",
+            "weigh": "In Thailand a fluoroquinolone can partly treat tuberculosis and delay its diagnosis, worth weighing first.",
             "safety": ""
           },
           {
             "strength": "Pairing a short steroid with a well-absorbed oral antibiotic keeps care simple.",
-            "weigh": "In older adults it can cause confusion and low blood sugar, worth weighing against its breadth.",
+            "weigh": "Tendon rupture, QT prolongation and swings in blood sugar are real risks at 68, worth weighing against its breadth.",
             "safety": ""
           }
         ]
@@ -1535,35 +1535,35 @@
       "a": {
         "th": [
           {
-            "strength": "เชื่อม **pH 7.28** กับ CO2 ที่สูงขึ้น เข้ากับข้อบ่งชี้ของ NIV ได้ทันที",
-            "weigh": "อาการซึมขณะใช้ NIV ต้องเฝ้าใกล้ชิด และมีแผนชัดหากไม่ดีขึ้น",
+            "strength": "เริ่ม **NIV ทันที** เข้ากับ pH 7.28 และ PaCO2 66 อาการซึมที่ยังปลุกตื่นไม่ใช่ข้อห้าม",
+            "weigh": "ควรตกลงแผนยกระดับการดูแลและขีดจำกัดการรักษาไว้ก่อนใส่หน้ากาก หาก NIV ล้มเหลวจะไม่ต้องตัดสินใจกะทันหัน",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           },
           {
-            "strength": "ลงมือทันทีเมื่อเลือดเป็นกรดและ CO2 สูง ช่วยแบ่งเบาการหายใจที่เริ่มล้า",
+            "strength": "**เตรียมท่อไว้พร้อม** ขณะเริ่ม NIV ทำให้หากล้มเหลวก็ไม่เสียเวลา",
+            "weigh": "ผู้ป่วยซึมที่ใช้ NIV ต้องอยู่ในที่ที่เฝ้าดูได้ใกล้ชิดและใส่ท่อได้โดยไม่ล่าช้า",
+            "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
+          },
+          {
+            "strength": "มองอาการซึมว่าเป็น**ซึมจาก CO2** ซึ่งมักดีขึ้นเมื่อ NIV ลด CO2 ลง",
             "weigh": "ควรตรวจความแนบของหน้ากากและลมรั่วแต่เนิ่น ๆ เพราะมักเป็นเหตุให้ตอบสนองไม่ดี",
-            "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
-          },
-          {
-            "strength": "เลือก **NIV (BiPAP)** ขณะยังปลุกตื่น ใช้ช่วงเวลาที่วิธีนี้ได้ผล",
-            "weigh": "ควรกำหนดผู้เฝ้าดูขณะใช้ NIV เพราะอาการซึมอาจลึกลงได้เร็ว",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           }
         ],
         "en": [
           {
-            "strength": "You matched **pH 7.28** and a rising CO2 to the indication for NIV without delay.",
-            "weigh": "Drowsiness on NIV needs close watching, with a clear plan if he does not improve.",
+            "strength": "Starting **NIV now** fits pH 7.28 with PaCO2 66, and drowsiness while still rousable does not rule it out.",
+            "weigh": "Agreeing the escalation plan and ceiling of care before the mask goes on spares a rushed call if NIV fails.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           },
           {
-            "strength": "Acting now on acidosis with rising CO2 gives his tiring breathing the support it needs.",
+            "strength": "Having **a tube ready** as NIV starts means a failed trial costs him no time.",
+            "weigh": "A drowsy patient on NIV needs a bed where staff watch him closely and can place a tube without delay.",
+            "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
+          },
+          {
+            "strength": "You read his state as **CO2 drowsiness**, which often lifts once NIV brings the CO2 down.",
             "weigh": "Worth checking mask fit and leaks early, since they often explain a poor response.",
-            "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
-          },
-          {
-            "strength": "Choosing **NIV (BiPAP)** while he is still rousable uses the window when it works.",
-            "weigh": "Worth weighing who watches him on NIV, as drowsiness can deepen quickly.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           }
         ]
@@ -1581,7 +1581,7 @@
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           },
           {
-            "strength": "นัดก๊าซครั้งหน้าที่ 1 ชั่วโมง ให้เวลา NIV ได้ทำงานอย่างเหมาะสม",
+            "strength": "นัดก๊าซภายใน 1 ชั่วโมง ได้สัญญาณที่วัดได้ตั้งแต่เนิ่น ๆ ว่า NIV เพียงพอหรือไม่",
             "weigh": "ควรเฝ้าความรู้สึกตัวระหว่างรอผล เพราะอาการซึมอาจลึกลงก่อนผลออก",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           }
@@ -1598,7 +1598,7 @@
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           },
           {
-            "strength": "Planning the next gas at one hour gives a fair window for NIV to work.",
+            "strength": "Planning a gas within the hour gives an early, measured sign of whether NIV is enough.",
             "weigh": "Watch his alertness between gases, since drowsiness can deepen before the result returns.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           }
@@ -1635,7 +1635,7 @@
           },
           {
             "strength": "Recognising that drowsiness with rising CO2 can turn quickly shows sharp risk awareness.",
-            "weigh": "Intubation at a community hospital needs skilled hands and a ventilator ready, worth weighing now.",
+            "weigh": "Intubation at a community hospital needs skilled hands and a ventilator on hand, worth weighing now.",
             "safety": ""
           }
         ]
@@ -2155,8 +2155,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank. Sources: the case's own review names the Thoracic Society of Thailand COPD guideline 2565, WHO IMAI District Clinician Manual 2011 and BTS/ICS AHRF 2016; this reviewer could not open the Thai guideline text online and checked against BTS/ICS AHRF 2016 (Thorax 71 Suppl 2) and NHS and Irish Thoracic Society NIV protocols derived from it (NIV at pH <7.35 with PaCO2 >6.5 kPa, repeat gas at 1 hour and no later than 2 hours), and REDUCE/GOLD summaries (prednisolone 40 mg for 5 days; antibiotic on Anthonisen cardinal symptoms). Checked: clinical truth (pred 40 mg x5 days, SpO2 88-92% in CO2 retention, doxycycline upright and away from dairy and sun, macrolide resistance and QT risk, quinolone tendon, rhythm and dysglycaemia risks, magnesium evidence weak, post-intubation hypotension and slow wean, rehab within weeks of discharge); safety (step4.W a, b, d and step5.W a, b, d carry the escalation line on every alternative in both languages and name no alternative; no reply reassures about delay); no leak (no reply ranks, grades or names another option's drug, test or treatment); earlier fixes confirmed (step4.W.c[1] strength, step5.W.a th[1] strength, step1.b en[0]/th[1] strength). Non-blocking notes: step4.W.c [1] weigh says a rousable patient often has time for less invasive support, which points at the NIV class without naming it; step5.W.a.en[1] strength 'rather than rush' reads softer than its Thai, though the safety line restates urgency; step3.*.c [1] weigh ties azithromycin rhythm risk to pulse 106, where age and electrolytes are the stronger reasons; step2.W.c th[1] weigh states the heart-failure pre-test chance is low where the English says only worth weighing; step5.W.d.en[1] strength credits doubling the steroid with urgency, offset by its weigh and safety line. Tree sha256 cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c. Replies sha256 09fb07fafac438adb6c036c1ba12932cc5d45a62a0e9f0be08247acd35a919ec.",
-    "tree_sha256": "cdef5e5463d69d55afda4d199d0b61b14a6e06a2a21d425ed069b9cfd158c00c",
-    "replies_sha256": "09fb07fafac438adb6c036c1ba12932cc5d45a62a0e9f0be08247acd35a919ec"
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Thai COPD guideline 2565 p.77, BTS/ICS AHRF 2016, GOLD 2025, NICE NG114), then a re-check of the levofloxacin replies after its tier returned to reasonable. That re-check found alternative 0's weigh (\"usually held back for Pseudomonas risk or failed first-line drugs\") false against Thai p.77; it now reads, in the reviewer's own words, \"UK advice keeps fluoroquinolones for when other first antibiotics do not suit, given rare disabling side effects.\" / \"แนวทางสหราชอาณาจักรเก็บยากลุ่มฟลูออโรควิโนโลนไว้เมื่อยาแนวแรกตัวอื่นไม่เหมาะ เพราะผลข้างเคียงที่พบน้อยแต่รุนแรง\". Alternatives 1 and 2 (TB masking in Thailand; tendon rupture, QT and glucose swings at 68) are true and fit a reasonable tier. step4.W NIV, gas and intubation rewrites match BTS (rousable drowsiness no bar to NIV, an escalation plan and ceiling of care first, a bed where someone can intubate, escalate at once if no better within the hour). No ranking or grading, no later-step preview, no other option named; \"tube\" in the NIV and gas replies quotes their own label and line. Thai reads naturally and matches the English; the checker reports content ok. Tree sha256 d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1. Replies sha256 ce60ed024ed1f9af7f1f8602a0faec702aebce89950ec001d84ea94985424c43.",
+    "tree_sha256": "d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1",
+    "replies_sha256": "ce60ed024ed1f9af7f1f8602a0faec702aebce89950ec001d84ea94985424c43"
   }
 }

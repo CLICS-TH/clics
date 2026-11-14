@@ -273,13 +273,13 @@ describe('admission', () => {
     expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
   });
 
-  test('every NFCME-2026 case but dka-young-adult is a five-step tree whose safety review is bound to it, and none is admitted before #408 builds its table', () => {
+  test('every NFCME-2026 case is a five-step tree whose safety review is bound to it, and none is admitted before #408 builds its table', () => {
     const { treeSha } = require('../src/booth-cases/tree-sha');
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
     expect(cases).toHaveLength(11);
     const five = cases.filter((k) => k.banks.step5);
-    expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual(['dka-young-adult']);
+    expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(five.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
     expect(five.filter((k) => k.path_score_table || k.admission.sandbox || k.admission.owner_waiver).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter(isAdmitted).map((k) => k.case_id)).toEqual([]);
@@ -367,10 +367,6 @@ describe('the reply bank', () => {
     'NFCME-2026/melioidosis-farmer.json: replies.step3.B.b.en[1].strength: names another option ("iv")',
     'NFCME-2026/melioidosis-farmer.json: replies.step3.W.b.en[1].strength: names another option ("iv")',
     'NFCME-2026/melioidosis-farmer.json: replies.step4.W.d.en[2].strength: names another option ("iv")',
-    'NFCME-2026/toddler-gastro-dehydration.json: replies.step4.B.elec.th[0].weigh: names another option ("ors")',
-    'NFCME-2026/toddler-gastro-dehydration.json: replies.step4.B.elec.en[0].weigh: names another option ("ors")',
-    'NFCME-2026/toddler-gastro-dehydration.json: replies.step5.B.home.th[1].weigh: names another option ("ors")',
-    'NFCME-2026/toddler-gastro-dehydration.json: replies.step5.B.home.en[1].weigh: names another option ("ors")',
   ];
   // Fails until every five-step case's bank is written and reviewed: a five-step case without one is never dealt.
   test('every five-step case file, in place or staged, has a reply bank at replies/<case_id>.json with no problem but the listed acronyms', () => {

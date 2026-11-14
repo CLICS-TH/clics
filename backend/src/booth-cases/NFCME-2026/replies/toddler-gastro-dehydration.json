@@ -1496,7 +1496,7 @@
         "th": [
           {
             "strength": "คิดถึง**โซเดียม**ที่อาจเปลี่ยนไปหลังเสียน้ำมาสองวัน",
-            "weigh": "เด็กฟื้นตัวดีด้วย ORS ทำให้โอกาสมีปัญหาโซเดียมรุนแรงน้อย",
+            "weigh": "เด็กฟื้นตัวดีด้วยการให้น้ำทางปาก ทำให้โอกาสมีปัญหาโซเดียมรุนแรงน้อย",
             "safety": ""
           },
           {
@@ -1513,7 +1513,7 @@
         "en": [
           {
             "strength": "Thinks about shifts in **her sodium** after two days of losses.",
-            "weigh": "She has recovered well on ORS, which makes a serious sodium problem unlikely.",
+            "weigh": "She has recovered well with oral rehydration, which makes a serious sodium problem unlikely.",
             "safety": ""
           },
           {
@@ -1762,7 +1762,7 @@
           },
           {
             "strength": "รู้ว่า**สายให้อาหาร**เป็นช่องทางให้ ORS ที่ WHO รับรอง",
-            "weigh": "เด็กตื่นดีและดื่มเก่ง การใส่สายจึงควรชั่งกับความทุกข์ที่เด็กได้รับ",
+            "weigh": "ควรตั้งอัตราไหลของ ORS ทางสายให้เหมาะ เพื่อให้เด็กเก็บไว้ได้",
             "safety": ""
           }
         ],
@@ -1779,7 +1779,7 @@
           },
           {
             "strength": "Recognises a **nasogastric tube** as a WHO-endorsed route for ORS.",
-            "weigh": "In an alert child who drinks eagerly, a tube is worth weighing against her distress.",
+            "weigh": "The flow rate is worth setting so that she keeps the ORS down.",
             "safety": ""
           }
         ]
@@ -1903,7 +1903,7 @@
           },
           {
             "strength": "ให้แม่มีเหตุผลชัด ๆ สามข้อที่ต้อง**กลับมาทันที**",
-            "weigh": "แผน A ขึ้นอยู่กับแม่ ปริมาณ ORS หลังถ่ายแต่ละครั้งจึงต้องชัดเจน",
+            "weigh": "แผน A ขึ้นอยู่กับแม่ ปริมาณที่ให้หลังถ่ายแต่ละครั้งจึงต้องชัดเจน",
             "safety": ""
           },
           {
@@ -1920,7 +1920,7 @@
           },
           {
             "strength": "Gives the mother three concrete reasons to **come back at once**.",
-            "weigh": "Plan A rests on the mother, so how much ORS to give after each stool needs to be clear.",
+            "weigh": "Plan A rests on the mother, so how much to give after each stool needs to be clear.",
             "safety": ""
           },
           {
@@ -2223,7 +2223,7 @@
       "recheck": {
         "th": [
           {
-            "strength": "**นัดตรวจพรุ่งนี้** เพื่อจับการกลับไปขาดน้ำได้เร็ว",
+            "strength": "**นัดดูพรุ่งนี้** เพื่อจับการกลับไปขาดน้ำได้เร็ว",
             "weigh": "แม่ยังต้องรู้ว่าจะทำอย่างไรถ้าเด็กแย่ลงก่อนถึงนัด",
             "safety": ""
           },
@@ -2240,7 +2240,7 @@
         ],
         "en": [
           {
-            "strength": "Plans a **recheck tomorrow** to catch any slide back early.",
+            "strength": "Plans a **review tomorrow** to catch any slide back early.",
             "weigh": "The mother still needs to know what to do if she worsens before then.",
             "safety": ""
           },
@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, read against every question variant of its bank. Sources opened: WHO, The treatment of diarrhoea, a manual for physicians and other senior health workers, 4th revision (2005), cached text (Table 1 grading, skin pinch caveats, Plans A and B incl. vomiting wait 5-10 min, 50-100 mL per stool under 2 years, repeat Plan B with food, zinc 10-14 days and recurrence benefit, NG or IV Ringer's lactate when ORT fails, hypernatraemia from too concentrated drinks, antiemetics); WHO guideline on management of pneumonia and diarrhoea in children up to 10 years of age (2024), recommendations 1a-3c. The Thai 2019 paediatric acute diarrhoea guideline was not opened in this review; Thai-guidance claims (electrolytes mainly for severe or atypical cases, ondansetron allowed) were checked against the case's own safety review. Confirmed the earlier fixes: step2.B/W urineout[1] weigh, step5.W restartb[0] strength, ondansetron named in step3.B/R ondan[2] and step4.W ondan[1] weigh, glucose Thai fingerprick bold, electrolyte weigh lines credit Thai guidance. No must-fix: no wrong fact or dose, no reassurance of a harmful action, no delay of needed treatment, no ranking or later-step preview, no out-of-option drug, test or treatment named. Non-blocking notes: zinc benefit statements follow WHO, while the Thai guideline limits zinc (already on #470); WHO 2005 says antiemetics should never be given (older sedating drugs), which the ondansetron weigh softens to local practice varies; Thai/English nuance gaps that do not change meaning: step3 planb/clinic[1] weigh (Thai several more days vs well over a week), step1 intus[2] weigh (Thai states the signs are absent vs none is described), step3 iv[2] weigh (English example absent in Thai), step2 elec[1] weigh (thirsty vs dehydrated), step2 assess[1] strength (free absent in Thai); step4.R spoon th[0] strength reads slightly awkwardly. Tree sha256 4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4. Replies sha256 8ea230d2ff2cc284d74a01ddcadcc7a68ea987a664f01be7a3b0225a13709420.",
-    "tree_sha256": "4fe7c3f4528b727ed9590c947600033cc9a76997dfe0fe53a085db3be0c79bd4",
-    "replies_sha256": "8ea230d2ff2cc284d74a01ddcadcc7a68ea987a664f01be7a3b0225a13709420"
+    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (WHO 2005 Table 1, §4.3.2, §4.3.3, §4.3.6, Plan A, §2.6, §10; WHO 2024 recs 1a, 3a, 5; the Thai 2019 guideline could not be opened), then a confirm check after the fixes. step4.W ngt [2] weigh now reads \"ควรตั้งอัตราไหลของ ORS ทางสายให้เหมาะ เพื่อให้เด็กเก็บไว้ได้\" / \"The flow rate is worth setting so that she keeps the ORS down.\", replacing an \"alert child who drinks eagerly\" line neither stem supported. No step4.W reply says alert; every reply that mentions drinking describes ORS vomited back, which fits both stems; ivstop's \"the antibiotic itself may be adding to the vomiting\" matches stems that state the antibiotic. step4.R replies fit the \"vomits some ORS\" stems. step4.B elec [0] says oral rehydration, step5.B home [1] says how much to give after each stool, and step5.R recheck [0] bolds the new label (\"นัดดูพรุ่งนี้\" / \"review tomorrow\"). Clinical facts hold against WHO 2005. No ranking or grading, no later-step preview, no treatment outside the chosen option, no other option named; Thai reads naturally and matches the English. Non-blocking: step3 planb [0] says wait 10 minutes where WHO says 5-10. MUST-FIX: none. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Replies sha256 28b04e6a3e9df4272b98b8db5e99ed9ed326dffcbb027f12ed9d7d28c6c54484.",
+    "tree_sha256": "b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef",
+    "replies_sha256": "28b04e6a3e9df4272b98b8db5e99ed9ed326dffcbb027f12ed9d7d28c6c54484"
   }
 }

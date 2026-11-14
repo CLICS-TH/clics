@@ -100,11 +100,11 @@ describe('the event pool holds one step count', () => {
     expect(ids(eventPool(EVENT, [file(THREE), { name: 'broken.json', raw: undefined }]))).toEqual([THREE.case_id]);
   });
 
-  test('the NFCME-2026 pool deals five-step cases only, and dka-young-adult is out', () => {
+  test('the NFCME-2026 pool is five-step, and no case file in it is left out for its step count (#495)', () => {
     const pool = eventPool('NFCME-2026', readEventFiles(path.join(__dirname, '../src/booth-cases'), 'NFCME-2026'));
     expect(pool.steps).toBe(5);
     expect(pool.cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
-    expect(pool.left.find((l) => l.name === 'dka-young-adult.json')?.why).toBe('is a three-step case in a five-step event');
+    expect(pool.left.filter((l) => /three-step/.test(l.why)).map((l) => l.name)).toEqual([]);
   });
 });
 

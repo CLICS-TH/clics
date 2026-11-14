@@ -115,3 +115,22 @@ test('melioidosis-farmer: with abscesses, no option above weaker ends the IV pha
     .filter((o) => o.tier !== 'weaker' && /\b(14 days|2 weeks|two weeks|oral)\b/i.test(text(o))).map((o) => at(name, o)));
   expect(bad).toEqual([]);
 });
+
+// #489: a weaker step 3 gave no TXA, and the step4.W options after it left it out too. The case loads TXA once, by step
+// 3's option or by every variant of the step-4 bank that follows, so every walk through steps 3 and 4 carries it once.
+test('motorcycle-shock: every path through steps 3 and 4 gives TXA exactly once', () => {
+  const k = fiveStep('motorcycle-shock');
+  const TXA = /\bTXA\b|tranexamic/i;
+  const LETTER = { best: 'B', reasonable: 'R', weaker: 'W' };
+  const walks = Object.values(k.banks.step3).flatMap((b3) => b3.options.flatMap((o3) => {
+    const b4 = k.banks.step4[LETTER[o3.tier]];
+    const inStem = b4.variants.filter((v) => TXA.test(v.question.en)).length;
+    if (inStem !== 0 && inStem !== b4.variants.length) return [`step4.${LETTER[o3.tier]}: TXA in only some variants`];
+    return b4.options.map((o4) => ({
+      at: `step3 ${o3.id} > step4.${LETTER[o3.tier]} ${o4.id}`,
+      doses: [TXA.test(text(o3)), inStem > 0, TXA.test(text(o4))].filter(Boolean).length,
+    }));
+  }));
+  expect(walks.length).toBeGreaterThan(0);
+  expect(walks.filter((w) => typeof w === 'string' || w.doses !== 1)).toEqual([]);
+});

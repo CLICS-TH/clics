@@ -82,14 +82,12 @@ test('a review whose findings name no tree, or two, is refused, whatever its tre
   }
 });
 
-test('each live case whose review is bound to its tree names that tree in its findings; dka-young-adult stays refused', () => {
-  for (const id of ['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'ectopic-rupture', 'leptospirosis', 'melioidosis-farmer',
-    'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']) {
+test('each live case names its own tree in its review findings', () => {
+  for (const id of ['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'dka-young-adult', 'ectopic-rupture', 'leptospirosis',
+    'melioidosis-farmer', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']) {
     const raw = live(id);
     assert.equal(reviewedTree([{ commit: 'aaaaaaaa1', raw }], raw).tree_sha256, treeSha(raw), id);
   }
-  const dka = live('dka-young-adult');
-  assert.match(reviewedTree([{ commit: 'aaaaaaaa1', raw: dka }], dka).why, /names no tree/);
 });
 
 test('each table entry is the median per domain of its samples, taken domain by domain', () => {

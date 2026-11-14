@@ -1,6 +1,6 @@
 {
   "case_id": "motorcycle-shock",
-  "version": "4",
+  "version": "5",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ที่โรงพยาบาลชุมชน ชายหนุ่มขี่จักรยานยนต์ถูกรถกระบะชน ตัวเย็นซีดและชีพจรเร็ว",
@@ -716,31 +716,19 @@
           {
             "id": "v1",
             "question": {
-              "th": "1 ชั่วโมงหลังเกิดเหตุ ให้เลือดแล้ว ความดัน 88/58 ทำอะไรต่อ",
-              "en": "An hour after the crash, blood is running and BP is 88/58. What now?"
+              "th": "1 ชม. หลังเหตุ ได้เลือดและ TXA แล้ว BP 88/58 ทำอะไรต่อ",
+              "en": "An hour after the crash, blood and TXA are in; BP is 88/58. What now?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ให้เลือดอยู่ ชีพจรยังคง 124 คุณจะทำอะไรต่อ",
-              "en": "Blood is running and his pulse stays at 124. What do you do next?"
+              "th": "ให้เลือดและ TXA 1 กรัมแล้ว ชีพจรยังคง 124 ทำอะไรต่อ",
+              "en": "Blood and TXA 1 g are in, and his pulse stays at 124. What next?"
             }
           }
         ],
         "options": [
-          {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "ให้ TXA 1 กรัม IV ใน 10 นาที",
-              "en": "TXA 1 g IV over 10 minutes"
-            },
-            "line": {
-              "th": "ยิ่งให้เร็วยิ่งดีภายใน 3 ชม. ลดการตายจากเลือดออก",
-              "en": "Best given early, within 3 hours; it cuts deaths from bleeding."
-            }
-          },
           {
             "id": "b",
             "tier": "best",
@@ -779,7 +767,7 @@
           }
         ],
         "default_trio": [
-          "a",
+          "b",
           "c",
           "d"
         ]
@@ -1010,9 +998,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Two fresh claude-opus-5-5 reviewers, neither of which wrote the case, checked every bank of five-step version 4 against sources opened on the web: the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023, Rec 1/9/13/15/23), CRASH-2 (Lancet 2010; timing analysis Lancet 2011), WHO-ICRC Basic Emergency Care 2018, ATLS 10th ed. (2018) and 11th ed. (2025) summaries, Woodward and Alsabri (Cureus 2021), and Thai sources (Thai J Emerg Med 2022; Clin Crit Care 2026 TXA review). Round 3 removed \"Blood to a normal BP\" from all three step-3 banks: before bleeding control, with no head injury, the target is a systolic of 80-90 (European guideline 2023, Rec 13), and the option also gave TXA ahead of step4.W's TXA dose. The no-TXA option's replies now name the missing TXA; the Thai step-5 referral line and step-4 TXA label match the English. The confirm reviewer found no must-fix: no unsafe option, tiers hold, and TXA is loaded once on every path, always within 3 hours. Open (#468): the vignette does not state normal leg movement (spinal injury), the step4.R \"Blood only\" label, one step4.W Thai tense, one reply's Thai grammar. No Royal College of Surgeons of Thailand or Thai MoPH trauma or referral standard could be found online. Reviewed tree sha256 49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18.",
-      "tree_sha256": "49183a053ab3db3bfbc88b81ad2b83ddf9d74f16c614881e775dfdf25d42ce18"
+      "date": "2026-11-14",
+      "findings": "Fresh review by a non-author of five-step version 5, then a confirm review of the one stem edited after it: every question variant and option of all 13 banks, Thai and English. #495 change: step4.W option a (TXA 1 g) is gone, default_trio is b, c, d, and both step4.W stems state that blood and TXA are in (\"1 ชม. หลังเหตุ ได้เลือดและ TXA แล้ว BP 88/58 ทำอะไรต่อ\" / \"An hour after the crash, blood and TXA are in; BP is 88/58. What now?\"; v2 states TXA 1 g). Sources opened: the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023, via Europe PMC PMC9977110): Rec 13 systolic 80-90 mmHg until bleeding is stopped without TBI, Rec 15 crystalloid first, Rec 23 TXA as soon as possible and within 3 h, 1 g over 10 min then 1 g over 8 h; CRASH-2 via WikiJournalClub: the same regimen, and bleeding deaths rose when given after 3 h (RR 1.44); the 2011 timing figures came from search-result text, as the Lancet and LSHTM pages returned 403. The WHO-ICRC Basic Emergency Care landing page had no TXA detail; no ATLS or Thai trauma standard was opened. TXA path audit, step 4 keyed on the step-3 tier: step-3 a, b and c in all three step-3 banks give TXA once (label or line) and lead to step4.B or step4.R, where no TXA is offered; step-3 e (blood and transfer, no TXA) leads to step4.W, whose stems both state TXA is in and whose options give no more. So TXA is loaded exactly once on every path, about 1 h after injury, inside the 3-hour window; a test walks every step 3 to step 4 path. Each bank holds one option per tier; no unsafe option, no tier mislabel, no withholding wording; Thai and English agree. Non-blocking: the 1 g over 8 h follow-on infusion is not mentioned; the vignette does not state normal leg movement (#468). MUST-FIX: none. Reviewed tree sha256 9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3.",
+      "tree_sha256": "9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3"
     }
   }
 }
