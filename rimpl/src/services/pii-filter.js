@@ -821,10 +821,11 @@ const PASSES = [
   // --- Dates (kept stable category so repeated dates collapse) ---
   // A dotted day-first date whose year opens a dashed or slashed date is one date, masked whole before any pass below
   // takes its own part (20.10.25-12-2569, 1.5.20-10-2569, 20.6.2026-4-3, 17.3.2026/11/1). Refused when the dotted part
-  // is no date (1.13.20-10-2569): the dashed pass masks 20-10-2569.
+  // is no date (1.13.20-10-2569): the dashed pass masks 20-10-2569. Never before another '-' or '/' group: in
+  // 20.10.2569/5/10/2569 the year opens no date, 5/10/2569 is one, and the slash and dotted passes mask both.
   {
     re: numericRe(String.raw`\b\d{1,2}\.\s{0,3}\d{1,2}\.\s{0,3}`
-      + String.raw`(?:${DASHED_DMY}|\d{1,2}\/\d{1,2}\/\d{2,4}\b|\d{4}([-/])\d{1,2}\1\d{1,2}\b)`),
+      + String.raw`(?:${DASHED_DMY}|\d{1,2}\/\d{1,2}\/\d{2,4}\b|\d{4}([-/])\d{1,2}\1\d{1,2}\b)(?![-/]\d)`),
     cat: 'DATE',
     guard: dottedThenDashedGuard,
   },

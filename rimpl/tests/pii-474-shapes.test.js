@@ -257,6 +257,9 @@ describe('#474 exact outputs', () => {
     ['an HN, a dotted date, a slashed year-first date', '𝐇𝐍 5556512-7.10.2569/5/4–69', '[HN-1]-[DATE-1]–69'],
     ['a dotted date, a slashed date', '20.10.25/12/2569', '[DATE-1]'],
     ['a two-digit list number, a slashed year-first date', '1.13.2026/4/3', '1.13.[DATE-1]'],
+    // A dotted date, then a slashed date: the dotted year opens none, so each keeps its own pass (as on master).
+    ['a dotted date, a slash, a slashed date', 'x 20.10.2569/5/10/2569 ok', 'x [DATE-2]/[DATE-1] ok'],
+    ['a circled digit, a dotted date, a slash, a slashed date', 'x ① 20.10.2569/5/10/2569 ok', 'x ① [DATE-2]/[DATE-1] ok'],
     // The run on master's view takes in the middle-dot-joined local pieces before an address.
     ['a middle dot in an email local part', 'mail somchai·j@example.com now', 'mail [EMAIL-1] now'],
     ['middle dots in an email local part', 'mail a·b·c@example.com now', 'mail [EMAIL-1] now'],
