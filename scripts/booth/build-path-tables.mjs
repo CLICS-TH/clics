@@ -2,13 +2,14 @@
 /*
  * Builds each booth case's path score table (#373, ADR 0009): for every sampled tier path, 3 sample transcripts walked
  * with a random question variant and random same-tier options, each tap replied as the kiosk replies it (a five-step
- * case from its reviewed reply bank, <cases>/replies/<case_id>.json, through the booth API's bankOutcome; a three-step
- * case from its sample replies, scripts/booth/sample-replies), scored by the locked PIS-7 evaluator through rimpl. A three-step case samples all 27
+ * case from its reviewed reply bank, <cases>/replies/<case_id>.json, through the booth API's bankOutcome; a
+ * three-step case from its sample replies, scripts/booth/sample-replies), scored by the locked PIS-7 evaluator
+ * through rimpl. A three-step case samples all 27
  * paths and each entry is the median per domain; a five-step case samples a balanced 27 of its 243 and a median (L1)
  * regression of each domain on step × tier fills all 243 (#381, scripts/booth/path-fit.mjs). A run builds cases of
  * one step count. A case gets a table only when its tree is byte-identical to the tree its safety review read (from
- * git history), a five-step case only while replyBankProblems finds nothing in its reply bank (a bank bound to
- * another tree included), and every sampled path is fully scored; the table is written into the case file with its version
+ * git history), a five-step case only while replyBankProblems finds nothing in its reply bank (a bank bound
+ * to another tree included), and every sampled path is fully scored; the table is written into the case file with its version
  * bumped. The report re-runs ADR 0005's difficulty check: on the scripted paths' samples for three steps, on their
  * fitted entries for five.
  *
@@ -62,7 +63,7 @@ import { spent, reserve, settle, recordOpen, recordCharge, RECORD } from './spen
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
-const { LOCKED, replyProblems, readReplies, readBank, jobsFor, lockProblems, failedUsd, scoreSample } = require('./path-table-sample.js');
+const { LOCKED, banked, replyProblems, readReplies, readBank, jobsFor, lockProblems, failedUsd, scoreSample } = require('./path-table-sample.js');
 const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
@@ -130,7 +131,7 @@ function loadCases(dir, only) {
     const { history, why } = fileHistory(file);
     const tree = why ? { why } : reviewedTree(history, raw);
     const kase = CaseTreeSchema.parse(raw);
-    const bank = tree.why || Object.keys(kase.banks).length !== 5 ? {} : readBank(kase, dir);
+    const bank = tree.why || !banked(kase) ? {} : readBank(kase, dir);
     return [{ file, raw, kase, tree, why: tree.why ?? bank.why, replies: bank.replies }];
   });
   const missing = only.filter((id) => !cases.some((c) => c.kase.case_id === id));
@@ -153,7 +154,7 @@ const steps = stepCounts[0] ?? stepsOf(cases[0]);
 const scripted = PATHS_BY_STEPS[steps];
 let plan;
 try { plan = tablePlan(steps, scripted); } catch (err) { fail(err.message); }
-for (const c of building.filter((b) => stepsOf(b) === 3)) {
+for (const c of building.filter((b) => !banked(b.kase))) {
   let problems;
   try { c.replies = readReplies(c.kase, opts.replies); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
   if (problems.length) fail(`${c.kase.case_id}: ${problems.length} sample reply problem(s), first ${problems[0]}`);

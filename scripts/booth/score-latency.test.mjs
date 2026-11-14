@@ -160,6 +160,9 @@ test('many near-instant bank replies do not hide a few slow AI replies: each gro
   assert.deepEqual([s.verdict, s.failure], ['FAIL', 'ai p95 40.0 s is not under 15 s']);
   const fastAi = summarizeReplies(parseLog([...bank, ...[40, 41].map((i) => replyLine(i, 9000))].join('\n')));
   assert.equal(fastAi.verdict, 'PASS');
-  const slowBank = summarizeReplies(parseLog(Array.from({ length: 30 }, (_, i) => replyLine(i, 16000, 'replied', 'reply_bank')).join('\n')));
-  assert.deepEqual([slowBank.verdict, slowBank.failure, slowBank.ai.n], ['FAIL', 'bank p95 16.0 s is not under 15 s', 0]);
+  const slowBank = summarizeReplies(parseLog([...Array.from({ length: 30 }, (_, i) => replyLine(i, 16000, 'replied', 'reply_bank')),
+    replyLine(30, 4000)].join('\n')));
+  assert.deepEqual([slowBank.verdict, slowBank.failure], ['FAIL', 'bank p95 16.0 s is not under 15 s']);
+  const bankOnly = summarizeReplies(parseLog(bank.join('\n')));
+  assert.deepEqual([bankOnly.verdict, bankOnly.failure], ['TOO FEW', 'no AI reply, so the AI p95 is not judged']);
 });

@@ -11,8 +11,9 @@
  * Reply gate: counts distinct (play, step) replies, an empty one included (the visitor waited for it too). PASS needs
  * at least --min-replies (default 30), fewer is TOO FEW, and a p95 under 15 s in each of its two groups, judged apart:
  * bank replies (provider=reply_bank, a tap on a five-step case, ADR 0011) and AI replies (every other, a typed answer's
- * included), so many near-instant bank replies never hide slow AI ones. A group with no reply has no p95 and does not
- * fail. Empty and unavailable replies and the providers are reported but do not fail it.
+ * included), so many near-instant bank replies never hide slow AI ones. No AI reply at all is TOO FEW; no bank reply
+ * is fine (a three-step case has none). Empty and unavailable replies and the providers are reported but do not fail
+ * it.
  * Exit 0 when both gates pass, 1 otherwise, 2 on a bad argument.
  */
 import { readFileSync } from 'node:fs';
@@ -100,33 +101,33 @@ export function summarizeReplies({ replies }, { min = 30 } = {}) {
   const providers = {};
   for (const r of answered) providers[r.provider] = (providers[r.provider] ?? 0) + 1;
   const groups = {
-    bank: latencies(answered.filter((r) => r.provider === BANK)),
-    ai: latencies(answered.filter((r) => r.provider !== BANK)),
+    bank: answered.filter((r) => r.provider === BANK).map((r) => r.ms).sort((a, b) => a - b),
+    ai: answered.filter((r) => r.provider !== BANK).map((r) => r.ms).sort((a, b) => a - b),
   };
-  const slow = Object.entries(groups).filter(([, g]) => g.p95_ms != null && g.p95_ms >= REPLY_P95_LIMIT_MS)
-    .map(([name, g]) => `${name} p95 ${(g.p95_ms / 1000).toFixed(1)} s is not under 15 s`);
+  const slow = Object.entries(groups).map(([name, ms]) => [name, nearestRank(ms, 95)])
+    .filter(([, p95]) => p95 != null && p95 >= REPLY_P95_LIMIT_MS)
+    .map(([name, p95]) => `${name} p95 ${(p95 / 1000).toFixed(1)} s is not under 15 s`);
   let verdict = 'PASS';
   let failure = null;
   if (answered.length < min) [verdict, failure] = ['TOO FEW', `only ${answered.length} replies, need ${min}`];
+  else if (!groups.ai.length) [verdict, failure] = ['TOO FEW', 'no AI reply, so the AI p95 is not judged'];
   else if (slow.length) [verdict, failure] = ['FAIL', slow.join('; ')];
-  const shown = ({ p95_ms: _, ...g }) => g;
   return {
     n: answered.length,
     empty: answered.filter((r) => r.kind === 'empty').length,
     unavailable: first.size - answered.length,
-    bank: shown(groups.bank),
-    ai: shown(groups.ai),
+    bank: latencies(groups.bank),
+    ai: latencies(groups.ai),
     providers,
     verdict,
     failure,
   };
 }
 
-function latencies(replies) {
-  const ms = replies.map((r) => r.ms).sort((a, b) => a - b);
-  const p95 = nearestRank(ms, 95);
-  return { n: ms.length, p50_s: seconds(nearestRank(ms, 50)), p95_s: seconds(p95), max_s: seconds(ms.at(-1) ?? null), p95_ms: p95 };
-}
+/** n, p50, p95 and max in seconds of an ascending list of ms. */
+const latencies = (ms) => ({
+  n: ms.length, p50_s: seconds(nearestRank(ms, 50)), p95_s: seconds(nearestRank(ms, 95)), max_s: seconds(ms.at(-1) ?? null),
+});
 
 const fmt = (x) => (x == null ? '-' : `${x.toFixed(1)} s`);
 const listed = (providers) => Object.entries(providers).map(([k, v]) => `${k}=${v}`).join(' ') || '-';

@@ -51,13 +51,12 @@ function sampleRes(kase, replies, prefix, choice, letter) {
  *  bankOutcome; a three-step case's are its sample replies, and each later ask is the sample's random pick, issued
  *  through chatOutcome. */
 function sampleWalk(kase, replies, tierPath) {
-  const banked = stepCount(kase) === 5;
   let d = { answers: [], replies: [], asks: [firstAsk(kase.banks.step1)], tierPath: '' };
   for (let step = 0; step < stepCount(kase); step += 1) {
     const bank = bankAt(kase, d.tierPath);
     const choice = d.asks[step].options.find((id) => tierOf(bank, id) === tierPath[step]);
     const walked = { ...d, answers: [...d.answers, { choice }], tierPath: d.tierPath + tierPath[step] };
-    const out = banked ? bankOutcome(kase, walked, replies)
+    const out = banked(kase) ? bankOutcome(kase, walked, replies)
       : chatOutcome(kase, walked, sampleRes(kase, replies, d.tierPath, choice, tierPath[step]));
     d = { answers: out.answers, replies: out.replies, asks: out.asks, tierPath: out.tierPath };
   }
@@ -109,6 +108,9 @@ function readReplies(kase, dir = path.join(REPLIES_DIR, kase.event_code)) {
   if (raw.case_id !== kase.case_id) throw new Error(`${file} is for ${raw.case_id}, not ${kase.case_id}`);
   return raw.replies;
 }
+
+/** Whether a case's taps are replied from a reply bank: a five-step case's are (ADR 0011), as the kiosk's are. */
+const banked = (kase) => stepCount(kase) === 5;
 
 /** A five-step case's reply bank from <dir>/replies/<case_id>.json, as the kiosk reads it (booth-cases/event-pool.js):
  *  `{ replies }` when replyBankProblems finds nothing, else `{ why }`, which refuses the case. */
@@ -198,4 +200,4 @@ if (require.main === module) {
   process.exit(bad ? 1 : 0);
 }
 
-module.exports = { LOCKED, sampleWalk, replyProblems, readReplies, readBank, jobsFor, lockProblems, evaluateUsd, failedUsd, scoreSample };
+module.exports = { LOCKED, banked, sampleWalk, replyProblems, readReplies, readBank, jobsFor, lockProblems, evaluateUsd, failedUsd, scoreSample };

@@ -22,8 +22,8 @@
  *   --go              spend: without it the script stops after the estimate
  *
  * Env: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl; ANTHROPIC_API_KEY for the personas.
- * It writes no database row and never calls the booth API: its only calls are rimpl's /chat (typed answers, and every
- * answer of a case without a reply bank) and /evaluate (with shadow off) and the persona model, and it refuses to run with a database client loaded.
+ * It writes no database row and never calls the booth API: its only calls are rimpl's /chat (typed answers, and
+ * every answer of a case without a reply bank) and /evaluate (with shadow off) and the persona model, and it refuses to run with a database client loaded.
  * An unscored play fails its own case only; a run stopped at the cap or spent over it passes no case.
  * A run plays one step count: three-step and five-step composites sit on different scales, so one pool would fail both.
  * Exit 0 when every case passes, 1 when one fails, 2 on a bad argument or setup.
@@ -42,7 +42,7 @@ const { GROUPS, PATHS, PATHS_BY_STEPS, ANTHROPIC_MODEL, tapping, personaChooser,
   personaCall } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { stepCount } = require(path.join(ROOT, 'backend', 'src', 'services', 'booth-dialogue'));
-const { readBank } = require('./path-table-sample.js');
+const { banked, readBank } = require('./path-table-sample.js');
 
 const fail = (msg) => { console.error(msg); process.exit(2); };
 
@@ -84,7 +84,7 @@ function loadCases(dir, only) {
     if (problems.length) { console.warn(`skip ${f}: ${problems[0]}`); return []; }
     const kase = CaseTreeSchema.parse(raw);
     if (only.length && !only.includes(kase.case_id)) return [];
-    if (stepCount(kase) !== 5) return [kase];
+    if (!banked(kase)) return [kase];
     const { replies, why } = readBank(kase, dir);
     if (why) { console.warn(`skip ${f}: it ${why}`); return []; }
     banks[kase.case_id] = replies;

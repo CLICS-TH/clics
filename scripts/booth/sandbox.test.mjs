@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,9 +18,15 @@ const NO_PACKAGES = !existsSync(path.join(HERE, '..', '..', 'backend', 'node_mod
 const THREE = 'booth-case-tree.json';
 const FIVE = 'booth-case-tree-5.json';
 
+// The five-step fixture goes with its reviewed reply bank, which the sandbox requires (#494).
 const caseDir = (...files) => {
   const dir = mkdtempSync(path.join(tmpdir(), 'sandbox-test-'));
   for (const f of files) copyFileSync(path.join(FIXTURES, f), path.join(dir, f));
+  if (files.includes(FIVE)) {
+    const { case_id: id } = JSON.parse(readFileSync(path.join(FIXTURES, FIVE), 'utf8'));
+    mkdirSync(path.join(dir, 'replies'));
+    copyFileSync(path.join(FIXTURES, 'booth-reply-bank-5.json'), path.join(dir, 'replies', `${id}.json`));
+  }
   return dir;
 };
 const run = (...args) => spawnSync(process.execPath, [SANDBOX, '--persona-runs', '0', ...args], { encoding: 'utf8', env: {} });

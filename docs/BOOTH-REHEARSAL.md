@@ -105,7 +105,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 - [ ] Read the reply gate: `reply PASS`, `reply FAIL` or `reply TOO FEW`. It needs at least 30 replies (10 plays
       of 5 steps give 50) and a p95 under 15 s in each group it prints: `bank reply` (taps on a five-step case,
       answered from the reply bank) and `ai reply` (typed answers and every other AI reply), judged apart so fast bank
-      replies never hide slow AI ones. An empty reply (the AI failed or timed out, and the kiosk showed the
+      replies never hide slow AI ones; with no AI reply at all it is TOO FEW. An empty reply (the AI failed or timed out, and the kiosk showed the
       fallback question) counts, since the visitor waited for it. The last line says `PASS` only when both gates
       pass.
 - [ ] A reply FAIL or TOO FEW does not block opening. Record both reply p95s. A FAIL makes streaming or a faster
