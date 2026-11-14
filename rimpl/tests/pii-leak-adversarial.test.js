@@ -1676,3 +1676,88 @@ describe('adversarial — date, separator, label and non-decimal-digit shapes (#
     expect(stripPii('x \u{1F101} y \u{1D400} z').isWellFormed()).toBe(true);
   });
 });
+
+// ===========================================================================
+// GATE ROUND 1 OF PR #498 (review of f9f15f10). The wide ASCII view of #474 changed what a pass's edges read, and four
+// masks that master made stopped: a letter-like character glued to a number folded into ASCII letters (no `\b`), a
+// folded dash before LINE met its `(?<![-\w])`, the widened section / version labels exempted real dates, and the
+// month-day DATE pass took a name after a title before the NAME pass could register it. All values are synthetic.
+// ===========================================================================
+describe('adversarial — the wide view and the #474 passes stop no mask master made (gate round 1 of #498)', () => {
+  const { maskLabelledTail } = require('../src/services/pii-filter');
+  // Each folds to ASCII letters in the wide view, and none is a letter, digit or dash in the narrow one.
+  const LETTER_LIKE = ['𝐈𝐃', '№', 'Nº', 'ª', 'º', '™', '℡', 'ⅴ', '𝐯', 'Ⓐ', 'ﬁ'];
+  const SHAPES = [
+    ['national ID', '1234567890123', 'ID'],
+    ['slash date', '20/10/2569', 'DATE'],
+    ['dotted date', '20.10.2569', 'DATE'],
+    ['dotted date with a two-digit year', '1.2.10', 'DATE'],
+  ];
+  // A mark that opens with an ASCII letter (Nº) glued after the number leaves no `\b` on master either.
+  const glued = LETTER_LIKE.flatMap((c) => SHAPES.flatMap(([label, shape, cat]) => [
+    [`${label} after ${c}`, `${c}${shape}`, cat],
+    ...(/^[A-Za-z]/.test(c) ? [] : [[`${label} before ${c}`, `${shape}${c}`, cat]]),
+    [`${label} after บัตร${c}`, `บัตร${c}${shape} ค่ะ`, cat],
+  ]));
+  test.each(glued)('a %s is masked', (_label, input, cat) => expectNoDigitLeft(stripPii(input), cat));
+
+  test.each(['ⅰ', '№', '𝐈'])('an HN glued after %s is masked', (c) => {
+    expectNoDigitLeft(stripPii(`${c}HN 1234567`), 'HN');
+  });
+  test.each(['ⅰ', '№'])('a booth label glued after %s still opens the masked tail', (c) => {
+    expect(maskLabelledTail(`${c}AN 123 Dalton`, makeRegistry())).not.toContain('Dalton');
+  });
+
+  // Every look-alike dash, middle dot and slash the wide view folds: a LINE label glued after one is still a label.
+  test.each([...'‐‑‒–—―−˗⁃➖﹘··•‧∙⋅・･⸱⁄∕⧸'])('a LINE id glued after %s is masked', (c) => {
+    assertScrubbed(`ติดต่อ${c}LINE: somchai_99`, ['somchai']);
+    expect(scrubbedOut).toMatch(/\[LINE-\d+\]/);
+  });
+  test('a LINE handle glued to a phone by an en dash is masked, and the phone too', () => {
+    expect(stripPii('โทร 081-234-5678–LINE @somchai99')).toBe('โทร [PHONE-1]–[LINE-1]');
+  });
+  test.each(['•', '·', '∙'])('a month-word date after %s is masked', (c) => {
+    expectNoDigitLeft(stripPii(`${c}20 Oct 1967`), 'DATE');
+  });
+
+  // A real date after a section, chapter, sec, ver, rev or version word, in any case, after any separator.
+  const LABELS = ['section', 'Section', 'SECTION', 'C-SECTION', 'sec', 'SEC', 'Sec.', 'chapter', 'Chapter', 'CHAPTER',
+    'version', 'Version', 'VERSION', 'ver', 'VER', 'ver.', 'rev', 'REV', 'v', 'V', 'หัวข้อ', 'มาตรา'];
+  // A label glued to the number with no separator (SECTION20.10.2569) has no `\b` before it on master either.
+  const SEPS = [' ', ': ', ':', ' # ', '#'];
+  // A day-first date with a four-digit year, after any label.
+  const DAY_FIRST = ['20.10.2569', '1.2.2569', '20.10.2026', '20. 10. 2565'];
+  // A year-first Buddhist-era date, after a label in a form master did not exempt (upper case, or ':' / '#' before the
+  // number). Master exempts a lower-case or capitalised label before a space (ข้อ 2500.1.2 is a clause number, #463).
+  const YEAR_FIRST = ['2569.10.20', '2565.1.2'];
+  const UPPER = ['SECTION', 'C-SECTION', 'SEC', 'CHAPTER', 'VERSION', 'VER', 'REV'];
+  const labelled = [
+    ...LABELS.flatMap((l) => SEPS.flatMap((s) => DAY_FIRST.map((d) => `s/p ${l}${s}${d} ค่ะ`))),
+    ...UPPER.flatMap((l) => SEPS.flatMap((s) => YEAR_FIRST.map((d) => `s/p ${l}${s}${d} ค่ะ`))),
+    ...LABELS.flatMap((l) => [': ', ':', ' # ', '#'].flatMap((s) => YEAR_FIRST.map((d) => `s/p ${l}${s}${d} ค่ะ`))),
+  ];
+  test.each(labelled)('%s: the date is masked', (input) => expectNoDigitLeft(stripPii(input), 'DATE'));
+  test.each(['VERSION 2024.10.1', 'ECG software version: 2024.10.1', 'Version: 1.2.10', 'VERSION 1.2.10', 'version 1.2.10',
+    'v1.2.10', 'หัวข้อ 1.2.10'])('%s survives byte-for-byte (a version-shaped number)', (text) => assertSurvives(text));
+  // ACCEPTED RESIDUAL, pinned per kind: whatever master masked only because a version word was written in a case
+  // other than "version" / "Version" or had ':' / '#' before the number, when that number is a dotted date with a two-
+  // or three-digit year (day first) or a Christian-era year (year first). These are the shapes of a version number
+  // (#465), so the label exempts them, as it exempts "VERSION 2024.10.1".
+  test.each(['VERSION 20.10.69', 'Version: 20.10.69', 'version: 2026.10.20', 'VERSION # 2026.10.20'])(
+    'RESIDUAL: %s stays unmasked (a version-shaped date after a version word)', (text) => assertSurvives(text)
+  );
+
+  // A month word that is the name after an English title is the name: registered, so its later mentions are masked.
+  test('a month word named after a title is registered as the name, and the date after it is still masked', () => {
+    expect(stripHistoryPii([{ content: 'Mr June 5 2020 seen' }, { content: 'June said ok' }]))
+      .toEqual([{ content: 'Mr [NAME-1] [DATE-1] seen' }, { content: '[NAME-1] said ok' }]);
+    expect(stripHistoryPii([{ content: 'Dr Smith June 5 2020 seen' }, { content: 'June and Smith said ok' }]))
+      .toEqual([{ content: 'Dr [NAME-1] [DATE-1] seen' }, { content: '[NAME-1] and [NAME-1] said ok' }]);
+  });
+
+  // #474: a national ID grouped with middle dots (or dots) is masked; a list of decimals is no ID.
+  test.each(['บัตร 1·2345·67890·12·1 ค่ะ', 'บัตร 1.2345.67890.12.1 ค่ะ', 'บัตร 1 · 2345 · 67890 · 12 · 1 ค่ะ', 'บัตร ๑·๒๓๔๕·๖๗๘๙๐·๑๒·๑ ค่ะ'])(
+    '%s: the dotted national ID is masked', (input) => expectNoDigitLeft(stripPii(input), 'ID')
+  );
+  test.each(['Na 140.0 139.5 141.2 138.0', 'Cr 1.2 1.3 1.4 1.5 1.6 1.7 1.8'])('%s survives byte-for-byte', (text) => assertSurvives(text));
+});

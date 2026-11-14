@@ -475,9 +475,13 @@ function yearFirstDateGuard(m) {
 // Day first with a dash (11-12-2569): a real day and month.
 const dashedDateGuard = (m) => dottedDateGuard(m.split('-').join('.'));
 // A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10, VERSION: 2024.10.1) is no
-// date. The English labels match in any case and only at a word start (Prev, DOV and Adv are no "v" / "rev" label);
-// only the full words version / section / chapter may take a colon or # before the number.
-const NUMBERING_LABEL = String.raw`(?<!(?:(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา)\s{0,3}|(?<![A-Za-z])(?:[Ss][Ee][Cc][Tt][Ii][Oo][Nn]|[Ss][Ee][Cc]\.?|[Cc][Hh][Aa][Pp][Tt][Ee][Rr]|[Vv][Ee][Rr][Ss][Ii][Oo][Nn]|[Vv][Ee][Rr]\.?|[Rr][Ee][Vv]\.?|[Vv])\s{0,3}|(?<![A-Za-z])(?:[Ss][Ee][Cc][Tt][Ii][Oo][Nn]|[Cc][Hh][Aa][Pp][Tt][Ee][Rr]|[Vv][Ee][Rr][Ss][Ii][Oo][Nn])\s{0,3}[:#]\s{0,3}))`;
+// date. NUMBERING_LABEL holds the labels in the forms they had before #474, the English ones now only at a word start
+// (Prev, DOV and Adv are no "v" / "rev" label). VERSION_LABEL adds the word version in any case and with a colon or #
+// before the number (the ECG "software version: 2024.10.1"). A label never exempts a day-first date with a four-digit
+// year, and the added version forms never a year-first one in a Buddhist-era year: those are calendar dates (the
+// lookaheads of the two dotted DATE passes).
+const NUMBERING_LABEL = String.raw`(?<!(?:(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา)|(?<![A-Za-z])(?:[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv]))\s{0,3})`;
+const VERSION_LABEL = String.raw`(?<!(?<![A-Za-z])[Vv][Ee][Rr][Ss][Ii][Oo][Nn]\s{0,3}[:#]?\s{0,3})`;
 // The gap after a date's dot: spaces and tabs, with at most one line break among them (the old `\s?` allowed one).
 const DATE_GAP = String.raw`[^\S\r\n]*(?:(?:\r\n?|\n)[^\S\r\n]*)?`;
 // Month names. English in any case except May, which as "may" is a verb ("may 20 mg be given"); then an optional dot.
@@ -542,8 +546,10 @@ const PASSES = [
     guard: lineIdGuard,
   },
 
-  // Every pass from here on that is not a NAME pass reads the ASCII view of the text: ๐–๙, ٠–٩, ０–９ and every
-  // other decimal digit as 0–9, and full-width ＋－．（） as +-.() (#440; see asciiView and applyPass).
+  // Every pass from here on that is not a NAME pass reads two ASCII views of the text, the narrow one first: ๐–๙,
+  // ٠–٩, ０–９ and every other decimal digit as 0–9 and the full-width block (＋－．（）Ｈ…) as ASCII (#440); then the
+  // wide one, which also folds whatever NFKC turns into ASCII (circled and keycap digits, mathematical letters), the
+  // look-alike dashes, middle dots and slashes (#474). See ASCII_VIEW, NARROW_VIEW, asciiView and applyPass.
 
   // Thai national ID: 13 digits, with or without the X-XXXX-XXXXX-XX-X dashes.
   {
@@ -555,6 +561,9 @@ const PASSES = [
     // in category 0 (0-1234-56789-12-3, 0123456789012) never groups that way.
     guard: (m) => m.replace(/\D/g, '').length === 13 && !/^\(?0\d{1,2}\)?[\s-]+\d{3,4}[\s-]+\d{3,4}[\s-]/.test(m),
   },
+  // The same ID grouped X.XXXX.XXXXX.XX.X with dots, or with middle dots, which the view reads as dots (#474). Only
+  // that grouping: a loose dotted run would take a list of decimals.
+  { re: numericRe(String.raw`\b\d\s*\.\s*\d{4}\s*\.\s*\d{5}\s*\.\s*\d{2}\s*\.\s*\d\b`), cat: 'ID' },
 
   // HN (hospital number) explicit code field — kept as its own category since
   // it is the primary local patient identifier and distinct from MRN/AN.
@@ -635,15 +644,15 @@ const PASSES = [
   // dose and score triples (RI 10-10-10, Apgar 8-9-10). A grouped phone or ID was taken above.
   { re: numericRe(String.raw`\b\d{1,2}-\d{1,2}-\d{4}\b`), cat: 'DATE', guard: dashedDateGuard },
   // Dotted day.month.year (20.10.2026, 05.12.2569, 20. 10. 2026, 5.10.69): a real day and month, not after a
-  // section or version label.
+  // section or version label unless its year has four digits.
   {
-    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{1,2}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{2,4}\b`),
+    re: numericRe(String.raw`(?:(?=\d{1,2}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{4}\b)|${NUMBERING_LABEL}${VERSION_LABEL})\b\d{1,2}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{2,4}\b`),
     cat: 'DATE',
     guard: dottedDateGuard,
   },
   // Dotted year-month-day (2026.10.20, 2569.1.2, 1999.  1.2), under the same label and decimal rules.
   {
-    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{4}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{1,2}\b`),
+    re: numericRe(String.raw`${NUMBERING_LABEL}(?:(?=2[4-6]\d\d\.)|${VERSION_LABEL})\b\d{4}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{1,2}\b`),
     cat: 'DATE',
     guard: yearFirstDateGuard,
   },
@@ -658,6 +667,7 @@ const PASSES = [
     re: new RegExp(String.raw`(?<![A-Za-z])${EN_MONTH}[\s\-/.]{0,3}\d{1,2}${ORDINAL}(?![\d.])[\s,]{0,3}\d{4}(?!\d)`, 'g'),
     cat: 'DATE',
     guard: DAY_GUARD,
+    yieldToTitledName: true,
   },
   {
     re: new RegExp(String.raw`(?<![\d.])\d{1,2}\s{0,3}(?:เดือน\s{0,3})?${TH_MONTH}\s{0,3}(?:(?:พ\.ศ\.|ค\.ศ\.)\s{0,3})?\d{2,4}(?!\d)`, 'g'),
@@ -1068,6 +1078,20 @@ const ASCII_VIEW = (() => {
   for (const ch of '⁄∕⧸') map.set(ch, '/');
   return map;
 })();
+// The view before #474: decimal digits and the full-width ASCII block only. A wider fold also changes what a pass's
+// edges read: 𝐈𝐃, №, ™ or ⅴ glued to a number turn into ASCII letters, so `\b` before or after the number fails, and a
+// folded dash before LINE meets the `(?<![-\w])` that keeps first-line out. So every non-NAME pass runs on this view
+// first and on the wide one after (see applyPass): whatever this view's edges let a pass mask is masked, and the wide
+// view only adds masks.
+const NARROW_VIEW = (() => {
+  const map = new Map();
+  for (const [ch, r] of ASCII_VIEW) if (/\p{Nd}/u.test(ch)) map.set(ch, r);
+  for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
+  return map;
+})();
+// A character only the wide view folds: without one, the wide view of a text is its narrow view.
+const WIDE_ONLY_RE = new RegExp(`[${[...ASCII_VIEW.keys()].filter((c) => !NARROW_VIEW.has(c))
+  .map((c) => `\\u{${c.codePointAt(0).toString(16)}}`).join('')}]`, 'u');
 // A fold can change a character's length (a two-unit 𝐀 is one unit in the view, ⑳ two, a keycap mark none), and past
 // the first such fold the indexes part. `at` then maps every view index to where its character starts in the text,
 // and `atEnd` every view index used as the END of a match to the text's: the end of the character when the index falls
@@ -1080,10 +1104,11 @@ const lastChar = (s, i) => [...s.slice(Math.max(0, i - 2), i)].pop() ?? '';
 // Text with nothing to fold (ASCII and Thai letters, the usual case) is its own view: no per-character walk.
 const NEEDS_FOLD_RE = /[^\x00-\x7f\u0e00-\u0e4f\u0e5a-\u0e7f]/;
 const THAI_DIGIT_RE = /[\u0e50-\u0e59]/g;
-function asciiView(s) {
+function asciiView(s, wide = true) {
   if (!NEEDS_FOLD_RE.test(s)) {
     return { view: s.replace(THAI_DIGIT_RE, (d) => String.fromCharCode(d.charCodeAt(0) - 0x0e50 + 0x30)), at: null, atEnd: null };
   }
+  const fold = wide ? ASCII_VIEW : NARROW_VIEW;
   let view = '';
   let shifted = false;
   const at = [];
@@ -1092,14 +1117,14 @@ function asciiView(s) {
   let scannedUntil = -1; // each run is measured once, from its first character (linear)
   for (let i = 0; i < s.length;) {
     const c = String.fromCodePoint(s.codePointAt(i));
-    if (ENCLOSED_DIGITS.has(c) && i >= scannedUntil) {
+    if (wide && ENCLOSED_DIGITS.has(c) && i >= scannedUntil) {
       let j = i;
       while (j < s.length && ENCLOSED_DIGITS.has(String.fromCodePoint(s.codePointAt(j)))) j += s.codePointAt(j) > 0xffff ? 2 : 1;
       const after = j < s.length ? String.fromCodePoint(s.codePointAt(j)) : '';
       scannedUntil = j;
       if (DIGIT_RE.test(lastChar(s, i)) || DIGIT_RE.test(after)) keepRunUntil = j;
     }
-    const folded = i < keepRunUntil ? undefined : ASCII_VIEW.get(c);
+    const folded = i < keepRunUntil ? undefined : fold.get(c);
     const r = folded ?? c;
     if (folded !== undefined && !(c.length === 1 && r.length === 1)) shifted = true;
     view += r;
@@ -1141,10 +1166,31 @@ function applyPass(text, pass, token, hints) {
   if (kind === 'th-given-surname') return applyGivenSurnamePass(text, token);
   if (kind === 'th-admin') return applyThAdminPass(text, token);
 
+  if (cat === 'NAME') return applyRegexPass(text, pass, token, { view: text, at: null, atEnd: null });
+  // The narrow view first, then the wide one (see NARROW_VIEW); text with nothing only the wide view folds runs once.
+  const narrowed = applyRegexPass(text, pass, token, asciiView(text, false));
+  return WIDE_ONLY_RE.test(narrowed) ? applyRegexPass(narrowed, pass, token, asciiView(narrowed)) : narrowed;
+}
+
+// The original-text spans of the name an English title leads (Mr June, Dr Smith June): what EN_NAME_RE takes.
+function enTitledNameSpans(text) {
+  const spans = [];
+  for (const m of text.matchAll(EN_NAME_RE)) {
+    const start = m.index + m[0].length - m[2].length;
+    spans.push([start, start + m[2].length]);
+  }
+  return spans;
+}
+const EN_MONTH_LEAD_RE = new RegExp(String.raw`^${EN_MONTH}[\s\-/.]{0,3}`);
+
+function applyRegexPass(text, pass, token, { view, at, atEnd }) {
+  const { re, cat, guard, kind } = pass;
+  // A month word that is the name after an English title (Mr June 5 2020) stays for the NAME pass, which masks it and
+  // registers it for its later mentions; the day and year after it are still masked.
+  const titled = pass.yieldToTitledName ? enTitledNameSpans(text) : [];
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
-  const { view, at, atEnd } = cat === 'NAME' ? { view: text, at: null, atEnd: null } : asciiView(text);
   return replaceResumable(text, re, (m) => {
     // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
     // every return that masks nothing must give back unchanged.
@@ -1155,6 +1201,14 @@ function applyPass(text, pass, token, hints) {
       // to the longest shorter match the guard accepts at the same start, so the identifier is still masked.
       const shorter = cat === 'NAME' ? null : longestGuarded(view, re, m.index, seen.length, guard);
       return shorter ? [token(cat, shorter), shorter.length] : match;
+    }
+    if (titled.length) {
+      const start = at ? at[m.index] : m.index;
+      if (titled.some(([s, e]) => start >= s && start < e)) {
+        const lead = EN_MONTH_LEAD_RE.exec(seen)[0].length;
+        const kept = at ? at[m.index + lead] - start : lead;
+        return match.slice(0, kept) + token(cat, seen.slice(lead));
+      }
     }
 
     if (cat === 'NAME') {
@@ -1332,11 +1386,11 @@ const BOOTH_LABEL_RES = [
 // learnt, anywhere else in the call.
 function maskLabelledTail(answer, registry) {
   const text = answer.replace(ZERO_WIDTH_RE, '');
-  const { view, at: map } = asciiView(text);
-  const starts = BOOTH_LABEL_RES.map((re) => view.search(re)).filter((i) => i >= 0);
+  // A label found in either view counts (see NARROW_VIEW): the earliest, in the text's own indexes.
+  const starts = [asciiView(text, false), asciiView(text)].flatMap(({ view, at: map }) => BOOTH_LABEL_RES
+    .map((re) => view.search(re)).filter((i) => i >= 0).map((i) => (map ? map[i] : i)));
   if (starts.length === 0) return text;
-  const first = Math.min(...starts);
-  const at = map ? map[first] : first;
+  const at = Math.min(...starts);
   return `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
 }
 
