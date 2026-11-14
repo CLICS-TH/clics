@@ -245,6 +245,11 @@ describe('#474 exact outputs', () => {
     ['a middle dot in an email local part', 'mail somchai·j@example.com now', 'mail [EMAIL-1] now'],
     ['middle dots in an email local part', 'mail a·b·c@example.com now', 'mail [EMAIL-1] now'],
     ['a date, a hyphen, a middle-dot email', 'x 20/10/2569-somchai·j@example.com', 'x [DATE-1]-[EMAIL-1]'],
+    // An address read through a middle dot ends at its last top-level label: a label glued after it keeps its own pass.
+    ['a middle-dot email, then an age label', 'somchai·@example.com.age 65 K 3.5', '[EMAIL-1].[AGE-1] K 3.5'],
+    ['a middle-dot email, then a ward label', 'somchai·@example.com.ward 5A', '[EMAIL-1].[WARD-1]'],
+    ['a middle-dot local part, then an age label', 'somchai·j@example.com.age 65', '[EMAIL-1].[AGE-1]'],
+    ['a middle-dot email with a two-label country domain', 'a·b@mail.mahidol.ac.th x', '[EMAIL-1] x'],
     // A run that opens with a phone is two phones only when the rest of its number is one more phone.
     ['a phone then a phone', 'tel 0812345678 081-234-5678 x', 'tel [PHONE-1] [PHONE-2] x'],
   ])('%s', (_shape, input, out) => {

@@ -523,12 +523,23 @@ const EMAIL_TLDS = new Set(['com', 'net', 'org', 'edu', 'gov', 'mil', 'int', 'in
 // (a·a·a·…a@, 1·1·…1·@) it reads the last 64 characters, from their first word start (from the 64th when there is none),
 // so each '@' costs at most that much and the run stays linear.
 const EMAIL_LOCAL_MAX = 64;
+// How much of `domain` an address read through a middle dot keeps: up to its last top-level label when a word follows
+// one (example.com.age 65 keeps example.com, so the label and its value keep their own pass); all of it otherwise.
+const isTld = (l) => EMAIL_TLDS.has(l.toLowerCase());
+function emailDomainEnd(domain) {
+  const labels = domain.split(ANY_MIDDLE_DOT_RE).flatMap((p) => p.split('.'));
+  let last = -1;
+  for (let i = 1; i < labels.length; i += 1) if (isTld(labels[i])) last = i;
+  if (last < 0 || last === labels.length - 1) return domain.length;
+  return labels.slice(0, last + 1).join('.').length;
+}
 function emailMiddleDotGuard(_seen, match) {
   if (!ANY_MIDDLE_DOT_RE.test(match)) return true;
   const [local, domain] = match.split('@');
   const pieces = (s) => s.split(ANY_MIDDLE_DOT_RE);
   return /^[A-Za-z][A-Za-z0-9_.%+]*$/.test(pieces(local)[0])
-    && pieces(domain).slice(1).every((p) => p.toLowerCase().split('.').every((l) => EMAIL_TLDS.has(l)));
+    && emailDomainEnd(domain) === domain.length
+    && pieces(domain).slice(1).every((p) => p.split('.').every(isTld));
 }
 
 // The sub-number of an HN, MRN or AN: the digits after a '/'. hnGuard refuses one that opens a phone, date or ID.
@@ -622,7 +633,8 @@ function emailPlainExecFrom(view, from) {
     start = q;
   }
   if (start === m.index) return m;
-  const w = [view.slice(start, m.index + m[0].length)];
+  const end = at + 1 + emailDomainEnd(view.slice(at + 1, m.index + m[0].length));
+  const w = [view.slice(start, end)];
   w.index = start;
   return w;
 }
