@@ -11,6 +11,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
+import net from 'node:net';
 import {
   readFileSync, readdirSync, statSync, mkdtempSync, writeFileSync, mkdirSync, copyFileSync, chmodSync, rmSync,
 } from 'node:fs';
@@ -332,6 +333,133 @@ test('docker compose config renders the same guarantees', { skip: !hasDocker && 
     assert.ok(s.mem_limit, 'memory limit set');
   }
   assert.equal(backend.environment.RIMPL_URL, 'http://rimpl:3003');
+});
+
+// ---- 6b. every redirect the Portal container issues stays on the request's origin ---------------------
+// portal.nginx.conf answers relative redirects (absolute_redirect off) built from the DECODED $uri. On the
+// #488 review `GET /%5Cevil.com.html` answered `308 Location: /\evil.com`, which a browser resolves to
+// https://evil.com/: an open redirect on the sign-in origin. The first test below runs every location of the
+// conf the way nginx picks it, over hostile paths, and resolves each 3xx with the WHATWG URL parser; it needs
+// no docker. The second sends the same paths to the real image where a docker daemon answers.
+const PORTAL_ORIGIN = 'https://clics.ccme.or.th';
+const HOSTILE_PATHS = (() => {
+  const out = ['/%5Cevil.com.html', '/%09/evil.com.html', '//evil.com.html', '/%2F%2Fevil.com.html',
+    '/%2Fevil.com.html', '/%5Cevil.com.html?a=1', '/%5C%5Cevil.com.html', '/%5C/evil.com.html',
+    '/x/../%5Cevil.com.html', '/%2F%5Cevil.com.html', '/cle-chat/%5Cevil.com.html', '/index.html/%5Cevil.com.html'];
+  const hex = (c) => `%${c.toString(16).toUpperCase().padStart(2, '0')}`;
+  // Every control character, space, DEL and backslash, after the first slash and before a second one.
+  for (const c of [...Array(0x21).keys(), 0x5c, 0x7f]) {
+    out.push(`/${hex(c)}/evil.com.html`, `/${hex(c)}evil.com.html`, `/${hex(c)}%5Cevil.com.html`, `/${hex(c)}${hex(c)}evil.com.html`);
+  }
+  return out;
+})();
+const resolvesHome = (location) => new URL(location, `${PORTAL_ORIGIN}/`).origin === PORTAL_ORIGIN;
+
+// The conf's locations in file order, with the 3xx each answers (null when it answers none).
+function portalLocations(conf) {
+  const out = [];
+  for (const m of conf.matchAll(/^\s*location\s+(=|~\*|~|\^~)?\s*("[^"]+"|\S+)\s*\{([^}]*)\}/gm)) {
+    const [, mod = '', pat, body] = m;
+    const ret = /\breturn\s+(3\d\d)\s+([^;\s]+)\s*;/.exec(body);
+    out.push({ mod, pat: pat.replace(/^"|"$/g, ''), ret: ret && { status: Number(ret[1]), target: ret[2] } });
+  }
+  return out;
+}
+
+// What nginx answers a request target with, as far as redirects go: $uri decoded, slashes merged, dot
+// segments resolved (above the root is a 400), then the location chosen in nginx's order (exact, then
+// regexes in file order unless the longest prefix is ^~, then the longest prefix).
+function portalAnswer(locations, target) {
+  const q = target.indexOf('?');
+  const rawPath = q < 0 ? target : target.slice(0, q);
+  const args = q < 0 ? '' : target.slice(q + 1);
+  const segs = [];
+  for (const s of unescape(rawPath).replace(/\/{2,}/g, '/').split('/').slice(1)) {
+    if (s === '..') { if (!segs.length) return { status: 400 }; segs.pop(); } else if (s !== '.') segs.push(s);
+  }
+  const uri = `/${segs.join('/')}`;
+  let loc = locations.find((l) => l.mod === '=' && l.pat === uri);
+  let groups = [];
+  if (!loc) {
+    const prefix = locations.filter((l) => (l.mod === '' || l.mod === '^~') && uri.startsWith(l.pat))
+      .sort((a, b) => b.pat.length - a.pat.length)[0];
+    if (prefix?.mod !== '^~') {
+      for (const l of locations.filter((x) => x.mod === '~' || x.mod === '~*')) {
+        const m = new RegExp(l.pat, l.mod === '~*' ? 'i' : '').exec(uri);
+        if (m) { loc = l; groups = m; break; }
+      }
+    }
+    loc ||= prefix;
+  }
+  if (!loc?.ret) return { status: null, uri };
+  const vars = { is_args: args ? '?' : '', args, ...(groups.groups || {}) };
+  const location = loc.ret.target.replace(/\$(\w+)/g, (_, v) => (/^\d$/.test(v) ? groups[Number(v)] ?? '' : vars[v] ?? ''));
+  return { status: loc.ret.status, location, uri };
+}
+
+test('every redirect in portal.nginx.conf resolves to the request\'s own origin, for any request path', () => {
+  const locations = portalLocations(read('deploy', 'vm1', 'portal.nginx.conf'));
+  assert.ok(locations.filter((l) => l.ret).length >= 3, 'the reader found the conf\'s redirecting locations');
+  // Controls: the clean-URL and cle-* redirects still answer as vercel.json did.
+  for (const [target, status, location] of [
+    ['/login.html', 308, '/login'], ['/invite.html?token=abc', 308, '/invite?token=abc'], ['/index.html', 308, '/'],
+    ['/cle-chat.html?id=1', 302, '/ple-chat?id=1'], ['/booth/board.html', 308, '/booth/board'],
+  ]) assert.deepEqual((({ status: s, location: l }) => [s, l])(portalAnswer(locations, target)), [status, location], target);
+  for (const target of HOSTILE_PATHS) {
+    const a = portalAnswer(locations, target);
+    if (a.status === null || a.status < 300 || a.status > 399) continue;
+    assert.ok(resolvesHome(a.location),
+      `${JSON.stringify(target)} answers ${a.status} Location ${JSON.stringify(a.location)}, which a browser resolves to ${new URL(a.location, `${PORTAL_ORIGIN}/`).origin}`);
+  }
+});
+
+const hasDaemon = spawnSync('docker', ['info'], { encoding: 'utf8' }).status === 0;
+function rawGet(port, target) { // the request line exactly as given: no client re-encodes it
+  return new Promise((resolve, reject) => {
+    const sock = net.connect(port, '127.0.0.1', () => {
+      sock.write(`GET ${target} HTTP/1.1\r\nHost: clics.ccme.or.th\r\nConnection: close\r\n\r\n`);
+    });
+    let buf = '';
+    sock.setEncoding('latin1');
+    sock.on('data', (d) => { buf += d; });
+    sock.on('error', reject);
+    sock.on('close', () => {
+      const status = Number(/^HTTP\/1\.\d (\d{3})/.exec(buf)?.[1]);
+      const location = /\r\nLocation: ([^\r\n]*)/i.exec(buf)?.[1] ?? null;
+      resolve({ status, location });
+    });
+  });
+}
+test('the Portal image answers hostile paths with a non-redirect or a same-origin redirect', {
+  skip: !hasDaemon && 'no docker daemon here; the conf reader above still runs', timeout: 240000,
+}, async () => {
+  const image = /^FROM (\S+)/m.exec(read('deploy', 'vm1', 'portal.Dockerfile'))[1];
+  const name = `clics-portal-redirect-${process.pid}`;
+  const run = spawnSync('docker', ['run', '-d', '--rm', '--name', name, '--read-only', '--tmpfs', '/tmp',
+    '-p', '127.0.0.1::8080',
+    '-v', `${path.join(VM1, 'portal.nginx.conf')}:/etc/nginx/nginx.conf:ro`,
+    '-v', `${path.join(ROOT, 'physician-ui', 'public')}:/usr/share/nginx/html:ro`,
+    '--entrypoint', 'nginx', image, '-g', 'daemon off;'], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  try {
+    const port = Number(/:(\d+)\s*$/m.exec(spawnSync('docker', ['port', name, '8080/tcp'], { encoding: 'utf8' }).stdout)?.[1]);
+    assert.ok(port, 'docker published the Portal port');
+    let control;
+    for (let i = 0; i < 50; i++) {
+      control = await rawGet(port, '/login.html').catch(() => ({}));
+      if (control.status) break;
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    assert.deepEqual([control.status, control.location], [308, '/login'], 'the control redirect answers');
+    for (const target of HOSTILE_PATHS) {
+      const { status, location } = await rawGet(port, target);
+      if (status < 300 || status > 399) continue;
+      assert.ok(location !== null && resolvesHome(location),
+        `${JSON.stringify(target)} answers ${status} Location ${JSON.stringify(location)}`);
+    }
+  } finally {
+    spawnSync('docker', ['rm', '-f', name], { encoding: 'utf8' });
+  }
 });
 
 // ---- 7. health-gate.cjs against fake rimpl / backend servers -------------------------------------------
