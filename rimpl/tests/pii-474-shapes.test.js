@@ -252,6 +252,24 @@ describe('#474 exact outputs', () => {
   });
 });
 
+// A refused sub-number never unmasks the code before it, however far the '/' sits (fail closed). After more than three
+// spaces a '/67' is no sub-number and stays as written, as on master.
+describe('#474 an HN, MRN or AN code stays masked when its sub-number is refused', () => {
+  const rows = [];
+  for (const n of [3, 130, 300]) {
+    const sp = ' '.repeat(n);
+    for (const [label, tok] of [['HN 1234567', 'HN-1'], ['MRN 123456', 'MRN-1'], ['AN 123456', 'MRN-1']]) {
+      rows.push([`${label}, ${n} spaces, a phone`, `${label}${sp}/081-234-5678 x`, `[${tok}]${sp}/[PHONE-1] x`]);
+      rows.push([`${label}, ${n} spaces, a date`, `${label}${sp}/20/10/2569 x`, `[${tok}]${sp}/[DATE-1] x`]);
+      rows.push([`${label}, ${n} spaces, a country-code phone`, `${label}${sp}/66 81 234 5678 x`, `[${tok}]${sp}/[PHONE-1] x`]);
+      rows.push([`${label}, ${n} spaces, a sub-number`, `${label}${sp}/67 x`, n <= 3 ? `[${tok}] x` : `[${tok}]${sp}/67 x`]);
+    }
+  }
+  test.each(rows)('%s', (_shape, input, out) => {
+    expect(stripPii(input)).toBe(out);
+  });
+});
+
 // Accepted residual (#474 owner ruling): a two-digit enclosed number stays as written.
 describe('#474 residuals stay as written', () => {
   test.each([
