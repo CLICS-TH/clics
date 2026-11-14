@@ -207,4 +207,34 @@ function historyGenerator(seed, { ascii = false } = {}) {
   };
 }
 
-module.exports = { generator, historyGenerator, maskedSet, counted, clearCounts, moreInClear };
+// The texts of one call (3 to 5) with two people who share a given name or a surname (John Smith, John Brown; Mary
+// Jaidee, Somchai Jaidee): each written in full in a text of its own, one in a shape where a pass of this branch eats
+// the context master's name pass reads, then each by its own part bare in the others. A union that took the other
+// person's token would merge them (#474). Returns { texts, people }, people[i].own the part only person i holds.
+function twoPeopleGenerator(seed) {
+  const r = rng(seed);
+  const pick = (xs) => xs[Math.floor(r() * xs.length)];
+  const PAIRS = [
+    [['John', 'Smith'], ['John', 'Brown']], [['Mary', 'Jaidee'], ['Somchai', 'Jaidee']], [['Lee', 'Robert'], ['Robert', 'Green']],
+    [['Mary', 'Brown'], ['Mary', 'Lee']], [['สมชาย', 'ใจดี'], ['สมศรี', 'ใจดี']], [['มานี', 'มีสุข'], ['มานี', 'ทองคำ']],
+  ];
+  const title = (thai) => pick(thai ? ['คุณ', 'นาย', 'นาง', 'ชื่อ '] : ['Mr', 'Mrs', 'Dr', 'Dr.', 'Prof']);
+  const eaten = (thai) => pick(thai ? ['', 'ward: '] : ['Ward:', 'WARD:', 'ward#', 'Ward# ', 'Seen by ']);
+  const full = (n, thai, eat) => `${eat ? eaten(thai) : ''}${title(thai)}${thai ? '' : ' '}${n.join(' ')}`;
+  const bare = (part) => (/[ก-๛]/.test(part) ? pick([`${part}มาด้วยไข้`, `ญาติของ${part}โทรมา`, `${part} บอกว่าปวดท้อง`])
+    : pick([`${part} reports chest pain`, `${part} has fever`, `Called ${part} back`]));
+  return () => {
+    const pair = pick(PAIRS);
+    const thai = /[ก-๛]/.test(pair[0][0]);
+    const people = pair.map((n, i) => ({ full: n, own: n.find((w) => !pair[1 - i].includes(w)) }));
+    const eat = r() < 0.5 ? 0 : 1;
+    const texts = people.map((p, i) => full(p.full, thai, i === eat || r() < 0.3));
+    if (r() < 0.5) texts.push(texts.shift());
+    if (r() < 0.3) texts.splice(1, 0, `${full(people[0].full, thai, false)}, ${full(people[1].full, thai, true)}`);
+    const mentions = people.flatMap((p, i) => Array.from({ length: 1 + Math.floor(r() * 2) }, () => ({ i, text: bare(p.own) })));
+    for (const m of mentions) texts.splice(Math.floor(r() * (texts.length + 1)), 0, m.text);
+    return { texts, people, mentions };
+  };
+}
+
+module.exports = { generator, historyGenerator, twoPeopleGenerator, maskedSet, counted, clearCounts, moreInClear };
