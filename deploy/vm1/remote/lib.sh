@@ -1,7 +1,8 @@
 # shellcheck shell=bash
-# SC2317 ("command appears to be unreachable") is disabled file-wide: this library is prepended to every
-# step, and each step calls only some of its functions, so the rest always look unreachable to the linter.
-# shellcheck disable=SC2317
+# SC2317 ("command appears to be unreachable") and SC2329 ("function is never invoked", ShellCheck 0.11+) are
+# disabled file-wide: this library is prepended to every step, and each step calls only some of its functions,
+# so the rest always look unused to the linter.
+# shellcheck disable=SC2317,SC2329
 # Prepended by deploy/vm1/deploy.sh to every remote step. Steps run as `bash -s -- BASE PROJECT PORT SHA
 # MODE RUN` inside `{ ... } </dev/null`; activate runs the same text from runs/<RUN>/activate.sh, detached
 # (see launch.sh). Not executed on its own. CI lints each step as sent: lib.sh + <step>.sh.
@@ -11,6 +12,10 @@ die() { echo "[vm1] ERROR: $*" >&2; exit 1; }
 # Not every step uses every argument (attach uses none of SHA, MODE, RUN).
 # shellcheck disable=SC2034
 BASE=$1 PROJECT=$2 PORT=$3 SHA=$4 MODE=$5 RUN=${6:-}
+# The front ends' loopback ports (#429): docker-compose.yml publishes them and the host nginx proxies to them
+# (scripts/deploy/vm1.test.mjs checks the three agree).
+# shellcheck disable=SC2034
+PORTAL_PORT=3103 DASHBOARD_PORT=3104
 
 # ---- env checks: run by preflight, and again by activate before it changes anything -----------------
 # Nothing here prints an env value or puts one on a command line.

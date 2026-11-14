@@ -120,7 +120,7 @@ test('host nginx, run: the logs hold no token, name or Referer, and /token and /
     for i in $(seq 1 25); do echo "verify $(code --header 'Referer: https://x/login?token=${REF}' "$B/auth/v1/verify?token=${TOKEN}&type=recovery")"; done
     for i in $(seq 1 5); do echo "token $(code "$B/auth/v1/token?grant_type=password")"; done
     for i in $(seq 1 25); do echo "user $(code "$B/auth/v1/user")"; done
-    echo "search $(code "$B/admin/professionals?q=${NAME}")"
+    echo "search $(code "$B/api/admin/professionals?q=${NAME}")"
     echo "plain $(code "http://127.0.0.1/auth/v1/verify?token=${TOKEN}&type=recovery")"
     echo "plain $(code "http://127.0.0.1/rest/v1/professionals?name=${NAME}")"
     echo ---LOGS---; cat /var/log/nginx/clics.access.log /var/log/nginx/clics.error.log /var/log/nginx/stock.access.log /var/log/nginx/stock.error.log 2>&1`;

@@ -69,6 +69,12 @@ The booth's idle screen (`/booth`) plays the files listed in `public/booth-loop/
   pass of the loop; a file taken out of the manifest is dropped from the cache.
 - The booth also keeps the case of the last play started. Offline it still plays the loop, under the offline bar
   with no Tap-to-try: a play needs the server to start and to score, so none starts until the network is back.
-- Deploy before the event freeze: the booth only sees files that are live on Vercel.
+- Deploy before the event freeze: the booth only sees files that are live on the origin it runs from. Until the
+  vm1 cutover that is Vercel, deployed from a pre-#429 ref (from #429 on, `vercel.json` is a redirect to
+  `https://clics.ccme.or.th`); after it, vm1, and the kiosk URL becomes `https://clics.ccme.or.th/booth`.
 
-Deploy: `vercel --prod --yes`. `public/js/config.js` names the vm1 API origin, so deploy only after `node scripts/deploy/cutover-check.mjs` passes. See [../docs/deployment.md](../docs/deployment.md).
+Deploy: after the vm1 cutover, `deploy/vm1/deploy.sh` builds the Portal image (`deploy/vm1/portal.Dockerfile`)
+with the backend. From #429 on, `vercel.json` here is a redirect to `https://clics.ccme.or.th`, so
+`vercel --prod --yes` from this tree moves every user there: before the cutover, deploy to Vercel only from a
+pre-#429 ref (one before #472, whose `config.js` already names the vm1 origin: `deploy/vm1/README.md` §5), and
+the owner deploys this tree's redirect at cutover step 4. See [../docs/deployment.md](../docs/deployment.md).

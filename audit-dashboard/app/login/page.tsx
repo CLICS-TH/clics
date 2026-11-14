@@ -6,78 +6,83 @@ import { ClicsLogo } from '@/components/ClicsLogo';
 import { PORTAL } from '@/lib/portal';
 import { clearSession } from '@/lib/auth';
 
-// The Portal's sign-in hands admin/auditor/superadmin sessions to this dashboard via
-// /login?token=<jwt>. Without a token, this page only forwards the visitor to the Portal.
+// The Portal and this dashboard share one origin (Portal at /, dashboard at /audit), so the Portal's sign-in
+// leaves the session in localStorage and sends admin/auditor/superadmin here. A visit without one goes to the
+// Portal's sign-in. A ?token= in the URL (the old cross-origin handoff, or a stale link) is dropped unread: a
+// session never travels in a URL.
 
 interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; can_audit?: boolean; }
+
+function readToken(): string | null {
+  try { return localStorage.getItem('clics_token'); } catch { return null; }
+}
 
 function redirectByRole(user: Pick<ClicsUser, 'role' | 'can_audit'>, router: ReturnType<typeof useRouter>) {
   // Superadmin lands straight on the executive overview; admin/auditor land on the
   // role-aware /home, whose cards link into each workspace. A physician with
   // can_audit (dual-role "Special" user) enters straight at the auditor queue —
-  // this is the token-handoff entry point from the physician app.
-  if (user.role === 'superadmin') router.push('/admin/overview');
-  else if (user.role === 'analyst') router.push('/analyst');
-  else if (user.role === 'ethics') router.push('/ethics');
-  else if (user.role === 'auditor' || user.role === 'admin') router.push('/home');
-  else if (user.role === 'physician' && user.can_audit) router.push('/auditor/queue');
+  // they arrive from the Portal's Auditor console link.
+  // replace, not push: /login must not stay in history, or Back from the console lands here, finds the
+  // shared session and forwards again, so Back never reaches the Portal.
+  if (user.role === 'superadmin') router.replace('/admin/overview');
+  else if (user.role === 'analyst') router.replace('/analyst');
+  else if (user.role === 'ethics') router.replace('/ethics');
+  else if (user.role === 'auditor' || user.role === 'admin') router.replace('/home');
+  else if (user.role === 'physician' && user.can_audit) router.replace('/auditor/queue');
   else {
-    // No dashboard home for this role: drop the session and return to the Portal's sign-in.
-    localStorage.removeItem('clics_token');
-    localStorage.removeItem('clics_user');
-    window.location.replace(PORTAL.login);
+    // A physician without can_audit has no dashboard home: back to the Portal, which sends them to
+    // /dashboard. The session is the Portal's too, so it is kept.
+    window.location.replace(PORTAL.dashboard);
   }
 }
 
 function LoginGate() {
   const router = useRouter();
   const params = useSearchParams();
-  // Read once at mount: stripping the token below re-syncs useSearchParams without it, and
-  // re-running the effect on that would bounce a signing-in user to the Portal.
-  const [token] = useState(() => params.get('token'));
+  // Read once at mount: stripping the query below re-syncs useSearchParams, and re-running the effect on
+  // that would sign the user in a second time.
   const [loggingOut] = useState(() => params.get('logout') === '1');
-  const hasToken = !!token && !loggingOut;
+  const [hadUrlToken] = useState(() => params.has('token'));
+  const [token] = useState(() => (loggingOut ? null : readToken()));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (hadUrlToken) {
+      // Off the URL and out of history, so Back after Sign out cannot bring it back (#182).
+      window.history.replaceState(window.history.state, '', window.location.pathname);
+    }
     if (loggingOut) {
-      // The Portal's Sign out routes through here: its own storage is a different origin, and a
-      // session left on this one would let Forward reopen the dashboard signed in.
       clearSession();
       window.location.replace(PORTAL.login);
     } else if (token) {
-      // Drop ?token= from history so Back after Sign out cannot restore this session (#182).
-      // Keep the entry's state so Next's router can still restore it.
-      window.history.replaceState(window.history.state, '', '/login');
-      localStorage.setItem('clics_token', token);
-      // apiFetch only special-cases 401 — a 403 (account pending/deactivated) resolves with
-      // the JSON error body ({ error, code }), NOT { user }. Validate the shape before
-      // storing, and clear the bad token on any failure so the next visit re-enters the portal.
+      // apiFetch only special-cases 401: a 403 (account pending/deactivated) resolves with the JSON error
+      // body ({ error, code }), NOT { user }. Validate the shape, and drop the session on any failure so
+      // the Portal's forward does not send the user straight back here.
       apiFetch<{ user?: ClicsUser; error?: string }>('/auth/me')
         .then(res => {
           if (res?.user?.role) {
             localStorage.setItem('clics_user', JSON.stringify(res.user));
-            // If the user was bounced here by a mid-session expiry, return them to that exact page
-            // (set by lib/api.ts before the redirect). Only honor a same-origin path, never /login.
+            // If the user was bounced by a mid-session expiry, return them to that exact page (set by
+            // lib/api.ts, without the base path). Only honor a same-origin path, never /login.
             let next: string | null = null;
             try { next = sessionStorage.getItem('clics_reauth_next'); sessionStorage.removeItem('clics_reauth_next'); } catch {}
-            if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/login')) router.push(next);
+            if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/login')) router.replace(next);
             else redirectByRole(res.user, router);
           } else {
             localStorage.removeItem('clics_token');
+            localStorage.removeItem('clics_user');
             setError(typeof res?.error === 'string' ? res.error : 'เข้าสู่ระบบไม่สำเร็จ / Sign-in failed.');
           }
         })
         .catch(() => {
-          localStorage.removeItem('clics_token');
           setError('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ / Could not reach the server.');
         });
     } else {
-      // No handoff token — send the visitor to the single sign-in portal.
       window.location.replace(PORTAL.login);
     }
-  }, [token, loggingOut, router]);
+  }, [token, loggingOut, hadUrlToken, router]);
 
+  const hasToken = !!token;
   return (
     <div className="flex items-center justify-center min-h-dvh bg-background p-6">
       <div className="w-full max-w-sm space-y-2 p-8 bg-card rounded-xl shadow border border-border text-center animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">

@@ -5,7 +5,8 @@
  *
  * Hermetic. A built-in static server serves physician-ui/public on :3000, a stub backend answers
  * on :3001, and the built audit-dashboard is expected on :3002 (built with
- * NEXT_PUBLIC_API_URL=http://localhost:3001 and NEXT_PUBLIC_PORTAL_URL=http://localhost:3000).
+ * NEXT_PUBLIC_API_URL=http://localhost:3001). The Portal server proxies /audit to it, so the two share an
+ * origin, as on vm1.
  * Supabase and the esm.sh copy of supabase-js are served from the pinned local package; every
  * other external request is aborted. Tokens are fake JWTs. Needs no network and no secrets.
  *
@@ -14,7 +15,7 @@
  *
  * Run: node scripts/auth/portal-browser.mjs [name filter | --serve]   (from repo root, dashboard on :3002)
  */
-import { createServer } from 'node:http';
+import { createServer, request } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,10 +28,10 @@ const PORTAL = 'http://localhost:3000';
 // A Portal origin that is not on the Google sign-in allow-list in config.js.
 const PORTAL_OFF_LIST = 'http://localhost:3010';
 const API = 'http://localhost:3001';
-const DASH = 'http://localhost:3002';
-// Where the dashboard really serves. The browser always sees DASH, because the Portal's config.js
-// hands staff to localhost:3002; a different upstream (a busy local port) is proxied.
-const DASH_UPSTREAM = process.env.DASH_UPSTREAM || DASH;
+// The dashboard shares the Portal's origin under /audit, as on vm1, so the Handoff can rest on the shared
+// localStorage session. The Portal server proxies /audit to wherever the dashboard really serves.
+const DASH = `${PORTAL}/audit`;
+const DASH_UPSTREAM = process.env.DASH_UPSTREAM || 'http://localhost:3002';
 const SUPABASE = 'https://rgwnnexokstctugwtwub.supabase.co';
 const SUPABASE_JS = 'https://esm.sh/@supabase/supabase-js@2.49.4';
 const GSI = 'https://accounts.google.com/gsi/client';
@@ -77,9 +78,19 @@ function listen(server, port) {
   return new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, 'localhost', () => resolve(server)); });
 }
 
-// Mirrors vercel.json cleanUrls: '/' -> index.html, '/x' -> x.html.
+function proxyToDashboard(req, res) {
+  const up = request(DASH_UPSTREAM + req.url, { method: req.method, headers: req.headers }, (r) => {
+    res.writeHead(r.statusCode, r.headers);
+    r.pipe(res);
+  });
+  up.on('error', () => { if (!res.headersSent) res.writeHead(502); res.end('dashboard unreachable'); });
+  req.pipe(up);
+}
+
+// Mirrors portal.nginx.conf (and vercel.json) cleanUrls: '/' -> index.html, '/x' -> x.html; /audit is the dashboard.
 function portalServer(origin = PORTAL) {
   return createServer(async (req, res) => {
+    if (req.url === '/audit' || req.url.startsWith('/audit/') || req.url.startsWith('/audit?')) return proxyToDashboard(req, res);
     try {
       let p = decodeURIComponent(new URL(req.url, origin).pathname);
       if (p === '/') p = '/index.html';
@@ -258,13 +269,12 @@ async function assertSignedOut(t, page, ctx, where) {
 
 function isPrivate(href) {
   const url = new URL(href);
-  if (url.origin === PORTAL) return !PORTAL_PUBLIC.has(url.pathname);
-  return url.origin === DASH && url.pathname !== '/login';
+  if (url.origin !== PORTAL) return false;
+  if (url.pathname === '/audit' || url.pathname.startsWith('/audit/')) return url.pathname !== '/audit/login';
+  return !PORTAL_PUBLIC.has(url.pathname);
 }
 
-async function dashboardTokens(ctx) {
-  return (await storedTokens(ctx)).filter((e) => e.startsWith(DASH));
-}
+const storedUser = (page) => page.evaluate(() => localStorage.getItem('clics_user')).catch(() => null);
 
 async function dualRoleToConsole(page) {
   await page.goto(`${PORTAL}/forgot`);
@@ -682,8 +692,8 @@ const SCENARIOS = [
       revokedUse.length = 0;
       await walk(page, 'Forward', async (step) => {
         t.check(revokedUse.length === 0, `${step}: a page called ${revokedUse.join(', ')} with the signed-out token`);
-        const left = await dashboardTokens(ctx);
-        t.check(left.length === 0, `${step}: dashboard storage holds ${left.join(', ')}`);
+        const user = await storedUser(page);
+        t.check(!user || !user.includes(USERS.dualRole.id), `${step}: the signed-out user's session is back in storage`);
         t.check(!isPrivate(page.url()) || new URL(page.url()).origin === PORTAL, `${step}: dashboard page shown ${page.url()}`);
         t.check(!(await shows(page, 'CI Dual Role')), `${step}: the signed-out user's console shown to B at ${page.url()}`);
       });
@@ -811,15 +821,16 @@ const SCENARIOS = [
     },
   },
   ...['admin', 'auditor', 'superadmin'].map((role) => ({
-    name: `Login Google sign-in in-page: the ${role} role is handed to the dashboard with the CLICS token`,
+    name: `Login Google sign-in in-page: the ${role} role is handed to the dashboard on the shared session`,
     async run(t, page, ctx) {
       resetGoogleStubs();
       googleComplete = () => [200, USERS[role]];
       const handoffs = [];
-      ctx.on('request', (r) => { if (r.url().startsWith(`${DASH}/login?token=`)) handoffs.push(r.url()); });
+      ctx.on('request', (r) => { if (r.url().startsWith(`${DASH}/login`)) handoffs.push(r.url()); });
       await pressThroughGis(page, ctx);
       await until(() => handoffs.length > 0, `the ${role} Handoff to ${DASH}/login`);
-      t.check(new URL(handoffs[0]).searchParams.get('token') === lastIssued, `the ${role} Handoff carried a token other than the one the backend issued`);
+      t.check(!TOKEN_IN_URL.test(handoffs[0]), `the ${role} Handoff put a token in the URL: ${handoffs[0]}`);
+      t.check(await clicsToken(ctx) === lastIssued, `the ${role} session holds a token other than the one the backend issued`);
       t.check(completeCalls.length === 1 && completeCalls[0].access_token === lastGoogleAccessToken, `the ${role} complete call was ${JSON.stringify(completeCalls)}`);
       await checkSignedInClean(t, ctx, `${role} Handoff`);
     },
@@ -1127,7 +1138,7 @@ const SCENARIOS = [
       resetGoogleStubs();
       const g = watchGoogle(page, ctx);
       const handoffs = [];
-      ctx.on('request', (r) => { if (r.url().startsWith(`${DASH}/login?token=`)) handoffs.push(r.url()); });
+      ctx.on('request', (r) => { if (r.url().startsWith(`${DASH}/login`)) handoffs.push(r.url()); });
       await page.goto(`${PORTAL}/invite?token=CI-INVITE`);
       await page.locator('#googleBtn').waitFor({ state: 'visible', timeout: 10000 });
       await settle(page);
@@ -1150,7 +1161,8 @@ const SCENARIOS = [
       t.check(inviteCalls.length === 1 && inviteCalls[0].method === 'google' && inviteCalls[0].access_token === lastGoogleAccessToken,
         `the accept call was ${JSON.stringify(inviteCalls)}, not one google call with the Supabase session token`);
       t.check(completeCalls.length === 0, `the normal signup completion ran ${completeCalls.length}x`);
-      t.check(new URL(handoffs[0]).searchParams.get('token') === lastIssued, 'the Handoff carried a token other than the one the backend issued');
+      t.check(!TOKEN_IN_URL.test(handoffs[0]), `the Handoff put a token in the URL: ${handoffs[0]}`);
+      t.check(await clicsToken(ctx) === lastIssued, 'the session holds a token other than the one the backend issued');
       await checkSignedInClean(t, ctx, 'invitee Handoff');
     },
   },
@@ -1621,16 +1633,13 @@ const SCENARIOS = [
 
 async function main() {
   const servers = [await listen(portalServer(), 3000), await listen(portalServer(PORTAL_OFF_LIST), 3010), await listen(apiServer(), 3001)];
-  const dashUp = await fetch(`${DASH_UPSTREAM}/login`).then((r) => r.ok).catch(() => false);
+  const dashUp = await fetch(`${DASH_UPSTREAM}/audit/login`).then((r) => r.ok).catch(() => false);
   if (!dashUp) { console.error(`audit-dashboard is not serving at ${DASH_UPSTREAM}`); process.exit(1); }
   if (process.argv[2] === '--serve') { console.log(`Portal ${PORTAL}, stub backend ${API}; Ctrl-C to stop`); return; }
   const supabaseJs = await supabaseModule();
 
-  // A proxied page has no address space, so Chromium's Local Network Access check would block its
-  // calls to the loopback backend. Served directly (as in CI), the check stays on.
-  const args = DASH_UPSTREAM === DASH ? [] : ['--disable-features=LocalNetworkAccessChecks'];
   // Full Chromium in new headless mode: the default headless shell never restores from bfcache.
-  const browser = await chromium.launch({ channel: 'chromium', headless: true, args, ignoreDefaultArgs: ['--disable-back-forward-cache'] });
+  const browser = await chromium.launch({ channel: 'chromium', headless: true, ignoreDefaultArgs: ['--disable-back-forward-cache'] });
   const only = process.argv[2];
   let failed = 0;
   let bfcacheRestores = 0;
@@ -1639,13 +1648,7 @@ async function main() {
     // animation frame in headless Chromium and leaves no element "stable" enough to click. A `motion`
     // scenario clicks nothing and reads the animations a reader with no motion preference gets.
     const ctx = await browser.newContext({ reducedMotion: s.motion ? 'no-preference' : 'reduce' });
-    if (DASH_UPSTREAM !== DASH) {
-      await ctx.route((url) => url.href.startsWith(DASH), async (route) => {
-        const response = await route.fetch({ url: DASH_UPSTREAM + route.request().url().slice(DASH.length) });
-        await route.fulfill({ response });
-      });
-    }
-    await ctx.route((url) => !url.href.startsWith(PORTAL) && !url.href.startsWith(PORTAL_OFF_LIST) && !url.href.startsWith(API) && !url.href.startsWith(DASH), (route) => {
+    await ctx.route((url) => !url.href.startsWith(PORTAL) && !url.href.startsWith(PORTAL_OFF_LIST) && !url.href.startsWith(API), (route) => {
       const url = route.request().url();
       if (url.startsWith(GSI)) return gsiBlocked ? route.abort() : route.fulfill({ status: 200, contentType: 'text/javascript', body: FAKE_GSI });
       if (url.startsWith(SUPABASE_JS)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: supabaseJs, headers: { 'access-control-allow-origin': '*' } });

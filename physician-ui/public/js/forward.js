@@ -1,7 +1,8 @@
 // Signed-in forward, shared by the Landing page (/) and the Login page (/login). Loads after
 // config.js, which supplies CLICS_DASHBOARD_URL.
 //
-// A stored admin/auditor/superadmin token goes to the audit-dashboard Handoff, not /dashboard,
+// A stored admin/auditor/superadmin token goes to the audit-dashboard's /audit/login, which reads the same
+// origin's storage (no token in the URL), not /dashboard,
 // whose physician guard would bounce it back here and read as "logged in but thrown out".
 // Forwards use replace() so Back from the destination skips this page instead of bouncing
 // forward again (#176).
@@ -24,8 +25,7 @@
   function decide(token, user, nowMs, lastHandoff, dashboardUrl) {
     if (!token) return { go: null };
     // An EXPIRED / unparseable token must be discarded, never forwarded: a dead staff token sent to
-    // the dashboard (which 401s and bounces back here) looped forever, because localStorage is
-    // per-origin so our copy was never cleared.
+    // the dashboard (which 401s and bounces back here) looped forever.
     var exp = jwtExp(token);
     if (!exp || exp <= Math.floor(nowMs / 1000)) return { discard: true, go: null };
     // Handed off <6s ago and already back: the dashboard rejected the token (revoked / wrong
@@ -33,7 +33,7 @@
     if (lastHandoff && nowMs - lastHandoff < 6000) return { discard: true, go: null };
     // A missing user still goes to /dashboard; guardRole heals the state there.
     if (!user || user.role === 'physician') return { go: '/dashboard' };
-    return { go: dashboardUrl + '/login?token=' + encodeURIComponent(token), handoff: true };
+    return { go: dashboardUrl + '/login', handoff: true };
   }
 
   function forward(restored) {
@@ -44,7 +44,7 @@
       last = parseInt(sessionStorage.getItem('clics_handoff') || '0', 10);
     } catch (e) {}
 
-    var d = decide(token, user, Date.now(), last, window.CLICS_DASHBOARD_URL || 'http://localhost:3002');
+    var d = decide(token, user, Date.now(), last, window.CLICS_DASHBOARD_URL || '/audit');
     if (d.discard) {
       try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
     }

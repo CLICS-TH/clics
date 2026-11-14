@@ -159,8 +159,8 @@ function finishAccept(body) {
     cta.textContent = 'ไปที่คอนโซล / Go to console →';
     cta.href = '/login';
   }
-  // The destination is read at click time: Back after Sign out restores this page from the bfcache,
-  // and a link built at render time would still carry the revoked session's token.
+  // The session is read at click time: Back after Sign out restores this page from the bfcache, and the
+  // stored session may be gone (or another user's) by then.
   cta.onclick = (e) => {
     e.preventDefault();
     const token = localStorage.getItem('clics_token');
@@ -168,7 +168,7 @@ function finishAccept(body) {
     let current = null;
     try { current = JSON.parse(localStorage.getItem('clics_user') || 'null'); } catch {}
     if ((current?.role || role) === 'physician') return location.assign('/dashboard');
-    location.assign((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(token));
+    location.assign((window.CLICS_DASHBOARD_URL || '/audit') + '/login');
   };
   show(doneCard);
 }

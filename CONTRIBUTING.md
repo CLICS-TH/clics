@@ -27,10 +27,13 @@ terminals? Use the per-layer commands below. Locally the prod boot-checks are re
 | backend | `cd backend && npm run dev` | 3001 |
 | rimpl | `cd rimpl && npm run dev` | 3003 |
 | physician-ui | `cd physician-ui && npm run dev` | 3000 |
-| audit-dashboard | `cd audit-dashboard && npm run dev -- -p 3002` | 3002 |
+| audit-dashboard | `cd audit-dashboard && npm run dev -- -p 3002` | 3002 (under `/audit`) |
+| one origin | `npm run dev:one-origin` | 3080 |
 
 `npm run dev` is `node --watch` for backend/rimpl, `npx serve public` for physician-ui, and `next dev`
 for the dashboard (pass `-p 3002` — `next dev` defaults to 3000 and would collide with the portal).
+Open the app on `http://localhost:3080`: it routes `/` to the Portal, `/audit` to the dashboard and `/api`
+to the backend, as vm1's nginx does, and the staff handoff needs that shared origin.
 
 **Env vars by layer** (names only — values come from the Supabase project / team):
 
@@ -116,9 +119,12 @@ labels/badge single source of truth). End-to-end auth proof: `scripts/e2e/`. Loa
   provision rosters, but stage explicit paths and check `git status` before committing.
 - **Deploy** ([`docs/deployment.md`](docs/deployment.md)): backend/rimpl → Railway with
   `railway up . --path-as-root --service backend|rimpl --ci` (plain `railway up` builds but never
-  promotes; always name the service, because a directory's link can point at the other one); both
-  front-ends → Vercel with `vercel --prod --yes`. The audit-dashboard needs `NEXT_PUBLIC_API_URL` set on
-  Vercel or its login silently hangs in prod. Each migration's order relative to its code is stated in
+  promotes; always name the service, because a directory's link can point at the other one). The
+  front-ends: from #429 on, both `vercel.json` files are a redirect to `https://clics.ccme.or.th`, so
+  `vercel --prod --yes` from this tree moves every user there. Before the vm1 cutover, deploy a front end
+  to Vercel only from a pre-#429 ref (the Portal from one before #472, `deploy/vm1/README.md` §5), and a
+  pre-#429 audit-dashboard needs `NEXT_PUBLIC_API_URL` set on Vercel or its login silently hangs in prod.
+  After the cutover the front-ends deploy to vm1 with the backend (`deploy/vm1/deploy.sh`). Each migration's order relative to its code is stated in
   `docs/deployment.md`: most new ones ship code first (the code tolerates the missing object), a few
   must land before. Never rename or drop anything ahead of the code.
 - **Never `sbClient.auth.signOut()` after storing the token** — the CLICS token *is* the Supabase session

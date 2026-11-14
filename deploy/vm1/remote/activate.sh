@@ -1,4 +1,5 @@
-# activate: build, start rimpl, gate, start the backend, gate, flip /opt/clics/current (deploy/vm1/deploy.sh).
+# activate: build, start rimpl, gate, start the backend, gate, start the Portal and the dashboard, check
+# them, flip /opt/clics/current (deploy/vm1/deploy.sh).
 #
 # deploy.sh does not run this over its SSH session: launch.sh starts it DETACHED, as a systemd transient
 # unit, so a dropped connection cannot stop it between "rimpl recreated" and "restore". With a RUN id it
@@ -185,10 +186,40 @@ restore() {
   fi
   log "$OUTCOME"
 }
-fail() { restore; die "$1. $OUTCOME"; }
+# The Portal and the dashboard hold no session and claim no work, so they follow whatever restore() did:
+# the previous release's own are started again, and if that release predates them (#429), this run's are
+# stopped, found by label because the previous compose file does not name them.
+restore_front() {
+  local prev_dir=$BASE/releases/$PREV/deploy/vm1 svc ids
+  if [ -n "$PREV" ] && [ -f "$prev_dir/docker-compose.yml" ] \
+     && (cd "$prev_dir" && CLICS_RELEASE=$PREV dc config --services 2>/dev/null) | grep -qx dashboard; then
+    if (cd "$prev_dir" && CLICS_RELEASE=$PREV dc up -d --no-deps --wait --wait-timeout 180 portal dashboard); then
+      log "the Portal and the dashboard of $PREV are running"
+    else
+      log "!!! the Portal and the dashboard of $PREV did not report healthy within 180 s: docker ps --filter label=com.docker.compose.project=$PROJECT"
+    fi
+    return 0
+  fi
+  for svc in portal dashboard; do
+    ids=$(docker ps -q --filter "label=com.docker.compose.project=$PROJECT" --filter "label=com.docker.compose.service=$svc")
+    [ -n "$ids" ] || continue
+    # shellcheck disable=SC2086 # one id per word
+    docker stop $ids >/dev/null || log "!!! stopping the $svc container FAILED: docker stop $PROJECT-$svc-1"
+  done
+  log "${PREV:-no release} had no Portal or dashboard service here, so this run's are stopped"
+}
+fail() { restore; restore_front; die "$1. $OUTCOME"; }
 
-if [ "$MODE" = deploy ] || ! docker image inspect "clics-backend:$SHA" "clics-rimpl:$SHA" >/dev/null 2>&1; then
-  log "building clics-backend:$SHA and clics-rimpl:$SHA"
+# A loopback-only port answers on 127.0.0.1 and listens on nothing else.
+loopback_only() { # <port>
+  local beyond
+  # grep -c reads all of its input, so no SIGPIPE can turn a match into a pass under pipefail.
+  beyond=$(ss -Hltn "sport = :$1" | grep -vc " 127\.0\.0\.1:" || true)
+  [ "${beyond:-0}" -eq 0 ]
+}
+
+if [ "$MODE" = deploy ] || ! docker image inspect "clics-backend:$SHA" "clics-rimpl:$SHA" "clics-portal:$SHA" "clics-dashboard:$SHA" >/dev/null 2>&1; then
+  log "building clics-backend, clics-rimpl, clics-portal and clics-dashboard:$SHA"
   dc build --pull || die "build failed; nothing was restarted"
 fi
 
@@ -217,6 +248,13 @@ beyond=$(ss -Hltn "sport = :$PORT" | grep -vc "127.0.0.1:$PORT" || true)
 if [ "${beyond:-0}" -gt 0 ]; then fail "port $PORT is listening beyond loopback"; fi
 log "gate 2: backend /health/deep"
 gate backend || fail "gate 2 (backend /health/deep) failed for $SHA"
+# After the API, so the release whose pages are served is one whose backend already passed.
+log "starting the Portal and the dashboard"
+dc up -d --no-deps --wait --wait-timeout 180 portal dashboard || fail "the Portal and the dashboard of $SHA did not become healthy"
+curl -fsS --max-time 10 -o /dev/null "http://127.0.0.1:$PORTAL_PORT/login" || fail "the Portal is not answering on 127.0.0.1:$PORTAL_PORT"
+curl -fsS --max-time 10 -o /dev/null "http://127.0.0.1:$DASHBOARD_PORT/audit/login" || fail "the dashboard is not answering on 127.0.0.1:$DASHBOARD_PORT"
+loopback_only "$PORTAL_PORT" || fail "port $PORTAL_PORT is listening beyond loopback"
+loopback_only "$DASHBOARD_PORT" || fail "port $DASHBOARD_PORT is listening beyond loopback"
 
 ln -sfn "releases/$SHA" "$BASE/.current.next" && mv -Tf "$BASE/.current.next" "$BASE/current"
 if [ -n "$PREV" ] && [ "$PREV" != "$SHA" ]; then

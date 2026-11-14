@@ -35,6 +35,8 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
       From #246 on, `migration-booth-plays.sql` drops the one-argument `booth_start_play` for the
       `(event, case, version)` one, so re-apply it only together with a backend deploy that has #246, and
       deploy the kiosk (Vercel), the backend and rimpl as one release: an older backend or kiosk ends every play.
+      The kiosk deploys to Vercel only from a pre-#429 ref: from #429 on, `physician-ui/vercel.json` is a redirect
+      to `https://clics.ccme.or.th`. After the vm1 cutover the kiosk ships with the vm1 release.
       The reply fields of #376 need the same: an older kiosk or backend ends every play, and an older rimpl blanks
       every reply (the backend logs `reply empty ... reason=no_fields`). Roll back all three together.
 - [ ] **The language look of #377 ships in this order:** the migration, then rimpl, then the backend, then the

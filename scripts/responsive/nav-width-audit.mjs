@@ -31,9 +31,12 @@
  * audit-dashboard/lib/client-store.ts, so the samples move when the constants do. A mis-calibration
  * is invisible anywhere except the band between "the model says inline" and "the row actually fits".
  *
- * Needs a BUILT dashboard on DASH_URL (default http://127.0.0.1:3002):
+ * Needs a BUILT dashboard on DASH_URL (default http://127.0.0.1:3002/audit, the base path included), built the
+ * default way: NEXT_PUBLIC_API_URL unset, so its API is the relative /api on its own origin, basePath /audit:
  *     cd audit-dashboard && npm run build && npx next start -p 3002
  *     node scripts/responsive/nav-width-audit.mjs
+ * Calls to DASH_URL's origin /api and to http://localhost:3001 are both answered from fixtures
+ * (scripts/lib/gate-api.mjs). A build made with NEXT_PUBLIC_API_URL set needs that same value exported here.
  *
  * Every backend call is fulfilled from a fixture, so this needs no credentials and no live data.
  *
@@ -49,11 +52,13 @@
  */
 import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { gateApiBases, isGateApiCall } from '../lib/gate-api.mjs';
 
-const DASH = process.env.DASH_URL || 'http://127.0.0.1:3002';
+const DASH = process.env.DASH_URL || 'http://127.0.0.1:3002/audit';
 const PATH = process.env.NAV_AUDIT_PATH || '/admin/integrity';
 const CALIBRATE = process.argv.includes('--calibrate');
-const API = ['http://localhost:3001', 'http://127.0.0.1:3001'];
+// The dashboard's own-origin /api (the default build) and :3001: scripts/lib/gate-api.mjs.
+const API = gateApiBases({ dashUrl: DASH, apiUrl: process.env.NEXT_PUBLIC_API_URL });
 const C = { r: '\x1b[31m', g: '\x1b[32m', y: '\x1b[33m', d: '\x1b[2m', x: '\x1b[0m' };
 
 // Every persona that renders a nav row. `n` is the count the model sizes the row by: roster length,
@@ -88,7 +93,7 @@ async function measure(browser, persona, width, { forceInline = false } = {}) {
     full_name_th: 'ผู้ดูแลระบบทดสอบ', specialty: 'อายุรศาสตร์', position: 'gp' };
   await ctx.route('**/*', (r) => {
     const url = r.request().url();
-    if (API.some((b) => url.startsWith(b))) {
+    if (isGateApiCall(url, API)) {
       const body = /integrity-queue/.test(url) ? { ples: [] }
         : { id: 'a1', ...persona.user, council_id: 'c1', full_name_th: 'ผู้ดูแลระบบทดสอบ', full_name_en: 'Test Admin' };
       return r.fulfill({ status: 200, contentType: 'application/json',
