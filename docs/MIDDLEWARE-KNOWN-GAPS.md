@@ -40,6 +40,10 @@ _The middleware **works end-to-end as a Claude-only pipeline** (PII masking → 
   - `20 / 10 / 2569`: the slash DATE pass takes no space beside a slash. Raw through `stripPii` and inside the booth fence.
   - Unfenced `Name: Dalton Carter` and `ชื่อ: Dalton Carter`: a Latin name with no title after a label is the bare English name gap above (a gazetteer Thai name after the label is masked). Raw on the unfenced paths (scored chat, a booth turn from a backend before #400); masked inside the booth fence.
   - `𝐀𝐍 Dalton Carter`: the booth label tail reads `AN` only before a digit, so `AN` in any spelling before a name is no label. Raw through `stripPii` and inside the booth fence. (`𝐍𝐚𝐦𝐞: Dalton Carter` is masked inside the fence since PR #505.)
+  - `REV 20.10.2569`, `Section 20.10.2569`, `DOV 20.10.2569`: master's numbering-label lookbehind (`NUMBERING_LABEL`: `หัวข้อ`, `ข้อ`, `Section`, `Rev`, `Version`, a lone `V`, …) skips a dotted date after it, and `DOV` ends in `V`. Raw through `stripPii` and inside the booth fence. The version-number side is #504.
+  - `1.20 ตุลาคม 2510`: master has no month-name date pass, and PR #505's does not start a day right after a digit or a dot (`(?<![\d.])`), so that a decimal such as `1.20` is never read as a day. Raw through `stripPii` and inside the booth fence.
+  - `HN 1234‑567` gives `[HN-1]‑567`, and `AN 123456–78` gives `[MRN-1]–78`: the HN and MRN/AN passes take only a space or an ASCII hyphen between digits, so the digits after a look-alike dash stay. Masked inside the booth fence.
+  - `20 ต.ค.` gives `20 [ADDR-1].`: no date pass reads a day and a month with no year, and the admin pass takes `ต.ค` for a ตำบล abbreviation. The day stays raw inside the booth fence too.
 - **Impact:** PII *is* stripped before the outbound cloud call across the covered categories; the bare-name class is now closed for any name the physician entered at intake plus common gazetteer names.
 
 ## Social sign-in (Google/LINE OAuth) — GOOGLE LIVE, LINE ABSENT

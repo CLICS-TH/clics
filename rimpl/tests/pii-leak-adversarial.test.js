@@ -2069,6 +2069,15 @@ describe('adversarial — a #474 value left raw is a documented residual that eq
     expect(master.maskLabelledTail(input, master.makeRegistry()) === input).toBe(fenced);
     expect(GAPS).toContain(`\`${input}\``);
   });
+  test.each([
+    ['REV 20.10.2569', 'REV 20.10.2569'], ['Section 20.10.2569', 'Section 20.10.2569'], ['DOV 20.10.2569', 'DOV 20.10.2569'],
+    ['1.20 ตุลาคม 2510', '1.20 ตุลาคม 2510'], ['HN 1234‑567', '[HN-1]‑567'], ['AN 123456–78', '[MRN-1]–78'],
+    ['20 ต.ค.', '20 [ADDR-1].'],
+  ])('%j gives %j on head and master alike, and the gaps doc lists it', (input, out) => {
+    expect(stripPii(input)).toBe(out);
+    expect(master.stripPii(input)).toBe(out);
+    expect(GAPS).toContain(`\`${input}\``);
+  });
 
   test('the guard sees a new leak: a head output that leaves a value digit raw and differs from master fails it', () => {
     const input = 'โทร 081-234-5678';
