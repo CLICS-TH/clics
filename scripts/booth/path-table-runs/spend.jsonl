@@ -10,3 +10,5 @@
 {"kind":"charge","run_id":"ptb-202611150634-9b2a","usd":6.139968,"date":"2026-11-15","build":"NFCME-2026"}
 {"kind":"open","run_id":"ptb-202611150711-2b87","usd":15.038967,"date":"2026-11-15","build":"NFCME-2026"}
 {"kind":"charge","run_id":"ptb-202611150711-2b87","usd":1.617534,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611150720-b5d7","usd":13.421433,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611150720-b5d7","usd":8.735364,"date":"2026-11-15","build":"NFCME-2026"}
