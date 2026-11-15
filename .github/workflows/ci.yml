@@ -285,6 +285,7 @@ jobs:
           node --check deploy/vm1/auth-role-keys.cjs
           node --check deploy/vm1/rehearsal/auth-paths.mjs
           node --check deploy/vm1/rehearsal/failure-probes.mjs
+          node --check deploy/vm1/rehearsal/fake-google.mjs
           bash -n deploy/vm1/rehearsal/run.sh
           shellcheck deploy/vm1/rehearsal/run.sh
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
@@ -348,7 +349,9 @@ jobs:
       # Self-hosted sign-in (#427): GoTrue + PostgREST + supabase-gw against a throwaway supabase/postgres, with
       # the backend built above. Checks the running containers (GoTrue on 127.0.0.1:3102 only; PostgREST,
       # supabase-gw, db and the backend unpublished; non-root, read-only roots), then replays every sign-in
-      # path that runs over HTTP (rehearsal/auth-paths.mjs). Its own compose project; removed when it exits.
+      # path that runs over HTTP (rehearsal/auth-paths.mjs), the Google paths against a stand-in Google and the
+      # mail through a Resend-shaped TLS relay (rehearsal/docker-compose.hermetic.yml). Its own compose
+      # project; removed when it exits.
       - name: 'Self-hosted sign-in: hardened surface + sign-in replay (hermetic rehearsal)'
         run: SKIP_BUILD=1 deploy/vm1/rehearsal/run.sh hermetic
       - name: Container logs
