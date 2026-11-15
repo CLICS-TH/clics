@@ -5,34 +5,34 @@
       "a": {
         "th": [
           {
-            "strength": "เชื่อม**หอบมากขึ้น**และเสมหะที่เปลี่ยนไป เข้ากับประวัติสูบบุหรี่ 40 ปีได้ชัดเจน",
+            "strength": "ระบุโรคปอดเรื้อรังที่อยู่เบื้องหลังได้",
             "weigh": "ไข้ 37.8 °C ชวนให้มองหาตัวกระตุ้นของการกำเริบครั้งนี้ให้ชัด",
             "safety": ""
           },
           {
-            "strength": "มองอาการหอบและเสมหะที่แย่ลงตลอด 3 วันเป็นกระบวนการเดียวกัน ทำให้เหตุผลกระชับ",
+            "strength": "ประวัติสูบบุหรี่และอาการหอบมากขึ้นพาไปสู่การวินิจฉัยที่ถูก",
             "weigh": "SpO2 88% และใช้กล้ามเนื้อช่วยหายใจ บอกว่าเขาเหลือแรงสำรองไม่มาก",
             "safety": ""
           },
           {
-            "strength": "ใช้ประวัติสูบบุหรี่นานเป็นหลักในการวินิจฉัย ไม่ได้อาศัยเสียงวี้ดอย่างเดียว",
+            "strength": "เป็นการวินิจฉัยแรกที่เหมาะกับภาพนี้",
             "weigh": "เสมหะเขียวกับไข้ต่ำ ๆ เป็นเบาะแสของสิ่งที่จุดชนวนครั้งนี้ น่าพิจารณาต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You linked his **changed sputum** and worse breathing to 40 years of smoking, which anchors the picture.",
+            "strength": "You named the long-term lung disease behind this.",
             "weigh": "A temperature of 37.8 °C makes the cause behind this episode worth pinning down.",
             "safety": ""
           },
           {
-            "strength": "Reading three days of rising breathlessness and sputum change as one process keeps the reasoning tight.",
+            "strength": "Smoking history and worse breathing point you to the right diagnosis.",
             "weigh": "SpO2 88% with accessory muscle use shows how much reserve he has already spent.",
             "safety": ""
           },
           {
-            "strength": "You named the underlying lung disease from the smoking history, not from the wheeze alone.",
+            "strength": "A sound first diagnosis for this picture.",
             "weigh": "Green sputum with a low fever is worth weighing as a clue to what set this episode off.",
             "safety": ""
           }
@@ -41,34 +41,34 @@
       "b": {
         "th": [
           {
-            "strength": "อ่านเสมหะที่มากและเขียวขึ้นว่าเป็นการ**ติดเชื้อกระตุ้น** ทำให้การรักษามีเป้าชัด",
+            "strength": "ระบุตัวกระตุ้นที่น่าจะเป็นของการกำเริบครั้งนี้",
             "weigh": "สีเสมหะอย่างเดียวบอกได้ไม่แน่นอน ไข้และภาพรวมของผู้ป่วยจึงมีน้ำหนักด้วย",
             "safety": ""
           },
           {
-            "strength": "ระบุสาเหตุที่น่าจะกระตุ้นการกำเริบครั้งนี้จากเสมหะที่เปลี่ยนไป",
+            "strength": "อ่านเสมหะที่เปลี่ยนว่าเป็นการติดเชื้อ ทำให้การรักษามีเป้า",
             "weigh": "หายใจ 26 ครั้ง/นาที และ SpO2 88% บอกว่าความรุนแรงสำคัญไม่แพ้สาเหตุ",
             "safety": ""
           },
           {
-            "strength": "ใช้การเปลี่ยนแปลงของเสมหะเป็นหลักฐานหลัก ซึ่งตรงกับเรื่องราว 3 วันของเขา",
+            "strength": "วินิจฉัยได้เหมาะและบอกตัวกระตุ้นด้วย",
             "weigh": "ควรประเมินความหนักของอาการควบคู่ด้วย เพราะเขาพูดได้เพียงวลีสั้น ๆ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You named a likely trigger from the **greener sputum**, which gives treatment a clear target.",
+            "strength": "You named a likely trigger for this flare.",
             "weigh": "Sputum colour alone is an imperfect marker, so the fever and overall picture carry weight too.",
             "safety": ""
           },
           {
-            "strength": "Linking more and greener sputum to an infective cause gives the treatment a clear target.",
+            "strength": "Reading the sputum change as infection gives treatment a target.",
             "weigh": "SpO2 88% with accessory muscle use makes how severe this is as important as its cause.",
             "safety": ""
           },
           {
-            "strength": "You read the sputum change as the cause, not just a symptom, which gives the treatment a clear aim.",
+            "strength": "A sound diagnosis that also names the trigger.",
             "weigh": "Worth weighing how unwell he is overall: short phrases, RR 26 and SpO2 88%.",
             "safety": ""
           }
@@ -187,35 +187,35 @@
       "a": {
         "th": [
           {
-            "strength": "ตรวจรอบเดียวครอบคลุม **CO2 คั่ง** ปอด และหัวใจไปพร้อมกัน",
-            "weigh": "ผล ABG มักเป็นตัวที่เปลี่ยนเป้าออกซิเจนและการดูแลการหายใจของเขาได้ก่อน",
+            "strength": "หาตัวกระตุ้นตั้งแต่แรกเป็นขั้นแรกที่ดี",
+            "weigh": "เอกซเรย์และ ECG ช่วยหาตัวกระตุ้น ควรอ่านคู่กับผลก๊าซ",
             "safety": ""
           },
           {
-            "strength": "รวม**ลมรั่ว**ไว้ในการค้นหาด้วย ซึ่งเป็นสาเหตุหอบที่มองข้ามได้ง่าย",
-            "weigh": "แปลผล CO2 โดยคำนึงว่าเขาอาจมี CO2 สูงอยู่เดิม จะช่วยได้มากกว่าค่าปกติทั่วไป",
+            "strength": "ชุดตรวจนี้ช่วยหาสิ่งที่กระตุ้นการกำเริบ",
+            "weigh": "CO2 อาจสูงอยู่เดิม ค่า pH จึงบอกได้มากกว่าตัวเลข CO2 อย่างเดียว",
             "safety": ""
           },
           {
-            "strength": "ดูหัวใจไปพร้อมกับปอด เหมาะกับผู้ป่วย 68 ปีที่หอบและชีพจร 106",
-            "weigh": "ควรจัดลำดับการตรวจไม่ให้ขัดจังหวะการพ่นยาและออกซิเจนที่ให้อยู่",
+            "strength": "เป็นชุดตรวจแรกที่ใช้ได้จริงในห้องฉุกเฉิน",
+            "weigh": "ชีพจร 106 ทำให้ ECG มีความหมาย เพราะจังหวะหัวใจผิดปกติเพิ่มอาการหอบได้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "One round of tests covers **CO2 retention**, the lungs and the heart together.",
-            "weigh": "The gas result is the one most likely to change his oxygen target and support soonest.",
+            "strength": "Looking for the trigger early is a sound first step.",
+            "weigh": "The X-ray and ECG are there to find the trigger, so read them with the gas.",
             "safety": ""
           },
           {
-            "strength": "You included an **air leak** in the search, a cause of sudden breathlessness that is easy to miss.",
-            "weigh": "Reading CO2 against what may be his usual level helps more than a normal range.",
+            "strength": "These tests search for what set off the flare.",
+            "weigh": "A raised CO2 may be his baseline, so the pH tells you more than the number alone.",
             "safety": ""
           },
           {
-            "strength": "Checking the heart alongside the lungs suits a breathless 68-year-old with pulse 106.",
-            "weigh": "Worth weighing how to time the tests so his nebulised treatment and oxygen are not interrupted.",
+            "strength": "A practical first set of tests in the ER.",
+            "weigh": "The ECG matters most with a pulse of 106, where a rhythm problem can add to breathlessness.",
             "safety": ""
           }
         ]
@@ -223,34 +223,34 @@
       "b": {
         "th": [
           {
-            "strength": "ตรวจสองอย่างที่ตอบคำถามหลัก คือ**คาร์บอนไดออกไซด์คั่ง**และปอดอักเสบ",
+            "strength": "ดู CO2 ก่อน เหมาะกับคนที่ได้ออกซิเจนแบบควบคุม",
             "weigh": "แปลผล CO2 โดยคำนึงว่าอาจสูงอยู่เดิม ช่วยกำหนดเป้าออกซิเจนได้แม่นกว่าค่าปกติ",
             "safety": ""
           },
           {
-            "strength": "สั่งตรวจกระชับ เน้นสิ่งที่น่าจะเปลี่ยนการรักษาได้จริง",
+            "strength": "สั่งตรวจตรงจุดกับสิ่งที่สำคัญที่สุดตอนนี้",
             "weigh": "ฟิล์มปอดควรอ่านให้กว้างกว่าการหาปอดอักเสบ เพราะสาเหตุหอบอื่นก็เห็นได้",
             "safety": ""
           },
           {
-            "strength": "จับคู่ผลก๊าซในเลือดกับเอกซเรย์ ได้ดูทั้งความปลอดภัยของออกซิเจนและสาเหตุที่ปอด",
+            "strength": "เป็นการสั่งตรวจแรกที่กระชับและสมเหตุผล",
             "weigh": "ควรดูว่าเอกซเรย์ทำได้เร็วแค่ไหนโดยไม่ต้องหยุดพ่นยา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Two focused tests answer the two questions that shape his care: **CO2 retention** and pneumonia.",
+            "strength": "Checking his CO2 first suits a man on controlled oxygen.",
             "weigh": "Reading CO2 against what may be his usual level guides the oxygen target better than a normal range.",
             "safety": ""
           },
           {
-            "strength": "A lean, targeted order keeps attention on the problems most likely to change treatment.",
+            "strength": "A focused order on the test that matters most now.",
             "weigh": "The film is worth reading for more than pneumonia, since other causes of breathlessness show there too.",
             "safety": ""
           },
           {
-            "strength": "Pairing the gas with the X-ray links his oxygen safety to the search for a lung cause.",
+            "strength": "A lean, sensible first order.",
             "weigh": "Worth weighing how quickly the X-ray can be done without pausing his nebulised drug.",
             "safety": ""
           }
@@ -295,35 +295,35 @@
       "c": {
         "th": [
           {
-            "strength": "คิดล่วงหน้าเรื่อง**โพแทสเซียมต่ำ** แสดงว่าคาดการณ์ผลของยาที่ให้อยู่",
-            "weigh": "ควรชั่งว่าผล CBC จะเปลี่ยนการดูแลในชั่วโมงถัดไปได้แค่ไหน",
+            "strength": "ส่งก๊าซตั้งแต่แรก ทำให้เห็นภาวะ CO2 คั่งได้ทัน",
+            "weigh": "เอกซเรย์จะช่วยได้มากกว่าในตอนนี้ เพราะไข้และเสมหะเขียวทำให้ต้องคิดถึงปอดอักเสบ",
             "safety": ""
           },
           {
-            "strength": "จับคู่ก๊าซในเลือดกับผลเลือดที่จับผลข้างเคียงของการรักษาได้",
-            "weigh": "เม็ดเลือดขาวสูงพบได้บ่อยในผู้ป่วยหอบ จึงอาจบอกสาเหตุได้ไม่ชัดเพียงลำพัง",
+            "strength": "มีก๊าซอยู่ในชุดตรวจ แสดงว่ารู้ว่าความเสี่ยงอยู่ที่ใดเมื่อให้ออกซิเจน",
+            "weigh": "เลือดชุดพื้นฐานตอบคำถามวันนี้ได้น้อยกว่าการดูภาพปอด",
             "safety": ""
           },
           {
-            "strength": "เจาะครั้งเดียวได้ทั้ง CO2 การติดเชื้อ และโพแทสเซียม คุ้มค่าในห้องฉุกเฉิน",
-            "weigh": "ไข้และเสมหะเขียวชี้ถึงการติดเชื้ออยู่แล้ว ควรชั่งว่าผลเลือดชุดนี้เพิ่มอะไร",
+            "strength": "ชุดตรวจมาตรฐานส่งจากห้องฉุกเฉินได้ง่าย",
+            "weigh": "โพแทสเซียมอาจต่ำจากยาพ่น แต่สิ่งกระตุ้นการกำเริบยังต้องดูจากภาพปอด",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Thinking ahead to **low potassium** shows you are anticipating the effects of his treatment.",
-            "weigh": "Worth weighing what the CBC will change in his care over the next hour.",
+            "strength": "Sending the gas early keeps CO2 retention in view.",
+            "weigh": "A look at the lungs would add more here, since fever and green sputum raise the question of pneumonia.",
             "safety": ""
           },
           {
-            "strength": "You paired the gas with bloods that catch problems treatment itself can cause.",
-            "weigh": "A raised white count is common in breathless illness and may not settle the cause by itself.",
+            "strength": "Including the gas shows you know where the danger lies on oxygen.",
+            "weigh": "A routine panel answers fewer of today's questions than a look at the lungs would.",
             "safety": ""
           },
           {
-            "strength": "Covering CO2, infection and potassium in one draw is efficient in a busy ER.",
-            "weigh": "Worth weighing how much these bloods add when fever and green sputum already point to infection.",
+            "strength": "A quick standard panel is easy to send from the ER.",
+            "weigh": "Potassium can fall with nebulisers, yet the trigger of this flare still needs a picture of the lungs.",
             "safety": ""
           }
         ]
@@ -333,35 +333,35 @@
       "a": {
         "th": [
           {
-            "strength": "ตรวจรอบเดียวครอบคลุม **CO2 คั่ง** ปอด และหัวใจไปพร้อมกัน",
-            "weigh": "ผล ABG มักเป็นตัวที่เปลี่ยนเป้าออกซิเจนและการดูแลการหายใจของเขาได้ก่อน",
+            "strength": "หาตัวกระตุ้นตั้งแต่แรกเป็นขั้นแรกที่ดี",
+            "weigh": "เอกซเรย์และ ECG ช่วยหาตัวกระตุ้น ควรอ่านคู่กับผลก๊าซ",
             "safety": ""
           },
           {
-            "strength": "รวม**ลมรั่ว**ไว้ในการค้นหาด้วย ซึ่งเป็นสาเหตุหอบที่มองข้ามได้ง่าย",
-            "weigh": "แปลผล CO2 โดยคำนึงว่าเขาอาจมี CO2 สูงอยู่เดิม จะช่วยได้มากกว่าค่าปกติทั่วไป",
+            "strength": "ชุดตรวจนี้ช่วยหาสิ่งที่กระตุ้นการกำเริบ",
+            "weigh": "CO2 อาจสูงอยู่เดิม ค่า pH จึงบอกได้มากกว่าตัวเลข CO2 อย่างเดียว",
             "safety": ""
           },
           {
-            "strength": "ดูหัวใจไปพร้อมกับปอด เหมาะกับผู้ป่วย 68 ปีที่หอบและชีพจร 106",
-            "weigh": "ควรจัดลำดับการตรวจไม่ให้ขัดจังหวะการพ่นยาและออกซิเจนที่ให้อยู่",
+            "strength": "เป็นชุดตรวจแรกที่ใช้ได้จริงในห้องฉุกเฉิน",
+            "weigh": "ชีพจร 106 ทำให้ ECG มีความหมาย เพราะจังหวะหัวใจผิดปกติเพิ่มอาการหอบได้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "One round of tests covers **CO2 retention**, the lungs and the heart together.",
-            "weigh": "The gas result is the one most likely to change his oxygen target and support soonest.",
+            "strength": "Looking for the trigger early is a sound first step.",
+            "weigh": "The X-ray and ECG are there to find the trigger, so read them with the gas.",
             "safety": ""
           },
           {
-            "strength": "You included an **air leak** in the search, a cause of sudden breathlessness that is easy to miss.",
-            "weigh": "Reading CO2 against what may be his usual level helps more than a normal range.",
+            "strength": "These tests search for what set off the flare.",
+            "weigh": "A raised CO2 may be his baseline, so the pH tells you more than the number alone.",
             "safety": ""
           },
           {
-            "strength": "Checking the heart alongside the lungs suits a breathless 68-year-old with pulse 106.",
-            "weigh": "Worth weighing how to time the tests so his nebulised treatment and oxygen are not interrupted.",
+            "strength": "A practical first set of tests in the ER.",
+            "weigh": "The ECG matters most with a pulse of 106, where a rhythm problem can add to breathlessness.",
             "safety": ""
           }
         ]
@@ -369,34 +369,34 @@
       "b": {
         "th": [
           {
-            "strength": "ตรวจสองอย่างที่ตอบคำถามหลัก คือ**คาร์บอนไดออกไซด์คั่ง**และปอดอักเสบ",
+            "strength": "ดู CO2 ก่อน เหมาะกับคนที่ได้ออกซิเจนแบบควบคุม",
             "weigh": "แปลผล CO2 โดยคำนึงว่าอาจสูงอยู่เดิม ช่วยกำหนดเป้าออกซิเจนได้แม่นกว่าค่าปกติ",
             "safety": ""
           },
           {
-            "strength": "สั่งตรวจกระชับ เน้นสิ่งที่น่าจะเปลี่ยนการรักษาได้จริง",
+            "strength": "สั่งตรวจตรงจุดกับสิ่งที่สำคัญที่สุดตอนนี้",
             "weigh": "ฟิล์มปอดควรอ่านให้กว้างกว่าการหาปอดอักเสบ เพราะสาเหตุหอบอื่นก็เห็นได้",
             "safety": ""
           },
           {
-            "strength": "จับคู่ผลก๊าซในเลือดกับเอกซเรย์ ได้ดูทั้งความปลอดภัยของออกซิเจนและสาเหตุที่ปอด",
+            "strength": "เป็นการสั่งตรวจแรกที่กระชับและสมเหตุผล",
             "weigh": "ควรดูว่าเอกซเรย์ทำได้เร็วแค่ไหนโดยไม่ต้องหยุดพ่นยา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Two focused tests answer the two questions that shape his care: **CO2 retention** and pneumonia.",
+            "strength": "Checking his CO2 first suits a man on controlled oxygen.",
             "weigh": "Reading CO2 against what may be his usual level guides the oxygen target better than a normal range.",
             "safety": ""
           },
           {
-            "strength": "A lean, targeted order keeps attention on the problems most likely to change treatment.",
+            "strength": "A focused order on the test that matters most now.",
             "weigh": "The film is worth reading for more than pneumonia, since other causes of breathlessness show there too.",
             "safety": ""
           },
           {
-            "strength": "Pairing the gas with the X-ray links his oxygen safety to the search for a lung cause.",
+            "strength": "A lean, sensible first order.",
             "weigh": "Worth weighing how quickly the X-ray can be done without pausing his nebulised drug.",
             "safety": ""
           }
@@ -479,35 +479,35 @@
       "a": {
         "th": [
           {
-            "strength": "ตรวจรอบเดียวครอบคลุม **CO2 คั่ง** ปอด และหัวใจไปพร้อมกัน",
-            "weigh": "ผล ABG มักเป็นตัวที่เปลี่ยนเป้าออกซิเจนและการดูแลการหายใจของเขาได้ก่อน",
+            "strength": "หาตัวกระตุ้นตั้งแต่แรกเป็นขั้นแรกที่ดี",
+            "weigh": "เอกซเรย์และ ECG ช่วยหาตัวกระตุ้น ควรอ่านคู่กับผลก๊าซ",
             "safety": ""
           },
           {
-            "strength": "รวม**ลมรั่ว**ไว้ในการค้นหาด้วย ซึ่งเป็นสาเหตุหอบที่มองข้ามได้ง่าย",
-            "weigh": "แปลผล CO2 โดยคำนึงว่าเขาอาจมี CO2 สูงอยู่เดิม จะช่วยได้มากกว่าค่าปกติทั่วไป",
+            "strength": "ชุดตรวจนี้ช่วยหาสิ่งที่กระตุ้นการกำเริบ",
+            "weigh": "CO2 อาจสูงอยู่เดิม ค่า pH จึงบอกได้มากกว่าตัวเลข CO2 อย่างเดียว",
             "safety": ""
           },
           {
-            "strength": "ดูหัวใจไปพร้อมกับปอด เหมาะกับผู้ป่วย 68 ปีที่หอบและชีพจร 106",
-            "weigh": "ควรจัดลำดับการตรวจไม่ให้ขัดจังหวะการพ่นยาและออกซิเจนที่ให้อยู่",
+            "strength": "เป็นชุดตรวจแรกที่ใช้ได้จริงในห้องฉุกเฉิน",
+            "weigh": "ชีพจร 106 ทำให้ ECG มีความหมาย เพราะจังหวะหัวใจผิดปกติเพิ่มอาการหอบได้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "One round of tests covers **CO2 retention**, the lungs and the heart together.",
-            "weigh": "The gas result is the one most likely to change his oxygen target and support soonest.",
+            "strength": "Looking for the trigger early is a sound first step.",
+            "weigh": "The X-ray and ECG are there to find the trigger, so read them with the gas.",
             "safety": ""
           },
           {
-            "strength": "You included an **air leak** in the search, a cause of sudden breathlessness that is easy to miss.",
-            "weigh": "Reading CO2 against what may be his usual level helps more than a normal range.",
+            "strength": "These tests search for what set off the flare.",
+            "weigh": "A raised CO2 may be his baseline, so the pH tells you more than the number alone.",
             "safety": ""
           },
           {
-            "strength": "Checking the heart alongside the lungs suits a breathless 68-year-old with pulse 106.",
-            "weigh": "Worth weighing how to time the tests so his nebulised treatment and oxygen are not interrupted.",
+            "strength": "A practical first set of tests in the ER.",
+            "weigh": "The ECG matters most with a pulse of 106, where a rhythm problem can add to breathlessness.",
             "safety": ""
           }
         ]
@@ -515,34 +515,34 @@
       "b": {
         "th": [
           {
-            "strength": "ตรวจสองอย่างที่ตอบคำถามหลัก คือ**คาร์บอนไดออกไซด์คั่ง**และปอดอักเสบ",
+            "strength": "ดู CO2 ก่อน เหมาะกับคนที่ได้ออกซิเจนแบบควบคุม",
             "weigh": "แปลผล CO2 โดยคำนึงว่าอาจสูงอยู่เดิม ช่วยกำหนดเป้าออกซิเจนได้แม่นกว่าค่าปกติ",
             "safety": ""
           },
           {
-            "strength": "สั่งตรวจกระชับ เน้นสิ่งที่น่าจะเปลี่ยนการรักษาได้จริง",
+            "strength": "สั่งตรวจตรงจุดกับสิ่งที่สำคัญที่สุดตอนนี้",
             "weigh": "ฟิล์มปอดควรอ่านให้กว้างกว่าการหาปอดอักเสบ เพราะสาเหตุหอบอื่นก็เห็นได้",
             "safety": ""
           },
           {
-            "strength": "จับคู่ผลก๊าซในเลือดกับเอกซเรย์ ได้ดูทั้งความปลอดภัยของออกซิเจนและสาเหตุที่ปอด",
+            "strength": "เป็นการสั่งตรวจแรกที่กระชับและสมเหตุผล",
             "weigh": "ควรดูว่าเอกซเรย์ทำได้เร็วแค่ไหนโดยไม่ต้องหยุดพ่นยา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Two focused tests answer the two questions that shape his care: **CO2 retention** and pneumonia.",
+            "strength": "Checking his CO2 first suits a man on controlled oxygen.",
             "weigh": "Reading CO2 against what may be his usual level guides the oxygen target better than a normal range.",
             "safety": ""
           },
           {
-            "strength": "A lean, targeted order keeps attention on the problems most likely to change treatment.",
+            "strength": "A focused order on the test that matters most now.",
             "weigh": "The film is worth reading for more than pneumonia, since other causes of breathlessness show there too.",
             "safety": ""
           },
           {
-            "strength": "Pairing the gas with the X-ray links his oxygen safety to the search for a lung cause.",
+            "strength": "A lean, sensible first order.",
             "weigh": "Worth weighing how quickly the X-ray can be done without pausing his nebulised drug.",
             "safety": ""
           }
@@ -587,72 +587,72 @@
       "d": {
         "th": [
           {
-            "strength": "อยากวัด**การตีบของหลอดลม** เพื่อมีตัวเลขไว้ติดตามการตอบสนอง",
-            "weigh": "ผู้ป่วยที่พูดได้เพียงวลีสั้น ๆ มักเป่า peak flow ได้ไม่น่าเชื่อถือ",
-            "safety": ""
+            "strength": "หาเชื้อที่ทำให้เสมหะเขียว แสดงว่าคิดถึงตัวกระตุ้น",
+            "weigh": "SpO2 88% ตอนแรกรับ ทำให้การตรวจก๊าซดู CO2 เร่งด่วนกว่าการเพาะเชื้อ",
+            "safety": "ขณะได้ออกซิเจน CO2 อาจคั่งโดยไม่มีอาการชัด หากเริ่มซึมให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "ให้ CO2 คั่งมาก่อน แสดงว่ารู้ว่าความเสี่ยงของการให้ออกซิเจนอยู่ตรงไหน",
-            "weigh": "peak flow ยังมีหลักฐานรองรับน้อยในภาวะนี้ ค่าที่ได้อาจชี้นำคลาดเคลื่อน",
-            "safety": ""
+            "strength": "CBC และการเพาะเชื้อส่งง่าย และช่วยเลือกยาฆ่าเชื้อภายหลัง",
+            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ขณะที่การตั้งเป้าออกซิเจนต้องรู้ค่า CO2 ภายในชั่วโมงนี้",
+            "safety": "หากซึมลงหรือหายใจช้าลงขณะได้ออกซิเจน อาจเป็น CO2 คั่ง ให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "การวัดแบบมีตัวเลขข้างเตียง ช่วยเสริมการตรวจร่างกายได้ดี",
-            "weigh": "การเป่าแรงอาจทำให้หอบมากขึ้นในคนที่ใช้กล้ามเนื้อช่วยหายใจอยู่",
-            "safety": ""
+            "strength": "คิดถึงการติดเชื้อ เข้ากับไข้และเสมหะที่เปลี่ยนสี",
+            "weigh": "ผลเพาะเชื้อมักไม่เปลี่ยนยาฆ่าเชื้อตัวแรก ค่า CO2 ต่างหากที่กำหนดการดูแลวันนี้",
+            "safety": "CO2 คั่งอาจเงียบขณะได้ออกซิเจน ให้สังเกตความรู้สึกตัว และตรวจก๊าซหากเริ่มล้า"
           }
         ],
         "en": [
           {
-            "strength": "Wanting to measure **airway narrowing** gives you a number to track his response.",
-            "weigh": "A man speaking only in short phrases often cannot give a reliable peak flow.",
-            "safety": ""
+            "strength": "Looking for the germ behind green sputum shows you are thinking about the trigger.",
+            "weigh": "His SpO2 of 88% on arrival makes a gas for CO2 more urgent than a culture.",
+            "safety": "On oxygen he can retain CO2 unseen: if he grows drowsy, check a gas at once."
           },
           {
-            "strength": "Keeping CO2 retention first shows you know where the danger lies on oxygen.",
-            "weigh": "Peak flow is not well validated in this setting, so readings may mislead more than guide.",
-            "safety": ""
+            "strength": "A count and culture are simple to send and guide a later antibiotic choice.",
+            "weigh": "Sputum results take days, while his oxygen target needs a CO2 answer within the hour.",
+            "safety": "Drowsiness or a slowing breath rate on oxygen can mean rising CO2: check a gas at once."
           },
           {
-            "strength": "An objective bedside measure is a thoughtful addition to the clinical exam.",
-            "weigh": "Forced blows can worsen breathlessness in someone using accessory muscles.",
-            "safety": ""
+            "strength": "Thinking about infection fits his fever and the change in sputum colour.",
+            "weigh": "Culture rarely changes the first antibiotic in a flare like this; the CO2 level guides today's care.",
+            "safety": "Rising CO2 can be silent on oxygen: watch his alertness and check a gas if he tires."
           }
         ]
       },
       "e": {
         "th": [
           {
-            "strength": "ดู**การบีบตัวของหัวใจ** ช่วยไม่ให้พลาดสาเหตุจากหัวใจ",
-            "weigh": "อัลตราซาวด์หัวใจมักไม่เปลี่ยนการดูแลในชั่วโมงแรก เมื่ออาการชี้ไปที่หลอดลม",
-            "safety": ""
+            "strength": "ตรวจเลือดครบชุด ทำให้แทบไม่มีค่าพื้นฐานใดตกหล่น",
+            "weigh": "SpO2 88% ทำให้การดู CO2 เป็นการตรวจที่เปลี่ยนการดูแลได้ก่อน",
+            "safety": "ขณะได้ออกซิเจน CO2 อาจคั่งโดยไม่มีอาการชัด หากเริ่มซึมให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "ยังคุม CO2 คั่งไว้ พร้อมกับถามถึงหัวใจไปด้วย",
-            "weigh": "ควรดูว่าห้องฉุกเฉิน รพ.ชุมชนทำอัลตราซาวด์หัวใจได้ทันหรือไม่",
-            "safety": ""
+            "strength": "เพาะเชื้อในเลือดเข้ากับไข้ และอาจได้ชื่อเชื้อหากเกิดติดเชื้อในกระแสเลือด",
+            "weigh": "เลือดชุดใหญ่ตอบคำถามวันนี้ได้น้อยกว่าผลก๊าซและภาพปอด",
+            "safety": "หากซึมลงหรือหายใจช้าลงขณะได้ออกซิเจน อาจเป็น CO2 คั่ง ให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "คิดถึงการทำงานของหัวใจในผู้ป่วยหอบวัย 68 ปี แสดงถึงการมองกว้าง",
-            "weigh": "ขาไม่บวมและมีเสียงวี้ดทั่วปอด ผลที่ได้วันนี้อาจช่วยได้ไม่มาก",
-            "safety": ""
+            "strength": "เกลือแร่ช่วยจับโพแทสเซียมต่ำจากยาพ่นได้เร็ว",
+            "weigh": "ไข้ต่ำและรู้สึกตัวดี เรื่องติดเชื้อในกระแสเลือดจึงน่ากังวลน้อยกว่า CO2 ขณะได้ออกซิเจน",
+            "safety": "CO2 คั่งอาจเงียบขณะได้ออกซิเจน ให้สังเกตความรู้สึกตัว และตรวจก๊าซหากเริ่มล้า"
           }
         ],
         "en": [
           {
-            "strength": "Looking at how well **the heart pumps** keeps a cardiac cause from being missed.",
-            "weigh": "An echo rarely changes the first hours of care when the findings point to the airways.",
-            "safety": ""
+            "strength": "Being thorough with the bloods leaves little unchecked in the routine panel.",
+            "weigh": "His SpO2 of 88% makes a CO2 check the test that changes care first.",
+            "safety": "On oxygen he can retain CO2 unseen: if he grows drowsy, check a gas at once."
           },
           {
-            "strength": "You kept CO2 retention in view while also asking about the heart.",
-            "weigh": "Worth weighing whether a community hospital ER can do this scan in time to matter.",
-            "safety": ""
+            "strength": "Blood cultures fit his fever and may name the germ if he becomes septic.",
+            "weigh": "A full panel answers fewer of today's questions than a gas and a look at the lungs.",
+            "safety": "Drowsiness or a slowing breath rate on oxygen can mean rising CO2: check a gas at once."
           },
           {
-            "strength": "Thinking about pump function in a breathless 68-year-old shows breadth.",
-            "weigh": "With no leg swelling and wheeze on both sides, the yield of a heart scan today may be low.",
-            "safety": ""
+            "strength": "Electrolytes catch a low potassium from nebulisers early.",
+            "weigh": "With a low fever and a clear mind, sepsis is less of a worry than his CO2 on oxygen.",
+            "safety": "Rising CO2 can be silent on oxygen: watch his alertness and check a gas if he tires."
           }
         ]
       }
@@ -661,34 +661,34 @@
       "a": {
         "th": [
           {
-            "strength": "ให้ **pred 5 วัน** ร่วมยาครอบคลุมเชื้อที่พบบ่อย เข้ากับอาการหลักครบทั้งสามข้อ",
+            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อเป็นแผนมาตรฐานในกรณีนี้",
             "weigh": "amox-clav ทำให้ท้องเสียได้บ่อย ควรบอกผู้ป่วยไว้ตั้งแต่แรก",
             "safety": ""
           },
           {
-            "strength": "สเตียรอยด์ระยะสั้นคู่ยาฆ่าเชื้อ เข้ากับหอบมากขึ้น เสมหะมากขึ้นและเขียว",
+            "strength": "เป็นทางเลือกที่เหมาะกับการกำเริบที่มีเสมหะเขียว",
             "weigh": "ควรคำนึงถึงรูปแบบเชื้อดื้อยาในพื้นที่ เมื่อเลือกยาครอบคลุมเชื้อ",
             "safety": ""
           },
           {
-            "strength": "จำกัด **pred 40 มก./วัน** ไว้ 5 วัน ได้ประโยชน์โดยลดผลข้างเคียง",
+            "strength": "แผนยากินที่เรียบง่ายและตรงตามแนวทาง",
             "weigh": "ควรถามประวัติแพ้ยากลุ่มเพนิซิลลินก่อนให้ยาครั้งแรก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A short **5 days** of pred with cover for the usual bacteria matches his three cardinal symptoms.",
+            "strength": "Steroid plus antibiotic is a standard plan here.",
             "weigh": "Diarrhoea is common with amox-clav, worth mentioning to him early.",
             "safety": ""
           },
           {
-            "strength": "Pairing a short steroid course with an antibiotic fits more breathlessness, more sputum and green sputum together.",
+            "strength": "A sound choice for a flare with green sputum.",
             "weigh": "Worth weighing local resistance patterns when choosing the cover for the usual bacteria.",
             "safety": ""
           },
           {
-            "strength": "Keeping the steroid to **Pred 40 mg a day** for five days limits side effects without losing benefit.",
+            "strength": "A simple oral plan that fits the guideline.",
             "weigh": "Penicillin allergy is worth asking him about before the first dose.",
             "safety": ""
           }
@@ -697,34 +697,34 @@
       "b": {
         "th": [
           {
-            "strength": "เพิ่ม **doxycycline** ร่วมสเตียรอยด์ระยะสั้น เข้ากับอาการหลักทั้งสามข้อที่เขามี",
+            "strength": "ยาฆ่าเชื้อชนิดกินมาตรฐานสำหรับการกำเริบนี้",
             "weigh": "doxycycline ควรกลืนในท่านั่งตรงกับน้ำมาก ๆ และเลี่ยงการกินพร้อมนม",
             "safety": ""
           },
           {
-            "strength": "ยาฆ่าเชื้อชนิดกินวันละ 2 ครั้ง ทำให้การรักษาใน รพ.ชุมชนง่ายขึ้น",
+            "strength": "เป็นทางเลือกที่เหมาะคู่กับสเตียรอยด์ระยะสั้น",
             "weigh": "doxycycline ทำให้ผิวไวต่อแดดได้ ควรบอกชาวสวนที่ทำงานกลางแจ้ง",
             "safety": ""
           },
           {
-            "strength": "pred 5 วันคู่ doxycycline ดูแลทั้งการอักเสบของหลอดลมและเชื้อตัวกระตุ้น",
+            "strength": "กินต่อที่บ้านได้ง่าย",
             "weigh": "ควรรอดูการตอบสนองสักสองถึงสามวัน ก่อนตัดสินผลของยาฆ่าเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **doxycycline** to a short steroid course matches the three cardinal symptoms he shows.",
+            "strength": "A standard oral antibiotic for this flare.",
             "weigh": "Doxycycline should be swallowed upright with plenty of water and away from dairy.",
             "safety": ""
           },
           {
-            "strength": "An oral twice-daily antibiotic keeps treatment simple at a community hospital.",
+            "strength": "A sound choice with a short steroid course.",
             "weigh": "Doxycycline can cause sun sensitivity, worth mentioning to a fruit farmer who works outdoors.",
             "safety": ""
           },
           {
-            "strength": "Pred for 5 days with doxycycline treats both the airway inflammation and the likely bacterial trigger.",
+            "strength": "Simple to take at home.",
             "weigh": "Worth weighing his response over two to three days before judging the antibiotic.",
             "safety": ""
           }
@@ -843,34 +843,34 @@
       "a": {
         "th": [
           {
-            "strength": "ให้ **pred 5 วัน** ร่วมยาครอบคลุมเชื้อที่พบบ่อย เข้ากับอาการหลักครบทั้งสามข้อ",
+            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อเป็นแผนมาตรฐานในกรณีนี้",
             "weigh": "amox-clav ทำให้ท้องเสียได้บ่อย ควรบอกผู้ป่วยไว้ตั้งแต่แรก",
             "safety": ""
           },
           {
-            "strength": "สเตียรอยด์ระยะสั้นคู่ยาฆ่าเชื้อ เข้ากับหอบมากขึ้น เสมหะมากขึ้นและเขียว",
+            "strength": "เป็นทางเลือกที่เหมาะกับการกำเริบที่มีเสมหะเขียว",
             "weigh": "ควรคำนึงถึงรูปแบบเชื้อดื้อยาในพื้นที่ เมื่อเลือกยาครอบคลุมเชื้อ",
             "safety": ""
           },
           {
-            "strength": "จำกัด **pred 40 มก./วัน** ไว้ 5 วัน ได้ประโยชน์โดยลดผลข้างเคียง",
+            "strength": "แผนยากินที่เรียบง่ายและตรงตามแนวทาง",
             "weigh": "ควรถามประวัติแพ้ยากลุ่มเพนิซิลลินก่อนให้ยาครั้งแรก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A short **5 days** of pred with cover for the usual bacteria matches his three cardinal symptoms.",
+            "strength": "Steroid plus antibiotic is a standard plan here.",
             "weigh": "Diarrhoea is common with amox-clav, worth mentioning to him early.",
             "safety": ""
           },
           {
-            "strength": "Pairing a short steroid course with an antibiotic fits more breathlessness, more sputum and green sputum together.",
+            "strength": "A sound choice for a flare with green sputum.",
             "weigh": "Worth weighing local resistance patterns when choosing the cover for the usual bacteria.",
             "safety": ""
           },
           {
-            "strength": "Keeping the steroid to **Pred 40 mg a day** for five days limits side effects without losing benefit.",
+            "strength": "A simple oral plan that fits the guideline.",
             "weigh": "Penicillin allergy is worth asking him about before the first dose.",
             "safety": ""
           }
@@ -879,34 +879,34 @@
       "b": {
         "th": [
           {
-            "strength": "เพิ่ม **doxycycline** ร่วมสเตียรอยด์ระยะสั้น เข้ากับอาการหลักทั้งสามข้อที่เขามี",
+            "strength": "ยาฆ่าเชื้อชนิดกินมาตรฐานสำหรับการกำเริบนี้",
             "weigh": "doxycycline ควรกลืนในท่านั่งตรงกับน้ำมาก ๆ และเลี่ยงการกินพร้อมนม",
             "safety": ""
           },
           {
-            "strength": "ยาฆ่าเชื้อชนิดกินวันละ 2 ครั้ง ทำให้การรักษาใน รพ.ชุมชนง่ายขึ้น",
+            "strength": "เป็นทางเลือกที่เหมาะคู่กับสเตียรอยด์ระยะสั้น",
             "weigh": "doxycycline ทำให้ผิวไวต่อแดดได้ ควรบอกชาวสวนที่ทำงานกลางแจ้ง",
             "safety": ""
           },
           {
-            "strength": "pred 5 วันคู่ doxycycline ดูแลทั้งการอักเสบของหลอดลมและเชื้อตัวกระตุ้น",
+            "strength": "กินต่อที่บ้านได้ง่าย",
             "weigh": "ควรรอดูการตอบสนองสักสองถึงสามวัน ก่อนตัดสินผลของยาฆ่าเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **doxycycline** to a short steroid course matches the three cardinal symptoms he shows.",
+            "strength": "A standard oral antibiotic for this flare.",
             "weigh": "Doxycycline should be swallowed upright with plenty of water and away from dairy.",
             "safety": ""
           },
           {
-            "strength": "An oral twice-daily antibiotic keeps treatment simple at a community hospital.",
+            "strength": "A sound choice with a short steroid course.",
             "weigh": "Doxycycline can cause sun sensitivity, worth mentioning to a fruit farmer who works outdoors.",
             "safety": ""
           },
           {
-            "strength": "Pred for 5 days with doxycycline treats both the airway inflammation and the likely bacterial trigger.",
+            "strength": "Simple to take at home.",
             "weigh": "Worth weighing his response over two to three days before judging the antibiotic.",
             "safety": ""
           }
@@ -1019,40 +1019,76 @@
             "safety": ""
           }
         ]
+      },
+      "h": {
+        "th": [
+          {
+            "strength": "สเตียรอยด์คู่ amox-clav ดูแลทั้งการกำเริบและเสมหะเขียว",
+            "weigh": "pred 5 วันได้ผลเท่ากับ 14 วัน และได้รับสเตียรอยด์น้อยกว่า",
+            "safety": ""
+          },
+          {
+            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อครอบคลุมการรักษาการกำเริบทั้งสองส่วนหลัก",
+            "weigh": "คอร์สที่นานขึ้นเพิ่มผลข้างเคียง เช่น น้ำตาลสูงและกล้ามเนื้ออ่อนแรง โดยไม่ได้ประโยชน์เพิ่ม",
+            "safety": ""
+          },
+          {
+            "strength": "amox-clav ชนิดกินครอบคลุมเชื้อที่พบบ่อยของการกำเริบ",
+            "weigh": "แนวทางแนะนำสเตียรอยด์ 5 วัน การให้ 14 วันจึงได้ยาเกือบสามเท่าโดยไม่ได้ผลเพิ่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing the steroid with amox-clav treats both the flare and the green sputum.",
+            "weigh": "Five days of pred works as well as fourteen, with less steroid exposure.",
+            "safety": ""
+          },
+          {
+            "strength": "A steroid plus an antibiotic covers the two main parts of flare treatment.",
+            "weigh": "A longer course adds side effects such as high sugar and weak muscles, with no extra benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Amox-clav by mouth covers the common bacteria behind a flare.",
+            "weigh": "Guidelines advise a 5-day steroid course, so 14 days nearly triples the steroid for no gain.",
+            "safety": ""
+          }
+        ]
       }
     },
     "step3.W": {
       "a": {
         "th": [
           {
-            "strength": "ให้ **pred 5 วัน** ร่วมยาครอบคลุมเชื้อที่พบบ่อย เข้ากับอาการหลักครบทั้งสามข้อ",
+            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อเป็นแผนมาตรฐานในกรณีนี้",
             "weigh": "amox-clav ทำให้ท้องเสียได้บ่อย ควรบอกผู้ป่วยไว้ตั้งแต่แรก",
             "safety": ""
           },
           {
-            "strength": "สเตียรอยด์ระยะสั้นคู่ยาฆ่าเชื้อ เข้ากับหอบมากขึ้น เสมหะมากขึ้นและเขียว",
+            "strength": "เป็นทางเลือกที่เหมาะกับการกำเริบที่มีเสมหะเขียว",
             "weigh": "ควรคำนึงถึงรูปแบบเชื้อดื้อยาในพื้นที่ เมื่อเลือกยาครอบคลุมเชื้อ",
             "safety": ""
           },
           {
-            "strength": "จำกัด **pred 40 มก./วัน** ไว้ 5 วัน ได้ประโยชน์โดยลดผลข้างเคียง",
+            "strength": "แผนยากินที่เรียบง่ายและตรงตามแนวทาง",
             "weigh": "ควรถามประวัติแพ้ยากลุ่มเพนิซิลลินก่อนให้ยาครั้งแรก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A short **5 days** of pred with cover for the usual bacteria matches his three cardinal symptoms.",
+            "strength": "Steroid plus antibiotic is a standard plan here.",
             "weigh": "Diarrhoea is common with amox-clav, worth mentioning to him early.",
             "safety": ""
           },
           {
-            "strength": "Pairing a short steroid course with an antibiotic fits more breathlessness, more sputum and green sputum together.",
+            "strength": "A sound choice for a flare with green sputum.",
             "weigh": "Worth weighing local resistance patterns when choosing the cover for the usual bacteria.",
             "safety": ""
           },
           {
-            "strength": "Keeping the steroid to **Pred 40 mg a day** for five days limits side effects without losing benefit.",
+            "strength": "A simple oral plan that fits the guideline.",
             "weigh": "Penicillin allergy is worth asking him about before the first dose.",
             "safety": ""
           }
@@ -1061,34 +1097,34 @@
       "b": {
         "th": [
           {
-            "strength": "เพิ่ม **doxycycline** ร่วมสเตียรอยด์ระยะสั้น เข้ากับอาการหลักทั้งสามข้อที่เขามี",
+            "strength": "ยาฆ่าเชื้อชนิดกินมาตรฐานสำหรับการกำเริบนี้",
             "weigh": "doxycycline ควรกลืนในท่านั่งตรงกับน้ำมาก ๆ และเลี่ยงการกินพร้อมนม",
             "safety": ""
           },
           {
-            "strength": "ยาฆ่าเชื้อชนิดกินวันละ 2 ครั้ง ทำให้การรักษาใน รพ.ชุมชนง่ายขึ้น",
+            "strength": "เป็นทางเลือกที่เหมาะคู่กับสเตียรอยด์ระยะสั้น",
             "weigh": "doxycycline ทำให้ผิวไวต่อแดดได้ ควรบอกชาวสวนที่ทำงานกลางแจ้ง",
             "safety": ""
           },
           {
-            "strength": "pred 5 วันคู่ doxycycline ดูแลทั้งการอักเสบของหลอดลมและเชื้อตัวกระตุ้น",
+            "strength": "กินต่อที่บ้านได้ง่าย",
             "weigh": "ควรรอดูการตอบสนองสักสองถึงสามวัน ก่อนตัดสินผลของยาฆ่าเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **doxycycline** to a short steroid course matches the three cardinal symptoms he shows.",
+            "strength": "A standard oral antibiotic for this flare.",
             "weigh": "Doxycycline should be swallowed upright with plenty of water and away from dairy.",
             "safety": ""
           },
           {
-            "strength": "An oral twice-daily antibiotic keeps treatment simple at a community hospital.",
+            "strength": "A sound choice with a short steroid course.",
             "weigh": "Doxycycline can cause sun sensitivity, worth mentioning to a fruit farmer who works outdoors.",
             "safety": ""
           },
           {
-            "strength": "Pred for 5 days with doxycycline treats both the airway inflammation and the likely bacterial trigger.",
+            "strength": "Simple to take at home.",
             "weigh": "Worth weighing his response over two to three days before judging the antibiotic.",
             "safety": ""
           }
@@ -1201,40 +1237,76 @@
             "safety": ""
           }
         ]
+      },
+      "h": {
+        "th": [
+          {
+            "strength": "สเตียรอยด์คู่ amox-clav ดูแลทั้งการกำเริบและเสมหะเขียว",
+            "weigh": "pred 5 วันได้ผลเท่ากับ 14 วัน และได้รับสเตียรอยด์น้อยกว่า",
+            "safety": ""
+          },
+          {
+            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อครอบคลุมการรักษาการกำเริบทั้งสองส่วนหลัก",
+            "weigh": "คอร์สที่นานขึ้นเพิ่มผลข้างเคียง เช่น น้ำตาลสูงและกล้ามเนื้ออ่อนแรง โดยไม่ได้ประโยชน์เพิ่ม",
+            "safety": ""
+          },
+          {
+            "strength": "amox-clav ชนิดกินครอบคลุมเชื้อที่พบบ่อยของการกำเริบ",
+            "weigh": "แนวทางแนะนำสเตียรอยด์ 5 วัน การให้ 14 วันจึงได้ยาเกือบสามเท่าโดยไม่ได้ผลเพิ่ม",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Pairing the steroid with amox-clav treats both the flare and the green sputum.",
+            "weigh": "Five days of pred works as well as fourteen, with less steroid exposure.",
+            "safety": ""
+          },
+          {
+            "strength": "A steroid plus an antibiotic covers the two main parts of flare treatment.",
+            "weigh": "A longer course adds side effects such as high sugar and weak muscles, with no extra benefit.",
+            "safety": ""
+          },
+          {
+            "strength": "Amox-clav by mouth covers the common bacteria behind a flare.",
+            "weigh": "Guidelines advise a 5-day steroid course, so 14 days nearly triples the steroid for no gain.",
+            "safety": ""
+          }
+        ]
       }
     },
     "step4.B": {
       "a": {
         "th": [
           {
-            "strength": "เห็นว่าตอบสนองชัด จึงคงแผนที่ได้ผลไว้ ไม่เปลี่ยนโดยไม่จำเป็น",
+            "strength": "คงแผนที่กำลังได้ผลไว้",
             "weigh": "การ**คุม SpO2 88–92%** ยังสำคัญแม้ดีขึ้น เพราะออกซิเจนเกินทำให้ CO2 สูงได้",
             "safety": ""
           },
           {
-            "strength": "ให้**ยาชุดเดิมต่อ**จนครบ ไม่สลับยาไปมาเมื่อผู้ป่วยตอบสนองแล้ว",
+            "strength": "เป็นทางเลือกที่มั่นคงเมื่อเขาดีขึ้นแล้ว",
             "weigh": "ควรกำหนดความถี่การประเมินซ้ำ เพื่อจับอาการที่ทรุดลงได้เร็ว",
             "safety": ""
           },
           {
-            "strength": "คุมเป้าออกซิเจนแคบไว้แม้อาการดีขึ้น เป็นการคิดที่มั่นคงและปลอดภัย",
+            "strength": "ให้การรักษาเดิมต่อเป็นเรื่องสมเหตุผล",
             "weigh": "ควรคิดว่าจะลดออกซิเจนเมื่อใด หาก SpO2 คงอยู่ในเป้าหมาย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You recognised a clear response and kept a working plan steady rather than changing course.",
+            "strength": "You kept a plan that is working.",
             "weigh": "Holding **SpO2 at 88–92%** still matters as he improves, since extra oxygen can raise his CO2.",
             "safety": ""
           },
           {
-            "strength": "Finishing the **same course** avoids the churn of changes once he is responding.",
+            "strength": "A steady choice now that he is better.",
             "weigh": "Worth weighing how often to reassess so any slip back is caught early.",
             "safety": ""
           },
           {
-            "strength": "Keeping the oxygen target narrow while he improves shows steady, safe thinking.",
+            "strength": "Sensible to keep the course going.",
             "weigh": "Worth weighing when to wean the oxygen as his saturation holds within range.",
             "safety": ""
           }
@@ -1243,34 +1315,34 @@
       "b": {
         "th": [
           {
-            "strength": "ปรับความถี่ยาตามอาการที่ดีขึ้น ลด**มือสั่น**และ**ใจสั่น**จากยา",
+            "strength": "ปรับยาตามการตอบสนองของเขา",
             "weigh": "การลดยาจะปลอดภัยขึ้น หากมีแผนชัดว่าจะเพิ่มกลับเมื่อเสียงวี้ดกลับมา",
             "safety": ""
           },
           {
-            "strength": "ปรับการรักษาตามการตอบสนอง ไม่ยึดตารางเดิมตายตัว",
+            "strength": "เป็นขั้นที่สมเหตุผลเมื่อเขาดีขึ้น",
             "weigh": "ควรประเมินเสียงวี้ดและ SpO2 หลังยาแต่ละรอบที่ห่างขึ้น",
             "safety": ""
           },
           {
-            "strength": "ลดความถี่เมื่อดีขึ้น ช่วยลดผลข้างเคียงโดยยังคุมหลอดลมไว้ได้",
+            "strength": "ลดความถี่ยาเหมาะกับคนที่ดีขึ้นแล้ว",
             "weigh": "ควรดูว่าในช่วงห่างระหว่างยา เขาได้รับการเฝ้าดูใกล้ชิดพอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Spacing doses as he improves sensibly reduces tremor and **racing pulse** from the drug.",
+            "strength": "You adjusted the doses to his response.",
             "weigh": "Stepping down is safer with a clear plan to step back up if the wheeze returns.",
             "safety": ""
           },
           {
-            "strength": "You adjusted treatment to his response rather than keeping a fixed schedule.",
+            "strength": "A sensible step as he improves.",
             "weigh": "Worth weighing a review of wheeze and saturation after each spaced dose.",
             "safety": ""
           },
           {
-            "strength": "Fewer doses as he improves reduce side effects while keeping the airways open.",
+            "strength": "Fewer doses suit a man who is better.",
             "weigh": "Worth weighing how closely he is watched in the longer gaps between doses.",
             "safety": ""
           }
@@ -1315,35 +1387,35 @@
       "d": {
         "th": [
           {
-            "strength": "มองหาวิธีเสริมให้**กล้ามเนื้อหลอดลม**คลายตัว แสดงถึงการมองการรักษากว้าง",
-            "weigh": "หลักฐานของแมกนีเซียมในภาวะนี้ยังอ่อน และเขากำลังดีขึ้นอยู่แล้ว",
+            "strength": "อยากให้เสียงวี้ดหายเร็วขึ้น แสดงว่าใส่ใจความสบายของผู้ป่วย",
+            "weigh": "เขาดีขึ้นแล้ว ยาฉีดเพิ่มอีกตัวจึงได้ประโยชน์น้อยขณะแผนเดิมได้ผล",
             "safety": ""
           },
           {
-            "strength": "รู้ว่าแมกนีเซียมคลายกล้ามเนื้อหลอดลมได้ แสดงความเข้าใจเภสัชวิทยา",
-            "weigh": "ควรชั่งว่ายาฉีดเพิ่มอีกตัวจะได้อะไร ในคนที่ดีขึ้นชัดแล้ว",
+            "strength": "แมกนีเซียมเป็นยาที่ห้องฉุกเฉินคุ้นเคยและให้ได้ง่าย",
+            "weigh": "ประโยชน์ในการกำเริบของปอดอุดกั้นเรื้อรังยังไม่ชัด และอาจทำให้ความดันลด",
             "safety": ""
           },
           {
-            "strength": "ต่อยอดจากยาพ่นด้วยยาเสริม แสดงความพร้อมจะเพิ่มการรักษา",
-            "weigh": "แมกนีเซียมอาจทำให้ความดันลดและหน้าแดง ควรชั่งเมื่อประโยชน์ยังไม่ชัด",
+            "strength": "ยังติดตามเสียงวี้ด ไม่ด่วนสรุปว่าหายแล้ว",
+            "weigh": "คนที่ดีขึ้นชัดมักต้องการยาน้อยลงจากนี้ โดยไม่ต้องให้ยาหยดเพิ่ม",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You thought about extra ways to relax the **airway muscle**, showing a broad treatment view.",
-            "weigh": "Evidence for magnesium in this setting is weak, and he is already improving.",
+            "strength": "Wanting more relief for his wheeze shows you are watching his comfort.",
+            "weigh": "He is already improving, so an extra IV drug adds little while the current course works.",
             "safety": ""
           },
           {
-            "strength": "Knowing that magnesium can relax airway muscle shows solid pharmacology.",
-            "weigh": "Worth weighing what an extra IV drug adds for a man who is clearly improving.",
+            "strength": "Magnesium is a familiar drug in the ER and simple to give.",
+            "weigh": "Its benefit in COPD flares is uncertain, and it can lower blood pressure.",
             "safety": ""
           },
           {
-            "strength": "Building on the nebulisers with an added agent shows a willingness to push treatment.",
-            "weigh": "Magnesium can lower blood pressure and cause flushing, worth weighing when benefit is uncertain.",
+            "strength": "You keep an eye on the wheeze rather than calling it done.",
+            "weigh": "A man who is clearly better usually needs fewer drugs from here, with no extra infusion.",
             "safety": ""
           }
         ]
@@ -1351,35 +1423,35 @@
       "e": {
         "th": [
           {
-            "strength": "คิดถึงว่ายาเข้าสู่กระแสเลือดได้แน่นอนเพียงใด ซึ่งสำคัญในผู้ป่วยที่หนัก",
-            "weigh": "เขาดีขึ้นและกลืนได้ ยาฉีดจึงเพิ่มการเปิดเส้นโดยได้ประโยชน์น้อย",
+            "strength": "คิดถึงช่องทางให้ยาฆ่าเชื้อ แสดงว่าทบทวนการรักษาทุกส่วน",
+            "weigh": "เขาดีขึ้นและกลืนได้ ยากินจึงได้ผลพอ ๆ กับยาฉีดอยู่แล้ว",
             "safety": ""
           },
           {
-            "strength": "ห่วงเรื่อง**ระดับยาในเลือด** แสดงว่าใส่ใจว่าการรักษาได้ผลจริงหรือไม่",
-            "weigh": "ควรชั่งว่าการตอบสนองที่ดีขึ้นชัด บอกอยู่แล้วว่ายาเดิมทำงานได้",
+            "strength": "การให้ยาฉีดคุ้นเคยในหอผู้ป่วยและสั่งได้ง่าย",
+            "weigh": "เปลี่ยนเป็นยาฉีดเพิ่มสายน้ำเกลือและวันนอน ในคนที่ดีขึ้นชัด",
             "safety": ""
           },
           {
-            "strength": "คิดถึงวิธีให้ยา แสดงว่าไม่ได้มองข้ามการตอบสนองของผู้ป่วย",
-            "weigh": "สายน้ำเกลือเพิ่มความเสี่ยงหลอดเลือดอักเสบและติดเชื้อ ควรชั่งเมื่อเขาดีขึ้นแล้ว",
+            "strength": "ทบทวนยาฆ่าเชื้อตอนประเมินซ้ำเป็นนิสัยที่ดี",
+            "weigh": "ยาฆ่าเชื้อชนิดกินดูดซึมดีในคนที่กินดื่มได้ การเปลี่ยนจึงได้ประโยชน์น้อย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You thought about how reliably the drug reaches his blood, a real concern in sicker patients.",
-            "weigh": "He is improving and can swallow, so the IV route adds a cannula with little gain.",
+            "strength": "Thinking about the antibiotic route shows you are reviewing every part of his care.",
+            "weigh": "He is improving and can swallow, so the oral drug already works as well as an IV one.",
             "safety": ""
           },
           {
-            "strength": "Concern for **surer blood levels** shows attention to whether the treatment is working.",
-            "weigh": "Worth weighing that a clear response already shows the current route is doing its job.",
+            "strength": "IV dosing is familiar on the ward and easy to chart.",
+            "weigh": "Switching to IV adds a cannula and a longer stay for a man who is clearly better.",
             "safety": ""
           },
           {
-            "strength": "Thinking about drug delivery shows you are not taking his response for granted.",
-            "weigh": "IV lines add vein irritation and line infection risk, worth weighing when he is already better.",
+            "strength": "Reviewing the antibiotic at reassessment is a good habit.",
+            "weigh": "Oral antibiotics absorb well in a man who eats and drinks, so the switch gains little.",
             "safety": ""
           }
         ]
@@ -1497,35 +1569,35 @@
       "d": {
         "th": [
           {
-            "strength": "ยังคิดถึงเชื้อว่าได้รับการครอบคลุมหรือไม่ ไม่ทิ้งเรื่องการติดเชื้อ",
-            "weigh": "ไม่กี่ชั่วโมงยังเร็วเกินจะตัดสินยาฆ่าเชื้อ เสียงวี้ดมาจากหลอดลมตีบมากกว่าเชื้อ",
+            "strength": "คิดถึงยาฆ่าเชื้อ แสดงว่าถามว่าทำไมเขาดีขึ้นช้า",
+            "weigh": "ยังเร็วเกินไปที่จะตัดสินยาฆ่าเชื้อ เสียงวี้ดชี้ไปที่หลอดลม ซึ่งรักษาด้วยยาขยายหลอดลม",
             "safety": ""
           },
           {
-            "strength": "ต้องการยาที่ครอบคลุม**เชื้อกว้างขึ้น** แสดงว่าจริงจังกับการตอบสนองที่ช้า",
-            "weigh": "levofloxacin เสี่ยงเส้นเอ็นฉีกขาดและหัวใจเต้นไม่สม่ำเสมอ ควรชั่งในวัย 68 ปี",
+            "strength": "ยากลุ่มควิโนโลนสำหรับทางเดินหายใจอยู่ในรายการยาที่ใช้ได้ของแนวทางไทย",
+            "weigh": "เปลี่ยนยาเร็วขนาดนี้ได้ประโยชน์น้อย และควิโนโลนมีความเสี่ยงต่อเอ็นและจังหวะหัวใจ",
             "safety": ""
           },
           {
-            "strength": "คิดถึงเชื้อดื้อยาเมื่อผู้ป่วยดีขึ้นช้า แสดงถึงการมองกว้าง",
-            "weigh": "เปลี่ยนยาเร็วเกินไปทำให้บอกได้ยากว่าอะไรได้ผล",
+            "strength": "อยากให้ยาครอบคลุมกว้าง แสดงว่าให้ความสำคัญกับการติดเชื้อ",
+            "weigh": "ยาฆ่าเชื้อเดิมเพิ่งให้ได้ไม่นาน หลอดลมที่ยังตีบต้องการยาขยายหลอดลมในตอนนี้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You considered whether the germ is being covered, keeping infection on the list.",
-            "weigh": "A few hours is too early to judge an antibiotic; wheeze reflects narrowed airways more than the germ.",
+            "strength": "Thinking about the antibiotic shows you are asking why he is slow to improve.",
+            "weigh": "It is too early to judge an antibiotic; his wheeze points to the airways, which bronchodilators treat.",
             "safety": ""
           },
           {
-            "strength": "Wanting **broader** cover shows you take a slow response seriously.",
-            "weigh": "Levofloxacin carries tendon and heart rhythm risks, worth weighing in a 68-year-old.",
+            "strength": "A respiratory quinolone is on the Thai list of usual first choices.",
+            "weigh": "Changing drugs this early gains little, and quinolones carry tendon and heart-rhythm risks.",
             "safety": ""
           },
           {
-            "strength": "Thinking about resistant bacteria when he is slow to settle shows breadth.",
-            "weigh": "Changing drugs this early makes it harder to tell what is working.",
+            "strength": "Wanting broad cover shows you take the infection seriously.",
+            "weigh": "The current antibiotic has had little time to work; tight airways call for bronchodilator treatment now.",
             "safety": ""
           }
         ]
@@ -1607,35 +1679,35 @@
       "c": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับอาการ**ซึมลง** และรีบคุมการหายใจให้ปลอดภัย",
-            "weigh": "เขายังปลุกตื่น และการใส่ท่อในปอดแบบนี้อาจทำให้ถอดเครื่องช่วยหายใจได้ยากและนาน",
-            "safety": ""
+            "strength": "ใส่ท่อคุมการหายใจได้เต็มที่เมื่อเขาซึมลง",
+            "weigh": "เขายังปลุกตื่น ที่ pH 7.28 การลองเครื่องช่วยหายใจแบบหน้ากากมักทำให้ไม่ต้องใส่ท่อ",
+            "safety": "หากใส่ท่อ ให้วางแผนยานอนหลับและเตียง ICU ก่อนเริ่ม"
           },
           {
-            "strength": "คุมการหายใจได้เต็มที่ ป้องกันไม่ให้การหายใจของเขาเองล้มเหลวกะทันหัน",
-            "weigh": "ผู้ป่วยที่ยังปลุกตื่นกับ pH 7.28 มักยังมีเวลาสำหรับการช่วยหายใจที่รุกล้ำน้อยกว่า",
-            "safety": ""
+            "strength": "เลือกการช่วยหายใจที่แน่นอน แสดงว่าให้ความสำคัญกับอาการซึม",
+            "weigh": "แนวทางแนะนำให้ลองแบบหน้ากากก่อน ขณะที่เขายังปกป้องทางเดินหายใจได้เอง",
+            "safety": "หากใส่ท่อ ให้วางแผนยานอนหลับและเตียง ICU ก่อนเริ่ม"
           },
           {
-            "strength": "รู้ว่าซึมลงร่วมกับ CO2 สูงอาจทรุดเร็ว แสดงถึงการประเมินความเสี่ยงที่เฉียบคม",
-            "weigh": "การใส่ท่อใน รพ.ชุมชนต้องมีมือที่ชำนาญและเครื่องช่วยหายใจพร้อม ควรชั่งให้รอบ",
+            "strength": "ท่อช่วยหายใจทำให้หมดข้อกังวลเรื่องการหายใจในชั่วโมงถัดไป",
+            "weigh": "การใส่ท่อในปอดอุดกั้นเรื้อรังอาจถอดเครื่องยาก จึงลองแบบหน้ากากก่อนเมื่อยังปลุกตื่น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You took his **drowsier** state seriously and moved to secure his breathing.",
-            "weigh": "He is still rousable, and intubation in lungs like his can lead to a long, hard wean.",
-            "safety": ""
+            "strength": "Securing the airway takes full control as he grows drowsier.",
+            "weigh": "He is still rousable, and at pH 7.28 a trial of mask ventilation often spares him a tube.",
+            "safety": "If he is intubated, plan the sedation and the ICU bed before you start."
           },
           {
-            "strength": "Taking full control of breathing guards against his own breathing suddenly failing.",
-            "weigh": "Worth weighing that a rousable patient with pH 7.28 often still has time for less invasive support.",
-            "safety": ""
+            "strength": "Choosing definitive support shows you take the drowsiness seriously.",
+            "weigh": "Guidelines favour a mask trial first while he can still protect his airway.",
+            "safety": "If he is intubated, plan the sedation and the ICU bed before you start."
           },
           {
-            "strength": "Recognising that drowsiness with rising CO2 can turn quickly shows sharp risk awareness.",
-            "weigh": "Intubation at a community hospital needs skilled hands and a ventilator on hand, worth weighing now.",
+            "strength": "A tube removes any doubt about his breathing in the next hour.",
+            "weigh": "Intubation in COPD can mean a long wean, so a mask trial comes first while he is rousable.",
             "safety": ""
           }
         ]
@@ -1643,35 +1715,35 @@
       "d": {
         "th": [
           {
-            "strength": "ตั้ง NIV พร้อม**ก๊าซ 1 ชม.** ช่วยทั้งแก้ภาวะกรดและติดตามผล",
-            "weigh": "หลักฐานของแมกนีเซียมในภาวะนี้ยังอ่อน ผลก๊าซหลังใช้ NIV คือสิ่งที่ควรติดตาม",
+            "strength": "เริ่ม NIV แก้ CO2 ที่คั่งซึ่งทำให้เขาซึม",
+            "weigh": "หลักฐานของแมกนีเซียมในภาวะนี้ยังอ่อน การตรวจก๊าซตามเวลาขณะใช้ NIV คือสิ่งที่บอกผล",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           },
           {
-            "strength": "อยากให้**หลอดลมคลายตัว**เพิ่ม แสดงว่าจัดการทั้งเสียงวี้ดและ CO2",
+            "strength": "NIV เป็นการช่วยหายใจที่เหมาะกับคนซึมที่ pH 7.28",
+            "weigh": "ยาหยดเพิ่มได้ประโยชน์น้อย แผนรับมือหาก NIV ล้มเหลวสำคัญกว่า",
+            "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
+          },
+          {
+            "strength": "อยากให้หลอดลมคลายตัวด้วย แสดงว่าจัดการเสียงวี้ดไปพร้อมกัน",
             "weigh": "แมกนีเซียมอาจทำให้ความดันลด ควรชั่งเมื่อประโยชน์ในภาวะนี้ยังไม่ชัด",
-            "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
-          },
-          {
-            "strength": "รวมการช่วยหายใจกับการตรวจซ้ำตามเวลา ทำให้แผนชัดเจน",
-            "weigh": "ยาฉีดเพิ่มอีกตัวควรชั่งกับความใส่ใจที่ NIV ต้องการในตอนนี้",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           }
         ],
         "en": [
           {
-            "strength": "You set up NIV with a **1-h gas**, which treats his acidosis and tracks it.",
-            "weigh": "Evidence for magnesium in this setting is weak, so the gas response to NIV is what to follow.",
+            "strength": "Starting NIV treats the rising CO2 behind his drowsiness.",
+            "weigh": "Magnesium has weak evidence here; a timed gas on NIV is what shows whether it is working.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           },
           {
-            "strength": "Wanting to **relax the airways** further shows you are tackling the wheeze as well as the CO2.",
+            "strength": "NIV is the right support for a drowsy man at pH 7.28.",
+            "weigh": "An extra infusion adds little, while a plan for NIV failure matters more.",
+            "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
+          },
+          {
+            "strength": "Wanting to relax the airways too shows you are tackling the wheeze.",
             "weigh": "Magnesium can lower blood pressure, worth weighing when its benefit here is uncertain.",
-            "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
-          },
-          {
-            "strength": "Combining ventilatory support with a timed recheck builds a clear plan.",
-            "weigh": "An extra IV drug is worth weighing against the attention NIV itself needs at this moment.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           }
         ]
@@ -1681,34 +1753,34 @@
       "a": {
         "th": [
           {
-            "strength": "ตรวจ**วิธีพ่น** ตรงกับสาเหตุที่พบบ่อยและแก้ได้ของการกำเริบซ้ำ",
+            "strength": "ตรวจการใช้ยาพ่นเป็นขั้นที่ดีก่อนกลับบ้าน",
             "weigh": "ให้เขาพ่นให้ดูจริง จะเห็นปัญหาได้มากกว่าการถามว่าพ่นหรือไม่",
             "safety": ""
           },
           {
-            "strength": "เลือก**ยาพ่นออกฤทธิ์ยาว**ที่เขาใช้ได้ดี ช่วยลดการกำเริบครั้งต่อไปโดยตรง",
+            "strength": "เป็นวิธีที่ใช้ได้จริงในการลดการกำเริบครั้งหน้า",
             "weigh": "ควรคำนึงถึงราคาและการมียาในคลังยาของ รพ.ชุมชน",
             "safety": ""
           },
           {
-            "strength": "มองข้ามครั้งนี้ไปถึงสิ่งที่ทำให้เขาอยู่บ้านได้อย่างสบาย",
+            "strength": "มองไปถึงการดูแลให้เขาอยู่บ้านได้ดี",
             "weigh": "ควรดูว่ามือและแรงหายใจของเขาในวัย 68 ปีใช้อุปกรณ์นี้ได้ดีพอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Checking his **technique** targets a common, fixable reason flares come back.",
+            "strength": "Checking his inhaler use is a sound step before home.",
             "weigh": "Watching him use the device himself shows more than asking whether he uses it.",
             "safety": ""
           },
           {
-            "strength": "Matching him to a **long-acting inhaler** he can use well addresses the next flare directly.",
+            "strength": "A practical way to cut his next flare.",
             "weigh": "Worth weighing the cost and supply of his inhaler at a community hospital pharmacy.",
             "safety": ""
           },
           {
-            "strength": "You looked past this episode to what keeps him well at home.",
+            "strength": "You looked ahead to keeping him well at home.",
             "weigh": "Worth weighing whether his hands and breath can manage the device at 68.",
             "safety": ""
           }
@@ -1717,35 +1789,35 @@
       "b": {
         "th": [
           {
-            "strength": "วางแผนรอบเป้าหมาย**กลับไปทำสวน** ซึ่งสำคัญกับตัวเขาจริง",
-            "weigh": "การฟื้นฟูปอดได้ผลดีเมื่อเริ่มภายในไม่กี่สัปดาห์ ควรนัดไว้ก่อนกลับบ้าน",
+            "strength": "วัคซีนและฟื้นฟูปอดเป็นขั้นที่ดีก่อนกลับบ้าน",
+            "weigh": "ฟื้นฟูปอดได้ผลดีที่สุดเมื่อเริ่มไม่นานหลังกลับบ้าน",
             "safety": ""
           },
           {
-            "strength": "วัคซีนและฟื้นฟูปอด มุ่งลดการกำเริบครั้งต่อไป ไม่ใช่แค่ครั้งนี้",
-            "weigh": "ควรคำนึงถึงระยะทาง เพราะการฟื้นฟูช่วยได้เมื่อเขามาได้จริง",
+            "strength": "เป็นแผนที่ใช้ได้จริงเพื่อลดการกำเริบครั้งหน้า",
+            "weigh": "ถามว่าเคยได้วัคซีนอะไรแล้ว เพื่อให้แผนเหมาะกับเขา",
             "safety": ""
           },
           {
-            "strength": "**นัด 4 สัปดาห์** ให้จุดตรวจการฟื้นตัวและวางแผนต่อที่ชัดเจน",
-            "weigh": "ควรทบทวนว่าเขาได้วัคซีนใดไปแล้ว เพื่อไม่ให้ขาดหรือซ้ำ",
+            "strength": "เป็นแผนติดตามที่สมเหตุผล",
+            "weigh": "ฟื้นฟูปอดต้องมีโปรแกรมใกล้บ้าน ควรดูว่าเขาไปถึงได้หรือไม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You built a plan around getting him **back to his orchard**, the goal that matters to him.",
-            "weigh": "Rehab works well when it begins within a few weeks, worth arranging before he leaves.",
+            "strength": "Vaccines and rehab are sound steps before home.",
+            "weigh": "Rehab works best when it starts soon after he goes home.",
             "safety": ""
           },
           {
-            "strength": "Vaccines and rehab tackle the next flare rather than just this one.",
-            "weigh": "Worth weighing travel distance, since rehab only helps if he can get to it.",
+            "strength": "A practical plan to cut his next flare.",
+            "weigh": "Check which vaccines he already has, so the plan fits him.",
             "safety": ""
           },
           {
-            "strength": "A **review in 4 weeks** gives a set point to check recovery and plan.",
-            "weigh": "Worth weighing which vaccines he already has, so none are missed or repeated.",
+            "strength": "A sensible follow-up plan.",
+            "weigh": "Rehab needs a nearby programme, so check what he can reach from home.",
             "safety": ""
           }
         ]
@@ -1899,35 +1971,35 @@
       "c": {
         "th": [
           {
-            "strength": "มองหาสาเหตุที่ทำให้**ฟื้นตัวช้า** แสดงว่าไม่ได้แค่รอดูอย่างเดียว",
-            "weigh": "การฟื้นตัวช้าพบบ่อยในผู้สูงอายุที่สูบบุหรี่นาน ผลตรวจจึงอาจไม่พบสิ่งใหม่",
+            "strength": "ดูปอดซ้ำ เหมาะกับคนที่ฟื้นตัวช้า",
+            "weigh": "การฟื้นตัวช้าพบบ่อยหลังการกำเริบ การตรวจข้างเตียงอย่างใกล้ชิดมักบอกได้พอ ๆ กับภาพซ้ำ",
             "safety": ""
           },
           {
-            "strength": "ตรวจหา**ปอดอักเสบ** ช่วยไม่ให้พลาดเหตุที่รักษาได้",
-            "weigh": "ถ้ามีไข้ใหม่หรือเสมหะเปลี่ยน ผลตรวจจะมีโอกาสพบความเปลี่ยนแปลงมากขึ้น",
+            "strength": "CBC ซ้ำช่วยบอกว่าการติดเชื้อกำลังดีขึ้นหรือไม่",
+            "weigh": "การตรวจซ้ำมีประโยชน์มากที่สุดเมื่อไข้หรือการหายใจเปลี่ยน มากกว่าทำเป็นประจำ",
             "safety": ""
           },
           {
-            "strength": "ภาพถ่ายปอดและผลเลือดตอนนี้ ให้มุมมองที่วัดได้เมื่ออาการไม่ก้าวหน้า",
-            "weigh": "ควรคิดไว้ก่อนว่าจะทำอะไรต่อ หากผลทั้งสองไม่พบอะไรใหม่",
+            "strength": "หาปอดอักเสบที่อาจหลุดไป เป็นขั้นที่สมเหตุผลในตอนนี้",
+            "weigh": "หลายคนที่ฟื้นช้าต้องการเพียงเวลาและการดูแลสม่ำเสมอ การตรวจจะช่วยมากเมื่ออาการแย่ลง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Looking for a reason behind the **slow recovery** shows you are not simply waiting.",
-            "weigh": "Slow recovery is common in older smokers, so the results may show little new.",
+            "strength": "Looking again at the lungs suits a man who is slow to recover.",
+            "weigh": "Slow recovery is common after a flare; close bedside checks often say as much as a repeat film.",
             "safety": ""
           },
           {
-            "strength": "Checking for **pneumonia** keeps a treatable reason for delay on the list.",
-            "weigh": "A new fever or sputum change would raise the yield of these tests.",
+            "strength": "A repeat count can show whether the infection is settling.",
+            "weigh": "Repeat tests help most when his fever or breathing changes, rather than as a routine.",
             "safety": ""
           },
           {
-            "strength": "Imaging and bloods now give an objective view when progress stalls.",
-            "weigh": "Worth weighing what you will change if both come back unremarkable.",
+            "strength": "Checking for a missed pneumonia is a sensible step at this stage.",
+            "weigh": "Many slow recoveries need only time and steady care, so tests add most if he worsens.",
             "safety": ""
           }
         ]
@@ -1935,35 +2007,35 @@
       "d": {
         "th": [
           {
-            "strength": "รู้ว่าเมื่อไร**ทีมอายุรแพทย์**จะช่วยได้ แสดงถึงการรู้ข้อจำกัดของสถานที่",
-            "weigh": "เขาคงที่ขณะใช้ออกซิเจน การส่งต่อจึงพาเขาไกลบ้านเพื่อการดูแลที่อาจได้อยู่แล้ว",
+            "strength": "คิดถึงทีมอายุรแพทย์ แสดงว่ารู้ขีดจำกัดของโรงพยาบาลตนเอง",
+            "weigh": "เขาคงที่ด้วยออกซิเจนอัตราต่ำ ซึ่งโรงพยาบาลชุมชนดูแลได้",
             "safety": ""
           },
           {
-            "strength": "ไม่ปล่อยให้การฟื้นตัวช้าผ่านไปโดยไม่มีผู้เชี่ยวชาญช่วยดู",
-            "weigh": "ควรชั่งภาระการเดินทางของเขาและครอบครัวกับสิ่งที่ได้เพิ่ม",
+            "strength": "โรงพยาบาลใหญ่มีแพทย์เฉพาะทางพร้อม หากเขาฟื้นช้าลงอีก",
+            "weigh": "การส่งต่อเพิ่มการเดินทางและทีมใหม่ สำหรับการดูแลที่ทำที่นี่ได้อย่างปลอดภัย",
             "safety": ""
           },
           {
-            "strength": "ขอ**ทีมอายุรแพทย์**ช่วยเมื่อฟื้นตัวช้า เป็นสัญชาตญาณที่ปลอดภัยและถ่อมตน",
-            "weigh": "การฟื้นตัวช้าโดยความต้องการออกซิเจนคงที่ มักดูแลต่อในที่เดิมได้",
+            "strength": "วางแผนล่วงหน้าสำหรับการฟื้นตัวช้าเป็นเรื่องสมเหตุผล",
+            "weigh": "การดีขึ้นช้าแต่ต่อเนื่องพบบ่อยหลังการกำเริบ การย้ายจึงได้ประโยชน์น้อย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Recognising when a **physician team** could add value shows awareness of your setting.",
-            "weigh": "He is stable on oxygen, so transfer moves him from home for care he may already be getting.",
+            "strength": "Thinking of a physician team shows you know the limits of a small hospital.",
+            "weigh": "He is stable on low-flow oxygen, a level of care a community hospital can give.",
             "safety": ""
           },
           {
-            "strength": "You did not let a slow recovery drift without specialist eyes.",
-            "weigh": "Worth weighing the burden of transfer on him and his family against what it adds.",
+            "strength": "A larger hospital has specialists on hand if he slows further.",
+            "weigh": "Transfer adds a trip and a new team for care that can run safely here.",
             "safety": ""
           },
           {
-            "strength": "Seeking a **physician team** for a slow course is a safe, humble instinct.",
-            "weigh": "A slow recovery with steady oxygen needs is often managed where he already is.",
+            "strength": "Planning ahead for a slow recovery is sensible.",
+            "weigh": "Slow but steady progress is common after a flare, and moving him gains little.",
             "safety": ""
           }
         ]
@@ -2117,35 +2189,35 @@
       "d": {
         "th": [
           {
-            "strength": "ส่ง ICU พร้อม NIV ทำให้ช่วยหายใจต่อเนื่องและได้รับการเฝ้าใกล้ชิดขึ้น",
-            "weigh": "สเตียรอยด์ขนาดสูงเพิ่มผลข้างเคียงอย่างน้ำตาลสูง โดยไม่ได้ทำให้หายเร็วขึ้น",
+            "strength": "พาเขาเข้า ICU เข้ากับความรุนแรงที่เป็นอยู่",
+            "weigh": "สเตียรอยด์เท่าตัวเพิ่มผลข้างเคียงโดยไม่ได้ผลเร็วขึ้น แผนเรื่องทางเดินหายใจสำคัญกว่า",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "อยาก**ลดการอักเสบ**ให้เร็ว แสดงความเร่งด่วนที่เข้ากับอาการทรุด",
-            "weigh": "อาการซึมกับ pH 7.26 ต้องมีกรอบเวลาชัดว่าจะลอง NIV นานเท่าใด",
+            "strength": "อยากเร่งการรักษา แสดงถึงความเร่งด่วนที่รู้สึก",
+            "weigh": "สเตียรอยด์เกิน 40 มก. ไม่ได้ประโยชน์เพิ่มในการกำเริบ ขณะที่การหายใจต้องการการช่วยตอนนี้",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "ดึงทีม ICU เข้ามา แสดงว่ารู้ว่าสถานการณ์นี้รุนแรง",
-            "weigh": "สเตียรอยด์เท่าตัวไม่มีหลักฐานว่าช่วยให้หายเร็ว ควรชั่งกับผลเสียที่เพิ่มขึ้น",
+            "strength": "ย้ายเข้า ICU พร้อม NIV ทำให้การช่วยหายใจต่อเนื่อง",
+            "weigh": "คนซึมที่ pH 7.26 ต้องการกรอบเวลาที่ชัดสำหรับ NIV มากกว่าสเตียรอยด์เพิ่ม",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           }
         ],
         "en": [
           {
-            "strength": "Moving him to ICU on NIV keeps support going while he gets closer monitoring.",
-            "weigh": "A higher steroid dose adds side effects such as high blood sugar without speeding recovery.",
+            "strength": "Taking him to ICU matches how sick he has become.",
+            "weigh": "Doubling the steroid adds side effects without faster benefit; the airway plan matters more.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "Wanting to **calm the airways** faster shows urgency matched to his decline.",
-            "weigh": "Drowsiness with pH 7.26 calls for a clear limit on how long NIV is tried.",
+            "strength": "Wanting a stronger push shows the urgency you feel.",
+            "weigh": "A steroid dose beyond 40 mg adds no benefit in a flare, while his breathing needs support now.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "Bringing the ICU in recognises how serious this turn is.",
-            "weigh": "Doubling the steroid has no evidence of faster recovery, worth weighing against its harms.",
+            "strength": "Moving him to ICU on NIV keeps his support going.",
+            "weigh": "A drowsy man at pH 7.26 needs a clear time limit on NIV more than extra steroid.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           }
         ]
@@ -2154,9 +2226,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, each against every question variant of its bank, with the sources of the case review (Thai COPD guideline 2565 p.77, BTS/ICS AHRF 2016, GOLD 2025, NICE NG114), then a re-check of the levofloxacin replies after its tier returned to reasonable. That re-check found alternative 0's weigh (\"usually held back for Pseudomonas risk or failed first-line drugs\") false against Thai p.77; it now reads, in the reviewer's own words, \"UK advice keeps fluoroquinolones for when other first antibiotics do not suit, given rare disabling side effects.\" / \"แนวทางสหราชอาณาจักรเก็บยากลุ่มฟลูออโรควิโนโลนไว้เมื่อยาแนวแรกตัวอื่นไม่เหมาะ เพราะผลข้างเคียงที่พบน้อยแต่รุนแรง\". Alternatives 1 and 2 (TB masking in Thailand; tendon rupture, QT and glucose swings at 68) are true and fit a reasonable tier. step4.W NIV, gas and intubation rewrites match BTS (rousable drowsiness no bar to NIV, an escalation plan and ceiling of care first, a bed where someone can intubate, escalate at once if no better within the hour). No ranking or grading, no later-step preview, no other option named; \"tube\" in the NIV and gas replies quotes their own label and line. Thai reads naturally and matches the English; the checker reports content ok. Tree sha256 d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 e2235c21c58a5afc06743da2fbb2e54d2dded3afad9bb843b526b1baffe26602.",
-    "tree_sha256": "d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1",
-    "replies_sha256": "e2235c21c58a5afc06743da2fbb2e54d2dded3afad9bb843b526b1baffe26602"
+    "date": "2026-11-15",
+    "findings": "Two-round review of the copd-exacerbation reply bank: all three Thai and three English alternatives for every option of all 13 banks, read against every question variant and every path into each bank, for wrong facts, ranking or grading, previews of later steps, naming of other options, assertions only some variants or paths state, and the right safety line. Round one returned one reply MUST-FIX: step2.W.d alternative 0 said SpO2 88% on oxygen, while the vignette gives 88% on room air; it now reads on arrival in both languages. The author also removed two single-variant facts: two hours in step4.R.d alternatives 0 and 1 is now this early, and day 3 in step5.R.c alternative 2 is now at this stage. The rewritten replies for the new step3.R.h and step3.W.h (Pred 14 days + amox-clav) are correct per REDUCE and GOLD 2025: 5 days works as well as 14, a longer course adds hyperglycaemia and myopathy, and 14 days is about 2.8 times the steroid. They name no other option and need no safety line. Safety lines are present and right for every option that leaves out the gas (step2.W d and e), for every NIV option at step4.W, and for every option in step5.W; the empty ones fit options with no safety gap. Remaining replies were judged accurate, ungraded, consistent across variants and paths, and matched in Thai and English. reply-bank.mjs check reports content ok, review pending; the booth-case-tree jest filter for this case passes. Neither file changed during the second-round review. Tree sha256 93a35ce04ae87e83d1f8f7a6ee43c22350de9649a40291bc53195b055155ae45. Replies sha256 57e5faaac81c1caa4bfa155820e6769ebb4ea4898d32aa6d87d4e2e632e845b9.",
+    "tree_sha256": "93a35ce04ae87e83d1f8f7a6ee43c22350de9649a40291bc53195b055155ae45",
+    "replies_sha256": "57e5faaac81c1caa4bfa155820e6769ebb4ea4898d32aa6d87d4e2e632e845b9"
   }
 }

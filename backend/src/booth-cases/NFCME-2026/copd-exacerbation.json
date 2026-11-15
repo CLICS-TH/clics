@@ -130,8 +130,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
-              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+              "th": "หาสิ่งที่กระตุ้นการกำเริบครั้งนี้",
+              "en": "Looks for what set off this flare."
             }
           },
           {
@@ -142,8 +142,8 @@
               "en": "Arterial blood gas and chest X-ray"
             },
             "line": {
-              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
-              "en": "Checks for CO2 retention and looks for pneumonia."
+              "th": "SpO2 88% ทำให้ต้องดู CO2 คั่งก่อน",
+              "en": "His SpO2 of 88% makes CO2 the first thing to check."
             }
           },
           {
@@ -154,8 +154,8 @@
               "en": "ABG, CBC and electrolytes"
             },
             "line": {
-              "th": "ดู CO2 คั่ง การติดเชื้อ และโพแทสเซียมต่ำ",
-              "en": "Checks CO2 retention, infection and low potassium."
+              "th": "เลือดชุดพื้นฐานตามปกติ พร้อมผลก๊าซ",
+              "en": "A routine first set of bloods, with the gas."
             }
           },
           {
@@ -203,8 +203,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
-              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+              "th": "หาสิ่งที่กระตุ้นการกำเริบครั้งนี้",
+              "en": "Looks for what set off this flare."
             }
           },
           {
@@ -215,8 +215,8 @@
               "en": "Arterial blood gas and chest X-ray"
             },
             "line": {
-              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
-              "en": "Checks for CO2 retention and looks for pneumonia."
+              "th": "SpO2 88% ทำให้ต้องดู CO2 คั่งก่อน",
+              "en": "His SpO2 of 88% makes CO2 the first thing to check."
             }
           },
           {
@@ -283,8 +283,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "ดู CO2 คั่ง ปอดอักเสบ ลมรั่ว และโรคหัวใจ",
-              "en": "Checks CO2 retention, pneumonia, air leak and heart disease."
+              "th": "หาสิ่งที่กระตุ้นการกำเริบครั้งนี้",
+              "en": "Looks for what set off this flare."
             }
           },
           {
@@ -295,8 +295,8 @@
               "en": "Arterial blood gas and chest X-ray"
             },
             "line": {
-              "th": "ดูคาร์บอนไดออกไซด์คั่งและหาปอดอักเสบ",
-              "en": "Checks for CO2 retention and looks for pneumonia."
+              "th": "SpO2 88% ทำให้ต้องดู CO2 คั่งก่อน",
+              "en": "His SpO2 of 88% makes CO2 the first thing to check."
             }
           },
           {
@@ -315,24 +315,24 @@
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ABG และ peak flow ข้างเตียง",
-              "en": "ABG and bedside peak flow"
+              "th": "CBC และเพาะเชื้อเสมหะ",
+              "en": "CBC and sputum culture"
             },
             "line": {
-              "th": "ดู CO2 คั่ง และวัดการตีบของหลอดลมข้างเตียง",
-              "en": "Checks CO2 retention and measures airway narrowing at the bedside."
+              "th": "ชุดตรวจแรกที่ส่งกันประจำเมื่อเสมหะเขียว",
+              "en": "The usual first tests for green sputum."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "ABG และอัลตราซาวด์หัวใจ",
-              "en": "ABG and echocardiogram"
+              "th": "CBC เกลือแร่ เพาะเชื้อในเลือด",
+              "en": "CBC, electrolytes, blood culture"
             },
             "line": {
-              "th": "ดู CO2 คั่ง และเห็นการบีบตัวของหัวใจ",
-              "en": "Checks CO2 retention and shows how well the heart pumps."
+              "th": "ตรวจเลือดให้ครบชุดไว้ก่อนเพื่อความรอบคอบ",
+              "en": "A full set of bloods, to be thorough."
             }
           }
         ],
@@ -377,8 +377,8 @@
               "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อเข้ากับเสมหะเขียวของเขา",
+              "en": "Steroid with an antibiotic fits his green sputum."
             }
           },
           {
@@ -389,8 +389,8 @@
               "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
+              "th": "ครอบคลุมเชื้อหลักที่ทำให้เสมหะเขียว",
+              "en": "Covers the main bacteria behind his green sputum."
             }
           },
           {
@@ -469,8 +469,8 @@
               "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อเข้ากับเสมหะเขียวของเขา",
+              "en": "Steroid with an antibiotic fits his green sputum."
             }
           },
           {
@@ -481,8 +481,8 @@
               "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
+              "th": "ครอบคลุมเชื้อหลักที่ทำให้เสมหะเขียว",
+              "en": "Covers the main bacteria behind his green sputum."
             }
           },
           {
@@ -520,6 +520,18 @@
               "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
               "en": "Gives broad IV cover."
             }
+          },
+          {
+            "id": "h",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 14 วัน+amox-clav",
+              "en": "Pred 14 days + amox-clav"
+            },
+            "line": {
+              "th": "ให้สเตียรอยด์นานขึ้นเพื่อให้ยาออกฤทธิ์ได้เต็มที่",
+              "en": "A longer course gives the steroid more time to work."
+            }
           }
         ],
         "default_trio": [
@@ -533,8 +545,8 @@
           {
             "id": "v3",
             "question": {
-              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
-              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+              "th": "เสมหะเขียว ไข้ 37.8 °C ให้ยาอะไร",
+              "en": "Green sputum and a temperature of 37.8 °C. Which drugs do you give?"
             }
           },
           {
@@ -561,8 +573,8 @@
               "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "pred 40 มก./วัน และยาครอบคลุมเชื้อที่พบบ่อย",
-              "en": "Pred 40 mg a day, with cover for the usual bacteria."
+              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อเข้ากับเสมหะเขียวของเขา",
+              "en": "Steroid with an antibiotic fits his green sputum."
             }
           },
           {
@@ -573,8 +585,8 @@
               "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "doxycycline วันละ 2 ครั้ง ครอบคลุมเชื้อหลัก",
-              "en": "Doxycycline twice a day covers the main bacteria."
+              "th": "ครอบคลุมเชื้อหลักที่ทำให้เสมหะเขียว",
+              "en": "Covers the main bacteria behind his green sputum."
             }
           },
           {
@@ -611,6 +623,18 @@
             "line": {
               "th": "levofloxacin ครอบคลุมเชื้อทางเดินหายใจกว้าง",
               "en": "Levofloxacin covers respiratory bacteria broadly."
+            }
+          },
+          {
+            "id": "h",
+            "tier": "weaker",
+            "label": {
+              "th": "pred 14 วัน+amox-clav",
+              "en": "Pred 14 days + amox-clav"
+            },
+            "line": {
+              "th": "ให้สเตียรอยด์นานขึ้นเพื่อให้ยาออกฤทธิ์ได้เต็มที่",
+              "en": "A longer course gives the steroid more time to work."
             }
           }
         ],
@@ -660,8 +684,8 @@
               "en": "Step nebulisers down to 2–4 hourly"
             },
             "line": {
-              "th": "ลดความถี่เมื่อดีขึ้น ใจสั่นและมือสั่นน้อยลง",
-              "en": "Fewer doses as he improves mean less tremor and racing pulse."
+              "th": "ลดความถี่เมื่อดีขึ้น ผลข้างเคียงจึงน้อยลง",
+              "en": "Fewer doses as he improves mean fewer side effects."
             }
           },
           {
@@ -684,8 +708,8 @@
               "en": "Add IV magnesium sulfate"
             },
             "line": {
-              "th": "แมกนีเซียมช่วยคลายกล้ามเนื้อหลอดลมเพิ่ม",
-              "en": "Magnesium relaxes airway muscle on top of the nebulisers."
+              "th": "แมกนีเซียมเป็นยาเสริมที่ใช้กันบ่อยเมื่อมีเสียงวี้ด",
+              "en": "Magnesium is a common add-on for wheeze."
             }
           },
           {
@@ -696,8 +720,8 @@
               "en": "Switch the antibiotic to IV"
             },
             "line": {
-              "th": "ยาฉีดให้ระดับยาในเลือดแน่นอนกว่า",
-              "en": "An IV drug gives surer blood levels."
+              "th": "ผู้ป่วยในมักได้ยาแบบฉีดเป็นประจำ",
+              "en": "IV drugs are the usual choice for inpatients."
             }
           }
         ],
@@ -769,8 +793,8 @@
               "en": "Switch to levofloxacin"
             },
             "line": {
-              "th": "ยาครอบคลุมเชื้อกว้างขึ้นตั้งแต่ตอนนี้",
-              "en": "A broader drug covers more bacteria from now on."
+              "th": "ใช้ยาที่ครอบคลุมกว้างกว่าไว้ก่อนเพื่อความรอบคอบ",
+              "en": "A broader drug covers more, to be thorough."
             }
           }
         ],
@@ -830,20 +854,20 @@
               "en": "Intubate and ventilate now"
             },
             "line": {
-              "th": "คุมการหายใจได้เต็มที่เมื่อผู้ป่วยซึมลง",
-              "en": "Takes full control of breathing as he grows drowsier."
+              "th": "ใส่ท่อเป็นวิธีคุมการหายใจที่แน่นอนที่สุด",
+              "en": "Intubation gives the surest control of breathing."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "NIV ก๊าซ 1 ชม. เพิ่มแมกนีเซียม",
-              "en": "NIV, 1-h gas, add IV magnesium"
+              "th": "NIV และแมกนีเซียม IV",
+              "en": "NIV and IV magnesium"
             },
             "line": {
-              "th": "เพิ่มแมกนีเซียมทางหลอดเลือดให้หลอดลมคลายตัว",
-              "en": "Adds IV magnesium to relax the airways further."
+              "th": "แมกนีเซียมเป็นยาเสริมที่ใช้กันบ่อย ให้ไว้ก่อน",
+              "en": "Magnesium is a common add-on, to be thorough."
             }
           }
         ],
@@ -881,8 +905,8 @@
               "en": "Review his inhalers and technique"
             },
             "line": {
-              "th": "ยาพ่นออกฤทธิ์ยาวที่เหมาะและพ่นถูกวิธีลดการกำเริบ",
-              "en": "The right long-acting inhaler, used well, cuts the next flare."
+              "th": "พ่นยาถูกวิธีช่วยลดการกำเริบครั้งหน้า",
+              "en": "Good inhaler use cuts his next flare."
             }
           },
           {
@@ -893,8 +917,8 @@
               "en": "Vaccines, rehab, review in 4 weeks"
             },
             "line": {
-              "th": "ลดการกำเริบซ้ำและพากลับไปทำสวนได้",
-              "en": "Cuts the next flare and gets him back to his orchard."
+              "th": "วัคซีนและฟื้นฟูปอดช่วยลดการกำเริบครั้งหน้า",
+              "en": "Vaccines and rehab cut his next flare."
             }
           },
           {
@@ -978,8 +1002,8 @@
               "en": "Chest X-ray and CBC today"
             },
             "line": {
-              "th": "หาสาเหตุที่ทำให้ฟื้นตัวช้า เช่น ปอดอักเสบ",
-              "en": "Looks for a cause of the slow recovery, such as pneumonia."
+              "th": "เอกซเรย์และ CBC ซ้ำเป็นการตรวจที่ทำกันประจำ",
+              "en": "A repeat X-ray and blood count is the usual check."
             }
           },
           {
@@ -990,8 +1014,8 @@
               "en": "Refer to the provincial hospital"
             },
             "line": {
-              "th": "ทีมอายุรแพทย์ช่วยดูแลผู้ที่ฟื้นตัวช้า",
-              "en": "A physician team can manage a slow recovery."
+              "th": "โรงพยาบาลใหญ่มีบุคลากรพร้อมกว่า",
+              "en": "A bigger hospital has more staff on hand."
             }
           },
           {
@@ -1075,8 +1099,8 @@
               "en": "NIV to ICU, double the steroid"
             },
             "line": {
-              "th": "สเตียรอยด์ขนาดสูงหวังลดการอักเสบให้เร็วขึ้น",
-              "en": "A higher steroid dose aims to calm the airways faster."
+              "th": "เพิ่มขนาดยาเป็นขั้นที่ทำกันเมื่ออาการแย่ลง",
+              "en": "A higher dose is the usual step when he worsens."
             }
           }
         ],
@@ -1091,9 +1115,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-14",
-      "findings": "Review of version 7 (five steps) for #495: every question variant and every option's label, line and tier in all 13 banks, Thai and English. Thai: Thoracic Society of Thailand COPD guideline 2565 (2022), full PDF from tst.or.th, chapter 6 read: p.77 antibiotics for 5-7 days when breathlessness, sputum volume and colour all worsen, the usual first choice a beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide, with Pseudomonas cover only for two or more exacerbations a year, FEV1 <50% or a prior ventilator; Table 6 NIV for PaCO2 >45 mmHg at pH 7.25-7.35; Table 7 lists drowsiness as an invasive-ventilation indication; SpO2 92-94%, prednisolone 30-40 mg 5-7 days. WHO: the IMAI District Clinician Manual (WHO 2011) could not be reopened this round; the version-6 review opened volume 2 section 10.6.5 (COPD) and volume 1 section 3.2 and recorded no conflict with the tree. Also BTS/ICS AHRF 2016 open-access summary (BMJ Open Resp Res 2016;3:e000133): target 88-92%, NIV at pH <7.35 with pCO2 >6.5 kPa, adverse features do not on their own withhold a trial, a trial only where staff can intubate safely, NIV must not delay escalation, a written plan for NIV failure, depressed consciousness at GCS <8 as an invasive-ventilation indication; GOLD 2025 (quinolone in selected patients, NIV the preferred first mode); NICE NG114 via a search extract. Fresh re-check by a non-author of the final tree: step3.W levofloxacin stays reasonable, as the Thai guideline lists a respiratory quinolone as a usual first antibiotic and he meets none of its Pseudomonas criteria, while NICE and GOLD cautions keep it below best; step4.W keeps NIV best (\"NIV now, with a tube ready\"; a repeat gas within the hour) and intubation reasonable for a drowsy but rousable man at pH 7.28 and PaCO2 66, a deliberate departure from Thai Table 7 that follows BTS/ICS and is safe; 88-92% departs from the Thai 92-94% because he retains CO2, per BTS rec 24. Every option above weaker after NIV failure calls ICU first; a doubled steroid and IV magnesium stay weaker; every weaker option is safe; Thai and English agree. MUST-FIX: none. Reviewed tree sha256 d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1.",
-      "tree_sha256": "d3f6efe4ab3713a3436c0346882e612758e3ffc251fc0ef9c1da07b0c647e8a1"
+      "date": "2026-11-15",
+      "findings": "Two-round fresh non-author review of copd-exacerbation version 9 (five steps, #497): every question variant and every option label, line and tier in all 13 banks, Thai and English, against the version-7 tree and its earlier review. Sources: Thoracic Society of Thailand COPD guideline 2565, chapter 6 (antibiotics when breathlessness, sputum volume and purulence worsen, with a beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide as usual first choices; prednisolone 30-40 mg for 5-7 days; Table 6 NIV for PaCO2 >45 mmHg at pH 7.25-7.35; Table 7 invasive ventilation); GOLD 2025 chapter 5 (systemic glucocorticoids Evidence A, prednisone 40 mg for 5 days; ABG in hospital assessment; NIV the preferred first mode); BTS/ICS AHRF 2016 (target 88-92%, NIV at pH <7.35 with raised pCO2, NIV must not delay escalation, a plan for NIV failure); NICE NG115 (offer oral corticosteroids); the REDUCE trial (5 days of steroid non-inferior to 14); WHO IMAI District Clinician Manual 2011 vol. 2 section 10.6.5 as recorded by the earlier review. Round one returned one tree MUST-FIX: option h in step3.R and step3.W, oral amox-clav with no steroid, withheld a needed systemic corticosteroid. It is now Pred 14 days + amox-clav, which keeps the steroid and is safe but weaker per REDUCE and GOLD. Notable judgments: step2.W d (CBC and sputum culture) and e (CBC, electrolytes, blood culture) leave out the gas, but stay safe as weaker because these are omitted tests, not withheld treatment; controlled oxygen at 88-92% is already running, ABG is not on hand in every Thai community hospital, the tree surfaces a gas on every later path that needs NIV, and each reply carries a safety line to check a gas if he grows drowsy. step4.W d (NIV and IV magnesium) stays weaker because it still starts NIV and magnesium adds only weak benefit and some hypotension risk. step4.B d and e and step4.R d stay weaker and safe. step3.W levofloxacin stays reasonable, as the Thai guideline lists a respiratory quinolone and he meets no Pseudomonas criterion. step4.W keeps NIV best and intubation reasonable for a drowsy but rousable man at pH 7.28, PaCO2 66, following BTS/ICS. step5.W keeps ICU-first NIV bridge and intubation best. The step3.W third variant now states only vignette facts (green sputum, 37.8 C). The thinned best lines argue for their own option and leave the actions unchanged. The teaser hints at no diagnosis. Thai and English agree, and the Thai reads naturally. MUST-FIX: none. Reviewed tree sha256 93a35ce04ae87e83d1f8f7a6ee43c22350de9649a40291bc53195b055155ae45.",
+      "tree_sha256": "93a35ce04ae87e83d1f8f7a6ee43c22350de9649a40291bc53195b055155ae45"
     }
   }
 }
