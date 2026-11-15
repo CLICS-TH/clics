@@ -80,8 +80,8 @@
             "en": "Acute gastroenteritis"
           },
           "line": {
-            "th": "อาเจียน ปวดท้อง และขาดน้ำพบบ่อยในโรคนี้",
-            "en": "Vomiting, abdominal pain and dehydration are common in it."
+            "th": "อาเจียนกับปวดท้อง ส่วนใหญ่มักเป็นลำไส้อักเสบ",
+            "en": "Vomiting and belly pain are most often a stomach bug."
           }
         },
         {
@@ -92,8 +92,8 @@
             "en": "Acute appendicitis"
           },
           "line": {
-            "th": "ปวดท้องและอาเจียนในคนหนุ่มสาวอาจเป็นไส้ติ่ง",
-            "en": "Abdominal pain and vomiting in a young adult can be appendicitis."
+            "th": "ปวดท้องกับอาเจียนในคนอายุน้อย นึกถึงไส้ติ่งไว้ก่อน",
+            "en": "Belly pain and vomiting in a young adult: think appendix first."
           }
         }
       ],
@@ -312,8 +312,8 @@
               "en": "Fingerstick glucose and CBC"
             },
             "line": {
-              "th": "ดูน้ำตาลพร้อมหาการติดเชื้อที่อาจเป็นตัวกระตุ้น",
-              "en": "Checks glucose and looks for an infection that set this off."
+              "th": "น้ำตาลกับ CBC เป็นการตรวจแรกที่ทำกันเป็นประจำ",
+              "en": "Glucose and a blood count are the usual first tests."
             }
           }
         ],
@@ -363,8 +363,8 @@
               "en": "NSS, K, insulin drip, hourly glucose"
             },
             "line": {
-              "th": "สารน้ำ อินซูลิน 0.1 ยูนิต/กก./ชม. K น้ำตาลทุก ชม.",
-              "en": "Fluids, insulin 0.1 units/kg/h and K, with glucose checked hourly."
+              "th": "ตรวจน้ำตาลทุกชั่วโมง จะรู้ว่าเมื่อไรต้องเติมเดกซ์โทรส",
+              "en": "Hourly glucose shows when dextrose needs adding."
             }
           },
           {
@@ -387,8 +387,8 @@
               "en": "Saline, K, low-dose insulin drip"
             },
             "line": {
-              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ลดน้ำตาลอย่างนุ่มนวล",
-              "en": "Insulin at 0.05 units/kg/h lowers glucose gently."
+              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. ขนาดเบาที่หลายที่ใช้กัน",
+              "en": "Insulin 0.05 units/kg/h, the gentler dose many wards use."
             }
           }
         ],
@@ -460,8 +460,8 @@
               "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
-              "en": "Insulin at 0.05 units/kg/h once K is safe."
+              "th": "K ปลอดภัยแล้ว ใช้ 0.05 ยูนิต/กก./ชม. ขนาดเบาที่คุ้นมือ",
+              "en": "Once K is safe, 0.05 units/kg/h is the gentler habit."
             }
           }
         ],
@@ -533,8 +533,8 @@
               "en": "Saline, check K, low-dose insulin"
             },
             "line": {
-              "th": "อินซูลิน 0.05 ยูนิต/กก./ชม. หลัง K ปลอดภัย",
-              "en": "Insulin at 0.05 units/kg/h once K is safe."
+              "th": "K ปลอดภัยแล้ว ใช้ 0.05 ยูนิต/กก./ชม. ขนาดเบาที่คุ้นมือ",
+              "en": "Once K is safe, 0.05 units/kg/h is the gentler habit."
             }
           }
         ],
@@ -596,8 +596,8 @@
               "en": "Add 10% dextrose, same insulin rate"
             },
             "line": {
-              "th": "ต่ำกว่า 250 มก./ดล. ให้เดกซ์โทรส อินซูลินล้างคีโตนต่อ",
-              "en": "Below 250 mg/dL, dextrose lets the insulin keep clearing ketones."
+              "th": "ให้เดกซ์โทรสที่ระดับน้ำตาลนี้ ตามที่หอผู้ป่วยทำประจำ",
+              "en": "Dextrose at this glucose level is the usual ward routine."
             }
           },
           {
@@ -681,8 +681,8 @@
               "en": "Give another litre of saline"
             },
             "line": {
-              "th": "สารน้ำเพิ่มการไหลเวียน ช่วยให้อินซูลินออกฤทธิ์",
-              "en": "More fluid improves perfusion and helps insulin act."
+              "th": "ดีขึ้นช้าก็ให้สารน้ำเพิ่มก่อน ตามที่ทำกันประจำ",
+              "en": "More fluid is the usual first move when progress is slow."
             }
           }
         ],
@@ -742,8 +742,8 @@
               "en": "Raise insulin in small steps, more K"
             },
             "line": {
-              "th": "ปรับทีละน้อยช่วยให้น้ำตาลและ K ลดลงช้า ๆ",
-              "en": "Small steps keep glucose and K from falling fast."
+              "th": "ค่อย ๆ ปรับขึ้นทีละน้อย เป็นวิธีระวังที่ทำกันประจำ",
+              "en": "Going up in small steps is the usual careful routine."
             }
           },
           {
@@ -754,8 +754,8 @@
               "en": "Another litre of saline, more K"
             },
             "line": {
-              "th": "สารน้ำและ K เสริมฤทธิ์อินซูลินที่ให้อยู่",
-              "en": "Fluid and K support the insulin already running."
+              "th": "ดีขึ้นช้าก็ให้สารน้ำกับ K เพิ่มก่อน ตามที่ทำกันประจำ",
+              "en": "More fluid with K is the usual first move when progress is slow."
             }
           }
         ],
@@ -805,8 +805,8 @@
               "en": "Basal-bolus, education, follow-up"
             },
             "line": {
-              "th": "ฉีดอินซูลิน กฎวันป่วย และนัดตรวจภายใน 2 สัปดาห์",
-              "en": "Insulin, sick-day rules and a clinic visit within 2 weeks."
+              "th": "เป็นเบาหวานรายใหม่ จึงต้องฝึกฉีดอินซูลินก่อนกลับบ้าน",
+              "en": "With new diabetes, she learns her insulin before going home."
             }
           },
           {
@@ -890,8 +890,8 @@
               "en": "Premixed insulin twice a day"
             },
             "line": {
-              "th": "ฉีดน้อยครั้งลง ช่วยให้ผู้ที่กลัวเข็มยอมรับได้",
-              "en": "Fewer injections may suit someone afraid of needles."
+              "th": "ฉีดวันละ 2 ครั้ง เริ่มง่ายแบบที่หลายคลินิกใช้กัน",
+              "en": "Twice a day is the simple start many clinics use."
             }
           },
           {
@@ -963,8 +963,8 @@
               "en": "Raise insulin a little, then refer"
             },
             "line": {
-              "th": "ปรับทีละน้อยให้น้ำตาลและ K คงที่ระหว่างส่งต่อ ICU",
-              "en": "Small steps keep glucose and K steady on the way to ICU care."
+              "th": "ปรับขึ้นทีละน้อยก่อนส่งต่อ เป็นวิธีระวังที่ทำกันประจำ",
+              "en": "Going up a little is the usual careful habit before transfer."
             }
           },
           {
@@ -991,9 +991,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-14",
-      "findings": "Fresh review by a non-author of the five-step tree, version 8, moved from staging into the live event by #495: every question variant and option of all 13 banks, Thai and English. Sources opened: the hyperglycaemic crises consensus (Diabetologia 2024;67:1455-79, full-text PDF): fixed-rate IV insulin 0.1 U/kg/h, an optional bolus only if venous access is delayed, below 250 mg/dL add 5-10% dextrose and cut to 0.05 U/kg/h, K replacement below 5.0, no insulin until K is above 3.5, a 1-2 h basal-bolus overlap, ketosis-prone type 2 diabetes presenting with DKA, and Table 2 grading pH 7.0-7.25 with an alert or drowsy patient as moderate; JBDS 02 pathway (March 2023): FRIII 0.1 unit/kg/h, add 10% dextrose below 14 mmol/L and consider reducing to 0.05, check the pump and line if ketones fall slowly, cautious fluids at 18-25, critical care if SBP stays below 90. Thai DM CPG 2566 ch.12 and WHO SEARO IMAI could not be opened; claims about them rest on the earlier reviews' recorded quotes. Changes checked: step1 b \"New-onset diabetes with DKA\" is correct, as ketosis-prone type 2 also presents with DKA; glucose values carry mg/dL where they lacked it, and the fixed 1 unit/h steps became \"in small steps\" / \"a little\", so no step mixes units/h with units/kg/h; step4.B c (10% dextrose, same insulin rate) stays reasonable, JBDS-concordant but below the two cut-the-rate bests that follow the consensus and Thai CPG; step5.W c (raise insulin a little, then refer; drowsier, pH 7.12, K 3.9) stays reasonable, moderate DKA by Table 2, with referral in the option. Every weaker option is safe (referral with treatment unchanged, added fluid and K with insulin running, 0.05 U/kg/h once K is safe, diagnostic distractors). Every K at an insulin-raising step is at least 3.7. No withholding wording; Thai and English agree. Non-blocking: step4.B a Thai line lacks มก./ดล. (would exceed budget); \"then refer\" could read \"and refer\". MUST-FIX: none. Reviewed tree sha256 4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a.",
-      "tree_sha256": "4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a"
+      "date": "2026-11-15",
+      "findings": "Fresh review by a non-author of dka-young-adult version 10 (#497): every question variant and every option of all 13 banks, Thai and English, compared with the tree before this revision (git diff origin/claude/hungry-robinson-dbaaa6). Only option lines changed (step1 d and e, step2.W f, step3.B b and d, step3.R d, step3.W d, step4.B c, step4.R d, step4.W c and d, step5.B b, step5.R c, step5.W c); no label, tier, dose, variant or option changed. Sources: hyperglycaemic crises consensus (Diabetologia 2024;67:1455-79), insulin section (fixed-rate IV insulin 0.1 U/kg/h; below 250 mg/dL add 5-10% dextrose and reduce to 0.05 U/kg/h; no insulin while K is below 3.5; replace K below 5.0; overlap basal insulin by 1-2 h) and Table 2 (moderate DKA); JBDS 02 pathway 2023 (FRIII 0.1 unit/kg/h; 10% dextrose below 14 mmol/L; if ketones fall slowly check the line and raise the insulin); Thai DM CPG 2566 ch.12 (0.1 U/kg/h), through the earlier reviews' recorded quotes, not opened this session. Judgments: step3.B b \"Hourly glucose shows when dextrose needs adding\" reads as future monitoring at glucose 450, not dextrose now, and stays best. The 0.05 U/kg/h starts (step3.B d, step3.R d, step3.W d) stay weaker: the consensus and Thai CPG start at 0.1, half the rate still runs insulin, so it is safe but clears ketones more slowly; the R and W lines still gate insulin on a safe K; \"the gentler dose many wards use\" and \"the gentler habit\" describe a habit and do not claim it is standard. step4.R d (glucose 330, K 4.0) and step4.W d (K 3.7) stay weaker and safe: insulin keeps running, step4.W d adds K, \"usual first move\" reads as a habit, and the guideline answer (raise the insulin after checking the line) stays among the bests. step4.B c (10% dextrose, same insulin rate, at glucose 240) stays reasonable (follows JBDS, below the consensus and Thai rate cut). step4.W c stays reasonable. step5.R c \"Twice a day is the simple start many clinics use\" still answers its question and stays reasonable below basal-bolus. step5.B b now teaches her insulin before discharge, correct. step5.W c stays reasonable. Every weaker option is safe; every step that raises insulin has K at least 3.7; no line withholds or delays treatment; Thai and English agree and the Thai is natural; each line argues for its own option; the teaser does not hint the diagnosis. Non-blocking: step5.R c no longer ties twice-daily dosing to needle fear explicitly; the step4.B a Thai line still lacks มก./ดล. (budget). MUST-FIX: none. Reviewed tree sha256 4eea7a5bded70057c82bf3b26fb3a08f28f49c0b006f22ac2216f7b9d1f3432e.",
+      "tree_sha256": "4eea7a5bded70057c82bf3b26fb3a08f28f49c0b006f22ac2216f7b9d1f3432e"
     }
   }
 }
