@@ -17,8 +17,8 @@ const SNAPSHOTS = EVENTS.flatMap((code) => {
   return fs.existsSync(dir) ? fs.readdirSync(dir).map((f) => path.join(dir, f)) : [];
 });
 
-// The NFCME-2026 pool holds no admitted case between the five-step move (#386) and its tables (#408), so the snapshot
-// check below may read none; the snapshots of every version played before the move stay and are checked here.
+// The NFCME-2026 pool admits only some of its cases after the five-step move (#386), so the snapshot check below does
+// not reach every version played before the move; those snapshots stay and are checked here.
 test('the event folders keep the snapshot of every NFCME-2026 version admitted before the five-step move', () => {
   expect(EVENTS).toContain('NFCME-2026');
   const before = { adhf: [3, 4], 'alcohol-pancreatitis': [2, 3], 'copd-exacerbation': [4, 5], 'dka-young-adult': [4, 5],

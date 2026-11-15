@@ -185,6 +185,13 @@ describe('sandbox.mjs', () => {
     expect(out.stdout).toMatch(/Nothing spent/);
   });
 
+  test.each(['25.01', '30', '1000'])('refuses --cap %s, above the $25 cap, before planning or spending anything', (cap) => {
+    const out = sandbox(['--cases', fixtureDir(), '--cap', cap]);
+    expect(out.status).toBe(2);
+    expect(out.stderr).toMatch(/--cap is at most \$25/);
+    expect(out.stdout).not.toMatch(/Estimated spend/);
+  });
+
   test.each([
     ['stopped at the cap', { stopped: true, scored: 20, planned: 36 }, /20 of 36 plays scored, stopped at the cap/],
     ['with a play unscored, from before #344 pooled only complete groups', { scored: 35, planned: 36 }, /35 of 36 plays scored\)/],
