@@ -37,6 +37,8 @@
  *   --go              spend: without it the script stops after the checks
  *   --from <jsonl>    build the tables from a saved run's samples, spending nothing
  *   --replies <dir>   a three-step case's sample replies (default scripts/booth/sample-replies/<event code>)
+ *   --pool <json>     judge the re-check against an earlier build report's pool medians (path-table.mjs poolFrom), for
+ *                     a build of only some of an event's cases: a pool of a few cases is mostly the cases themselves
  *
  * Env for --go: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl. Its only calls are rimpl's
  * GET /manifest and POST /evaluate (shadow off). One probe call runs first: unless it was scored by the locked
@@ -57,7 +59,7 @@ import { randomBytes } from 'node:crypto';
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { reviewedTree, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
+import { reviewedTree, tablePlan, recheck, poolFrom, summaryMarkdown } from './path-table.mjs';
 import { spent, reserve, settle, recordOpen, recordCharge, RECORD } from './spend-ledger.mjs';
 
 const require = createRequire(import.meta.url);
@@ -100,6 +102,7 @@ function parseArgs(argv) {
     else if (flag === '--out') opts.out = path.resolve(v);
     else if (flag === '--replies') opts.replies = path.resolve(v);
     else if (flag === '--from') opts.from = path.resolve(v);
+    else if (flag === '--pool') opts.pool = path.resolve(v);
     else fail(`unknown argument ${flag}`);
   }
   if (opts.samples % 2 === 0) fail('--samples must be odd, so each median is a whole score');
@@ -155,6 +158,14 @@ const steps = stepCounts[0] ?? stepsOf(cases[0]);
 const scripted = PATHS_BY_STEPS[steps];
 let plan;
 try { plan = tablePlan(steps, scripted); } catch (err) { fail(err.message); }
+let pool = null;
+if (opts.pool) {
+  let earlier;
+  try { earlier = JSON.parse(readFileSync(opts.pool, 'utf8')); } catch { fail(`--pool ${opts.pool} is not a JSON report`); }
+  pool = poolFrom(earlier, plan.method);
+  if (pool.why) fail(`--pool ${opts.pool} ${pool.why}`);
+  console.log(`Re-check against the pool of run ${pool.run_id}: medians ${JSON.stringify(pool.pool.medians)} from ${JSON.stringify(pool.pool.pool_n)} cases.`);
+}
 for (const c of building.filter((b) => !banked(b.kase))) {
   let problems;
   try { c.replies = readReplies(c.kase, opts.replies); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
@@ -341,6 +352,7 @@ const report = {
   ...(opts.from ? { finished_from: path.relative(ROOT, opts.from) } : {}),
   evaluator: { provider: first.provider, model: first.model, prompt_version: first.prompt_version, prompt_sha256: LOCKED.prompt_sha256, decoding: first.decoding },
   method: plan.method, scripted, sampled: plan.sampled,
+  ...(pool ? { pool_run: pool.run_id } : {}),
   cases: {},
   recheck: null,
 };
@@ -354,6 +366,7 @@ const built = Object.fromEntries(building.map((c) => {
 }));
 report.recheck = recheck(plan, built, {
   samples: opts.samples,
+  pool: pool?.pool,
   incomplete: run.stopped || overCap ? `${scored.length} of ${jobs.length} samples scored${run.stopped ? ', stopped at the cap' : ''}${overCap ? ', over the cap' : ''}` : undefined,
 });
 for (const c of cases) {

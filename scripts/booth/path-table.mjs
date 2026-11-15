@@ -3,7 +3,7 @@
 // with no install.
 import treeHash from '../../backend/src/booth-cases/tree-sha.js';
 import pleGate from '../../backend/src/services/ple-gate.js';
-import { PATH_GROUPS, verdicts } from './sandbox-verdict.mjs';
+import { PATH_GROUPS, MIN_POOL, verdicts } from './sandbox-verdict.mjs';
 import { FITTED_RANGE, tierPaths, fractionalDesign, fitTable, mislabels, wholeComposite } from './path-fit.mjs';
 
 const { canonical, treeSha, reviewedSha } = treeHash;
@@ -108,14 +108,40 @@ export function tablePlan(steps, scripted) {
  * @param {Record<string, { composites: Record<string, number[]>, table: object | null }>} cases per case id, its
  *   sample composites per sampled tier path and its built table (null when it has none)
  */
-export function recheck(plan, cases, { samples, incomplete } = {}) {
+export function recheck(plan, cases, { samples, incomplete, pool } = {}) {
   const table = Object.fromEntries(Object.entries(cases).map(([id, c]) => [id,
     Object.fromEntries(PATH_GROUPS.map((g) => [g, plan.judged(c, plan.scripted[g])]))]));
   const each = (n) => Object.fromEntries(PATH_GROUPS.map((g) => [g, n]));
   // Every group counts as the mean of `samples` plays. A fitted entry pools all of its case's samples and is a little
   // steadier (fittedNoise: on 27 paths × 3, one entry about 0.21σ² against σ²/3, and best − weakest about 0.58σ²
   // against 2σ²/3), so for it the bands are a little lenient and the gap a little strict.
-  return verdicts(table, PATH_GROUPS, { runs: each(plan.runs(samples)), averaged: each(samples), incomplete });
+  return verdicts(table, PATH_GROUPS, { runs: each(plan.runs(samples)), averaged: each(samples), incomplete, pool });
+}
+
+/**
+ * The pool medians of an earlier build's report, for a build of only some of an event's cases (`--pool`): judged
+ * against itself, a pool of a few cases has medians that are mostly the cases themselves and wider bands (bandFor
+ * widens as the pool shrinks), so a partial rebuild is judged against the whole event's pool instead, as the sandbox's
+ * `--pool` does. The earlier run must be complete, of the same method, and pooled from its own cases, each group from
+ * MIN_POOL or more of them.
+ * @param {object} earlier a build report (<run_id>.json)
+ * @param {string} method this build's method
+ * @returns {{ pool: { medians: Record<string, number>, pool_n: Record<string, number> }, run_id: string } | { why: string }}
+ */
+export function poolFrom(earlier, method) {
+  const r = earlier?.recheck;
+  if (!earlier?.run_id || !r?.medians || !r?.pool_n) return { why: 'is not a path-table build report' };
+  if (earlier.method !== method) return { why: `is a ${earlier.method} build, not ${method}` };
+  if (earlier.stopped || earlier.over_cap || !(earlier.scored >= earlier.planned)) {
+    return { why: `is from an incomplete run (${earlier.scored} of ${earlier.planned} samples scored)` };
+  }
+  if (r.pool_from !== 'this run') return { why: 'judged its cases against another run\'s pool: use the run that measured the pool' };
+  const thin = PATH_GROUPS.filter((g) => typeof r.medians[g] !== 'number' || !(r.pool_n[g] >= MIN_POOL));
+  if (thin.length) return { why: `has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}` };
+  return {
+    run_id: earlier.run_id,
+    pool: { medians: Object.fromEntries(PATH_GROUPS.map((g) => [g, r.medians[g]])), pool_n: Object.fromEntries(PATH_GROUPS.map((g) => [g, r.pool_n[g]])) },
+  };
 }
 
 // The variance, in one play's σ², of a fitted entry and of a fitted best − weakest: least squares' p/N and 6k/N on a
@@ -126,12 +152,15 @@ function fittedNoise(sampled, samples) {
   return { entry: (Math.PI / 2) * ((1 + 2 * k) / n), gap: (Math.PI / 2) * ((6 * k) / n) };
 }
 
+// Whose pool medians a re-check used: its own cases', or an earlier run's (--pool).
+const poolText = (report) => (report.pool_run ? `the pool of run ${report.pool_run} (--pool)` : 'this run\'s pool');
+
 // How the summary tells each method: what a build samples, after "<n> samples per ", and what its re-check judges.
 const METHOD_TEXT = Object.freeze({
   median: {
     sampling: () => 'tier path, median per domain',
     judged: (report, scripted) => `Each group is its tier path's ${report.samples} sample composites (${scripted}), `
-      + 'judged against this run\'s pool: every group mean within its band of the pool median, and best at least '
+      + `judged against ${poolText(report)}: every group mean within its band of the pool median, and best at least `
       + `${report.recheck.gap_min} above weakest.`,
   },
   'median-regression': {
@@ -143,7 +172,7 @@ const METHOD_TEXT = Object.freeze({
       const noise = fittedNoise(report.sampled, n);
       return `Each group is the fitted table's entry for its tier path (${scripted}): the whole composite a play on `
         + 'that path scores, not the path\'s sample composites. Each entry is judged as the mean of '
-        + `${n} plays against this run's pool: every entry within its band of the pool median, and best at least `
+        + `${n} plays against ${poolText(report)}: every entry within its band of the pool median, and best at least `
         + `${report.recheck.gap_min} above weakest. A fitted entry draws on all ${report.sampled.length * n} of the `
         + `case's samples, so it is steadier than a ${n}-play mean. One entry's noise is about `
         + `${noise.entry.toFixed(2)}σ², not σ²/${n}, so the bands are a little lenient. Best − weakest's is about `

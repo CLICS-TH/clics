@@ -131,6 +131,8 @@ The build also re-runs ADR 0005's difficulty check on the table's own samples. A
 
 Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
 
+The re-check pools the cases of its run. When you rebuild only some of an event's cases, pass `--pool <report.json>` with the last build of the whole event (its `<run_id>.json` under `scripts/booth/path-table-runs/`), so they are judged against the event's pool medians and bands. A pool of a few cases is mostly the cases themselves, and its bands are wider.
+
 ## The reply bank
 
 A tapped answer on a five-step case gets its reply from the case's reply bank at once, with no AI call (ADR 0011). The server then picks the next question variant and one option per tier from the next bank at random. A typed answer still gets a live AI reply.
