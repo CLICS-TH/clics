@@ -49,8 +49,8 @@
             "en": "Cholinergic crisis from insecticide"
           },
           "line": {
-            "th": "อะเซทิลโคลีนคั่งอธิบายอาการทุกอย่างได้",
-            "en": "Excess acetylcholine explains every sign here."
+            "th": "อาการทั้งหมดเข้ากับยาฆ่าแมลงที่เพิ่งพ่นวันนี้",
+            "en": "His signs fit the insecticide he sprayed today."
           }
         },
         {
@@ -392,8 +392,8 @@
               "en": "IV atropine and pralidoxime"
             },
             "line": {
-              "th": "ให้ O2 เพิ่มอะโทรปีนเท่าตัวจนปอดแห้ง ร่วมออกซีม",
-              "en": "Oxygen, atropine doubled to a dry chest, plus an oxime."
+              "th": "รู้ชนิดสารพิษแล้ว จึงเพิ่มออกซีมร่วมกับ O2 และอะโทรปีน",
+              "en": "With the poison named, the oxime is added to oxygen and atropine."
             }
           },
           {
@@ -404,8 +404,8 @@
               "en": "IV atropine, gloved team washes him"
             },
             "line": {
-              "th": "ให้ O2 และอะโทรปีนจนปอดแห้ง ขณะถอดชุดล้างผิว",
-              "en": "Oxygen and atropine to a dry chest while he is stripped and washed."
+              "th": "พ่นยามือเปล่า จึงล้างตัวร่วมกับให้ O2 และอะโทรปีน",
+              "en": "He sprayed bare-handed, so washing joins oxygen and atropine."
             }
           },
           {
@@ -673,8 +673,8 @@
               "en": "Atropine infusion, hourly review"
             },
             "line": {
-              "th": "หยด 10-20% ของขนาดรวมที่ทำให้ปอดแห้ง ต่อชั่วโมง",
-              "en": "Runs 10-20% of the total dose that dried his chest, per hour."
+              "th": "คุมปอดให้แห้งต่อเนื่อง ปรับอัตรายาทุกครั้งที่ประเมิน",
+              "en": "Keeps his chest dry, with the rate set at each hourly check."
             }
           },
           {
@@ -685,8 +685,8 @@
               "en": "Infusion, watch for atropine excess"
             },
             "line": {
-              "th": "สับสน ไข้ หรือลำไส้หยุดเคลื่อน ให้ลดขนาดยา",
-              "en": "Confusion, fever or absent bowel sounds mean cutting the dose."
+              "th": "อะโทรปีนที่มากเกินทำให้สับสนได้ จึงต้องคอยดูขนาดยา",
+              "en": "Too much atropine can make him confused, so the dose is watched."
             }
           },
           {
@@ -918,8 +918,8 @@
               "en": "Watch to day 4 where ICU is at hand"
             },
             "line": {
-              "th": "ยังอาจอ่อนแรงที่คอและกล้ามเนื้อหายใจได้ถึงวันที่ 4",
-              "en": "Neck and breathing weakness can still appear up to day 4."
+              "th": "กล้ามเนื้อหายใจยังอาจอ่อนแรงได้ในอีกสองสามวัน",
+              "en": "His breathing muscles can still weaken over the next few days."
             }
           },
           {
@@ -930,8 +930,8 @@
               "en": "Wean atropine where ICU is at hand"
             },
             "line": {
-              "th": "เสมหะอาจกลับมาเมื่อลดยา จึงประเมินทุกครั้งที่ลด",
-              "en": "Secretions can return as the dose falls, so each step is checked."
+              "th": "เสมหะอาจกลับมาได้เมื่อลดขนาดยาลง",
+              "en": "Secretions can come back as the dose comes down."
             }
           },
           {
@@ -1128,9 +1128,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-14",
-      "findings": "Fresh review by a non-author of five-step version 5, then a confirm review after its fixes: every variant and option of all 13 banks, Thai and English. Sources opened: Eddleston et al., Lancet 2008 (UKPMC author manuscript UKMS1630; PMC2493390 returned a reCAPTCHA): atropine 1-3 mg doubled at 5-minute reviews to pulse >80, systolic >80 and a clear chest, an infusion of 10-20% of the loading dose per hour, high-flow oxygen, intubation when airway or breathing is compromised, pupils not a useful early end point, rapid unconsciousness and vomiting raise aspiration risk, oxime benefit varies and is lost once the enzyme ages; Ramathibodi Poison Center protocol 40, Organophosphorus and Carbamate (1 June 2022): wash skin, airway, low oxygen and circulation first, intubate when unconsciousness or secretions obstruct the airway, atropine 1.8-3 mg IV doubled every 5 minutes, pralidoxime 1-2 g then 0.5-1 g/h, hotline 1367. No WHO source was opened. step2.B/R chest X-ray moved to reasonable: looking for aspiration in a drowsy man who vomits is defensible; step2.R default trio a,e,d holds one per tier. step3.W and step4.W (chest floods, drowsier, SpO2 87-88%): every non-best option now carries suction and oxygen (step3.W d \"Suction, O2, atropine; team washes\"; step3.W e and step4.W e \"Suction, O2, atropine, nebuliser\", whose line makes the bronchodilator clear; step4.W d atropine, oxygen, frequent suction), so all are safe as weaker; b and c are fair as reasonable; intubation with ICU stays the only best. step5.W d (phone 1367) is right as weaker: good Thai practice, but the call neither moves a man on high-dose atropine at 36 h to ICU-capable care nor treats him, and its replies carry a safety sentence. No wrong facts, no withholding wording; Thai and English agree. MUST-FIX: none. Reviewed tree sha256 6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f.",
-      "tree_sha256": "6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f"
+      "date": "2026-11-15",
+      "findings": "A fresh non-author review of organophosphate version 7. I read every question variant and option of all 13 banks in Thai and English, and diffed the tree against origin/claude/hungry-robinson-dbaaa6. Ten line fields changed, matching what the author described: step1.b, step3.B a and b, step4.B a and b, step5.B a and b, each in Thai and English. No label, tier, drug, dose or default trio changed, and the step3.R a and b lines are unchanged. Sources, from knowledge (no source was opened this round): Eddleston et al., Lancet 2008 (atropine 1-3 mg doubled every 5 minutes to a clear chest, pulse >80 and systolic >80; an infusion of 10-20% of the loading dose per hour; oxime benefit varies and is lost once the enzyme ages; intermediate syndrome at about 24-96 h). Ramathibodi Poison Center protocol, Organophosphorus and Carbamate (wash the skin, airway and oxygen first, atropine 1.8-3 mg IV doubled every 5 minutes, pralidoxime, hotline 1367). WHO/IPCS management of pesticide poisoning (decontamination, atropine titrated to effect, oxime). Tiers checked closely: (1) step3.B, default trio a,c,e. Best a \"IV atropine and pralidoxime\" now reads \"With the poison named, the oxime is added to oxygen and atropine\". It still clearly beats reasonable c, \"atropine titrated to a dry chest\", because it contains c's atropine and adds oxygen for SpO2 91% plus the oxime that the Thai protocol recommends once the bottle names an organophosphate. Both step3.B variants name the bottle, so \"with the poison named\" holds on every path. The doubling regimen is still taught by c in this bank and by step3.R and step4.R. Best b, washing alongside oxygen and atropine, is right. (2) step4.B. a, an hourly-reviewed infusion with the rate set at each check, and b, watching for atropine excess because it can confuse, are both correct best answers. Fixed-rate c stays reasonable and bolus-on-relapse d stays weaker. (3) step5.B. a, \"Watch to day 4 where ICU is at hand\", with the line \"His breathing muscles can still weaken over the next few days\", is consistent. From day 2 or 24 h, the next few days run to about 96 h after exposure, which is the intermediate-syndrome window. The Thai \"ในอีกสองสามวัน\" means a couple of days, so it does not run past day 4. b, weaning where ICU is at hand because secretions can return, is a correct best. (4) step1.b's new line does not point to the diagnosis any harder than before, and the teaser still hints at no diagnosis. Thai and English agree on every changed line. On Thai naturalness: \"พ่นยามือเปล่า\" (step3.B b) is clear Thai that a GP understands as spraying without gloves. \"พ่นยาด้วยมือเปล่า\" would read a little smoother, and \"ไม่ใส่ถุงมือ\" is barred because lines may not contain ไม่. This is polish, not a finding. No wrong facts, no unsafe option and no wording that withholds or delays treatment. MUST-FIX: none. Reviewed tree sha256 ea10f088c08807f7d4561923aedf24e21baaccf143aeb13057eb0284ab59a6d1.",
+      "tree_sha256": "ea10f088c08807f7d4561923aedf24e21baaccf143aeb13057eb0284ab59a6d1"
     }
   }
 }
