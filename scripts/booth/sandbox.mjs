@@ -7,11 +7,11 @@
  * them, with no chat call; a case whose bank has any problem (one bound to another tree included) is refused.
  *
  *   node scripts/booth/sandbox.mjs                       # prints the plan and its estimated spend, spends nothing
- *   node --env-file=backend/.env --env-file=rimpl/.env scripts/booth/sandbox.mjs --go --cap 30
+ *   node --env-file=backend/.env --env-file=rimpl/.env scripts/booth/sandbox.mjs --go --cap 25
  *
  *   --cases <dir>     case folder (default backend/src/booth-cases/NFCME-2026); admission is not required
  *   --case <id>       only this case (repeatable)
- *   --cap <usd>       stop before a play could take the spend past this (default 30)
+ *   --cap <usd>       stop before a play could take the spend past this (default and most CAP_USD, $25)
  *   --path-runs n     runs per scripted path (default 3; the band and the gap shrink as it grows)
  *   --persona-runs n  runs per persona (default 3; 0 plays the scripted paths only)
  *   --concurrency n   plays at once (default 3)
@@ -44,6 +44,10 @@ const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 
 const { stepCount } = require(path.join(ROOT, 'backend', 'src', 'services', 'booth-dialogue'));
 const { banked, readBank } = require('./path-table-sample.js');
 
+// The most one sandbox run may spend (spec #493): a higher --cap is refused, so an unattended run cannot overspend.
+// Raising it is a reviewed commit, never a flag.
+const CAP_USD = 25;
+
 const fail = (msg) => { console.error(msg); process.exit(2); };
 
 const DB_CLIENT = /[\\/](@supabase|pg|postgres)[\\/]|[\\/]lib[\\/]supabase\.js$/;
@@ -51,7 +55,7 @@ const dbModules = Object.keys(require.cache).filter((m) => DB_CLIENT.test(m));
 if (dbModules.length) fail(`sandbox refuses to run with a database client loaded: ${dbModules[0]} and ${dbModules.length - 1} more`);
 
 function parseArgs(argv) {
-  const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: 30, pathRuns: 3, personaRuns: 3,
+  const opts = { cases: path.join(ROOT, 'backend', 'src', 'booth-cases', 'NFCME-2026'), only: [], cap: CAP_USD, pathRuns: 3, personaRuns: 3,
     concurrency: 3, out: path.join(HERE, 'sandbox-runs'), pool: null, go: false };
   const number = (flag, v, min) => { const n = Number(v); if (!Number.isFinite(n) || n < min) fail(`${flag} needs a number >= ${min}`); return n; };
   for (let i = 0; i < argv.length; i += 1) {
@@ -61,7 +65,10 @@ function parseArgs(argv) {
     i += 1;
     if (flag === '--cases') opts.cases = path.resolve(v);
     else if (flag === '--case') opts.only.push(v);
-    else if (flag === '--cap') opts.cap = number(flag, v, 0.01);
+    else if (flag === '--cap') {
+      opts.cap = number(flag, v, 0.01);
+      if (opts.cap > CAP_USD) fail(`--cap is at most $${CAP_USD} (CAP_USD in scripts/booth/sandbox.mjs), not $${opts.cap}`);
+    }
     else if (flag === '--path-runs') opts.pathRuns = Math.floor(number(flag, v, 1));
     else if (flag === '--persona-runs') opts.personaRuns = Math.floor(number(flag, v, 0));
     else if (flag === '--concurrency') opts.concurrency = Math.floor(number(flag, v, 1));

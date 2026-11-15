@@ -273,15 +273,18 @@ describe('admission', () => {
     expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
   });
 
-  test('every NFCME-2026 case is a five-step tree whose safety review is bound to it, and none is admitted before #408 builds its table', () => {
+  test('every NFCME-2026 case is a five-step tree whose safety review, table and sandbox record are bound to it (#497)', () => {
     const { treeSha } = require('../src/booth-cases/tree-sha');
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
     expect(cases).toHaveLength(11);
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    expect(cases.filter((k) => k.path_score_table || k.admission.sandbox || k.admission.owner_waiver).map((k) => k.case_id)).toEqual([]);
-    expect(cases.filter(isAdmitted).map((k) => k.case_id)).toEqual([]);
+    expect(cases.filter((k) => k.path_score_table?.provenance.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    expect(cases.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    // Admitted only where the table's own run passed the re-check: run ptb-202611150212-bdf7 passed four of the eleven.
+    expect(cases.filter(isAdmitted).map((k) => k.case_id).sort())
+      .toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'toddler-gastro-dehydration']);
   });
 
   test('a case with no admission marker is valid but not admitted', () => {

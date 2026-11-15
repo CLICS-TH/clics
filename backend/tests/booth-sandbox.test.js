@@ -181,8 +181,15 @@ describe('sandbox.mjs', () => {
   test('without --go it prints the estimated spend and spends nothing', () => {
     const out = sandbox(['--cases', fixtureDir()]);
     expect(out.status).toBe(0);
-    expect(out.stdout).toMatch(/18 plays\. Estimated spend \$\d+\.\d+ typical, \$\d+\.\d+ if every call bills its worst case\. Cap \$30\./);
+    expect(out.stdout).toMatch(/18 plays\. Estimated spend \$\d+\.\d+ typical, \$\d+\.\d+ if every call bills its worst case\. Cap \$25\./);
     expect(out.stdout).toMatch(/Nothing spent/);
+  });
+
+  test.each(['25.01', '30', '1000'])('refuses --cap %s, above the $25 cap, before planning or spending anything', (cap) => {
+    const out = sandbox(['--cases', fixtureDir(), '--cap', cap]);
+    expect(out.status).toBe(2);
+    expect(out.stderr).toMatch(/--cap is at most \$25/);
+    expect(out.stdout).not.toMatch(/Estimated spend/);
   });
 
   test.each([
