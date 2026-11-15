@@ -1318,7 +1318,7 @@
         "th": [
           {
             "strength": "ทำ**FAST ข้างเตียง**ตอนนี้ ดูว่ามีของเหลวในท้องหรือไม่ขณะอาการไม่คงที่",
-            "weigh": "ของเหลวที่มากขึ้นยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ",
+            "weigh": "ของเหลวที่เห็นในภาพยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ",
             "safety": ""
           },
           {
@@ -1335,7 +1335,7 @@
         "en": [
           {
             "strength": "A **bedside FAST** now shows whether there is abdominal fluid while he stays unstable.",
-            "weigh": "More fluid confirms what his vital signs already suggest, so it should not hold him here.",
+            "weigh": "Fluid on the scan confirms what his vital signs already suggest, so it should not hold him here.",
             "safety": ""
           },
           {
@@ -1428,7 +1428,7 @@
         "th": [
           {
             "strength": "ทำ**FAST ข้างเตียง**ตอนนี้ ดูว่ามีของเหลวในท้องหรือไม่ขณะอาการไม่คงที่",
-            "weigh": "ของเหลวที่มากขึ้นยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ",
+            "weigh": "ของเหลวที่เห็นในภาพยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ",
             "safety": ""
           },
           {
@@ -1445,7 +1445,7 @@
         "en": [
           {
             "strength": "A **bedside FAST** now shows whether there is abdominal fluid while he stays unstable.",
-            "weigh": "More fluid confirms what his vital signs already suggest, so it should not hold him here.",
+            "weigh": "Fluid on the scan confirms what his vital signs already suggest, so it should not hold him here.",
             "safety": ""
           },
           {
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-15",
-    "findings": "Fresh non-author review in two rounds of every reply in all 13 banks, all three alternatives per option in Thai and English, against every question variant of its bank and every path into it. Round 1 raised three reply MUST-FIX items. The step3 e replies fitted the removed saline option and named the spleen. The step3 b th1 reply named the spleen and disagreed with en1. The step4.B.b replies assumed an earlier scan (\"second scan\", \"FAST ซ้ำ\", \"more fluid on the scan\") that most paths never had. The step5 b en1/th1 replies also asserted the bleed source. Round 2 confirmed the fixes. The six step3 e replies now describe calling the surgeon: every weigh says transfusion and tranexamic acid belong alongside the call, and the three safety lines tell the team to keep resuscitating during the call, which is right for a weaker option at BP 82/56. No spleen mention remains outside step1 b, whose own label names it. step3 b th1 now matches en1. step4.B.b uses neutral scan wording. The step5 b replies say \"suspected\". The step3 a en1/th1 \"an operation\" / \"การผ่าตัด\" wording and the step4.R.c and step4.W.c strength \"whether there is fluid\" are correct. Facts checked: the TXA dose and 3-hour window in the step3 a replies (1 g over 10 min, then 1 g over 8 h; harm after 3 h; Rossaint Rec 23, CRASH-2) and the 0.5 mL/kg/h urine target in step4.B.b (ATLS 10th ed.) are correct. No reply ranks the choice, previews a later step or names another option. Non-blocking: the step4.R.c and step4.W.c weigh (\"More fluid confirms...\" / \"ของเหลวที่มากขึ้น...\") can read as a comparison with an earlier scan; \"Fluid on the scan\" would be neutral. reply-bank.mjs check reports content ok and review pending, and the motorcycle-shock tree test passes. Neither file changed during the round-2 review. Tree sha256 501eeecb6064ecece232fad728bde011cccfa20263039032081a90143da32690. Replies sha256 6ba3df89d7ab0c88bca59ba0477e20669a02ccdef61d71fbddcdccc434d20fec.",
+    "findings": "Fresh non-author review in two rounds of every reply in all 13 banks, all three alternatives per option in Thai and English, against every question variant of its bank and every path into it. Round 1 raised three reply MUST-FIX items. The step3 e replies fitted the removed saline option and named the spleen. The step3 b th1 reply named the spleen and disagreed with en1. The step4.B.b replies assumed an earlier scan (\"second scan\", \"FAST ซ้ำ\", \"more fluid on the scan\") that most paths never had. The step5 b en1/th1 replies also asserted the bleed source. Round 2 confirmed the fixes. The six step3 e replies now describe calling the surgeon: every weigh says transfusion and tranexamic acid belong alongside the call, and the three safety lines tell the team to keep resuscitating during the call, which is right for a weaker option at BP 82/56. No spleen mention remains outside step1 b, whose own label names it. step3 b th1 now matches en1. step4.B.b uses neutral scan wording. The step5 b replies say \"suspected\". The step3 a en1/th1 \"an operation\" / \"การผ่าตัด\" wording and the step4.R.c and step4.W.c strength \"whether there is fluid\" are correct. Facts checked: the TXA dose and 3-hour window in the step3 a replies (1 g over 10 min, then 1 g over 8 h; harm after 3 h; Rossaint Rec 23, CRASH-2) and the 0.5 mL/kg/h urine target in step4.B.b (ATLS 10th ed.) are correct. No reply ranks the choice, previews a later step or names another option. Round 3 applied the step4.R.c and step4.W.c weigh wording, which had read as a comparison with an earlier scan that most paths never had: \"Fluid on the scan confirms what his vital signs already suggest, so it should not hold him here.\" / \"ของเหลวที่เห็นในภาพยืนยันสิ่งที่สัญญาณชีพบอกอยู่แล้ว จึงไม่ควรทำให้ต้องรอ\". It is now neutral on every path into both banks, and a diff confirmed that these four strings are the only reply change. reply-bank.mjs check reports content ok and review pending, and the motorcycle-shock tree test passes. Neither file changed during the round-3 review. Tree sha256 501eeecb6064ecece232fad728bde011cccfa20263039032081a90143da32690. Replies sha256 33dd3a3e659b3cf148c3fb1eb050b81bf53798b7a2c196cd2175bab28c242935.",
     "tree_sha256": "501eeecb6064ecece232fad728bde011cccfa20263039032081a90143da32690",
-    "replies_sha256": "6ba3df89d7ab0c88bca59ba0477e20669a02ccdef61d71fbddcdccc434d20fec"
+    "replies_sha256": "33dd3a3e659b3cf148c3fb1eb050b81bf53798b7a2c196cd2175bab28c242935"
   }
 }
