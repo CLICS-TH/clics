@@ -1001,6 +1001,13 @@
       "date": "2026-11-14",
       "findings": "Fresh review by a non-author of five-step version 5, then a confirm review of the one stem edited after it: every question variant and option of all 13 banks, Thai and English. #495 change: step4.W option a (TXA 1 g) is gone, default_trio is b, c, d, and both step4.W stems state that blood and TXA are in (\"1 ชม. หลังเหตุ ได้เลือดและ TXA แล้ว BP 88/58 ทำอะไรต่อ\" / \"An hour after the crash, blood and TXA are in; BP is 88/58. What now?\"; v2 states TXA 1 g). Sources opened: the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023, via Europe PMC PMC9977110): Rec 13 systolic 80-90 mmHg until bleeding is stopped without TBI, Rec 15 crystalloid first, Rec 23 TXA as soon as possible and within 3 h, 1 g over 10 min then 1 g over 8 h; CRASH-2 via WikiJournalClub: the same regimen, and bleeding deaths rose when given after 3 h (RR 1.44); the 2011 timing figures came from search-result text, as the Lancet and LSHTM pages returned 403. The WHO-ICRC Basic Emergency Care landing page had no TXA detail; no ATLS or Thai trauma standard was opened. TXA path audit, step 4 keyed on the step-3 tier: step-3 a, b and c in all three step-3 banks give TXA once (label or line) and lead to step4.B or step4.R, where no TXA is offered; step-3 e (blood and transfer, no TXA) leads to step4.W, whose stems both state TXA is in and whose options give no more. So TXA is loaded exactly once on every path, about 1 h after injury, inside the 3-hour window; a test walks every step 3 to step 4 path. Each bank holds one option per tier; no unsafe option, no tier mislabel, no withholding wording; Thai and English agree. Non-blocking: the 1 g over 8 h follow-on infusion is not mentioned; the vignette does not state normal leg movement (#468). MUST-FIX: none. Reviewed tree sha256 9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3.",
       "tree_sha256": "9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3"
+    },
+    "owner_waiver": {
+      "date": "2026-11-15",
+      "adr": "0005",
+      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611150155-0aa5: best mean 48 is -10 from the pool median 58, beyond ±8; mixed mean 58 is 8.67 from the pool median 49.33, beyond ±8; strong: 2 of 3 plays scored",
+      "sandbox_run_id": "sbx-202611150155-0aa5",
+      "tree_sha256": "9b004ba503305e45ee12bffb292632cc7af4a585e79696571b3bd1580de1c8c3"
     }
   },
   "path_score_table": {

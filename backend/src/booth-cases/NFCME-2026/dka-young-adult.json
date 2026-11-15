@@ -994,6 +994,13 @@
       "date": "2026-11-14",
       "findings": "Fresh review by a non-author of the five-step tree, version 8, moved from staging into the live event by #495: every question variant and option of all 13 banks, Thai and English. Sources opened: the hyperglycaemic crises consensus (Diabetologia 2024;67:1455-79, full-text PDF): fixed-rate IV insulin 0.1 U/kg/h, an optional bolus only if venous access is delayed, below 250 mg/dL add 5-10% dextrose and cut to 0.05 U/kg/h, K replacement below 5.0, no insulin until K is above 3.5, a 1-2 h basal-bolus overlap, ketosis-prone type 2 diabetes presenting with DKA, and Table 2 grading pH 7.0-7.25 with an alert or drowsy patient as moderate; JBDS 02 pathway (March 2023): FRIII 0.1 unit/kg/h, add 10% dextrose below 14 mmol/L and consider reducing to 0.05, check the pump and line if ketones fall slowly, cautious fluids at 18-25, critical care if SBP stays below 90. Thai DM CPG 2566 ch.12 and WHO SEARO IMAI could not be opened; claims about them rest on the earlier reviews' recorded quotes. Changes checked: step1 b \"New-onset diabetes with DKA\" is correct, as ketosis-prone type 2 also presents with DKA; glucose values carry mg/dL where they lacked it, and the fixed 1 unit/h steps became \"in small steps\" / \"a little\", so no step mixes units/h with units/kg/h; step4.B c (10% dextrose, same insulin rate) stays reasonable, JBDS-concordant but below the two cut-the-rate bests that follow the consensus and Thai CPG; step5.W c (raise insulin a little, then refer; drowsier, pH 7.12, K 3.9) stays reasonable, moderate DKA by Table 2, with referral in the option. Every weaker option is safe (referral with treatment unchanged, added fluid and K with insulin running, 0.05 U/kg/h once K is safe, diagnostic distractors). Every K at an insulin-raising step is at least 3.7. No withholding wording; Thai and English agree. Non-blocking: step4.B a Thai line lacks มก./ดล. (would exceed budget); \"then refer\" could read \"and refer\". MUST-FIX: none. Reviewed tree sha256 4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a.",
       "tree_sha256": "4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a"
+    },
+    "owner_waiver": {
+      "date": "2026-11-15",
+      "adr": "0005",
+      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611150155-0aa5: mixed mean 60.33 is 11 from the pool median 49.33, beyond ±8; weakest mean 46.67 is 8.67 from the pool median 38, beyond ±8; strong: 1 of 3 plays scored",
+      "sandbox_run_id": "sbx-202611150155-0aa5",
+      "tree_sha256": "4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a"
     }
   },
   "path_score_table": {

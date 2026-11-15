@@ -1187,6 +1187,13 @@
     "table_check": {
       "run_id": "ptb-202611150212-bdf7",
       "date": "2026-11-15"
+    },
+    "owner_waiver": {
+      "date": "2026-11-15",
+      "adr": "0005",
+      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611150155-0aa5: best mean 50 is -8 from the pool median 58, beyond ±8",
+      "sandbox_run_id": "sbx-202611150155-0aa5",
+      "tree_sha256": "9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94"
     }
   },
   "path_score_table": {

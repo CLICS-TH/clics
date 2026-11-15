@@ -1131,6 +1131,11 @@
       "date": "2026-11-14",
       "findings": "Fresh review by a non-author of five-step version 5, then a confirm review after its fixes: every variant and option of all 13 banks, Thai and English. Sources opened: Eddleston et al., Lancet 2008 (UKPMC author manuscript UKMS1630; PMC2493390 returned a reCAPTCHA): atropine 1-3 mg doubled at 5-minute reviews to pulse >80, systolic >80 and a clear chest, an infusion of 10-20% of the loading dose per hour, high-flow oxygen, intubation when airway or breathing is compromised, pupils not a useful early end point, rapid unconsciousness and vomiting raise aspiration risk, oxime benefit varies and is lost once the enzyme ages; Ramathibodi Poison Center protocol 40, Organophosphorus and Carbamate (1 June 2022): wash skin, airway, low oxygen and circulation first, intubate when unconsciousness or secretions obstruct the airway, atropine 1.8-3 mg IV doubled every 5 minutes, pralidoxime 1-2 g then 0.5-1 g/h, hotline 1367. No WHO source was opened. step2.B/R chest X-ray moved to reasonable: looking for aspiration in a drowsy man who vomits is defensible; step2.R default trio a,e,d holds one per tier. step3.W and step4.W (chest floods, drowsier, SpO2 87-88%): every non-best option now carries suction and oxygen (step3.W d \"Suction, O2, atropine; team washes\"; step3.W e and step4.W e \"Suction, O2, atropine, nebuliser\", whose line makes the bronchodilator clear; step4.W d atropine, oxygen, frequent suction), so all are safe as weaker; b and c are fair as reasonable; intubation with ICU stays the only best. step5.W d (phone 1367) is right as weaker: good Thai practice, but the call neither moves a man on high-dose atropine at 36 h to ICU-capable care nor treats him, and its replies carry a safety sentence. No wrong facts, no withholding wording; Thai and English agree. MUST-FIX: none. Reviewed tree sha256 6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f.",
       "tree_sha256": "6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f"
+    },
+    "sandbox": {
+      "run_id": "sbx-202611150155-0aa5",
+      "date": "2026-11-15",
+      "tree_sha256": "6f97efa1ac45a9d70e7f7c02f24bc5834bc66e2ab3b9294c40362e951720548f"
     }
   },
   "path_score_table": {

@@ -1078,6 +1078,13 @@
       "date": "2026-11-14",
       "findings": "Fresh reviewer that did not write the case, 2026-11-14, five-step version 5. Sources opened: Anunnatsiri et al., Clin Infect Dis 2021 (12 vs 20 weeks TMP-SMX); Limmathurotsakul et al., Clin Infect Dis 2006 and PLoS NTD 2008 abstracts; Currie, Ward, Cheng, PLoS NTD 2010 (Darwin cohort); 2024 Darwin Melioidosis Treatment Guideline (NT Disease Control Bulletin, Dec 2023, Tables 1 and 3); PLoS NTD 2023 network meta-analysis (TMP-SMX alone 20 weeks is the Thai recommendation). The Thai DDC guideline itself was not opened. Checked all 13 banks, every variant and option for drug choice, IV and eradication lengths, relapse and diabetes care, discharge, tiers, stems on each entry path and Thai-English parity. Ticket items: step3.R b stays best, since 20 weeks is the Thai standard and the 2021 trial missed its primary non-inferiority test (recurrence 2% vs 1%, HR 2.66, 0.52-13.69) and randomised only patients with no residual abscess. The step5.R a line now makes no relapse claim, which is right: diabetes was tied to relapse in Darwin but not in the Thai cohort, and early TMP-SMX checks are standard (Darwin Table 3). No must-fix. Non-blocking: step4.R d (add TMP-SMX to the IV drug) is weaker for its stated reason, though Darwin 2024 now starts graded TMP-SMX in the intensive phase. Reviewed tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50. Confirm read 2026-11-14 by a second non-author reviewer: WHO SEARO IMAI 2021 sec 11.23 (IV ceftazidime, then co-trimoxazole at least 3 months) and Thai DDC ODPC9 2023 risk assessment plus Thai Melioidosis Network sheet (12-20 weeks) agree; the DDC 2021 guideline itself did not open.",
       "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50"
+    },
+    "owner_waiver": {
+      "date": "2026-11-15",
+      "adr": "0005",
+      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611150155-0aa5: mixed mean 62.67 is 13.33 from the pool median 49.33, beyond ±8; weakest mean 48.33 is 10.33 from the pool median 38, beyond ±8; strong: 1 of 3 plays scored",
+      "sandbox_run_id": "sbx-202611150155-0aa5",
+      "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50"
     }
   },
   "path_score_table": {
