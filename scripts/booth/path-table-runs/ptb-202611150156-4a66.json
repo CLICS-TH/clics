@@ -1,0 +1,112 @@
+{
+  "run_id": "ptb-202611150156-4a66",
+  "date": "2026-11-15",
+  "rimpl_url": "http://localhost:3003",
+  "cap_usd": 33.49,
+  "spent_usd": 0.986958,
+  "stopped": true,
+  "over_cap": false,
+  "samples": 3,
+  "planned": 81,
+  "scored": 50,
+  "evaluator": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "prompt_version": "pis7-prompt-59561c29",
+    "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
+    "decoding": {
+      "temperature": 0,
+      "max_tokens": 4096,
+      "top_p": null,
+      "seed": null,
+      "num_ctx": null
+    }
+  },
+  "method": "median-regression",
+  "scripted": {
+    "best": "BBBBB",
+    "mixed": "BRWRR",
+    "weakest": "WWWWW"
+  },
+  "sampled": [
+    "BBBBB",
+    "BBBRW",
+    "BBBWR",
+    "BRWBW",
+    "BRWRR",
+    "BRWWB",
+    "BWRBR",
+    "BWRRB",
+    "BWRWW",
+    "RBWBB",
+    "RBWRW",
+    "RBWWR",
+    "RRRBW",
+    "RRRRR",
+    "RRRWB",
+    "RWBBR",
+    "RWBRB",
+    "RWBWW",
+    "WBRBB",
+    "WBRRW",
+    "WBRWR",
+    "WRBBW",
+    "WRBRR",
+    "WRBWB",
+    "WWWBR",
+    "WWWRB",
+    "WWWWW"
+  ],
+  "cases": {
+    "dka-young-adult": {
+      "version": "8",
+      "tree_sha256": "4204757f2b79e084b29d074456b8ae0e017d3d053b19c16026e29cdba21b210a",
+      "reviewed_commit": "e9554cbb6ba58ae83cabbf8bea39c6c1c07aff63",
+      "table": false,
+      "why": "not every path is fully scored",
+      "composites": null
+    }
+  },
+  "recheck": {
+    "medians": {
+      "best": null,
+      "mixed": null,
+      "weakest": null
+    },
+    "pool_n": {
+      "best": 0,
+      "mixed": 0,
+      "weakest": 0
+    },
+    "bands": {
+      "best": null,
+      "mixed": null,
+      "weakest": null
+    },
+    "gap_min": 6.59,
+    "pool_from": "this run",
+    "cases": {
+      "dka-young-adult": {
+        "means": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": null,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 50 of 81 samples scored, stopped at the cap",
+          "no pool: best pooled from 0 case(s), mixed pooled from 0 case(s), weakest pooled from 0 case(s), fewer than 3",
+          "best: 0 of 1 plays scored",
+          "mixed: 0 of 1 plays scored",
+          "weakest: 0 of 1 plays scored"
+        ]
+      }
+    }
+  }
+}
