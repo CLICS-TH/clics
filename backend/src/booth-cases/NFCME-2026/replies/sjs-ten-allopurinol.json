@@ -113,35 +113,35 @@
       "e": {
         "th": [
           {
-            "strength": "เชื่อมไข้กับผิวลอกเข้ากับพิษของเชื้อ ซึ่งเป็นสาเหตุจริงของผิวหลุดเป็นวงกว้าง",
-            "weigh": "SSSS มักไม่มีรอยโรคที่เยื่อบุ แต่รายนี้ริมฝีปากเป็นสะเก็ดและตาแดง",
+            "strength": "นึกถึงการติดเชื้อที่ผิวหนังซึ่งรักษาได้ เมื่อมีไข้ร่วมกับผิวลอก",
+            "weigh": "โรคนี้พบน้อยในผู้ใหญ่ และมักไม่มีแผลในปากหรือตาแดงอย่างที่เห็นในรายนี้",
             "safety": ""
           },
           {
-            "strength": "นึกได้ว่าไข้ร่วมกับ**ผิวลอก**อาจเกิดจากพิษของเชื้อแบคทีเรีย",
-            "weigh": "โรคนี้พบน้อยในผู้ใหญ่ และประวัติไม่มีแหล่งติดเชื้อสแตฟให้เห็น",
+            "strength": "คิดถึงการติดเชื้อก่อน เป็นนิสัยที่ปลอดภัยเมื่อมีไข้ร่วมกับผื่น",
+            "weigh": "หลักง่าย ๆ นี้มองข้ามยาใหม่ที่เพิ่งเริ่มเมื่อ 3 สัปดาห์ก่อน",
             "safety": ""
           },
           {
-            "strength": "ยังคงสาเหตุจากการติดเชื้อที่รักษาได้ไว้ในรายการวินิจฉัยแยกโรค",
-            "weigh": "ยาใหม่ที่เพิ่งเริ่ม รวมทั้งรอยโรคที่ปากและตา เป็นข้อมูลที่ควรนำมาชั่งด้วย",
+            "strength": "นึกถึงสาเหตุของผิวลอกที่ต้องใช้ยาปฏิชีวนะจริง",
+            "weigh": "ริมฝีปากเป็นสะเก็ดและตาแดงชี้ไปทางแพ้ยาที่เยื่อบุมากกว่าพิษของเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Links fever with peeling skin to a toxin, a real cause of widespread skin loss.",
-            "weigh": "Staph scalded skin spares the mucous membranes, yet his lips are crusted and his eyes red.",
+            "strength": "Keeps a treatable **skin infection** in mind for fever with peeling skin.",
+            "weigh": "This toxin illness is rare in adults and spares the mouth and eyes, both sore here.",
             "safety": ""
           },
           {
-            "strength": "Recognises that fever with **peeling skin** can come from a bacterial toxin.",
-            "weigh": "It is uncommon in adults, and nothing in his story points to a staph source.",
+            "strength": "Thinks of infection first, a safe habit when fever comes with a rash.",
+            "weigh": "This rule of thumb passes over the new drug he started 3 weeks ago.",
             "safety": ""
           },
           {
-            "strength": "Keeps a treatable infectious cause of skin peeling on the list.",
-            "weigh": "His recently started drug and the mouth and eye involvement are worth weighing too.",
+            "strength": "Names a real cause of peeling skin that needs antibiotics.",
+            "weigh": "Crusted lips and red eyes point to a mucosal drug reaction more than a toxin.",
             "safety": ""
           }
         ]
@@ -659,35 +659,35 @@
       "d": {
         "th": [
           {
-            "strength": "ป้ายตุ่มน้ำตรวจ Tzanck ทำได้เร็วข้างเตียง ช่วยหาสาเหตุจากไวรัส",
+            "strength": "ป้ายตุ่มน้ำตรวจ Tzanck ทำได้เร็วข้างเตียง รู้ผลภายในชั่วโมง",
             "weigh": "ผลตรวจไม่จำเพาะ และผลลบก็ยังสรุปสาเหตุไม่ได้",
             "safety": ""
           },
           {
             "strength": "ยังนึกถึงตุ่มน้ำจากไวรัสไว้ ด้วยการตรวจที่ราคาไม่แพงและรู้ผลเร็ว",
-            "weigh": "ผลตรวจบอกได้เพียงเซลล์ติดไวรัส ไม่ได้บอกความรุนแรงของโรค",
+            "weigh": "นิสัยกว้าง ๆ แบบนี้มองข้ามยาใหม่และผิวที่หลุดลอกของเขา",
             "safety": ""
           },
           {
             "strength": "ใช้ตุ่มน้ำที่มีอยู่เป็นสิ่งส่งตรวจ ทำได้จริงข้างเตียง",
-            "weigh": "การอ่านสไลด์ต้องอาศัยประสบการณ์ และหลายแห่งแทบไม่ได้ทำแล้ว",
+            "weigh": "ผลตรวจไม่ได้บอกความรุนแรงของโรค ซึ่งสำคัญที่สุดในวันนี้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A quick bedside **Tzanck smear** checks for a viral cause of blisters.",
+            "strength": "A quick bedside **Tzanck smear** gives a result within the hour.",
             "weigh": "Its findings are not specific, and a negative smear does not settle the cause.",
             "safety": ""
           },
           {
-            "strength": "Keeps a viral blistering cause in view with a cheap, fast test.",
-            "weigh": "The smear speaks only to viral cells and says nothing about how severe this is.",
+            "strength": "Keeps a viral cause of blisters in view with a cheap, fast test.",
+            "weigh": "A general habit like this passes over his new drug and the peeling skin.",
             "safety": ""
           },
           {
             "strength": "Uses the blister itself as a sample, a practical bedside step.",
-            "weigh": "Reading a smear well takes experience, and many sites rarely do it now.",
+            "weigh": "The smear says nothing about how severe this is, which matters most today.",
             "safety": ""
           }
         ]
@@ -695,35 +695,35 @@
       "e": {
         "th": [
           {
-            "strength": "ใช้การตรวจจำเพาะ ยืนยัน**เชื้ออีสุกอีใส**ได้จากตุ่มน้ำโดยตรง",
+            "strength": "เก็บตัวอย่าง**จากตุ่มน้ำ**โดยตรง ตรวจหาไวรัสตัวหนึ่งได้ตรงจุด",
             "weigh": "ผิวที่หลุดลอกเมื่อถูเบา ๆ ราวร้อยละ 12 ไม่ใช่ลักษณะของอีสุกอีใส",
             "safety": ""
           },
           {
-            "strength": "เก็บตัวอย่างจากรอยโรคโดยตรง ได้คำตอบแม่นยำเรื่องไวรัสตัวหนึ่ง",
+            "strength": "ทำตามขั้นตอนที่คุ้นเคยเมื่อมีไข้ร่วมกับตุ่มน้ำ",
             "weigh": "ริมฝีปากเป็นสะเก็ด ตาแดง และยาใหม่เมื่อ 3 สัปดาห์ก่อน ยังต้องหาคำอธิบาย",
             "safety": ""
           },
           {
             "strength": "ยังนึกถึงโรคติดต่อไว้ ซึ่งสำคัญต่อความปลอดภัยในหอผู้ป่วย",
-            "weigh": "แม้ผลบวก ก็ยากจะอธิบายผิวที่หลุดเมื่อถูเบา ๆ",
+            "weigh": "แม้ผลบวก ก็ยังอธิบายผิวที่หลุดลอกและแผลในปากได้ยาก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Uses a specific test that can confirm chickenpox straight **from a blister**.",
+            "strength": "Takes a sample **from a blister**, a direct test for one viral cause.",
             "weigh": "Skin that peels with a gentle rub over 12% of his body is not a feature of chickenpox.",
             "safety": ""
           },
           {
-            "strength": "Samples the lesion itself, giving a precise answer about one viral cause.",
+            "strength": "Follows a familiar routine for blisters with fever.",
             "weigh": "The crusted lips, red eyes and new drug 3 weeks ago remain to be explained.",
             "safety": ""
           },
           {
             "strength": "Keeps a contagious infection in mind, which matters for ward safety.",
-            "weigh": "A positive result is unlikely to account for skin detaching with a gentle rub.",
+            "weigh": "A positive result would still leave the peeling skin and sore mouth unexplained.",
             "safety": ""
           }
         ]
@@ -874,73 +874,73 @@
           }
         ]
       },
-      "e": {
+      "ah_ref": {
         "th": [
           {
-            "strength": "หยุดยาต้นเหตุ และส่ง**หน่วยแผลไหม้**ให้เหมาะกับพื้นที่ผิวที่หลุด",
-            "weigh": "ยาแก้แพ้อาจลดอาการคัน แต่ไม่ได้หยุดการหลุดลอกของผิว",
+            "strength": "หยุดยาทันที และส่งต่อให้ได้รับการดูแลเฉพาะทาง",
+            "weigh": "ยาแก้แพ้ช่วยลดอาการคัน แต่ไม่ได้หยุดการหลุดลอกของผิว",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับส่งต่อไปหน่วยที่คุ้นกับแผลกว้าง",
-            "weigh": "ยาแก้แพ้ชนิดง่วงอาจทำให้ประเมินระดับความรู้สึกตัวยากขึ้นระหว่างเฝ้าดู",
+            "strength": "หยุดยาควบคู่กับส่งต่อ และให้การรักษาที่ทำได้ทันที",
+            "weigh": "ผิวหลุดเกินร้อยละ 10 เหมาะกับหน่วยที่ดูแลแผลและตาได้ครบ",
             "safety": ""
           },
           {
-            "strength": "ใส่ใจความสบายของผู้ป่วย พร้อมกับหยุดยาและประสานหน่วยแผลไหม้",
-            "weigh": "ยาแก้แพ้ช่วยอาการคันจากภูมิแพ้ แต่ไม่ได้รักษากลไกภูมิคุ้มกันของโรคนี้",
+            "strength": "เอาสาเหตุออก และวางแผนการดูแลต่อในคราวเดียว",
+            "weigh": "ยาแก้แพ้ชนิดง่วงอาจทำให้ประเมินความรู้สึกตัวยากขึ้นระหว่างเดินทาง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the cause and sends him to a **burn unit**, matching his skin loss.",
-            "weigh": "Antihistamines may ease itch but do not halt the skin detachment.",
+            "strength": "Stops the **drug** at once and sends him on for specialist care.",
+            "weigh": "An antihistamine eases itch but leaves the skin detachment as it is.",
             "safety": ""
           },
           {
-            "strength": "Pairs drug withdrawal with referral to a unit used to large raw areas.",
-            "weigh": "Sedating antihistamines can blur his alertness, which matters while he is watched.",
+            "strength": "Pairs drug withdrawal with onward care and a treatment he can get at once.",
+            "weigh": "With over 10% skin loss, a team with full wound and eye care suits him best.",
             "safety": ""
           },
           {
-            "strength": "Attends to his comfort while stopping the cause and arranging a burn unit.",
-            "weigh": "An antihistamine treats allergic itch, not the immune process driving this reaction.",
+            "strength": "Removes the cause and arranges onward care in one plan.",
+            "weigh": "Sedating antihistamines can blur his alertness, which matters on the journey.",
             "safety": ""
           }
         ]
       },
-      "f": {
+      "st_ref": {
         "th": [
           {
-            "strength": "หยุดยา วางแผน ICU และใช้วิธีที่บางแห่งใช้ในช่วงแรก",
-            "weigh": "หลักฐานเรื่องสเตียรอยด์ใน SJS/TEN ยังไม่ชัด และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
+            "strength": "หยุดยา ส่งต่อ และมองการแพ้ครั้งนี้ว่ารุนแรง",
+            "weigh": "ประโยชน์ของสเตียรอยด์ใน SJS/TEN ยังไม่แน่นอน และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
             "safety": ""
           },
           {
             "strength": "ลงมือเร็ว ในช่วงที่การรักษาเพื่อกดภูมิคุ้มกันมีโอกาสช่วยได้มากที่สุด",
-            "weigh": "ประโยชน์ของสเตียรอยด์ยังไม่แน่นอน และการให้นานสัมพันธ์กับการติดเชื้อมากขึ้น",
+            "weigh": "การให้สเตียรอยด์นานสัมพันธ์กับการติดเชื้อมากขึ้นในโรคนี้",
             "safety": ""
           },
           {
-            "strength": "มองเป็นภาวะฉุกเฉิน ให้**สเตียรอยด์ IV** และส่ง ICU",
+            "strength": "ส่งต่อควบคู่กับการรักษาระยะแรกที่บางแห่งใช้",
             "weigh": "สเตียรอยด์อาจกดไข้ ทำให้สังเกตการติดเชื้อได้ยากขึ้น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the drug, plans ICU care and draws on practice some centres use early.",
-            "weigh": "Evidence for steroids in SJS/TEN is mixed, and they can raise infection risk on raw skin.",
+            "strength": "Stops the **drug**, sends him on, and treats the reaction as serious.",
+            "weigh": "Steroid benefit in SJS/TEN is uncertain, and steroids can raise infection risk on raw skin.",
             "safety": ""
           },
           {
             "strength": "Acts early, when immune-directed treatment has most chance to help.",
-            "weigh": "Steroid benefit is uncertain, and longer courses are linked to more infection.",
+            "weigh": "Longer steroid courses are linked to more infection in this disease.",
             "safety": ""
           },
           {
-            "strength": "Treats the reaction as an emergency, with an **IV steroid** and ICU.",
+            "strength": "Pairs onward care with an early treatment some centres use.",
             "weigh": "Steroids can blunt fever, a sign worth keeping clear while infection is a risk.",
             "safety": ""
           }
@@ -1092,38 +1092,38 @@
           }
         ]
       },
-      "e": {
+      "ah_ref": {
         "th": [
           {
-            "strength": "หยุดยาต้นเหตุ และส่ง**หน่วยแผลไหม้**ให้เหมาะกับพื้นที่ผิวที่หลุด",
-            "weigh": "ยาแก้แพ้อาจลดอาการคัน แต่ไม่ได้หยุดการหลุดลอกของผิว",
+            "strength": "หยุดยาทันที และส่งต่อให้ได้รับการดูแลเฉพาะทาง",
+            "weigh": "ยาแก้แพ้ช่วยลดอาการคัน แต่ไม่ได้หยุดการหลุดลอกของผิว",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับส่งต่อไปหน่วยที่คุ้นกับแผลกว้าง",
-            "weigh": "ยาแก้แพ้ชนิดง่วงอาจทำให้ประเมินระดับความรู้สึกตัวยากขึ้นระหว่างเฝ้าดู",
+            "strength": "หยุดยาควบคู่กับส่งต่อ และให้การรักษาที่ทำได้ทันที",
+            "weigh": "ผิวหลุดเกินร้อยละ 10 เหมาะกับหน่วยที่ดูแลแผลและตาได้ครบ",
             "safety": ""
           },
           {
-            "strength": "ใส่ใจความสบายของผู้ป่วย พร้อมกับหยุดยาและประสานหน่วยแผลไหม้",
-            "weigh": "ยาแก้แพ้ช่วยอาการคันจากภูมิแพ้ แต่ไม่ได้รักษากลไกภูมิคุ้มกันของโรคนี้",
+            "strength": "เอาสาเหตุออก และวางแผนการดูแลต่อในคราวเดียว",
+            "weigh": "ยาแก้แพ้ชนิดง่วงอาจทำให้ประเมินความรู้สึกตัวยากขึ้นระหว่างเดินทาง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the cause and sends him to a **burn unit**, matching his skin loss.",
-            "weigh": "Antihistamines may ease itch but do not halt the skin detachment.",
+            "strength": "Stops the **drug** at once and sends him on for specialist care.",
+            "weigh": "An antihistamine eases itch but leaves the skin detachment as it is.",
             "safety": ""
           },
           {
-            "strength": "Pairs drug withdrawal with referral to a unit used to large raw areas.",
-            "weigh": "Sedating antihistamines can blur his alertness, which matters while he is watched.",
+            "strength": "Pairs drug withdrawal with onward care and a treatment he can get at once.",
+            "weigh": "With over 10% skin loss, a team with full wound and eye care suits him best.",
             "safety": ""
           },
           {
-            "strength": "Attends to his comfort while stopping the cause and arranging a burn unit.",
-            "weigh": "An antihistamine treats allergic itch, not the immune process driving this reaction.",
+            "strength": "Removes the cause and arranges onward care in one plan.",
+            "weigh": "Sedating antihistamines can blur his alertness, which matters on the journey.",
             "safety": ""
           }
         ]
@@ -1274,37 +1274,37 @@
           }
         ]
       },
-      "f": {
+      "st_ref": {
         "th": [
           {
-            "strength": "หยุดยา วางแผน ICU และใช้วิธีที่บางแห่งใช้ในช่วงแรก",
-            "weigh": "หลักฐานเรื่องสเตียรอยด์ใน SJS/TEN ยังไม่ชัด และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
+            "strength": "หยุดยา ส่งต่อ และมองการแพ้ครั้งนี้ว่ารุนแรง",
+            "weigh": "ประโยชน์ของสเตียรอยด์ใน SJS/TEN ยังไม่แน่นอน และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
             "safety": ""
           },
           {
             "strength": "ลงมือเร็ว ในช่วงที่การรักษาเพื่อกดภูมิคุ้มกันมีโอกาสช่วยได้มากที่สุด",
-            "weigh": "ประโยชน์ของสเตียรอยด์ยังไม่แน่นอน และการให้นานสัมพันธ์กับการติดเชื้อมากขึ้น",
+            "weigh": "การให้สเตียรอยด์นานสัมพันธ์กับการติดเชื้อมากขึ้นในโรคนี้",
             "safety": ""
           },
           {
-            "strength": "มองเป็นภาวะฉุกเฉิน ให้**สเตียรอยด์ IV** และส่ง ICU",
+            "strength": "ส่งต่อควบคู่กับการรักษาระยะแรกที่บางแห่งใช้",
             "weigh": "สเตียรอยด์อาจกดไข้ ทำให้สังเกตการติดเชื้อได้ยากขึ้น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the drug, plans ICU care and draws on practice some centres use early.",
-            "weigh": "Evidence for steroids in SJS/TEN is mixed, and they can raise infection risk on raw skin.",
+            "strength": "Stops the **drug**, sends him on, and treats the reaction as serious.",
+            "weigh": "Steroid benefit in SJS/TEN is uncertain, and steroids can raise infection risk on raw skin.",
             "safety": ""
           },
           {
             "strength": "Acts early, when immune-directed treatment has most chance to help.",
-            "weigh": "Steroid benefit is uncertain, and longer courses are linked to more infection.",
+            "weigh": "Longer steroid courses are linked to more infection in this disease.",
             "safety": ""
           },
           {
-            "strength": "Treats the reaction as an emergency, with an **IV steroid** and ICU.",
+            "strength": "Pairs onward care with an early treatment some centres use.",
             "weigh": "Steroids can blunt fever, a sign worth keeping clear while infection is a risk.",
             "safety": ""
           }
@@ -1676,74 +1676,74 @@
           }
         ]
       },
-      "c": {
-        "th": [
-          {
-            "strength": "ใช้**ปริมาณปัสสาวะ**เป็นตัวชี้วัดความต้องการสารน้ำที่วัดได้จริง",
-            "weigh": "ความดัน 94/60 การปรับทีละชั่วโมงอาจแก้การไหลเวียนได้ช้าเกินไป",
-            "safety": ""
-          },
-          {
-            "strength": "วางแผนให้สารน้ำโดยมีเป้าหมายที่วัดได้ชัดเจน",
-            "weigh": "ความดันต่ำบอกว่าขาดน้ำอยู่แล้ว การปรับตามปัสสาวะอาจตามไม่ทัน",
-            "safety": ""
-          },
-          {
-            "strength": "ผูกอัตราสารน้ำกับปัสสาวะรายชั่วโมง เป็นตัววัดที่ชัดเจน",
-            "weigh": "ปัสสาวะเป็นสัญญาณที่ตามหลัง จึงบอกการขาดน้ำได้หลังเกิดไปแล้ว",
-            "safety": ""
-          }
-        ],
-        "en": [
-          {
-            "strength": "Uses **urine output** as an objective guide to how much to give.",
-            "weigh": "With BP 94/60, hour-by-hour titration may restore his circulation too slowly.",
-            "safety": ""
-          },
-          {
-            "strength": "Plans measured replacement with a clear end point.",
-            "weigh": "Low BP signals a deficit already present, which a rate set by urine can lag behind.",
-            "safety": ""
-          },
-          {
-            "strength": "Ties the **drip rate** to an hourly urine count, a clear measure.",
-            "weigh": "Urine is a lagging sign, so it shows a deficit after the fact.",
-            "safety": ""
-          }
-        ]
-      },
       "d": {
         "th": [
           {
             "strength": "แก้ความดันต่ำทันทีด้วย**น้ำเกลือ bolus**",
-            "weigh": "ประโยชน์เพิ่มของอัลบูมินระยะแรกใน SJS/TEN ยังไม่ชัด และอาจหาได้ยาก",
+            "weigh": "อัลบูมินระยะแรกใน SJS/TEN ยังไม่มีหลักฐานว่าช่วยเพิ่ม และอาจหาได้ยาก",
             "safety": ""
           },
           {
-            "strength": "คิดถึงโปรตีนที่เสียทางผิว และเสริมอัลบูมินเพื่อคงน้ำในหลอดเลือด",
+            "strength": "คิดถึงโปรตีนที่เสียทางผิว ซึ่งเสียไปจริงในโรคนี้",
             "weigh": "อัลบูมินราคาสูงและเตรียมนานกว่า ซึ่งสำคัญเมื่อความดันต่ำอยู่ตอนนี้",
             "safety": ""
           },
           {
-            "strength": "รวมการเพิ่มปริมาตรทันทีเข้ากับแผนคงน้ำไว้ในหลอดเลือด",
+            "strength": "รวมการเพิ่มปริมาตรทันทีเข้ากับ**ตัวเสริมที่ใช้บ่อย**",
             "weigh": "ในชั่วโมงแรก ๆ อัลบูมินอาจรั่วออกจากหลอดเลือดที่เสียหายได้เช่นกัน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Acts on low BP at once with a **saline bolus**.",
-            "weigh": "The added benefit of early albumin in SJS/TEN is unproven, and supply can be limited.",
+            "strength": "Treats low BP at once with a **saline bolus**.",
+            "weigh": "Early albumin has no proven extra benefit in SJS/TEN, and supply can be short.",
             "safety": ""
           },
           {
-            "strength": "Recognises protein loss through raw skin and adds albumin to hold fluid in.",
+            "strength": "Thinks of the protein lost through raw skin, a real loss in this disease.",
             "weigh": "Albumin is costly and slower to set up, which matters while BP is low now.",
             "safety": ""
           },
           {
-            "strength": "Combines immediate volume with a plan to keep it in the circulation.",
-            "weigh": "In the first hours, albumin can also leak through damaged vessels.",
+            "strength": "Pairs immediate volume with a **common add-on** for big losses.",
+            "weigh": "In the first hours, albumin can leak through damaged vessels too.",
+            "safety": ""
+          }
+        ]
+      },
+      "bolus_ua": {
+        "th": [
+          {
+            "strength": "ให้สารน้ำ bolus ทันทีเพื่อแก้ความดัน 94/60",
+            "weigh": "ระดับกรดยูริกไม่ได้ช่วยการดูแลในอีกไม่กี่ชั่วโมงข้างหน้า",
+            "safety": ""
+          },
+          {
+            "strength": "แก้ความดันต่ำด้วยการเพิ่มปริมาตรก่อน",
+            "weigh": "การตรวจกรดยูริกซ้ำเป็นความเคยชิน และขาดการตรวจหาการติดเชื้อหรือเกลือแร่",
+            "safety": ""
+          },
+          {
+            "strength": "เริ่มเพิ่มปริมาตรทันที ซึ่งเป็นขั้นที่สำคัญตอนนี้",
+            "weigh": "เมื่อหยุดอัลโลพูรินอลแล้ว กรดยูริกไม่เกี่ยวกับ SJS/TEN การตรวจจึงเพิ่มแค่ค่าใช้จ่าย",
+            "safety": ""
+          }
+        ],
+        "en": [
+          {
+            "strength": "Gives a **fluid bolus** at once for his BP of 94/60.",
+            "weigh": "A uric acid level adds nothing to his care in the next few hours.",
+            "safety": ""
+          },
+          {
+            "strength": "Treats the low pressure first with volume.",
+            "weigh": "The repeat uric acid is a habit that leaves out a check for infection or electrolytes.",
+            "safety": ""
+          },
+          {
+            "strength": "Starts volume replacement promptly, the step that matters now.",
+            "weigh": "Uric acid plays no part in SJS/TEN once allopurinol is stopped, so the test only adds cost.",
             "safety": ""
           }
         ]
@@ -2298,9 +2298,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-14",
-    "findings": "Fresh claude-opus-5-5 non-author reviewer, 2026-11-14, read every reply in all 13 banks (3 alternatives, Thai and English) against case version 6. Replies are unchanged since the last review; only the HLA labels changed, and no reply quotes the old spelling, so each still fits its option. Checked against BAD 2016 (fluids below burn needs and guided by urine output, early culprit withdrawal, lubricant and ophthalmology, oral anaesthetic care, unproven steroids, antibiotics only with signs of infection, pharmacovigilance report, allergy documentation), ACR 2020 and Saokaew 2014 on HLA-B*58:01 in Thais, and the Thai FDA HPVC page. No must-fix. Non-blocking: no reply carries a safety line; step4.R.c weigh already warns his drinking may lag; the word for waiting appears only in weigh fields, about results or appointments. Tree sha256 45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9, replies sha256 a0b365c094942309618397a458ad758726f71096c9a19a541d43fad231aa6e8f. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
-    "tree_sha256": "45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9",
-    "replies_sha256": "a0b365c094942309618397a458ad758726f71096c9a19a541d43fad231aa6e8f"
+    "date": "2026-11-15",
+    "findings": "Fresh claude-opus-5-5 reviewer that did not write the case, 2026-11-15, two rounds. Read every reply in all 13 banks (3 alternatives per option, Thai and English) against every question variant of its bank and every path into it. Round 1 flagged the step4.W drip alternative 0 for citing low urine, which only variant 1 states. Round 2 replaced drip with bolus_ua, whose replies cite only BP 94/60, which both variants show. Round 2 also added new replies for ah_ref and st_ref in step3.B, step3.R and step3.W. Judged: the ah_ref replies credit stopping the drug and onward care. They weigh that an antihistamine eases itch without stopping detachment, that more than 10% loss suits a full wound and eye team, and that sedation can matter on the journey. The st_ref replies credit early action and onward care, and weigh the uncertain steroid benefit, infection risk and masked fever, in line with BAD 2016. The bolus_ua replies credit the prompt bolus and weigh that a uric acid level adds nothing acute and only adds cost. None of these replies grades the choice, names another option or previews a later step. No reply on any path still says ward, here or admit. All other replies are as reviewed in round 1: facts correct, no ranking, no other option named, nothing asserted that only some variants or paths state. All safety lines are empty, which is right because every option is safe. The reply-bank check reports content ok. Tree sha256 e86d8bca57bfb1c5e8047fce567cc1f1ba5fbab01fac78caf9f81dc918f1089d. Replies sha256 9e147f3af8a93e304ddc90f483ea8662277d5ee512235a4bb8db9d07d802d2ca.",
+    "tree_sha256": "e86d8bca57bfb1c5e8047fce567cc1f1ba5fbab01fac78caf9f81dc918f1089d",
+    "replies_sha256": "9e147f3af8a93e304ddc90f483ea8662277d5ee512235a4bb8db9d07d802d2ca"
   }
 }

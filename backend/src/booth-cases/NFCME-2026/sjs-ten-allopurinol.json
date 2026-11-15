@@ -80,8 +80,8 @@
             "en": "Staph scalded skin (SSSS)"
           },
           "line": {
-            "th": "ไข้ร่วมกับผิวลอกเกิดจากพิษของเชื้อสแตฟได้",
-            "en": "Fever with peeling skin can come from a staph toxin."
+            "th": "ผิวลอกร่วมกับไข้มักมาจากการติดเชื้อที่ผิวหนัง",
+            "en": "Peeling skin with fever often comes from a skin infection."
           }
         }
       ],
@@ -336,8 +336,8 @@
               "en": "Tzanck smear from a blister"
             },
             "line": {
-              "th": "หาเซลล์ที่ติดเชื้อไวรัสจากตุ่มน้ำได้เร็ว",
-              "en": "Quickly looks for virus-infected cells in a blister."
+              "th": "ตรวจข้างเตียงได้เร็ว สะดวกกับผื่นตุ่มน้ำทั่วไป",
+              "en": "A quick bedside test is handy for most blistering rashes."
             }
           },
           {
@@ -348,8 +348,8 @@
               "en": "Varicella PCR from a blister"
             },
             "line": {
-              "th": "ยืนยันเชื้ออีสุกอีใสจากตุ่มน้ำได้ตรงจุด",
-              "en": "Confirms chickenpox virus straight from a blister."
+              "th": "ป้ายตุ่มน้ำส่งตรวจเป็นขั้นตอนปกติเมื่อมีไข้ร่วมกับตุ่มน้ำ",
+              "en": "A blister swab is the usual routine for blisters with fever."
             }
           }
         ],
@@ -428,34 +428,34 @@
             }
           },
           {
-            "id": "e",
+            "id": "ah_ref",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
-              "en": "Stop drug, antihistamine, burn unit"
+              "th": "หยุดยา ให้ยาแก้แพ้ ส่งต่อ",
+              "en": "Stop drug, antihistamine, refer"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
-              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
+              "th": "ยาแก้แพ้เป็นขั้นแรกที่ใช้กันเป็นปกติกับผื่นแพ้ยา",
+              "en": "An antihistamine is the usual first step for a drug rash."
             }
           },
           {
-            "id": "f",
+            "id": "st_ref",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
-              "en": "Stop drug, IV steroid, to ICU"
+              "th": "หยุดยา ให้สเตียรอยด์ IV ส่งต่อ",
+              "en": "Stop drug, IV steroid, refer"
             },
             "line": {
-              "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
-              "en": "Some centres give a short steroid course early in SJS/TEN."
+              "th": "แพทย์หลายคนให้สเตียรอยด์ในผื่นแพ้ยารุนแรง",
+              "en": "Many doctors give a steroid course for a severe drug rash."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "e"
+          "ah_ref"
         ]
       },
       "R": {
@@ -525,22 +525,22 @@
             }
           },
           {
-            "id": "e",
+            "id": "ah_ref",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา ยาแก้แพ้ ส่งหน่วยแผลไหม้",
-              "en": "Stop drug, antihistamine, burn unit"
+              "th": "หยุดยา ให้ยาแก้แพ้ ส่งต่อ",
+              "en": "Stop drug, antihistamine, refer"
             },
             "line": {
-              "th": "หยุดยาต้นเหตุ ให้ยาแก้แพ้ และส่งหน่วยแผลไหม้",
-              "en": "Stops the cause, adds an antihistamine and sends him to a burn unit."
+              "th": "ยาแก้แพ้เป็นขั้นแรกที่ใช้กันเป็นปกติกับผื่นแพ้ยา",
+              "en": "An antihistamine is the usual first step for a drug rash."
             }
           }
         ],
         "default_trio": [
           "b",
           "d",
-          "e"
+          "ah_ref"
         ]
       },
       "W": {
@@ -610,22 +610,22 @@
             }
           },
           {
-            "id": "f",
+            "id": "st_ref",
             "tier": "weaker",
             "label": {
-              "th": "หยุดยา สเตียรอยด์ IV ส่ง ICU",
-              "en": "Stop drug, IV steroid, to ICU"
+              "th": "หยุดยา ให้สเตียรอยด์ IV ส่งต่อ",
+              "en": "Stop drug, IV steroid, refer"
             },
             "line": {
-              "th": "บางแห่งให้สเตียรอยด์ระยะสั้นช่วงแรกของ SJS/TEN",
-              "en": "Some centres give a short steroid course early in SJS/TEN."
+              "th": "แพทย์หลายคนให้สเตียรอยด์ในผื่นแพ้ยารุนแรง",
+              "en": "Many doctors give a steroid course for a severe drug rash."
             }
           }
         ],
         "default_trio": [
           "a",
           "c",
-          "f"
+          "st_ref"
         ]
       }
     },
@@ -819,15 +819,15 @@
             }
           },
           {
-            "id": "c",
+            "id": "bolus_ua",
             "tier": "weaker",
             "label": {
-              "th": "ให้สารน้ำปรับตามปัสสาวะ",
-              "en": "Fluids titrated to urine output"
+              "th": "ให้สารน้ำ bolus ตรวจกรดยูริกซ้ำ",
+              "en": "Fluid bolus, repeat uric acid"
             },
             "line": {
-              "th": "ปรับอัตราสารน้ำตามปริมาณปัสสาวะทุกชั่วโมง",
-              "en": "Sets the drip rate by how much urine he passes each hour."
+              "th": "ตรวจกรดยูริกเป็นขั้นตอนปกติหลังหยุดอัลโลพูรินอล",
+              "en": "Checking uric acid is the usual routine after allopurinol."
             }
           },
           {
@@ -838,14 +838,14 @@
               "en": "Saline bolus plus albumin"
             },
             "line": {
-              "th": "อัลบูมินช่วยเพิ่มปริมาตรในหลอดเลือดร่วมกับน้ำเกลือ",
-              "en": "Albumin adds to the saline bolus to hold fluid in the vessels."
+              "th": "อัลบูมินเป็นตัวเสริมที่ใช้บ่อยเมื่อเสียน้ำมาก",
+              "en": "Albumin is a common add-on for a large fluid loss."
             }
           }
         ],
         "default_trio": [
           "a",
-          "c",
+          "bolus_ua",
           "d"
         ]
       }
@@ -1111,9 +1111,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-14",
-      "findings": "Fresh claude-opus-5-5 reviewer that did not write the case, 2026-11-14, version 6: read all 13 banks (every variant and option, Thai and English) and the diff from version 5. Sources opened: hla.alleles.org allele naming and its April 2010 update (colon-delimited fields); BAD 2016 SJS/TEN guideline (Creamer et al., Br J Dermatol 2016;174:1194-227, OUP full text); ACR 2020 gout guideline release (conditional HLA-B*58:01 testing before allopurinol in Southeast Asian, e.g. Thai, patients); Saokaew et al., PLoS One 2014 (HLA-B*58:01 and allopurinol SJS/TEN in Thais); Thai FDA Health Products Vigilance Center page. Ticket item: HLA-B*58:01 in step2.B e, step2.R d and step5.B/R/W hla is the correct WHO notation; tiers kept (weaker at step 2, reasonable at step 5) and labels in budget. #468 notes: the step4.B b, step4.W b and step4.W d English lines say slightly more than the Thai (first days, early sepsis, hold fluid in the vessels) with the same clinical meaning, not must-fix. step4.R c numbing mouthwash, soft diet stays reasonable: BAD 2016 names benzydamine or viscous lidocaine mouth care, the option rules out no fluids and best option b gives them; keep it on the sandbox watch list. Checked stems against every path in, tiers, safety of weaker options and TH/EN. No must-fix. Reviewed tree sha256 45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9. Confirm read 2026-11-14 by a second non-author reviewer: WHO HLA nomenclature (hla.alleles.org) confirms HLA-B*58:01, WHO SEARO IMAI 2021 sec 10.1 has no gene test in acute care, and Thai J Pharm Sci 2024 backs pre-allopurinol screening; agree. Thai FDA HPVC did not open.",
-      "tree_sha256": "45e6a2c55a54422004c8d70fd29d665c517d8c1c57af0bce5baadc7df13879b9"
+      "date": "2026-11-15",
+      "findings": "Fresh claude-opus-5-5 reviewer that did not write the case, 2026-11-15, case version 8, two rounds. Read the whole tree, all 13 banks, every question variant and option in Thai and English, and the diff from origin/claude/hungry-robinson-dbaaa6. Sources: BAD UK guidelines for SJS/TEN in adults 2016 (Creamer et al., Br J Dermatol 2016;174:1194-227), sections on setting of care and transfer (more than 10% detachment to a burn centre or ICU without delay), SCORTEN at admission, fluid replacement to a urine output target and lower fluid needs than burns, ocular and oral care, and the insufficient evidence for systemic corticosteroids; WHO IMAI District Clinician Manual on shock and fluid resuscitation; Thai referral practice from community to provincial or regional hospitals; and the sources the version 6 review recorded (WHO HLA nomenclature, ACR 2020 and Thai data on HLA-B*58:01, Thai FDA vigilance). Round 1 found three MUST-FIX items. First, the step 3 weaker options admit_ah and admit_st kept a SJS-TEN overlap patient with 12% detachment and SCORTEN 2 or more on a community-hospital ward without referral, which withholds specialist care. Second, step4.W drip gave only a maintenance rate at BP 94/60 with faintness and low urine, which delays resuscitation. Third, the drip reply cited low urine that only one variant states. Round 2 replaced them with ah_ref (stop drug, antihistamine, refer), st_ref (stop drug, IV steroid, refer) and bolus_ua (fluid bolus, repeat uric acid), and restored step4.W variant 2 to before the transfer. Judgments: ah_ref and st_ref still stop the drug and refer, and are weaker only through a low-value or unproven add-on. The referral names no destination, which is acceptable for a weaker option because care is not withheld and the best and reasonable options name burn unit, ICU or regional teams. One IV steroid before transfer is debated under BAD 2016 but not unsafe, and its line describes common practice without endorsing it. bolus_ua gives the needed bolus, and the repeat uric acid only adds cost, so it is safe as weaker. Its line is a habit claim, which suits a weaker distractor. The English says after allopurinol and the Thai says after stopping allopurinol, the same meaning in context. Every path into step4.W now comes from a referral option, so both variants (two hours on, before the transfer) fit. Tiers checked closely: step 1 SJS/TEN best, DRESS reasonable, varicella and SSSS weaker. Step 2 skin area and SCORTEN bloods best, biopsy, culture and CBC reasonable, HLA, Tzanck and PCR weaker. Step 3 burn unit or ICU with fluids best, regional dermatology or medicine reasonable. Step 4 urine-guided fluids, eye care and bolus best, numbing mouthwash and albumin reasonable, uric acid and drops alone weaker. Step 5 allergy card with Thai FDA report and eye follow-up best, HLA family testing and rheumatology reasonable, chart note and tears alone weaker. Thai reads naturally and matches the English. Every line argues for its own option, and the teaser names symptoms only. The reply-bank check passes on content, and the case passes the jest shape and safety test. MUST-FIX: none. Reviewed tree sha256 e86d8bca57bfb1c5e8047fce567cc1f1ba5fbab01fac78caf9f81dc918f1089d.",
+      "tree_sha256": "e86d8bca57bfb1c5e8047fce567cc1f1ba5fbab01fac78caf9f81dc918f1089d"
     }
   }
 }
