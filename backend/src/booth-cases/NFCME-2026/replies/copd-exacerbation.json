@@ -1023,35 +1023,35 @@
       "h": {
         "th": [
           {
-            "strength": "สเตียรอยด์คู่ amox-clav ดูแลทั้งการกำเริบและเสมหะเขียว",
-            "weigh": "pred 5 วันได้ผลเท่ากับ 14 วัน และได้รับสเตียรอยด์น้อยกว่า",
+            "strength": "สเตียรอยด์ 5 วันคู่ยาฆ่าเชื้อ ดูแลทั้งการกำเริบและเสมหะเขียว",
+            "weigh": "เชื้อทางเดินหายใจหลายตัวสร้างเอนไซม์เบตาแลคแทมเมส ซึ่งทำลาย amoxicillin ได้",
             "safety": ""
           },
           {
-            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อครอบคลุมการรักษาการกำเริบทั้งสองส่วนหลัก",
-            "weigh": "คอร์สที่นานขึ้นเพิ่มผลข้างเคียง เช่น น้ำตาลสูงและกล้ามเนื้ออ่อนแรง โดยไม่ได้ประโยชน์เพิ่ม",
+            "strength": "ยากินคอร์สสั้นกินต่อที่บ้านได้ง่าย",
+            "weigh": "แนวทางนิยมยาที่มีตัวยับยั้งเบตาแลคแทมเมสสำหรับการกำเริบแบบนี้",
             "safety": ""
           },
           {
-            "strength": "amox-clav ชนิดกินครอบคลุมเชื้อที่พบบ่อยของการกำเริบ",
-            "weigh": "แนวทางแนะนำสเตียรอยด์ 5 วัน การให้ 14 วันจึงได้ยาเกือบสามเท่าโดยไม่ได้ผลเพิ่ม",
+            "strength": "ให้สเตียรอยด์ 5 วัน ตรงตามแนวทาง",
+            "weigh": "Haemophilus และ Moraxella มักดื้อต่อ amoxicillin ธรรมดา ยาจึงอาจครอบคลุมเชื้อได้ไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Pairing the steroid with amox-clav treats both the flare and the green sputum.",
-            "weigh": "Five days of pred works as well as fourteen, with less steroid exposure.",
+            "strength": "Pairing a 5-day steroid with an antibiotic treats both the flare and the green sputum.",
+            "weigh": "Many chest bacteria make beta-lactamase, which breaks down plain amoxicillin.",
             "safety": ""
           },
           {
-            "strength": "A steroid plus an antibiotic covers the two main parts of flare treatment.",
-            "weigh": "A longer course adds side effects such as high sugar and weak muscles, with no extra benefit.",
+            "strength": "A short oral course is simple to take at home.",
+            "weigh": "Guidelines prefer an antibiotic with a beta-lactamase inhibitor for this kind of flare.",
             "safety": ""
           },
           {
-            "strength": "Amox-clav by mouth covers the common bacteria behind a flare.",
-            "weigh": "Guidelines advise a 5-day steroid course, so 14 days nearly triples the steroid for no gain.",
+            "strength": "Keeping the steroid to 5 days fits the guideline.",
+            "weigh": "Haemophilus and Moraxella often resist plain amoxicillin, so its cover may fall short.",
             "safety": ""
           }
         ]
@@ -1241,35 +1241,35 @@
       "h": {
         "th": [
           {
-            "strength": "สเตียรอยด์คู่ amox-clav ดูแลทั้งการกำเริบและเสมหะเขียว",
-            "weigh": "pred 5 วันได้ผลเท่ากับ 14 วัน และได้รับสเตียรอยด์น้อยกว่า",
+            "strength": "สเตียรอยด์ 5 วันคู่ยาฆ่าเชื้อ ดูแลทั้งการกำเริบและเสมหะเขียว",
+            "weigh": "เชื้อทางเดินหายใจหลายตัวสร้างเอนไซม์เบตาแลคแทมเมส ซึ่งทำลาย amoxicillin ได้",
             "safety": ""
           },
           {
-            "strength": "สเตียรอยด์คู่ยาฆ่าเชื้อครอบคลุมการรักษาการกำเริบทั้งสองส่วนหลัก",
-            "weigh": "คอร์สที่นานขึ้นเพิ่มผลข้างเคียง เช่น น้ำตาลสูงและกล้ามเนื้ออ่อนแรง โดยไม่ได้ประโยชน์เพิ่ม",
+            "strength": "ยากินคอร์สสั้นกินต่อที่บ้านได้ง่าย",
+            "weigh": "แนวทางนิยมยาที่มีตัวยับยั้งเบตาแลคแทมเมสสำหรับการกำเริบแบบนี้",
             "safety": ""
           },
           {
-            "strength": "amox-clav ชนิดกินครอบคลุมเชื้อที่พบบ่อยของการกำเริบ",
-            "weigh": "แนวทางแนะนำสเตียรอยด์ 5 วัน การให้ 14 วันจึงได้ยาเกือบสามเท่าโดยไม่ได้ผลเพิ่ม",
+            "strength": "ให้สเตียรอยด์ 5 วัน ตรงตามแนวทาง",
+            "weigh": "Haemophilus และ Moraxella มักดื้อต่อ amoxicillin ธรรมดา ยาจึงอาจครอบคลุมเชื้อได้ไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Pairing the steroid with amox-clav treats both the flare and the green sputum.",
-            "weigh": "Five days of pred works as well as fourteen, with less steroid exposure.",
+            "strength": "Pairing a 5-day steroid with an antibiotic treats both the flare and the green sputum.",
+            "weigh": "Many chest bacteria make beta-lactamase, which breaks down plain amoxicillin.",
             "safety": ""
           },
           {
-            "strength": "A steroid plus an antibiotic covers the two main parts of flare treatment.",
-            "weigh": "A longer course adds side effects such as high sugar and weak muscles, with no extra benefit.",
+            "strength": "A short oral course is simple to take at home.",
+            "weigh": "Guidelines prefer an antibiotic with a beta-lactamase inhibitor for this kind of flare.",
             "safety": ""
           },
           {
-            "strength": "Amox-clav by mouth covers the common bacteria behind a flare.",
-            "weigh": "Guidelines advise a 5-day steroid course, so 14 days nearly triples the steroid for no gain.",
+            "strength": "Keeping the steroid to 5 days fits the guideline.",
+            "weigh": "Haemophilus and Moraxella often resist plain amoxicillin, so its cover may fall short.",
             "safety": ""
           }
         ]
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-15",
-    "findings": "Two-round review of the copd-exacerbation reply bank: all three Thai and three English alternatives for every option of all 13 banks, read against every question variant and every path into each bank, for wrong facts, ranking or grading, previews of later steps, naming of other options, assertions only some variants or paths state, and the right safety line. Round one returned one reply MUST-FIX: step2.W.d alternative 0 said SpO2 88% on oxygen, while the vignette gives 88% on room air; it now reads on arrival in both languages. The author also removed two single-variant facts: two hours in step4.R.d alternatives 0 and 1 is now this early, and day 3 in step5.R.c alternative 2 is now at this stage. The rewritten replies for the new step3.R.h and step3.W.h (Pred 14 days + amox-clav) are correct per REDUCE and GOLD 2025: 5 days works as well as 14, a longer course adds hyperglycaemia and myopathy, and 14 days is about 2.8 times the steroid. They name no other option and need no safety line. Safety lines are present and right for every option that leaves out the gas (step2.W d and e), for every NIV option at step4.W, and for every option in step5.W; the empty ones fit options with no safety gap. Remaining replies were judged accurate, ungraded, consistent across variants and paths, and matched in Thai and English. reply-bank.mjs check reports content ok, review pending; the booth-case-tree jest filter for this case passes. Neither file changed during the second-round review. Tree sha256 93a35ce04ae87e83d1f8f7a6ee43c22350de9649a40291bc53195b055155ae45. Replies sha256 57e5faaac81c1caa4bfa155820e6769ebb4ea4898d32aa6d87d4e2e632e845b9.",
-    "tree_sha256": "93a35ce04ae87e83d1f8f7a6ee43c22350de9649a40291bc53195b055155ae45",
-    "replies_sha256": "57e5faaac81c1caa4bfa155820e6769ebb4ea4898d32aa6d87d4e2e632e845b9"
+    "findings": "Three-round review of the copd-exacerbation reply bank: all three Thai and three English alternatives for every option of all 13 banks, read against every question variant and every path into each bank, for wrong facts, ranking or grading, previews of later steps, naming of other options, assertions only some variants or paths state, and the right safety line. Round one returned one reply MUST-FIX: step2.W.d alternative 0 said SpO2 88% on oxygen, while the vignette gives 88% on room air; it now reads on arrival in both languages. The author also removed two single-variant facts: two hours in step4.R.d alternatives 0 and 1 is now this early, and day 3 in step5.R.c alternative 2 is now at this stage. In round three the replies for the new step3.R.h and step3.W.h (Pred 5 days + amoxicillin) were rewritten. They are correct: many chest bacteria, Moraxella almost always and Haemophilus often, make beta-lactamase that breaks down plain amoxicillin, and the Thai guideline and GOLD prefer a beta-lactamase inhibitor combination. They name no other option and need no safety line, since the option gives both a steroid and an antibiotic. Safety lines are present and right for every option that leaves out the gas (step2.W d and e), for every NIV option at step4.W, and for every option in step5.W; the empty ones fit options with no safety gap. Remaining replies were judged accurate, ungraded, consistent across variants and paths, and matched in Thai and English. reply-bank.mjs check reports content ok, review pending. The booth-case-tree jest filter for this case passes, and the booth-staged-clinical first-line antibiotic test now passes. Neither file changed during the third-round review. Tree sha256 8659644d98033e13e00bed9c0c93357c9a74d31f5301a77b04e2cee0d8af58be. Replies sha256 db4e65e238d556e6b4b56a285c3635507dda2a6f3bd893c42a33c64447e3afe5.",
+    "tree_sha256": "8659644d98033e13e00bed9c0c93357c9a74d31f5301a77b04e2cee0d8af58be",
+    "replies_sha256": "db4e65e238d556e6b4b56a285c3635507dda2a6f3bd893c42a33c64447e3afe5"
   }
 }
