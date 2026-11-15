@@ -1978,7 +1978,7 @@ describe('adversarial — a #474 value left raw is a documented residual that eq
     '1 2345 67890 12 3', '1234567890123', '๑๒๓๔๕๖๗๘๙๐๑๒๓',
     'Ward: 5A', 'age = 45', 'HN 1234/67', 'บ้านเลขที่ 99 / 1', '5-10-2500',
   ])];
-  const LABELS = ['', 'อายุ ', 'เลขที่ ', 'บ้านเลขที่ ', 'บัตรประชาชนเลขที่ ', 'โทรศัพท์เลขที่ '];
+  const LABELS = ['', 'อายุ ', 'เลขที่ ', 'บ้านเลขที่ ', 'บัตรประชาชนเลขที่ ', 'โทรศัพท์เลขที่ ', 'Mr ', 'nickname '];
   // A month or month-stem name registered as a NAME alias in an earlier turn.
   const ALIASES = ['Mrs April Smith', 'Mrs June Smith', 'Mrs May Smith', 'Mr Oct Smith', 'Mr October Smith', 'nickname Oct',
     'นางตุลา ใจดี', 'นางกันยา ใจดี'];
@@ -2004,6 +2004,9 @@ describe('adversarial — a #474 value left raw is a documented residual that eq
     { name: 'a month-named alias before a day-first date: master\'s NAME alias pass takes the month word',
       texts: ['นางตุลา ใจดี', '20 ตุลาคม 2510'], out: '20 [NAME-1]คม 2510',
       is: (r) => r.alias && /\[NAME-\d+\]/.test(r.out) },
+    { name: 'a title or nickname before a label word: master\'s NAME pass takes the label word as the name',
+      texts: ['Mr Ward: 5A'], out: 'Mr [NAME-1]: 5A',
+      is: (r) => /^(?:Mr|nickname) $/.test(r.lead) && /\[NAME-\d+\]/.test(r.out) },
     { name: 'a dash day-first date with a two-digit year: no pass on master or the head reads it',
       texts: ['20-10-67'], out: '20-10-67',
       is: (r) => r.value === '20-10-67' },
