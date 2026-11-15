@@ -38,14 +38,22 @@ function makeRegistry() {
   const seen = Object.create(null);     // category -> { surfaceForm -> token }
   const aliases = Object.create(null);  // category -> { alias -> token }
   const wordAliases = Object.create(null); // category -> { whole-word-only alias -> token }
+  const owned = Object.create(null);       // category -> Map(token -> [every surface or alias bound to it])
 
   function ensure(category) {
     if (!seen[category]) {
       seen[category] = Object.create(null);
       aliases[category] = Object.create(null);
       wordAliases[category] = Object.create(null);
+      owned[category] = new Map();
       counters[category] = 0;
     }
+  }
+
+  function own(category, key, tok) {
+    const list = owned[category].get(tok);
+    if (list) list.push(key);
+    else owned[category].set(tok, [key]);
   }
 
   function token(category, surfaceForm) {
@@ -60,6 +68,7 @@ function makeRegistry() {
         counters[category] += 1;
         seen[category][key] = `[${category}-${counters[category]}]`;
       }
+      own(category, key, seen[category][key]);
     }
     return seen[category][key];
   }
@@ -71,6 +80,7 @@ function makeRegistry() {
     const key = surfaceForm.trim();
     if (key && aliases[category][key] === undefined) {
       aliases[category][key] = tok;
+      own(category, key, tok);
     }
   }
 
@@ -84,6 +94,7 @@ function makeRegistry() {
     const key = surfaceForm.trim();
     if (key && aliases[category][key] === undefined && wordAliases[category][key] === undefined) {
       wordAliases[category][key] = tok;
+      own(category, key, tok);
       if (seen[category][key] === undefined) seen[category][key] = tok;
     }
   }
@@ -111,7 +122,14 @@ function makeRegistry() {
     return out;
   }
 
+  // Every surface form and alias bound to one token, in the order they were bound.
+  function surfaces(category, tok) {
+    ensure(category);
+    return owned[category].get(tok) ?? [];
+  }
+
   token.alias = alias;
+  token.surfaces = surfaces;
   token.wordAlias = wordAlias;
   token.knownAliases = knownAliases;
   token.knownWordAliases = knownWordAliases;
@@ -337,22 +355,24 @@ const SHIELD_MAX_RUN = 256;
 // String#replace for a global regex, except the callback may consume only PART of a match by returning
 // [replacement, consumedLength]; scanning then resumes right after the consumed part. Iterative — the
 // shields above use it instead of re-scanning fragments recursively.
-// `view`, when given, is the copy of `text` the regex runs on; the cut is made in `text`. `at` maps view indexes to
-// `text`'s when the two differ in length (see asciiView); `used` counts view units.
-function replaceResumable(text, re, fn, view = text, at = null) {
+// `view`, when given, is the copy of `text` the regex runs on; the cut is made in `text`. `at` / `atEnd` map view
+// indexes used as a start / an end to `text`'s when the two differ (see asciiView); `used` counts view units.
+function replaceResumable(text, re, fn, view = text, at = null, atEnd = at) {
   const rx = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`); // exec must advance
-  const orig = (i) => (at ? at[Math.min(i, at.length - 1)] : i);
+  const orig = (map, i) => (map ? map[Math.min(i, map.length - 1)] : i);
   let out = '';
   let last = 0;
   let m;
   while ((m = rx.exec(view)) !== null) {
     const r = fn(m);
     const [rep, used] = Array.isArray(r) ? r : [r, m[0].length];
-    out += text.slice(orig(last), orig(m.index)) + rep;
+    out += text.slice(orig(atEnd, last), Math.max(orig(atEnd, last), orig(at, m.index))) + rep;
     last = m.index + Math.max(1, used);
+    // A cut inside a character's fold took the whole character: the next match starts after it, never in it again.
+    while (at && last < view.length && atEnd[last] > at[last]) last += 1;
     rx.lastIndex = last;
   }
-  return out + text.slice(orig(last));
+  return out + text.slice(orig(atEnd, last));
 }
 
 // Thai nickname field: "ชื่อเล่น X". MUST be matched before the plain "ชื่อ"
@@ -412,7 +432,7 @@ function lineIdGuard(m) {
 const WARD_PROSE = new Set(['round', 'rounds', 'staff', 'nurse', 'nurses', 'team', 'teams', 'manager', 'sister', 'clerk']);
 function wardGuard(m) {
   if (!/^ward/i.test(m)) return true;
-  const tok = m.replace(/^ward\s+/i, '');
+  const tok = m.replace(/^ward(?:\s*[:#=]\s*|\s+)/i, '');
   if (/^[a-z]{2,}$/.test(tok)) return false;
   return !WARD_PROSE.has(tok.toLowerCase());
 }
@@ -464,13 +484,33 @@ function dottedDateGuard(m) {
   const [d, mo] = m.split('.').map(Number);
   return d >= 1 && d <= 31 && mo >= 1 && mo <= 12;
 }
-// Year first: a Christian or Buddhist-era year, then a real month and day.
+// Year first: a Christian or Buddhist-era year, then a real month and day. Any separator (. / - and the spaces
+// beside it).
 function yearFirstDateGuard(m) {
-  const [y, mo, d] = m.split('.').map(Number);
+  const [y, mo, d] = m.split(/\D+/).map(Number);
   return ((y >= 1900 && y <= 2099) || (y >= 2400 && y <= 2699)) && dottedDateGuard(`${d}.${mo}`);
 }
-// A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date.
+// Day first with a dash (11-12-2569): a real day and month.
+const dashedDateGuard = (m) => dottedDateGuard(m.split('-').join('.'));
+// A section, clause or version number written like a date (หัวข้อ 1.2.10, version 1.2.10) is no date. Unchanged by
+// #474: a wider exemption would stop masks the filter makes today (#504 owns the version over-mask).
 const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทที่|บท|มาตรา|[Ss]ection|[Ss]ec\.?|[Cc]hapter|[Vv]ersion|[Vv]er\.?|[Rr]ev\.?|[Vv])\s{0,3})`;
+// The gap after a date's dot in the #474 dotted passes: spaces and tabs, with at most one line break among them
+// (master's dotted passes keep their `\s?`).
+const DATE_GAP = String.raw`[^\S\r\n]*(?:(?:\r\n?|\n)[^\S\r\n]*)?`;
+// Month names. English in any case except May, which as "may" is a verb ("may 20 mg be given"); then an optional dot.
+// Thai in full and abbreviated (ต.ค. — its final dot optional). The admin pass, which runs first, reads the ต. of ต.ค. as
+// ตำบล and masks "ต.ค" as an address: the Thai month-word pass reads that token as the month (see TH_OCT_ADDR_RE).
+const EN_MONTH = `(?:${['january', 'february', 'march', 'april', 'june', 'july', 'august', 'september', 'october', 'november',
+  'december', 'sept', 'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+  .map((w) => w.replace(/[a-z]/g, (c) => `[${c.toUpperCase()}${c}]`)).join('|')}|M[Aa][Yy])\\.?(?![A-Za-z])`;
+const TH_MONTH = `(?:${['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม',
+  'พฤศจิกายน', 'ธันวาคม'].join('|')}|(?:ม\\.ค|ก\\.พ|มี\\.ค|เม\\.ย|พ\\.ค|มิ\\.ย|ก\\.ค|ส\\.ค|ก\\.ย|ต\\.ค|พ\\.ย|ธ\\.ค)\\.?)`;
+const ORDINAL = '(?:st|nd|rd|th)?';
+const DAY_GUARD = (m) => {
+  const d = Number(/\d+/.exec(m)[0]);
+  return d >= 1 && d <= 31;
+};
 
 // No phone or date starts or ends inside a decimal (Na 140.00 139.50, Hb 12.5. 11.2): never right before
 // ".<digit>", and never right after "<digit>." when what follows reads as a decimal fraction, 1-8 digits not
@@ -480,14 +520,27 @@ const NUMBERING_LABEL = String.raw`(?<!(?:หัวข้อ|ข้อ|บทท
 const NOT_IN_DECIMAL = (src, tail = '(?!\\.\\d)') => `(?!(?<=\\d\\.)\\d{1,8}(?![\\d./-]))(?:${src})${tail}`;
 const numericRe = (src, tail) => new RegExp(NOT_IN_DECIMAL(src, tail), 'g');
 
+// An HN / AN / MRN code: 4-12 digits.
+function codeGuard(m) {
+  const d = m.replace(/\D/g, '').length;
+  return d >= 4 && d <= 12;
+}
+const LEAD_TOKEN_RE = /^\[([A-Z]+)-\d+\]/;
+// The "ต.ค" the admin pass masked (see TH_MONTH).
+const TH_OCT_ADDR_RE = /^ต\.\s*ค$/;
+// A NAME surface that ends with a month word (Mr June, Dr Smith June, nickname june).
+const ENDS_WITH_MONTH_RE = new RegExp(`(?:^|[^A-Za-z])${EN_MONTH}$`);
+
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
   // --- Structured identifiers FIRST (longest / most specific) ---
 
-  // Email addresses.
+  // Email addresses. `needs`: a view without an @ has none, and skipping it spares the regex a quadratic scan of a long
+  // run of its local-part characters (1-1-1…, or 1–1–1… once folded).
   {
     re: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
     cat: 'EMAIL',
+    needs: '@',
   },
 
   // LINE IDs. Forms covered:
@@ -512,8 +565,11 @@ const PASSES = [
     guard: lineIdGuard,
   },
 
-  // Every pass from here on that is not a NAME pass reads the ASCII view of the text: ๐–๙, ٠–٩, ０–９ and every
-  // other decimal digit as 0–9, and full-width ＋－．（） as +-.() (#440; see asciiView and applyPass).
+  // Every pass from here on that is not a NAME pass reads the narrow ASCII view of the text: ๐–๙, ٠–٩, ０–９ and every
+  // other decimal digit as 0–9 and the full-width block (＋－．（）Ｈ…) as ASCII (#440). Once every pass has run, each
+  // non-NAME regex pass runs again on the wide view, which also folds whatever NFKC turns into ASCII (circled and keycap
+  // digits, mathematical letters), the look-alike dashes, middle dots and slashes (#474). See ASCII_VIEW, NARROW_VIEW,
+  // asciiView, applyPass and applyWideView.
 
   // Thai national ID: 13 digits, with or without the X-XXXX-XXXXX-XX-X dashes.
   {
@@ -531,21 +587,15 @@ const PASSES = [
   // Allow internal spaces/dashes in the digit run (e.g. "HN 12-34567"); the
   // guard re-checks the total digit count so a loose run can't over-match.
   {
-    re: /\bHN\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
+    re: /\bHN\s*(?:[:#]\s*)?\d(?:[\s-]?\d){3,13}/gi,
     cat: 'HN',
-    guard: (m) => {
-      const d = m.replace(/\D/g, '').length;
-      return d >= 4 && d <= 12;
-    },
+    guard: codeGuard,
   },
   // MRN / AN explicit code fields (same internal-separator tolerance).
   {
-    re: /\b(?:MRN|AN)\s*[:#]?\s*\d(?:[\s-]?\d){3,13}/gi,
+    re: /\b(?:MRN|AN)\s*(?:[:#]\s*)?\d(?:[\s-]?\d){3,13}/gi,
     cat: 'MRN',
-    guard: (m) => {
-      const d = m.replace(/\D/g, '').length;
-      return d >= 4 && d <= 12;
-    },
+    guard: codeGuard,
   },
 
   // Phone numbers — international +66 / 66 forms and Thai national forms.
@@ -683,7 +733,70 @@ const PASSES = [
   // that bare durations like "for 5 years" / "3 years ago" SURVIVE.
   { re: /\b\d{1,3}[\s-]?(?:years?|yrs?)[\s-]?old\b/gi, cat: 'AGE' }, // 45 years old / 45-year-old
   { re: /\b\d{1,3}\s?y\/?o\b/gi, cat: 'AGE' },                       // 62 y/o, 30yo
-  { re: /\bage[d]?\s*[:#]?\s*\d{1,3}\b/gi, cat: 'AGE' },             // age 55, aged 30
+  { re: /\bage[d]?\s*(?:[:#]\s*)?\d{1,3}\b/gi, cat: 'AGE' },             // age 55, aged 30
+
+  // --- #474: shapes master leaves unmasked. Every pass from here on runs after every pass master has, so it reads only
+  // text master left raw and the tokens master wrote: it adds masks and never stops one. (Run earlier, these passes took
+  // a house number, an age label or a name before master's own pass could, and left part of it raw.) `added`: a match
+  // its guard refuses gives back only its first character, so a value that starts inside it (1.  20.  10.  2569) is
+  // still found. ---
+  // A code's year or sequence tail after a slash (HN 1234/67, AN 123456 / 67) and a house number's spaced sub-number
+  // (99 / 1) join the token master wrote for the code or the number: the tail is part of it.
+  { re: /\[(?:HN|MRN)-\d+\](?:\s*\/\s*\d+)+/g, cat: 'HN', kind: 'token-tail', owner: /^(?:HN|MRN|AN)/i, added: true },
+  { re: /\[ADDR-\d+\](?:\s*[/-]\s*[0-9]+)+/g, cat: 'ADDR', kind: 'token-tail', owner: /^(?:บ้านเลขที่|เลขที่)/, added: true },
+  // A ward or an age after a mark (Ward: 5A, ward=5A, age = 45); master's passes take the label and a space.
+  { re: /(?:\bward|ห้อง|หอผู้ป่วย)\s*[:#=]\s*[A-Za-z0-9]+/gi, cat: 'WARD', guard: wardGuard, added: true },
+  { re: /\bage[d]?\s*=\s*\d{1,3}\b/gi, cat: 'AGE', added: true },
+  // The national ID grouped X.XXXX.XXXXX.XX.X with dots, or with middle dots, which the wide view reads as dots. Only
+  // that grouping: a loose dotted run would take a list of decimals.
+  { re: numericRe(String.raw`\b\d\s*\.\s*\d{4}\s*\.\s*\d{5}\s*\.\s*\d{2}\s*\.\s*\d\b`), cat: 'ID', added: true },
+  // Year first with a slash (2569/12/11) or a one-digit ISO month or day (2026-1-5): a real year, month and day.
+  { re: numericRe(String.raw`\b\d{4}(?:\/\d{1,2}\/|-\d{1,2}-)\d{1,2}\b`), cat: 'DATE', guard: yearFirstDateGuard, added: true },
+  // Day first with a dash and a four-digit year (11-12-2569): a real day and month. A shorter year would take dose and
+  // score triples (RI 10-10-10, Apgar 8-9-10).
+  { re: numericRe(String.raw`\b\d{1,2}-\d{1,2}-\d{4}\b`), cat: 'DATE', guard: dashedDateGuard, added: true },
+  // Dotted dates with a wider gap after a dot (20.   10.   2026, 1999.  1.2), under master's label and decimal rules.
+  {
+    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{1,2}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{2,4}\b`),
+    cat: 'DATE',
+    guard: dottedDateGuard,
+    added: true,
+  },
+  {
+    re: numericRe(String.raw`${NUMBERING_LABEL}\b\d{4}\.${DATE_GAP}\d{1,2}\.${DATE_GAP}\d{1,2}\b`),
+    cat: 'DATE',
+    guard: yearFirstDateGuard,
+    added: true,
+  },
+  // A month written as a word: 20 Oct 1967, 20-Oct-1967, 20th October 1967, Oct 20, 1967, 20 ตุลาคม 2510,
+  // 20 ต.ค. 2510, 20 ต.ค. พ.ศ. 2510. Day, month and year all present; the day a real one.
+  {
+    re: new RegExp(String.raw`(?<![\d.])\d{1,2}${ORDINAL}[\s\-/.,]{0,3}${EN_MONTH}[\s\-/.,]{0,3}\d{2,4}(?!\d)`, 'g'),
+    cat: 'DATE',
+    guard: DAY_GUARD,
+    added: true,
+  },
+  {
+    re: new RegExp(String.raw`(?<![A-Za-z])${EN_MONTH}[\s\-/.]{0,3}\d{1,2}${ORDINAL}(?![\d.])[\s,]{0,3}\d{4}(?!\d)`, 'g'),
+    cat: 'DATE',
+    guard: DAY_GUARD,
+    added: true,
+  },
+  // A month word that was a name (Mr June 5 2020, nickname June 5 2020) is already a NAME token, registered for its
+  // later mentions: the day and year after it are a date.
+  {
+    re: new RegExp(String.raw`\[NAME-\d+\][\s\-/.]{0,3}\d{1,2}${ORDINAL}(?![\d.])[\s,]{0,3}\d{4}(?!\d)`, 'g'),
+    cat: 'DATE',
+    kind: 'name-month-date',
+    added: true,
+  },
+  {
+    re: new RegExp(String.raw`(?<![\d.])\d{1,2}\s{0,3}(?:เดือน\s{0,3})?(?:${TH_MONTH}|\[ADDR-\d+\]\.?)\s{0,3}(?:(?:พ\.ศ\.|ค\.ศ\.)\s{0,3})?\d{2,4}(?!\d)`, 'g'),
+    cat: 'DATE',
+    guard: DAY_GUARD,
+    kind: 'th-month-date',
+    added: true,
+  },
 ];
 
 // Register each whitespace-separated part of a name as an alias of `tok`, so a
@@ -987,32 +1100,109 @@ function applyGivenSurnamePass(text, token) {
 // Devanagari, the mathematical 𝟎–𝟗 of pasted "bold" text …) as 0–9, and the full-width ASCII block (＋ － ． （ ） Ｈ Ｎ …)
 // as its ASCII letter. A pass matches on the view and cuts the original, so text left unmasked keeps its own digits.
 // Unicode lays every decimal digit set out as a run of ten from zero, and none lies above U+1FFFF.
+// #474 widened the fold to every shape that reads as ASCII but is not: whatever NFKC turns into printable ASCII
+// (circled ①–⑳ ⓪, parenthesised and dotted ⑴ ⒈, enclosed 🄁, the mathematical letters 𝐀–𝐳 of pasted "bold" text,
+// odd spaces); the look-alike dashes (‐ ‑ ‒ – — ― − ˗ ⁃ ➖) as '-', the middle dots
+// (· • ‧ ∙ ⋅ ・) as '.' (a middle dot is also a decimal point, so it must stay one), the fraction and division slashes
+// as '/'; and the marks that dress a digit without changing it (the keycap U+20E3 and every other enclosing mark,
+// variation selectors, and any combining mark outside Thai) as nothing.
+// Superscript and subscript digits (¹ ² ⁹ ₀) are NOT folded: they are footnote marks and units (m², 10⁹), and folded
+// they glue onto the number they follow (081-234-5678¹ read 081-234-56781, and the phone was no phone). An enclosed
+// number (①, ⑳, ⒈, 🄁) folds only as a whole run of them with no other digit on either side (see asciiView), so a
+// circled list mark glued to a phone (①0812345678) stays outside it.
+const SUPER_SUB_DIGIT_RE = /^[\u00b2\u00b3\u00b9\u2070-\u209f]$/u;
+const ENCLOSED_DIGITS = new Set();
 const ASCII_VIEW = (() => {
   const map = new Map();
   let run = 0;
   for (let c = 0x80; c <= 0x1ffff; c += 1) {
+    if (c >= 0xd800 && c <= 0xdfff) { run = 0; continue; }
     const ch = String.fromCodePoint(c);
     run = /\p{Nd}/u.test(ch) ? run + 1 : 0;
-    if (run) map.set(ch, String.fromCharCode(0x30 + ((run - 1) % 10)));
+    if (run) { map.set(ch, String.fromCharCode(0x30 + ((run - 1) % 10))); continue; }
+    if (/\p{M}/u.test(ch) && !(c >= 0x0e00 && c <= 0x0e7f)) { map.set(ch, ''); continue; }
+    const nfkc = ch.normalize('NFKC');
+    if (nfkc === ch || !/^[\x20-\x7e]+$/.test(nfkc)) continue;
+    if (/\d/.test(nfkc)) {
+      if (SUPER_SUB_DIGIT_RE.test(ch)) continue;
+      ENCLOSED_DIGITS.add(ch);
+    }
+    map.set(ch, nfkc);
   }
+  for (let c = 0xe0100; c <= 0xe01ef; c += 1) map.set(String.fromCodePoint(c), ''); // variation selectors 17–256
+  for (const ch of '‐‑‒–—―−˗⁃➖﹘') map.set(ch, '-');
+  for (const ch of '··•‧∙⋅・･⸱') map.set(ch, '.');
+  for (const ch of '⁄∕⧸') map.set(ch, '/');
+  return map;
+})();
+// The view before #474: decimal digits and the full-width ASCII block only. A wider fold also changes what a pass's
+// edges read: 𝐈𝐃, №, ™ or ⅴ glued to a number turn into ASCII letters, so `\b` before or after the number fails, and a
+// folded dash before LINE meets the `(?<![-\w])` that keeps first-line out, and a LINE label before a folded dash takes
+// the first digits of the phone after it. So every pass runs on this view, and the wide view runs only after all of
+// them (see applyWideView): whatever this view lets a pass mask is masked, and the wide view only adds masks.
+const NARROW_VIEW = (() => {
+  const map = new Map();
+  for (const [ch, r] of ASCII_VIEW) if (/\p{Nd}/u.test(ch)) map.set(ch, r);
   for (let c = 0xff01; c <= 0xff5e; c += 1) map.set(String.fromCharCode(c), String.fromCharCode(c - 0xfee0));
   return map;
 })();
-const ASCII_VIEW_RE = new RegExp(`[${[...ASCII_VIEW.keys()].join('').replace(/[\]\\^-]/g, '\\$&')}]`, 'gu');
-// A digit above U+FFFF is two UTF-16 units in the text and one in the view, so past one the indexes part: `at` then
-// maps every view index, and the view's end, to the original's. It is null while the view is index-for-index.
-function asciiView(s) {
-  const view = s.replace(ASCII_VIEW_RE, (c) => ASCII_VIEW.get(c));
-  if (view.length === s.length) return { view, at: null };
+// A character only the wide view folds: without one, the wide view of a text is its narrow view. Written as ranges
+// of code points, so the class stays small enough to scan a long text fast.
+const WIDE_ONLY_RE = (() => {
+  const cps = [...ASCII_VIEW.keys()].filter((c) => !NARROW_VIEW.has(c)).map((c) => c.codePointAt(0)).sort((a, b) => a - b);
+  const hex = (cp) => `\\u{${cp.toString(16)}}`;
+  let cls = '';
+  for (let i = 0; i < cps.length;) {
+    let j = i;
+    while (j + 1 < cps.length && cps[j + 1] === cps[j] + 1) j += 1;
+    cls += i === j ? hex(cps[i]) : `${hex(cps[i])}-${hex(cps[j])}`;
+    i = j + 1;
+  }
+  return new RegExp(`[${cls}]`, 'u');
+})();
+// A fold can change a character's length (a two-unit 𝐀 is one unit in the view, ⑳ two, a keycap mark none), and past
+// the first such fold the indexes part. `at` then maps every view index to where its character starts in the text,
+// and `atEnd` every view index used as the END of a match to the text's: the end of the character when the index falls
+// inside a character's fold (the "0" of ⑳ → "20"), so a cut never splits one, and otherwise the start of the next
+// character, so the marks a fold dropped right after a match (a keycap's ️⃣) go with it. Both are null while the view
+// is index-for-index: every fold so far took one unit to one unit (an astral character, or one that folds to two
+// units, always sets them, so 🄁 → "0," never leaves half a surrogate pair).
+const DIGIT_RE = /\p{Nd}/u;
+const lastChar = (s, i) => [...s.slice(Math.max(0, i - 2), i)].pop() ?? '';
+// Text with nothing to fold (ASCII and Thai letters, the usual case) is its own view: no per-character walk.
+const NEEDS_FOLD_RE = /[^\x00-\x7f\u0e00-\u0e4f\u0e5a-\u0e7f]/;
+const THAI_DIGIT_RE = /[\u0e50-\u0e59]/g;
+function asciiView(s, wide = true) {
+  if (!NEEDS_FOLD_RE.test(s)) {
+    return { view: s.replace(THAI_DIGIT_RE, (d) => String.fromCharCode(d.charCodeAt(0) - 0x0e50 + 0x30)), at: null, atEnd: null };
+  }
+  const fold = wide ? ASCII_VIEW : NARROW_VIEW;
+  let view = '';
+  let shifted = false;
   const at = [];
+  const atEnd = [];
+  let keepRunUntil = -1; // an enclosed-digit run that touches another digit stays as written up to here
+  let scannedUntil = -1; // each run is measured once, from its first character (linear)
   for (let i = 0; i < s.length;) {
     const c = String.fromCodePoint(s.codePointAt(i));
-    if (ASCII_VIEW.has(c)) at.push(i);
-    else for (let k = 0; k < c.length; k += 1) at.push(i + k);
+    if (wide && ENCLOSED_DIGITS.has(c) && i >= scannedUntil) {
+      let j = i;
+      while (j < s.length && ENCLOSED_DIGITS.has(String.fromCodePoint(s.codePointAt(j)))) j += s.codePointAt(j) > 0xffff ? 2 : 1;
+      const after = j < s.length ? String.fromCodePoint(s.codePointAt(j)) : '';
+      scannedUntil = j;
+      if (DIGIT_RE.test(lastChar(s, i)) || DIGIT_RE.test(after)) keepRunUntil = j;
+    }
+    const folded = i < keepRunUntil ? undefined : fold.get(c);
+    const r = folded ?? c;
+    if (folded !== undefined && !(c.length === 1 && r.length === 1)) shifted = true;
+    view += r;
+    for (let k = 0; k < r.length; k += 1) { at.push(i); atEnd.push(k === 0 ? i : i + c.length); }
     i += c.length;
   }
+  if (!shifted) return { view, at: null, atEnd: null };
   at.push(s.length);
-  return { view, at };
+  atEnd.push(s.length);
+  return { view, at, atEnd };
 }
 
 // The longest match of `re` that starts at `at`, is shorter than `len`, ends where a word or number ends (never
@@ -1044,20 +1234,63 @@ function applyPass(text, pass, token, hints) {
   if (kind === 'th-given-surname') return applyGivenSurnamePass(text, token);
   if (kind === 'th-admin') return applyThAdminPass(text, token);
 
+  if (cat === 'NAME') return applyRegexPass(text, pass, token, { view: text, at: null, atEnd: null }, false);
+  return applyRegexPass(text, pass, token, asciiView(text, false), Boolean(pass.added));
+}
+
+// The wide view runs after every pass has read the narrow one (see NARROW_VIEW): each non-NAME regex pass again, in
+// order, on the wide view, and only while the text holds a character only the wide view folds. Master's masks are all
+// tokens by then, so the wide view can only add masks; a match a guard refuses gives back its first character only.
+const WIDE_PASSES = PASSES.filter((p) => p.re && p.cat !== 'NAME');
+function applyWideView(text, token) {
+  return WIDE_PASSES.reduce((t, pass) => (NEEDS_FOLD_RE.test(t) && WIDE_ONLY_RE.test(t)
+    ? applyRegexPass(t, pass, token, asciiView(t), true) : t), text);
+}
+
+// `resume`: a match the pass refuses (its guard, or a token it cannot read) gives back only its first view unit, so the
+// scan resumes inside it. Master's passes on the narrow view give back the whole match, as on master.
+function applyRegexPass(text, pass, token, { view, at, atEnd }, resume) {
+  const { re, cat, guard, kind } = pass;
+  if (pass.needs && !view.includes(pass.needs)) return text;
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
   // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
   // which is exactly String#replace's behaviour.
-  const { view, at } = cat === 'NAME' ? { view: text, at: null } : asciiView(text);
   return replaceResumable(text, re, (m) => {
     // `seen` is what the regex read (the ASCII view on a non-NAME pass); `match` is the original text, which
     // every return that masks nothing must give back unchanged.
     const [seen, g1, g2, g3] = m;
-    const match = at ? text.slice(at[m.index], at[m.index + seen.length]) : text.slice(m.index, m.index + seen.length);
+    // The original text of view units [a, b) of the match.
+    const orig = (a, b) => (at ? text.slice(at[m.index + a], atEnd[m.index + b]) : text.slice(m.index + a, m.index + b));
+    const match = orig(0, seen.length);
+    const refuse = () => (resume ? [orig(0, 1), 1] : match);
     if (guard && !guard(seen)) {
       // A loose run can take the next number too (โทร 081-234-5678 2 ครั้ง) and fail its guard as a whole: fall back
       // to the longest shorter match the guard accepts at the same start, so the identifier is still masked.
       const shorter = cat === 'NAME' ? null : longestGuarded(view, re, m.index, seen.length, guard);
-      return shorter ? [token(cat, shorter), shorter.length] : match;
+      return shorter ? [token(cat, shorter), shorter.length] : refuse();
+    }
+    if (kind === 'token-tail') {
+      // [HN-1]/67: the tail joins the token, which the registry now also holds for the code with its tail.
+      const [tok, tokCat] = LEAD_TOKEN_RE.exec(seen);
+      const code = token.surfaces(tokCat, tok).find((v) => pass.owner.test(v));
+      if (code === undefined) return refuse();
+      const key = code + seen.slice(tok.length);
+      token.alias(tokCat, key, tok);
+      return token(tokCat, key);
+    }
+    if (kind === 'name-month-date') {
+      const [tok] = LEAD_TOKEN_RE.exec(seen);
+      const rest = seen.slice(tok.length);
+      const sep = /^[\s\-/.]*/.exec(rest)[0].length;
+      if (!DAY_GUARD(rest) || !token.surfaces('NAME', tok).some((v) => ENDS_WITH_MONTH_RE.test(v))) return refuse();
+      return tok + orig(tok.length, tok.length + sep) + token(cat, rest.slice(sep));
+    }
+    if (kind === 'th-month-date') {
+      // 20 [ADDR-1]. 2510, where [ADDR-1] is the "ต.ค" the admin pass took: the date is keyed by what was written.
+      const addr = /\[ADDR-\d+\]/.exec(seen);
+      if (!addr) return token(cat, seen);
+      const month = token.surfaces('ADDR', addr[0]).find((v) => TH_OCT_ADDR_RE.test(v));
+      return month === undefined ? refuse() : token(cat, seen.replace(addr[0], month));
     }
 
     if (cat === 'NAME') {
@@ -1149,7 +1382,7 @@ function applyPass(text, pass, token, hints) {
     }
 
     return token(cat, seen); // keyed by the ASCII view: both scripts of one number share a token
-  }, view, at);
+  }, view, at, atEnd);
 }
 
 // Mask one string. If a registry is provided, tokens stay stable across all
@@ -1163,7 +1396,7 @@ function stripPii(text, registry, hints = []) {
   // Zero-width characters split a word for the regexes without changing what a reader sees
   // ("นายสมชาย\u200Bใจดี"); they carry nothing clinical, so they go first.
   const input = text.replace(ZERO_WIDTH_RE, '').replace(SURNAME_MARK_RE, '');
-  return PASSES.reduce((t, pass) => applyPass(t, pass, token, hints), input).replace(SURNAME_MARK_RE, '');
+  return applyWideView(PASSES.reduce((t, pass) => applyPass(t, pass, token, hints), input), token).replace(SURNAME_MARK_RE, '');
 }
 
 // Mask every message in a history/transcript array under ONE shared registry,
@@ -1235,11 +1468,11 @@ const BOOTH_LABEL_RES = [
 // learnt, anywhere else in the call.
 function maskLabelledTail(answer, registry) {
   const text = answer.replace(ZERO_WIDTH_RE, '');
-  const { view, at: map } = asciiView(text);
-  const starts = BOOTH_LABEL_RES.map((re) => view.search(re)).filter((i) => i >= 0);
+  // A label found in either view counts (see NARROW_VIEW): the earliest, in the text's own indexes.
+  const starts = [asciiView(text, false), asciiView(text)].flatMap(({ view, at: map }) => BOOTH_LABEL_RES
+    .map((re) => view.search(re)).filter((i) => i >= 0).map((i) => (map ? map[i] : i)));
   if (starts.length === 0) return text;
-  const first = Math.min(...starts);
-  const at = map ? map[first] : first;
+  const at = Math.min(...starts);
   return `${text.slice(0, at)}${registry('PII', text.slice(at))}`;
 }
 
