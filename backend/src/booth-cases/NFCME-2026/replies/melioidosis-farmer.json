@@ -223,34 +223,34 @@
       "a": {
         "th": [
           {
-            "strength": "การ**เพาะเชื้อหลายตำแหน่ง**เพิ่มโอกาสพบเชื้อ สำคัญมากในโรคที่ยืนยันด้วยการเพาะเชื้อ",
+            "strength": "การเพิ่ม**ป้ายคอ**ร่วมกับเสมหะ เพิ่มโอกาสพบเชื้อแม้เพาะเชื้อเลือดให้ผลลบ",
             "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
             "safety": ""
           },
           {
-            "strength": "การป้ายคอร่วมด้วยเป็นวิธีง่ายและราคาถูก ที่ช่วยเพิ่มโอกาสพบเชื้อในโรคนี้",
+            "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงควรชั่งว่าระหว่างรอจะประเมินความรุนแรงอย่างไร",
             "safety": ""
           },
           {
-            "strength": "การเก็บเสมหะจากผู้ป่วยที่ไอมีเสมหะ เป็นการเก็บตัวอย่างจากตำแหน่งที่โรคอยู่จริง",
+            "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Culturing **several sites** raises the yield, which matters in a disease confirmed by growing the organism.",
+            "strength": "Adding a **throat** swab to sputum gives more chances to grow the organism when blood stays negative.",
             "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
             "safety": ""
           },
           {
-            "strength": "Adding a **throat** swab is simple and cheap, and raises the yield in this disease.",
+            "strength": "His productive cough gives a good sample, often positive when blood is negative.",
             "weigh": "Cultures take days, so weigh how severity will be judged while results are pending.",
             "safety": ""
           },
           {
-            "strength": "Sending **sputum** from a patient with a productive cough samples the site of disease directly.",
+            "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           }
@@ -295,35 +295,35 @@
       "c": {
         "th": [
           {
-            "strength": "การส่ง**เอกซเรย์ปอด** ช่วยเห็นรอยโรคในปอดและเป็นภาพตั้งต้นไว้ติดตาม",
+            "strength": "การส่ง**เอกซเรย์ปอด** ให้ภาพปอดตั้งต้นไว้ติดตาม",
+            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ชุดตรวจแรกนี้ทำได้เร็วและมีในโรงพยาบาลส่วนใหญ่",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "ชุดตรวจนี้ทำได้ในโรงพยาบาลส่วนใหญ่ และตอบเรื่องเชื้อกับภาพปอดได้ตรงประเด็น",
-            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้ไม่ทุกราย ผลลบจึงยังไม่ตัดโรคนี้ออก",
-            "safety": ""
-          },
-          {
-            "strength": "การยืนยันเชื้อจากเลือด เป็นหลักฐานที่ชัดเจนสำหรับโรคนี้",
-            "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
+            "strength": "ผลเพาะเชื้อเลือดที่ขึ้นเป็นหลักฐานยืนยันเชื้อโดยตรง",
+            "weigh": "การมองเป็นปอดอักเสบทั่วไป อาจทำให้ขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **chest X-ray** shows the lung lesion and gives a baseline to follow.",
+            "strength": "A **chest X-ray** gives a baseline picture of the lung to follow.",
+            "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
+            "safety": ""
+          },
+          {
+            "strength": "This **usual first pair** is quick and available in most hospitals.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "This pair is widely available and answers the organism and lung questions directly.",
-            "weigh": "A blood culture alone misses some cases, so a negative result does not exclude the disease.",
-            "safety": ""
-          },
-          {
-            "strength": "Confirming the organism from blood gives clear evidence for this disease.",
-            "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
+            "strength": "A blood culture gives direct proof of the organism when it grows.",
+            "weigh": "Treating this as any pneumonia can leave out the extra sites this disease asks you to sample.",
             "safety": ""
           }
         ]
@@ -331,35 +331,35 @@
       "d": {
         "th": [
           {
-            "strength": "การใช้**ค่าไตปรับขนาดยา** แสดงความใส่ใจความปลอดภัยของยาในผู้ป่วยเบาหวาน",
+            "strength": "**CBC** และค่าไตให้ภาพพื้นฐาน ในผู้ป่วยที่ชีพจรและการหายใจเร็ว",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "CBC และค่าไตให้ภาพความรุนแรงพื้นฐาน ในผู้ป่วยที่ชีพจรและการหายใจเร็ว",
-            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้ไม่ทุกราย ผลลบจึงยังไม่ตัดโรคนี้ออก",
+            "strength": "ค่าไตตั้งต้นช่วยได้หากต้องปรับขนาดยาภายหลัง",
+            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "การคิดถึงขนาดยาตั้งแต่วันแรก ช่วยป้องกันยาสะสมหากไตได้รับผล",
-            "weigh": "ชุดนี้ช่วยเรื่องขนาดยาและความรุนแรง แต่ยังไม่ได้บอกว่าโรคลามออกนอกปอดหรือไม่",
+            "strength": "**ชุดเลือด**นี้ส่งได้เร็วและทำได้ทุกโรงพยาบาล",
+            "weigh": "ชุดตรวจตามปกติดูแลเหมือนผู้ป่วยทั่วไป อาจขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Using **creatinine** to set the renal dose shows care for drug safety in a diabetic.",
+            "strength": "A **CBC** and creatinine give a baseline for a patient with a fast pulse and breathing.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "A CBC and creatinine give a baseline severity picture in a patient with fast pulse and breathing.",
-            "weigh": "A blood culture alone misses some cases, so a negative result does not exclude the disease.",
+            "strength": "Baseline kidney function helps if drug doses need adjusting later.",
+            "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
             "safety": ""
           },
           {
-            "strength": "Planning the dose from day one prevents drug build-up if the kidneys are affected.",
-            "weigh": "This set helps with dosing and severity but does not show whether the illness reaches beyond the lung.",
+            "strength": "The **routine blood set** is quick to send and widely available.",
+            "weigh": "A routine set treats him like any admission and leaves out the sites this disease asks you to sample.",
             "safety": ""
           }
         ]
@@ -405,34 +405,34 @@
       "a": {
         "th": [
           {
-            "strength": "การ**เพาะเชื้อหลายตำแหน่ง**เพิ่มโอกาสพบเชื้อที่เป็นสาเหตุของโรค",
+            "strength": "การเพิ่ม**ป้ายคอ**ร่วมกับเสมหะ เพิ่มโอกาสพบเชื้อแม้เพาะเชื้อเลือดให้ผลลบ",
             "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
             "safety": ""
           },
           {
-            "strength": "การป้ายคอร่วมด้วยเป็นวิธีง่ายและราคาถูก ที่เก็บตัวอย่างได้อีกตำแหน่งหนึ่ง",
+            "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงควรชั่งว่าระหว่างรอจะประเมินความรุนแรงอย่างไร",
             "safety": ""
           },
           {
-            "strength": "การเก็บเสมหะจากผู้ป่วยที่ไอมีเสมหะ เป็นการเก็บตัวอย่างจากตำแหน่งที่โรคอยู่จริง",
+            "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Culturing **several sites** raises the chance of growing the cause of his illness.",
+            "strength": "Adding a **throat** swab to sputum gives more chances to grow the organism when blood stays negative.",
             "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
             "safety": ""
           },
           {
-            "strength": "Adding a throat swab is simple and cheap and samples one more site.",
+            "strength": "His productive cough gives a good sample, often positive when blood is negative.",
             "weigh": "Cultures take days, so weigh how severity will be judged while results are pending.",
             "safety": ""
           },
           {
-            "strength": "Sending **sputum** from a patient with a productive cough samples the site of disease directly.",
+            "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           }
@@ -477,35 +477,35 @@
       "c": {
         "th": [
           {
-            "strength": "การส่ง**เอกซเรย์ปอด** ช่วยเห็นรอยโรคในปอดและเป็นภาพตั้งต้นไว้ติดตาม",
+            "strength": "การส่ง**เอกซเรย์ปอด** ให้ภาพปอดตั้งต้นไว้ติดตาม",
+            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
+            "safety": ""
+          },
+          {
+            "strength": "ชุดตรวจแรกนี้ทำได้เร็วและมีในโรงพยาบาลส่วนใหญ่",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "ชุดตรวจนี้ทำได้ในโรงพยาบาลส่วนใหญ่ และตอบเรื่องเชื้อกับภาพปอดได้ตรงประเด็น",
-            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้ไม่ทุกราย ผลลบจึงยังไม่ตัดโรคนี้ออก",
-            "safety": ""
-          },
-          {
-            "strength": "การพบเชื้อจากการเพาะเชื้อในเลือด เป็นหลักฐานที่ชัดเจนของสาเหตุ",
-            "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
+            "strength": "ผลเพาะเชื้อเลือดที่ขึ้นเป็นหลักฐานยืนยันเชื้อโดยตรง",
+            "weigh": "การมองเป็นปอดอักเสบทั่วไป อาจทำให้ขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **chest X-ray** shows the lung lesion and gives a baseline to follow.",
+            "strength": "A **chest X-ray** gives a baseline picture of the lung to follow.",
+            "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
+            "safety": ""
+          },
+          {
+            "strength": "This **usual first pair** is quick and available in most hospitals.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "This pair is widely available and answers the organism and lung questions directly.",
-            "weigh": "A blood culture alone misses some cases, so a negative result does not exclude the disease.",
-            "safety": ""
-          },
-          {
-            "strength": "Growing the organism from blood gives clear evidence of the cause.",
-            "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
+            "strength": "A blood culture gives direct proof of the organism when it grows.",
+            "weigh": "Treating this as any pneumonia can leave out the extra sites this disease asks you to sample.",
             "safety": ""
           }
         ]
@@ -551,34 +551,34 @@
       "a": {
         "th": [
           {
-            "strength": "การ**เพาะเชื้อหลายตำแหน่ง**เพิ่มโอกาสพบเชื้อที่เป็นสาเหตุของโรค",
+            "strength": "การเพิ่ม**ป้ายคอ**ร่วมกับเสมหะ เพิ่มโอกาสพบเชื้อแม้เพาะเชื้อเลือดให้ผลลบ",
             "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
             "safety": ""
           },
           {
-            "strength": "การป้ายคอร่วมด้วยเป็นวิธีง่ายและราคาถูก ที่เก็บตัวอย่างได้อีกตำแหน่งหนึ่ง",
+            "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงควรชั่งว่าระหว่างรอจะประเมินความรุนแรงอย่างไร",
             "safety": ""
           },
           {
-            "strength": "การเก็บเสมหะจากผู้ป่วยที่ไอมีเสมหะ เป็นการเก็บตัวอย่างจากตำแหน่งที่โรคอยู่จริง",
+            "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Culturing **several sites** raises the chance of growing the cause of his illness.",
+            "strength": "Adding a **throat** swab to sputum gives more chances to grow the organism when blood stays negative.",
             "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
             "safety": ""
           },
           {
-            "strength": "Adding a throat swab is simple and cheap and samples one more site.",
+            "strength": "His productive cough gives a good sample, often positive when blood is negative.",
             "weigh": "Cultures take days, so weigh how severity will be judged while results are pending.",
             "safety": ""
           },
           {
-            "strength": "Sending **sputum** from a patient with a productive cough samples the site of disease directly.",
+            "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           }
@@ -623,35 +623,35 @@
       "c": {
         "th": [
           {
-            "strength": "การใช้**ค่าไตปรับขนาดยา** แสดงความใส่ใจความปลอดภัยของยาในผู้ป่วยเบาหวาน",
+            "strength": "**CBC** และค่าไตให้ภาพพื้นฐาน ในผู้ป่วยที่ชีพจรและการหายใจเร็ว",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "CBC และค่าไตให้ภาพความรุนแรงพื้นฐาน ในผู้ป่วยที่ชีพจรและการหายใจเร็ว",
-            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้ไม่ทุกราย ผลลบจึงยังไม่ตัดโรคนี้ออก",
+            "strength": "ค่าไตตั้งต้นช่วยได้หากต้องปรับขนาดยาภายหลัง",
+            "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "การคิดถึงขนาดยาตั้งแต่วันแรก ช่วยป้องกันยาสะสมหากไตได้รับผล",
-            "weigh": "ชุดนี้ช่วยเรื่องขนาดยาและความรุนแรง แต่ยังไม่ได้บอกว่าโรคลามออกนอกปอดหรือไม่",
+            "strength": "**ชุดเลือด**นี้ส่งได้เร็วและทำได้ทุกโรงพยาบาล",
+            "weigh": "ชุดตรวจตามปกติดูแลเหมือนผู้ป่วยทั่วไป อาจขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Using **creatinine** to set the renal dose shows care for drug safety in a diabetic.",
+            "strength": "A **CBC** and creatinine give a baseline for a patient with a fast pulse and breathing.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "A CBC and creatinine give a baseline severity picture in a patient with fast pulse and breathing.",
-            "weigh": "A blood culture alone misses some cases, so a negative result does not exclude the disease.",
+            "strength": "Baseline kidney function helps if drug doses need adjusting later.",
+            "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
             "safety": ""
           },
           {
-            "strength": "Planning the dose from day one prevents drug build-up if the kidneys are affected.",
-            "weigh": "This set helps with dosing and severity but does not show whether the illness reaches beyond the lung.",
+            "strength": "The **routine blood set** is quick to send and widely available.",
+            "weigh": "A routine set treats him like any admission and leaves out the sites this disease asks you to sample.",
             "safety": ""
           }
         ]
@@ -1715,12 +1715,12 @@
       "d": {
         "th": [
           {
-            "strength": "การเริ่มใหม่ด้วย**เซฟตาซิดีม**แล้วต่อ TMP-SMX ตอบสนองการกำเริบด้วยการรักษาครบสองระยะ",
-            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา ขณะที่ประโยชน์ที่เพิ่มยังไม่ชัด",
+            "strength": "การเริ่มใหม่ด้วย**เซฟตาซิดีม**แล้วต่อ TMP-SMX รักษาการกำเริบครบสองระยะด้วยยาหลัก",
+            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา โดยไม่ได้ลดการกลับเป็นซ้ำเมื่อเทียบกับ TMP-SMX ตัวเดียว",
             "safety": ""
           },
           {
-            "strength": "การคิดเพิ่ม**ยากินสองตัว**หลังกำเริบ แสดงความตั้งใจไม่ให้โรคกลับมาอีก",
+            "strength": "การคิดเพิ่ม**ยากินอีกตัว** แสดงความตั้งใจไม่ให้โรคกลับมาอีก",
             "weigh": "ยาสองตัวนานหลายเดือนเป็นภาระต่อการกินยาให้ครบ ซึ่งสำคัญมากหลังการกำเริบ",
             "safety": ""
           },
@@ -1732,12 +1732,12 @@
         ],
         "en": [
           {
-            "strength": "Restarting with **ceftazidime** then TMP-SMX answers the relapse with both phases anew.",
-            "weigh": "Adding doxy brings more side effects and tablets, while its extra benefit is unclear.",
+            "strength": "Restarting with **Ceftazidime** then TMP-SMX re-treats the relapse in both phases with first-line drugs.",
+            "weigh": "Adding doxy brings more side effects and tablets, and lowers relapse no more than TMP-SMX alone.",
             "safety": ""
           },
           {
-            "strength": "Planning **two oral drugs** after relapse shows determination to stop it returning.",
+            "strength": "Planning **a second oral drug** shows determination to stop the disease returning.",
             "weigh": "Two drugs over months strain adherence, which matters greatly after a relapse.",
             "safety": ""
           },
@@ -1861,34 +1861,34 @@
       "d": {
         "th": [
           {
-            "strength": "การคิดเพิ่ม**ยาสองตัว**ในระยะกำจัดเชื้อ แสดงความตั้งใจไม่ให้โรคกลับเป็นซ้ำ",
+            "strength": "การคิดเพิ่ม**ยาตัวที่สอง** แสดงความตั้งใจไม่ให้โรคกลับเป็นซ้ำ",
             "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา ขณะที่ประโยชน์ที่เพิ่มยังไม่ชัด",
             "safety": ""
           },
           {
-            "strength": "การให้ครบ **20 สัปดาห์** ช่วยให้ระยะกำจัดเชื้อยาวพอ",
-            "weigh": "ยาสองตัวนานหลายเดือนเป็นภาระต่อการกินยาให้ครบ ซึ่งเป็นหัวใจของระยะนี้",
+            "strength": "การคง TMP-SMX เป็นยาหลัก ทำให้ระยะกำจัดเชื้อมียาที่ถูกตัว",
+            "weigh": "ควรชั่งการระบุจำนวนสัปดาห์ให้ชัด เพราะความยาวของระยะนี้มีผลต่อการกลับเป็นซ้ำ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนระยะยาวที่ชัดก่อนกลับบ้าน ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาถึงเมื่อใด",
+            "strength": "การวางแผนยากินที่ชัดก่อนกลับบ้าน ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาต่อที่บ้าน",
             "weigh": "ด็อกซีไซคลินทำให้ผิวไวต่อแดด ซึ่งสำคัญกับชาวนาที่ทำงานกลางแจ้งนานหลายเดือน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Considering **two drugs** in eradication shows determination to prevent relapse.",
+            "strength": "Planning a **second drug** shows intent to prevent relapse.",
             "weigh": "Adding doxycycline brings more side effects and tablets, while its extra benefit is unclear.",
             "safety": ""
           },
           {
-            "strength": "A full **20 weeks** gives the eradication phase ample length.",
-            "weigh": "Two drugs over months strain adherence, which is central to this phase.",
+            "strength": "Keeping TMP-SMX at the core gives the eradication phase its main drug.",
+            "weigh": "Weigh stating the length of the course, since how long this phase runs drives relapse.",
             "safety": ""
           },
           {
-            "strength": "A clear long-term plan before discharge lets him know how long the tablets continue.",
+            "strength": "A clear oral plan before discharge tells him the tablets continue at home.",
             "weigh": "Doxycycline makes skin sensitive to sunlight, which matters for a farmer outdoors for months.",
             "safety": ""
           }
@@ -1971,34 +1971,34 @@
       "c": {
         "th": [
           {
-            "strength": "การ**ส่งคลินิกเบาหวาน** ให้ทีมช่วยปรับยาและสอนดูแลตัวเองอย่างเป็นระบบ",
+            "strength": "การ**ส่งคลินิกเบาหวาน** ให้ทีมที่ดูแลน้ำตาลทุกวันช่วยปรับยา",
             "weigh": "ควรชั่งว่าคลินิกเบาหวานจะเห็นผู้ป่วยได้เร็วเพียงใด เพราะน้ำตาลยังสูงอยู่ตอนนี้",
             "safety": ""
           },
           {
-            "strength": "การมองว่าเบาหวานต้องดูแลระยะยาว ช่วยดูแลปัจจัยเสี่ยงสำคัญของโรคนี้",
+            "strength": "การส่งต่อเรื่องน้ำตาล ช่วยให้ปัจจัยเสี่ยงนี้ถูกดูแลตลอดคอร์สยายาว",
             "weigh": "ระหว่างรอคิวคลินิก ควรชั่งว่าใครเป็นผู้ดูแลน้ำตาลของผู้ป่วยในช่วงนี้",
             "safety": ""
           },
           {
-            "strength": "ทีมเบาหวานมีทั้งพยาบาลและนักโภชนาการ ที่ช่วยสอนการดูแลตัวเองได้ครบ",
+            "strength": "การส่งต่อใช้ช่องทางที่โรงพยาบาลส่วนใหญ่มีอยู่แล้ว",
             "weigh": "TMP-SMX ระยะยาวควรมีแผนติดตามผลข้างเคียง เช่น ผื่น ตั้งแต่เริ่มยา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **diabetes clinic** referral brings a team to adjust drugs and teach self-care.",
+            "strength": "A **diabetes clinic** referral puts his glucose with a team that manages it every day.",
             "weigh": "Weigh how soon the clinic can see him, since his glucose is high now.",
             "safety": ""
           },
           {
-            "strength": "Treating diabetes as long-term care addresses a major risk factor for this disease.",
+            "strength": "Handing glucose care on keeps this risk factor in view during the long course.",
             "weigh": "While he waits for the clinic, weigh who manages his glucose in the meantime.",
             "safety": ""
           },
           {
-            "strength": "A diabetes team can teach self-care with nurses and dietitians.",
+            "strength": "A referral uses a route that most hospitals already run.",
             "weigh": "Long-term TMP-SMX deserves a side-effect plan, rash included, from the first dose.",
             "safety": ""
           }
@@ -2153,34 +2153,34 @@
       "d": {
         "th": [
           {
-            "strength": "การคิดเพิ่ม**ยาสองตัว**ในระยะกำจัดเชื้อ แสดงความตั้งใจไม่ให้โรคกลับเป็นซ้ำ",
+            "strength": "การคิดเพิ่ม**ยาตัวที่สอง** แสดงความตั้งใจไม่ให้โรคกลับเป็นซ้ำ",
             "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา ขณะที่ประโยชน์ที่เพิ่มยังไม่ชัด",
             "safety": ""
           },
           {
-            "strength": "การให้ครบ **20 สัปดาห์** ช่วยให้ระยะกำจัดเชื้อยาวพอ",
-            "weigh": "ยาสองตัวนานหลายเดือนเป็นภาระต่อการกินยาให้ครบ ซึ่งเป็นหัวใจของระยะนี้",
+            "strength": "การคง TMP-SMX เป็นยาหลัก ทำให้ระยะกำจัดเชื้อมียาที่ถูกตัว",
+            "weigh": "ควรชั่งการระบุจำนวนสัปดาห์ให้ชัด เพราะความยาวของระยะนี้มีผลต่อการกลับเป็นซ้ำ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนระยะยาวที่ชัดก่อนกลับบ้าน ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาถึงเมื่อใด",
+            "strength": "การวางแผนยากินที่ชัดก่อนกลับบ้าน ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาต่อที่บ้าน",
             "weigh": "ด็อกซีไซคลินทำให้ผิวไวต่อแดด ซึ่งสำคัญกับชาวนาที่ทำงานกลางแจ้งนานหลายเดือน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Considering **two drugs** in eradication shows determination to prevent relapse.",
+            "strength": "Planning a **second drug** shows intent to prevent relapse.",
             "weigh": "Adding doxycycline brings more side effects and tablets, while its extra benefit is unclear.",
             "safety": ""
           },
           {
-            "strength": "A full **20 weeks** gives the eradication phase ample length.",
-            "weigh": "Two drugs over months strain adherence, which is central to this phase.",
+            "strength": "Keeping TMP-SMX at the core gives the eradication phase its main drug.",
+            "weigh": "Weigh stating the length of the course, since how long this phase runs drives relapse.",
             "safety": ""
           },
           {
-            "strength": "A clear long-term plan before discharge lets him know how long the tablets continue.",
+            "strength": "A clear oral plan before discharge tells him the tablets continue at home.",
             "weigh": "Doxycycline makes skin sensitive to sunlight, which matters for a farmer outdoors for months.",
             "safety": ""
           }
@@ -2190,9 +2190,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-14",
-    "findings": "Fresh reviewer that did not write the replies, 2026-11-14, case version 5. Read all 13 banks, every option, all 3 alternatives in Thai and English against every variant and entry path. No reply ties diabetes or glucose control to relapse or recurrence; the 12 rewritten pairs (step3.B b, step3.W b, step3.R b, step4.W a, step5.B a/b, step5.R a/c/d) now make no relapse claim, say the same in both languages, and where they call diabetes a major risk factor for the infection Currie 2010 and Darwin 2024 agree. step3.B b en[1], step3.W b en[1] and step4.W d en[2] say the injected drug and leak no label word. No must-fix. Non-blocking, carried over: step3.B a[1] and d[0] name the organism before culture on non-melioidosis paths; step5.R d has no safety line though its weigh names the TMP-SMX hypoglycaemia interaction. Tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50, replies sha256 35def2ab17c0953de206e9eda86c4df5ad09a0fc5c9fd683a5c827aa5a140de7. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
-    "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50",
-    "replies_sha256": "35def2ab17c0953de206e9eda86c4df5ad09a0fc5c9fd683a5c827aa5a140de7"
+    "date": "2026-11-15",
+    "findings": "Fresh reviewer that did not write the replies, 2026-11-15, two rounds. Read every reply in all 13 banks, all 3 alternatives per option in Thai and English, against every question variant of its bank and every path into it (step4.W follows only the weaker step-3 co-amoxiclav option, so its co-amoxiclav relapse premise holds on every path). Round 2 re-read the six rewritten step4.W d replies for the new option ceftazidime then TMP-SMX plus doxycycline: no wrong fact (MERTH, Chetchotisakd Lancet 2014, supports 'lowers relapse no more than TMP-SMX alone'), no grading of the choice, no other option named, no preview of step 5, Thai matches English, and an empty safety line is right for a safe regimen; a reconstruction confirmed no other reply changed. Across the bank no reply asserts a fact only some variants or paths state, no reply ties glucose control to relapse, and safety lines are correctly empty. Non-blocking, carried over: step5.R d has no safety line though its weigh names the TMP-SMX hypoglycaemia interaction; step2.R c and step2.W c weigh 'this disease asks you to sample' also runs on paths where step 1 named another disease. reply-bank.mjs check: content ok. Tree sha256 090459d151e3454eba4ee19aada782e6046217cf56d3b199d591c76403ade916. Replies sha256 1783a815235dfe8e2b6dd7a52439252ccdf2142a570bdb68c413f98291306528.",
+    "tree_sha256": "090459d151e3454eba4ee19aada782e6046217cf56d3b199d591c76403ade916",
+    "replies_sha256": "1783a815235dfe8e2b6dd7a52439252ccdf2142a570bdb68c413f98291306528"
   }
 }

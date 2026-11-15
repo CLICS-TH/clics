@@ -142,8 +142,8 @@
               "en": "Blood, sputum and throat cultures"
             },
             "line": {
-              "th": "เพาะเชื้อหลายตำแหน่งทำให้พบเชื้อได้มากขึ้น",
-              "en": "Culturing several sites raises the yield."
+              "th": "เสมหะและป้ายคอมักพบเชื้อได้ แม้เพาะเชื้อเลือดให้ผลลบ",
+              "en": "Sputum and throat often grow the organism when blood stays negative."
             }
           },
           {
@@ -166,8 +166,8 @@
               "en": "Blood culture and chest X-ray"
             },
             "line": {
-              "th": "ยืนยันเชื้อและดูรอยโรคในปอด",
-              "en": "Confirms the organism and shows the lung lesion."
+              "th": "ชุดตรวจแรกที่ส่งเป็นปกติในปอดอักเสบทุกราย",
+              "en": "The usual first pair for any pneumonia."
             }
           },
           {
@@ -178,8 +178,8 @@
               "en": "Blood culture, CBC, creatinine"
             },
             "line": {
-              "th": "ยืนยันเชื้อและใช้ค่าไตปรับขนาดยา",
-              "en": "Confirms the organism and sets the renal dose."
+              "th": "ชุดเลือดที่ส่งเป็นปกติเมื่อรับไว้ในโรงพยาบาล",
+              "en": "The routine blood set for any admission."
             }
           },
           {
@@ -227,8 +227,8 @@
               "en": "Blood, sputum and throat cultures"
             },
             "line": {
-              "th": "เพาะเชื้อหลายตำแหน่งทำให้พบเชื้อได้มากขึ้น",
-              "en": "Culturing several sites raises the yield."
+              "th": "เสมหะและป้ายคอมักพบเชื้อได้ แม้เพาะเชื้อเลือดให้ผลลบ",
+              "en": "Sputum and throat often grow the organism when blood stays negative."
             }
           },
           {
@@ -251,8 +251,8 @@
               "en": "Blood culture and chest X-ray"
             },
             "line": {
-              "th": "ยืนยันเชื้อและดูรอยโรคในปอด",
-              "en": "Confirms the organism and shows the lung lesion."
+              "th": "ชุดตรวจแรกที่ส่งเป็นปกติในปอดอักเสบทุกราย",
+              "en": "The usual first pair for any pneumonia."
             }
           },
           {
@@ -300,8 +300,8 @@
               "en": "Blood, sputum and throat cultures"
             },
             "line": {
-              "th": "เพาะเชื้อหลายตำแหน่งทำให้พบเชื้อได้มากขึ้น",
-              "en": "Culturing several sites raises the yield."
+              "th": "เสมหะและป้ายคอมักพบเชื้อได้ แม้เพาะเชื้อเลือดให้ผลลบ",
+              "en": "Sputum and throat often grow the organism when blood stays negative."
             }
           },
           {
@@ -324,8 +324,8 @@
               "en": "Blood culture, CBC, creatinine"
             },
             "line": {
-              "th": "ยืนยันเชื้อและใช้ค่าไตปรับขนาดยา",
-              "en": "Confirms the organism and sets the renal dose."
+              "th": "ชุดเลือดที่ส่งเป็นปกติเมื่อรับไว้ในโรงพยาบาล",
+              "en": "The routine blood set for any admission."
             }
           },
           {
@@ -838,8 +838,8 @@
               "en": "Ceftazidime → TMP-SMX + doxy"
             },
             "line": {
-              "th": "ยากินสองตัวช่วยเสริมการกำจัดเชื้อหลังกำเริบ",
-              "en": "Two oral drugs add cover after a relapse."
+              "th": "เพิ่มยากินอีกตัวไว้ก่อนเพื่อความรัดกุม",
+              "en": "A second oral drug, just to be thorough."
             }
           }
         ],
@@ -909,12 +909,12 @@
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "TMP-SMX ร่วมด็อกซี 20 สัปดาห์",
-              "en": "TMP-SMX plus doxycycline, 20 weeks"
+              "th": "TMP-SMX ร่วมด็อกซีไซคลิน",
+              "en": "TMP-SMX plus doxycycline"
             },
             "line": {
-              "th": "ยาสองตัวช่วยเสริมการกำจัดเชื้อระยะยาว",
-              "en": "Two drugs add cover in the eradication phase."
+              "th": "เพิ่มยาตัวที่สองให้คอร์สยายาวรัดกุมขึ้น",
+              "en": "A second drug makes a long course more thorough."
             }
           }
         ],
@@ -974,8 +974,8 @@
               "en": "TMP-SMX, diabetes clinic referral"
             },
             "line": {
-              "th": "ทีมเบาหวานช่วยปรับยาและสอนดูแลตัวเอง",
-              "en": "The diabetes team adjusts drugs and teaches self-care."
+              "th": "ส่งเรื่องน้ำตาลให้คลินิกดูแลตามขั้นตอนปกติ",
+              "en": "Hands his glucose to the clinic, the usual route."
             }
           },
           {
@@ -1055,12 +1055,12 @@
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "TMP-SMX ร่วมด็อกซี 20 สัปดาห์",
-              "en": "TMP-SMX plus doxycycline, 20 weeks"
+              "th": "TMP-SMX ร่วมด็อกซีไซคลิน",
+              "en": "TMP-SMX plus doxycycline"
             },
             "line": {
-              "th": "ยาสองตัวช่วยเสริมการกำจัดเชื้อระยะยาว",
-              "en": "Two drugs add cover in the eradication phase."
+              "th": "เพิ่มยาตัวที่สองให้คอร์สยายาวรัดกุมขึ้น",
+              "en": "A second drug makes a long course more thorough."
             }
           }
         ],
@@ -1075,9 +1075,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-14",
-      "findings": "Fresh reviewer that did not write the case, 2026-11-14, five-step version 5. Sources opened: Anunnatsiri et al., Clin Infect Dis 2021 (12 vs 20 weeks TMP-SMX); Limmathurotsakul et al., Clin Infect Dis 2006 and PLoS NTD 2008 abstracts; Currie, Ward, Cheng, PLoS NTD 2010 (Darwin cohort); 2024 Darwin Melioidosis Treatment Guideline (NT Disease Control Bulletin, Dec 2023, Tables 1 and 3); PLoS NTD 2023 network meta-analysis (TMP-SMX alone 20 weeks is the Thai recommendation). The Thai DDC guideline itself was not opened. Checked all 13 banks, every variant and option for drug choice, IV and eradication lengths, relapse and diabetes care, discharge, tiers, stems on each entry path and Thai-English parity. Ticket items: step3.R b stays best, since 20 weeks is the Thai standard and the 2021 trial missed its primary non-inferiority test (recurrence 2% vs 1%, HR 2.66, 0.52-13.69) and randomised only patients with no residual abscess. The step5.R a line now makes no relapse claim, which is right: diabetes was tied to relapse in Darwin but not in the Thai cohort, and early TMP-SMX checks are standard (Darwin Table 3). No must-fix. Non-blocking: step4.R d (add TMP-SMX to the IV drug) is weaker for its stated reason, though Darwin 2024 now starts graded TMP-SMX in the intensive phase. Reviewed tree sha256 5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50. Confirm read 2026-11-14 by a second non-author reviewer: WHO SEARO IMAI 2021 sec 11.23 (IV ceftazidime, then co-trimoxazole at least 3 months) and Thai DDC ODPC9 2023 risk assessment plus Thai Melioidosis Network sheet (12-20 weeks) agree; the DDC 2021 guideline itself did not open.",
-      "tree_sha256": "5f83c784dffeb938a0bbca8dc800e34425598892eb2dd1ebc1f821ad93936f50"
+      "date": "2026-11-15",
+      "findings": "Fresh reviewer that did not write the case, 2026-11-15, version 7, two rounds. Reviewed the whole tree: vignette, teaser and all 13 banks, every question variant and option in Thai and English, against the diff from v6 (step2 a/c/d lines, step4.W d, step5 B/W d, step5.R c line). Sources read: 2024 Darwin Melioidosis Treatment Guideline (Tables 1 and 3: IV phase lengths incl. 4 weeks for deep abscess, TMP-SMX as eradication drug, co-amoxiclav only when TMP-SMX cannot be used); WHO SEARO IMAI 2021 sec 11.23 (IV ceftazidime, then co-trimoxazole at least 3 months); Limmathurotsakul et al., Clin Infect Dis 2006 (oral regimen choice is the main relapse risk factor; co-amoxiclav and doxycycline alone do worse); Chetchotisakd et al., Lancet 2014 (MERTH: TMP-SMX alone non-inferior to TMP-SMX plus doxycycline, fewer adverse events); Wiersinga et al., Nat Rev Dis Primers 2018 (diagnosis: culture of blood, sputum, throat swab, urine, pus; blood culture positive in only about half); Thai DDC guidance and Thai practice of 12-20 weeks TMP-SMX. Round 1 found one must-fix: step4.W d re-treated a relapse on co-amoxiclav with co-amoxiclav again, withholding first-line TMP-SMX from a patient whose second-line drug had failed; the author replaced it with ceftazidime then TMP-SMX plus doxycycline, line 'A second oral drug, just to be thorough.', which is weaker per MERTH and safe; a reconstruction confirmed nothing else in the tree changed. Notable judgments: step2 a ('sputum and throat often grow the organism when blood stays negative') is fair for sputum paired with throat swab; step3 d co-amoxiclav eradication stays weaker and safe as a first course; step3 e adding doxycycline is reasonable; step4.B a 4 weeks IV for splenic abscesses matches Darwin; step4.R d and e and step4.B d and e are weaker and safe; step5.B/W d TMP-SMX plus doxycycline with no stated duration is weaker and safe; step5.R d (usual pills, review at 4 weeks) is weaker and safe. Thai and English agree and read naturally; lines argue for their own option; the teaser does not hint the diagnosis. MUST-FIX: none. Reviewed tree sha256 090459d151e3454eba4ee19aada782e6046217cf56d3b199d591c76403ade916.",
+      "tree_sha256": "090459d151e3454eba4ee19aada782e6046217cf56d3b199d591c76403ade916"
     }
   }
 }
