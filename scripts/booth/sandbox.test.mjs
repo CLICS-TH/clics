@@ -81,3 +81,16 @@ test('--pool from the same step count is accepted', { skip: NO_PACKAGES }, () =>
   const r = run('--cases', caseDir(FIVE), '--pool', report({ steps: 5 }));
   assert.equal(r.status, 0, r.stderr);
 });
+
+// Spec #493: the sandbox's $25 cap is enforced in code, not left to the flag a run is given.
+test('--cap above $25 is refused before anything is planned; $25 and the default plan the run', { skip: NO_PACKAGES }, () => {
+  for (const cap of ['25.01', '30', '1000']) {
+    const r = run('--cases', caseDir(FIVE), '--cap', cap);
+    assert.equal(r.status, 2, `--cap ${cap}`);
+    assert.match(r.stderr, /--cap is at most \$25/);
+  }
+  const at = run('--cases', caseDir(FIVE), '--cap', '25');
+  assert.equal(at.status, 0, at.stderr);
+  assert.match(at.stdout, /Cap \$25\./);
+  assert.match(run('--cases', caseDir(FIVE)).stdout, /Cap \$25\./);
+});
