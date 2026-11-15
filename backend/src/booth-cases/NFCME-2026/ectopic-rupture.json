@@ -44,8 +44,8 @@
             "en": "Ruptured ectopic pregnancy"
           },
           "line": {
-            "th": "ประจำเดือนขาด ปวดท้องทันที และช็อก เข้าได้ดี",
-            "en": "A late period, sudden pain and shock fit it well."
+            "th": "ประจำเดือนขาด 7 สัปดาห์ร่วมกับช็อก ชี้ว่าท่อนำไข่แตก",
+            "en": "A 7-week late period with shock points to a ruptured tube."
           }
         },
         {
@@ -142,8 +142,8 @@
               "en": "Pregnancy test + bedside scan"
             },
             "line": {
-              "th": "รู้ผลภายในนาที และเห็นเลือดในช่องท้องได้",
-              "en": "Answers in minutes and can show blood in the abdomen."
+              "th": "ช็อกอยู่ ถ้าผลบวกและเห็นเลือดในท้อง ต้องผ่าตัดทันที",
+              "en": "In shock, a positive test with blood on the scan means theatre now."
             }
           },
           {
@@ -154,8 +154,8 @@
               "en": "Group, cross-match and Hb"
             },
             "line": {
-              "th": "เตรียมเลือดให้พร้อมสำหรับให้เลือดและผ่าตัด",
-              "en": "Gets blood ready for transfusion and the operation."
+              "th": "เธอช็อกและต้องใช้เลือดตอนผ่าตัด จึงจองเลือดไว้เลย",
+              "en": "She is in shock and will need blood in theatre, so match it now."
             }
           },
           {
@@ -171,22 +171,22 @@
             }
           },
           {
-            "id": "cbc_ua",
+            "id": "serial_cbc",
             "tier": "weaker",
             "label": {
-              "th": "CBC และตรวจปัสสาวะ",
-              "en": "CBC and urinalysis"
+              "th": "CBC ตอนนี้ และซ้ำทุกชั่วโมง",
+              "en": "CBC now, repeat every hour"
             },
             "line": {
-              "th": "ดูค่าเม็ดเลือดและคัดกรองการติดเชื้อทางปัสสาวะ",
-              "en": "Shows the blood count and screens for a urine infection."
+              "th": "เจาะซ้ำเป็นวิธีปกติที่ใช้ติดตามการเสียเลือด",
+              "en": "Repeat counts are the usual way to follow blood loss."
             }
           }
         ],
         "default_trio": [
           "upt_scan",
           "bhcg",
-          "cbc_ua"
+          "serial_cbc"
         ]
       },
       "R": {
@@ -215,8 +215,8 @@
               "en": "Pregnancy test + bedside scan"
             },
             "line": {
-              "th": "รู้ผลภายในนาที และเห็นเลือดในช่องท้องได้",
-              "en": "Answers in minutes and can show blood in the abdomen."
+              "th": "ช็อกอยู่ ถ้าผลบวกและเห็นเลือดในท้อง ต้องผ่าตัดทันที",
+              "en": "In shock, a positive test with blood on the scan means theatre now."
             }
           },
           {
@@ -227,8 +227,8 @@
               "en": "Group, cross-match and Hb"
             },
             "line": {
-              "th": "เตรียมเลือดให้พร้อมสำหรับให้เลือดและผ่าตัด",
-              "en": "Gets blood ready for transfusion and the operation."
+              "th": "เธอช็อกและต้องใช้เลือดตอนผ่าตัด จึงจองเลือดไว้เลย",
+              "en": "She is in shock and will need blood in theatre, so match it now."
             }
           },
           {
@@ -244,22 +244,22 @@
             }
           },
           {
-            "id": "cbc_ua",
+            "id": "serial_cbc",
             "tier": "weaker",
             "label": {
-              "th": "CBC และตรวจปัสสาวะ",
-              "en": "CBC and urinalysis"
+              "th": "CBC ตอนนี้ และซ้ำทุกชั่วโมง",
+              "en": "CBC now, repeat every hour"
             },
             "line": {
-              "th": "ดูค่าเม็ดเลือดและคัดกรองการติดเชื้อทางปัสสาวะ",
-              "en": "Shows the blood count and screens for a urine infection."
+              "th": "เจาะซ้ำเป็นวิธีปกติที่ใช้ติดตามการเสียเลือด",
+              "en": "Repeat counts are the usual way to follow blood loss."
             }
           }
         ],
         "default_trio": [
           "upt_scan",
           "fast",
-          "cbc_ua"
+          "serial_cbc"
         ]
       },
       "W": {
@@ -288,8 +288,8 @@
               "en": "Pregnancy test + bedside scan"
             },
             "line": {
-              "th": "รู้ผลภายในนาที และเห็นเลือดในช่องท้องได้",
-              "en": "Answers in minutes and can show blood in the abdomen."
+              "th": "ช็อกอยู่ ถ้าผลบวกและเห็นเลือดในท้อง ต้องผ่าตัดทันที",
+              "en": "In shock, a positive test with blood on the scan means theatre now."
             }
           },
           {
@@ -300,8 +300,8 @@
               "en": "Group, cross-match and Hb"
             },
             "line": {
-              "th": "เตรียมเลือดให้พร้อมสำหรับให้เลือดและผ่าตัด",
-              "en": "Gets blood ready for transfusion and the operation."
+              "th": "เธอช็อกและต้องใช้เลือดตอนผ่าตัด จึงจองเลือดไว้เลย",
+              "en": "She is in shock and will need blood in theatre, so match it now."
             }
           },
           {
@@ -329,22 +329,22 @@
             }
           },
           {
-            "id": "glu_lyte",
+            "id": "serial_cbc",
             "tier": "weaker",
             "label": {
-              "th": "น้ำตาลและเกลือแร่ในเลือด",
-              "en": "Blood glucose and electrolytes"
+              "th": "CBC ตอนนี้ และซ้ำทุกชั่วโมง",
+              "en": "CBC now, repeat every hour"
             },
             "line": {
-              "th": "หาสาเหตุทางเมแทบอลิกของอาการเป็นลม",
-              "en": "Looks for a metabolic cause of the fainting."
+              "th": "เจาะซ้ำเป็นวิธีปกติที่ใช้ติดตามการเสียเลือด",
+              "en": "Repeat counts are the usual way to follow blood loss."
             }
           }
         ],
         "default_trio": [
           "upt_scan",
           "fast",
-          "glu_lyte"
+          "serial_cbc"
         ]
       }
     },
@@ -382,8 +382,8 @@
               "en": "Blood and emergency laparotomy now"
             },
             "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
+              "th": "ยังช็อกอยู่ ตัดท่อนำไข่ออกทันทีเพื่อหยุดเลือด",
+              "en": "She is still in shock, so removing the tube now stops the bleeding."
             }
           },
           {
@@ -394,8 +394,8 @@
               "en": "Massive transfusion and laparotomy"
             },
             "line": {
-              "th": "ทดแทนเลือดที่เสียไปขณะศัลยแพทย์ห้ามเลือด",
-              "en": "Replaces lost blood while the surgeon stops the bleeding."
+              "th": "เธอเสียเลือดไปมาก จึงให้เลือดทดแทนขณะศัลยแพทย์ผ่าตัด",
+              "en": "She has lost a lot of blood, so replace it while the surgeon operates."
             }
           },
           {
@@ -467,8 +467,8 @@
               "en": "Blood and emergency laparotomy now"
             },
             "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
+              "th": "ยังช็อกอยู่ ตัดท่อนำไข่ออกทันทีเพื่อหยุดเลือด",
+              "en": "She is still in shock, so removing the tube now stops the bleeding."
             }
           },
           {
@@ -479,8 +479,8 @@
               "en": "Massive transfusion and laparotomy"
             },
             "line": {
-              "th": "ทดแทนเลือดที่เสียไปขณะศัลยแพทย์ห้ามเลือด",
-              "en": "Replaces lost blood while the surgeon stops the bleeding."
+              "th": "เธอเสียเลือดไปมาก จึงให้เลือดทดแทนขณะศัลยแพทย์ผ่าตัด",
+              "en": "She has lost a lot of blood, so replace it while the surgeon operates."
             }
           },
           {
@@ -559,8 +559,8 @@
               "en": "Blood and emergency laparotomy now"
             },
             "line": {
-              "th": "ให้เลือดและตัดท่อนำไข่ออกเพื่อหยุดเลือด",
-              "en": "Gives blood and removes the tube to stop the bleeding."
+              "th": "ยังช็อกอยู่ ตัดท่อนำไข่ออกทันทีเพื่อหยุดเลือด",
+              "en": "She is still in shock, so removing the tube now stops the bleeding."
             }
           },
           {
@@ -571,8 +571,8 @@
               "en": "Massive transfusion and laparotomy"
             },
             "line": {
-              "th": "ทดแทนเลือดที่เสียไปขณะศัลยแพทย์ห้ามเลือด",
-              "en": "Replaces lost blood while the surgeon stops the bleeding."
+              "th": "เธอเสียเลือดไปมาก จึงให้เลือดทดแทนขณะศัลยแพทย์ผ่าตัด",
+              "en": "She has lost a lot of blood, so replace it while the surgeon operates."
             }
           },
           {
@@ -646,8 +646,8 @@
               "en": "Walking, diet and oral pain relief"
             },
             "line": {
-              "th": "ช่วยฟื้นตัวเร็วและลดความเสี่ยงลิ่มเลือด",
-              "en": "Speeds recovery and lowers the risk of clots."
+              "th": "อาการคงที่แล้ว ลุกเดินเร็วช่วยให้ฟื้นตัวเร็ว",
+              "en": "She is stable now, so early walking speeds her recovery."
             }
           },
           {
@@ -879,8 +879,8 @@
               "en": "Early scan in her next pregnancy"
             },
             "line": {
-              "th": "ยืนยันตำแหน่งการตั้งครรภ์ครั้งหน้าได้เร็ว",
-              "en": "Confirms early where a future pregnancy lies."
+              "th": "เคยท้องนอกมดลูกแล้วเสี่ยงเป็นซ้ำ จึงควรอัลตราซาวด์เร็ว",
+              "en": "One ectopic raises her risk of another, so scan early next time."
             }
           },
           {
@@ -891,8 +891,8 @@
               "en": "Urine pregnancy test in 3 weeks"
             },
             "line": {
-              "th": "ผลลบยืนยันว่าเนื้อเยื่อการตั้งครรภ์หมดแล้ว",
-              "en": "A negative test shows the pregnancy tissue is gone."
+              "th": "ตัดท่อนำไข่แล้ว ผลลบครั้งเดียวยืนยันว่าเนื้อเยื่อหมดแล้ว",
+              "en": "With the tube removed, one negative test shows the tissue is gone."
             }
           },
           {
@@ -964,8 +964,8 @@
               "en": "Urine pregnancy test in 3 weeks"
             },
             "line": {
-              "th": "ผลลบยืนยันว่าเนื้อเยื่อการตั้งครรภ์หมดแล้ว",
-              "en": "A negative test shows the pregnancy tissue is gone."
+              "th": "ตัดท่อนำไข่แล้ว ผลลบครั้งเดียวยืนยันว่าเนื้อเยื่อหมดแล้ว",
+              "en": "With the tube removed, one negative test shows the tissue is gone."
             }
           },
           {
@@ -1049,8 +1049,8 @@
               "en": "Urine pregnancy test in 3 weeks"
             },
             "line": {
-              "th": "ผลลบยืนยันว่าเนื้อเยื่อการตั้งครรภ์หมดแล้ว",
-              "en": "A negative test shows the pregnancy tissue is gone."
+              "th": "ตัดท่อนำไข่แล้ว ผลลบครั้งเดียวยืนยันว่าเนื้อเยื่อหมดแล้ว",
+              "en": "With the tube removed, one negative test shows the tissue is gone."
             }
           },
           {
@@ -1101,9 +1101,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-13",
-      "findings": "Review of version 5 (five steps). Thai: searched the RTCOG website (CPG volumes 3-5, by title), the Department of Medical Services and the Ministry of Public Health, and Thai and English web queries for an ectopic pregnancy guideline: none exists beyond one hospital fast-track pathway. Nearest Thai sources, opened: RTCOG CPG OB 69-043 Point-of-care ultrasound in obstetrics and gynecology (2026), Rec 1, which names ectopic pregnancy but covers diagnosis only; and RTCOG CPG OB 66-031 Induced abortion (2023), no anti-D under 12 weeks, which applies to ectopic pregnancy by analogy only. WHO: Managing complications in pregnancy and childbirth, 2nd edition (WHO 2017), pages S-7 to S-19 and P-129 to P-131: a ruptured ectopic with shock goes to immediate laparotomy without waiting for blood, salpingectomy, oral iron and a 4-week visit; page S-19 gives anti-D only where Rh-negative prevalence is high. Thai Rh(D)-negative prevalence is 0.2%, within the Thai range of 0.1-0.3% (ABO and Rhesus blood group distribution in blood donors, Khon Kaen University, Srinagarind Med J 2018, 62,201 donors), so the low-prevalence clause applies. Direct ectopic source: NICE NG126 (updated June 2026) rec 1.18.1, no anti-D up to 11+6 weeks; also NICE NG24 (updated 2026). WHO Abortion care guideline (2022) Rec 8 supports the anti-D tier by analogy only. RCOG GTG 21 (2016) could not be opened. Fixed after the first review: anti-D at 7 weeks moved from best to weaker, in step4.B only, with the daily-Hb option removed. Fresh re-check by a non-author (claude-opus-5-5) of the final tree, with every source above opened: no must-fix. Confirmed: laparotomy with blood is best in shock and laparoscopic salpingectomy reasonable (NG126 1.16.1); every weaker step-3 option gives blood and surgery; one unit then reassess fits NG24 1.6; a urine pregnancy test at 3 weeks is best and weekly hCG weaker (NG126 1.17.4-1.17.5); no stem reveals an unordered result; Thai and English agree. Remains, listed on #470: the step-3 reply should say surgery does not wait for blood; the one-unit line could say if no fresh bleeding; empty safety lines. Tree sha256 9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a.",
-      "tree_sha256": "9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a"
+      "date": "2026-11-15",
+      "findings": "Fresh review by a non-author, 2026-11-15, of the whole of ectopic-rupture version 7 in Thai and English: vignette, teaser, and every variant and option of all 13 banks (step1, step2.B/R/W, step3.B/R/W, step4.B/R/W, step5.B/R/W), read against the diff from origin/claude/hungry-robinson-dbaaa6. Sources: WHO Managing Complications in Pregnancy and Childbirth, 2nd ed. 2017, pp. P-129 to P-131 and S-7 to S-19 (ruptured ectopic with shock goes to immediate laparotomy and salpingectomy); ATLS 10th ed. ch. 3 Shock (Hb and haematocrit are unreliable early markers of acute blood loss, vital signs lead); RTCOG CPG OB 69-043 Point-of-care ultrasound in obstetrics and gynecology (2026) Rec 1 (bedside scan for suspected ectopic); NICE NG126 (updated June 2026): 1.16.1 surgical management, 1.17.4-1.17.5 urine pregnancy test at 3 weeks after salpingectomy and serial hCG only after salpingotomy, 1.18.1 no anti-D up to 11+6 weeks, 1.2.3 (cited as 1.2.4 in QS69) early pregnancy services accept self-referral after a previous ectopic; RCOG-based NHS leaflets put recurrence at about 10-15%. NICE pages were not reachable this session, so NG126 wording came from the NICE draft and QS69 text; the recommendation number for self-referral differs between sources. Notable judgments: the new step-2 weaker option serial_cbc (CBC now, repeat hourly) is safe, since IV fluids are running and every step-3 option still gives blood and surgery, and it is clearly weaker than serum beta-hCG because serial counts lag the blood lost (ATLS ch. 3) and do not find the source; weaker is right in step2.B, R and W. The upt_scan line (in shock, a positive test with blood on the scan means theatre now) matches WHO MCPC 2017 and RTCOG Rec 1. The step5.B counsel line (one ectopic raises the risk of another, so scan early next time) is supported by NG126 1.2.3 and the recurrence risk; best is right. The reworded best lines (step1 a, xmatch, operate, mtp, mobilise, fu_upt with one negative test after salpingectomy per NG126 1.17.4) are factually right and their Thai matches the English. Tiers confirmed before still hold: lap reasonable; abx5 and stay7 weaker but still give blood and surgery; one_unit best; anti_d weaker at 7 weeks given Thai Rh-negative prevalence of about 0.2% (NG126 1.18.1; WHO S-19); serial_hcg weaker after salpingectomy. The Thai reads naturally, the teaser shares no word with a best step-1 label, and every line argues for its own option. MUST-FIX: none. Reviewed tree sha256 28a8f706e82d4aaac016036c8edacc12c96761283927e3234c13019f6f094639.",
+      "tree_sha256": "28a8f706e82d4aaac016036c8edacc12c96761283927e3234c13019f6f094639"
     }
   }
 }
