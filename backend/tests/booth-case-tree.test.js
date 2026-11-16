@@ -273,7 +273,7 @@ describe('admission', () => {
     expect(caseTreeProblems(k).some((p) => p.startsWith(field))).toBe(true);
   });
 
-  test('every NFCME-2026 case is a five-step tree whose safety review, table and sandbox record are bound to it (#497)', () => {
+  test('every NFCME-2026 case is a five-step tree whose safety review and table are bound to it, and every admitted one its sandbox record too (#497)', () => {
     const { treeSha } = require('../src/booth-cases/tree-sha');
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const cases = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)));
@@ -281,10 +281,13 @@ describe('admission', () => {
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.path_score_table?.provenance.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    expect(cases.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Admitted only where the table's own run passed the re-check: run ptb-202611150212-bdf7 passed four of the eleven.
-    expect(cases.filter(isAdmitted).map((k) => k.case_id).sort())
-      .toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'toddler-gastro-dehydration']);
+    const admitted = cases.filter(isAdmitted);
+    expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    // Admitted only where the table's own run passed the re-check. ectopic-rupture (run ptb-202611161522-9144) and
+    // melioidosis-farmer (run ptb-202611161531-ff69) failed theirs; with the $85 cap spent they hold no sandbox record.
+    expect(admitted.map((k) => k.case_id).sort())
+      .toEqual(['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'dka-young-adult', 'leptospirosis', 'motorcycle-shock',
+        'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
   });
 
   test('a case with no admission marker is valid but not admitted', () => {
