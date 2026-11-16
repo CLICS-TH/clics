@@ -92,8 +92,8 @@
             "en": "Acute appendicitis"
           },
           "line": {
-            "th": "ปวดท้องน้อย กดเจ็บ และเกร็ง พบบ่อยในภาวะนี้",
-            "en": "Lower abdominal pain, tenderness and guarding are common in it."
+            "th": "ปวดท้องน้อยมักนึกถึงไส้ติ่งอักเสบเป็นอันดับแรก",
+            "en": "Appendicitis is the usual first thought in lower abdominal pain."
           }
         },
         {
@@ -104,8 +104,8 @@
             "en": "Ovarian torsion"
           },
           "line": {
-            "th": "ปวดท้องน้อยข้างเดียวขึ้นทันทีพบบ่อยในภาวะนี้",
-            "en": "Sudden one-sided lower abdominal pain is common in it."
+            "th": "ปวดท้องน้อยขึ้นทันทีมักทำให้นึกถึงภาวะนี้ก่อน",
+            "en": "Sudden lower abdominal pain usually brings it to mind first."
           }
         }
       ],
@@ -159,15 +159,15 @@
             }
           },
           {
-            "id": "bhcg",
+            "id": "fast",
             "tier": "reasonable",
             "label": {
-              "th": "ระดับ β-hCG ในเลือด",
-              "en": "Serum β-hCG level"
+              "th": "อัลตราซาวด์ข้างเตียง (FAST)",
+              "en": "Bedside FAST scan"
             },
             "line": {
-              "th": "ได้ระดับฮอร์โมนไว้อ่านคู่กับผลอัลตราซาวด์",
-              "en": "Gives a hormone level to read alongside the scan."
+              "th": "เห็นน้ำในช่องท้องได้ทันทีที่ข้างเตียง",
+              "en": "Can show free fluid in the abdomen at once."
             }
           },
           {
@@ -185,7 +185,7 @@
         ],
         "default_trio": [
           "upt_scan",
-          "bhcg",
+          "fast",
           "serial_cbc"
         ]
       },
@@ -658,8 +658,8 @@
               "en": "Repeat Hb this afternoon"
             },
             "line": {
-              "th": "ค่าที่สองช่วยดูว่าเลือดหยุดแล้ว",
-              "en": "A second value helps show the bleeding has stopped."
+              "th": "หลังเสียเลือดมาก ค่าที่สองช่วยดูแนวโน้มของ Hb",
+              "en": "After heavy bleeding, a second value shows if her Hb is steady."
             }
           },
           {
@@ -743,8 +743,8 @@
               "en": "Transfuse 2 units, then reassess"
             },
             "line": {
-              "th": "ทดแทนเลือดที่เสียไปได้มากขึ้นในรอบเดียว",
-              "en": "Replaces more of her lost blood in one round."
+              "th": "Hb 7.2 ชีพจร 106 ให้ 2 ยูนิตแก้ภาวะซีดได้เร็วกว่า",
+              "en": "With Hb 7.2 and pulse 106, two units correct her sooner."
             }
           },
           {
@@ -828,8 +828,8 @@
               "en": "Broad IV antibiotics now"
             },
             "line": {
-              "th": "รักษาการติดเชื้อที่น่าจะเป็นได้ทันที",
-              "en": "Treats a likely infection without loss of time."
+              "th": "ไข้ใหม่หลังผ่าตัดอาจเป็นภาวะติดเชื้อในกระแสเลือด จึงให้ยาทันที",
+              "en": "A new fever after surgery may be sepsis, so start cover now."
             }
           },
           {
@@ -903,8 +903,8 @@
               "en": "Clinic visit in 2 weeks"
             },
             "line": {
-              "th": "ดูแผลและดูว่าเธอปรับตัวได้อย่างไร",
-              "en": "Checks the wound and how she is coping."
+              "th": "ดูแผลและดูว่าเธอรับมือกับการสูญเสียได้อย่างไร",
+              "en": "Checks her wound and how she is coping with the loss."
             }
           },
           {
@@ -976,8 +976,8 @@
               "en": "Phone follow-up in 1 week"
             },
             "line": {
-              "th": "การโทรสั้น ๆ ช่วยเช็กการฟื้นตัวได้ประหยัด",
-              "en": "A short call checks her recovery at little cost."
+              "th": "หลังเสียเลือดมาก โทรใน 1 สัปดาห์ช่วยดูการฟื้นตัว",
+              "en": "After major blood loss, a call in a week checks her recovery."
             }
           },
           {
@@ -1061,8 +1061,8 @@
               "en": "Clinic visit in 2 weeks"
             },
             "line": {
-              "th": "ดูแผลและดูว่าเธอปรับตัวได้อย่างไร",
-              "en": "Checks the wound and how she is coping."
+              "th": "ดูแผลและดูว่าเธอรับมือกับการสูญเสียได้อย่างไร",
+              "en": "Checks her wound and how she is coping with the loss."
             }
           },
           {
@@ -1102,8 +1102,8 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-15",
-      "findings": "Fresh review by a non-author, 2026-11-15, of the whole of ectopic-rupture version 7 in Thai and English: vignette, teaser, and every variant and option of all 13 banks (step1, step2.B/R/W, step3.B/R/W, step4.B/R/W, step5.B/R/W), read against the diff from origin/claude/hungry-robinson-dbaaa6. Sources: WHO Managing Complications in Pregnancy and Childbirth, 2nd ed. 2017, pp. P-129 to P-131 and S-7 to S-19 (ruptured ectopic with shock goes to immediate laparotomy and salpingectomy); ATLS 10th ed. ch. 3 Shock (Hb and haematocrit are unreliable early markers of acute blood loss, vital signs lead); the Thai RTCOG CPG OB 69-043 Point-of-care ultrasound in obstetrics and gynecology (2026) Rec 1 (bedside scan for suspected ectopic); NICE NG126 (updated June 2026): 1.16.1 surgical management, 1.17.4-1.17.5 urine pregnancy test at 3 weeks after salpingectomy and serial hCG only after salpingotomy, 1.18.1 no anti-D up to 11+6 weeks, 1.2.3 (cited as 1.2.4 in QS69) early pregnancy services accept self-referral after a previous ectopic; RCOG-based NHS leaflets put recurrence at about 10-15%. NICE pages were not reachable this session, so NG126 wording came from the NICE draft and QS69 text; the recommendation number for self-referral differs between sources. Notable judgments: the new step-2 weaker option serial_cbc (CBC now, repeat hourly) is safe, since IV fluids are running and every step-3 option still gives blood and surgery, and it is clearly weaker than serum beta-hCG because serial counts lag the blood lost (ATLS ch. 3) and do not find the source; weaker is right in step2.B, R and W. The upt_scan line (in shock, a positive test with blood on the scan means theatre now) matches WHO MCPC 2017 and RTCOG Rec 1. The step5.B counsel line (one ectopic raises the risk of another, so scan early next time) is supported by NG126 1.2.3 and the recurrence risk; best is right. The reworded best lines (step1 a, xmatch, operate, mtp, mobilise, fu_upt with one negative test after salpingectomy per NG126 1.17.4) are factually right and their Thai matches the English. Tiers confirmed before still hold: lap reasonable; abx5 and stay7 weaker but still give blood and surgery; one_unit best; anti_d weaker at 7 weeks given Thai Rh-negative prevalence of about 0.2% (NG126 1.18.1; WHO S-19); serial_hcg weaker after salpingectomy. The Thai reads naturally, the teaser shares no word with a best step-1 label, and every line argues for its own option. This is a fresh re-check by a non-author of the final tree, after the #497 revisions. MUST-FIX: none. Reviewed tree sha256 28a8f706e82d4aaac016036c8edacc12c96761283927e3234c13019f6f094639.",
-      "tree_sha256": "28a8f706e82d4aaac016036c8edacc12c96761283927e3234c13019f6f094639"
+      "findings": "Fresh review by a non-author, 2026-11-16, of the whole of ectopic-rupture in Thai and English: vignette, teaser, and every variant and option of all 13 banks (step1, step2.B/R/W, step3.B/R/W, step4.B/R/W, step5.B/R/W), read against the diff from the tree last reviewed (28a8f706). Sources: WHO \"Managing complications in pregnancy and childbirth\", 2nd ed. 2017, pp. P-129 to P-131 and S-7 to S-19 (a ruptured ectopic with shock goes to immediate laparotomy and salpingectomy, with resuscitation running alongside); ATLS 10th ed. ch. 3 Shock (Hb lags acute blood loss and vital signs lead); the Thai RTCOG CPG OB 69-043 Point-of-care ultrasound in obstetrics and gynecology (2026) Rec 1 (bedside scan for suspected ectopic); NICE NG126 (updated June 2026) 1.16.1, 1.17.4-1.17.5 and 1.18.1; NICE NG24 1.2.7 (single-unit transfusion then reassess in a patient not actively bleeding); Surviving Sepsis Campaign 2021 (for possible sepsis without shock, assess rapidly and give antibiotics within 3 hours if infection stays likely). Notable judgments: step4.W broad_abx (\"A new fever after surgery may be sepsis, so start cover now\") is rightly reasonable and safe, since fever 38.5 with pulse 108 on day 2 may be sepsis and early antibiotics are defensible, while the source search and sepsis work-up stay best because early post-operative fever is often non-infectious; on the abx5 path she is already on antibiotics, and broad IV cover still reads as an escalation. The new step-1 weaker lines e and f, which argue from habit, are safe at a diagnosis step, and their replies are right that appendicitis rarely causes shock within 2 hours and torsion seldom causes shock. step2.B fast (Bedside FAST scan, copied from step2.R) is rightly reasonable after a best step 1: free fluid in a shocked woman leads to theatre whatever the source, but the pregnancy test with the scan (upt_scan, best) settles the cause in the same minutes (RTCOG Rec 1). step4.R two_units (\"two units correct her sooner\") is a fair argument for a reasonable option under NG24 1.2.7; one_unit and scan_bleed stay best. step4.B rpt_hb now reads \"a second value shows if her Hb is steady\", which no longer claims the result ahead of the test; reasonable is right. The changed step5.R phone_fu and step5.B/W opd_2wk lines are accurate and their Thai matches the English. Tiers confirmed before still hold: operate and mtp best, lap reasonable, abx5 and stay7 weaker but still give blood and surgery, anti_d weaker at 7 weeks (NG126 1.18.1), serial_hcg weaker after salpingectomy, fu_upt best. The Thai reads naturally, the teaser shares no word with a best step-1 label, and every line argues for its own option. This is a fresh re-check by a non-author of the final tree, after the fixes to the four findings of the first pass. MUST-FIX: none. Reviewed tree sha256 780bbe28619c2496acb48dfd5bfbfbb2320db106f05c114ff93685f61daad8fb.",
+      "tree_sha256": "780bbe28619c2496acb48dfd5bfbfbb2320db106f05c114ff93685f61daad8fb"
     },
     "owner_waiver": {
       "date": "2026-11-15",
