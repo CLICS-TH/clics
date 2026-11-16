@@ -198,7 +198,7 @@
           },
           {
             "strength": "การวัด**สัดส่วนผิวที่หลุด**ให้ตัวเลขที่ชัด",
-            "weigh": "นับเฉพาะผิวที่หลุดลอก ไม่นับรอยแดงรอบ ๆ",
+            "weigh": "นับผิวที่หลุดแล้วและผิวที่ลอกเมื่อถู ไม่นับรอยแดงรอบ ๆ",
             "safety": ""
           }
         ],
@@ -215,7 +215,7 @@
           },
           {
             "strength": "Measuring the **share of lost skin** gives a firm number.",
-            "weigh": "Count only skin that has come away, not the redness around it.",
+            "weigh": "Count skin that has come away or peels with a rub, not the redness around it.",
             "safety": ""
           }
         ]
@@ -2298,9 +2298,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-15",
-    "findings": "Read all three alternatives of every option of all 13 banks in Thai and English, each against every question variant of its bank and every tier path into it; only strength and weigh text changed since the last review, and every safety line stays empty, which is right because every option is safe. The step3 ah_ref and st_ref replies hold on every path: an antihistamine eases itch and does not treat SJS/TEN, steroid benefit in SJS/TEN is unproven, which matches the BAD 2016 finding of insufficient evidence for systemic corticosteroids, and the label of each option names no receiving unit, whereas BAD 2016 sends patients with more than 10% detachment to a burn centre or ICU. The step2.B c reply that the bedside picture is already clear holds on both variants, since step2.B follows the best step 1 answer and the vignette gives the mucosal, eye and skin findings. Replies that cite 12% skin loss, age 58, crusted lips or the drug started 3 weeks ago take them from the vignette, so they hold after the simplified step2.W and step3.B variants; the SCORTEN points named in step2.R b (age and detachment over 10%) are correct. Replies naming SJS/TEN after a weaker step 1 come after step 1 is answered and preview no later step. The step4.B a reply that he keeps replacing fluid reads as keeping up replacement of ongoing loss, so it also holds after the burn-unit referral at step 3. No reply ranks or grades the choice, names another option of its bank, or previews a later step, and Thai and English say the same thing in natural Thai. reply-bank.mjs check prints content ok; review pending. Tree sha256 a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71. Replies sha256 b7adfc5e5ad59a4a94f9af0528b8b0660946a84142e4372c4c0746008aa392b9.",
+    "date": "2026-11-16",
+    "findings": "Fresh claude-opus-5-5 reviewer that did not write the case or the replies, 2026-11-16: a re-check by a non-author of the final replies after one wording change since the bank reviewed as replies sha256 b7adfc5e. The changed reply is the third alternative of the skin-area option in step2.B. Its weigh line now reads 'Count skin that has come away or peels with a rub, not the redness around it.' (Thai: 'นับผิวที่หลุดแล้วและผิวที่ลอกเมื่อถู ไม่นับรอยแดงรอบ ๆ'). Source: BAD UK guidelines for the management of SJS/TEN in adults 2016 (Creamer and colleagues, Br J Dermatol 2016), section on initial assessment, which estimates the body surface area of detached plus detachable (Nikolsky-positive) epidermis and does not count erythema. The new line matches that section and the vignette's skin that peels off with a gentle rub over about 12% of the body. The Thai says the same as the English in natural Thai. The line holds on both question variants of step2.B and on its only tier path (after the best step 1 answer). It does not rank or grade the choice, name another option of its bank, or preview referral or any later step. The other two alternatives of the option still hold. The skin-area replies in step2.R and step2.W already count detached or rub-detachable skin and leave out the redness, so the bank is now consistent. A read of every other reply found none that contradicts it. Every safety line stays empty, which is right because every option is safe. MUST-FIX: none. Tree sha256 a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71. Replies sha256 bbf5f49a0dc061f79c20f5a02aa0c00d8a9cf6ed65e19d4e030ae5a376464f16.",
     "tree_sha256": "a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71",
-    "replies_sha256": "b7adfc5e5ad59a4a94f9af0528b8b0660946a84142e4372c4c0746008aa392b9"
+    "replies_sha256": "bbf5f49a0dc061f79c20f5a02aa0c00d8a9cf6ed65e19d4e030ae5a376464f16"
   }
 }
