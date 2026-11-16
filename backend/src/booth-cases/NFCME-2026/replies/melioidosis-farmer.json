@@ -915,12 +915,12 @@
       "b": {
         "th": [
           {
-            "strength": "การวางระยะกำจัดเชื้อ **20 สัปดาห์** ตามแนวที่ใช้ในไทย ช่วยลดโอกาสกลับเป็นซ้ำ",
+            "strength": "การวางระยะยากิน **20 สัปดาห์** ให้ครบ ช่วยลดโอกาสกลับเป็นซ้ำ",
             "weigh": "แนวทางของไทยให้ระยะ 12-20 สัปดาห์ จึงควรชั่งระยะยาที่ยาวขึ้นกับความร่วมมือในการกินยา",
             "safety": ""
           },
           {
-            "strength": "การยึดสูตร**เซฟตาซิดีม**แล้วต่อ TMP-SMX ให้การรักษาสองระยะตามมาตรฐานเมื่อเพาะเชื้อเลือดขึ้น",
+            "strength": "การยึดสูตร**เซฟตาซิดีม**แล้วต่อ TMP-SMX ให้การรักษาสองระยะตามมาตรฐาน",
             "weigh": "ยากินเกือบห้าเดือนต้องอาศัยความร่วมมือสูง และควรติดตามผลข้างเคียงของ TMP-SMX",
             "safety": ""
           },
@@ -932,12 +932,12 @@
         ],
         "en": [
           {
-            "strength": "A 20-week eradication phase follows **Thai practice** and guards against relapse.",
+            "strength": "Setting a full **20 weeks** of TMP-SMX guards against relapse.",
             "weigh": "Thai guidance allows 12-20 weeks, so weigh the longer course against adherence.",
             "safety": ""
           },
           {
-            "strength": "Holding to **ceftazidime** then TMP-SMX gives a positive culture the standard two-phase course.",
+            "strength": "Holding to **ceftazidime** then TMP-SMX gives him the standard two-phase course.",
             "weigh": "Nearly five months of oral therapy needs strong adherence and checks for TMP-SMX side effects.",
             "safety": ""
           },
@@ -1279,8 +1279,8 @@
       "b": {
         "th": [
           {
-            "strength": "การ**เพาะเชื้อเลือดซ้ำ** ช่วยยืนยันว่าเชื้อในเลือดหมดแล้ว ไม่ใช่ดูจากอาการอย่างเดียว",
-            "weigh": "ควรชั่งว่าจะทำอย่างไรต่อหากผลซ้ำยังพบเชื้อ ทั้งที่ผู้ป่วยดีขึ้นแล้ว",
+            "strength": "การ**เพาะเชื้อเลือดซ้ำ** ช่วยตรวจว่ามีเชื้อในเลือดหรือเปล่า ไม่ใช่ดูจากอาการอย่างเดียว",
+            "weigh": "ควรชั่งว่าจะทำอย่างไรต่อหากผลเพาะเชื้อซ้ำพบเชื้อ ทั้งที่ผู้ป่วยดีขึ้นแล้ว",
             "safety": ""
           },
           {
@@ -1289,15 +1289,15 @@
             "safety": ""
           },
           {
-            "strength": "การยืนยันผลเลือดควบคู่กับระยะยาที่พอ ช่วยวางแผนการรักษาด้วยข้อมูลที่ครบ",
+            "strength": "การตรวจหาเชื้อในเลือดควบคู่กับระยะยาที่พอ ช่วยวางแผนการรักษาด้วยข้อมูลที่ครบ",
             "weigh": "ฝีเล็กหลายจุดในม้ามควรติดตามว่าตอบสนองต่อยา ซึ่งควรชั่งวิธีและจังหวะไว้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **repeat blood culture** confirms clearance rather than relying on symptoms alone.",
-            "weigh": "Weigh what follows if the repeat culture still grows the organism while he improves.",
+            "strength": "A **repeat blood culture** checks whether the organism is in his blood, rather than relying on symptoms alone.",
+            "weigh": "Weigh what follows if the repeat culture grows the organism while he improves.",
             "safety": ""
           },
           {
@@ -1306,7 +1306,7 @@
             "safety": ""
           },
           {
-            "strength": "Confirming clearance alongside an adequate duration grounds the plan in full information.",
+            "strength": "Checking his blood for the organism alongside an adequate duration grounds the plan in full information.",
             "weigh": "Several small splenic abscesses need following for response, so method and timing deserve thought.",
             "safety": ""
           }
@@ -1461,13 +1461,13 @@
       "b": {
         "th": [
           {
-            "strength": "การ**เพาะเชื้อเลือดซ้ำ** บอกได้ชัดว่าเชื้อในเลือดหมดหรือยัง แทนการเดาจากไข้",
+            "strength": "การ**เพาะเชื้อเลือดซ้ำ** บอกได้ชัดว่ามีเชื้อในเลือดหรือเปล่า แทนการเดาจากไข้",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงควรชั่งว่าระหว่างรอจะเฝ้าดูอาการอย่างไร",
             "safety": ""
           },
           {
             "strength": "การคงยาฉีดเดิมไว้เมื่อไข้ยังลงช้า สอดคล้องกับธรรมชาติของโรคนี้",
-            "weigh": "ผลเลือดที่ไม่พบเชื้อแล้ว ยังไม่ได้อธิบายว่าทำไมไข้ยังไม่ลงสนิท",
+            "weigh": "ผลเพาะเชื้อเลือดที่ไม่พบเชื้อ ก็ยังไม่ได้อธิบายว่าทำไมไข้ยังไม่ลงสนิท",
             "safety": ""
           },
           {
@@ -1478,13 +1478,13 @@
         ],
         "en": [
           {
-            "strength": "Repeat **blood cultures** show clearly whether the bacteraemia has cleared, rather than guessing from fever.",
+            "strength": "Repeat **blood cultures** show clearly whether the organism is in his blood, rather than guessing from fever.",
             "weigh": "Cultures take days, so weigh how he will be watched while results are pending.",
             "safety": ""
           },
           {
             "strength": "Keeping the IV drug while fever settles slowly fits the nature of this disease.",
-            "weigh": "Cleared blood cultures would still not explain why the fever lingers.",
+            "weigh": "Negative blood cultures would still not explain why the fever lingers.",
             "safety": ""
           },
           {
@@ -2190,9 +2190,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-15",
-    "findings": "Read every reply in all 13 banks, all 3 alternatives per option in Thai and English, against every question variant of its bank and every path into it. Round 1 found one must-fix: step3.R b alternative 2 claimed 'the organism the lab reports', which none of the step3.R variants states; it now reads 'gives a positive culture the standard two-phase course' (th: 'ให้การรักษาสองระยะตามมาตรฐานเมื่อเพาะเชื้อเลือดขึ้น'), true under every step3.R variant, and a diff of the whole reply bank against the version reviewed in round 1 shows nothing else changed. The step5.B b replies (glucose care as a major risk factor, warning signs, TMP-SMX side-effect plan) still fit the reworded Thai line. Notable judgments: the step5 d MERTH claim ('lowers relapse no more than TMP-SMX alone' and adds side effects) is correct; the step4.W d safety line (choose a different oral drug after the IV phase; co-amoxiclav has failed) is right for the option, and the missing culture and the oral-drug gap are also named in its weigh lines; the step2.R d 'blood culture misses about half' line matches Wiersinga 2018; the step5.R d point that TMP-SMX can push some oral diabetes drugs into low glucose is correct. No reply ranks the choice, previews a later step, or names another option. Thai and English agree. reply-bank check reports content ok. Tree sha256 f5082031ecec9525f2b5e87793d38225bd015f63760778bb9a948be00652ce22. Replies sha256 5c790c91353c91c7899d3ee33a0f52f1ee138c1cdc2a7ff0e5bfd9de43ceb998.",
-    "tree_sha256": "f5082031ecec9525f2b5e87793d38225bd015f63760778bb9a948be00652ce22",
-    "replies_sha256": "5c790c91353c91c7899d3ee33a0f52f1ee138c1cdc2a7ff0e5bfd9de43ceb998"
+    "date": "2026-11-16",
+    "findings": "I read every reply in all 13 banks, all 3 alternatives per option in Thai and English, in this session, against every question variant of its bank and every path into it. I looked hardest at the round-4 edits. In step3.R b, alternative 1 is now \"Setting a full 20 weeks of TMP-SMX guards against relapse\" and alternative 2 is now \"gives him the standard two-phase course\", with the Thai changed to match; both are true under the neutral stems. In step4.R b, the alternatives now say \"whether the organism is in his blood\" and \"Negative blood cultures would still not explain why the fever lingers\", with matching Thai. In step4.B b, the alternatives now say \"checks whether the organism is in his blood\", \"if the repeat culture grows the organism\" and \"Checking his blood for the organism\", with matching Thai. None of these now assumes a culture result that a path into its bank never showed. I traced every bank: only step3.W's stems state a positive culture. Elsewhere \"positive\" appears only in the step2 replies, as general statements about sputum yield and IHA background positivity, true on every path. Other judgments. The MERTH claim in step5 d, that doxycycline lowers relapse no more than TMP-SMX alone, is correct. The step4.W d safety line (choose a different oral drug after co-amoxiclav failed) is right for the option. The step2.R d line \"blood culture misses about half\" matches Wiersinga 2018. The step5.R d point that TMP-SMX can push some oral diabetes drugs into low glucose is correct. No reply ranks the choice, previews a later step, or names another option. Thai and English agree. Tree sha256 f943500eed3e9c2fa0a99e846acd3fc19c057b4a8e9e29d6cfa32ef0fe84a414. Replies sha256 ba836dc0f81be1b1d17767700eb63a06fa60a9c551e9a10ef2ff54c585cddc44.",
+    "tree_sha256": "f943500eed3e9c2fa0a99e846acd3fc19c057b4a8e9e29d6cfa32ef0fe84a414",
+    "replies_sha256": "ba836dc0f81be1b1d17767700eb63a06fa60a9c551e9a10ef2ff54c585cddc44"
   }
 }
