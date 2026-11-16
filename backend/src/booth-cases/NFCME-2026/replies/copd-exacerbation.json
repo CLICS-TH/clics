@@ -1387,35 +1387,35 @@
       "d": {
         "th": [
           {
-            "strength": "อยากให้เสียงวี้ดหายเร็วขึ้น แสดงว่าใส่ใจความสบายของผู้ป่วย",
-            "weigh": "เขาดีขึ้นแล้ว ยาฉีดเพิ่มอีกตัวจึงได้ประโยชน์น้อยขณะแผนเดิมได้ผล",
+            "strength": "แมกนีเซียมเป็นยาที่ห้องฉุกเฉินคุ้นเคย",
+            "weigh": "เขาดีขึ้นอยู่แล้ว จึงเป็นการเพิ่มยาที่เขาไม่ต้องใช้",
             "safety": ""
           },
           {
-            "strength": "แมกนีเซียมเป็นยาที่ห้องฉุกเฉินคุ้นเคยและให้ได้ง่าย",
-            "weigh": "ประโยชน์ในการกำเริบของปอดอุดกั้นเรื้อรังยังไม่ชัด และอาจทำให้ความดันลด",
+            "strength": "ให้ได้ง่าย",
+            "weigh": "ยังไม่มีหลักฐานชัดเจนว่าได้ผลในการกำเริบของปอดอุดกั้นเรื้อรัง และอาจทำให้ความดันลด",
             "safety": ""
           },
           {
-            "strength": "ยังติดตามเสียงวี้ด ไม่ด่วนสรุปว่าหายแล้ว",
-            "weigh": "คนที่ดีขึ้นชัดมักต้องการยาน้อยลงจากนี้ โดยไม่ต้องให้ยาหยดเพิ่ม",
+            "strength": "ยังติดตามเสียงวี้ดอยู่",
+            "weigh": "เป็นการเปลี่ยนแผนที่กำลังได้ผล โดยไม่ได้ประโยชน์ชัดเจน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Wanting more relief for his wheeze shows you are watching his comfort.",
-            "weigh": "He is already improving, so an extra IV drug adds little while the current course works.",
+            "strength": "Magnesium is a familiar drug in the ER.",
+            "weigh": "He is already improving, so this adds a drug he does not need.",
             "safety": ""
           },
           {
-            "strength": "Magnesium is a familiar drug in the ER and simple to give.",
-            "weigh": "Its benefit in COPD flares is uncertain, and it can lower blood pressure.",
+            "strength": "It is simple to give.",
+            "weigh": "Evidence for it in COPD flares is unclear, and it can lower blood pressure.",
             "safety": ""
           },
           {
-            "strength": "You keep an eye on the wheeze rather than calling it done.",
-            "weigh": "A man who is clearly better usually needs fewer drugs from here, with no extra infusion.",
+            "strength": "You kept an eye on the wheeze.",
+            "weigh": "This changes a plan that is working, with no clear gain for him.",
             "safety": ""
           }
         ]
@@ -1423,35 +1423,35 @@
       "e": {
         "th": [
           {
-            "strength": "คิดถึงช่องทางให้ยาฆ่าเชื้อ แสดงว่าทบทวนการรักษาทุกส่วน",
-            "weigh": "เขาดีขึ้นและกลืนได้ ยากินจึงได้ผลพอ ๆ กับยาฉีดอยู่แล้ว",
+            "strength": "ยาฉีดคุ้นเคยในหอผู้ป่วย",
+            "weigh": "เขาดีขึ้นและกลืนได้ การเปลี่ยนจึงไม่ได้ประโยชน์",
             "safety": ""
           },
           {
-            "strength": "การให้ยาฉีดคุ้นเคยในหอผู้ป่วยและสั่งได้ง่าย",
-            "weigh": "เปลี่ยนเป็นยาฉีดเพิ่มสายน้ำเกลือและวันนอน ในคนที่ดีขึ้นชัด",
+            "strength": "สั่งได้ง่าย",
+            "weigh": "ยาฉีดเพิ่มสายน้ำเกลือและวันนอน ในคนที่กำลังดีขึ้น",
             "safety": ""
           },
           {
-            "strength": "ทบทวนยาฆ่าเชื้อตอนประเมินซ้ำเป็นนิสัยที่ดี",
-            "weigh": "ยาฆ่าเชื้อชนิดกินดูดซึมดีในคนที่กินดื่มได้ การเปลี่ยนจึงได้ประโยชน์น้อย",
+            "strength": "ทบทวนยาฆ่าเชื้ออีกครั้ง",
+            "weigh": "ยากินกำลังได้ผล การเปลี่ยนเป็นยาฉีดตอนนี้เป็นความเคยชิน ไม่ใช่ความจำเป็น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Thinking about the antibiotic route shows you are reviewing every part of his care.",
-            "weigh": "He is improving and can swallow, so the oral drug already works as well as an IV one.",
+            "strength": "IV dosing is familiar on the ward.",
+            "weigh": "He is improving and can swallow, so the switch gains nothing.",
             "safety": ""
           },
           {
-            "strength": "IV dosing is familiar on the ward and easy to chart.",
-            "weigh": "Switching to IV adds a cannula and a longer stay for a man who is clearly better.",
+            "strength": "It is easy to chart.",
+            "weigh": "An IV drug adds a cannula and a longer stay for a man who is getting better.",
             "safety": ""
           },
           {
-            "strength": "Reviewing the antibiotic at reassessment is a good habit.",
-            "weigh": "Oral antibiotics absorb well in a man who eats and drinks, so the switch gains little.",
+            "strength": "You looked at the antibiotic again.",
+            "weigh": "The oral drug is working; changing route here is habit, not need.",
             "safety": ""
           }
         ]
@@ -1569,35 +1569,35 @@
       "d": {
         "th": [
           {
-            "strength": "คิดถึงยาฆ่าเชื้อ แสดงว่าถามว่าทำไมเขาดีขึ้นช้า",
-            "weigh": "ยังเร็วเกินไปที่จะตัดสินยาฆ่าเชื้อ เสียงวี้ดชี้ไปที่หลอดลม ซึ่งรักษาด้วยยาขยายหลอดลม",
+            "strength": "คิดถึงยาฆ่าเชื้อ",
+            "weigh": "ยังเร็วเกินไปที่จะตัดสินยาฆ่าเชื้อตัวแรก เสียงวี้ดต้องการยาขยายหลอดลมมากกว่า",
             "safety": ""
           },
           {
-            "strength": "ยากลุ่มควิโนโลนสำหรับทางเดินหายใจอยู่ในรายการยาที่ใช้ได้ของแนวทางไทย",
-            "weigh": "เปลี่ยนยาเร็วขนาดนี้ได้ประโยชน์น้อย และควิโนโลนมีความเสี่ยงต่อเอ็นและจังหวะหัวใจ",
+            "strength": "ceftriaxone เป็นยาที่คุ้นเคยในหอผู้ป่วย",
+            "weigh": "เปลี่ยนยาเร็วขนาดนี้เพิ่มการใช้ยาออกฤทธิ์กว้างโดยไม่ได้ประโยชน์",
             "safety": ""
           },
           {
-            "strength": "อยากให้ยาครอบคลุมกว้าง แสดงว่าให้ความสำคัญกับการติดเชื้อ",
-            "weigh": "ยาฆ่าเชื้อเดิมเพิ่งให้ได้ไม่นาน หลอดลมที่ยังตีบต้องการยาขยายหลอดลมในตอนนี้",
+            "strength": "ยาครอบคลุมกว้างให้ความรู้สึกรอบคอบ",
+            "weigh": "ทางเลือกนี้ไม่ได้ช่วยหลอดลมที่ยังตีบ ซึ่งเป็นสิ่งที่ทำให้เขาดีขึ้นช้า",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Thinking about the antibiotic shows you are asking why he is slow to improve.",
-            "weigh": "It is too early to judge an antibiotic; his wheeze points to the airways, which bronchodilators treat.",
+            "strength": "You thought about the antibiotic.",
+            "weigh": "It is too early to judge the first antibiotic, and his wheeze needs bronchodilator treatment instead.",
             "safety": ""
           },
           {
-            "strength": "A respiratory quinolone is on the Thai list of usual first choices.",
-            "weigh": "Changing drugs this early gains little, and quinolones carry tendon and heart-rhythm risks.",
+            "strength": "Ceftriaxone is a familiar ward drug.",
+            "weigh": "Switching this early adds broad-spectrum exposure for no gain.",
             "safety": ""
           },
           {
-            "strength": "Wanting broad cover shows you take the infection seriously.",
-            "weigh": "The current antibiotic has had little time to work; tight airways call for bronchodilator treatment now.",
+            "strength": "Broad cover feels thorough.",
+            "weigh": "This does nothing for the tight airways that are slowing him now.",
             "safety": ""
           }
         ]
@@ -1715,35 +1715,35 @@
       "d": {
         "th": [
           {
-            "strength": "เริ่ม NIV แก้ CO2 ที่คั่งซึ่งทำให้เขาซึม",
-            "weigh": "หลักฐานของแมกนีเซียมในภาวะนี้ยังอ่อน การตรวจก๊าซตามเวลาขณะใช้ NIV คือสิ่งที่บอกผล",
+            "strength": "เริ่ม NIV แล้ว",
+            "weigh": "แมกนีเซียมได้ประโยชน์น้อย และยังไม่มีการตรวจก๊าซตามเวลาหรือแผนหาก NIV ล้มเหลว",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           },
           {
-            "strength": "NIV เป็นการช่วยหายใจที่เหมาะกับคนซึมที่ pH 7.28",
-            "weigh": "ยาหยดเพิ่มได้ประโยชน์น้อย แผนรับมือหาก NIV ล้มเหลวสำคัญกว่า",
+            "strength": "แมกนีเซียมเป็นยาเสริมที่คุ้นเคย",
+            "weigh": "ยาเสริมดึงความสนใจจากสิ่งสำคัญตอนนี้ คือก๊าซภายในชั่วโมงและแผนหากแย่ลง",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           },
           {
-            "strength": "อยากให้หลอดลมคลายตัวด้วย แสดงว่าจัดการเสียงวี้ดไปพร้อมกัน",
-            "weigh": "แมกนีเซียมอาจทำให้ความดันลด ควรชั่งเมื่อประโยชน์ในภาวะนี้ยังไม่ชัด",
+            "strength": "พยายามลดเสียงวี้ด",
+            "weigh": "แมกนีเซียมยังไม่มีหลักฐานชัดเจนในปอดอุดกั้นเรื้อรังและอาจทำให้ความดันลด อีกทั้งยังขาดการตรวจก๊าซตามเวลา",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           }
         ],
         "en": [
           {
-            "strength": "Starting NIV treats the rising CO2 behind his drowsiness.",
-            "weigh": "Magnesium has weak evidence here; a timed gas on NIV is what shows whether it is working.",
+            "strength": "NIV is started.",
+            "weigh": "Magnesium adds little here, and there is no timed gas or plan if NIV fails.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           },
           {
-            "strength": "NIV is the right support for a drowsy man at pH 7.28.",
-            "weigh": "An extra infusion adds little, while a plan for NIV failure matters more.",
+            "strength": "Magnesium is a familiar add-on.",
+            "weigh": "The add-on takes attention from what matters now: a gas within the hour and a plan if he gets worse.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           },
           {
-            "strength": "Wanting to relax the airways too shows you are tackling the wheeze.",
-            "weigh": "Magnesium can lower blood pressure, worth weighing when its benefit here is uncertain.",
+            "strength": "You tried to ease the wheeze.",
+            "weigh": "Evidence for magnesium in COPD is unclear, it can lower blood pressure, and the timed gas he needs is missing.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           }
         ]
@@ -1861,35 +1861,35 @@
       "d": {
         "th": [
           {
-            "strength": "สอน**อาการเตือน** ช่วยเป็นตาข่ายนิรภัยเมื่อเขากลับบ้าน",
-            "weigh": "การรู้อาการเตือนอย่างเดียว ช่วยลดโอกาสกำเริบซ้ำได้ไม่มาก",
+            "strength": "เขารู้ว่าเมื่อไรต้องกลับมา",
+            "weigh": "คำแนะนำอย่างเดียวไม่ได้ลดโอกาสการกำเริบครั้งต่อไป",
             "safety": ""
           },
           {
-            "strength": "ทำให้เขารู้ว่าเมื่อไรต้องกลับมา ช่วยลดความล่าช้าหากอาการแย่ลง",
-            "weigh": "ควรให้คนที่บ้านรู้อาการเตือนด้วย เพราะตอนหอบเขาอาจตัดสินใจเองไม่ไหว",
+            "strength": "อาการเตือนสอนได้ง่าย",
+            "weigh": "แผนนี้ไม่ได้แก้สาเหตุของการกำเริบครั้งนี้",
             "safety": ""
           },
           {
-            "strength": "คำแนะนำชัดเรื่องการกลับมา เป็นตาข่ายความปลอดภัยที่ใช้ได้จริง",
-            "weigh": "ควรชั่งว่าแผนนี้มีส่วนใดที่จัดการเหตุของการกำเริบครั้งนี้",
+            "strength": "แผนให้กลับมาเมื่อมีอาการเป็นพื้นฐานความปลอดภัย",
+            "weigh": "ไม่มีส่วนใดเปลี่ยนการรักษาระยะยาว จึงมีโอกาสกำเริบซ้ำสูง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Teaching **the warning signs** gives him a safety net once he is home.",
-            "weigh": "Warnings alone do little to make the next episode less likely.",
+            "strength": "He knows when to come back.",
+            "weigh": "Advice alone does nothing to lower the chance of another flare.",
             "safety": ""
           },
           {
-            "strength": "You made sure he knows when to return, which shortens any delay if he worsens.",
-            "weigh": "Worth weighing whether those at home know the signs too, since he may be too breathless to act.",
+            "strength": "Warning signs are simple to teach.",
+            "weigh": "This plan leaves the cause of this flare unaddressed.",
             "safety": ""
           },
           {
-            "strength": "Clear return advice is practical safety-netting for a community hospital patient.",
-            "weigh": "Worth weighing what in this plan addresses why this episode happened.",
+            "strength": "A clear return plan is a basic safety net.",
+            "weigh": "Nothing here changes his long-term treatment, so another flare is likely.",
             "safety": ""
           }
         ]
@@ -2043,35 +2043,35 @@
       "e": {
         "th": [
           {
-            "strength": "อยากให้มีคนที่**จับอาการทรุดได้เร็ว** แสดงถึงสัญชาตญาณด้านความปลอดภัย",
-            "weigh": "เขาคงที่ด้วยออกซิเจน ICU จึงเพิ่มการเฝ้าที่อาจไม่จำเป็น และใช้เตียงที่ผู้อื่นรอ",
+            "strength": "อยากให้มีการเฝ้าดูใกล้ชิด",
+            "weigh": "เขาคงที่ด้วยออกซิเจน เตียง ICU จึงเกินความจำเป็นและแย่งเตียงจากผู้อื่น",
             "safety": ""
           },
           {
-            "strength": "จริงจังกับการฟื้นตัวที่ช้า และเตรียมรับกรณีที่อาการทรุดลง",
-            "weigh": "เตียง ICU มีจำกัด และความต้องการของเขายังดูแลได้ด้วยออกซิเจน ควรชั่งให้ดี",
+            "strength": "ความระมัดระวังเป็นเรื่องเข้าใจได้ในวัย 68 ปี",
+            "weigh": "การส่งต่อเพิ่มความเสี่ยงและภาระ ในคนที่ฟื้นช้าแต่ต่อเนื่องและดูแลที่นี่ได้",
             "safety": ""
           },
           {
-            "strength": "การเฝ้าใกล้ชิดเหมาะกับผู้ที่เสี่ยงทรุดเร็ว ซึ่งเป็นความห่วงที่เข้าใจได้ในวัย 68",
-            "weigh": "ควรชั่งความเสี่ยงและภาระของการเดินทาง กับอาการที่คงที่แม้ดีขึ้นช้า",
+            "strength": "เตรียมรับอาการทรุดเป็นเรื่องสมเหตุผล",
+            "weigh": "เตียง ICU มีจำกัด และออกซิเจนอัตราต่ำก็เพียงพอสำหรับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Wanting a team that **catches any slide** early shows a strong safety instinct.",
-            "weigh": "He is stable on oxygen, so an ICU bed adds watching he may not need and takes it from others.",
+            "strength": "You want him watched closely.",
+            "weigh": "He is stable on oxygen, so an ICU bed is more than he needs and is taken from others.",
             "safety": ""
           },
           {
-            "strength": "You took the slow recovery seriously and planned for a turn for the worse.",
-            "weigh": "Worth weighing that ICU beds are scarce and his needs are being met with oxygen.",
+            "strength": "Caution is understandable at 68.",
+            "weigh": "Transfer adds risk and burden for a slow but steady recovery that can be managed here.",
             "safety": ""
           },
           {
-            "strength": "Close watching suits patients at risk of sudden decline, a fair concern at 68.",
-            "weigh": "Worth weighing the risks and burden of transfer against a stable, slow course.",
+            "strength": "Planning for a turn for the worse is reasonable.",
+            "weigh": "ICU beds are scarce, and his needs are met with low-flow oxygen.",
             "safety": ""
           }
         ]
@@ -2189,35 +2189,35 @@
       "d": {
         "th": [
           {
-            "strength": "พาเขาเข้า ICU เข้ากับความรุนแรงที่เป็นอยู่",
-            "weigh": "สเตียรอยด์เท่าตัวเพิ่มผลข้างเคียงโดยไม่ได้ผลเร็วขึ้น แผนเรื่องทางเดินหายใจสำคัญกว่า",
+            "strength": "การส่ง ICU มาถูกทาง",
+            "weigh": "สเตียรอยด์เท่าตัวเพิ่มผลข้างเคียงโดยไม่ได้ประโยชน์ และยังขาดการช่วยการหายใจที่กำลังล้มเหลว",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "อยากเร่งการรักษา แสดงถึงความเร่งด่วนที่รู้สึก",
-            "weigh": "สเตียรอยด์เกิน 40 มก. ไม่ได้ประโยชน์เพิ่มในการกำเริบ ขณะที่การหายใจต้องการการช่วยตอนนี้",
+            "strength": "เห็นว่าเขาอาการหนักขึ้น",
+            "weigh": "สเตียรอยด์ขนาดสูงขึ้นไม่ได้ประโยชน์เพิ่ม การหายใจของเขาต้องการเครื่องช่วยตอนนี้",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "ย้ายเข้า ICU พร้อม NIV ทำให้การช่วยหายใจต่อเนื่อง",
-            "weigh": "คนซึมที่ pH 7.26 ต้องการกรอบเวลาที่ชัดสำหรับ NIV มากกว่าสเตียรอยด์เพิ่ม",
+            "strength": "ICU คือที่ที่เขาควรอยู่ตอนนี้",
+            "weigh": "สเตียรอยด์เพิ่มไม่ได้แก้ pH 7.26 การช่วยการหายใจต่างหากที่แก้ได้",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           }
         ],
         "en": [
           {
-            "strength": "Taking him to ICU matches how sick he has become.",
-            "weigh": "Doubling the steroid adds side effects without faster benefit; the airway plan matters more.",
+            "strength": "Turning to ICU is the right direction.",
+            "weigh": "Doubling the steroid adds side effects and no benefit, and it leaves out support for his failing breathing.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "Wanting a stronger push shows the urgency you feel.",
-            "weigh": "A steroid dose beyond 40 mg adds no benefit in a flare, while his breathing needs support now.",
+            "strength": "You see that he is sicker.",
+            "weigh": "A higher steroid dose adds nothing in a flare; his breathing needs ventilatory support now.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "Moving him to ICU on NIV keeps his support going.",
-            "weigh": "A drowsy man at pH 7.26 needs a clear time limit on NIV more than extra steroid.",
+            "strength": "ICU is where he belongs now.",
+            "weigh": "More steroid does nothing for a pH of 7.26; securing his breathing does.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           }
         ]
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-15",
-    "findings": "Three-round review of the copd-exacerbation reply bank: all three Thai and three English alternatives for every option of all 13 banks, read against every question variant and every path into each bank, for wrong facts, ranking or grading, previews of later steps, naming of other options, assertions only some variants or paths state, and the right safety line. Round one returned one reply MUST-FIX: step2.W.d alternative 0 said SpO2 88% on oxygen, while the vignette gives 88% on room air; it now reads on arrival in both languages. The author also removed two single-variant facts: two hours in step4.R.d alternatives 0 and 1 is now this early, and day 3 in step5.R.c alternative 2 is now at this stage. In round three the replies for the new step3.R.h and step3.W.h (Pred 5 days + amoxicillin) were rewritten. They are correct: many chest bacteria, Moraxella almost always and Haemophilus often, make beta-lactamase that breaks down plain amoxicillin, and the Thai guideline and GOLD prefer a beta-lactamase inhibitor combination. They name no other option and need no safety line, since the option gives both a steroid and an antibiotic. Safety lines are present and right for every option that leaves out the gas (step2.W d and e), for every NIV option at step4.W, and for every option in step5.W; the empty ones fit options with no safety gap. Remaining replies were judged accurate, ungraded, consistent across variants and paths, and matched in Thai and English. reply-bank.mjs check reports content ok, review pending. The booth-case-tree jest filter for this case passes, and the booth-staged-clinical first-line antibiotic test now passes. Neither file changed during the third-round review. Tree sha256 8659644d98033e13e00bed9c0c93357c9a74d31f5301a77b04e2cee0d8af58be. Replies sha256 db4e65e238d556e6b4b56a285c3635507dda2a6f3bd893c42a33c64447e3afe5.",
-    "tree_sha256": "8659644d98033e13e00bed9c0c93357c9a74d31f5301a77b04e2cee0d8af58be",
-    "replies_sha256": "db4e65e238d556e6b4b56a285c3635507dda2a6f3bd893c42a33c64447e3afe5"
+    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank: all three Thai and three English alternatives for every option of all 13 banks, read against every question variant and every path into each bank, for wrong facts, ranking or grading, previews of a later step, other options named, claims only some paths support, and the right safety line. The first round returned four MUST-FIXes, now fixed: the step4.R d replies follow the ceftriaxone label and no longer claim new quinolone risks (\"adds broad-spectrum exposure for no gain\" holds on every step4.R path); the step5.W d en1/th1 unanchored \"beyond 40 mg\" ceiling, wrong on the hydrocortisone path (step3.B d to step4.R d to step5.W), is now \"a higher steroid dose adds nothing\"; the magnesium weighs in step4.B d and step4.W d now say the evidence is unclear in both languages (\"ไม่มีหลักฐานชัดเจน\"), in line with the 2022 Cochrane review; step5.R e th1 is now natural Thai that matches the English. Also judged sound: the step5.W d weighs say the option leaves out support for his failing breathing, which holds even where he is on NIV since he is failing on it; the step5.W d th0 strength now says \"ส่ง ICU\", matching the label; the step4.B d and e and step4.R d weighs name each limitation plainly without ranking the choice; the safety lines are right for each option (CO2 checks on step2.W d and e, NIV escalation on step4.W, active support with ICU at the bedside on step5.W a, b and d, none where none is needed). Tree sha256 8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4. Replies sha256 6dc378a6d4cfe7e67b9d67cf5a946d67c5e04cb9daaf344ff4e44a993273d159.",
+    "tree_sha256": "8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4",
+    "replies_sha256": "6dc378a6d4cfe7e67b9d67cf5a946d67c5e04cb9daaf344ff4e44a993273d159"
   }
 }
