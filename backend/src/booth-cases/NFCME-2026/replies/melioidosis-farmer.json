@@ -149,35 +149,35 @@
       "e": {
         "th": [
           {
-            "strength": "การเชื่อม**ลุยโคลน**หน้าฝนกับโรคติดเชื้อจากสิ่งแวดล้อม ใช้ประวัติอาชีพได้ตรงจุด",
-            "weigh": "ควรชั่งว่าไอมีเสมหะ เสียงกรอบแกรบเฉพาะที่ และน้ำหนักลด เข้ากับโรคนี้เพียงใด",
+            "strength": "เลปโตสไปโรสิสพบบ่อยในชาวนาช่วงหน้าฝน",
+            "weigh": "ยังอธิบายไอมีเสมหะ เสียงกรอบแกรบเฉพาะที่ และน้ำหนักลดไม่ได้",
             "safety": ""
           },
           {
-            "strength": "การนึกถึงโรคที่พบบ่อยในชาวนาหน้าฝน แสดงความเข้าใจระบาดวิทยาของชนบทไทย",
-            "weigh": "เบาหวานที่คุมไม่ได้และการกดเจ็บใต้ชายโครงซ้าย เป็นข้อมูลที่ควรชั่งกับโรคนี้",
+            "strength": "การลุยโคลนเป็นส่วนหนึ่งของประวัติเขา",
+            "weigh": "ไข้ 10 วันที่เด่นที่ปอดร่วมกับน้ำหนักลด เข้ากับโรคนี้ได้น้อย",
             "safety": ""
           },
           {
-            "strength": "การให้ความสำคัญกับการสัมผัสน้ำและดิน ช่วยไม่ให้พลาดโรคจากสิ่งแวดล้อมในพื้นที่",
-            "weigh": "อาการเด่นครั้งนี้อยู่ที่ปอดและเป็นมา 10 วัน ซึ่งควรชั่งกับลักษณะของโรคนี้",
+            "strength": "เป็นการวินิจฉัยที่คุ้นเคยในหน้าฝน",
+            "weigh": "เบาหวานและการกดเจ็บใต้ชายโครงซ้ายยังไม่ได้รับการอธิบาย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Linking wading in **rainy-season mud** to an environmental infection uses his work history well.",
-            "weigh": "Weigh how a productive cough, focal crackles and weight loss fit this diagnosis.",
+            "strength": "Leptospirosis is common in rainy-season farmers.",
+            "weigh": "It leaves the productive cough, focal crackles and weight loss unexplained.",
             "safety": ""
           },
           {
-            "strength": "Thinking of an infection common in rainy-season farmers reflects rural Thai epidemiology.",
-            "weigh": "Poorly controlled diabetes and the tender left upper abdomen deserve weighing against this diagnosis.",
+            "strength": "Mud exposure is part of his history.",
+            "weigh": "Ten days of chest-led illness with weight loss fits this diagnosis poorly.",
             "safety": ""
           },
           {
-            "strength": "Attention to water and soil contact guards against missing a local environmental infection.",
-            "weigh": "This illness is mainly in the chest and has run 10 days, worth weighing against this diagnosis.",
+            "strength": "It is a familiar rainy-season diagnosis.",
+            "weigh": "His diabetes and the tender left upper abdomen are left unexplained.",
             "safety": ""
           }
         ]
@@ -185,35 +185,35 @@
       "f": {
         "th": [
           {
-            "strength": "การนึกถึง**ไข้หวัดใหญ่**ที่พบบ่อยช่วงหน้าฝน สอดคล้องกับฤดูกาลที่ผู้ป่วยมา",
-            "weigh": "อาการ 10 วัน น้ำหนักลด และเสียงกรอบแกรบเฉพาะที่ เป็นข้อมูลที่ควรชั่งกับโรคนี้",
+            "strength": "ไข้หวัดใหญ่พบบ่อยในหน้าฝน",
+            "weigh": "ไข้ 10 วัน น้ำหนักลด และเสียงกรอบแกรบเฉพาะที่ ไม่ใช่ลักษณะของไข้หวัดใหญ่",
             "safety": ""
           },
           {
-            "strength": "การคิดถึงโรคที่ติดต่อง่ายในชุมชน แสดงความระวังต่อคนรอบข้างผู้ป่วย",
-            "weigh": "เบาหวานที่คุมไม่ได้ การลงนาในโคลน และกดเจ็บใต้ชายโครงซ้าย ควรได้รับน้ำหนักด้วย",
+            "strength": "ไข้และไอเป็นอาการหลักของเขา",
+            "weigh": "หยุดอยู่ที่อาการ ไม่ได้นำเบาหวานและการลงนาในโคลนมาคิด",
             "safety": ""
           },
           {
-            "strength": "การยึดอาการหลักคือไข้และไอ ทำให้เริ่มคิดจากโรคที่พบบ่อยก่อน",
-            "weigh": "ชีพจรเร็ว หายใจเร็ว และออกซิเจนต่ำ บ่งว่าป่วยหนักพอควร ซึ่งควรชั่งกับโรคนี้",
+            "strength": "เป็นการวินิจฉัยที่คุ้นเคย",
+            "weigh": "ชีพจรเร็ว หายใจเร็ว และออกซิเจนต่ำ ชี้ไปที่การติดเชื้อแบคทีเรียที่รุนแรงกว่า",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Thinking of **flu**, common in the rainy season, fits the season he presents in.",
-            "weigh": "Ten days of illness, weight loss and focal crackles deserve weighing against this diagnosis.",
+            "strength": "Flu is common in the rainy season.",
+            "weigh": "Ten days of fever with weight loss and focal crackles is not how flu runs.",
             "safety": ""
           },
           {
-            "strength": "Keeping an easily spread infection in mind shows care for those around him.",
-            "weigh": "His poorly controlled diabetes, mud work and tender left upper abdomen deserve weight too.",
+            "strength": "Fever and cough are his main symptoms.",
+            "weigh": "This stops at the symptoms and leaves out his diabetes and mud work.",
             "safety": ""
           },
           {
-            "strength": "Anchoring on the main symptoms of fever and cough starts from common causes.",
-            "weigh": "Fast pulse, fast breathing and low oxygen mark him as quite unwell, worth weighing against this diagnosis.",
+            "strength": "It is a familiar diagnosis.",
+            "weigh": "Fast pulse, fast breathing and low oxygen point to a more serious bacterial illness.",
             "safety": ""
           }
         ]
@@ -367,35 +367,35 @@
       "e": {
         "th": [
           {
-            "strength": "การส่ง**ตรวจ IHA**ร่วมด้วย แสดงการมองหาหลักฐานเพิ่มเติมของโรคที่สงสัย",
-            "weigh": "ในอีสานที่โรคนี้ชุก หลายคนมี IHA บวกจากการสัมผัสในอดีต ผลบวกจึงยืนยันโรคไม่ได้",
+            "strength": "ส่งเพาะเชื้อเลือดแล้ว",
+            "weigh": "คนอีสานจำนวนมากมี IHA บวกจากการสัมผัสเชื้อในอดีต ผลจึงช่วยได้น้อย",
             "safety": ""
           },
           {
-            "strength": "การเก็บเลือดเพาะเชื้อไว้เป็นหลัก ทำให้ยังมีโอกาสยืนยันเชื้อได้โดยตรง",
-            "weigh": "ผลบวกบอกการสัมผัสในอดีต ไม่ได้แยกการติดเชื้อตอนนี้ออกจากการติดเชื้อเก่า",
+            "strength": "ตรวจภูมิต้านทานส่งได้ง่าย",
+            "weigh": "โรคนี้ยืนยันด้วยการเพาะเชื้อ แต่ที่นี่เพาะเชื้อเพียงตำแหน่งเดียว",
             "safety": ""
           },
           {
-            "strength": "การตรวจทางน้ำเหลืองทำได้เร็วและราคาไม่สูง ช่วยเสริมขณะผลเพาะเชื้อยังไม่ออก",
-            "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
+            "strength": "เป็นการเพิ่มการตรวจหนึ่งรายการ",
+            "weigh": "ยังไม่ได้ตรวจหาสาเหตุของการกดเจ็บใต้ชายโครงซ้าย และไตเตอร์บวกก็ยืนยันอะไรไม่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **IHA serology** looks for more evidence of the suspected disease.",
-            "weigh": "In endemic Isan many people carry a positive IHA from past exposure, so a positive cannot confirm it.",
+            "strength": "The blood culture is sent.",
+            "weigh": "Many people in Isan carry a positive IHA from past exposure, so it adds little.",
             "safety": ""
           },
           {
-            "strength": "Keeping the blood culture central preserves a direct route to confirmation.",
-            "weigh": "A positive titre shows **past exposure**, not whether this illness is a current infection.",
+            "strength": "Antibody tests are easy to send.",
+            "weigh": "Only culture confirms this disease, and here just one site is cultured.",
             "safety": ""
           },
           {
-            "strength": "Serology is fast and inexpensive, adding something while culture results are pending.",
-            "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
+            "strength": "It adds a test.",
+            "weigh": "The tender left upper abdomen goes unexamined, and a positive titre settles nothing.",
             "safety": ""
           }
         ]
@@ -513,35 +513,35 @@
       "d": {
         "th": [
           {
-            "strength": "การ**ย้อมแกรมเสมหะ** ให้ข้อมูลกลุ่มเชื้อได้เร็วภายในวันเดียว",
-            "weigh": "การย้อมแกรมบอกได้แค่กลุ่มเชื้อ ไม่ได้บอกชนิด ผลเพาะเชื้อจึงยังเป็นตัวตัดสิน",
+            "strength": "ย้อมแกรมทำได้เร็ว",
+            "weigh": "บอกได้เพียงกลุ่มเชื้อ ไม่ใช่ชนิดเชื้อ โรคนี้ยืนยันได้ด้วยการเพาะเชื้อเท่านั้น",
             "safety": ""
           },
           {
-            "strength": "การใช้เสมหะจากผู้ป่วยที่ไอมีเสมหะ เป็นการเก็บตัวอย่างจากตำแหน่งที่โรคอยู่จริง",
-            "weigh": "คุณภาพของเสมหะมีผลต่อการแปลผลมาก จึงควรชั่งว่าตัวอย่างมาจากปอดจริงหรือไม่",
+            "strength": "ได้ส่งเสมหะตรวจ",
+            "weigh": "เสมหะเป็นตัวอย่างที่ดีที่สุดของเขา แต่ถูกใช้แค่ย้อมสีโดยไม่ได้เพาะเชื้อ",
             "safety": ""
           },
           {
-            "strength": "การตรวจที่ทำได้ทันทีในโรงพยาบาลส่วนใหญ่ ให้ข้อมูลเบื้องต้นระหว่างรอผลเพาะเชื้อ",
-            "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
+            "strength": "แล็บส่วนใหญ่ทำได้ภายในวัน",
+            "weigh": "เพาะเชื้อเลือดอย่างเดียวพลาดได้ราวครึ่งหนึ่ง และการย้อมสีช่วยปิดช่องนี้ไม่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **sputum Gram stain** gives the class of organism within the day.",
-            "weigh": "A Gram stain shows the class of organism but not the species, so culture still decides.",
+            "strength": "A Gram stain is quick.",
+            "weigh": "It shows a class of organism, not the species; only culture confirms this disease.",
             "safety": ""
           },
           {
-            "strength": "Using sputum from a productive cough samples the site of disease directly.",
-            "weigh": "Sputum quality shapes the reading, so weigh whether the sample truly comes from the lung.",
+            "strength": "Sputum is sampled.",
+            "weigh": "His best sample is only stained, and it is never cultured.",
             "safety": ""
           },
           {
-            "strength": "A test most hospitals can run at once gives early information while culture is pending.",
-            "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
+            "strength": "Most labs can run it today.",
+            "weigh": "Blood culture alone misses about half of cases, and a stain cannot fill that gap.",
             "safety": ""
           }
         ]
@@ -659,35 +659,35 @@
       "d": {
         "th": [
           {
-            "strength": "การส่ง**ตรวจไข้หวัดใหญ่** ช่วยตอบคำถามเรื่องฤดูกาลได้ภายในวันเดียว",
-            "weigh": "อาการ 10 วันและน้ำหนักลด ยาวกว่าที่มักพบในโรคนี้ ซึ่งควรชั่งไว้",
+            "strength": "ตรวจไข้หวัดใหญ่ได้ผลเร็ว",
+            "weigh": "ป่วย 10 วันร่วมกับน้ำหนักลดไม่ใช่ไข้หวัดใหญ่ และเพาะเชื้อเพียงจากเลือด",
             "safety": ""
           },
           {
-            "strength": "การรู้ผลไข้หวัดใหญ่ ช่วยวางมาตรการป้องกันการแพร่เชื้อในหอผู้ป่วยได้ทัน",
-            "weigh": "ผลบวกอาจไม่ได้อธิบายอาการทั้งหมด เช่น การกดเจ็บใต้ชายโครงซ้ายที่ตรวจพบ",
+            "strength": "ได้เพาะเชื้อเลือดไว้",
+            "weigh": "ผลไข้หวัดใหญ่เปลี่ยนการดูแลชาวนาเบาหวานที่ปอดกลีบบนอักเสบได้น้อย",
             "safety": ""
           },
           {
-            "strength": "การ**เพาะเชื้อในเลือด**ร่วมด้วย ทำให้ยังมีโอกาสพบเชื้อแบคทีเรียหากเป็นสาเหตุ",
-            "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
+            "strength": "เป็นการตรวจที่ทำกันประจำหน้าฝน",
+            "weigh": "เพาะเชื้อจากเลือดอย่างเดียว ซึ่งพลาดเชื้อแบคทีเรียได้มาก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **flu test** answers the seasonal question within the day.",
-            "weigh": "Ten days of illness with weight loss is longer than this usually runs, which deserves weight.",
+            "strength": "A flu test is quick.",
+            "weigh": "Ten days of illness with weight loss is not flu, and only the blood is cultured.",
             "safety": ""
           },
           {
-            "strength": "Knowing the flu result early guides infection control on the ward.",
-            "weigh": "A positive result may not explain everything, such as the tender left upper abdomen.",
+            "strength": "The blood is cultured.",
+            "weigh": "A flu result changes little for a diabetic farmer with an upper-lobe lesion.",
             "safety": ""
           },
           {
-            "strength": "Still culturing the blood keeps a chance of finding bacteria if they are behind his illness.",
-            "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
+            "strength": "It is routine in the rainy season.",
+            "weigh": "Culturing the blood alone misses many bacterial causes.",
             "safety": ""
           }
         ]
@@ -697,35 +697,35 @@
       "a": {
         "th": [
           {
-            "strength": "ยาฉีดอย่างน้อย 2 สัปดาห์แล้วต่อยากิน ครอบคลุมทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "ยากินนาน 3-6 เดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้ผู้ป่วยกินยาครบ",
+            "strength": "การเริ่ม**เซฟตาซิดีม IV** เหมาะกับการติดเชื้อรุนแรงแบบนี้",
+            "weigh": "ควรกำหนดระยะยาแต่ละช่วงไว้ตอนนี้ ให้ผู้ป่วยรู้ว่าคอร์สยายาว",
             "safety": ""
           },
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น เหมาะกับการติดเชื้อรุนแรงของผู้ป่วยรายนี้",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
+            "strength": "การต่อด้วย TMP-SMX ทำให้แผนมีระยะยากิน",
+            "weigh": "น้ำตาล 342 เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับยาฆ่าเชื้อ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะตั้งแต่วันแรก ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
-            "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
+            "strength": "ลำดับยาสองตัวนี้เป็นสูตรมาตรฐาน",
+            "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และต้องเฝ้าผลข้างเคียงของ TMP-SMX",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Planning **at least 2 weeks** of IV then months of oral therapy covers both intensive and eradication phases.",
-            "weigh": "Three to six months of oral therapy needs strong adherence, so weigh how to support him.",
+            "strength": "Starting **IV ceftazidime** fits a severe infection like his.",
+            "weigh": "Set the length of each phase now so he knows the course is long.",
             "safety": ""
           },
           {
-            "strength": "Starting **IV ceftazidime** from the outset fits his severe infection.",
-            "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
+            "strength": "Following with TMP-SMX gives the plan an oral phase.",
+            "weigh": "A glucose of 342 deserves attention alongside the antibiotics.",
             "safety": ""
           },
           {
-            "strength": "Setting out both phases on day one helps him and the team expect a long course.",
-            "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
+            "strength": "This two-drug sequence is the standard one.",
+            "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching.",
             "safety": ""
           }
         ]
@@ -733,35 +733,35 @@
       "b": {
         "th": [
           {
-            "strength": "การ**คุมน้ำตาล**ไปพร้อมกับรักษาเชื้อ ดูแลปัญหาที่มีอยู่ทั้งสองเรื่องในคราวเดียว",
-            "weigh": "การให้อินซูลินระหว่างป่วยหนักต้องเจาะน้ำตาลถี่ เพื่อเลี่ยงทั้งน้ำตาลสูงและต่ำ",
+            "strength": "การคุม**น้ำตาล 342**ไปพร้อมกับรักษาเชื้อเหมาะสม",
+            "weigh": "การให้อินซูลินระหว่างติดเชื้อรุนแรงต้องเจาะน้ำตาลบ่อย",
             "safety": ""
           },
           {
-            "strength": "แผนนี้รักษาเชื้อ**ครบสองระยะ** ตั้งแต่ยาฉีดจนถึงยากินระยะยาว",
-            "weigh": "ผลข้างเคียงของ TMP-SMX ระยะยาว ควรมีแผนติดตามตั้งแต่เริ่มยา",
+            "strength": "วางยาฆ่าเชื้อครบสองระยะตั้งแต่วันแรก",
+            "weigh": "TMP-SMX ระยะยาวควรมีแผนติดตามผลข้างเคียงตั้งแต่ต้น",
             "safety": ""
           },
           {
-            "strength": "การมองผู้ป่วยทั้งคน ทั้งเชื้อและเบาหวาน ช่วยวางรากฐานที่ดีให้การรักษาระยะยาว",
-            "weigh": "ยาที่กินนานหลายเดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้กินยาครบ",
+            "strength": "การเชื่อมน้ำตาลกับการติดเชื้อเป็นการดูแลผู้ป่วยทั้งคน",
+            "weigh": "ยากินหลายเดือนต้องช่วยให้ผู้ป่วยกินยาสม่ำเสมอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Bringing **the glucose down** alongside antibiotics treats both of his active problems.",
-            "weigh": "Insulin during a severe infection needs frequent glucose checks to avoid both highs and lows.",
+            "strength": "Treating the **glucose of 342** alongside the infection is right.",
+            "weigh": "Insulin during a severe infection needs frequent glucose checks.",
             "safety": ""
           },
           {
-            "strength": "The plan **treats both phases**, from the injected drug to the long oral course.",
-            "weigh": "Long-term TMP-SMX side effects deserve a monitoring plan from the start.",
+            "strength": "Both antibiotic phases are planned from day one.",
+            "weigh": "Long-term TMP-SMX needs a side-effect plan from the start.",
             "safety": ""
           },
           {
-            "strength": "Treating the whole patient, infection and diabetes, gives the long course a firm start.",
-            "weigh": "Months of oral treatment need strong adherence, so weigh how to support him.",
+            "strength": "Linking his glucose to the infection treats the whole patient.",
+            "weigh": "Months of oral treatment need adherence support.",
             "safety": ""
           }
         ]
@@ -769,35 +769,35 @@
       "c": {
         "th": [
           {
-            "strength": "การเลือก**เมโรพีเนม IV** แสดงความระวังต่อความรุนแรง เมื่อชีพจรและการหายใจเร็ว",
-            "weigh": "ผู้ป่วยรู้สึกตัวดี ความดัน 106/66 จึงควรชั่งว่าเข้าเกณฑ์ช็อกหรือไอซียูหรือไม่",
+            "strength": "เมโรพีเนมครอบคลุมเชื้อนี้",
+            "weigh": "ผู้ป่วยรู้ตัวดี ความดัน 106/66 ยังไม่ถึงเกณฑ์ช็อกหรือไอซียูที่ต้องใช้ยานี้",
             "safety": ""
           },
           {
-            "strength": "ยานี้**ครอบคลุมเชื้อนี้ดี** และแผนยังต่อระยะกำจัดเชื้อด้วยยากิน",
-            "weigh": "ยากลุ่มนี้ควรสงวนไว้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยาในโรงพยาบาล",
+            "strength": "มีระยะยากินกำจัดเชื้อตามมา",
+            "weigh": "ยาคาร์บาพีเนมควรเก็บไว้ใช้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "การวางแผนต่อด้วย TMP-SMX ทำให้ครอบคลุมทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "ระยะยาฉีดและยากินที่ยาวนาน ต้องวางแผนความร่วมมือของผู้ป่วยไว้ตั้งแต่ต้น",
+            "strength": "เป็นยาฉีดที่ได้ผล",
+            "weigh": "ผู้ป่วยที่อาการคงที่ขนาดนี้ใช้ยาฉีดตัวหลักก็เพียงพอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Choosing **IV meropenem** shows respect for severity in a patient with fast pulse and breathing.",
-            "weigh": "He is alert with BP 106/66, so weigh whether he meets the shock or ICU bar.",
+            "strength": "Meropenem covers this organism.",
+            "weigh": "He is alert with BP 106/66, so he is below the shock or ICU bar for this drug.",
             "safety": ""
           },
           {
-            "strength": "It **covers this organism** well, and the plan still includes an oral eradication phase.",
-            "weigh": "Carbapenems are worth reserving for clear indications to limit resistance in hospital.",
+            "strength": "An oral eradication phase follows.",
+            "weigh": "Carbapenems are best kept for clear indications, to limit resistance.",
             "safety": ""
           },
           {
-            "strength": "Following with TMP-SMX covers both the intensive and eradication phases.",
-            "weigh": "The long IV and oral phases need an adherence plan from the start.",
+            "strength": "It is an effective IV choice.",
+            "weigh": "A patient this stable is served by the first-line IV drug.",
             "safety": ""
           }
         ]
@@ -805,35 +805,35 @@
       "e": {
         "th": [
           {
-            "strength": "การเพิ่ม**ด็อกซีไซคลิน** แสดงความระวังต่อเลปโตสไปโรสิสที่พบได้ในชาวนาลุยโคลน",
-            "weigh": "อาการเด่นครั้งนี้อยู่ที่ปอด ควรชั่งว่าข้อมูลหนุนการเพิ่มยาตัวที่สองเพียงใด",
+            "strength": "ยังคงยาหลักครบสองระยะ",
+            "weigh": "โรคเด่นที่ปอด ยาที่เพิ่มจึงมีเป้าหมายน้อย",
             "safety": ""
           },
           {
-            "strength": "แผนนี้ยังคงยาหลักสองระยะไว้ครบ ขณะขยายความครอบคลุมเพิ่ม",
-            "weigh": "ยาเพิ่มหนึ่งตัวหมายถึงผลข้างเคียงและปฏิกิริยาระหว่างยาที่มากขึ้น ซึ่งควรชั่งไว้",
+            "strength": "เลปโตสไปโรสิสเป็นความเสี่ยงจริงในหน้าฝน",
+            "weigh": "ยาเพิ่มอีกตัวเพิ่มผลข้างเคียงโดยไม่มีเป้าหมายชัด",
             "safety": ""
           },
           {
-            "strength": "การคิดถึง**เลปโตสไปโรสิส**ในชาวนาหน้าฝน สอดคล้องกับระบาดวิทยาของอีสาน",
-            "weigh": "ควรกำหนดไว้ก่อนว่าจะหยุดยาตัวที่เพิ่มเมื่อใด หากผลตรวจไม่สนับสนุน",
+            "strength": "ด็อกซีไซคลินราคาถูกและคุ้นเคย",
+            "weigh": "ควรกำหนดว่าจะหยุดยาที่เพิ่มเมื่อใดหากผลตรวจไม่สนับสนุน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **doxycycline** shows caution about leptospirosis, another hazard of wading in mud.",
-            "weigh": "This illness is chest-led, so weigh how strongly the findings support a second drug.",
+            "strength": "The core phases stay intact.",
+            "weigh": "His illness is chest-led, so the added drug has little to treat.",
             "safety": ""
           },
           {
-            "strength": "The plan keeps both core phases intact while widening the cover.",
-            "weigh": "One more drug adds side effects and interactions, which deserve weight.",
+            "strength": "Leptospirosis is a real rainy-season risk.",
+            "weigh": "One more drug adds side effects without a clear target.",
             "safety": ""
           },
           {
-            "strength": "Thinking of **leptospirosis** in a rainy-season farmer fits Isan epidemiology.",
-            "weigh": "Decide in advance when the added drug stops if results do not support it.",
+            "strength": "Doxycycline is cheap and familiar.",
+            "weigh": "Plan when the added drug stops if tests do not support it.",
             "safety": ""
           }
         ]
@@ -841,35 +841,35 @@
       "d": {
         "th": [
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก เหมาะกับการติดเชื้อรุนแรงของผู้ป่วยรายนี้",
-            "weigh": "โคอะม็อกซิคลาฟเป็นยารองในระยะกำจัดเชื้อ จึงควรชั่งโอกาสกลับเป็นซ้ำที่สูงกว่า",
+            "strength": "เริ่มด้วยเซฟตาซิดีม IV ถูกต้อง",
+            "weigh": "โคอะม็อกซิคลาฟเป็นยากินทางเลือกรอง กลับเป็นซ้ำมากกว่ายาหลัก",
             "safety": ""
           },
           {
-            "strength": "การวางแผน**ระยะกำจัดเชื้อ**ไว้ตั้งแต่ต้น แสดงความเข้าใจว่าโรคนี้ต้องรักษานาน",
-            "weigh": "ยานี้กินวันละหลายครั้งนานหลายเดือน ซึ่งเป็นภาระต่อความร่วมมือของผู้ป่วย",
+            "strength": "มีแผนยากินระยะกำจัดเชื้อ",
+            "weigh": "เลือกยาทางเลือกรองโดยไม่มีเหตุผลจากตัวผู้ป่วย ทำให้เสี่ยงกลับเป็นซ้ำมากขึ้น",
             "safety": ""
           },
           {
-            "strength": "การมียาทางเลือกในระยะกำจัดเชื้อ มีประโยชน์เมื่อผู้ป่วยใช้ยาหลักไม่ได้",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
+            "strength": "โคอะม็อกซิคลาฟหาได้ง่าย",
+            "weigh": "ต้องกินวันละหลายครั้งนานหลายเดือน และกลับเป็นซ้ำบ่อยกว่ายาหลัก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Starting **IV ceftazidime** fits his severe infection.",
-            "weigh": "As a **second-line drug** for eradication, co-amoxiclav carries a higher relapse risk worth weighing.",
+            "strength": "IV ceftazidime is the right start.",
+            "weigh": "Co-amoxiclav is the second-line oral drug here, with more relapse than the first-line one.",
             "safety": ""
           },
           {
-            "strength": "Planning the **eradication phase** from the start shows grasp of how long this disease needs.",
-            "weigh": "It is taken several times a day for months, which strains adherence.",
+            "strength": "An oral phase is planned.",
+            "weigh": "Choosing the second-line drug with no case reason raises his relapse risk.",
             "safety": ""
           },
           {
-            "strength": "Having an eradication option matters when a patient cannot take the usual drug.",
-            "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
+            "strength": "Co-amoxiclav is easy to get.",
+            "weigh": "It is taken several times a day for months and relapses more often than the first-line drug.",
             "safety": ""
           }
         ]
@@ -879,35 +879,35 @@
       "a": {
         "th": [
           {
-            "strength": "ยาฉีดอย่างน้อย 2 สัปดาห์แล้วต่อยากิน ครอบคลุมทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "ยากินนาน 3-6 เดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้ผู้ป่วยกินยาครบ",
+            "strength": "การเริ่ม**เซฟตาซิดีม IV** เหมาะกับการติดเชื้อรุนแรงแบบนี้",
+            "weigh": "ควรกำหนดระยะยาแต่ละช่วงไว้ตอนนี้ ให้ผู้ป่วยรู้ว่าคอร์สยายาว",
             "safety": ""
           },
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
+            "strength": "การต่อด้วย TMP-SMX ทำให้แผนมีระยะยากิน",
+            "weigh": "น้ำตาล 342 เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับยาฆ่าเชื้อ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะไว้ล่วงหน้า ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
-            "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
+            "strength": "ลำดับยาสองตัวนี้เป็นสูตรมาตรฐาน",
+            "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และต้องเฝ้าผลข้างเคียงของ TMP-SMX",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Planning **at least 2 weeks** of IV then months of oral therapy covers both intensive and eradication phases.",
-            "weigh": "Three to six months of oral therapy needs strong adherence, so weigh how to support him.",
+            "strength": "Starting **IV ceftazidime** fits a severe infection like his.",
+            "weigh": "Set the length of each phase now so he knows the course is long.",
             "safety": ""
           },
           {
-            "strength": "Starting **IV ceftazidime** from the outset fits the organism behind his illness.",
-            "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
+            "strength": "Following with TMP-SMX gives the plan an oral phase.",
+            "weigh": "A glucose of 342 deserves attention alongside the antibiotics.",
             "safety": ""
           },
           {
-            "strength": "Setting out both phases up front helps him and the team expect a long course.",
-            "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
+            "strength": "This two-drug sequence is the standard one.",
+            "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching.",
             "safety": ""
           }
         ]
@@ -920,7 +920,7 @@
             "safety": ""
           },
           {
-            "strength": "การยึดสูตร**เซฟตาซิดีม**แล้วต่อ TMP-SMX ตรงกับเชื้อที่ห้องปฏิบัติการรายงาน",
+            "strength": "การยึดสูตร**เซฟตาซิดีม**แล้วต่อ TMP-SMX ให้การรักษาสองระยะตามมาตรฐานเมื่อเพาะเชื้อเลือดขึ้น",
             "weigh": "ยากินเกือบห้าเดือนต้องอาศัยความร่วมมือสูง และควรติดตามผลข้างเคียงของ TMP-SMX",
             "safety": ""
           },
@@ -937,7 +937,7 @@
             "safety": ""
           },
           {
-            "strength": "Holding to **ceftazidime** then TMP-SMX matches the organism the lab reports.",
+            "strength": "Holding to **ceftazidime** then TMP-SMX gives a positive culture the standard two-phase course.",
             "weigh": "Nearly five months of oral therapy needs strong adherence and checks for TMP-SMX side effects.",
             "safety": ""
           },
@@ -951,35 +951,35 @@
       "c": {
         "th": [
           {
-            "strength": "การเลือก**เมโรพีเนม IV** แสดงความระวังต่อความรุนแรง เมื่อชีพจรและการหายใจเร็ว",
-            "weigh": "ผู้ป่วยรู้สึกตัวดี ความดัน 106/66 จึงควรชั่งว่าเข้าเกณฑ์ช็อกหรือไอซียูหรือไม่",
+            "strength": "เมโรพีเนมครอบคลุมเชื้อนี้",
+            "weigh": "ผู้ป่วยรู้ตัวดี ความดัน 106/66 ยังไม่ถึงเกณฑ์ช็อกหรือไอซียูที่ต้องใช้ยานี้",
             "safety": ""
           },
           {
-            "strength": "ยานี้**ครอบคลุมเชื้อนี้ดี** และแผนยังต่อระยะกำจัดเชื้อด้วยยากิน",
-            "weigh": "ยากลุ่มนี้ควรสงวนไว้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยาในโรงพยาบาล",
+            "strength": "มีระยะยากินกำจัดเชื้อตามมา",
+            "weigh": "ยาคาร์บาพีเนมควรเก็บไว้ใช้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "การวางแผนต่อด้วย TMP-SMX ทำให้ครอบคลุมทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "ระยะยาฉีดและยากินที่ยาวนาน ต้องวางแผนความร่วมมือของผู้ป่วยไว้ตั้งแต่ต้น",
+            "strength": "เป็นยาฉีดที่ได้ผล",
+            "weigh": "ผู้ป่วยที่อาการคงที่ขนาดนี้ใช้ยาฉีดตัวหลักก็เพียงพอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Choosing **IV meropenem** shows respect for severity in a patient with fast pulse and breathing.",
-            "weigh": "He is alert with BP 106/66, so weigh whether he meets the shock or ICU bar.",
+            "strength": "Meropenem covers this organism.",
+            "weigh": "He is alert with BP 106/66, so he is below the shock or ICU bar for this drug.",
             "safety": ""
           },
           {
-            "strength": "It **covers this organism** well, and the plan still includes an oral eradication phase.",
-            "weigh": "Carbapenems are worth reserving for clear indications to limit resistance in hospital.",
+            "strength": "An oral eradication phase follows.",
+            "weigh": "Carbapenems are best kept for clear indications, to limit resistance.",
             "safety": ""
           },
           {
-            "strength": "Following with TMP-SMX covers both the intensive and eradication phases.",
-            "weigh": "The long IV and oral phases need an adherence plan from the start.",
+            "strength": "It is an effective IV choice.",
+            "weigh": "A patient this stable is served by the first-line IV drug.",
             "safety": ""
           }
         ]
@@ -987,35 +987,35 @@
       "e": {
         "th": [
           {
-            "strength": "การเพิ่ม**ด็อกซีไซคลิน** แสดงความระวังต่อเลปโตสไปโรสิสที่พบได้ในชาวนาลุยโคลน",
-            "weigh": "อาการเด่นครั้งนี้อยู่ที่ปอด ควรชั่งว่าข้อมูลหนุนการเพิ่มยาตัวที่สองเพียงใด",
+            "strength": "ยังคงยาหลักครบสองระยะ",
+            "weigh": "โรคเด่นที่ปอด ยาที่เพิ่มจึงมีเป้าหมายน้อย",
             "safety": ""
           },
           {
-            "strength": "แผนนี้ยังคงยาหลักสองระยะไว้ครบ ขณะขยายความครอบคลุมเพิ่ม",
-            "weigh": "ยาเพิ่มหนึ่งตัวหมายถึงผลข้างเคียงและปฏิกิริยาระหว่างยาที่มากขึ้น ซึ่งควรชั่งไว้",
+            "strength": "เลปโตสไปโรสิสเป็นความเสี่ยงจริงในหน้าฝน",
+            "weigh": "ยาเพิ่มอีกตัวเพิ่มผลข้างเคียงโดยไม่มีเป้าหมายชัด",
             "safety": ""
           },
           {
-            "strength": "การคิดถึง**เลปโตสไปโรสิส**ในชาวนาหน้าฝน สอดคล้องกับระบาดวิทยาของอีสาน",
-            "weigh": "ควรกำหนดไว้ก่อนว่าจะหยุดยาตัวที่เพิ่มเมื่อใด หากผลตรวจไม่สนับสนุน",
+            "strength": "ด็อกซีไซคลินราคาถูกและคุ้นเคย",
+            "weigh": "ควรกำหนดว่าจะหยุดยาที่เพิ่มเมื่อใดหากผลตรวจไม่สนับสนุน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **doxycycline** shows caution about leptospirosis, another hazard of wading in mud.",
-            "weigh": "This illness is chest-led, so weigh how strongly the findings support a second drug.",
+            "strength": "The core phases stay intact.",
+            "weigh": "His illness is chest-led, so the added drug has little to treat.",
             "safety": ""
           },
           {
-            "strength": "The plan keeps both core phases intact while widening the cover.",
-            "weigh": "One more drug adds side effects and interactions, which deserve weight.",
+            "strength": "Leptospirosis is a real rainy-season risk.",
+            "weigh": "One more drug adds side effects without a clear target.",
             "safety": ""
           },
           {
-            "strength": "Thinking of **leptospirosis** in a rainy-season farmer fits Isan epidemiology.",
-            "weigh": "Decide in advance when the added drug stops if results do not support it.",
+            "strength": "Doxycycline is cheap and familiar.",
+            "weigh": "Plan when the added drug stops if tests do not support it.",
             "safety": ""
           }
         ]
@@ -1023,35 +1023,35 @@
       "d": {
         "th": [
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
-            "weigh": "โคอะม็อกซิคลาฟเป็นยารองในระยะกำจัดเชื้อ จึงควรชั่งโอกาสกลับเป็นซ้ำที่สูงกว่า",
+            "strength": "เริ่มด้วยเซฟตาซิดีม IV ถูกต้อง",
+            "weigh": "โคอะม็อกซิคลาฟเป็นยากินทางเลือกรอง กลับเป็นซ้ำมากกว่ายาหลัก",
             "safety": ""
           },
           {
-            "strength": "การวางแผน**ระยะกำจัดเชื้อ**ไว้ตั้งแต่ต้น แสดงความเข้าใจว่าโรคนี้ต้องรักษานาน",
-            "weigh": "ยานี้กินวันละหลายครั้งนานหลายเดือน ซึ่งเป็นภาระต่อความร่วมมือของผู้ป่วย",
+            "strength": "มีแผนยากินระยะกำจัดเชื้อ",
+            "weigh": "เลือกยาทางเลือกรองโดยไม่มีเหตุผลจากตัวผู้ป่วย ทำให้เสี่ยงกลับเป็นซ้ำมากขึ้น",
             "safety": ""
           },
           {
-            "strength": "การมียาทางเลือกในระยะกำจัดเชื้อ มีประโยชน์เมื่อผู้ป่วยใช้ยาหลักไม่ได้",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
+            "strength": "โคอะม็อกซิคลาฟหาได้ง่าย",
+            "weigh": "ต้องกินวันละหลายครั้งนานหลายเดือน และกลับเป็นซ้ำบ่อยกว่ายาหลัก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Starting **IV ceftazidime** fits the organism behind his illness.",
-            "weigh": "As a **second-line drug** for eradication, co-amoxiclav carries a higher relapse risk worth weighing.",
+            "strength": "IV ceftazidime is the right start.",
+            "weigh": "Co-amoxiclav is the second-line oral drug here, with more relapse than the first-line one.",
             "safety": ""
           },
           {
-            "strength": "Planning the **eradication phase** from the start shows grasp of how long this disease needs.",
-            "weigh": "It is taken several times a day for months, which strains adherence.",
+            "strength": "An oral phase is planned.",
+            "weigh": "Choosing the second-line drug with no case reason raises his relapse risk.",
             "safety": ""
           },
           {
-            "strength": "Having an eradication option matters when a patient cannot take the usual drug.",
-            "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
+            "strength": "Co-amoxiclav is easy to get.",
+            "weigh": "It is taken several times a day for months and relapses more often than the first-line drug.",
             "safety": ""
           }
         ]
@@ -1061,35 +1061,35 @@
       "a": {
         "th": [
           {
-            "strength": "ยาฉีดอย่างน้อย 2 สัปดาห์แล้วต่อยากิน ครอบคลุมทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "ยากินนาน 3-6 เดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้ผู้ป่วยกินยาครบ",
+            "strength": "การเริ่ม**เซฟตาซิดีม IV** เหมาะกับการติดเชื้อรุนแรงแบบนี้",
+            "weigh": "ควรกำหนดระยะยาแต่ละช่วงไว้ตอนนี้ ให้ผู้ป่วยรู้ว่าคอร์สยายาว",
             "safety": ""
           },
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ตั้งแต่ต้น สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
+            "strength": "การต่อด้วย TMP-SMX ทำให้แผนมีระยะยากิน",
+            "weigh": "น้ำตาล 342 เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับยาฆ่าเชื้อ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนสองระยะไว้ล่วงหน้า ช่วยให้ผู้ป่วยและทีมเข้าใจว่าการรักษาจะยาวนาน",
-            "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และควรติดตามผลข้างเคียงของ TMP-SMX ระหว่างกินยา",
+            "strength": "ลำดับยาสองตัวนี้เป็นสูตรมาตรฐาน",
+            "weigh": "ขนาดยาฉีดควรปรับตามการทำงานของไต และต้องเฝ้าผลข้างเคียงของ TMP-SMX",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Planning **at least 2 weeks** of IV then months of oral therapy covers both intensive and eradication phases.",
-            "weigh": "Three to six months of oral therapy needs strong adherence, so weigh how to support him.",
+            "strength": "Starting **IV ceftazidime** fits a severe infection like his.",
+            "weigh": "Set the length of each phase now so he knows the course is long.",
             "safety": ""
           },
           {
-            "strength": "Starting **IV ceftazidime** from the outset fits the organism behind his illness.",
-            "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
+            "strength": "Following with TMP-SMX gives the plan an oral phase.",
+            "weigh": "A glucose of 342 deserves attention alongside the antibiotics.",
             "safety": ""
           },
           {
-            "strength": "Setting out both phases up front helps him and the team expect a long course.",
-            "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching over the long course.",
+            "strength": "This two-drug sequence is the standard one.",
+            "weigh": "The IV dose should follow kidney function, and TMP-SMX side effects need watching.",
             "safety": ""
           }
         ]
@@ -1097,35 +1097,35 @@
       "b": {
         "th": [
           {
-            "strength": "การ**คุมน้ำตาล**ไปพร้อมกับรักษาเชื้อ ดูแลปัญหาที่มีอยู่ทั้งสองเรื่องในคราวเดียว",
-            "weigh": "การให้อินซูลินระหว่างป่วยหนักต้องเจาะน้ำตาลถี่ เพื่อเลี่ยงทั้งน้ำตาลสูงและต่ำ",
+            "strength": "การคุม**น้ำตาล 342**ไปพร้อมกับรักษาเชื้อเหมาะสม",
+            "weigh": "การให้อินซูลินระหว่างติดเชื้อรุนแรงต้องเจาะน้ำตาลบ่อย",
             "safety": ""
           },
           {
-            "strength": "แผนนี้รักษาเชื้อ**ครบสองระยะ** ตั้งแต่ยาฉีดจนถึงยากินระยะยาว",
-            "weigh": "ผลข้างเคียงของ TMP-SMX ระยะยาว ควรมีแผนติดตามตั้งแต่เริ่มยา",
+            "strength": "วางยาฆ่าเชื้อครบสองระยะตั้งแต่วันแรก",
+            "weigh": "TMP-SMX ระยะยาวควรมีแผนติดตามผลข้างเคียงตั้งแต่ต้น",
             "safety": ""
           },
           {
-            "strength": "การมองผู้ป่วยทั้งคน ทั้งเชื้อและเบาหวาน ช่วยวางรากฐานที่ดีให้การรักษาระยะยาว",
-            "weigh": "ยาที่กินนานหลายเดือนต้องอาศัยความร่วมมือสูง จึงควรชั่งวิธีช่วยให้กินยาครบ",
+            "strength": "การเชื่อมน้ำตาลกับการติดเชื้อเป็นการดูแลผู้ป่วยทั้งคน",
+            "weigh": "ยากินหลายเดือนต้องช่วยให้ผู้ป่วยกินยาสม่ำเสมอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Bringing **the glucose down** alongside antibiotics treats both of his active problems.",
-            "weigh": "Insulin during a severe infection needs frequent glucose checks to avoid both highs and lows.",
+            "strength": "Treating the **glucose of 342** alongside the infection is right.",
+            "weigh": "Insulin during a severe infection needs frequent glucose checks.",
             "safety": ""
           },
           {
-            "strength": "The plan **treats both phases**, from the injected drug to the long oral course.",
-            "weigh": "Long-term TMP-SMX side effects deserve a monitoring plan from the start.",
+            "strength": "Both antibiotic phases are planned from day one.",
+            "weigh": "Long-term TMP-SMX needs a side-effect plan from the start.",
             "safety": ""
           },
           {
-            "strength": "Treating the whole patient, infection and diabetes, gives the long course a firm start.",
-            "weigh": "Months of oral treatment need strong adherence, so weigh how to support him.",
+            "strength": "Linking his glucose to the infection treats the whole patient.",
+            "weigh": "Months of oral treatment need adherence support.",
             "safety": ""
           }
         ]
@@ -1133,35 +1133,35 @@
       "c": {
         "th": [
           {
-            "strength": "การเลือก**เมโรพีเนม IV** แสดงความระวังต่อความรุนแรง เมื่อชีพจรและการหายใจเร็ว",
-            "weigh": "ผู้ป่วยรู้สึกตัวดี ความดัน 106/66 จึงควรชั่งว่าเข้าเกณฑ์ช็อกหรือไอซียูหรือไม่",
+            "strength": "เมโรพีเนมครอบคลุมเชื้อนี้",
+            "weigh": "ผู้ป่วยรู้ตัวดี ความดัน 106/66 ยังไม่ถึงเกณฑ์ช็อกหรือไอซียูที่ต้องใช้ยานี้",
             "safety": ""
           },
           {
-            "strength": "ยานี้**ครอบคลุมเชื้อนี้ดี** และแผนยังต่อระยะกำจัดเชื้อด้วยยากิน",
-            "weigh": "ยากลุ่มนี้ควรสงวนไว้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยาในโรงพยาบาล",
+            "strength": "มีระยะยากินกำจัดเชื้อตามมา",
+            "weigh": "ยาคาร์บาพีเนมควรเก็บไว้ใช้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "การวางแผนต่อด้วย TMP-SMX ทำให้ครอบคลุมทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "ระยะยาฉีดและยากินที่ยาวนาน ต้องวางแผนความร่วมมือของผู้ป่วยไว้ตั้งแต่ต้น",
+            "strength": "เป็นยาฉีดที่ได้ผล",
+            "weigh": "ผู้ป่วยที่อาการคงที่ขนาดนี้ใช้ยาฉีดตัวหลักก็เพียงพอ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Choosing **IV meropenem** shows respect for severity in a patient with fast pulse and breathing.",
-            "weigh": "He is alert with BP 106/66, so weigh whether he meets the shock or ICU bar.",
+            "strength": "Meropenem covers this organism.",
+            "weigh": "He is alert with BP 106/66, so he is below the shock or ICU bar for this drug.",
             "safety": ""
           },
           {
-            "strength": "It **covers this organism** well, and the plan still includes an oral eradication phase.",
-            "weigh": "Carbapenems are worth reserving for clear indications to limit resistance in hospital.",
+            "strength": "An oral eradication phase follows.",
+            "weigh": "Carbapenems are best kept for clear indications, to limit resistance.",
             "safety": ""
           },
           {
-            "strength": "Following with TMP-SMX covers both the intensive and eradication phases.",
-            "weigh": "The long IV and oral phases need an adherence plan from the start.",
+            "strength": "It is an effective IV choice.",
+            "weigh": "A patient this stable is served by the first-line IV drug.",
             "safety": ""
           }
         ]
@@ -1169,35 +1169,35 @@
       "e": {
         "th": [
           {
-            "strength": "การเพิ่ม**ด็อกซีไซคลิน** แสดงความระวังต่อเลปโตสไปโรสิสที่พบได้ในชาวนาลุยโคลน",
-            "weigh": "อาการเด่นครั้งนี้อยู่ที่ปอด ควรชั่งว่าข้อมูลหนุนการเพิ่มยาตัวที่สองเพียงใด",
+            "strength": "ยังคงยาหลักครบสองระยะ",
+            "weigh": "โรคเด่นที่ปอด ยาที่เพิ่มจึงมีเป้าหมายน้อย",
             "safety": ""
           },
           {
-            "strength": "แผนนี้ยังคงยาหลักสองระยะไว้ครบ ขณะขยายความครอบคลุมเพิ่ม",
-            "weigh": "ยาเพิ่มหนึ่งตัวหมายถึงผลข้างเคียงและปฏิกิริยาระหว่างยาที่มากขึ้น ซึ่งควรชั่งไว้",
+            "strength": "เลปโตสไปโรสิสเป็นความเสี่ยงจริงในหน้าฝน",
+            "weigh": "ยาเพิ่มอีกตัวเพิ่มผลข้างเคียงโดยไม่มีเป้าหมายชัด",
             "safety": ""
           },
           {
-            "strength": "การคิดถึง**เลปโตสไปโรสิส**ในชาวนาหน้าฝน สอดคล้องกับระบาดวิทยาของอีสาน",
-            "weigh": "ควรกำหนดไว้ก่อนว่าจะหยุดยาตัวที่เพิ่มเมื่อใด หากผลตรวจไม่สนับสนุน",
+            "strength": "ด็อกซีไซคลินราคาถูกและคุ้นเคย",
+            "weigh": "ควรกำหนดว่าจะหยุดยาที่เพิ่มเมื่อใดหากผลตรวจไม่สนับสนุน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding **doxycycline** shows caution about leptospirosis, another hazard of wading in mud.",
-            "weigh": "This illness is chest-led, so weigh how strongly the findings support a second drug.",
+            "strength": "The core phases stay intact.",
+            "weigh": "His illness is chest-led, so the added drug has little to treat.",
             "safety": ""
           },
           {
-            "strength": "The plan keeps both core phases intact while widening the cover.",
-            "weigh": "One more drug adds side effects and interactions, which deserve weight.",
+            "strength": "Leptospirosis is a real rainy-season risk.",
+            "weigh": "One more drug adds side effects without a clear target.",
             "safety": ""
           },
           {
-            "strength": "Thinking of **leptospirosis** in a rainy-season farmer fits Isan epidemiology.",
-            "weigh": "Decide in advance when the added drug stops if results do not support it.",
+            "strength": "Doxycycline is cheap and familiar.",
+            "weigh": "Plan when the added drug stops if tests do not support it.",
             "safety": ""
           }
         ]
@@ -1205,35 +1205,35 @@
       "d": {
         "th": [
           {
-            "strength": "การเลือก**เซฟตาซิดีม IV**ในระยะแรก สอดคล้องกับเชื้อก่อโรคของผู้ป่วยรายนี้",
-            "weigh": "โคอะม็อกซิคลาฟเป็นยารองในระยะกำจัดเชื้อ จึงควรชั่งโอกาสกลับเป็นซ้ำที่สูงกว่า",
+            "strength": "เริ่มด้วยเซฟตาซิดีม IV ถูกต้อง",
+            "weigh": "โคอะม็อกซิคลาฟเป็นยากินทางเลือกรอง กลับเป็นซ้ำมากกว่ายาหลัก",
             "safety": ""
           },
           {
-            "strength": "การวางแผน**ระยะกำจัดเชื้อ**ไว้ตั้งแต่ต้น แสดงความเข้าใจว่าโรคนี้ต้องรักษานาน",
-            "weigh": "ยานี้กินวันละหลายครั้งนานหลายเดือน ซึ่งเป็นภาระต่อความร่วมมือของผู้ป่วย",
+            "strength": "มีแผนยากินระยะกำจัดเชื้อ",
+            "weigh": "เลือกยาทางเลือกรองโดยไม่มีเหตุผลจากตัวผู้ป่วย ทำให้เสี่ยงกลับเป็นซ้ำมากขึ้น",
             "safety": ""
           },
           {
-            "strength": "การมียาทางเลือกในระยะกำจัดเชื้อ มีประโยชน์เมื่อผู้ป่วยใช้ยาหลักไม่ได้",
-            "weigh": "น้ำตาล 342 มก./ดล. เป็นปัจจัยเสี่ยงที่ควรดูแลไปพร้อมกับการรักษาเชื้อ",
+            "strength": "โคอะม็อกซิคลาฟหาได้ง่าย",
+            "weigh": "ต้องกินวันละหลายครั้งนานหลายเดือน และกลับเป็นซ้ำบ่อยกว่ายาหลัก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Starting **IV ceftazidime** fits the organism behind his illness.",
-            "weigh": "As a **second-line drug** for eradication, co-amoxiclav carries a higher relapse risk worth weighing.",
+            "strength": "IV ceftazidime is the right start.",
+            "weigh": "Co-amoxiclav is the second-line oral drug here, with more relapse than the first-line one.",
             "safety": ""
           },
           {
-            "strength": "Planning the **eradication phase** from the start shows grasp of how long this disease needs.",
-            "weigh": "It is taken several times a day for months, which strains adherence.",
+            "strength": "An oral phase is planned.",
+            "weigh": "Choosing the second-line drug with no case reason raises his relapse risk.",
             "safety": ""
           },
           {
-            "strength": "Having an eradication option matters when a patient cannot take the usual drug.",
-            "weigh": "A glucose of 342 is a risk factor that deserves attention alongside the antibiotics.",
+            "strength": "Co-amoxiclav is easy to get.",
+            "weigh": "It is taken several times a day for months and relapses more often than the first-line drug.",
             "safety": ""
           }
         ]
@@ -1351,35 +1351,35 @@
       "d": {
         "th": [
           {
-            "strength": "การคิดถึง**เมโรพีเนม** แสดงความระวังเมื่อพบว่าโรคกว้างกว่าที่คิด",
-            "weigh": "ผู้ป่วยดีขึ้นตามคาดกับยาเดิม จึงควรชั่งว่าการเปลี่ยนยาจะเพิ่มประโยชน์อะไร",
+            "strength": "เมโรพีเนมใช้ได้กับเชื้อนี้",
+            "weigh": "ผู้ป่วยดีขึ้นตามคาด การเปลี่ยนยาไม่ได้ประโยชน์ และยังไม่ได้กำหนดระยะยาฉีดให้นานพอ",
             "safety": ""
           },
           {
-            "strength": "การเลือกยาที่ครอบคลุมเชื้อนี้ได้ดีมาก สะท้อนความตั้งใจไม่ให้ฝีลุกลาม",
-            "weigh": "ยากลุ่มนี้ควรสงวนไว้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยาในโรงพยาบาล",
+            "strength": "เป็นยาที่แรง",
+            "weigh": "ฝีต้องการยาฉีดที่นานขึ้น ไม่ใช่ยาใหม่ ตัวเลือกนี้ยังไม่ได้ตอบเรื่องนั้น",
             "safety": ""
           },
           {
-            "strength": "การทบทวนยาเมื่อพบข้อมูลใหม่ แสดงว่าไม่ยึดแผนเดิมโดยไม่ไตร่ตรอง",
-            "weigh": "โรคที่กว้างขึ้นไม่ได้แปลว่ายาเดิมไม่ได้ผล เมื่อผู้ป่วยดีขึ้นตามคาด",
+            "strength": "ยาคาร์บาพีเนมเป็นยาที่คุ้นเคยในหอผู้ป่วย",
+            "weigh": "ใช้ยาสำรองกับผู้ป่วยที่ยาเดิมยังได้ผลอยู่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Considering **meropenem** shows caution once the disease proves wider than thought.",
-            "weigh": "He is improving as expected on the present drug, so weigh what a change would add.",
+            "strength": "Meropenem works against this organism.",
+            "weigh": "He is improving as expected, so the switch gains nothing, and how long the injected drug runs is left unset.",
             "safety": ""
           },
           {
-            "strength": "Choosing a carbapenem that **covers this organism** very well reflects intent to stop the abscesses spreading.",
-            "weigh": "Carbapenems are worth reserving for clear indications to limit resistance in hospital.",
+            "strength": "It is a strong drug.",
+            "weigh": "The abscesses call for a longer course of the injected drug, not a new drug; this switch leaves that open.",
             "safety": ""
           },
           {
-            "strength": "Reviewing the drug when new findings appear shows the plan is not on autopilot.",
-            "weigh": "Wider disease does not mean the drug is failing in a patient who is improving as expected.",
+            "strength": "Carbapenems are familiar on the ward.",
+            "weigh": "This spends a reserve drug on a patient whose current drug is working.",
             "safety": ""
           }
         ]
@@ -1387,35 +1387,35 @@
       "e": {
         "th": [
           {
-            "strength": "การส่ง **CT ช่องท้อง** เห็นฝีเล็กได้ละเอียดกว่า และอาจพบจุดอื่นเพิ่มเติม",
-            "weigh": "พบฝีแล้วและผู้ป่วยดีขึ้น ควรชั่งว่าผล CT จะเปลี่ยนการรักษาเพียงใด",
+            "strength": "CT ให้ภาพละเอียดกว่า",
+            "weigh": "พบฝีแล้ว สิ่งที่ต้องการคือยาฉีดนานขึ้น ซึ่งตัวเลือกนี้ไม่ได้กำหนด",
             "safety": ""
           },
           {
-            "strength": "การอยากเห็นขอบเขตของโรคให้ครบ แสดงความละเอียดในการประเมินฝีในอวัยวะลึก",
-            "weigh": "CT มีค่าใช้จ่าย รังสี และมักใช้สารทึบรังสี ควรชั่งกับประโยชน์ในผู้ป่วยเบาหวาน",
+            "strength": "เป็นการตรวจที่ส่งกันประจำ",
+            "weigh": "CT เพิ่มค่าใช้จ่าย รังสี และสารทึบรังสีในผู้ป่วยเบาหวาน โดยไม่เปลี่ยนแผน",
             "safety": ""
           },
           {
-            "strength": "ภาพที่ละเอียดขึ้น อาจช่วยวางแผนการติดตามฝีในระยะต่อไป",
-            "weigh": "การนัดทำ CT ใช้เวลาและทรัพยากร ซึ่งควรชั่งกับผู้ป่วยที่ดีขึ้นแล้ว",
+            "strength": "อยากเห็นรายละเอียดมากขึ้นเป็นเรื่องเข้าใจได้",
+            "weigh": "เรื่องที่สำคัญคือจะให้ยาฉีดนานเท่าใด ซึ่งยังไม่ได้ตัดสิน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "An **abdominal CT** shows small abscesses in finer detail and may find further sites.",
-            "weigh": "The abscesses are already found and he is improving, so weigh how much CT would change care.",
+            "strength": "CT gives finer images.",
+            "weigh": "The abscesses are already found; what he needs is a longer course of the injected drug, which this leaves unset.",
             "safety": ""
           },
           {
-            "strength": "Wanting the full extent of disease shows thoroughness with deep abscesses.",
-            "weigh": "CT brings cost, radiation and often contrast, worth weighing in a diabetic.",
+            "strength": "It is a routine scan.",
+            "weigh": "CT adds cost, radiation and contrast in a diabetic without changing the plan.",
             "safety": ""
           },
           {
-            "strength": "Finer images may help plan how the abscesses are followed.",
-            "weigh": "Arranging CT takes time and resources, worth weighing in a patient who is improving.",
+            "strength": "More detail is easy to want.",
+            "weigh": "The decision that matters here, how long the injected drug runs, is left out.",
             "safety": ""
           }
         ]
@@ -1425,35 +1425,35 @@
       "a": {
         "th": [
           {
-            "strength": "การรู้ว่าไข้โรคนี้ลงช้า ช่วยคงยาเดิมไว้ ขณะยังมองหา**ฝีที่อาจซ่อนอยู่**",
-            "weigh": "อัลตราซาวนด์ช่องท้องขึ้นกับผู้ตรวจ ผลปกติจึงยังไม่ตัดฝีขนาดเล็กออกทั้งหมด",
+            "strength": "การอัลตราซาวนด์ท้องมาจาก**กดเจ็บใต้ชายโครงซ้าย**",
+            "weigh": "อัลตราซาวนด์ขึ้นกับผู้ตรวจ ผลปกติจึงยังตัดฝีเล็กไม่ได้",
             "safety": ""
           },
           {
-            "strength": "การนึกถึงการกดเจ็บใต้ชายโครงซ้ายตั้งแต่แรก ทำให้การตรวจช่องท้องมีเหตุผลรองรับ",
-            "weigh": "ไข้ลงช้าในสัปดาห์แรกพบบ่อยในโรคนี้ ควรชั่งว่าสัญญาณใดบอกว่าโรคไม่ไปตามคาด",
+            "strength": "การให้ยาฉีดเดิมต่อระหว่างหาจุดติดเชื้อที่ซ่อนอยู่เหมาะสม",
+            "weigh": "ไข้ค้างในสัปดาห์แรกพบได้บ่อย ควรกำหนดว่าอาการแบบใดถือว่าผิดทาง",
             "safety": ""
           },
           {
-            "strength": "การ**ให้ยาฉีดเดิมต่อ** ไม่เปลี่ยนยาเพียงเพราะไข้ยังไม่ลง สะท้อนความเข้าใจโรคนี้",
-            "weigh": "อาการที่ดีขึ้นบางส่วน เป็นข้อมูลที่ควรใช้ร่วมกับผลภาพ",
+            "strength": "การโยงการกดเจ็บใต้ชายโครงซ้ายกับฝีที่อาจมีเป็นเหตุผลที่ดี",
+            "weigh": "อาการที่ดีขึ้นบางส่วนควรนำมาชั่งร่วมกับผลอัลตราซาวนด์",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Knowing fever **settles slowly** here keeps the drug steady while hidden abscesses are sought.",
-            "weigh": "Abdominal ultrasound depends on the operator, so a normal result does not exclude small abscesses.",
+            "strength": "Scanning the abdomen follows from his **tender left ribs**.",
+            "weigh": "Ultrasound depends on the operator, so a normal scan does not exclude small abscesses.",
             "safety": ""
           },
           {
-            "strength": "Recalling the tender left ribs gives a clear reason to **scan the abdomen**.",
-            "weigh": "Lingering fever in the first week is common here, so weigh which signs would show it is off course.",
+            "strength": "Keeping the IV drug while looking for a hidden focus is sound.",
+            "weigh": "Lingering fever in the first week is common here, so set what would count as off course.",
             "safety": ""
           },
           {
-            "strength": "Keeping the IV drug rather than changing for fever alone reflects grasp of the disease course.",
-            "weigh": "Partial improvement deserves weight alongside the imaging result.",
+            "strength": "Linking the left-rib tenderness to a possible abscess is sound.",
+            "weigh": "Partial improvement deserves weight beside the scan result.",
             "safety": ""
           }
         ]
@@ -1533,35 +1533,35 @@
       "d": {
         "th": [
           {
-            "strength": "การ**เพิ่ม TMP-SMX** แสดงความตั้งใจขยายความครอบคลุมเมื่อไข้ยังไม่ลงสนิท",
-            "weigh": "ไข้ที่ลงช้าในโรคนี้มักไม่ได้มาจากยาไม่ครอบคลุม จึงควรชั่งประโยชน์ของยากินกำจัดเชื้อที่เพิ่มเข้ามา",
+            "strength": "TMP-SMX ออกฤทธิ์ต่อเชื้อนี้",
+            "weigh": "ไข้ลงช้าในโรคนี้มักไม่ใช่เพราะยาครอบคลุมไม่พอ และยังไม่ได้หาฝีที่ซ่อนอยู่",
             "safety": ""
           },
           {
-            "strength": "การเพิ่ม**TMP-SMX**ซึ่งออกฤทธิ์ต่อเชื้อนี้ สะท้อนความระวังต่อโรคที่รุนแรง",
-            "weigh": "ยาที่ให้เพิ่มมีผลข้างเคียง เช่น ผื่นหรือเม็ดเลือดต่ำ ซึ่งควรชั่งไว้",
+            "strength": "ยังคงยาฉีดเดิมไว้",
+            "weigh": "เพิ่มยาตามความเคยชิน แต่ยังไม่ได้หาสาเหตุที่ไข้ค้าง",
             "safety": ""
           },
           {
-            "strength": "การไม่เปลี่ยนยาฉีดหลักแต่เพิ่มยาเสริม ช่วยรักษาสิ่งที่กำลังได้ผลบางส่วนไว้",
-            "weigh": "ไข้ลงช้าในสัปดาห์แรกพบบ่อยในโรคนี้ ควรชั่งว่าสัญญาณใดบอกว่าโรคไม่ไปตามคาด",
+            "strength": "เพิ่มยาได้ง่าย",
+            "weigh": "ยาที่เพิ่มเสี่ยงผื่นและเม็ดเลือดต่ำ โดยไม่ได้หาจุดติดเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Choosing to **add TMP-SMX** aims to widen cover while fever has not fully settled.",
-            "weigh": "Slow fever in this disease rarely reflects a cover gap, so weigh what the added oral eradication drug adds.",
+            "strength": "TMP-SMX is active against this organism.",
+            "weigh": "Slow fever here rarely means a gap in cover, and no one looks for a hidden abscess.",
             "safety": ""
           },
           {
-            "strength": "Adding **TMP-SMX**, active against the organism, reflects caution in a serious disease.",
-            "weigh": "An added drug brings side effects such as rash or low cell counts, which deserve weight.",
+            "strength": "The IV drug is kept.",
+            "weigh": "Adding a drug by habit leaves the cause of the lingering fever unsearched.",
             "safety": ""
           },
           {
-            "strength": "Keeping the main IV drug while adding another preserves what is partly working.",
-            "weigh": "Lingering fever in the first week is common here, so weigh which signs would show it is off course.",
+            "strength": "It is an easy add.",
+            "weigh": "An extra drug brings rash and low cell counts without finding the focus.",
             "safety": ""
           }
         ]
@@ -1569,35 +1569,35 @@
       "e": {
         "th": [
           {
-            "strength": "การ**คุมไข้**ให้ผู้ป่วยกินและนอนได้ เป็นการใส่ใจความสุขสบายระหว่างรอยาออกฤทธิ์",
-            "weigh": "ยาลดไข้ทำให้สบายขึ้น แต่ไม่ได้อธิบายว่าทำไมไข้ยังไม่ลงสนิท",
+            "strength": "ผู้ป่วยจะสบายขึ้น",
+            "weigh": "การลดไข้ไม่ได้ช่วยหาว่าทำไมไข้ยังค้าง",
             "safety": ""
           },
           {
-            "strength": "การคงยาฉีดเดิมไว้ สอดคล้องกับธรรมชาติของโรคที่ไข้ลงช้า",
-            "weigh": "การคุมไข้ตลอดเวลาอาจบดบังเส้นไข้ ที่ใช้บอกว่าผู้ป่วยตอบสนองต่อการรักษาหรือไม่",
+            "strength": "ยังคงยาฉีดเดิมไว้",
+            "weigh": "ให้พาราเซตามอลตลอดเวลาอาจบดบังกราฟไข้ที่ใช้ดูผลการรักษา",
             "safety": ""
           },
           {
-            "strength": "พาราเซตามอลลดไข้ได้โดยไม่ซ้ำเติมไตในผู้ป่วยเบาหวานที่ติดเชื้อรุนแรง",
-            "weigh": "ควรชั่งขนาดยารวมต่อวันให้ปลอดภัยต่อตับ โดยเฉพาะเมื่อให้ต่อเนื่องหลายวัน",
+            "strength": "พาราเซตามอลปลอดภัยในขนาดปกติ",
+            "weigh": "ยังไม่มีขั้นตอนใดหาฝีที่ซ่อนอยู่ ซึ่งเป็นสาเหตุที่พบบ่อยของไข้ค้าง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Controlling the fever so he can **eat and sleep** attends to his comfort while the drug works.",
-            "weigh": "Fever relief eases him but does not explain why the fever persists.",
+            "strength": "He will feel more comfortable.",
+            "weigh": "Treating the fever does nothing to find why it lingers.",
             "safety": ""
           },
           {
-            "strength": "Keeping the IV drug steady fits a disease in which fever settles slowly.",
-            "weigh": "Round-the-clock fever control can mask the fever curve that shows whether treatment is working.",
+            "strength": "The IV drug is kept.",
+            "weigh": "Round-the-clock paracetamol can blur the fever curve that shows whether treatment works.",
             "safety": ""
           },
           {
-            "strength": "Paracetamol relieves fever without straining the kidneys of a diabetic with a serious infection.",
-            "weigh": "Weigh the total dose per day to keep the liver safe over several days.",
+            "strength": "Paracetamol is safe at normal doses.",
+            "weigh": "No step looks for a hidden abscess, a common reason fever lingers here.",
             "safety": ""
           }
         ]
@@ -1679,35 +1679,35 @@
       "c": {
         "th": [
           {
-            "strength": "การเลือก**เมโรพีเนม IV** แสดงความจริงจังต่อการกำเริบของโรค",
-            "weigh": "ยากลุ่มนี้ควรสงวนไว้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยาในโรงพยาบาล",
+            "strength": "เมโรพีเนมครอบคลุมเชื้อนี้ และมียากินต่อ",
+            "weigh": "ยาคาร์บาพีเนมควรเก็บไว้ใช้ตามข้อบ่งชี้ เพื่อลดเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "ยาคาร์บาพีเนมครอบคลุมเชื้อนี้ได้ดี และยังต่อระยะกำจัดเชื้อด้วย TMP-SMX",
-            "weigh": "ควรชั่งว่าที่ผ่านมากินยาสม่ำเสมอเพียงใด เพราะส่งผลต่อแผนกำจัดเชื้อรอบนี้",
+            "strength": "วางยาครบสองระยะ",
+            "weigh": "ผู้ป่วยไม่ได้ช็อก ยาฉีดตัวหลักก็เพียงพอ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนต่อด้วย TMP-SMX ทำให้รอบนี้ครบทั้งระยะเร่งรัดและระยะกำจัดเชื้อ",
-            "weigh": "การกำเริบอาจมาพร้อมจุดติดเชื้อใหม่ จึงควรชั่งการค้นหาขอบเขตของโรคอีกครั้ง",
+            "strength": "เป็นยาที่ได้ผล",
+            "weigh": "ยังไม่ได้ส่งตัวอย่างตรวจเพื่อยืนยันการกำเริบและดูความไวต่อยา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Choosing **IV meropenem** takes the relapse seriously.",
-            "weigh": "Carbapenems are worth reserving for clear indications to limit resistance in hospital.",
+            "strength": "Meropenem covers this organism, with an oral phase after.",
+            "weigh": "Carbapenems are best kept for clear indications, to limit resistance.",
             "safety": ""
           },
           {
-            "strength": "A carbapenem **covers this organism** well, with TMP-SMX to follow for eradication.",
-            "weigh": "Weigh how regularly he took his tablets, since it shapes the eradication plan this time.",
+            "strength": "Both phases are planned.",
+            "weigh": "He is not in shock, so the first-line IV drug would do.",
             "safety": ""
           },
           {
-            "strength": "Following with TMP-SMX completes both intensive and eradication phases this round.",
-            "weigh": "Relapse can come with new sites of infection, so the extent of disease deserves fresh weighing.",
+            "strength": "It is an effective choice.",
+            "weigh": "No sample is sent to confirm relapse or check susceptibility.",
             "safety": ""
           }
         ]
@@ -1715,35 +1715,35 @@
       "d": {
         "th": [
           {
-            "strength": "การเริ่มใหม่ด้วย**เซฟตาซิดีม**แล้วต่อ TMP-SMX รักษาการกำเริบครบสองระยะด้วยยาหลัก",
-            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา โดยไม่ได้ลดการกลับเป็นซ้ำเมื่อเทียบกับ TMP-SMX ตัวเดียว",
+            "strength": "เริ่มเซฟตาซิดีม IV ใหม่แล้ว",
+            "weigh": "ไม่ได้ส่งตัวอย่างยืนยันการกำเริบ และยังไม่ได้เลือกยากินแทนตัวที่ล้มเหลว",
+            "safety": "หลังครบยาฉีด ควรเปลี่ยนยากินจากโคอะม็อกซิคลาฟที่ล้มเหลวมาแล้ว"
+          },
+          {
+            "strength": "เป็นยาฉีดที่ผู้ป่วยเคยได้",
+            "weigh": "เริ่มยาตามความเคยชิน แต่ยังเปิดช่องเรื่องยากิน ซึ่งเป็นจุดที่รอบก่อนล้มเหลว",
             "safety": ""
           },
           {
-            "strength": "การคิดเพิ่ม**ยากินอีกตัว** แสดงความตั้งใจไม่ให้โรคกลับมาอีก",
-            "weigh": "ยาสองตัวนานหลายเดือนเป็นภาระต่อการกินยาให้ครบ ซึ่งสำคัญมากหลังการกำเริบ",
-            "safety": ""
-          },
-          {
-            "strength": "การเริ่มยาฉีดใหม่ก่อนต่อยากิน ทำให้รอบนี้ครบทั้งสองระยะ",
-            "weigh": "ควรชั่งว่าที่ผ่านมากินยาสม่ำเสมอเพียงใด เพราะส่งผลต่อแผนกำจัดเชื้อรอบนี้",
+            "strength": "รับผู้ป่วยไว้ในโรงพยาบาลแล้ว",
+            "weigh": "กำเริบระหว่างกินโคอะม็อกซิคลาฟ ต้องวางแผนเปลี่ยนยากิน ซึ่งยังขาดอยู่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Restarting with **Ceftazidime** then TMP-SMX re-treats the relapse in both phases with first-line drugs.",
-            "weigh": "Adding doxy brings more side effects and tablets, and lowers relapse no more than TMP-SMX alone.",
+            "strength": "IV ceftazidime is restarted.",
+            "weigh": "No sample goes to the lab to confirm relapse, and no oral drug is chosen to replace the one that failed.",
+            "safety": "After the IV phase, choose a different oral drug; co-amoxiclav has already failed him."
+          },
+          {
+            "strength": "The IV drug is familiar to him.",
+            "weigh": "Restarting by routine leaves the oral phase open, and that is where the last course failed.",
             "safety": ""
           },
           {
-            "strength": "Planning **a second oral drug** shows determination to stop the disease returning.",
-            "weigh": "Two drugs over months strain adherence, which matters greatly after a relapse.",
-            "safety": ""
-          },
-          {
-            "strength": "Restarting the injected drug before the oral phase makes this round complete in both phases.",
-            "weigh": "Weigh how regularly he took his tablets, since it shapes the eradication plan this time.",
+            "strength": "Admission is arranged.",
+            "weigh": "Relapse on co-amoxiclav calls for a planned switch of oral drug, which is missing here.",
             "safety": ""
           }
         ]
@@ -1861,35 +1861,35 @@
       "d": {
         "th": [
           {
-            "strength": "การคิดเพิ่ม**ยาตัวที่สอง** แสดงความตั้งใจไม่ให้โรคกลับเป็นซ้ำ",
-            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา ขณะที่ประโยชน์ที่เพิ่มยังไม่ชัด",
+            "strength": "TMP-SMX ยังเป็นยาหลัก",
+            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียง และไม่ได้ลดการกลับเป็นซ้ำมากกว่า TMP-SMX ตัวเดียว",
             "safety": ""
           },
           {
-            "strength": "การคง TMP-SMX เป็นยาหลัก ทำให้ระยะกำจัดเชื้อมียาที่ถูกตัว",
-            "weigh": "ควรชั่งการระบุจำนวนสัปดาห์ให้ชัด เพราะความยาวของระยะนี้มีผลต่อการกลับเป็นซ้ำ",
+            "strength": "มียากินต่อที่บ้าน",
+            "weigh": "ไม่ได้กำหนดระยะเวลากินยาหรือนัดดูอาการ ซึ่งความยาวของยามีผลต่อการกลับเป็นซ้ำ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนยากินที่ชัดก่อนกลับบ้าน ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาต่อที่บ้าน",
-            "weigh": "ด็อกซีไซคลินทำให้ผิวไวต่อแดด ซึ่งสำคัญกับชาวนาที่ทำงานกลางแจ้งนานหลายเดือน",
+            "strength": "ยาตัวที่สองดูรัดกุม",
+            "weigh": "ด็อกซีไซคลินทำให้ผิวไวต่อแดด เป็นภาระจริงของชาวนาที่ทำงานกลางแจ้ง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Planning a **second drug** shows intent to prevent relapse.",
-            "weigh": "Adding doxycycline brings more side effects and tablets, while its extra benefit is unclear.",
+            "strength": "TMP-SMX stays the main drug.",
+            "weigh": "Doxycycline adds side effects and lowers relapse no more than TMP-SMX alone.",
             "safety": ""
           },
           {
-            "strength": "Keeping TMP-SMX at the core gives the eradication phase its main drug.",
-            "weigh": "Weigh stating the length of the course, since how long this phase runs drives relapse.",
+            "strength": "An oral drug continues at home.",
+            "weigh": "No length of course or review is set, and duration drives relapse.",
             "safety": ""
           },
           {
-            "strength": "A clear oral plan before discharge tells him the tablets continue at home.",
-            "weigh": "Doxycycline makes skin sensitive to sunlight, which matters for a farmer outdoors for months.",
+            "strength": "A second drug feels thorough.",
+            "weigh": "Doxycycline makes skin burn in the sun, a real cost for a farmer outdoors.",
             "safety": ""
           }
         ]
@@ -1899,35 +1899,35 @@
       "a": {
         "th": [
           {
-            "strength": "การ**นัด 2 สัปดาห์** ช่วยปรับอินซูลินและดูผลข้างเคียงของยาได้ทันในช่วงแรก",
-            "weigh": "การเริ่มอินซูลินที่บ้านต้องสอนวิธีฉีดและอาการน้ำตาลต่ำให้ผู้ป่วยและญาติเข้าใจ",
+            "strength": "**นัด 2 สัปดาห์** ช่วยปรับอินซูลินและดูผลข้างเคียงของยาได้เร็ว",
+            "weigh": "เริ่มอินซูลินที่บ้านต้องสอนการฉีดและอาการน้ำตาลต่ำ",
             "safety": ""
           },
           {
-            "strength": "การคุมน้ำตาลร่วมกับยากินระยะยาว ช่วยดูแลเบาหวานต่อเนื่องตลอดหลายเดือน",
-            "weigh": "ควรชั่งว่าผู้ป่วยมาตามนัดได้จริง ระหว่างที่ยังต้องกินยาอีกหลายเดือน",
+            "strength": "เริ่ม**อินซูลิน**ขณะน้ำตาลยังสูงเหมาะสม",
+            "weigh": "ควรชั่งว่าผู้ป่วยมาตามนัดได้จริงหรือไม่ ขณะยังต้องกินยาอีกหลายเดือน",
             "safety": ""
           },
           {
-            "strength": "การนัดดูทั้งน้ำตาลและยา ทำให้จัดการสองเรื่องได้ในการมาครั้งเดียว",
-            "weigh": "TMP-SMX ระยะยาวควรมีแผนติดตามผลข้างเคียง เช่น ผื่น ตั้งแต่เริ่มยา",
+            "strength": "ดูน้ำตาลและยาไปพร้อมกันในการนัดครั้งเดียว",
+            "weigh": "TMP-SMX ระยะยาวควรมีแผนติดตามผลข้างเคียง รวมถึงผื่น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **review in 2 weeks** lets insulin and drug side effects be adjusted early.",
-            "weigh": "Starting insulin at home needs teaching on injection and low-glucose symptoms for him and family.",
+            "weigh": "Starting insulin at home needs teaching on injection and low-glucose symptoms.",
             "safety": ""
           },
           {
-            "strength": "**Glucose control** alongside the long oral course keeps his diabetes in view for months.",
-            "weigh": "Weigh whether he can realistically attend, with months of tablets still ahead.",
+            "strength": "Starting **insulin** while his glucose is still high is right.",
+            "weigh": "Weigh whether he can attend, with months of tablets ahead.",
             "safety": ""
           },
           {
-            "strength": "Reviewing glucose and drug together handles both issues in a single visit.",
-            "weigh": "Long-term TMP-SMX deserves a side-effect plan, rash included, from the first dose.",
+            "strength": "Reviewing glucose and drug together handles both in one visit.",
+            "weigh": "Long-term TMP-SMX deserves a side-effect plan, rash included.",
             "safety": ""
           }
         ]
@@ -2007,35 +2007,35 @@
       "d": {
         "th": [
           {
-            "strength": "การใช้**ยาเดิม**ที่ผู้ป่วยคุ้นเคย ช่วยให้กินยาง่ายระหว่างกินยาฆ่าเชื้อนาน",
-            "weigh": "น้ำตาลยังสูงกับยาเดิม และ 4 สัปดาห์เป็นช่วงที่นานก่อนได้ปรับยา",
+            "strength": "ยาเบาหวานเดิมเป็นยาที่ผู้ป่วยคุ้นเคย",
+            "weigh": "น้ำตาลยังสูงกับยาเดิม และ 4 สัปดาห์เป็นช่วงที่นานเกินก่อนปรับยา",
             "safety": ""
           },
           {
-            "strength": "การไม่เพิ่มยาใหม่หลายตัวพร้อมกัน ช่วยลดความสับสนของผู้ป่วยตอนกลับบ้าน",
-            "weigh": "TMP-SMX อาจเสริมฤทธิ์ยาเบาหวานชนิดกินบางตัวจนน้ำตาลต่ำ ซึ่งควรชั่งไว้ด้วย",
+            "strength": "ยาใหม่น้อยลงทำให้กินยาง่ายขึ้น",
+            "weigh": "TMP-SMX อาจเสริมฤทธิ์ยาเบาหวานบางตัวจนน้ำตาลต่ำ ควรมีแผนรองรับ",
             "safety": ""
           },
           {
-            "strength": "การนัดดูน้ำตาลไว้ล่วงหน้า แสดงว่ายังติดตามเรื่องเบาหวานต่อหลังกลับบ้าน",
-            "weigh": "น้ำตาลที่สูงนานหลายสัปดาห์ทำให้เบาหวานยังรักษาไม่พอระหว่างฟื้นตัว ซึ่งควรชั่งไว้",
+            "strength": "มีนัดดูน้ำตาลไว้แล้ว",
+            "weigh": "น้ำตาลสูงตลอดช่วงฟื้นตัว ทำให้ปัจจัยเสี่ยงสำคัญยังไม่ได้รับการรักษา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Keeping **the pills he knows** makes tablets simpler during a long antibiotic course.",
-            "weigh": "Glucose is still high on these pills, and 4 weeks is a long gap before the next change.",
+            "strength": "His current pills are familiar to him.",
+            "weigh": "His glucose is still high on these pills, and 4 weeks is a long gap before any change.",
             "safety": ""
           },
           {
-            "strength": "Avoiding several new drugs at once limits confusion as he goes home.",
-            "weigh": "TMP-SMX can boost some oral diabetes drugs into low glucose, which deserves weight.",
+            "strength": "Fewer new drugs at once is simpler.",
+            "weigh": "TMP-SMX can push some oral diabetes drugs into low glucose, which needs a plan.",
             "safety": ""
           },
           {
-            "strength": "Booking a glucose recheck shows diabetes care continues after discharge.",
-            "weigh": "Weeks of high glucose leave his diabetes undertreated while he recovers, which deserves weight.",
+            "strength": "A recheck is booked.",
+            "weigh": "High glucose through recovery leaves a major risk factor untreated.",
             "safety": ""
           }
         ]
@@ -2050,7 +2050,7 @@
             "safety": ""
           },
           {
-            "strength": "แผนนี้ลดทั้งการกลับเป็นซ้ำและการติดเชื้อใหม่ ครอบคลุมสองความเสี่ยงในคราวเดียว",
+            "strength": "รองเท้าบูตปกป้องเท้าจากดินโคลนที่เขาจะกลับไป",
             "weigh": "ยากินนาน 20 สัปดาห์ต้องอาศัยความร่วมมือสูง โดยเฉพาะเมื่อกลับไปทำงานหนักในนา",
             "safety": ""
           },
@@ -2067,7 +2067,7 @@
             "safety": ""
           },
           {
-            "strength": "This plan cuts both relapse and new infection in one step.",
+            "strength": "Boots protect his feet from the mud he returns to.",
             "weigh": "Twenty weeks of tablets need strong adherence, especially once heavy field work resumes.",
             "safety": ""
           },
@@ -2153,35 +2153,35 @@
       "d": {
         "th": [
           {
-            "strength": "การคิดเพิ่ม**ยาตัวที่สอง** แสดงความตั้งใจไม่ให้โรคกลับเป็นซ้ำ",
-            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียงและจำนวนเม็ดยา ขณะที่ประโยชน์ที่เพิ่มยังไม่ชัด",
+            "strength": "TMP-SMX ยังเป็นยาหลัก",
+            "weigh": "ด็อกซีไซคลินเพิ่มผลข้างเคียง และไม่ได้ลดการกลับเป็นซ้ำมากกว่า TMP-SMX ตัวเดียว",
             "safety": ""
           },
           {
-            "strength": "การคง TMP-SMX เป็นยาหลัก ทำให้ระยะกำจัดเชื้อมียาที่ถูกตัว",
-            "weigh": "ควรชั่งการระบุจำนวนสัปดาห์ให้ชัด เพราะความยาวของระยะนี้มีผลต่อการกลับเป็นซ้ำ",
+            "strength": "มียากินต่อที่บ้าน",
+            "weigh": "ไม่ได้กำหนดระยะเวลากินยาหรือนัดดูอาการ ซึ่งความยาวของยามีผลต่อการกลับเป็นซ้ำ",
             "safety": ""
           },
           {
-            "strength": "การวางแผนยากินที่ชัดก่อนกลับบ้าน ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาต่อที่บ้าน",
-            "weigh": "ด็อกซีไซคลินทำให้ผิวไวต่อแดด ซึ่งสำคัญกับชาวนาที่ทำงานกลางแจ้งนานหลายเดือน",
+            "strength": "ยาตัวที่สองดูรัดกุม",
+            "weigh": "ด็อกซีไซคลินทำให้ผิวไวต่อแดด เป็นภาระจริงของชาวนาที่ทำงานกลางแจ้ง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Planning a **second drug** shows intent to prevent relapse.",
-            "weigh": "Adding doxycycline brings more side effects and tablets, while its extra benefit is unclear.",
+            "strength": "TMP-SMX stays the main drug.",
+            "weigh": "Doxycycline adds side effects and lowers relapse no more than TMP-SMX alone.",
             "safety": ""
           },
           {
-            "strength": "Keeping TMP-SMX at the core gives the eradication phase its main drug.",
-            "weigh": "Weigh stating the length of the course, since how long this phase runs drives relapse.",
+            "strength": "An oral drug continues at home.",
+            "weigh": "No length of course or review is set, and duration drives relapse.",
             "safety": ""
           },
           {
-            "strength": "A clear oral plan before discharge tells him the tablets continue at home.",
-            "weigh": "Doxycycline makes skin sensitive to sunlight, which matters for a farmer outdoors for months.",
+            "strength": "A second drug feels thorough.",
+            "weigh": "Doxycycline makes skin burn in the sun, a real cost for a farmer outdoors.",
             "safety": ""
           }
         ]
@@ -2191,8 +2191,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-15",
-    "findings": "Fresh reviewer that did not write the replies, 2026-11-15, two rounds. Read every reply in all 13 banks, all 3 alternatives per option in Thai and English, against every question variant of its bank and every path into it (step4.W follows only the weaker step-3 co-amoxiclav option, so its co-amoxiclav relapse premise holds on every path). Round 2 re-read the six rewritten step4.W d replies for the new option ceftazidime then TMP-SMX plus doxycycline: no wrong fact (MERTH, Chetchotisakd Lancet 2014, supports 'lowers relapse no more than TMP-SMX alone'), no grading of the choice, no other option named, no preview of step 5, Thai matches English, and an empty safety line is right for a safe regimen; a reconstruction confirmed no other reply changed. Across the bank no reply asserts a fact only some variants or paths state, no reply ties glucose control to relapse, and safety lines are correctly empty. Non-blocking, carried over: step5.R d has no safety line though its weigh names the TMP-SMX hypoglycaemia interaction; step2.R c and step2.W c weigh 'this disease asks you to sample' also runs on paths where step 1 named another disease. reply-bank.mjs check: content ok. Tree sha256 090459d151e3454eba4ee19aada782e6046217cf56d3b199d591c76403ade916. Replies sha256 1783a815235dfe8e2b6dd7a52439252ccdf2142a570bdb68c413f98291306528.",
-    "tree_sha256": "090459d151e3454eba4ee19aada782e6046217cf56d3b199d591c76403ade916",
-    "replies_sha256": "1783a815235dfe8e2b6dd7a52439252ccdf2142a570bdb68c413f98291306528"
+    "findings": "Read every reply in all 13 banks, all 3 alternatives per option in Thai and English, against every question variant of its bank and every path into it. Round 1 found one must-fix: step3.R b alternative 2 claimed 'the organism the lab reports', which none of the step3.R variants states; it now reads 'gives a positive culture the standard two-phase course' (th: 'ให้การรักษาสองระยะตามมาตรฐานเมื่อเพาะเชื้อเลือดขึ้น'), true under every step3.R variant, and a diff of the whole reply bank against the version reviewed in round 1 shows nothing else changed. Notable judgments: the step5 d MERTH claim ('lowers relapse no more than TMP-SMX alone' and adds side effects) is correct; the step4.W d safety line (choose a different oral drug after the IV phase; co-amoxiclav has failed) is right for the option, and the missing culture and the oral-drug gap are also named in its weigh lines; the step2.R d 'blood culture misses about half' line matches Wiersinga 2018; the step5.R d point that TMP-SMX can push some oral diabetes drugs into low glucose is correct. No reply ranks the choice, previews a later step, or names another option. Thai and English agree. reply-bank check reports content ok. Tree sha256 2456c8c7e90eb54ccbaec9d491c1e477b218def9d86e83d89ab5a52bc009c18c. Replies sha256 5c790c91353c91c7899d3ee33a0f52f1ee138c1cdc2a7ff0e5bfd9de43ceb998.",
+    "tree_sha256": "2456c8c7e90eb54ccbaec9d491c1e477b218def9d86e83d89ab5a52bc009c18c",
+    "replies_sha256": "5c790c91353c91c7899d3ee33a0f52f1ee138c1cdc2a7ff0e5bfd9de43ceb998"
   }
 }
