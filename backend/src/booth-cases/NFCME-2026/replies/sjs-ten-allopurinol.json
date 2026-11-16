@@ -5,35 +5,35 @@
       "a": {
         "th": [
           {
-            "strength": "เชื่อม**แผลเยื่อบุ** ผิวหลุดลอก และยาใหม่เมื่อ 3 สัปดาห์ก่อนเข้าเป็นภาพเดียวกันได้ดี",
-            "weigh": "ผิวหลุดราวร้อยละ 12 อยู่ระหว่างเกณฑ์ SJS กับ TEN ซึ่งบอกความรุนแรงได้",
+            "strength": "เชื่อม**แผลเยื่อบุ**และผิวหลุดลอกเข้ากับยาใหม่",
+            "weigh": "คำตอบอาศัยภาพรวม โดยยังไม่ได้ระบุรายละเอียดการตรวจ",
             "safety": ""
           },
           {
-            "strength": "มองยาใหม่เมื่อ 3 สัปดาห์ก่อนเป็นต้นเหตุ ซึ่งเข้ากับช่วงเวลาแพ้อัลโลพูรินอล",
-            "weigh": "การวินิจฉัยอาศัยอาการทางคลินิก จึงควรบันทึกรอยโรคที่ผิว ตา และปากให้ละเอียด",
+            "strength": "ระบุยาที่เริ่มเมื่อ **3 สัปดาห์ก่อน** ว่าเป็นต้นเหตุ",
+            "weigh": "ควรบันทึกรอยโรคที่ตาและปากโดยละเอียดให้ทีมถัดไป",
             "safety": ""
           },
           {
-            "strength": "จับคู่แผลในปากกับผิวที่หลุดลอกเมื่อถู ซึ่งเป็นลักษณะเด่นของปฏิกิริยานี้",
-            "weigh": "ผิวหลุดราวร้อยละ 12 ถือว่ารุนแรง เวลาในชั่วโมงต่อจากนี้จึงมีความหมาย",
+            "strength": "ปาก ตา และผิวหนังเข้ากับปฏิกิริยานี้ทั้งหมด",
+            "weigh": "การวินิจฉัยนี้อาศัยอาการ การบันทึกผลตรวจอย่างละเอียดจึงสำคัญ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Ties the **mucosal sores**, peeling skin and a drug started 3 weeks ago into one picture.",
-            "weigh": "About 12% detachment sits between the usual SJS and TEN cut-offs, which shapes severity.",
+            "strength": "You linked the **mucosal sores** and peeling skin to the new drug.",
+            "weigh": "The answer rests on the pattern alone, with no detail of the exam.",
             "safety": ""
           },
           {
-            "strength": "Reads the **new drug 3 weeks ago** as the trigger, a typical timing for allopurinol reactions.",
-            "weigh": "The diagnosis is clinical here, so the skin, eye and mouth findings are worth recording in detail.",
+            "strength": "You named the drug started **3 weeks ago** as the trigger.",
+            "weigh": "Recording the eye and mouth findings in detail helps the next team.",
             "safety": ""
           },
           {
-            "strength": "Pairs mouth sores with skin that peels on a gentle rub, the hallmark of this reaction.",
-            "weigh": "About 12% of skin detached is a severe reaction, so the coming hours carry weight.",
+            "strength": "The mouth, eyes and skin all fit this reaction.",
+            "weigh": "The diagnosis is clinical, so a careful written exam matters.",
             "safety": ""
           }
         ]
@@ -41,35 +41,35 @@
       "b": {
         "th": [
           {
-            "strength": "สังเกตได้ว่าไข้และผื่นหลังเริ่ม**อัลโลพูรินอล** 3 สัปดาห์ชี้ไปที่การแพ้ยา",
-            "weigh": "แผลในปากและผิวที่หลุดลอกเมื่อถูเบา ๆ ไม่ใช่ลักษณะที่พบบ่อยใน DRESS",
+            "strength": "ยึดยาเป็นต้นเหตุไว้",
+            "weigh": "แผลเยื่อบุและผิวที่ลอกเมื่อถู ไม่ค่อยเข้ากับ DRESS",
             "safety": ""
           },
           {
-            "strength": "มองอัลโลพูรินอลเป็นต้นเหตุ ซึ่งเข้ากับช่วงเวลาที่มักเกิดการแพ้ยารุนแรง",
-            "weigh": "ตุ่มน้ำ ริมฝีปากเป็นสะเก็ด และผิวที่หลุดลอก เด่นกว่าไข้กับผื่นอย่างเดียว",
+            "strength": "ไข้ร่วมกับผื่นแพ้ยาทำให้นึกถึง DRESS ได้",
+            "weigh": "ริมฝีปากเป็นสะเก็ดและผิวที่หลุดลอกชี้ไปที่ปฏิกิริยาอีกแบบ",
             "safety": ""
           },
           {
-            "strength": "ให้น้ำหนักกับยาเป็นสาเหตุ และเวลา 3 สัปดาห์หลังเริ่มยาก็เข้ากัน",
-            "weigh": "ริมฝีปากเป็นสะเก็ด ตาแดง และผิวลอก เป็นข้อมูลที่ควรนำมาชั่งกับการวินิจฉัยนี้",
+            "strength": "โยงผื่นเข้ากับอัลโลพูรินอล",
+            "weigh": "ภาพนี้มีแผลเยื่อบุและผิวหลุดลอก ซึ่ง DRESS พบได้น้อย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Picks up that fever and rash 3 weeks after **starting allopurinol** point to a drug reaction.",
-            "weigh": "Mucosal sores and skin that peels with a gentle rub are not the usual pattern of DRESS.",
+            "strength": "You kept a drug cause at the centre.",
+            "weigh": "Mucosal sores and skin that peels on a rub fit DRESS poorly.",
             "safety": ""
           },
           {
-            "strength": "Treats allopurinol as the likely trigger, which matches the timing of its serious reactions.",
-            "weigh": "Here the blisters, crusted lips and detaching skin stand out more than fever and rash alone.",
+            "strength": "Fever with a drug rash does raise DRESS.",
+            "weigh": "The crusted lips and peeling skin point to a different reaction.",
             "safety": ""
           },
           {
-            "strength": "Keeps a drug cause at the centre, with a timeline that fits **3 weeks after** starting.",
-            "weigh": "The crusted lips, red eyes and peeling skin are features worth weighing against this label.",
+            "strength": "You tied the rash to allopurinol.",
+            "weigh": "This picture has mucosal sores and detaching skin, which DRESS seldom causes.",
             "safety": ""
           }
         ]
@@ -151,35 +151,35 @@
       "a": {
         "th": [
           {
-            "strength": "ประเมินความเสี่ยงเป็นตัวเลขได้เร็ว ด้วย **BUN น้ำตาล** และไบคาร์บอเนต",
-            "weigh": "SCORTEN ยังนับอายุ ชีพจร และพื้นที่ผิวหลุด ซึ่งได้จากการตรวจข้างเตียง",
+            "strength": "ส่งเลือดที่ใช้คิด **SCORTEN**",
+            "weigh": "บอกชื่อคะแนนแล้ว แต่ยังไม่ได้บอกว่าจะใช้ผลอย่างไร",
             "safety": ""
           },
           {
-            "strength": "จัดระดับความรุนแรงด้วยคะแนนที่ผ่านการพิสูจน์แล้ว ไม่ใช่ความรู้สึกอย่างเดียว",
-            "weigh": "อายุ 58 และผิวหลุดร้อยละ 12 ได้คะแนนแล้ว ผลเลือดจะเติมคะแนนให้ครบ",
+            "strength": "เป็นการตรวจเลือดพื้นฐานที่ทำได้ในโรงพยาบาลส่วนใหญ่",
+            "weigh": "คะแนนมีประโยชน์เมื่อนำไปใช้ตัดสินใจต่อ",
             "safety": ""
           },
           {
-            "strength": "ใช้การตรวจเลือดที่ทำได้เร็วและมีทุกที่ มาช่วยบอกพยากรณ์โรค",
-            "weigh": "ผลเลือดชุดเดียวกันยังบอกว่าร่างกายรับมือได้แค่ไหน นอกเหนือจากคะแนน",
+            "strength": "ตั้งใจประเมินความเสี่ยงของเขา",
+            "weigh": "ผลเลือดใช้เวลา ขณะที่อาการข้างเตียงเห็นได้ทันที",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Puts a number on his risk early, since **BUN, glucose** and bicarbonate feed SCORTEN.",
-            "weigh": "SCORTEN also counts age, pulse and skin loss, which the bedside findings supply.",
+            "strength": "Sends the bloods the **SCORTEN** score uses.",
+            "weigh": "The answer names the score, with no plan for what it will change.",
             "safety": ""
           },
           {
-            "strength": "Grades severity with a validated score rather than impression alone.",
-            "weigh": "Age 58 and 12% skin loss already add points, so the blood results complete the score.",
+            "strength": "Simple bloods, available at most hospitals.",
+            "weigh": "A score helps only once someone acts on it.",
             "safety": ""
           },
           {
-            "strength": "Uses quick, widely available blood tests to anchor a prognosis.",
-            "weigh": "The same results also show how his body is coping, beyond the score itself.",
+            "strength": "You aimed to grade his risk.",
+            "weigh": "The bloods take time, while the bedside picture is already in front of you.",
             "safety": ""
           }
         ]
@@ -187,35 +187,35 @@
       "b": {
         "th": [
           {
-            "strength": "เปลี่ยนการตรวจข้างเตียงให้เป็น**สัดส่วนผิวที่หลุด**ที่วัดได้",
-            "weigh": "นับเฉพาะผิวที่หลุดหรือลอกเมื่อถู ไม่รวมผื่นแดงรอบ ๆ",
+            "strength": "เป็นการตรวจข้างเตียงที่ทำได้เร็วและไม่มีค่าใช้จ่าย",
+            "weigh": "ผู้ตรวจแต่ละคนประเมินต่างกัน แผนภาพร่างกายช่วยให้ตรงกัน",
             "safety": ""
           },
           {
-            "strength": "ใช้การตรวจข้างเตียงที่ไม่มีค่าใช้จ่าย ช่วยจัดความรุนแรงและตัดสินใจส่งต่อ",
-            "weigh": "ฝ่ามือผู้ป่วยรวมนิ้วใช้เป็นหน่วยกะพื้นที่ที่หลุดเป็นหย่อม ๆ ได้เร็ว",
+            "strength": "ประเมินความรุนแรงจากผิวของเขาเอง",
+            "weigh": "ได้ตัวเลขแล้ว แต่ยังไม่ได้บอกว่าจะใช้ตัดสินใจอย่างไร",
             "safety": ""
           },
           {
-            "strength": "จัดระดับโรคจากสัดส่วนผิวที่หลุด ซึ่งเป็นตัวกำหนดความเสี่ยงสำคัญ",
-            "weigh": "ผู้ตรวจแต่ละคนกะได้ต่างกัน การวาดลงแผนภาพร่างกายช่วยให้ตัวเลขคงที่",
+            "strength": "การวัด**สัดส่วนผิวที่หลุด**ให้ตัวเลขที่ชัด",
+            "weigh": "นับเฉพาะผิวที่หลุดลอก ไม่นับรอยแดงรอบ ๆ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Turns the bedside exam into a measurable **detached skin area**.",
-            "weigh": "Count only skin that is detached or peels with a rub, not the redness around it.",
+            "strength": "A bedside measure, free and quick.",
+            "weigh": "Estimates vary between examiners, so a body chart helps.",
             "safety": ""
           },
           {
-            "strength": "Uses a free bedside measure that grades severity and steers referral.",
-            "weigh": "His own palm with fingers makes a quick ruler for sizing scattered patches.",
+            "strength": "You grade severity from his own skin.",
+            "weigh": "The answer gives the figure, with no word on what it means for his care.",
             "safety": ""
           },
           {
-            "strength": "Grades the reaction by the **share of skin lost**, a key driver of risk.",
-            "weigh": "Estimates vary between examiners, so a body chart keeps the figure consistent.",
+            "strength": "Measuring the **share of lost skin** gives a firm number.",
+            "weigh": "Count only skin that has come away, not the redness around it.",
             "safety": ""
           }
         ]
@@ -223,35 +223,35 @@
       "c": {
         "th": [
           {
-            "strength": "หาหลักฐานจากชิ้นเนื้อ ซึ่งมีประโยชน์เมื่อภาพทางคลินิกยังไม่ชัด",
-            "weigh": "ผลชิ้นเนื้อใช้เวลาหลายวัน จึงช่วยยืนยันมากกว่ากำหนดการดูแลในชั่วโมงแรก",
+            "strength": "หาหลักฐานจากชิ้นเนื้อเพื่อยืนยันโรค",
+            "weigh": "ผลใช้เวลาหลายวัน และไม่ได้บอกความรุนแรง",
             "safety": ""
           },
           {
-            "strength": "มุ่งหาความแน่นอนทางพยาธิวิทยาว่า**หนังกำพร้า**ตายทั้งชั้นจริง",
-            "weigh": "โรงพยาบาลชุมชนอาจต้องส่งชิ้นเนื้อออกไปอ่าน ทำให้รอผลนานขึ้น",
+            "strength": "ชิ้นเนื้อให้คำตอบที่แน่นอน",
+            "weigh": "อาการข้างเตียงชัดอยู่แล้ว วันนี้จึงได้ประโยชน์เพิ่มไม่มาก",
             "safety": ""
           },
           {
-            "strength": "เข้าใจว่าการตายของหนังกำพร้าทั้งชั้นในชิ้นเนื้อคือหลักฐานยืนยันโรค",
-            "weigh": "อาการข้างเตียงรายนี้ชัดอยู่แล้ว ชิ้นเนื้อจึงเพิ่มความมั่นใจมากกว่าเปลี่ยนทิศทาง",
+            "strength": "ต้องการความแน่ใจก่อนไปต่อ",
+            "weigh": "โรงพยาบาลชุมชนอาจต้องส่งชิ้นเนื้อไปตรวจที่อื่น ซึ่งใช้เวลา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Seeks tissue proof, which matters when the clinical picture is uncertain.",
-            "weigh": "Histology takes days, so it confirms rather than steers the first hours of care.",
+            "strength": "Seeks tissue proof of the diagnosis.",
+            "weigh": "Results take days and say nothing about how severe he is.",
             "safety": ""
           },
           {
-            "strength": "Aims for histological certainty about **epidermal necrosis**.",
-            "weigh": "A community hospital may need to send the sample away, which adds to the wait.",
+            "strength": "A biopsy gives a firm answer.",
+            "weigh": "The bedside picture is already clear, so it adds little today.",
             "safety": ""
           },
           {
-            "strength": "Knows that full-thickness necrosis on **histology** is the confirming finding.",
-            "weigh": "The bedside signs here are striking, so the biopsy adds certainty more than direction.",
+            "strength": "You wanted certainty before going further.",
+            "weigh": "A community hospital may need to send the sample away, which takes time.",
             "safety": ""
           }
         ]
@@ -259,35 +259,35 @@
       "d": {
         "th": [
           {
-            "strength": "คิดถึง**ติดเชื้อในกระแสเลือด**ไว้ตั้งแต่แรก ซึ่งเป็นสาเหตุตายสำคัญ",
-            "weigh": "ไข้เป็นส่วนหนึ่งของโรคนี้เอง ไข้อย่างเดียวจึงยังบอกไม่ได้ว่าติดเชื้อ",
+            "strength": "เก็บ**เพาะเชื้อในเลือด**ไว้เป็นพื้นฐาน",
+            "weigh": "ไข้เป็นส่วนหนึ่งของปฏิกิริยานี้เอง และผลเพาะเชื้อไม่ได้บอกความรุนแรง",
             "safety": ""
           },
           {
-            "strength": "เก็บผลเพาะเชื้อพื้นฐานไว้ ในช่วงที่ความเสี่ยงติดเชื้อสูง",
-            "weigh": "ผลเพาะเชื้อใช้เวลาวันหรือสองวัน และไม่ได้บอกว่าโรครุนแรงแค่ไหน",
+            "strength": "นึกถึงการติดเชื้อไว้",
+            "weigh": "ผลใช้เวลาวันหรือสองวัน และไม่ได้บอกว่ารุนแรงแค่ไหน",
             "safety": ""
           },
           {
-            "strength": "มองไปข้างหน้าถึงการติดเชื้อ ซึ่งผิวที่เปิดทำให้เกิดได้ง่าย",
-            "weigh": "ควรเจาะผ่านผิวที่ยังดี เพราะเจาะผ่านผิวที่หลุดลอกเสี่ยงปนเปื้อน",
+            "strength": "เพาะเชื้อส่งได้ง่าย",
+            "weigh": "ไข้อย่างเดียวในรายนี้ยังไม่ได้ยืนยันว่าติดเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Keeps **sepsis**, a leading cause of death in TEN, in view from the start.",
-            "weigh": "Fever is part of the reaction itself, so fever alone does not prove infection.",
+            "strength": "Gets a baseline **blood culture**.",
+            "weigh": "Fever is part of the reaction itself, and a culture does not grade severity.",
             "safety": ""
           },
           {
-            "strength": "Gets a baseline **blood culture** while infection risk is high.",
-            "weigh": "Culture results take a day or more and do not show how severe the reaction is.",
+            "strength": "You kept infection in view.",
+            "weigh": "Results take a day or more and do not show how severe this is.",
             "safety": ""
           },
           {
-            "strength": "Anticipates sepsis, which raw skin makes more likely as the days go on.",
-            "weigh": "Drawing through peeling skin risks contamination, so intact skin is the place to sample.",
+            "strength": "A culture is simple to send.",
+            "weigh": "Fever alone here does not prove infection.",
             "safety": ""
           }
         ]
@@ -623,35 +623,35 @@
       "c": {
         "th": [
           {
-            "strength": "เห็นว่า**ผิวที่หลุดลอก**เปิดทางให้เชื้อเข้ากระแสเลือดได้",
-            "weigh": "ไข้เป็นส่วนหนึ่งของโรคนี้เอง ไข้อย่างเดียวจึงยังบอกไม่ได้ว่าติดเชื้อ",
+            "strength": "เก็บ**เพาะเชื้อในเลือด**ไว้เป็นพื้นฐาน",
+            "weigh": "ไข้เป็นส่วนหนึ่งของปฏิกิริยานี้เอง และผลเพาะเชื้อไม่ได้บอกความรุนแรง",
             "safety": ""
           },
           {
-            "strength": "เก็บผลเพาะเชื้อพื้นฐานไว้ ในช่วงที่ความเสี่ยงติดเชื้อสูง",
-            "weigh": "ผลเพาะเชื้อใช้เวลาวันหรือสองวัน และไม่ได้บอกว่าโรครุนแรงแค่ไหน",
+            "strength": "นึกถึงการติดเชื้อไว้",
+            "weigh": "ผลใช้เวลาวันหรือสองวัน และไม่ได้บอกว่ารุนแรงแค่ไหน",
             "safety": ""
           },
           {
-            "strength": "มองไปข้างหน้าถึงการติดเชื้อ ซึ่งยิ่งเกิดง่ายเมื่อผิวเปิดอยู่นาน",
-            "weigh": "ควรเจาะผ่านผิวที่ยังดี เพราะเจาะผ่านผิวที่หลุดลอกเสี่ยงปนเปื้อน",
+            "strength": "เพาะเชื้อส่งได้ง่าย",
+            "weigh": "ไข้อย่างเดียวในรายนี้ยังไม่ได้ยืนยันว่าติดเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sees that **raw, peeling skin** opens the way to sepsis.",
-            "weigh": "Fever is part of the reaction itself, so fever alone does not prove infection.",
+            "strength": "Gets a baseline **blood culture**.",
+            "weigh": "Fever is part of the reaction itself, and a culture does not grade severity.",
             "safety": ""
           },
           {
-            "strength": "Gets a baseline **blood culture** while infection risk is high.",
-            "weigh": "Culture results take a day or more and do not show how severe the reaction is.",
+            "strength": "You kept infection in view.",
+            "weigh": "Results take a day or more and do not show how severe this is.",
             "safety": ""
           },
           {
-            "strength": "Anticipates sepsis, which grows likelier the longer raw skin stays exposed.",
-            "weigh": "Drawing through peeling skin risks contamination, so intact skin is the place to sample.",
+            "strength": "A culture is simple to send.",
+            "weigh": "Fever alone here does not prove infection.",
             "safety": ""
           }
         ]
@@ -733,35 +733,35 @@
       "a": {
         "th": [
           {
-            "strength": "**หยุดอัลโลพูรินอล**ทันที การหยุดยาต้นเหตุเร็วช่วยลดความเสี่ยงเสียชีวิต",
-            "weigh": "ทีมที่รับต่อจะต้องการทราบพื้นที่ผิวหลุด สัญญาณชีพ และช่วงเวลาที่ได้ยา",
+            "strength": "หยุดยาและส่งไปหน่วยที่คุ้นกับผิวหลุดลอกเป็นบริเวณกว้าง",
+            "weigh": "แผนบอกว่าจะส่งไปที่ใด แต่ยังพูดน้อยเรื่องการดูแลระหว่างทาง",
             "safety": ""
           },
           {
-            "strength": "ส่งผู้ป่วย**ผิวหลุดเกินร้อยละ 10** ไปยังหน่วยที่ดูแลแผลกว้างเป็นประจำ",
-            "weigh": "การหยุดยาได้ผลเต็มที่เมื่อทบทวนยาใหม่ทุกตัวในช่วงหลายสัปดาห์ที่ผ่านมาด้วย",
+            "strength": "ใช้เกณฑ์**ผิวหลุดเกินร้อยละ 10** ในการเลือกที่ส่งต่อ",
+            "weigh": "ทีมที่รับต่อต้องการทราบพื้นที่ผิวหลุด สัญญาณชีพ และช่วงเวลาที่ได้ยา",
             "safety": ""
           },
           {
-            "strength": "ส่งไปยังที่ที่การดูแลแผลกว้างเป็นงานประจำ",
-            "weigh": "หน่วยแผลไหม้แต่ละแห่งมีประสบการณ์กับการแพ้ยาต่างกัน ควรทราบไว้ตอนประสาน",
+            "strength": "หยุดยาต้นเหตุทันที",
+            "weigh": "หน่วยแผลไหม้แต่ละแห่งมีประสบการณ์กับการแพ้ยาต่างกัน ควรถามเมื่อโทรประสาน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the culprit drug at once, and early withdrawal lowers the risk of dying.",
-            "weigh": "The receiving team will want the skin area, vital signs and timing of the drug.",
+            "strength": "Stops the drug and sends him to a unit used to large skin loss.",
+            "weigh": "The plan covers where he goes, less what he needs on the way.",
             "safety": ""
           },
           {
-            "strength": "Matches **over 10% skin loss** to a unit that manages large raw skin areas.",
-            "weigh": "Withdrawal works fully only when every drug started in recent weeks is reviewed too.",
+            "strength": "You matched **over 10% skin loss** to a burn unit.",
+            "weigh": "The receiving team will want the skin area, vital signs and drug timing.",
             "safety": ""
           },
           {
-            "strength": "Sends him where wound care for large skin loss is routine.",
-            "weigh": "Burn units differ in their experience with drug reactions, which is worth knowing when calling.",
+            "strength": "Stops the drug at once.",
+            "weigh": "Burn units differ in experience with drug reactions, which is worth asking when you call.",
             "safety": ""
           }
         ]
@@ -769,35 +769,35 @@
       "b": {
         "th": [
           {
-            "strength": "เริ่ม**สารน้ำและดูแลตา**ทันที ไม่ต้องรอให้ทีมปลายทางเริ่ม",
-            "weigh": "ผู้ป่วยผิวหลุดมักต้องการสารน้ำน้อยกว่าแผลไหม้พื้นที่เท่ากัน ควรระวังน้ำเกิน",
+            "strength": "เริ่ม**สารน้ำ**ทันที ไม่ปล่อยให้ทีมถัดไปเริ่ม",
+            "weigh": "ผู้ป่วยกลุ่มนี้ต้องการสารน้ำน้อยกว่าแผลไหม้ขนาดเท่ากัน จึงต้องระวังน้ำเกิน",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับการดูแลที่รอการส่งตัวไม่ได้",
-            "weigh": "การดูแลตาควรทำเป็นเวลาสม่ำเสมอ เพราะตาอาจแย่ลงได้ในวันแรก ๆ",
+            "strength": "หยุดยาและวางแผนรับมือภาวะวิกฤต",
+            "weigh": "แผนยังพูดน้อยเรื่องข้อมูลที่ทีมรับต่อต้องทราบ",
             "safety": ""
           },
           {
-            "strength": "ดูแลเหมือนผู้ป่วยวิกฤตตั้งแต่ต้น ด้วยสารน้ำทางหลอดเลือดและ ICU",
-            "weigh": "แทงเส้นให้สารน้ำผ่านผิวที่ยังดี ช่วยไม่ให้เกิดแผลใหม่เพิ่ม",
+            "strength": "ดูแลเขาแบบผู้ป่วยวิกฤตตั้งแต่ต้น",
+            "weigh": "ควรแทงเส้นผ่านผิวที่ยังดี เพื่อไม่เพิ่มแผลใหม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Starts **fluids and eye care** now rather than leaving them to the receiving team.",
-            "weigh": "Fluid needs here usually run lower than for burns of the same area, so watch for overload.",
+            "strength": "Starts **fluids** now rather than leaving them to the next team.",
+            "weigh": "Fluid needs here run lower than in burns of the same area, so overload is a risk.",
             "safety": ""
           },
           {
-            "strength": "Combines stopping the drug with care that cannot wait for transfer.",
-            "weigh": "Eye care needs a regular schedule, since the eyes can worsen over the first days.",
+            "strength": "Stops the drug and plans for a critical illness.",
+            "weigh": "The plan is short on what the receiving team needs to hear.",
             "safety": ""
           },
           {
-            "strength": "Treats this as a critical illness from the start, with **IV fluids** and ICU.",
-            "weigh": "Placing the line through intact skin avoids adding a new wound.",
+            "strength": "Treats him as critically ill from the start.",
+            "weigh": "Placing the line through intact skin avoids a new wound.",
             "safety": ""
           }
         ]
@@ -805,35 +805,35 @@
       "c": {
         "th": [
           {
-            "strength": "ส่งไปยังทีมที่ดูแล SJS/TEN บ่อย ได้ประสบการณ์มาช่วยดูแล",
-            "weigh": "ผิวหลุดร้อยละ 12 ควรถามให้แน่ใจว่าหอปลายทางดูแลใกล้ชิดได้พอ",
+            "strength": "หยุดยาและส่งถึงมือแพทย์ผิวหนัง",
+            "weigh": "ผิวหลุดร้อยละ 12 หอผู้ป่วยผิวหนังทั่วไปอาจเฝ้าระวังได้ไม่ใกล้ชิดพอ",
             "safety": ""
           },
           {
-            "strength": "หยุดยาและขอความเชี่ยวชาญจาก**แผนกผิวหนัง**ตั้งแต่เนิ่น ๆ",
-            "weigh": "หอผิวหนังทั่วไปอาจเฝ้าระวังได้ไม่เท่าที่แผลกว้างต้องการ",
+            "strength": "**ทีมแพทย์ผิวหนัง**มีประสบการณ์",
+            "weigh": "ควรถามเมื่อโทรว่าหอผู้ป่วยดูแลแผลกว้างได้หรือไม่",
             "safety": ""
           },
           {
-            "strength": "ให้คุณค่ากับประสบการณ์ของผู้เชี่ยวชาญ ในโรคที่พบน้อยแต่เดิมพันสูง",
-            "weigh": "ความสามารถของหอปลายทางในการเฝ้าระวังใกล้ชิด ควรถามให้ชัดตอนประสาน",
+            "strength": "ส่งถึงผู้เชี่ยวชาญได้เร็ว",
+            "weigh": "ผิวหลุดเป็นบริเวณกว้างต้องการการพยาบาลใกล้ชิด ซึ่งหอผิวหนังอาจไม่มี",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sends him to a team that sees SJS/TEN often, which brings experience.",
-            "weigh": "With 12% skin loss, the receiving ward's capacity for intensive nursing is worth confirming.",
+            "strength": "Stops the drug and seeks skin specialists.",
+            "weigh": "With 12% skin loss, a general skin ward may lack close monitoring.",
             "safety": ""
           },
           {
-            "strength": "Stops the drug and seeks **regional dermatology** expertise early.",
-            "weigh": "A general dermatology ward may lack the monitoring that large raw skin areas need.",
+            "strength": "A **dermatology team** brings experience.",
+            "weigh": "Whether the ward can nurse large raw areas is worth asking when you call.",
             "safety": ""
           },
           {
-            "strength": "Values specialist experience with an uncommon, high-stakes reaction.",
-            "weigh": "Whether the regional ward can monitor him closely is worth confirming when you call.",
+            "strength": "Gets him to specialists early.",
+            "weigh": "Large raw skin areas need intensive nursing, which a skin ward may lack.",
             "safety": ""
           }
         ]
@@ -841,35 +841,35 @@
       "d": {
         "th": [
           {
-            "strength": "หยุดยาและเลือกที่ที่มี ICU พร้อม",
-            "weigh": "แผลกว้างต้องอาศัยความชำนาญเรื่องแผลด้วย ซึ่งหออายุรกรรมอาจต้องขอเพิ่ม",
+            "strength": "หยุดยาและส่งให้ทีมที่ใหญ่กว่าดูแล",
+            "weigh": "ผิวหลุดเป็นบริเวณกว้างต้องการผู้ชำนาญเรื่องแผล ซึ่งหออายุรกรรมอาจต้องตามมาช่วย",
             "safety": ""
           },
           {
-            "strength": "ส่งไปที่ที่มี**อายุรแพทย์และ ICU** พร้อมรับดูแลต่อ",
-            "weigh": "ประสบการณ์ของทีมปลายทางกับผิวหลุดกว้าง ควรถามให้ชัดตอนประสาน",
+            "strength": "ส่งไปที่ที่มีความช่วยเหลือพร้อมกว่า",
+            "weigh": "ควรถามเมื่อโทรว่าทีมมีประสบการณ์กับผิวหลุดกว้างเพียงใด",
             "safety": ""
           },
           {
-            "strength": "เตรียมรับมือหากอาการทรุด ด้วยการเลือกที่ที่มีการดูแลวิกฤต",
-            "weigh": "เรื่องผิวและตายังอาจต้องขอผู้เชี่ยวชาญมาร่วมดูแลที่ปลายทาง",
+            "strength": "ย้ายไปโรงพยาบาลใหญ่ได้เร็ว",
+            "weigh": "การดูแลผิวโดยผู้เชี่ยวชาญอาจยังต้องประสานเพิ่มที่นั่น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the drug and chooses a centre with an ICU on hand.",
-            "weigh": "Large skin loss needs wound expertise too, which a medical ward may have to call in.",
+            "strength": "Stops the drug and hands him to a larger team.",
+            "weigh": "Large skin loss needs wound expertise, which a medical ward may have to call in.",
             "safety": ""
           },
           {
-            "strength": "Sends him where physicians and an ICU can take over.",
-            "weigh": "The regional team's experience with extensive skin loss is worth confirming when you call.",
+            "strength": "Sends him where more help is on hand.",
+            "weigh": "The team's experience with extensive skin loss is worth asking about when you call.",
             "safety": ""
           },
           {
-            "strength": "Plans for deterioration by choosing a hospital with critical care.",
-            "weigh": "Specialist input for the skin and eyes may still have to be arranged there.",
+            "strength": "Moves him to a bigger hospital early.",
+            "weigh": "Specialist skin care may still need to be arranged there.",
             "safety": ""
           }
         ]
@@ -877,35 +877,35 @@
       "ah_ref": {
         "th": [
           {
-            "strength": "หยุดยาทันที และส่งต่อให้ได้รับการดูแลเฉพาะทาง",
-            "weigh": "ยาแก้แพ้ช่วยลดอาการคัน แต่ไม่ได้หยุดการหลุดลอกของผิว",
+            "strength": "ยาแก้แพ้ให้ได้ง่าย",
+            "weigh": "ยานี้ไม่ได้รักษา SJS/TEN และการส่งต่อยังไม่ได้ระบุหน่วยที่ดูแลผิวหลุดกว้าง",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับส่งต่อ และให้การรักษาที่ทำได้ทันที",
-            "weigh": "ผิวหลุดเกินร้อยละ 10 เหมาะกับหน่วยที่ดูแลแผลและตาได้ครบ",
+            "strength": "หยุดยาแล้ว",
+            "weigh": "ยาแก้แพ้ช่วยแค่ลดคัน และแผนยังไม่ชัดว่าจะส่งไปที่ใด",
             "safety": ""
           },
           {
-            "strength": "เอาสาเหตุออก และวางแผนการดูแลต่อในคราวเดียว",
-            "weigh": "ยาแก้แพ้ชนิดง่วงอาจทำให้ประเมินความรู้สึกตัวยากขึ้นระหว่างเดินทาง",
+            "strength": "ลงมือกับผื่นแพ้ยาทันที",
+            "weigh": "เป็นแนวทางของผื่นแพ้ยาเล็กน้อย และยาชนิดง่วงอาจทำให้ประเมินความรู้สึกตัวระหว่างทางยาก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the **drug** at once and sends him on for specialist care.",
-            "weigh": "An antihistamine eases itch but leaves the skin detachment as it is.",
+            "strength": "An antihistamine is easy to give.",
+            "weigh": "It does not treat SJS/TEN, and the referral names no unit for large skin loss.",
             "safety": ""
           },
           {
-            "strength": "Pairs drug withdrawal with onward care and a treatment he can get at once.",
-            "weigh": "With over 10% skin loss, a team with full wound and eye care suits him best.",
+            "strength": "The drug is stopped.",
+            "weigh": "An antihistamine only eases itch, and the plan is vague on where he goes.",
             "safety": ""
           },
           {
-            "strength": "Removes the cause and arranges onward care in one plan.",
-            "weigh": "Sedating antihistamines can blur his alertness, which matters on the journey.",
+            "strength": "You acted on the drug rash at once.",
+            "weigh": "This is the routine for a mild rash, and a sedating one can blur his alertness on the road.",
             "safety": ""
           }
         ]
@@ -913,35 +913,35 @@
       "st_ref": {
         "th": [
           {
-            "strength": "หยุดยา ส่งต่อ และมองการแพ้ครั้งนี้ว่ารุนแรง",
-            "weigh": "ประโยชน์ของสเตียรอยด์ใน SJS/TEN ยังไม่แน่นอน และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
+            "strength": "สเตียรอยด์เป็นยาที่คุ้นเคยในผื่นแพ้ยา",
+            "weigh": "ประโยชน์ใน SJS/TEN ยังไม่ชัด และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
             "safety": ""
           },
           {
-            "strength": "ลงมือเร็ว ในช่วงที่การรักษาเพื่อกดภูมิคุ้มกันมีโอกาสช่วยได้มากที่สุด",
-            "weigh": "การให้สเตียรอยด์นานสัมพันธ์กับการติดเชื้อมากขึ้นในโรคนี้",
+            "strength": "หยุดยาแล้ว",
+            "weigh": "สเตียรอยด์ตรงนี้มาจากความเคยชิน และการส่งต่อยังไม่ได้ระบุหน่วยที่ดูแลผิวหลุดกว้าง",
             "safety": ""
           },
           {
-            "strength": "ส่งต่อควบคู่กับการรักษาระยะแรกที่บางแห่งใช้",
-            "weigh": "สเตียรอยด์อาจกดไข้ ทำให้สังเกตการติดเชื้อได้ยากขึ้น",
+            "strength": "มองว่าผื่นนี้รุนแรง",
+            "weigh": "สเตียรอยด์อาจกดไข้ ขณะที่ยังเสี่ยงติดเชื้อ โดยไม่ได้ประโยชน์ชัดเจน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the **drug**, sends him on, and treats the reaction as serious.",
-            "weigh": "Steroid benefit in SJS/TEN is uncertain, and steroids can raise infection risk on raw skin.",
+            "strength": "A steroid is familiar for drug rashes.",
+            "weigh": "Its benefit in SJS/TEN is unproven, and it can raise infection risk on raw skin.",
             "safety": ""
           },
           {
-            "strength": "Acts early, when immune-directed treatment has most chance to help.",
-            "weigh": "Longer steroid courses are linked to more infection in this disease.",
+            "strength": "The drug is stopped.",
+            "weigh": "The steroid is habit here, and the referral names no unit for large skin loss.",
             "safety": ""
           },
           {
-            "strength": "Pairs onward care with an early treatment some centres use.",
-            "weigh": "Steroids can blunt fever, a sign worth keeping clear while infection is a risk.",
+            "strength": "You treated the rash as serious.",
+            "weigh": "Steroids can blunt fever while infection is a risk, with no clear gain.",
             "safety": ""
           }
         ]
@@ -951,35 +951,35 @@
       "a": {
         "th": [
           {
-            "strength": "**หยุดอัลโลพูรินอล**ทันที การหยุดยาต้นเหตุเร็วช่วยลดความเสี่ยงเสียชีวิต",
-            "weigh": "ทีมที่รับต่อจะต้องการทราบพื้นที่ผิวหลุด สัญญาณชีพ และช่วงเวลาที่ได้ยา",
+            "strength": "หยุดยาและส่งไปหน่วยที่คุ้นกับผิวหลุดลอกเป็นบริเวณกว้าง",
+            "weigh": "แผนบอกว่าจะส่งไปที่ใด แต่ยังพูดน้อยเรื่องการดูแลระหว่างทาง",
             "safety": ""
           },
           {
-            "strength": "ส่งผู้ป่วย**ผิวหลุดเกินร้อยละ 10** ไปยังหน่วยที่ดูแลแผลกว้างเป็นประจำ",
-            "weigh": "การหยุดยาได้ผลเต็มที่เมื่อทบทวนยาใหม่ทุกตัวในช่วงหลายสัปดาห์ที่ผ่านมาด้วย",
+            "strength": "ใช้เกณฑ์**ผิวหลุดเกินร้อยละ 10** ในการเลือกที่ส่งต่อ",
+            "weigh": "ทีมที่รับต่อต้องการทราบพื้นที่ผิวหลุด สัญญาณชีพ และช่วงเวลาที่ได้ยา",
             "safety": ""
           },
           {
-            "strength": "ส่งไปยังที่ที่การดูแลแผลกว้างเป็นงานประจำ",
-            "weigh": "หน่วยแผลไหม้แต่ละแห่งมีประสบการณ์กับการแพ้ยาต่างกัน ควรทราบไว้ตอนประสาน",
+            "strength": "หยุดยาต้นเหตุทันที",
+            "weigh": "หน่วยแผลไหม้แต่ละแห่งมีประสบการณ์กับการแพ้ยาต่างกัน ควรถามเมื่อโทรประสาน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the culprit drug at once, and early withdrawal lowers the risk of dying.",
-            "weigh": "The receiving team will want the skin area, vital signs and timing of the drug.",
+            "strength": "Stops the drug and sends him to a unit used to large skin loss.",
+            "weigh": "The plan covers where he goes, less what he needs on the way.",
             "safety": ""
           },
           {
-            "strength": "Matches **over 10% skin loss** to a unit that manages large raw skin areas.",
-            "weigh": "Withdrawal works fully only when every drug started in recent weeks is reviewed too.",
+            "strength": "You matched **over 10% skin loss** to a burn unit.",
+            "weigh": "The receiving team will want the skin area, vital signs and drug timing.",
             "safety": ""
           },
           {
-            "strength": "Sends him where wound care for large skin loss is routine.",
-            "weigh": "Burn units differ in their experience with drug reactions, which is worth knowing when calling.",
+            "strength": "Stops the drug at once.",
+            "weigh": "Burn units differ in experience with drug reactions, which is worth asking when you call.",
             "safety": ""
           }
         ]
@@ -987,35 +987,35 @@
       "b": {
         "th": [
           {
-            "strength": "เริ่ม**สารน้ำและดูแลตา**ทันที ไม่ต้องรอให้ทีมปลายทางเริ่ม",
-            "weigh": "ผู้ป่วยผิวหลุดมักต้องการสารน้ำน้อยกว่าแผลไหม้พื้นที่เท่ากัน ควรระวังน้ำเกิน",
+            "strength": "เริ่ม**สารน้ำ**ทันที ไม่ปล่อยให้ทีมถัดไปเริ่ม",
+            "weigh": "ผู้ป่วยกลุ่มนี้ต้องการสารน้ำน้อยกว่าแผลไหม้ขนาดเท่ากัน จึงต้องระวังน้ำเกิน",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับการดูแลที่รอการส่งตัวไม่ได้",
-            "weigh": "การดูแลตาควรทำเป็นเวลาสม่ำเสมอ เพราะตาอาจแย่ลงได้ในวันแรก ๆ",
+            "strength": "หยุดยาและวางแผนรับมือภาวะวิกฤต",
+            "weigh": "แผนยังพูดน้อยเรื่องข้อมูลที่ทีมรับต่อต้องทราบ",
             "safety": ""
           },
           {
-            "strength": "ดูแลเหมือนผู้ป่วยวิกฤตตั้งแต่ต้น ด้วยสารน้ำทางหลอดเลือดและ ICU",
-            "weigh": "แทงเส้นให้สารน้ำผ่านผิวที่ยังดี ช่วยไม่ให้เกิดแผลใหม่เพิ่ม",
+            "strength": "ดูแลเขาแบบผู้ป่วยวิกฤตตั้งแต่ต้น",
+            "weigh": "ควรแทงเส้นผ่านผิวที่ยังดี เพื่อไม่เพิ่มแผลใหม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Starts **fluids and eye care** now rather than leaving them to the receiving team.",
-            "weigh": "Fluid needs here usually run lower than for burns of the same area, so watch for overload.",
+            "strength": "Starts **fluids** now rather than leaving them to the next team.",
+            "weigh": "Fluid needs here run lower than in burns of the same area, so overload is a risk.",
             "safety": ""
           },
           {
-            "strength": "Combines stopping the drug with care that cannot wait for transfer.",
-            "weigh": "Eye care needs a regular schedule, since the eyes can worsen over the first days.",
+            "strength": "Stops the drug and plans for a critical illness.",
+            "weigh": "The plan is short on what the receiving team needs to hear.",
             "safety": ""
           },
           {
-            "strength": "Treats this as a critical illness from the start, with **IV fluids** and ICU.",
-            "weigh": "Placing the line through intact skin avoids adding a new wound.",
+            "strength": "Treats him as critically ill from the start.",
+            "weigh": "Placing the line through intact skin avoids a new wound.",
             "safety": ""
           }
         ]
@@ -1023,35 +1023,35 @@
       "c": {
         "th": [
           {
-            "strength": "ส่งไปยังทีมที่ดูแล SJS/TEN บ่อย ได้ประสบการณ์มาช่วยดูแล",
-            "weigh": "ผิวหลุดร้อยละ 12 ควรถามให้แน่ใจว่าหอปลายทางดูแลใกล้ชิดได้พอ",
+            "strength": "หยุดยาและส่งถึงมือแพทย์ผิวหนัง",
+            "weigh": "ผิวหลุดร้อยละ 12 หอผู้ป่วยผิวหนังทั่วไปอาจเฝ้าระวังได้ไม่ใกล้ชิดพอ",
             "safety": ""
           },
           {
-            "strength": "หยุดยาและขอความเชี่ยวชาญจาก**แผนกผิวหนัง**ตั้งแต่เนิ่น ๆ",
-            "weigh": "หอผิวหนังทั่วไปอาจเฝ้าระวังได้ไม่เท่าที่แผลกว้างต้องการ",
+            "strength": "**ทีมแพทย์ผิวหนัง**มีประสบการณ์",
+            "weigh": "ควรถามเมื่อโทรว่าหอผู้ป่วยดูแลแผลกว้างได้หรือไม่",
             "safety": ""
           },
           {
-            "strength": "ให้คุณค่ากับประสบการณ์ของผู้เชี่ยวชาญ ในโรคที่พบน้อยแต่เดิมพันสูง",
-            "weigh": "ความสามารถของหอปลายทางในการเฝ้าระวังใกล้ชิด ควรถามให้ชัดตอนประสาน",
+            "strength": "ส่งถึงผู้เชี่ยวชาญได้เร็ว",
+            "weigh": "ผิวหลุดเป็นบริเวณกว้างต้องการการพยาบาลใกล้ชิด ซึ่งหอผิวหนังอาจไม่มี",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sends him to a team that sees SJS/TEN often, which brings experience.",
-            "weigh": "With 12% skin loss, the receiving ward's capacity for intensive nursing is worth confirming.",
+            "strength": "Stops the drug and seeks skin specialists.",
+            "weigh": "With 12% skin loss, a general skin ward may lack close monitoring.",
             "safety": ""
           },
           {
-            "strength": "Stops the drug and seeks **regional dermatology** expertise early.",
-            "weigh": "A general dermatology ward may lack the monitoring that large raw skin areas need.",
+            "strength": "A **dermatology team** brings experience.",
+            "weigh": "Whether the ward can nurse large raw areas is worth asking when you call.",
             "safety": ""
           },
           {
-            "strength": "Values specialist experience with an uncommon, high-stakes reaction.",
-            "weigh": "Whether the regional ward can monitor him closely is worth confirming when you call.",
+            "strength": "Gets him to specialists early.",
+            "weigh": "Large raw skin areas need intensive nursing, which a skin ward may lack.",
             "safety": ""
           }
         ]
@@ -1059,35 +1059,35 @@
       "d": {
         "th": [
           {
-            "strength": "หยุดยาและเลือกที่ที่มี ICU พร้อม",
-            "weigh": "แผลกว้างต้องอาศัยความชำนาญเรื่องแผลด้วย ซึ่งหออายุรกรรมอาจต้องขอเพิ่ม",
+            "strength": "หยุดยาและส่งให้ทีมที่ใหญ่กว่าดูแล",
+            "weigh": "ผิวหลุดเป็นบริเวณกว้างต้องการผู้ชำนาญเรื่องแผล ซึ่งหออายุรกรรมอาจต้องตามมาช่วย",
             "safety": ""
           },
           {
-            "strength": "ส่งไปที่ที่มี**อายุรแพทย์และ ICU** พร้อมรับดูแลต่อ",
-            "weigh": "ประสบการณ์ของทีมปลายทางกับผิวหลุดกว้าง ควรถามให้ชัดตอนประสาน",
+            "strength": "ส่งไปที่ที่มีความช่วยเหลือพร้อมกว่า",
+            "weigh": "ควรถามเมื่อโทรว่าทีมมีประสบการณ์กับผิวหลุดกว้างเพียงใด",
             "safety": ""
           },
           {
-            "strength": "เตรียมรับมือหากอาการทรุด ด้วยการเลือกที่ที่มีการดูแลวิกฤต",
-            "weigh": "เรื่องผิวและตายังอาจต้องขอผู้เชี่ยวชาญมาร่วมดูแลที่ปลายทาง",
+            "strength": "ย้ายไปโรงพยาบาลใหญ่ได้เร็ว",
+            "weigh": "การดูแลผิวโดยผู้เชี่ยวชาญอาจยังต้องประสานเพิ่มที่นั่น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the drug and chooses a centre with an ICU on hand.",
-            "weigh": "Large skin loss needs wound expertise too, which a medical ward may have to call in.",
+            "strength": "Stops the drug and hands him to a larger team.",
+            "weigh": "Large skin loss needs wound expertise, which a medical ward may have to call in.",
             "safety": ""
           },
           {
-            "strength": "Sends him where physicians and an ICU can take over.",
-            "weigh": "The regional team's experience with extensive skin loss is worth confirming when you call.",
+            "strength": "Sends him where more help is on hand.",
+            "weigh": "The team's experience with extensive skin loss is worth asking about when you call.",
             "safety": ""
           },
           {
-            "strength": "Plans for deterioration by choosing a hospital with critical care.",
-            "weigh": "Specialist input for the skin and eyes may still have to be arranged there.",
+            "strength": "Moves him to a bigger hospital early.",
+            "weigh": "Specialist skin care may still need to be arranged there.",
             "safety": ""
           }
         ]
@@ -1095,35 +1095,35 @@
       "ah_ref": {
         "th": [
           {
-            "strength": "หยุดยาทันที และส่งต่อให้ได้รับการดูแลเฉพาะทาง",
-            "weigh": "ยาแก้แพ้ช่วยลดอาการคัน แต่ไม่ได้หยุดการหลุดลอกของผิว",
+            "strength": "ยาแก้แพ้ให้ได้ง่าย",
+            "weigh": "ยานี้ไม่ได้รักษา SJS/TEN และการส่งต่อยังไม่ได้ระบุหน่วยที่ดูแลผิวหลุดกว้าง",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับส่งต่อ และให้การรักษาที่ทำได้ทันที",
-            "weigh": "ผิวหลุดเกินร้อยละ 10 เหมาะกับหน่วยที่ดูแลแผลและตาได้ครบ",
+            "strength": "หยุดยาแล้ว",
+            "weigh": "ยาแก้แพ้ช่วยแค่ลดคัน และแผนยังไม่ชัดว่าจะส่งไปที่ใด",
             "safety": ""
           },
           {
-            "strength": "เอาสาเหตุออก และวางแผนการดูแลต่อในคราวเดียว",
-            "weigh": "ยาแก้แพ้ชนิดง่วงอาจทำให้ประเมินความรู้สึกตัวยากขึ้นระหว่างเดินทาง",
+            "strength": "ลงมือกับผื่นแพ้ยาทันที",
+            "weigh": "เป็นแนวทางของผื่นแพ้ยาเล็กน้อย และยาชนิดง่วงอาจทำให้ประเมินความรู้สึกตัวระหว่างทางยาก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the **drug** at once and sends him on for specialist care.",
-            "weigh": "An antihistamine eases itch but leaves the skin detachment as it is.",
+            "strength": "An antihistamine is easy to give.",
+            "weigh": "It does not treat SJS/TEN, and the referral names no unit for large skin loss.",
             "safety": ""
           },
           {
-            "strength": "Pairs drug withdrawal with onward care and a treatment he can get at once.",
-            "weigh": "With over 10% skin loss, a team with full wound and eye care suits him best.",
+            "strength": "The drug is stopped.",
+            "weigh": "An antihistamine only eases itch, and the plan is vague on where he goes.",
             "safety": ""
           },
           {
-            "strength": "Removes the cause and arranges onward care in one plan.",
-            "weigh": "Sedating antihistamines can blur his alertness, which matters on the journey.",
+            "strength": "You acted on the drug rash at once.",
+            "weigh": "This is the routine for a mild rash, and a sedating one can blur his alertness on the road.",
             "safety": ""
           }
         ]
@@ -1133,35 +1133,35 @@
       "a": {
         "th": [
           {
-            "strength": "**หยุดอัลโลพูรินอล**ทันที การหยุดยาต้นเหตุเร็วช่วยลดความเสี่ยงเสียชีวิต",
-            "weigh": "ทีมที่รับต่อจะต้องการทราบพื้นที่ผิวหลุด สัญญาณชีพ และช่วงเวลาที่ได้ยา",
+            "strength": "หยุดยาและส่งไปหน่วยที่คุ้นกับผิวหลุดลอกเป็นบริเวณกว้าง",
+            "weigh": "แผนบอกว่าจะส่งไปที่ใด แต่ยังพูดน้อยเรื่องการดูแลระหว่างทาง",
             "safety": ""
           },
           {
-            "strength": "ส่งผู้ป่วย**ผิวหลุดเกินร้อยละ 10** ไปยังหน่วยที่ดูแลแผลกว้างเป็นประจำ",
-            "weigh": "การหยุดยาได้ผลเต็มที่เมื่อทบทวนยาใหม่ทุกตัวในช่วงหลายสัปดาห์ที่ผ่านมาด้วย",
+            "strength": "ใช้เกณฑ์**ผิวหลุดเกินร้อยละ 10** ในการเลือกที่ส่งต่อ",
+            "weigh": "ทีมที่รับต่อต้องการทราบพื้นที่ผิวหลุด สัญญาณชีพ และช่วงเวลาที่ได้ยา",
             "safety": ""
           },
           {
-            "strength": "ส่งไปยังที่ที่การดูแลแผลกว้างเป็นงานประจำ",
-            "weigh": "หน่วยแผลไหม้แต่ละแห่งมีประสบการณ์กับการแพ้ยาต่างกัน ควรทราบไว้ตอนประสาน",
+            "strength": "หยุดยาต้นเหตุทันที",
+            "weigh": "หน่วยแผลไหม้แต่ละแห่งมีประสบการณ์กับการแพ้ยาต่างกัน ควรถามเมื่อโทรประสาน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the culprit drug at once, and early withdrawal lowers the risk of dying.",
-            "weigh": "The receiving team will want the skin area, vital signs and timing of the drug.",
+            "strength": "Stops the drug and sends him to a unit used to large skin loss.",
+            "weigh": "The plan covers where he goes, less what he needs on the way.",
             "safety": ""
           },
           {
-            "strength": "Matches **over 10% skin loss** to a unit that manages large raw skin areas.",
-            "weigh": "Withdrawal works fully only when every drug started in recent weeks is reviewed too.",
+            "strength": "You matched **over 10% skin loss** to a burn unit.",
+            "weigh": "The receiving team will want the skin area, vital signs and drug timing.",
             "safety": ""
           },
           {
-            "strength": "Sends him where wound care for large skin loss is routine.",
-            "weigh": "Burn units differ in their experience with drug reactions, which is worth knowing when calling.",
+            "strength": "Stops the drug at once.",
+            "weigh": "Burn units differ in experience with drug reactions, which is worth asking when you call.",
             "safety": ""
           }
         ]
@@ -1169,35 +1169,35 @@
       "b": {
         "th": [
           {
-            "strength": "เริ่ม**สารน้ำและดูแลตา**ทันที ไม่ต้องรอให้ทีมปลายทางเริ่ม",
-            "weigh": "ผู้ป่วยผิวหลุดมักต้องการสารน้ำน้อยกว่าแผลไหม้พื้นที่เท่ากัน ควรระวังน้ำเกิน",
+            "strength": "เริ่ม**สารน้ำ**ทันที ไม่ปล่อยให้ทีมถัดไปเริ่ม",
+            "weigh": "ผู้ป่วยกลุ่มนี้ต้องการสารน้ำน้อยกว่าแผลไหม้ขนาดเท่ากัน จึงต้องระวังน้ำเกิน",
             "safety": ""
           },
           {
-            "strength": "หยุดยาควบคู่กับการดูแลที่รอการส่งตัวไม่ได้",
-            "weigh": "การดูแลตาควรทำเป็นเวลาสม่ำเสมอ เพราะตาอาจแย่ลงได้ในวันแรก ๆ",
+            "strength": "หยุดยาและวางแผนรับมือภาวะวิกฤต",
+            "weigh": "แผนยังพูดน้อยเรื่องข้อมูลที่ทีมรับต่อต้องทราบ",
             "safety": ""
           },
           {
-            "strength": "ดูแลเหมือนผู้ป่วยวิกฤตตั้งแต่ต้น ด้วยสารน้ำทางหลอดเลือดและ ICU",
-            "weigh": "แทงเส้นให้สารน้ำผ่านผิวที่ยังดี ช่วยไม่ให้เกิดแผลใหม่เพิ่ม",
+            "strength": "ดูแลเขาแบบผู้ป่วยวิกฤตตั้งแต่ต้น",
+            "weigh": "ควรแทงเส้นผ่านผิวที่ยังดี เพื่อไม่เพิ่มแผลใหม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Starts **fluids and eye care** now rather than leaving them to the receiving team.",
-            "weigh": "Fluid needs here usually run lower than for burns of the same area, so watch for overload.",
+            "strength": "Starts **fluids** now rather than leaving them to the next team.",
+            "weigh": "Fluid needs here run lower than in burns of the same area, so overload is a risk.",
             "safety": ""
           },
           {
-            "strength": "Combines stopping the drug with care that cannot wait for transfer.",
-            "weigh": "Eye care needs a regular schedule, since the eyes can worsen over the first days.",
+            "strength": "Stops the drug and plans for a critical illness.",
+            "weigh": "The plan is short on what the receiving team needs to hear.",
             "safety": ""
           },
           {
-            "strength": "Treats this as a critical illness from the start, with **IV fluids** and ICU.",
-            "weigh": "Placing the line through intact skin avoids adding a new wound.",
+            "strength": "Treats him as critically ill from the start.",
+            "weigh": "Placing the line through intact skin avoids a new wound.",
             "safety": ""
           }
         ]
@@ -1205,35 +1205,35 @@
       "c": {
         "th": [
           {
-            "strength": "ส่งไปยังทีมที่ดูแล SJS/TEN บ่อย ได้ประสบการณ์มาช่วยดูแล",
-            "weigh": "ผิวหลุดร้อยละ 12 ควรถามให้แน่ใจว่าหอปลายทางดูแลใกล้ชิดได้พอ",
+            "strength": "หยุดยาและส่งถึงมือแพทย์ผิวหนัง",
+            "weigh": "ผิวหลุดร้อยละ 12 หอผู้ป่วยผิวหนังทั่วไปอาจเฝ้าระวังได้ไม่ใกล้ชิดพอ",
             "safety": ""
           },
           {
-            "strength": "หยุดยาและขอความเชี่ยวชาญจาก**แผนกผิวหนัง**ตั้งแต่เนิ่น ๆ",
-            "weigh": "หอผิวหนังทั่วไปอาจเฝ้าระวังได้ไม่เท่าที่แผลกว้างต้องการ",
+            "strength": "**ทีมแพทย์ผิวหนัง**มีประสบการณ์",
+            "weigh": "ควรถามเมื่อโทรว่าหอผู้ป่วยดูแลแผลกว้างได้หรือไม่",
             "safety": ""
           },
           {
-            "strength": "ให้คุณค่ากับประสบการณ์ของผู้เชี่ยวชาญ ในโรคที่พบน้อยแต่เดิมพันสูง",
-            "weigh": "ความสามารถของหอปลายทางในการเฝ้าระวังใกล้ชิด ควรถามให้ชัดตอนประสาน",
+            "strength": "ส่งถึงผู้เชี่ยวชาญได้เร็ว",
+            "weigh": "ผิวหลุดเป็นบริเวณกว้างต้องการการพยาบาลใกล้ชิด ซึ่งหอผิวหนังอาจไม่มี",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sends him to a team that sees SJS/TEN often, which brings experience.",
-            "weigh": "With 12% skin loss, the receiving ward's capacity for intensive nursing is worth confirming.",
+            "strength": "Stops the drug and seeks skin specialists.",
+            "weigh": "With 12% skin loss, a general skin ward may lack close monitoring.",
             "safety": ""
           },
           {
-            "strength": "Stops the drug and seeks **regional dermatology** expertise early.",
-            "weigh": "A general dermatology ward may lack the monitoring that large raw skin areas need.",
+            "strength": "A **dermatology team** brings experience.",
+            "weigh": "Whether the ward can nurse large raw areas is worth asking when you call.",
             "safety": ""
           },
           {
-            "strength": "Values specialist experience with an uncommon, high-stakes reaction.",
-            "weigh": "Whether the regional ward can monitor him closely is worth confirming when you call.",
+            "strength": "Gets him to specialists early.",
+            "weigh": "Large raw skin areas need intensive nursing, which a skin ward may lack.",
             "safety": ""
           }
         ]
@@ -1241,35 +1241,35 @@
       "d": {
         "th": [
           {
-            "strength": "หยุดยาและเลือกที่ที่มี ICU พร้อม",
-            "weigh": "แผลกว้างต้องอาศัยความชำนาญเรื่องแผลด้วย ซึ่งหออายุรกรรมอาจต้องขอเพิ่ม",
+            "strength": "หยุดยาและส่งให้ทีมที่ใหญ่กว่าดูแล",
+            "weigh": "ผิวหลุดเป็นบริเวณกว้างต้องการผู้ชำนาญเรื่องแผล ซึ่งหออายุรกรรมอาจต้องตามมาช่วย",
             "safety": ""
           },
           {
-            "strength": "ส่งไปที่ที่มี**อายุรแพทย์และ ICU** พร้อมรับดูแลต่อ",
-            "weigh": "ประสบการณ์ของทีมปลายทางกับผิวหลุดกว้าง ควรถามให้ชัดตอนประสาน",
+            "strength": "ส่งไปที่ที่มีความช่วยเหลือพร้อมกว่า",
+            "weigh": "ควรถามเมื่อโทรว่าทีมมีประสบการณ์กับผิวหลุดกว้างเพียงใด",
             "safety": ""
           },
           {
-            "strength": "เตรียมรับมือหากอาการทรุด ด้วยการเลือกที่ที่มีการดูแลวิกฤต",
-            "weigh": "เรื่องผิวและตายังอาจต้องขอผู้เชี่ยวชาญมาร่วมดูแลที่ปลายทาง",
+            "strength": "ย้ายไปโรงพยาบาลใหญ่ได้เร็ว",
+            "weigh": "การดูแลผิวโดยผู้เชี่ยวชาญอาจยังต้องประสานเพิ่มที่นั่น",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the drug and chooses a centre with an ICU on hand.",
-            "weigh": "Large skin loss needs wound expertise too, which a medical ward may have to call in.",
+            "strength": "Stops the drug and hands him to a larger team.",
+            "weigh": "Large skin loss needs wound expertise, which a medical ward may have to call in.",
             "safety": ""
           },
           {
-            "strength": "Sends him where physicians and an ICU can take over.",
-            "weigh": "The regional team's experience with extensive skin loss is worth confirming when you call.",
+            "strength": "Sends him where more help is on hand.",
+            "weigh": "The team's experience with extensive skin loss is worth asking about when you call.",
             "safety": ""
           },
           {
-            "strength": "Plans for deterioration by choosing a hospital with critical care.",
-            "weigh": "Specialist input for the skin and eyes may still have to be arranged there.",
+            "strength": "Moves him to a bigger hospital early.",
+            "weigh": "Specialist skin care may still need to be arranged there.",
             "safety": ""
           }
         ]
@@ -1277,35 +1277,35 @@
       "st_ref": {
         "th": [
           {
-            "strength": "หยุดยา ส่งต่อ และมองการแพ้ครั้งนี้ว่ารุนแรง",
-            "weigh": "ประโยชน์ของสเตียรอยด์ใน SJS/TEN ยังไม่แน่นอน และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
+            "strength": "สเตียรอยด์เป็นยาที่คุ้นเคยในผื่นแพ้ยา",
+            "weigh": "ประโยชน์ใน SJS/TEN ยังไม่ชัด และอาจเพิ่มการติดเชื้อทางผิวที่เปิด",
             "safety": ""
           },
           {
-            "strength": "ลงมือเร็ว ในช่วงที่การรักษาเพื่อกดภูมิคุ้มกันมีโอกาสช่วยได้มากที่สุด",
-            "weigh": "การให้สเตียรอยด์นานสัมพันธ์กับการติดเชื้อมากขึ้นในโรคนี้",
+            "strength": "หยุดยาแล้ว",
+            "weigh": "สเตียรอยด์ตรงนี้มาจากความเคยชิน และการส่งต่อยังไม่ได้ระบุหน่วยที่ดูแลผิวหลุดกว้าง",
             "safety": ""
           },
           {
-            "strength": "ส่งต่อควบคู่กับการรักษาระยะแรกที่บางแห่งใช้",
-            "weigh": "สเตียรอยด์อาจกดไข้ ทำให้สังเกตการติดเชื้อได้ยากขึ้น",
+            "strength": "มองว่าผื่นนี้รุนแรง",
+            "weigh": "สเตียรอยด์อาจกดไข้ ขณะที่ยังเสี่ยงติดเชื้อ โดยไม่ได้ประโยชน์ชัดเจน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Stops the **drug**, sends him on, and treats the reaction as serious.",
-            "weigh": "Steroid benefit in SJS/TEN is uncertain, and steroids can raise infection risk on raw skin.",
+            "strength": "A steroid is familiar for drug rashes.",
+            "weigh": "Its benefit in SJS/TEN is unproven, and it can raise infection risk on raw skin.",
             "safety": ""
           },
           {
-            "strength": "Acts early, when immune-directed treatment has most chance to help.",
-            "weigh": "Longer steroid courses are linked to more infection in this disease.",
+            "strength": "The drug is stopped.",
+            "weigh": "The steroid is habit here, and the referral names no unit for large skin loss.",
             "safety": ""
           },
           {
-            "strength": "Pairs onward care with an early treatment some centres use.",
-            "weigh": "Steroids can blunt fever, a sign worth keeping clear while infection is a risk.",
+            "strength": "You treated the rash as serious.",
+            "weigh": "Steroids can blunt fever while infection is a risk, with no clear gain.",
             "safety": ""
           }
         ]
@@ -1315,35 +1315,35 @@
       "a": {
         "th": [
           {
-            "strength": "ทดแทนน้ำที่เสียทางผิว โดยใช้**ปริมาณปัสสาวะ**เป็นตัวนำ",
-            "weigh": "SJS/TEN มักต้องการสารน้ำน้อยกว่าแผลไหม้พื้นที่เท่ากัน จึงต้องระวังน้ำเกิน",
+            "strength": "กำหนดสารน้ำ**ตามปริมาณปัสสาวะ**",
+            "weigh": "คำตอบยังไม่ได้ระบุอัตราหรือตัวเลขเป้าหมาย",
             "safety": ""
           },
           {
-            "strength": "ใช้เป้าหมายที่วัดได้จริง ทำให้การให้สารน้ำไม่มากหรือน้อยเกินไป",
-            "weigh": "อาการดูคงที่ขึ้นแล้ว เป้าปัสสาวะจึงช่วยกำหนดปริมาณที่ให้ต่อ",
+            "strength": "ทดแทนน้ำต่อแม้อาการดูคงที่",
+            "weigh": "ผู้ป่วยกลุ่มนี้ต้องการสารน้ำน้อยกว่าแผลไหม้ขนาดเท่ากัน จึงต้องระวังน้ำเกิน",
             "safety": ""
           },
           {
-            "strength": "คาดการณ์ว่ายังเสียน้ำทางผิวต่อเนื่อง แม้ตอนนี้อาการดูคงที่",
-            "weigh": "ควรเขียนเป้าปัสสาวะเป็น มล./กก./ชม. ไว้ให้ชัด ทุกเวรจะได้ใช้ตัวเลขเดียวกัน",
+            "strength": "มีเป้าหมายที่วัดได้สำหรับการให้สารน้ำ",
+            "weigh": "ระบุเป้าหมายเป็น มล./กก./ชม. ช่วยให้ทุกเวรใช้ตัวเลขเดียวกัน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Replaces losses through raw skin using **urine output** as the guide.",
-            "weigh": "Fluid needs in SJS/TEN run lower than in burns of the same area, so overload is a risk.",
+            "strength": "Sets a **urine target** for the fluids.",
+            "weigh": "The answer gives no rate or figure to aim for.",
             "safety": ""
           },
           {
-            "strength": "Uses a measurable target, which keeps fluid replacement honest.",
-            "weigh": "Now that he looks steadier, the target guides how much to give, not whether.",
+            "strength": "Keeps replacing fluid while he looks stable.",
+            "weigh": "Fluid needs run lower than in burns of the same area, so overload is a risk.",
             "safety": ""
           },
           {
-            "strength": "Anticipates ongoing fluid loss through raw skin even though he looks stable.",
-            "weigh": "Writing the target down in mL/kg per hour keeps every shift aiming at the same figure.",
+            "strength": "A target keeps fluid replacement measurable.",
+            "weigh": "Writing the target in mL/kg per hour helps every shift aim at the same figure.",
             "safety": ""
           }
         ]
@@ -1351,35 +1351,35 @@
       "b": {
         "th": [
           {
-            "strength": "รู้ว่าผิวหลุดเพิ่มได้ในช่วงแรก จึงวางแผน**ตรวจซ้ำ**ไว้",
-            "weigh": "การตรวจซ้ำมีความหมายมากขึ้น เมื่อใช้ผู้ตรวจและแผนภาพร่างกายเดิมทุกครั้ง",
+            "strength": "วางแผนตรวจผิว ตา และปากซ้ำ",
+            "weigh": "การตรวจซ้ำมีความหมายที่สุดเมื่อใช้ผู้ตรวจและแผนภาพเดิม",
             "safety": ""
           },
           {
-            "strength": "รวมตาและปากไว้ในการตรวจ ไม่ได้ดูแค่ผิวหนัง",
-            "weigh": "ตาอาจแย่ลงโดยไม่มีอาการชัด ควรบันทึกผลตรวจทุกครั้ง",
+            "strength": "ใช้ช่วงที่อาการนิ่งตรวจซ้ำ",
+            "weigh": "คำตอบยังไม่ได้บอกว่าจะตรวจถี่แค่ไหน",
             "safety": ""
           },
           {
-            "strength": "ใช้ช่วงที่อาการคงที่ จับการลุกลามตั้งแต่เนิ่น ๆ",
-            "weigh": "ตุ่มน้ำใหม่ยังขึ้นได้อีกหลายวันหลังหยุดยา",
+            "strength": "รวมตาและปากไว้ในการตรวจ",
+            "weigh": "ควรบันทึกผลทุกครั้งให้ทีมถัดไป",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Plans to **re-measure it**, since detachment can spread in the first days.",
-            "weigh": "Checks mean most when the same examiner and body chart are used each time.",
+            "strength": "Plans to look again at the skin, eyes and mouth.",
+            "weigh": "Checks mean most with the same examiner and body chart each time.",
             "safety": ""
           },
           {
-            "strength": "Keeps the eyes and mouth in the review, not only the skin.",
-            "weigh": "The eyes can worsen quietly, so findings are worth recording at each check.",
+            "strength": "Treats a calm moment as a chance to recheck.",
+            "weigh": "The answer gives no plan for how often to look.",
             "safety": ""
           },
           {
-            "strength": "Treats a stable moment as a chance to catch early progression.",
-            "weigh": "New blisters can still appear for several days after the drug is stopped.",
+            "strength": "Keeps the eyes and mouth in the review.",
+            "weigh": "Findings are worth writing down at each check for the next team.",
             "safety": ""
           }
         ]
@@ -1387,35 +1387,35 @@
       "c": {
         "th": [
           {
-            "strength": "ติดตามการเสียน้ำด้วยตัวเลข ไม่ใช่ดูจากภายนอกอย่างเดียว",
-            "weigh": "SCORTEN ซ้ำให้ข้อมูลมากในวันที่ 3 จังหวะเวลาจึงสำคัญ",
+            "strength": "ติดตามการเสียน้ำด้วยตัวเลข",
+            "weigh": "ผลเลือดครั้งเดียวเป็นภาพชั่วขณะ ขณะที่การเสียน้ำเปลี่ยนทุกชั่วโมง",
             "safety": ""
           },
           {
-            "strength": "ใช้ **BUN น้ำตาล** คิด SCORTEN ใหม่ตามอาการที่เปลี่ยนไป",
-            "weigh": "ควรเจาะเลือดผ่านผิวที่ยังดี เพื่อไม่ให้เกิดแผลเพิ่ม",
+            "strength": "ตรวจเลือดซ้ำส่งได้ง่าย",
+            "weigh": "ผลเลือดอย่างเดียวไม่ได้บอกว่าจะให้สารน้ำเท่าไร",
             "safety": ""
           },
           {
-            "strength": "เฝ้าระวังเกลือแร่ที่เปลี่ยนไปจากการเสียน้ำทางผิว",
-            "weigh": "การเสียน้ำทางผิวเปลี่ยนไปทุกชั่วโมง ผลเลือดครั้งเดียวจึงเป็นแค่ภาพหนึ่ง",
+            "strength": "เฝ้าดูเกลือแร่ที่เสียทางผิว",
+            "weigh": "คำตอบยังไม่ได้บอกว่าจะดูแลอะไรระหว่างที่ผลยังไม่ออก",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Tracks fluid loss with numbers rather than appearance alone.",
-            "weigh": "A second SCORTEN is most informative on day 3, so timing shapes its value.",
+            "strength": "Tracks fluid loss with numbers.",
+            "weigh": "One set of results is a snapshot of losses that change hour by hour.",
             "safety": ""
           },
           {
-            "strength": "Uses **BUN and glucose** to update the SCORTEN score as he evolves.",
-            "weigh": "Drawing samples through intact skin avoids adding new wounds.",
+            "strength": "Repeat bloods are simple to send.",
+            "weigh": "Results alone do not tell how much fluid to give.",
             "safety": ""
           },
           {
-            "strength": "Watches for electrolyte shifts that raw skin can cause.",
-            "weigh": "Losses through raw skin change hour by hour, so one set of results is a snapshot.",
+            "strength": "Watches for salt shifts from raw skin.",
+            "weigh": "The answer leaves out what he gets while the results are pending.",
             "safety": ""
           }
         ]
@@ -1607,35 +1607,35 @@
       "a": {
         "th": [
           {
-            "strength": "แก้ความดันต่ำด้วยการเพิ่มปริมาตร แล้ว**ประเมินซ้ำ**ก่อนให้เพิ่ม",
-            "weigh": "ดูชีพจร ความดัน และปัสสาวะหลังให้แต่ละครั้ง จะบอกได้ว่าต้องให้เพิ่มหรือไม่",
+            "strength": "ให้**สารน้ำ bolus** ทันที",
+            "weigh": "ชีพจร ความดัน และปัสสาวะหลังแต่ละ bolus บอกว่าต้องให้เพิ่มหรือไม่",
             "safety": ""
           },
           {
-            "strength": "อ่าน**ความดันต่ำ**ว่าเป็นการเสียน้ำทางผิวที่หลุด และลงมือแก้ทันที",
-            "weigh": "SJS/TEN เสี่ยงน้ำเกิน จึงควรนับปริมาณที่ให้แต่ละรอบ",
+            "strength": "แก้ความดันต่ำ",
+            "weigh": "ใน SJS/TEN มีความเสี่ยงน้ำเกิน จึงควรติดตามแต่ละ bolus",
             "safety": ""
           },
           {
-            "strength": "ลงมือเร็วเมื่อความดันลดลงถึง 94/60 ไม่รอข้อมูลเพิ่ม",
-            "weigh": "ไข้ร่วมกับความดันต่ำอาจมีได้หลายสาเหตุ การประเมินซ้ำจึงสำคัญ",
+            "strength": "แก้ความดัน 94/60 ก่อน",
+            "weigh": "ไข้ร่วมกับความดันต่ำอาจมีสาเหตุมากกว่าหนึ่ง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Treats low BP as volume loss and checks the response before giving more.",
+            "strength": "Gives a **fluid bolus** at once.",
             "weigh": "Pulse, BP and urine after each bolus show whether more is needed.",
             "safety": ""
           },
           {
-            "strength": "Reads **low BP** as fluid lost through raw skin and acts on it.",
-            "weigh": "Overload is a risk in SJS/TEN, so the volume of each bolus is worth tracking.",
+            "strength": "Acts on the low BP.",
+            "weigh": "Overload is a risk in SJS/TEN, so each bolus is worth tracking.",
             "safety": ""
           },
           {
-            "strength": "Acts quickly on a BP of 94/60 without waiting for more data.",
-            "weigh": "Fever with low BP can have more than one cause, which keeps reassessment important.",
+            "strength": "Treats the BP of 94/60 first.",
+            "weigh": "Fever with low BP can have more than one cause.",
             "safety": ""
           }
         ]
@@ -1643,35 +1643,35 @@
       "b": {
         "th": [
           {
-            "strength": "คิดถึงสองสาเหตุของ**ความดันต่ำร่วมกับไข้**พร้อมกัน",
-            "weigh": "ผลเพาะเชื้อต้องรอ การตอบสนองต่อสารน้ำจึงเป็นตัวนำในชั่วโมงนี้",
+            "strength": "ให้สารน้ำพร้อม**เพาะเชื้อในเลือด**",
+            "weigh": "ผลเพาะเชื้อใช้เวลา การตอบสนองต่อสารน้ำจึงเป็นตัวนำในชั่วโมงถัดไป",
             "safety": ""
           },
           {
-            "strength": "ให้สารน้ำพร้อมกับเก็บเชื้อดู**ติดเชื้อ**ระยะแรก",
-            "weigh": "ไข้เป็นส่วนหนึ่งของโรคนี้เอง ไข้อย่างเดียวจึงยังบอกไม่ได้ว่าติดเชื้อ",
+            "strength": "นึกถึงการติดเชื้อไว้",
+            "weigh": "ไข้เป็นส่วนหนึ่งของปฏิกิริยานี้เอง ไข้อย่างเดียวจึงไม่ได้ยืนยันการติดเชื้อ",
             "safety": ""
           },
           {
-            "strength": "ทำสองอย่างพร้อมกันโดยไม่ทำให้การให้สารน้ำล่าช้า",
-            "weigh": "เจาะผ่านผิวที่ยังดีช่วยลดโอกาสผลเพาะเชื้อปนเปื้อน",
+            "strength": "ทำสองอย่างพร้อมกัน",
+            "weigh": "คำตอบยังไม่ได้ระบุปริมาณหรือเป้าหมายของสารน้ำ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Holds two causes of **low BP with fever** in mind at once.",
+            "strength": "Gives fluids and sends a **blood culture**.",
             "weigh": "Cultures take time, so his response to fluids guides the next hour.",
             "safety": ""
           },
           {
-            "strength": "Restores volume while sampling for **early sepsis**.",
+            "strength": "Keeps infection in mind.",
             "weigh": "Fever is part of the reaction itself, so fever alone does not prove infection.",
             "safety": ""
           },
           {
-            "strength": "Does two things at once without delaying the fluids.",
-            "weigh": "Drawing through intact skin lowers the chance of a contaminated culture.",
+            "strength": "Does two things at once.",
+            "weigh": "The answer gives no volume or end point for the fluids.",
             "safety": ""
           }
         ]
@@ -1679,35 +1679,35 @@
       "d": {
         "th": [
           {
-            "strength": "แก้ความดันต่ำทันทีด้วย**น้ำเกลือ bolus**",
-            "weigh": "อัลบูมินระยะแรกใน SJS/TEN ยังไม่มีหลักฐานว่าช่วยเพิ่ม และอาจหาได้ยาก",
+            "strength": "ให้**น้ำเกลือ bolus** ทันที",
+            "weigh": "อัลบูมินช่วงแรกไม่มีหลักฐานว่าได้ประโยชน์เพิ่มใน SJS/TEN",
             "safety": ""
           },
           {
-            "strength": "คิดถึงโปรตีนที่เสียทางผิว ซึ่งเสียไปจริงในโรคนี้",
-            "weigh": "อัลบูมินราคาสูงและเตรียมนานกว่า ซึ่งสำคัญเมื่อความดันต่ำอยู่ตอนนี้",
+            "strength": "อัลบูมินเป็นตัวเสริมที่คุ้นเคย",
+            "weigh": "ราคาสูงกว่าและเตรียมช้ากว่า ขณะที่ความดันต่ำอยู่ตอนนี้",
             "safety": ""
           },
           {
-            "strength": "รวมการเพิ่มปริมาตรทันทีเข้ากับ**ตัวเสริมที่ใช้บ่อย**",
-            "weigh": "ในชั่วโมงแรก ๆ อัลบูมินอาจรั่วออกจากหลอดเลือดที่เสียหายได้เช่นกัน",
+            "strength": "แก้ความดันต่ำ",
+            "weigh": "อัลบูมินตรงนี้มาจากความเคยชิน โดยไม่ได้ประโยชน์ชัดเจน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Treats low BP at once with a **saline bolus**.",
-            "weigh": "Early albumin has no proven extra benefit in SJS/TEN, and supply can be short.",
+            "strength": "Gives a **saline bolus** at once.",
+            "weigh": "Albumin has no proven extra benefit early in SJS/TEN.",
             "safety": ""
           },
           {
-            "strength": "Thinks of the protein lost through raw skin, a real loss in this disease.",
-            "weigh": "Albumin is costly and slower to set up, which matters while BP is low now.",
+            "strength": "Albumin is a familiar add-on.",
+            "weigh": "It costs more and is slower to set up while BP is low now.",
             "safety": ""
           },
           {
-            "strength": "Pairs immediate volume with a **common add-on** for big losses.",
-            "weigh": "In the first hours, albumin can leak through damaged vessels too.",
+            "strength": "Treats the low BP.",
+            "weigh": "The albumin is habit here, with no clear gain for him.",
             "safety": ""
           }
         ]
@@ -1753,35 +1753,35 @@
       "card": {
         "th": [
           {
-            "strength": "ให้**บัตรแพ้ยา**ที่กันการได้ยาซ้ำ ไม่ว่าจะไปรักษาที่ไหน",
-            "weigh": "บัตรจะได้ผลเมื่อระบุชื่ออัลโลพูรินอลชัดเจน และเขาพกติดตัวเสมอ",
+            "strength": "ให้**บัตรแพ้ยา**",
+            "weigh": "บัตรได้ผลเมื่อระบุชื่ออัลโลพูรินอลชัดเจนและเขาพกติดตัว",
             "safety": ""
           },
           {
-            "strength": "รายงาน อย. ทำให้การแพ้ครั้งนี้เข้าสู่ข้อมูลความปลอดภัยของประเทศ",
-            "weigh": "ผู้ป่วยควรรู้ว่าการได้ยาซ้ำอาจรุนแรงกว่าเดิมมาก",
+            "strength": "รายงานการแพ้เข้าระบบของ อย.",
+            "weigh": "เขาควรรู้ด้วยว่าการได้ยาซ้ำอาจรุนแรงกว่าเดิมมาก",
             "safety": ""
           },
           {
-            "strength": "ปกป้องทั้งเขาและผู้ป่วยรายอื่น ด้วยบัตรใบเดียวและรายงานฉบับเดียว",
-            "weigh": "ชื่อการค้าและยาผสมที่มีอัลโลพูรินอลควรเขียนไว้ในบัตรด้วย",
+            "strength": "บัตรหนึ่งใบกับรายงานหนึ่งฉบับปกป้องทั้งเขาและผู้อื่น",
+            "weigh": "ควรระบุชื่อการค้าและยาผสมที่มีอัลโลพูรินอลไว้ในบัตรด้วย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Gives him an **allergy card** that guards against a repeat dose wherever he is treated.",
+            "strength": "Gives him an **allergy card**.",
             "weigh": "The card works only if it names allopurinol clearly and he carries it.",
             "safety": ""
           },
           {
-            "strength": "Reports to the Thai FDA, so the reaction counts in national safety data.",
-            "weigh": "He needs to know that a repeat dose could be far more severe.",
+            "strength": "Reports the reaction to the Thai FDA.",
+            "weigh": "He also needs to hear that a repeat dose could be far worse.",
             "safety": ""
           },
           {
-            "strength": "Protects him and future patients with one card and one report.",
-            "weigh": "Brand names and combination products containing allopurinol are worth listing on the card.",
+            "strength": "One card and one report cover him and others.",
+            "weigh": "Brand names and combined products with allopurinol are worth listing on the card.",
             "safety": ""
           }
         ]
@@ -1789,34 +1789,34 @@
       "eyes": {
         "th": [
           {
-            "strength": "นัดพบ**จักษุแพทย์** เพราะความเสียหายที่ตาอาจปรากฏหลายสัปดาห์ต่อมา",
-            "weigh": "ปัญหาตาระยะยาวพบบ่อยหลังโรคนี้ จึงควรยืนยันวันนัดให้แน่นอน",
+            "strength": "นัดตรวจตาไว้กับ**จักษุแพทย์**",
+            "weigh": "ถ้าปวดตาหรือตามัวก่อนวันนัด ควรมาตรวจเร็วขึ้น",
             "safety": ""
           },
           {
-            "strength": "มองไกลกว่าผิวที่หายแล้ว ไปที่ตาซึ่งมักเกิดผลระยะหลัง",
-            "weigh": "หากปวดตาหรือตามัวระหว่างรอนัด ควรได้รับการตรวจเร็วขึ้น",
+            "strength": "มองไปถึงตา ไม่ใช่แค่ผิวที่หายแล้ว",
+            "weigh": "คำตอบยังไม่ได้ระบุว่าจะนัดเมื่อไร",
             "safety": ""
           },
           {
-            "strength": "คาดการณ์**พังผืดที่เปลือกตา**ที่เกิดตามมาได้หลังหลายสัปดาห์",
-            "weigh": "ผิวที่หายดีอาจทำให้ดูเหมือนหายขาด จึงควรอธิบายให้เขาเข้าใจ",
+            "strength": "ติดตามดูตาของเขาต่อ",
+            "weigh": "ผิวที่หายดีอาจทำให้คิดว่าหายป่วยแล้ว ควรอธิบายให้เขาเข้าใจ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Plans an **eye clinic follow-up** because damage can surface weeks later.",
-            "weigh": "Long-term eye problems are common after-effects, so the appointment is worth keeping firm.",
+            "strength": "Books an **eye clinic follow-up**.",
+            "weigh": "Pain or blurred vision before the visit needs an earlier look.",
             "safety": ""
           },
           {
-            "strength": "Looks beyond healed skin to the eyes, where late harm is common.",
-            "weigh": "Pain or blurred vision before the visit deserves an earlier look.",
+            "strength": "Looks beyond the healed skin to his eyes.",
+            "weigh": "The answer gives no time frame for the visit.",
             "safety": ""
           },
           {
-            "strength": "Anticipates dry eye and **lid scarring** that can appear weeks later.",
+            "strength": "Keeps his eyes under review.",
             "weigh": "Healed skin can make the illness seem over, which is worth explaining to him.",
             "safety": ""
           }
@@ -1825,35 +1825,35 @@
       "hla": {
         "th": [
           {
-            "strength": "ขยายการป้องกันไปยัง**ญาติสายตรง**ที่อาจมียีนเดียวกัน",
-            "weigh": "การตรวจช่วยญาติได้มากที่สุดเมื่อญาติมีแผนจะเริ่มอัลโลพูรินอล",
+            "strength": "นึกถึง**ญาติ**ของเขา",
+            "weigh": "เรื่องยาของเขาเองตัดสินแล้ว การตรวจจึงช่วยครอบครัวมากกว่าตัวเขา",
             "safety": ""
           },
           {
-            "strength": "ใช้การแพ้ของเขาเป็นบทเรียนให้ครอบครัวได้ยาอย่างปลอดภัยขึ้น",
-            "weigh": "เรื่องยาของเขาเองตัดสินแล้ว คุณค่าของการตรวจจึงอยู่ที่ญาติเป็นหลัก",
+            "strength": "ขยายการดูแลไปถึงครอบครัว",
+            "weigh": "การตรวจช่วยญาติได้มากที่สุดเมื่อจะเริ่มอัลโลพูรินอลให้คนนั้น",
             "safety": ""
           },
           {
-            "strength": "นึกถึงครอบครัว เพราะยีนนี้สัมพันธ์กับการแพ้ยาชัดในคนไทย",
-            "weigh": "ควรอธิบายความหมายของผลตรวจให้ญาติเข้าใจไปพร้อมกัน",
+            "strength": "ตรวจยีนสั่งได้ง่าย",
+            "weigh": "คำตอบยังไม่ได้พูดถึงการติดตามตัวเขาเอง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Extends protection to **close relatives** who may share the gene.",
-            "weigh": "Testing helps relatives most when allopurinol is being considered for them.",
+            "strength": "Thinks of his **relatives**.",
+            "weigh": "His own drug decision is made, so the test serves the family more than him.",
             "safety": ""
           },
           {
-            "strength": "Uses his reaction to guide safer prescribing in his family.",
-            "weigh": "His own drug decision is already made, so the value lies mostly with his relatives.",
+            "strength": "Extends care to the family.",
+            "weigh": "Testing helps a relative most when allopurinol is being considered for them.",
             "safety": ""
           },
           {
-            "strength": "Thinks of family members, given the strong gene link in Thai patients.",
-            "weigh": "Explaining what a result means is worth arranging alongside the test.",
+            "strength": "A gene test is simple to arrange.",
+            "weigh": "The answer leaves out his own care.",
             "safety": ""
           }
         ]
@@ -1935,34 +1935,34 @@
       "eyes": {
         "th": [
           {
-            "strength": "นัดพบ**จักษุแพทย์** เพราะความเสียหายที่ตาอาจปรากฏหลายสัปดาห์ต่อมา",
-            "weigh": "ปัญหาตาระยะยาวพบบ่อยหลังโรคนี้ จึงควรยืนยันวันนัดให้แน่นอน",
+            "strength": "นัดตรวจตาไว้กับ**จักษุแพทย์**",
+            "weigh": "ถ้าปวดตาหรือตามัวก่อนวันนัด ควรมาตรวจเร็วขึ้น",
             "safety": ""
           },
           {
-            "strength": "มองไกลกว่าผิวที่หายแล้ว ไปที่ตาซึ่งมักเกิดผลระยะหลัง",
-            "weigh": "หากปวดตาหรือตามัวระหว่างรอนัด ควรได้รับการตรวจเร็วขึ้น",
+            "strength": "มองไปถึงตา ไม่ใช่แค่ผิวที่หายแล้ว",
+            "weigh": "คำตอบยังไม่ได้ระบุว่าจะนัดเมื่อไร",
             "safety": ""
           },
           {
-            "strength": "คาดการณ์**พังผืดที่เปลือกตา**ที่เกิดตามมาได้หลังหลายสัปดาห์",
-            "weigh": "ผิวที่หายดีอาจทำให้ดูเหมือนหายขาด จึงควรอธิบายให้เขาเข้าใจ",
+            "strength": "ติดตามดูตาของเขาต่อ",
+            "weigh": "ผิวที่หายดีอาจทำให้คิดว่าหายป่วยแล้ว ควรอธิบายให้เขาเข้าใจ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Plans an **eye clinic follow-up** because damage can surface weeks later.",
-            "weigh": "Long-term eye problems are common after-effects, so the appointment is worth keeping firm.",
+            "strength": "Books an **eye clinic follow-up**.",
+            "weigh": "Pain or blurred vision before the visit needs an earlier look.",
             "safety": ""
           },
           {
-            "strength": "Looks beyond healed skin to the eyes, where late harm is common.",
-            "weigh": "Pain or blurred vision before the visit deserves an earlier look.",
+            "strength": "Looks beyond the healed skin to his eyes.",
+            "weigh": "The answer gives no time frame for the visit.",
             "safety": ""
           },
           {
-            "strength": "Anticipates dry eye and **lid scarring** that can appear weeks later.",
+            "strength": "Keeps his eyes under review.",
             "weigh": "Healed skin can make the illness seem over, which is worth explaining to him.",
             "safety": ""
           }
@@ -1971,35 +1971,35 @@
       "card": {
         "th": [
           {
-            "strength": "ให้**บัตรแพ้ยา**ที่กันการได้ยาซ้ำ ไม่ว่าจะไปรักษาที่ไหน",
-            "weigh": "บัตรจะได้ผลเมื่อระบุชื่ออัลโลพูรินอลชัดเจน และเขาพกติดตัวเสมอ",
+            "strength": "ให้**บัตรแพ้ยา**",
+            "weigh": "บัตรได้ผลเมื่อระบุชื่ออัลโลพูรินอลชัดเจนและเขาพกติดตัว",
             "safety": ""
           },
           {
-            "strength": "รายงาน อย. ทำให้การแพ้ครั้งนี้เข้าสู่ข้อมูลความปลอดภัยของประเทศ",
-            "weigh": "ผู้ป่วยควรรู้ว่าการได้ยาซ้ำอาจรุนแรงกว่าเดิมมาก",
+            "strength": "รายงานการแพ้เข้าระบบของ อย.",
+            "weigh": "เขาควรรู้ด้วยว่าการได้ยาซ้ำอาจรุนแรงกว่าเดิมมาก",
             "safety": ""
           },
           {
-            "strength": "ปกป้องทั้งเขาและผู้ป่วยรายอื่น ด้วยบัตรใบเดียวและรายงานฉบับเดียว",
-            "weigh": "ชื่อการค้าและยาผสมที่มีอัลโลพูรินอลควรเขียนไว้ในบัตรด้วย",
+            "strength": "บัตรหนึ่งใบกับรายงานหนึ่งฉบับปกป้องทั้งเขาและผู้อื่น",
+            "weigh": "ควรระบุชื่อการค้าและยาผสมที่มีอัลโลพูรินอลไว้ในบัตรด้วย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Gives him an **allergy card** that guards against a repeat dose wherever he is treated.",
+            "strength": "Gives him an **allergy card**.",
             "weigh": "The card works only if it names allopurinol clearly and he carries it.",
             "safety": ""
           },
           {
-            "strength": "Reports to the Thai FDA, so the reaction counts in national safety data.",
-            "weigh": "He needs to know that a repeat dose could be far more severe.",
+            "strength": "Reports the reaction to the Thai FDA.",
+            "weigh": "He also needs to hear that a repeat dose could be far worse.",
             "safety": ""
           },
           {
-            "strength": "Protects him and future patients with one card and one report.",
-            "weigh": "Brand names and combination products containing allopurinol are worth listing on the card.",
+            "strength": "One card and one report cover him and others.",
+            "weigh": "Brand names and combined products with allopurinol are worth listing on the card.",
             "safety": ""
           }
         ]
@@ -2007,35 +2007,35 @@
       "hla": {
         "th": [
           {
-            "strength": "ขยายการป้องกันไปยัง**ญาติสายตรง**ที่อาจมียีนเดียวกัน",
-            "weigh": "การตรวจช่วยญาติได้มากที่สุดเมื่อญาติมีแผนจะเริ่มอัลโลพูรินอล",
+            "strength": "นึกถึง**ญาติ**ของเขา",
+            "weigh": "เรื่องยาของเขาเองตัดสินแล้ว การตรวจจึงช่วยครอบครัวมากกว่าตัวเขา",
             "safety": ""
           },
           {
-            "strength": "ใช้การแพ้ของเขาเป็นบทเรียนให้ครอบครัวได้ยาอย่างปลอดภัยขึ้น",
-            "weigh": "เรื่องยาของเขาเองตัดสินแล้ว คุณค่าของการตรวจจึงอยู่ที่ญาติเป็นหลัก",
+            "strength": "ขยายการดูแลไปถึงครอบครัว",
+            "weigh": "การตรวจช่วยญาติได้มากที่สุดเมื่อจะเริ่มอัลโลพูรินอลให้คนนั้น",
             "safety": ""
           },
           {
-            "strength": "นึกถึงครอบครัว เพราะยีนนี้สัมพันธ์กับการแพ้ยาชัดในคนไทย",
-            "weigh": "ควรอธิบายความหมายของผลตรวจให้ญาติเข้าใจไปพร้อมกัน",
+            "strength": "ตรวจยีนสั่งได้ง่าย",
+            "weigh": "คำตอบยังไม่ได้พูดถึงการติดตามตัวเขาเอง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Extends protection to **close relatives** who may share the gene.",
-            "weigh": "Testing helps relatives most when allopurinol is being considered for them.",
+            "strength": "Thinks of his **relatives**.",
+            "weigh": "His own drug decision is made, so the test serves the family more than him.",
             "safety": ""
           },
           {
-            "strength": "Uses his reaction to guide safer prescribing in his family.",
-            "weigh": "His own drug decision is already made, so the value lies mostly with his relatives.",
+            "strength": "Extends care to the family.",
+            "weigh": "Testing helps a relative most when allopurinol is being considered for them.",
             "safety": ""
           },
           {
-            "strength": "Thinks of family members, given the strong gene link in Thai patients.",
-            "weigh": "Explaining what a result means is worth arranging alongside the test.",
+            "strength": "A gene test is simple to arrange.",
+            "weigh": "The answer leaves out his own care.",
             "safety": ""
           }
         ]
@@ -2153,35 +2153,35 @@
       "card": {
         "th": [
           {
-            "strength": "ให้**บัตรแพ้ยา**ที่กันการได้ยาซ้ำ ไม่ว่าจะไปรักษาที่ไหน",
-            "weigh": "บัตรจะได้ผลเมื่อระบุชื่ออัลโลพูรินอลชัดเจน และเขาพกติดตัวเสมอ",
+            "strength": "ให้**บัตรแพ้ยา**",
+            "weigh": "บัตรได้ผลเมื่อระบุชื่ออัลโลพูรินอลชัดเจนและเขาพกติดตัว",
             "safety": ""
           },
           {
-            "strength": "รายงาน อย. ทำให้การแพ้ครั้งนี้เข้าสู่ข้อมูลความปลอดภัยของประเทศ",
-            "weigh": "ผู้ป่วยควรรู้ว่าการได้ยาซ้ำอาจรุนแรงกว่าเดิมมาก",
+            "strength": "รายงานการแพ้เข้าระบบของ อย.",
+            "weigh": "เขาควรรู้ด้วยว่าการได้ยาซ้ำอาจรุนแรงกว่าเดิมมาก",
             "safety": ""
           },
           {
-            "strength": "ปกป้องทั้งเขาและผู้ป่วยรายอื่น ด้วยบัตรใบเดียวและรายงานฉบับเดียว",
-            "weigh": "ชื่อการค้าและยาผสมที่มีอัลโลพูรินอลควรเขียนไว้ในบัตรด้วย",
+            "strength": "บัตรหนึ่งใบกับรายงานหนึ่งฉบับปกป้องทั้งเขาและผู้อื่น",
+            "weigh": "ควรระบุชื่อการค้าและยาผสมที่มีอัลโลพูรินอลไว้ในบัตรด้วย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Gives him an **allergy card** that guards against a repeat dose wherever he is treated.",
+            "strength": "Gives him an **allergy card**.",
             "weigh": "The card works only if it names allopurinol clearly and he carries it.",
             "safety": ""
           },
           {
-            "strength": "Reports to the Thai FDA, so the reaction counts in national safety data.",
-            "weigh": "He needs to know that a repeat dose could be far more severe.",
+            "strength": "Reports the reaction to the Thai FDA.",
+            "weigh": "He also needs to hear that a repeat dose could be far worse.",
             "safety": ""
           },
           {
-            "strength": "Protects him and future patients with one card and one report.",
-            "weigh": "Brand names and combination products containing allopurinol are worth listing on the card.",
+            "strength": "One card and one report cover him and others.",
+            "weigh": "Brand names and combined products with allopurinol are worth listing on the card.",
             "safety": ""
           }
         ]
@@ -2189,35 +2189,35 @@
       "hla": {
         "th": [
           {
-            "strength": "ขยายการป้องกันไปยัง**ญาติสายตรง**ที่อาจมียีนเดียวกัน",
-            "weigh": "การตรวจช่วยญาติได้มากที่สุดเมื่อญาติมีแผนจะเริ่มอัลโลพูรินอล",
+            "strength": "นึกถึง**ญาติ**ของเขา",
+            "weigh": "เรื่องยาของเขาเองตัดสินแล้ว การตรวจจึงช่วยครอบครัวมากกว่าตัวเขา",
             "safety": ""
           },
           {
-            "strength": "ใช้การแพ้ของเขาเป็นบทเรียนให้ครอบครัวได้ยาอย่างปลอดภัยขึ้น",
-            "weigh": "เรื่องยาของเขาเองตัดสินแล้ว คุณค่าของการตรวจจึงอยู่ที่ญาติเป็นหลัก",
+            "strength": "ขยายการดูแลไปถึงครอบครัว",
+            "weigh": "การตรวจช่วยญาติได้มากที่สุดเมื่อจะเริ่มอัลโลพูรินอลให้คนนั้น",
             "safety": ""
           },
           {
-            "strength": "นึกถึงครอบครัว เพราะยีนนี้สัมพันธ์กับการแพ้ยาชัดในคนไทย",
-            "weigh": "ควรอธิบายความหมายของผลตรวจให้ญาติเข้าใจไปพร้อมกัน",
+            "strength": "ตรวจยีนสั่งได้ง่าย",
+            "weigh": "คำตอบยังไม่ได้พูดถึงการติดตามตัวเขาเอง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Extends protection to **close relatives** who may share the gene.",
-            "weigh": "Testing helps relatives most when allopurinol is being considered for them.",
+            "strength": "Thinks of his **relatives**.",
+            "weigh": "His own drug decision is made, so the test serves the family more than him.",
             "safety": ""
           },
           {
-            "strength": "Uses his reaction to guide safer prescribing in his family.",
-            "weigh": "His own drug decision is already made, so the value lies mostly with his relatives.",
+            "strength": "Extends care to the family.",
+            "weigh": "Testing helps a relative most when allopurinol is being considered for them.",
             "safety": ""
           },
           {
-            "strength": "Thinks of family members, given the strong gene link in Thai patients.",
-            "weigh": "Explaining what a result means is worth arranging alongside the test.",
+            "strength": "A gene test is simple to arrange.",
+            "weigh": "The answer leaves out his own care.",
             "safety": ""
           }
         ]
@@ -2299,8 +2299,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-15",
-    "findings": "Fresh claude-opus-5-5 reviewer that did not write the case, 2026-11-15, two rounds. Read every reply in all 13 banks (3 alternatives per option, Thai and English) against every question variant of its bank and every path into it. Round 1 flagged the step4.W drip alternative 0 for citing low urine, which only variant 1 states. Round 2 replaced drip with bolus_ua, whose replies cite only BP 94/60, which both variants show. Round 2 also added new replies for ah_ref and st_ref in step3.B, step3.R and step3.W. Judged: the ah_ref replies credit stopping the drug and onward care. They weigh that an antihistamine eases itch without stopping detachment, that more than 10% loss suits a full wound and eye team, and that sedation can matter on the journey. The st_ref replies credit early action and onward care, and weigh the uncertain steroid benefit, infection risk and masked fever, in line with BAD 2016. The bolus_ua replies credit the prompt bolus and weigh that a uric acid level adds nothing acute and only adds cost. None of these replies grades the choice, names another option or previews a later step. No reply on any path still says ward, here or admit. All other replies are as reviewed in round 1: facts correct, no ranking, no other option named, nothing asserted that only some variants or paths state. All safety lines are empty, which is right because every option is safe. The reply-bank check reports content ok. Tree sha256 e86d8bca57bfb1c5e8047fce567cc1f1ba5fbab01fac78caf9f81dc918f1089d. Replies sha256 9e147f3af8a93e304ddc90f483ea8662277d5ee512235a4bb8db9d07d802d2ca.",
-    "tree_sha256": "e86d8bca57bfb1c5e8047fce567cc1f1ba5fbab01fac78caf9f81dc918f1089d",
-    "replies_sha256": "9e147f3af8a93e304ddc90f483ea8662277d5ee512235a4bb8db9d07d802d2ca"
+    "findings": "Read all three alternatives of every option of all 13 banks in Thai and English, each against every question variant of its bank and every tier path into it; only strength and weigh text changed since the last review, and every safety line stays empty, which is right because every option is safe. The step3 ah_ref and st_ref replies hold on every path: an antihistamine eases itch and does not treat SJS/TEN, steroid benefit in SJS/TEN is unproven, which matches the BAD 2016 finding of insufficient evidence for systemic corticosteroids, and the label of each option names no receiving unit, whereas BAD 2016 sends patients with more than 10% detachment to a burn centre or ICU. The step2.B c reply that the bedside picture is already clear holds on both variants, since step2.B follows the best step 1 answer and the vignette gives the mucosal, eye and skin findings. Replies that cite 12% skin loss, age 58, crusted lips or the drug started 3 weeks ago take them from the vignette, so they hold after the simplified step2.W and step3.B variants; the SCORTEN points named in step2.R b (age and detachment over 10%) are correct. Replies naming SJS/TEN after a weaker step 1 come after step 1 is answered and preview no later step. The step4.B a reply that he keeps replacing fluid reads as keeping up replacement of ongoing loss, so it also holds after the burn-unit referral at step 3. No reply ranks or grades the choice, names another option of its bank, or previews a later step, and Thai and English say the same thing in natural Thai. reply-bank.mjs check prints content ok; review pending. Tree sha256 a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71. Replies sha256 b7adfc5e5ad59a4a94f9af0528b8b0660946a84142e4372c4c0746008aa392b9.",
+    "tree_sha256": "a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71",
+    "replies_sha256": "b7adfc5e5ad59a4a94f9af0528b8b0660946a84142e4372c4c0746008aa392b9"
   }
 }
