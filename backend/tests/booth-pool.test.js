@@ -109,19 +109,17 @@ describe('the event pool holds one step count', () => {
     expect(pool.left.filter((l) => /three-step/.test(l.why)).map((l) => l.name)).toEqual([]);
   });
 
-  // #497: seven cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
-  // to it, so they are admitted. copd's table (run ptb-202611170738-3cf7) failed its re-check. dka, melioidosis and
-  // motorcycle were edited after failing it; their rebuild stopped at the cap (run ptb-202611170517-8275), so they have
-  // no table and wait.
-  const NO_TABLE = ['dka-young-adult', 'melioidosis-farmer', 'motorcycle-shock'];
+  // #497: nine cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
+  // to it, so they are admitted. copd's table (run ptb-202611170738-3cf7) and melioidosis's (run ptb-202611170622-b39a)
+  // failed their re-check, so they are not.
+  const FAILED = ['copd-exacerbation', 'melioidosis-farmer'];
   test('NFCME-2026 admits the five-step cases whose table passed its re-check, and only those (#497)', () => {
     const files = readEventFiles(path.join(__dirname, '../src/booth-cases'), 'NFCME-2026');
     const pool = eventPool('NFCME-2026', files);
-    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'ectopic-rupture', 'leptospirosis',
-      'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
-    expect(pool.left.map((l) => [l.name, l.why]).sort())
-      .toEqual(['copd-exacerbation', ...NO_TABLE].map((id) => [`${id}.json`, 'is not admitted']));
-    expect(files.filter(({ raw }) => !raw.path_score_table).map(({ raw }) => raw.case_id).sort()).toEqual(NO_TABLE);
+    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'dka-young-adult', 'ectopic-rupture',
+      'leptospirosis', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+    expect(pool.left.map((l) => [l.name, l.why]).sort()).toEqual(FAILED.map((id) => [`${id}.json`, 'is not admitted']));
+    expect(files.filter(({ raw }) => !raw.path_score_table).map(({ raw }) => raw.case_id)).toEqual([]);
     for (const { raw } of files.filter(({ raw }) => raw.path_score_table)) {
       const sha = treeSha(raw);
       expect([raw.case_id, raw.path_score_table.provenance.tree_sha256]).toEqual([raw.case_id, sha]);
