@@ -283,11 +283,13 @@ describe('admission', () => {
     expect(cases.filter((k) => k.path_score_table?.provenance.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
     const admitted = cases.filter(isAdmitted);
     expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Admitted only where the table's own run passed the re-check. ectopic-rupture (run ptb-202611161522-9144) and
-    // melioidosis-farmer (run ptb-202611161531-ff69) failed theirs; with the $85 cap spent they hold no sandbox record.
+    // Five are admitted (#510, route B). ectopic-rupture and melioidosis-farmer failed their re-check; dka-young-adult,
+    // motorcycle-shock, copd-exacerbation and sjs-ten-allopurinol had their admission taken back for the gate's
+    // findings. All six wait for the follow-up PR and hold no table check, sandbox record or waiver.
     expect(admitted.map((k) => k.case_id).sort())
-      .toEqual(['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'dka-young-adult', 'leptospirosis', 'motorcycle-shock',
-        'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+      .toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'organophosphate', 'toddler-gastro-dehydration']);
+    expect(cases.filter((k) => !isAdmitted(k) && (k.admission.table_check || k.admission.sandbox || k.admission.owner_waiver))
+      .map((k) => k.case_id)).toEqual([]);
   });
 
   test('a case with no admission marker is valid but not admitted', () => {

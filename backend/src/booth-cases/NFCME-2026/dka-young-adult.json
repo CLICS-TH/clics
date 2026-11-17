@@ -994,17 +994,6 @@
       "date": "2026-11-15",
       "findings": "Fresh review by a non-author of dka-young-adult version 10 (#497): every question variant and every option of all 13 banks, Thai and English, compared with the tree before this revision (git diff origin/claude/hungry-robinson-dbaaa6). Only option lines changed (step1 d and e, step2.W f, step3.B b and d, step3.R d, step3.W d, step4.B c, step4.R d, step4.W c and d, step5.B b, step5.R c, step5.W c); no label, tier, dose, variant or option changed. Sources: hyperglycaemic crises consensus (Diabetologia 2024;67:1455-79), insulin section (fixed-rate IV insulin 0.1 U/kg/h; below 250 mg/dL add 5-10% dextrose and reduce to 0.05 U/kg/h; no insulin while K is below 3.5; replace K below 5.0; overlap basal insulin by 1-2 h) and Table 2 (moderate DKA); JBDS 02 pathway 2023 (FRIII 0.1 unit/kg/h; 10% dextrose below 14 mmol/L; if ketones fall slowly check the line and raise the insulin); Thai DM CPG 2566 ch.12 (0.1 U/kg/h), through the earlier reviews' recorded quotes, not opened this session. Judgments: step3.B b \"Hourly glucose shows when dextrose needs adding\" reads as future monitoring at glucose 450, not dextrose now, and stays best. The 0.05 U/kg/h starts (step3.B d, step3.R d, step3.W d) stay weaker: the consensus and Thai CPG start at 0.1, half the rate still runs insulin, so it is safe but clears ketones more slowly; the R and W lines still gate insulin on a safe K; \"the gentler dose many wards use\" and \"the gentler habit\" describe a habit and do not claim it is standard. step4.R d (glucose 330, K 4.0) and step4.W d (K 3.7) stay weaker and safe: insulin keeps running, step4.W d adds K, \"usual first move\" reads as a habit, and the guideline answer (raise the insulin after checking the line) stays among the bests. step4.B c (10% dextrose, same insulin rate, at glucose 240) stays reasonable (follows JBDS, below the consensus and Thai rate cut). step4.W c stays reasonable. step5.R c \"Twice a day is the simple start many clinics use\" still answers its question and stays reasonable below basal-bolus. step5.B b now teaches her insulin before discharge, correct. step5.W c stays reasonable. Every weaker option is safe; every step that raises insulin has K at least 3.7; no line withholds or delays treatment; Thai and English agree and the Thai is natural; each line argues for its own option; the teaser does not hint the diagnosis. Non-blocking: step5.R c no longer ties twice-daily dosing to needle fear explicitly; the step4.B a Thai line still lacks มก./ดล. (budget). MUST-FIX: none. Reviewed tree sha256 4eea7a5bded70057c82bf3b26fb3a08f28f49c0b006f22ac2216f7b9d1f3432e.",
       "tree_sha256": "4eea7a5bded70057c82bf3b26fb3a08f28f49c0b006f22ac2216f7b9d1f3432e"
-    },
-    "owner_waiver": {
-      "date": "2026-11-15",
-      "adr": "0005",
-      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611150648-30f0: strong: 0 of 3 plays scored; average: 1 of 3 plays scored",
-      "sandbox_run_id": "sbx-202611150648-30f0",
-      "tree_sha256": "4eea7a5bded70057c82bf3b26fb3a08f28f49c0b006f22ac2216f7b9d1f3432e"
-    },
-    "table_check": {
-      "run_id": "ptb-202611151418-a3e1",
-      "date": "2026-11-15"
     }
   },
   "path_score_table": {

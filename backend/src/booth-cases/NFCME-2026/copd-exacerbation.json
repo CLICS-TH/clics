@@ -1118,17 +1118,6 @@
       "date": "2026-11-15",
       "findings": "This is a re-check by a non-author of the final tree of copd-exacerbation version 10 (five steps), after the #497 revisions and one MUST-FIX round: every question variant and every option label, line and tier in all 13 banks, Thai and English. Sources: the Thoracic Society of Thailand COPD guideline 2565 (2022) chapter 6 (p.77: a beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide as the usual first antibiotic; prednisolone 30-40 mg for 5-7 days; Table 6, NIV for raised PaCO2 at pH 7.25-7.35; Table 7, invasive ventilation); GOLD 2025 chapter 5 (prednisone 40 mg for 5 days, the usual empirical antibiotics, NIV as the preferred first mode, IV magnesium not part of standard therapy); BTS/ICS AHRF 2016 (target 88-92%, NIV must not delay escalation, a plan for NIV failure); the Cochrane review of magnesium sulfate in COPD exacerbations (CD013506, 2022: low-certainty evidence only); the WHO IMAI District Clinician Manual (WHO 2011) volume 2 section 10.6.5 on COPD. The first round of this review returned one tree MUST-FIX: step4.R d read \"Switch to levofloxacin\", which made no sense on the path from step3.W g, where he is already on levofloxacin; it now reads \"Switch to IV ceftriaxone\" and holds on every path into step4.R, whose earlier antibiotics are azithromycin, oral or IV amox-clav or levofloxacin, never ceftriaxone (the ceftriaxone option at step 3 is weaker and leads to step4.W). It is weaker but safe: it changes a sound first antibiotic at 2 hours for no gain and does nothing for the tight airways, and it withholds nothing. Notable judgments: step5.W d \"Refer to ICU, double the steroid\" no longer names NIV and stays safe as weaker on all three paths into step5.W (after step4.B d or e and after step4.R d he is not on NIV, after step4.W d he is): it sends him to ICU, the right place, as the reasonable option b does without naming ventilation, it stops nothing that is running, a doubled steroid adds side effects without acute danger, and every reply to it carries the safety line demanding active support and ICU at the bedside now. step5.R e and step5.B d keep their weaker tiers with new lines that argue for their own option. step4.W d stays weaker because it still starts NIV. step3.W levofloxacin stays reasonable. step2.W d and e stay weaker because they omit tests, not treatment. step5.W keeps the ICU-first NIV bridge and intubation as best. The teaser hints at no diagnosis. Thai and English agree and the Thai reads naturally. MUST-FIX: none. Reviewed tree sha256 8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4.",
       "tree_sha256": "8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4"
-    },
-    "table_check": {
-      "run_id": "ptb-202611161504-6f34",
-      "date": "2026-11-16"
-    },
-    "owner_waiver": {
-      "date": "2026-11-16",
-      "adr": "0005",
-      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611161622-a3a2: strong: 1 of 3 plays scored",
-      "sandbox_run_id": "sbx-202611161622-a3a2",
-      "tree_sha256": "8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4"
     }
   },
   "path_score_table": {

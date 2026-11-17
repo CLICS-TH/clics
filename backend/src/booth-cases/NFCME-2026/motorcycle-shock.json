@@ -1001,17 +1001,6 @@
       "date": "2026-11-15",
       "findings": "Fresh non-author review of five-step version 7 in two rounds: every question variant and option of all 13 banks, Thai and English, against the vignette and every path. Sources: ATLS 10th ed. ch. 3 (initial crystalloid capped at 1 L, early blood in class III/IV shock, adult urine target 0.5 mL/kg/h); the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023), Rec 13 (systolic 80-90 mmHg until bleeding is controlled, no TBI), Rec 15 (restricted volume replacement) and Rec 23 (TXA within 3 h, 1 g over 10 min then 1 g over 8 h); CRASH-2 (bleeding deaths rise when TXA starts after 3 h). Round 1 raised two tree MUST-FIX items. First, step-3 option e \"Saline 2 L, then judge response\" in step3.B, R and W gave no blood, TXA or transfer to a patient in ongoing haemorrhagic shock at BP 82/56, which delayed needed treatment, and its line restated the 2 L bolus that ATLS 10th ed. dropped. Second, the step5.B/R/W option b line asserted a \"left upper abdominal bleed\" on paths where no source is confirmed. Round 2 confirmed both fixes. Option e is now \"Call the surgeon, arrange transfer\" / \"โทรศัลยแพทย์ ประสานส่งต่อทันที\" (weaker): it speeds definitive care and displaces no resuscitation, and both step4.W stems state that blood and TXA are in, so it is weaker but safe. The step5 b line now reads \"His suspected abdominal bleed may need theatre the moment he arrives.\" / \"สงสัยเลือดออกในท้อง อาจต้องผ่าตัดทันทีที่ถึง ทีมได้เตรียม\". Tiers checked closely: step3 a and b best (blood, TXA, transfer; permissive systolic near 90 per Rec 13), step3 c reasonable (saline 1 L then blood, within the ATLS cap), step4.B a and b best, step4.R a and b best, and step4.W b best. TXA audit: step-3 a, b and c give TXA once and lead to step4.B or step4.R, which offer no TXA; step-3 e gives none and leads to step4.W, whose stems state TXA 1 g is in and whose options give no more. So TXA is given exactly once on every path, inside 3 hours. Each bank has one option per tier, no option is unsafe, no tier is mislabelled, there is no withholding wording, the teaser hints no diagnosis, and Thai and English agree and read naturally. MUST-FIX: none. Reviewed tree sha256 501eeecb6064ecece232fad728bde011cccfa20263039032081a90143da32690.",
       "tree_sha256": "501eeecb6064ecece232fad728bde011cccfa20263039032081a90143da32690"
-    },
-    "owner_waiver": {
-      "date": "2026-11-15",
-      "adr": "0005",
-      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611150648-30f0: average: 2 of 3 plays scored",
-      "sandbox_run_id": "sbx-202611150648-30f0",
-      "tree_sha256": "501eeecb6064ecece232fad728bde011cccfa20263039032081a90143da32690"
-    },
-    "table_check": {
-      "run_id": "ptb-202611151418-a3e1",
-      "date": "2026-11-15"
     }
   },
   "path_score_table": {
