@@ -1360,7 +1360,7 @@
             "safety": ""
           },
           {
-            "strength": "เพิ่มอินซูลินคู่กับ K ที่เพิ่ม รับกับความเสี่ยงที่ K จะลดลงอีก",
+            "strength": "เพิ่มอินซูลินคู่กับ K ที่เพิ่ม รับกับความเสี่ยงที่อินซูลินจะดึง K ให้ต่ำลง",
             "weigh": "ก่อนปรับอัตรา ควรเช็กว่าสายและเครื่องหยดยาให้ยาได้ตามที่สั่ง",
             "safety": ""
           },
@@ -1377,7 +1377,7 @@
             "safety": ""
           },
           {
-            "strength": "It pairs more insulin with **extra K**, matching the risk that K falls further.",
+            "strength": "It pairs more insulin with **extra K**, matching the risk that more insulin pulls K down.",
             "weigh": "Before changing the rate, it is worth confirming the drip and line deliver what is prescribed.",
             "safety": ""
           },
@@ -1396,7 +1396,7 @@
             "safety": ""
           },
           {
-            "strength": "ครอบคลุมสามเรื่องพร้อมกัน ทั้งขนาดยา K ที่ลดลง และสาเหตุเบื้องหลัง",
+            "strength": "ครอบคลุมสามเรื่องพร้อมกัน ทั้งขนาดยา K 3.7 และสาเหตุเบื้องหลัง",
             "weigh": "K 3.7 ใกล้ระดับที่มักต้องหยุดอินซูลิน จึงควรตรวจซ้ำเร็ว",
             "safety": ""
           },
@@ -1413,7 +1413,7 @@
             "safety": ""
           },
           {
-            "strength": "It covers three things at once: the dose, the falling K and the cause behind it.",
+            "strength": "It covers three things at once: the dose, a K of 3.7 and the cause behind it.",
             "weigh": "At 3.7, K is close to the level where insulin is usually paused, so recheck it soon.",
             "safety": ""
           },
@@ -1463,7 +1463,7 @@
       "d": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับ K ที่ลดลง และเพิ่ม K ไปกับสารน้ำ",
+            "strength": "ให้ความสำคัญกับ K 3.7 และเพิ่ม K ไปกับสารน้ำ",
             "weigh": "ภาวะกรดยังค้างหลัง 4 ชม. การให้สารน้ำและ K อย่างเดียวอาจไม่ช่วยให้ดีขึ้น",
             "safety": ""
           },
@@ -1473,14 +1473,14 @@
             "safety": ""
           },
           {
-            "strength": "เติม K ตอนนี้ช่วยกันไม่ให้ K ลดลงอีกขณะอินซูลินที่ให้อยู่ทำงาน",
+            "strength": "เติม K ตอนนี้ช่วยกันไม่ให้ K ต่ำลงขณะอินซูลินที่ให้อยู่ทำงาน",
             "weigh": "ภาวะกรดที่ยังค้างหลังให้อินซูลินเดิม 4 ชม. อาจไม่ดีขึ้นด้วยสารน้ำอย่างเดียว",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "It takes the falling K seriously and adds more K with the fluid.",
+            "strength": "It takes a K of 3.7 seriously and adds more K with the fluid.",
             "weigh": "With acidosis still present after 4 hours, fluid and K alone may leave it where it is.",
             "safety": ""
           },
@@ -1490,7 +1490,7 @@
             "safety": ""
           },
           {
-            "strength": "Adding K now protects against a further fall while the current drip runs.",
+            "strength": "Adding K now guards against K dropping while the current drip runs.",
             "weigh": "Acidosis still present after 4 hours on the current drip is something fluid alone may not change.",
             "safety": ""
           }

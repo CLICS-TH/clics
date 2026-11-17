@@ -1502,13 +1502,13 @@
             "safety": ""
           },
           {
-            "strength": "การนัดตรวจซ้ำตามเวลา เปลี่ยนการรอดูให้เป็นแผนที่วัดผลได้",
+            "strength": "การตรวจก๊าซตามเวลา เปลี่ยนการรอดูให้เป็นแผนที่วัดผลได้",
             "weigh": "ผลก๊าซช่วยตัดสินใจ แต่ไม่ควรทำให้การรักษาเสียงวี้ดช้าลงระหว่างรอ",
             "safety": ""
           },
           {
             "strength": "ติดตาม CO2 แต่เนิ่น ๆ ป้องกันการล้าที่ค่อย ๆ เกิดและมองข้ามได้ง่าย",
-            "weigh": "ควรแปลผลครั้งหน้าร่วมกับระดับความรู้สึกตัวและอัตราการหายใจ",
+            "weigh": "ควรแปลผลก๊าซร่วมกับระดับความรู้สึกตัวและอัตราการหายใจ",
             "safety": ""
           }
         ],
@@ -1519,13 +1519,13 @@
             "safety": ""
           },
           {
-            "strength": "A timed recheck turns watchful waiting into a measured plan.",
+            "strength": "A timed gas turns watchful waiting into a measured plan.",
             "weigh": "Worth weighing that the gas guides decisions but should not delay treating the wheeze meanwhile.",
             "safety": ""
           },
           {
             "strength": "Tracking CO2 early guards against a slow slide into tiredness that is easy to miss.",
-            "weigh": "Worth reading the next gas alongside his alertness and breathing rate, not on its own.",
+            "weigh": "Worth reading the gas alongside his alertness and breathing rate, not on its own.",
             "safety": ""
           }
         ]
@@ -2091,7 +2091,7 @@
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "มอง NIV เป็นการประคองไม่ใช่จุดสุดท้าย เมื่อผลก๊าซแย่ลง",
+            "strength": "มอง NIV เป็นการประคองไม่ใช่จุดสุดท้าย เมื่อผลก๊าซแย่ขนาดนี้",
             "weigh": "ควรมีคนเฝ้าข้างเตียงจนกว่าทีม ICU จะมาถึง",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           }
@@ -2108,7 +2108,7 @@
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "You treated NIV as holding support, not the endpoint, given his worsening gas.",
+            "strength": "You treated NIV as holding support, not the endpoint, given a gas this bad.",
             "weigh": "Worth weighing who stays at the bedside to watch him until the ICU team arrives.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           }
@@ -2118,7 +2118,7 @@
         "th": [
           {
             "strength": "เรียก **ICU และแพทย์อาวุโส**พร้อมกัน ได้ทักษะที่สถานการณ์นี้ต้องการ",
-            "weigh": "ความช่วยเหลือกำลังมา แต่ CO2 ที่สูงขึ้นยังต้องได้รับการช่วยในนาทีก่อนทีมถึง",
+            "weigh": "ความช่วยเหลือกำลังมา แต่ CO2 70 ยังต้องได้รับการช่วยในนาทีก่อนทีมถึง",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
@@ -2135,7 +2135,7 @@
         "en": [
           {
             "strength": "Calling for **ICU and a senior** at once brings the skills this moment needs.",
-            "weigh": "Help is on its way, and his rising CO2 still needs active support in the minutes before it arrives.",
+            "weigh": "Help is on its way, and a CO2 of 70 still needs active support in the minutes before it arrives.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
@@ -2158,12 +2158,12 @@
             "safety": ""
           },
           {
-            "strength": "อ่านอาการซึมและ CO2 ที่แย่ลงว่าการหายใจของเขาเองกำลังไม่พอ",
+            "strength": "อ่านอาการซึมกับ CO2 70 ว่าการหายใจของเขาเองกำลังไม่พอ",
             "weigh": "การถอดเครื่องช่วยหายใจอาจใช้เวลานานในปอดแบบนี้ ควรวางแผนตั้งแต่ต้น",
             "safety": ""
           },
           {
-            "strength": "แจ้ง ICU พร้อมลงมือทันที ไม่เสียเวลาขณะผลก๊าซแย่ลง",
+            "strength": "แจ้ง ICU พร้อมลงมือทันที ไม่เสียเวลาเมื่อผลก๊าซแย่ขนาดนี้",
             "weigh": "ควรดูว่าใครมีประสบการณ์ใส่ท่อมากพอในขณะนี้",
             "safety": ""
           }
@@ -2175,12 +2175,12 @@
             "safety": ""
           },
           {
-            "strength": "You read worsening drowsiness and CO2 as a sign that his own breathing is failing.",
+            "strength": "You read drowsiness with a CO2 of 70 as a sign that his own breathing is failing.",
             "weigh": "Weaning can be slow in lungs like his, worth planning for from the start.",
             "safety": ""
           },
           {
-            "strength": "Calling ICU while acting now avoids losing time to a deteriorating gas.",
+            "strength": "Calling ICU while acting now avoids losing time with a gas this bad.",
             "weigh": "Worth weighing who has the most airway experience available for this procedure.",
             "safety": ""
           }

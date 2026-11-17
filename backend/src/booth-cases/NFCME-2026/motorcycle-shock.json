@@ -733,12 +733,12 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ให้เลือดและเร่งส่งต่อ",
-              "en": "Give blood, hasten the transfer"
+              "th": "ให้เลือดและ TXA เร่งส่งต่อ",
+              "en": "Blood and TXA, hasten transfer"
             },
             "line": {
-              "th": "ยังช็อกอยู่ ต้องได้เลือดและผ่าตัดเพื่อหยุดเลือด",
-              "en": "Still in shock, he needs blood and surgery to stop the bleed."
+              "th": "ยังช็อกอยู่ใน 3 ชม. ต้องได้เลือด TXA และผ่าตัด",
+              "en": "Still in shock within 3 hours, he needs blood, TXA and surgery."
             }
           },
           {
@@ -873,8 +873,8 @@
               "en": "Nurse escort, blood running"
             },
             "line": {
-              "th": "ความดันอาจตกซ้ำระหว่างทาง พยาบาลจึงให้เลือดต่อ",
-              "en": "His pressure may fall again on the road, so a nurse keeps blood going."
+              "th": "ความดันอาจตกซ้ำระหว่างทาง พยาบาลจึงให้เลือดตลอดทาง",
+              "en": "His pressure may fall on the road, so a nurse gives blood all the way."
             }
           },
           {

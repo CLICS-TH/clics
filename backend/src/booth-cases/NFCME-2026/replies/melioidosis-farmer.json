@@ -1685,7 +1685,7 @@
           },
           {
             "strength": "วางยาครบสองระยะ",
-            "weigh": "ผู้ป่วยไม่ได้ช็อก ยาฉีดตัวหลักก็เพียงพอ",
+            "weigh": "ถ้าไม่มีภาวะช็อก ยาฉีดตัวหลักก็เพียงพอ",
             "safety": ""
           },
           {
@@ -1702,7 +1702,7 @@
           },
           {
             "strength": "Both phases are planned.",
-            "weigh": "He is not in shock, so the first-line IV drug would do.",
+            "weigh": "Without signs of shock, the first-line IV drug would do.",
             "safety": ""
           },
           {

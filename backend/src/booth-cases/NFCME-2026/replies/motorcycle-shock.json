@@ -1391,34 +1391,34 @@
       "b": {
         "th": [
           {
-            "strength": "อ่านภาพ**ยังช็อกอยู่**ว่าเลือดยังออก จึงให้เลือดและให้ศัลยแพทย์เป็นแกนของแผน",
+            "strength": "อ่านภาพ**ยังช็อกอยู่**ว่าเลือดยังออก จึงให้เลือด TXA และให้ศัลยแพทย์เป็นแกนของแผน",
             "weigh": "เลือดประคองได้เฉพาะขณะที่ยังให้อยู่ เวลาเดินทางจึงสำคัญพอ ๆ กับปริมาณเลือด",
             "safety": ""
           },
           {
             "strength": "ยอมรับว่าเลือดเป็นเพียงสะพาน แล้วพาเขาไปหาศัลยแพทย์ที่หยุดเลือดได้",
-            "weigh": "งานเพิ่มทุกอย่างตรงนี้ต้องคุ้มกับเวลาที่เสียไป",
+            "weigh": "TXA ได้ผลดีที่สุดภายใน 3 ชม. หลังบาดเจ็บ ให้หนึ่งกรัมใน 10 นาที แล้วอีกหนึ่งกรัมใน 8 ชม.",
             "safety": ""
           },
           {
-            "strength": "ให้เลือดคู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
+            "strength": "ให้เลือดและ TXA คู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
             "weigh": "เมื่อให้เลือดเร็ว ต้องเฝ้าดู เพราะความดันอาจตกลงอีกระหว่างถุง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Reading **still in shock** as ongoing bleeding puts blood and a surgeon at the centre of the plan.",
+            "strength": "Reading **still in shock** as ongoing bleeding puts blood, TXA and a surgeon at the centre of the plan.",
             "weigh": "Blood keeps him going only while it runs, so time on the road matters as much as volume.",
             "safety": ""
           },
           {
             "strength": "You accept that blood is a bridge and move him toward the surgeon who can stop it.",
-            "weigh": "Each extra task here should earn its place against the delay it causes.",
+            "weigh": "TXA works best inside 3 hours of injury: a gram over 10 minutes, then a gram over 8 hours.",
             "safety": ""
           },
           {
-            "strength": "Matching blood with a faster move addresses both his volume and the cause.",
+            "strength": "Matching blood and TXA with a faster move addresses both his volume and the cause.",
             "weigh": "Units given fast need watching, as his pressure can sag again between bags.",
             "safety": ""
           }
@@ -1647,7 +1647,7 @@
       "a": {
         "th": [
           {
-            "strength": "**พยาบาลนำส่ง**พร้อมให้เลือด ทำให้การกู้ชีพไม่ขาดช่วงระหว่างเดินทาง",
+            "strength": "**พยาบาลนำส่ง**พร้อมให้เลือด ช่วยประคองเขาตลอดช่วงเดินทางที่เสี่ยง",
             "weigh": "ความดันอาจตกระหว่างทาง ผู้นำส่งจึงต้องรู้ชัดว่าเมื่อใดต้องลงมือ",
             "safety": ""
           },
@@ -1657,14 +1657,14 @@
             "safety": ""
           },
           {
-            "strength": "ให้เลือดต่อเนื่องและมีคนเฝ้าตลอดทาง ป้องกันการทรุดลงแบบเงียบ ๆ",
+            "strength": "ให้เลือดและมีคนเฝ้าตลอดทาง ป้องกันความดันตกระหว่างทาง",
             "weigh": "ผู้นำส่งตอบสนองได้ตามสิ่งที่วัดได้ การมีเครื่องติดตามบนรถจึงสำคัญ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **nurse escort** with blood running keeps resuscitation going through a risky stretch.",
+            "strength": "A **nurse escort** with blood running supports him through a risky stretch.",
             "weigh": "The escort needs clear limits for when to act and whom to call on the way.",
             "safety": ""
           },
@@ -1674,7 +1674,7 @@
             "safety": ""
           },
           {
-            "strength": "Keeping **blood running** and eyes on him all the way guards against a quiet relapse.",
+            "strength": "**Blood running** with eyes on him all the way guards against a fall on the road.",
             "weigh": "The escort can only respond to what they can measure, so monitoring on board matters.",
             "safety": ""
           }

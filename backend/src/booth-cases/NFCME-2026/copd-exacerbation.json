@@ -658,8 +658,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ABG ซ้ำ pH 7.39 PaCO2 46 mmHg ดีขึ้นชัด ทำอะไรต่อ",
-              "en": "Repeat ABG pH 7.39, PaCO2 46 mmHg; he is clearly better. What now?"
+              "th": "ABG pH 7.39 PaCO2 46 mmHg ดีขึ้นชัด ทำอะไรต่อ",
+              "en": "ABG pH 7.39, PaCO2 46 mmHg; he is clearly better. What now?"
             }
           }
         ],
@@ -743,8 +743,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "ABG ซ้ำ pH 7.36 PaCO2 50 mmHg ยังมีเสียงวี้ด ทำอะไรต่อ",
-              "en": "Repeat ABG pH 7.36, PaCO2 50 mmHg; he is still wheezy. What now?"
+              "th": "ABG pH 7.36 PaCO2 50 mmHg ยังมีเสียงวี้ด ทำอะไรต่อ",
+              "en": "ABG pH 7.36, PaCO2 50 mmHg; he is still wheezy. What now?"
             }
           }
         ],
@@ -765,8 +765,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ตรวจ ABG ซ้ำใน 1 ชม.",
-              "en": "Recheck the ABG in 1 hour"
+              "th": "ตรวจ ABG ใน 1 ชม.",
+              "en": "ABG within 1 hour"
             },
             "line": {
               "th": "เห็น CO2 ที่สูงขึ้นได้เร็ว ก่อนผู้ป่วยหายใจล้า",
