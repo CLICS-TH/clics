@@ -109,17 +109,18 @@ describe('the event pool holds one step count', () => {
     expect(pool.left.filter((l) => /three-step/.test(l.why)).map((l) => l.name)).toEqual([]);
   });
 
-  // #497: every five-step case has a path table bound to its tree. Five passed the re-check and carry a sandbox pass or
-  // owner waiver bound to that tree, so they are admitted. ectopic-rupture and melioidosis-farmer failed it; dka,
-  // motorcycle, copd and sjs had their admission taken back for the gate's findings (#510, route B). All six wait.
+  // #497: eight cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
+  // to it, so they are admitted. dka, melioidosis and motorcycle were edited after failing it; their rebuild stopped at
+  // the cap (run ptb-202611170517-8275), so they have no table and wait.
+  const NO_TABLE = ['dka-young-adult', 'melioidosis-farmer', 'motorcycle-shock'];
   test('NFCME-2026 admits the five-step cases whose table passed its re-check, and only those (#497)', () => {
     const files = readEventFiles(path.join(__dirname, '../src/booth-cases'), 'NFCME-2026');
     const pool = eventPool('NFCME-2026', files);
-    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'organophosphate',
-      'toddler-gastro-dehydration']);
-    expect(pool.left.map((l) => [l.name, l.why]).sort()).toEqual(['copd-exacerbation', 'dka-young-adult', 'ectopic-rupture',
-      'melioidosis-farmer', 'motorcycle-shock', 'sjs-ten-allopurinol'].map((id) => [`${id}.json`, 'is not admitted']));
-    for (const { raw } of files) {
+    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'ectopic-rupture', 'leptospirosis',
+      'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+    expect(pool.left.map((l) => [l.name, l.why]).sort()).toEqual(NO_TABLE.map((id) => [`${id}.json`, 'is not admitted']));
+    expect(files.filter(({ raw }) => !raw.path_score_table).map(({ raw }) => raw.case_id).sort()).toEqual(NO_TABLE);
+    for (const { raw } of files.filter(({ raw }) => raw.path_score_table)) {
       const sha = treeSha(raw);
       expect([raw.case_id, raw.path_score_table.provenance.tree_sha256]).toEqual([raw.case_id, sha]);
       const verdict = raw.admission.sandbox ?? raw.admission.owner_waiver;

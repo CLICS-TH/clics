@@ -1,0 +1,1111 @@
+{
+  "case_id": "sjs-ten-allopurinol",
+  "event_code": "NFCME-2026",
+  "version": "12",
+  "teaser": {
+    "th": "ชายวัย 58 ปี มาโรงพยาบาลชุมชน มีไข้ แผลในปาก และผื่นลามมา 2 วัน",
+    "en": "A 58-year-old man at a community hospital with fever, mouth sores and a spreading rash for 2 days"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ ชายอายุ 58 ปี มาโรงพยาบาลชุมชนด้วยไข้ เจ็บตา แผลในปาก และผื่นแดงคล้ำลามที่หน้าและลำตัวมา 2 วัน เมื่อ 3 สัปดาห์ก่อนคลินิกเริ่มยาอัลโลพูรินอลให้เพราะกรดยูริกสูง อุณหภูมิ 38.6 องศาเซลเซียส ชีพจร 112 ครั้งต่อนาที ความดันโลหิต 112/70 มม.ปรอท มีตุ่มน้ำที่ลำตัว ผิวหนังหลุดลอกเมื่อถูเบา ๆ ราวร้อยละ 12 ของผิวกาย ริมฝีปากเป็นสะเก็ด และตาแดงทั้งสองข้าง",
+    "en": "A fictional 58-year-old man comes to a community hospital with 2 days of fever, sore eyes, mouth sores and a dusky red rash spreading over his face and trunk. Three weeks ago a clinic started allopurinol for high uric acid. Temperature 38.6 °C, pulse 112/min, BP 112/70 mmHg. Blisters on the trunk, and the skin peels off with a gentle rub over about 12% of his body. His lips are crusted and both eyes are red."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "ผื่นและแผลในปากนี้เข้าได้กับโรคใดมากที่สุด",
+            "en": "Which diagnosis fits this rash and these mouth sores best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "คุณคิดว่าเขาเป็นโรคอะไร",
+            "en": "What do you think he has?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "SJS/TEN จากอัลโลพูรินอล",
+            "en": "SJS/TEN from allopurinol"
+          },
+          "line": {
+            "th": "แผลเยื่อบุ ผิวหลุดลอก และยาใหม่เมื่อ 3 สัปดาห์ก่อนเข้าได้",
+            "en": "Mucosal sores, peeling skin and a new drug 3 weeks ago fit."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "reasonable",
+          "label": {
+            "th": "DRESS จากอัลโลพูรินอล",
+            "en": "DRESS from allopurinol"
+          },
+          "line": {
+            "th": "ไข้ร่วมกับผื่นแพ้ยามักนึกถึง DRESS",
+            "en": "Fever with a drug rash often points to DRESS."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "อีสุกอีใส",
+            "en": "Chickenpox (varicella)"
+          },
+          "line": {
+            "th": "ไข้ร่วมกับตุ่มน้ำพบได้บ่อยในอีสุกอีใส",
+            "en": "Fever with blisters is common in chickenpox."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "SSSS ผิวลอกจากพิษเชื้อสแตฟ",
+            "en": "Staph scalded skin (SSSS)"
+          },
+          "line": {
+            "th": "ผิวลอกร่วมกับไข้มักมาจากการติดเชื้อที่ผิวหนัง",
+            "en": "Peeling skin with fever often comes from a skin infection."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "b",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สงสัย SJS/TEN จะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "SJS/TEN is suspected. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรก่อนเพื่อประเมินความรุนแรง",
+              "en": "Which first tests grade how severe this is?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจเลือดคิดคะแนน SCORTEN",
+              "en": "Blood tests for SCORTEN"
+            },
+            "line": {
+              "th": "ต้องใช้ผลเลือดเหล่านี้คิด SCORTEN ของเขา",
+              "en": "His SCORTEN needs these blood results."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ประเมินพื้นที่ผิวที่หลุดลอก",
+              "en": "Measure the detached skin area"
+            },
+            "line": {
+              "th": "สัดส่วนผิวที่หลุดบอกความรุนแรงของเขา",
+              "en": "His share of lost skin grades how severe this is."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตัดชิ้นเนื้อผิวหนังตรวจ",
+              "en": "Skin biopsy"
+            },
+            "line": {
+              "th": "ชิ้นเนื้อช่วยยืนยันการวินิจฉัย",
+              "en": "A biopsy confirms the diagnosis."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อในเลือด",
+              "en": "Blood culture"
+            },
+            "line": {
+              "th": "มีไข้ จึงควรตรวจหาการติดเชื้อ",
+              "en": "Fever makes an infection worth checking."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจยีน HLA-B*58:01",
+              "en": "HLA-B*58:01 gene test"
+            },
+            "line": {
+              "th": "บอกความเสี่ยงทางพันธุกรรมต่อการแพ้อัลโลพูรินอล",
+              "en": "Shows the genetic risk behind allopurinol reactions."
+            }
+          },
+          {
+            "id": "f",
+            "tier": "weaker",
+            "label": {
+              "th": "ป้ายตุ่มน้ำตรวจ Tzanck",
+              "en": "Tzanck smear from a blister"
+            },
+            "line": {
+              "th": "หาเซลล์ที่ติดเชื้อไวรัสกลุ่มเริมจากตุ่มน้ำ",
+              "en": "Looks for herpes-group virus cells in a blister."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "e"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "การตรวจแรกใดช่วยวางแผนดูแลเขาได้มากที่สุด",
+              "en": "Which first tests guide his care most?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันนี้จะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which tests come first today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ประเมินพื้นที่ผิวที่หลุดลอก",
+              "en": "Measure the detached skin area"
+            },
+            "line": {
+              "th": "ผิวที่หลุดเกินร้อยละ 10 บอกว่ารุนแรงและควรส่งต่อ",
+              "en": "Over 10% skin loss marks a severe case for referral."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจเลือดคิดคะแนน SCORTEN",
+              "en": "Blood tests for SCORTEN"
+            },
+            "line": {
+              "th": "BUN น้ำตาล และไบคาร์บอเนตใช้คิด SCORTEN",
+              "en": "BUN, glucose and bicarbonate feed the SCORTEN score."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "CBC ดูอีโอซิโนฟิล และค่าตับ",
+              "en": "CBC for eosinophils, liver tests"
+            },
+            "line": {
+              "th": "อีโอซิโนฟิลสูงและตับอักเสบชี้ไปทาง DRESS",
+              "en": "Eosinophilia and hepatitis point toward DRESS."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจยีน HLA-B*58:01",
+              "en": "HLA-B*58:01 gene test"
+            },
+            "line": {
+              "th": "บอกความเสี่ยงทางพันธุกรรมต่อการแพ้อัลโลพูรินอล",
+              "en": "Shows the genetic risk behind allopurinol reactions."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ PCR ไวรัสเริม",
+              "en": "Herpes simplex PCR"
+            },
+            "line": {
+              "th": "ไวรัสเริมเป็นตัวกระตุ้นที่พบบ่อยของอีริทีมามัลติฟอร์ม",
+              "en": "Herpes simplex often triggers erythema multiforme."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "จะส่งตรวจอะไรก่อน",
+              "en": "Which tests do you send first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตอนนี้จะตรวจอะไรเป็นอันดับแรก",
+              "en": "What do you test first now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ประเมินพื้นที่ผิวที่หลุดลอก",
+              "en": "Measure the detached skin area"
+            },
+            "line": {
+              "th": "ผิวที่หลุดเกินร้อยละ 10 บอกว่ารุนแรงและควรส่งต่อ",
+              "en": "Over 10% skin loss marks a severe case for referral."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตัดชิ้นเนื้อผิวหนังตรวจ",
+              "en": "Skin biopsy"
+            },
+            "line": {
+              "th": "ผลชิ้นเนื้อแยกโรคตุ่มน้ำแต่ละชนิดออกจากกันได้",
+              "en": "Histology tells the blistering diseases apart."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "เพาะเชื้อในเลือด",
+              "en": "Blood culture"
+            },
+            "line": {
+              "th": "มีไข้ จึงควรตรวจหาการติดเชื้อ",
+              "en": "Fever makes an infection worth checking."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ป้ายตุ่มน้ำตรวจ Tzanck",
+              "en": "Tzanck smear from a blister"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียงได้เร็ว สะดวกกับผื่นตุ่มน้ำทั่วไป",
+              "en": "A quick bedside test is handy for most blistering rashes."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจ PCR อีสุกอีใสจากตุ่มน้ำ",
+              "en": "Varicella PCR from a blister"
+            },
+            "line": {
+              "th": "ป้ายตุ่มน้ำส่งตรวจเป็นขั้นตอนปกติเมื่อมีไข้ร่วมกับตุ่มน้ำ",
+              "en": "A blister swab is the usual routine for blisters with fever."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ตรวจเบื้องต้นแล้ว จะดูแลอย่างไร",
+              "en": "The first checks are done. What is your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "น่าจะเป็น SJS/TEN ขั้นต่อไปคืออะไร",
+              "en": "This looks like SJS/TEN. What is your next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
+            },
+            "line": {
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันทีระหว่างประสานเตียง ICU",
+              "en": "Fluids start now while the ICU bed is arranged."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
+            },
+            "line": {
+              "th": "ทีมแพทย์ผิวหนังคุ้นกับผื่นแพ้ยารุนแรง",
+              "en": "A dermatology team knows severe drug rashes."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
+            },
+            "line": {
+              "th": "ทีมอายุรกรรมโรงพยาบาลศูนย์รับดูแลต่อได้",
+              "en": "A regional medical team can take over his care."
+            }
+          },
+          {
+            "id": "ah_ref",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ให้ยาแก้แพ้ ส่งต่อ",
+              "en": "Stop drug, antihistamine, refer"
+            },
+            "line": {
+              "th": "ยาแก้แพ้เป็นขั้นแรกที่ใช้กันเป็นปกติกับผื่นแพ้ยา",
+              "en": "An antihistamine is the usual first step for a drug rash."
+            }
+          },
+          {
+            "id": "st_ref",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ให้สเตียรอยด์ IV ส่งต่อ",
+              "en": "Stop drug, IV steroid, refer"
+            },
+            "line": {
+              "th": "แพทย์หลายคนให้สเตียรอยด์ในผื่นแพ้ยารุนแรง",
+              "en": "Many doctors give a steroid course for a severe drug rash."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "ah_ref"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ส่งตรวจแล้ว ผิวหลุดร้อยละ 12 จะดูแลอย่างไร",
+              "en": "The tests are sent and 12% of his skin is detached. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "แพทย์ผิวหนังทางโทรศัพท์ว่าเป็น SJS/TEN ทำอย่างไรต่อ",
+              "en": "A dermatologist on the phone calls it SJS/TEN. Your plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
+            },
+            "line": {
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันทีระหว่างประสานเตียง ICU",
+              "en": "Fluids start now while the ICU bed is arranged."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
+            },
+            "line": {
+              "th": "ทีมแพทย์ผิวหนังคุ้นกับผื่นแพ้ยารุนแรง",
+              "en": "A dermatology team knows severe drug rashes."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
+            },
+            "line": {
+              "th": "ทีมอายุรกรรมโรงพยาบาลศูนย์รับดูแลต่อได้",
+              "en": "A regional medical team can take over his care."
+            }
+          },
+          {
+            "id": "ah_ref",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ให้ยาแก้แพ้ ส่งต่อ",
+              "en": "Stop drug, antihistamine, refer"
+            },
+            "line": {
+              "th": "ยาแก้แพ้เป็นขั้นแรกที่ใช้กันเป็นปกติกับผื่นแพ้ยา",
+              "en": "An antihistamine is the usual first step for a drug rash."
+            }
+          }
+        ],
+        "default_trio": [
+          "b",
+          "d",
+          "ah_ref"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผิวหลุดร้อยละ 12 แพทย์ผิวหนังว่าเป็น SJS/TEN ทำอย่างไร",
+              "en": "12% skin detached, and a dermatologist calls it SJS/TEN. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "เป็น SJS/TEN จากอัลโลพูรินอล ขั้นต่อไปคืออะไร",
+              "en": "This is SJS/TEN from allopurinol. What is your next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "หยุดอัลโลพูรินอล ส่งหน่วยแผลไหม้",
+              "en": "Stop allopurinol, refer to burn unit"
+            },
+            "line": {
+              "th": "ผิวหลุดเกินร้อยละ 10 ควรส่งหน่วยแผลไหม้หรือ ICU",
+              "en": "Over 10% skin loss should go to a burn unit or ICU."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "หยุดยา ให้สารน้ำ IV ส่ง ICU",
+              "en": "Stop drug, IV fluids, to ICU"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันทีระหว่างประสานเตียง ICU",
+              "en": "Fluids start now while the ICU bed is arranged."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยุดยา ส่งแผนกผิวหนัง รพ.ศูนย์",
+              "en": "Stop drug, to regional dermatology"
+            },
+            "line": {
+              "th": "ทีมแพทย์ผิวหนังคุ้นกับผื่นแพ้ยารุนแรง",
+              "en": "A dermatology team knows severe drug rashes."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "หยุดยา ส่งอายุรกรรม รพ.ศูนย์",
+              "en": "Stop drug, to regional medicine"
+            },
+            "line": {
+              "th": "ทีมอายุรกรรมโรงพยาบาลศูนย์รับดูแลต่อได้",
+              "en": "A regional medical team can take over his care."
+            }
+          },
+          {
+            "id": "st_ref",
+            "tier": "weaker",
+            "label": {
+              "th": "หยุดยา ให้สเตียรอยด์ IV ส่งต่อ",
+              "en": "Stop drug, IV steroid, refer"
+            },
+            "line": {
+              "th": "แพทย์หลายคนให้สเตียรอยด์ในผื่นแพ้ยารุนแรง",
+              "en": "Many doctors give a steroid course for a severe drug rash."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "st_ref"
+        ]
+      }
+    },
+    "step4": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "สองชั่วโมงต่อมา ชีพจร 100 ความดัน 120/74 ทำอะไรต่อ",
+              "en": "Two hours on, his pulse is 100 and BP 120/74. What is your next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ก่อนรถส่งตัวออก อาการคงที่ ไม่มีตุ่มน้ำใหม่ ทำอะไรต่อ",
+              "en": "Before the ambulance leaves he is stable, with no new blisters. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้สารน้ำตามปริมาณปัสสาวะ",
+              "en": "IV fluids to a urine target"
+            },
+            "line": {
+              "th": "ผิวที่หลุดลอกยังเสียน้ำต่อเนื่อง",
+              "en": "His raw skin keeps losing fluid."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ตรวจผิว ตา และปากซ้ำ",
+              "en": "Re-examine skin, eyes and mouth"
+            },
+            "line": {
+              "th": "ผิวอาจหลุดเพิ่มได้ในช่วงวันแรก ๆ",
+              "en": "Detachment can still spread in the first days."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ส่งตรวจเกลือแร่ BUN น้ำตาล",
+              "en": "Electrolytes, BUN and glucose"
+            },
+            "line": {
+              "th": "ผลเลือดเหล่านี้ช่วยติดตามการเสียน้ำ",
+              "en": "These bloods track his fluid loss."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจระดับกรดยูริกซ้ำ",
+              "en": "Repeat the uric acid level"
+            },
+            "line": {
+              "th": "ดูระดับกรดยูริกหลังหยุดอัลโลพูรินอลแล้ว",
+              "en": "Shows where his uric acid stands now allopurinol has stopped."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ก่อนส่งตัว ตาเคืองมากขึ้น ดื่มน้ำแทบไม่ได้ ทำอย่างไรต่อ",
+              "en": "Before the transfer his eyes feel grittier and he can barely drink. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผ่านไป 2 ชม. ตาเจ็บขึ้น แผลในปากทำให้ดื่มลำบาก ทำอะไรต่อ",
+              "en": "Two hours on, his eyes hurt more and mouth sores make drinking hard. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาเทียม ปรึกษาจักษุแพทย์",
+              "en": "Eye lubricant, ophthalmology review"
+            },
+            "line": {
+              "th": "ดูแลตาและให้จักษุแพทย์ตรวจเร็วช่วยรักษาการมองเห็น",
+              "en": "Early eye care and an eye review protect his sight."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้สารน้ำ IV และดูแลช่องปาก",
+              "en": "IV fluids and mouth care"
+            },
+            "line": {
+              "th": "สารน้ำทางหลอดเลือดทดแทนน้ำที่ดื่มเองได้น้อย",
+              "en": "Fluids by vein make up for how little he can drink."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ยาชาบ้วนปาก อาหารอ่อน",
+              "en": "Numbing mouthwash, soft diet"
+            },
+            "line": {
+              "th": "ลดปวดในปากช่วยให้ดื่มและกินได้มากขึ้น",
+              "en": "Easing mouth pain helps him drink and eat again."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "หยอดน้ำตาเทียมอย่างเดียว",
+              "en": "Lubricant eye drops alone"
+            },
+            "line": {
+              "th": "ช่วยให้ผิวตาชุ่มชื้นระหว่างเตรียมส่งตัว",
+              "en": "Keeps the eye surface moist while the transfer is arranged."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ผ่านไป 2 ชม. ความดัน 94/60 ปัสสาวะน้อยมาก ทำอะไรต่อ",
+              "en": "Two hours on, BP 94/60 and very little urine. Next step?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ก่อนส่งตัว ลุกนั่งแล้วหน้ามืด ความดัน 94/60 ทำอย่างไรต่อ",
+              "en": "Before the transfer he feels faint sitting up, BP 94/60. What now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "ให้สารน้ำ bolus แล้วประเมินซ้ำ",
+              "en": "Fluid bolus, then reassess"
+            },
+            "line": {
+              "th": "ความดัน 94/60 ต้องได้สารน้ำทันที",
+              "en": "His BP of 94/60 needs fluid now."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "ให้สารน้ำและเพาะเชื้อในเลือด",
+              "en": "Fluids and blood culture"
+            },
+            "line": {
+              "th": "ไข้ร่วมกับความดันต่ำอาจมีการติดเชื้อด้วย",
+              "en": "Fever with low BP can mean infection too."
+            }
+          },
+          {
+            "id": "bolus_ua",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้สารน้ำ bolus ตรวจกรดยูริกซ้ำ",
+              "en": "Fluid bolus, repeat uric acid"
+            },
+            "line": {
+              "th": "ตรวจกรดยูริกเป็นขั้นตอนปกติหลังหยุดอัลโลพูรินอล",
+              "en": "Checking uric acid is the usual routine after allopurinol."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "reasonable",
+            "label": {
+              "th": "ให้น้ำเกลือ bolus ร่วมกับอัลบูมิน",
+              "en": "Saline bolus plus albumin"
+            },
+            "line": {
+              "th": "อัลบูมินเป็นตัวเสริมที่ใช้บ่อยเมื่อเสียน้ำมาก",
+              "en": "Albumin is a common add-on for a large fluid loss."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "bolus_ua",
+          "d"
+        ]
+      }
+    },
+    "step5": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "จำหน่ายหลังนอน รพ. 18 วัน ผิวหายดี จะวางแผนต่ออย่างไร",
+              "en": "Home after 18 days in hospital, his skin has healed. What is your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "สามสัปดาห์ต่อมา หายดี กลับมาที่คลินิกคุณ จะติดตามอย่างไร",
+              "en": "Three weeks on he is well and back at your clinic. How do you follow him up?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "card",
+            "tier": "best",
+            "label": {
+              "th": "บัตรแพ้ยาและรายงาน อย.",
+              "en": "Allergy card, report to Thai FDA"
+            },
+            "line": {
+              "th": "บัตรช่วยกันการได้อัลโลพูรินอลซ้ำ",
+              "en": "A card keeps him from getting allopurinol again."
+            }
+          },
+          {
+            "id": "eyes",
+            "tier": "best",
+            "label": {
+              "th": "นัดติดตามกับจักษุแพทย์",
+              "en": "Eye clinic follow-up"
+            },
+            "line": {
+              "th": "ตาอาจเกิดพังผืดได้หลายสัปดาห์หลังผิวหาย",
+              "en": "His eyes can scar weeks after the skin heals."
+            }
+          },
+          {
+            "id": "hla",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ HLA-B*58:01 แนะนำญาติ",
+              "en": "HLA-B*58:01 test to advise family"
+            },
+            "line": {
+              "th": "ญาติอาจมียีนเดียวกัน",
+              "en": "Relatives may carry the same gene."
+            }
+          },
+          {
+            "id": "urate",
+            "tier": "reasonable",
+            "label": {
+              "th": "ปรึกษาแพทย์โรคข้อเรื่องยาลดยูริก",
+              "en": "Rheumatology advice on urate drugs"
+            },
+            "line": {
+              "th": "ผู้เชี่ยวชาญช่วยวางแผนเรื่องยาลดกรดยูริกในอนาคต",
+              "en": "A specialist plans any future urate-lowering treatment."
+            }
+          },
+          {
+            "id": "note",
+            "tier": "weaker",
+            "label": {
+              "th": "บันทึกผื่นแพ้ยาในเวชระเบียน",
+              "en": "Note the drug rash in his chart"
+            },
+            "line": {
+              "th": "บันทึกช่วยเตือนแพทย์คนต่อไปเรื่องผื่นแพ้ยา",
+              "en": "A chart note reminds the next doctor about the drug rash."
+            }
+          }
+        ],
+        "default_trio": [
+          "card",
+          "hla",
+          "note"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "กลับบ้านหลังนอน 21 วัน ผิวหาย ตายังเคือง จะวางแผนอย่างไร",
+              "en": "Home after 21 days with healed skin and still-gritty eyes. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "กลับมาที่คลินิก ผิวหายแล้ว ตายังแห้งเล็กน้อย จะติดตามอย่างไร",
+              "en": "At your clinic his skin has healed and his eyes are a little dry. Follow-up?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "eyes",
+            "tier": "best",
+            "label": {
+              "th": "นัดติดตามกับจักษุแพทย์",
+              "en": "Eye clinic follow-up"
+            },
+            "line": {
+              "th": "ตาอาจเกิดพังผืดได้หลายสัปดาห์หลังผิวหาย",
+              "en": "His eyes can scar weeks after the skin heals."
+            }
+          },
+          {
+            "id": "card",
+            "tier": "best",
+            "label": {
+              "th": "บัตรแพ้ยาและรายงาน อย.",
+              "en": "Allergy card, report to Thai FDA"
+            },
+            "line": {
+              "th": "บัตรช่วยกันการได้อัลโลพูรินอลซ้ำ",
+              "en": "A card keeps him from getting allopurinol again."
+            }
+          },
+          {
+            "id": "hla",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ HLA-B*58:01 แนะนำญาติ",
+              "en": "HLA-B*58:01 test to advise family"
+            },
+            "line": {
+              "th": "ญาติอาจมียีนเดียวกัน",
+              "en": "Relatives may carry the same gene."
+            }
+          },
+          {
+            "id": "tears",
+            "tier": "weaker",
+            "label": {
+              "th": "หยอดน้ำตาเทียม นัดดูตา 1 สัปดาห์",
+              "en": "Eye lubricant, recheck in 1 week"
+            },
+            "line": {
+              "th": "น้ำตาเทียมช่วยบรรเทาตาแห้ง ตรวจซ้ำเร็วจับปัญหาได้",
+              "en": "Artificial tears ease dry eyes and an early recheck spots problems."
+            }
+          },
+          {
+            "id": "note",
+            "tier": "weaker",
+            "label": {
+              "th": "บันทึกผื่นแพ้ยาในเวชระเบียน",
+              "en": "Note the drug rash in his chart"
+            },
+            "line": {
+              "th": "บันทึกช่วยเตือนแพทย์คนต่อไปเรื่องผื่นแพ้ยา",
+              "en": "A chart note reminds the next doctor about the drug rash."
+            }
+          }
+        ],
+        "default_trio": [
+          "eyes",
+          "hla",
+          "tears"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "กลับบ้านหลังนอน 30 วัน เคยติดเชื้อที่ผิว ตาแห้งแดง ทำอย่างไร",
+              "en": "Home after 30 days and a skin infection in hospital, eyes dry and red. Plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "นอน รพ. นาน กลับบ้านแล้ว ตายังแห้งและแดง ติดตามอย่างไร",
+              "en": "After a long hospital stay he is home, his eyes still dry and red. Follow-up?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "eyes",
+            "tier": "best",
+            "label": {
+              "th": "ส่งพบจักษุแพทย์โดยเร็ว",
+              "en": "Prompt eye clinic review"
+            },
+            "line": {
+              "th": "ตาแห้งแดงต่อเนื่องหลัง SJS/TEN เสี่ยงเกิดแผลเป็นถาวร",
+              "en": "Lasting dry, red eyes after SJS/TEN risk permanent scarring."
+            }
+          },
+          {
+            "id": "card",
+            "tier": "best",
+            "label": {
+              "th": "บัตรแพ้ยาและรายงาน อย.",
+              "en": "Allergy card, report to Thai FDA"
+            },
+            "line": {
+              "th": "บัตรช่วยกันการได้อัลโลพูรินอลซ้ำ",
+              "en": "A card keeps him from getting allopurinol again."
+            }
+          },
+          {
+            "id": "hla",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ HLA-B*58:01 แนะนำญาติ",
+              "en": "HLA-B*58:01 test to advise family"
+            },
+            "line": {
+              "th": "ญาติอาจมียีนเดียวกัน",
+              "en": "Relatives may carry the same gene."
+            }
+          },
+          {
+            "id": "urate",
+            "tier": "reasonable",
+            "label": {
+              "th": "ปรึกษาแพทย์โรคข้อเรื่องยาลดยูริก",
+              "en": "Rheumatology advice on urate drugs"
+            },
+            "line": {
+              "th": "ผู้เชี่ยวชาญช่วยวางแผนเรื่องยาลดกรดยูริกในอนาคต",
+              "en": "A specialist plans any future urate-lowering treatment."
+            }
+          },
+          {
+            "id": "note",
+            "tier": "weaker",
+            "label": {
+              "th": "บันทึกผื่นแพ้ยาในเวชระเบียน",
+              "en": "Note the drug rash in his chart"
+            },
+            "line": {
+              "th": "บันทึกช่วยเตือนแพทย์คนต่อไปเรื่องผื่นแพ้ยา",
+              "en": "A chart note reminds the next doctor about the drug rash."
+            }
+          }
+        ],
+        "default_trio": [
+          "eyes",
+          "hla",
+          "note"
+        ]
+      }
+    }
+  }
+}

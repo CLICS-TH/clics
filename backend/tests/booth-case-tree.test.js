@@ -280,12 +280,17 @@ describe('admission', () => {
     expect(cases).toHaveLength(11);
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    expect(cases.filter((k) => k.path_score_table?.provenance.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    // dka, melioidosis and motorcycle were edited after failing their re-check; their rebuild stopped at the cap (run
+    // ptb-202611170517-8275), so they hold no table yet. Every other case's table is bound to its tree.
+    expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id).sort())
+      .toEqual(['dka-young-adult', 'melioidosis-farmer', 'motorcycle-shock']);
+    expect(cases.filter((k) => k.path_score_table && k.path_score_table.provenance.tree_sha256 !== treeSha(k))
+      .map((k) => k.case_id)).toEqual([]);
     const admitted = cases.filter(isAdmitted);
     expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
     // Eight are admitted: five from #510 (route B), and copd-exacerbation, ectopic-rupture and sjs-ten-allopurinol from
     // #497 (re-check passed; sandbox run sbx-202611170505-80f6 failed and the #493 owner waiver covers it).
-    // dka-young-adult, melioidosis-farmer and motorcycle-shock failed table_check and hold no table check, sandbox
+    // dka-young-adult, melioidosis-farmer and motorcycle-shock have no table yet and hold no table check, sandbox
     // record or waiver.
     expect(admitted.map((k) => k.case_id).sort())
       .toEqual(['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'ectopic-rupture', 'leptospirosis', 'organophosphate',
