@@ -1432,7 +1432,7 @@
             "safety": ""
           },
           {
-            "strength": "ต้องการภาพในช่องท้องที่เป็นรูปธรรม ณ เวลาที่อาการยังไม่นิ่ง",
+            "strength": "ให้ TXA และต้องการภาพในช่องท้องที่เป็นรูปธรรม ณ เวลาที่อาการยังไม่นิ่ง",
             "weigh": "ภาพบอกได้ว่ามีของเหลว แต่บอกความเร็วของเลือดออกได้น้อยกว่าสัญญาณชีพ",
             "safety": ""
           },
@@ -1449,7 +1449,7 @@
             "safety": ""
           },
           {
-            "strength": "You seek an objective look inside the abdomen at the moment he is unsettled.",
+            "strength": "You give TXA and seek an objective look inside the abdomen while he is unsettled.",
             "weigh": "The scan shows fluid but not the rate of bleeding, which his pulse and pressure show better.",
             "safety": ""
           },
@@ -1468,7 +1468,7 @@
             "safety": ""
           },
           {
-            "strength": "พยายามบอกการเสียเลือดเป็นตัวเลข แทนการอาศัยความรู้สึก",
+            "strength": "ให้ TXA และบอกการเสียเลือดเป็นตัวเลข แทนการอาศัยความรู้สึก",
             "weigh": "ความดันและชีพจรบอกการเสียเลือดอยู่แล้ว ผลแล็บจะมาหลังเวลาที่ต้องตัดสินใจ",
             "safety": ""
           },
@@ -1485,7 +1485,7 @@
             "safety": ""
           },
           {
-            "strength": "You aim to put a figure on the loss rather than rely on impression.",
+            "strength": "You give TXA and put a figure on the loss rather than rely on impression.",
             "weigh": "His pressure and pulse already show the loss; a lab number will arrive after the decision is due.",
             "safety": ""
           },
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-17",
-    "findings": "This is a fresh non-author re-check of every reply in all 13 banks: all three alternatives per option, in Thai and English. I checked each against every question variant of its bank and every path into it. Round 7 unbolded the step2.B/R/W c alternative-1 strengths (\"Checking the chest and pelvis...\" / \"ตรวจช่องอกและเชิงกราน...\") because the new line no longer contains those words. They read naturally and remain true per ATLS 10th ed. This review raised one MUST-FIX on the step5.B/R/W c alternative-3 strength, and it is fixed. The Thai still said results would be phoned later (\"โทรแจ้งผลที่ค้างตามทีหลัง\"), which names option b's own word \"โทรแจ้ง\" and disagreed with the reworded English. Both languages also credited the player with following up pending results, which the option no longer says. That strength now reads \"A written summary that arrives with him lets the next team read it at once.\" / \"สรุปที่เขียนไว้ไปถึงพร้อมผู้ป่วย ทีมที่รับต่ออ่านได้ทันทีที่ถึง\". It comments only on the option's own label and line, and Thai and English agree. The step5 c alternative-1 strength now says \"next team\" / \"ทีมที่รับต่อ\" in both languages, and its bold run \"results so far\" / \"ผลที่มีอยู่\" quotes the option's own label. The TXA dose and 3 h window, the 0.5 mL/kg/h urine target and the 1 L crystalloid ceiling are correct per CRASH-2, the European guideline 6th ed. and ATLS 10th ed. No reply ranks the choice, previews a later step, names another option or asserts a fact only some variants or paths state. Every safety line fits its option: only the step3 e lines are filled, and they keep resuscitation running during the call. I read the fix as `git diff HEAD` on the replies file. The tree diff against HEAD stays at the 16 round-7 line edits, so the tree did not change during this review. This reviewer's read-only guard could not run node. The coordinator reports that reply-bank.mjs check prints \"content ok; review pending\", and both hashes below are as it printed them. booth-case-tree.test.js for motorcycle-shock was not run by this reviewer. Tree sha256 3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5. Replies sha256 0a14dbc44d8a92021d15d800819e35b4e58a9abda7e16392f6eb16f83523f569.",
-    "tree_sha256": "3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5",
-    "replies_sha256": "0a14dbc44d8a92021d15d800819e35b4e58a9abda7e16392f6eb16f83523f569"
+    "findings": "This is a fresh non-author re-check of every reply in all 13 banks: all three alternatives per option, in Thai and English. I checked each against every question variant of its bank and every path into it, with the paths into step3.B, step4.W and step5.* walked one by one. In step4.W c and d, alternative 2's strength now opens with \"You give TXA and ...\" / \"ให้ TXA และ...\", and Thai and English match. The other step4.W c and d alternatives still comment only on the option's own FAST or haemoglobin part. Their bold runs (\"bedside FAST\" / \"FAST ข้างเตียง\", \"number to track\" / \"ตัวเลขไว้ติดตาม\") quote the new label or line. \"TXA\" is in c's and d's own labels, so it names no other option. No step4.W c or d reply assumes blood or an earlier dose of TXA, which holds on every path through step3 e. Their weigh lines keep the pace urgent, so the scan or the lab value does not hold him here. The step4.W b dose line (\"a gram over 10 minutes, then a gram over 8 hours\" inside 3 h) is correct per CRASH-2 and the European guideline 6th ed. The step5 c alternative-3 fix from this round holds: \"A written summary that arrives with him lets the next team read it at once.\" / \"สรุปที่เขียนไว้ไปถึงพร้อมผู้ป่วย ทีมที่รับต่ออ่านได้ทันทีที่ถึง\" comments only on the option's own words, and alternative 1 says \"next team\" / \"ทีมที่รับต่อ\" in both languages. The step3 a TXA window and dose, the step4.B b urine target of 0.5 mL/kg/h and the 1 L crystalloid ceiling are correct. No reply ranks the choice, previews a later step, names another option or asserts a fact only some variants or paths state. Every safety line fits its option: only the step3 e lines are filled, and they keep resuscitation running during the call. Thai and English agree. The coordinator reports that reply-bank.mjs check prints \"content ok; review pending\" and that booth-case-clinical-rules.test.js passes. This reviewer's read-only guard could not run node, so the hashes below are as the coordinator reported them. Tree sha256 06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a. Replies sha256 26341c193cf7a9b3e67feeaf3451781a34b5a1da5cca787c430e375783de1f9d.",
+    "tree_sha256": "06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a",
+    "replies_sha256": "26341c193cf7a9b3e67feeaf3451781a34b5a1da5cca787c430e375783de1f9d"
   }
 }
