@@ -1,6 +1,6 @@
 {
   "case_id": "ectopic-rupture",
-  "version": "10",
+  "version": "11",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "หญิงวัย 28 ปี มาโรงพยาบาลชุมชน ปวดอุ้งเชิงกรานทันทีจนเป็นลม",
@@ -829,7 +829,7 @@
             },
             "line": {
               "th": "ไข้ใหม่หลังผ่าตัดอาจเป็นภาวะติดเชื้อรุนแรง จึงให้ยาทันที",
-              "en": "A new fever after surgery may be sepsis, so start cover now."
+              "en": "A new fever after surgery may be sepsis, so give broad cover now."
             }
           },
           {

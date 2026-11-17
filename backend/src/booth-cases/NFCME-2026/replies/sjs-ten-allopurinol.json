@@ -1320,7 +1320,7 @@
             "safety": ""
           },
           {
-            "strength": "ทดแทนน้ำต่อแม้อาการดูคงที่",
+            "strength": "ให้สารน้ำทดแทนตามที่เสียไป แม้อาการดูคงที่",
             "weigh": "ผู้ป่วยกลุ่มนี้ต้องการสารน้ำน้อยกว่าแผลไหม้ขนาดเท่ากัน จึงต้องระวังน้ำเกิน",
             "safety": ""
           },
@@ -1337,7 +1337,7 @@
             "safety": ""
           },
           {
-            "strength": "Keeps replacing fluid while he looks stable.",
+            "strength": "Matches fluid to his losses while he looks stable.",
             "weigh": "Fluid needs run lower than in burns of the same area, so overload is a risk.",
             "safety": ""
           },
@@ -1392,7 +1392,7 @@
             "safety": ""
           },
           {
-            "strength": "ตรวจเลือดซ้ำส่งได้ง่าย",
+            "strength": "ตรวจเลือดส่งได้ง่าย",
             "weigh": "ผลเลือดอย่างเดียวไม่ได้บอกว่าจะให้สารน้ำเท่าไร",
             "safety": ""
           },
@@ -1409,7 +1409,7 @@
             "safety": ""
           },
           {
-            "strength": "Repeat bloods are simple to send.",
+            "strength": "Blood tests are simple to send.",
             "weigh": "Results alone do not tell how much fluid to give.",
             "safety": ""
           },

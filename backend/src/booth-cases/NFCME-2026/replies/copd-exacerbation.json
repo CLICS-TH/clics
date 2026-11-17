@@ -1971,13 +1971,13 @@
       "c": {
         "th": [
           {
-            "strength": "ดูปอดซ้ำ เหมาะกับคนที่ฟื้นตัวช้า",
-            "weigh": "การฟื้นตัวช้าพบบ่อยหลังการกำเริบ การตรวจข้างเตียงอย่างใกล้ชิดมักบอกได้พอ ๆ กับภาพซ้ำ",
+            "strength": "ดูภาพปอด เหมาะกับคนที่ฟื้นตัวช้า",
+            "weigh": "การฟื้นตัวช้าพบบ่อยหลังการกำเริบ การตรวจข้างเตียงอย่างใกล้ชิดมักบอกได้พอ ๆ กับภาพเอกซเรย์",
             "safety": ""
           },
           {
-            "strength": "CBC ซ้ำช่วยบอกว่าการติดเชื้อกำลังดีขึ้นหรือไม่",
-            "weigh": "การตรวจซ้ำมีประโยชน์มากที่สุดเมื่อไข้หรือการหายใจเปลี่ยน มากกว่าทำเป็นประจำ",
+            "strength": "CBC ช่วยบอกว่าการติดเชื้อกำลังดีขึ้นหรือไม่",
+            "weigh": "การตรวจเหล่านี้มีประโยชน์มากที่สุดเมื่อไข้หรือการหายใจเปลี่ยน มากกว่าทำเป็นประจำ",
             "safety": ""
           },
           {
@@ -1988,13 +1988,13 @@
         ],
         "en": [
           {
-            "strength": "Looking again at the lungs suits a man who is slow to recover.",
-            "weigh": "Slow recovery is common after a flare; close bedside checks often say as much as a repeat film.",
+            "strength": "A film of the lungs suits a man who is slow to recover.",
+            "weigh": "Slow recovery is common after a flare; close bedside checks often say as much as a film.",
             "safety": ""
           },
           {
-            "strength": "A repeat count can show whether the infection is settling.",
-            "weigh": "Repeat tests help most when his fever or breathing changes, rather than as a routine.",
+            "strength": "A blood count can show whether the infection is settling.",
+            "weigh": "These tests help most when his fever or breathing changes, rather than as a routine.",
             "safety": ""
           },
           {
@@ -2008,7 +2008,7 @@
         "th": [
           {
             "strength": "คิดถึงทีมอายุรแพทย์ แสดงว่ารู้ขีดจำกัดของโรงพยาบาลตนเอง",
-            "weigh": "เขาคงที่ด้วยออกซิเจนอัตราต่ำ ซึ่งโรงพยาบาลชุมชนดูแลได้",
+            "weigh": "เขาคงที่ด้วยออกซิเจนคุม 88–92% ซึ่งโรงพยาบาลชุมชนดูแลได้",
             "safety": ""
           },
           {
@@ -2025,7 +2025,7 @@
         "en": [
           {
             "strength": "Thinking of a physician team shows you know the limits of a small hospital.",
-            "weigh": "He is stable on low-flow oxygen, a level of care a community hospital can give.",
+            "weigh": "He is stable on oxygen for 88–92%, a level of care a community hospital can give.",
             "safety": ""
           },
           {
@@ -2054,7 +2054,7 @@
           },
           {
             "strength": "เตรียมรับอาการทรุดเป็นเรื่องสมเหตุผล",
-            "weigh": "เตียง ICU มีจำกัด และออกซิเจนอัตราต่ำก็เพียงพอสำหรับเขา",
+            "weigh": "เตียง ICU มีจำกัด และออกซิเจนในหอผู้ป่วยก็เพียงพอสำหรับเขา",
             "safety": ""
           }
         ],
@@ -2071,7 +2071,7 @@
           },
           {
             "strength": "Planning for a turn for the worse is reasonable.",
-            "weigh": "ICU beds are scarce, and his needs are met with low-flow oxygen.",
+            "weigh": "ICU beds are scarce, and ward oxygen meets his needs.",
             "safety": ""
           }
         ]

@@ -698,7 +698,7 @@
         "th": [
           {
             "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกซ้ำ และยังพอให้อวัยวะได้เลือด",
-            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่รู้ตัวดีและไม่มีบาดเจ็บที่ศีรษะ หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่สวมหมวกกันน็อกและรู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
             "safety": ""
           },
           {
@@ -715,7 +715,7 @@
         "en": [
           {
             "strength": "Targeting a **systolic near 90** limits rebleeding while still feeding the organs.",
-            "weigh": "A lower target fits an alert young man with no head injury and needs rethinking if his alertness falls.",
+            "weigh": "A lower target fits an alert, helmeted young man and needs rethinking if his alertness falls.",
             "safety": ""
           },
           {
@@ -775,7 +775,7 @@
           },
           {
             "strength": "มองว่าการผ่าตัดคือสิ่งที่หยุดเลือดได้จริง จึงตั้งเป้าไปที่ศัลยแพทย์เร็ว",
-            "weigh": "แผนนี้ยังขาดการกู้ชีพ การให้เลือดและกรดทราเนซามิกควรเริ่มไปพร้อมกับการโทร",
+            "weigh": "การโทรอย่างเดียวไม่ได้แก้ภาวะช็อก การให้เลือดและกรดทราเนซามิกต้องอยู่ในแผนเดียวกัน",
             "safety": ""
           },
           {
@@ -792,7 +792,7 @@
           },
           {
             "strength": "You see surgery as what truly stops this bleeding and aim him at a surgeon early.",
-            "weigh": "The plan still lacks resuscitation; transfusion and tranexamic acid should start with the call.",
+            "weigh": "The call alone does not treat his shock; transfusion and tranexamic acid belong in the same plan.",
             "safety": ""
           },
           {
@@ -844,7 +844,7 @@
         "th": [
           {
             "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกซ้ำ และยังพอให้อวัยวะได้เลือด",
-            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่รู้ตัวดีและไม่มีบาดเจ็บที่ศีรษะ หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่สวมหมวกกันน็อกและรู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
             "safety": ""
           },
           {
@@ -861,7 +861,7 @@
         "en": [
           {
             "strength": "Targeting a **systolic near 90** limits rebleeding while still feeding the organs.",
-            "weigh": "A lower target fits an alert young man with no head injury and needs rethinking if his alertness falls.",
+            "weigh": "A lower target fits an alert, helmeted young man and needs rethinking if his alertness falls.",
             "safety": ""
           },
           {
@@ -990,7 +990,7 @@
         "th": [
           {
             "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกซ้ำ และยังพอให้อวัยวะได้เลือด",
-            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่รู้ตัวดีและไม่มีบาดเจ็บที่ศีรษะ หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
+            "weigh": "เป้านี้ใช้ได้กับคนหนุ่มที่สวมหมวกกันน็อกและรู้ตัวดี หากความรู้สึกตัวลดลงต้องทบทวนเป้าใหม่",
             "safety": ""
           },
           {
@@ -1007,7 +1007,7 @@
         "en": [
           {
             "strength": "Targeting a **systolic near 90** limits rebleeding while still feeding the organs.",
-            "weigh": "A lower target fits an alert young man with no head injury and needs rethinking if his alertness falls.",
+            "weigh": "A lower target fits an alert, helmeted young man and needs rethinking if his alertness falls.",
             "safety": ""
           },
           {
@@ -1391,7 +1391,7 @@
       "b": {
         "th": [
           {
-            "strength": "อ่านภาพได้เลือดแล้ว**ยังช็อกอยู่**ว่าเลือดยังออก และให้ศัลยแพทย์เป็นแกนของแผน",
+            "strength": "อ่านภาพ**ยังช็อกอยู่**ว่าเลือดยังออก จึงให้เลือดและให้ศัลยแพทย์เป็นแกนของแผน",
             "weigh": "เลือดประคองได้เฉพาะขณะที่ยังให้อยู่ เวลาเดินทางจึงสำคัญพอ ๆ กับปริมาณเลือด",
             "safety": ""
           },
@@ -1401,14 +1401,14 @@
             "safety": ""
           },
           {
-            "strength": "ให้เลือดเพิ่มคู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
+            "strength": "ให้เลือดคู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
             "weigh": "เมื่อให้เลือดเร็ว ต้องเฝ้าดู เพราะความดันอาจตกลงอีกระหว่างถุง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Reading **still in shock** after blood as ongoing bleeding puts a surgeon at the centre of the plan.",
+            "strength": "Reading **still in shock** as ongoing bleeding puts blood and a surgeon at the centre of the plan.",
             "weigh": "Blood keeps him going only while it runs, so time on the road matters as much as volume.",
             "safety": ""
           },
@@ -1418,7 +1418,7 @@
             "safety": ""
           },
           {
-            "strength": "Matching more blood with a faster move addresses both his volume and the cause.",
+            "strength": "Matching blood with a faster move addresses both his volume and the cause.",
             "weigh": "Units given fast need watching, as his pressure can sag again between bags.",
             "safety": ""
           }
@@ -1474,7 +1474,7 @@
           },
           {
             "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
-            "weigh": "หลังให้เลือด ค่านี้ปนกันระหว่างเลือดที่ได้รับกับที่เสียไป จึงอาจแปลผลคลาดได้ตอนนี้",
+            "weigh": "ค่าครั้งเดียวตอนนี้บอกอัตราการเสียเลือดไม่ได้ จึงอาจแปลผลคลาดได้",
             "safety": ""
           }
         ],
@@ -1491,7 +1491,7 @@
           },
           {
             "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
-            "weigh": "After transfusion the value mixes given and lost blood, so it can mislead at this point.",
+            "weigh": "One value now cannot show the rate of loss, so it can mislead at this point.",
             "safety": ""
           }
         ]
