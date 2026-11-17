@@ -4,11 +4,12 @@
   "rimpl_url": "http://localhost:3003",
   "cap_usd": 95,
   "spent_usd": 11.186964,
-  "stopped": true,
+  "stopped": false,
   "over_cap": false,
   "samples": 3,
-  "planned": 486,
-  "scored": 268,
+  "planned": 243,
+  "scored": 243,
+  "finished_from": "scripts/booth/path-table-runs/ptb-202611170218-c75f.samples.jsonl",
   "evaluator": {
     "provider": "anthropic",
     "model": "claude-sonnet-4-6",
@@ -61,12 +62,15 @@
     "adhf": "ptb-202611150212-bdf7",
     "alcohol-pancreatitis": "ptb-202611150212-bdf7",
     "leptospirosis": "ptb-202611150212-bdf7",
+    "melioidosis-farmer": "ptb-202611170347-83bd",
+    "motorcycle-shock": "ptb-202611170347-83bd",
     "organophosphate": "ptb-202611161504-6f34",
+    "sjs-ten-allopurinol": "ptb-202611170347-83bd",
     "toddler-gastro-dehydration": "ptb-202611150212-bdf7"
   },
   "cases": {
     "copd-exacerbation": {
-      "version": "13",
+      "version": "14",
       "tree_sha256": "595b154aba47c7757eb1334bf5d7e3350e32e62dc9873359cc0f0ce5a5b289fc",
       "reviewed_commit": "bdc1ba20b27fa42a56d4a01b8315fe12cde6b49e",
       "table": true,
@@ -323,7 +327,7 @@
       ]
     },
     "dka-young-adult": {
-      "version": "13",
+      "version": "14",
       "tree_sha256": "f68ab500d63513d7ffd28114f188cd596fe7e67ecc6a1076507a55634c163703",
       "reviewed_commit": "bdc1ba20b27fa42a56d4a01b8315fe12cde6b49e",
       "table": true,
@@ -575,7 +579,7 @@
       "mislabels": []
     },
     "ectopic-rupture": {
-      "version": "12",
+      "version": "13",
       "tree_sha256": "060cbb1f4d6f3e263f16847d158824616aeb39f32288f3198d8c08cc6e1b6768",
       "reviewed_commit": "f63f0eceb44b0b4930556f21f2a5a76f10a9dc48",
       "table": true,
@@ -830,47 +834,23 @@
           "weaker_minus_best": 0.96
         }
       ]
-    },
-    "melioidosis-farmer": {
-      "version": "10",
-      "tree_sha256": "f943500eed3e9c2fa0a99e846acd3fc19c057b4a8e9e29d6cfa32ef0fe84a414",
-      "reviewed_commit": "e793b8bc956cc922dd60e37f36397ad9e53a586a",
-      "table": false,
-      "why": "not every path is fully scored",
-      "composites": null
-    },
-    "motorcycle-shock": {
-      "version": "9",
-      "tree_sha256": "0e0e1c51cd8acf618af849a403b671b1ee679415466d85493d167f02e1043e9a",
-      "reviewed_commit": "a6f2f10cd8ca24529f0bccad4cc333a774528cfa",
-      "table": false,
-      "why": "not every path is fully scored",
-      "composites": null
-    },
-    "sjs-ten-allopurinol": {
-      "version": "11",
-      "tree_sha256": "3078dc8c0f1aa149af7cfd9bfbb87c7eb8be039b4f03e000f1b5045961080fed",
-      "reviewed_commit": "f63f0eceb44b0b4930556f21f2a5a76f10a9dc48",
-      "table": false,
-      "why": "not every path is fully scored",
-      "composites": null
     }
   },
   "recheck": {
     "medians": {
-      "best": 56.5,
-      "mixed": 48.5,
-      "weakest": 37.5
+      "best": 55,
+      "mixed": 49,
+      "weakest": 37
     },
     "pool_n": {
-      "best": 8,
-      "mixed": 8,
-      "weakest": 8
+      "best": 11,
+      "mixed": 11,
+      "weakest": 11
     },
     "bands": {
-      "best": 7.42,
-      "mixed": 7.42,
-      "weakest": 7.42
+      "best": 7.25,
+      "mixed": 7.25,
+      "weakest": 7.25
     },
     "gap_min": 6.59,
     "pool_from": "this run",
@@ -887,10 +867,8 @@
           "weakest": null
         },
         "separation": 21,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
-        ]
+        "pass": true,
+        "reasons": []
       },
       "dka-young-adult": {
         "means": {
@@ -906,8 +884,7 @@
         "separation": 27,
         "pass": false,
         "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap",
-          "best mean 64 is 7.5 from the pool median 56.5, beyond ±7.42"
+          "best mean 64 is 9 from the pool median 55, beyond ±7.25"
         ]
       },
       "ectopic-rupture": {
@@ -922,70 +899,8 @@
           "weakest": null
         },
         "separation": 23,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
-        ]
-      },
-      "melioidosis-farmer": {
-        "means": {
-          "best": null,
-          "mixed": null,
-          "weakest": null
-        },
-        "sd": {
-          "best": null,
-          "mixed": null,
-          "weakest": null
-        },
-        "separation": null,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap",
-          "best: 0 of 1 plays scored",
-          "mixed: 0 of 1 plays scored",
-          "weakest: 0 of 1 plays scored"
-        ]
-      },
-      "motorcycle-shock": {
-        "means": {
-          "best": null,
-          "mixed": null,
-          "weakest": null
-        },
-        "sd": {
-          "best": null,
-          "mixed": null,
-          "weakest": null
-        },
-        "separation": null,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap",
-          "best: 0 of 1 plays scored",
-          "mixed: 0 of 1 plays scored",
-          "weakest: 0 of 1 plays scored"
-        ]
-      },
-      "sjs-ten-allopurinol": {
-        "means": {
-          "best": null,
-          "mixed": null,
-          "weakest": null
-        },
-        "sd": {
-          "best": null,
-          "mixed": null,
-          "weakest": null
-        },
-        "separation": null,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap",
-          "best: 0 of 1 plays scored",
-          "mixed: 0 of 1 plays scored",
-          "weakest: 0 of 1 plays scored"
-        ]
+        "pass": true,
+        "reasons": []
       },
       "adhf": {
         "means": {
@@ -999,10 +914,8 @@
           "weakest": null
         },
         "separation": 21,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
-        ]
+        "pass": true,
+        "reasons": []
       },
       "alcohol-pancreatitis": {
         "means": {
@@ -1016,10 +929,8 @@
           "weakest": null
         },
         "separation": 16,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
-        ]
+        "pass": true,
+        "reasons": []
       },
       "leptospirosis": {
         "means": {
@@ -1033,9 +944,42 @@
           "weakest": null
         },
         "separation": 16,
+        "pass": true,
+        "reasons": []
+      },
+      "melioidosis-farmer": {
+        "means": {
+          "best": 65,
+          "mixed": 58,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 30,
         "pass": false,
         "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
+          "best mean 65 is 10 from the pool median 55, beyond ±7.25",
+          "mixed mean 58 is 9 from the pool median 49, beyond ±7.25"
+        ]
+      },
+      "motorcycle-shock": {
+        "means": {
+          "best": 50,
+          "mixed": 59,
+          "weakest": 37
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 13,
+        "pass": false,
+        "reasons": [
+          "mixed mean 59 is 10 from the pool median 49, beyond ±7.25"
         ]
       },
       "organophosphate": {
@@ -1050,10 +994,23 @@
           "weakest": null
         },
         "separation": 8,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
-        ]
+        "pass": true,
+        "reasons": []
+      },
+      "sjs-ten-allopurinol": {
+        "means": {
+          "best": 50,
+          "mixed": 46,
+          "weakest": 38
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 12,
+        "pass": true,
+        "reasons": []
       },
       "toddler-gastro-dehydration": {
         "means": {
@@ -1067,10 +1024,8 @@
           "weakest": null
         },
         "separation": 15,
-        "pass": false,
-        "reasons": [
-          "incomplete run: 268 of 486 samples scored, stopped at the cap"
-        ]
+        "pass": true,
+        "reasons": []
       }
     }
   }
