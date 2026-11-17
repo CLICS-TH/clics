@@ -21,7 +21,8 @@
  * whole ledger, so runs at once share the cap; it is settled at its reported tokens plus the worst case of every
  * attempt rimpl retried, so a run killed mid-call stays charged its worst case. The first refused reservation stops
  * the run, and a missing or unreadable ledger refuses --go. The owner opens a new budget by raising CAP_USD in a
- * reviewed commit (#494 raised it from $25 to $70, over the $30.49 already spent; #497 to $85, over $65.32 booked, then to $95, over $82.24 booked, then to $105, over $93.43 booked, from the owner's one-off extra $10).
+ * reviewed commit (#494 raised it from $25 to $70, over the $30.49 already spent; #497 to $85, over $65.32 booked, then to $95, over $82.24 booked, then to $105, over $93.43 booked, from the owner's one-off extra $10, then to $113, over $104.43 booked, on the
+ * owner's route A for copd on #511).
  *
  *   node scripts/booth/build-path-tables.mjs                       # checks trees and replies, spends nothing
  *   node --env-file=rimpl/.env scripts/booth/build-path-tables.mjs --go
@@ -74,7 +75,7 @@ const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
 
-const CAP_USD = 105;
+const CAP_USD = 113;
 // What an evaluate call cost on average in #264's sandbox runs (sandbox-play.js TYPICAL_TOKENS).
 const TYPICAL_EVALUATE = [4000, 405];
 
