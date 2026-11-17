@@ -283,11 +283,13 @@ describe('admission', () => {
     expect(cases.filter((k) => k.path_score_table?.provenance.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
     const admitted = cases.filter(isAdmitted);
     expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Five are admitted (#510, route B). ectopic-rupture and melioidosis-farmer failed their re-check; dka-young-adult,
-    // motorcycle-shock, copd-exacerbation and sjs-ten-allopurinol had their admission taken back for the gate's
-    // findings. All six wait for the follow-up PR and hold no table check, sandbox record or waiver.
+    // Eight are admitted: five from #510 (route B), and copd-exacerbation, ectopic-rupture and sjs-ten-allopurinol from
+    // #497 (re-check passed; sandbox run sbx-202611170505-80f6 failed and the #493 owner waiver covers it).
+    // dka-young-adult, melioidosis-farmer and motorcycle-shock failed table_check and hold no table check, sandbox
+    // record or waiver.
     expect(admitted.map((k) => k.case_id).sort())
-      .toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'organophosphate', 'toddler-gastro-dehydration']);
+      .toEqual(['adhf', 'alcohol-pancreatitis', 'copd-exacerbation', 'ectopic-rupture', 'leptospirosis', 'organophosphate',
+        'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
     expect(cases.filter((k) => !isAdmitted(k) && (k.admission.table_check || k.admission.sandbox || k.admission.owner_waiver))
       .map((k) => k.case_id)).toEqual([]);
   });

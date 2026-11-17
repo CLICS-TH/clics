@@ -1122,6 +1122,13 @@
     "table_check": {
       "run_id": "ptb-202611170218-c75f",
       "date": "2026-11-17"
+    },
+    "owner_waiver": {
+      "date": "2026-11-17",
+      "adr": "0005",
+      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611170505-80f6: weakest mean 47 is 9 from the pool median 38, beyond ±8; strong: 2 of 3 plays scored; best is only 6 above weakest, under 6.59",
+      "sandbox_run_id": "sbx-202611170505-80f6",
+      "tree_sha256": "595b154aba47c7757eb1334bf5d7e3350e32e62dc9873359cc0f0ce5a5b289fc"
     }
   },
   "path_score_table": {
