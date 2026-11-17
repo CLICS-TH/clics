@@ -131,7 +131,9 @@ The build also re-runs ADR 0005's difficulty check on the table's own samples. A
 
 Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
 
-The re-check pools every case of the event on its current tree. When you rebuild only some of an event's cases (`--case`), the others stand in with their committed tables, each bound to its current tree. The build refuses to spend while another case's table is missing or of an earlier tree: rebuild that case in the same run. An earlier run's medians are never reused, because they hold trees that have since changed (#497 P1).
+The re-check pools every case of the event on its current tree. When you rebuild only some of an event's cases (`--case`), the others stand in with their committed tables, each bound to its current tree. The build refuses to spend while another case of the event has no table or a table of an earlier tree: rebuild that case in the same run. An earlier run's medians are never reused, because they hold trees that have since changed (#497 P1). If you build in a copy of the event folder with some cases left out, as run `ptb-202611170738-3cf7` did, say in the PR which cases its pool held: the run report names only the committed tables it pooled.
+
+A build re-checks only the cases it builds, so a later build that moves the pool medians can push an admitted case out of its band. `scripts/booth/recheck-committed.mjs` re-runs the re-check, for free, over every committed table bound to its case's current tree. `backend/tests/booth-recheck-committed.test.js` fails when an admitted case fails it without a `table_waiver` on its table's run (#511). Tables built with different `samples_per_path` cannot share one re-check, and the tool refuses them.
 
 A table counts only while the reply bank it was scored on is the one shipped: its samples record the bank's `replies_sha256`, and `booth-case-tree.test.js` fails when a bank changes after its table (#497 M1). Edit a five-step case's replies, and you rebuild its table.
 
