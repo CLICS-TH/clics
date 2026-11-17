@@ -213,9 +213,9 @@ describe('the build runner', () => {
   });
 
   test.each([
-    ['--cap', '95.01', /--cap needs a number from 0\.01 to 95\b/],
+    ['--cap', '105.01', /--cap needs a number from 0\.01 to 105\b/],
     ['--samples', '2', /--samples must be odd/],
-  ])('refuses %s %s: the cap is at most $95 and a median needs an odd count', (flag, v, why) => {
+  ])('refuses %s %s: the cap is at most $105 and a median needs an odd count', (flag, v, why) => {
     const res = run([flag, v]);
     expect(res.status).toBe(2);
     expect(res.stderr).toMatch(why);
