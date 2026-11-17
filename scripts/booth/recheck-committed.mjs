@@ -26,7 +26,13 @@ export function recheckCommitted(raws) {
   const plan = tablePlan(STEPS, PATHS_BY_STEPS[STEPS]);
   const pool = committedPool(plan, bound);
   if (pool.why) throw new Error(pool.why);
-  const samples = bound[0].path_score_table.provenance.samples_per_path;
+  // The bands and the gap depend on the samples per path, so one re-check holds only tables built with the same count.
+  const counts = [...new Set(bound.map((r) => r.path_score_table.provenance.samples_per_path))];
+  if (counts.length > 1) {
+    throw new Error(`the committed tables mix ${counts.join(' and ')} samples per path: `
+      + bound.map((r) => `${r.case_id} ${r.path_score_table.provenance.samples_per_path}`).join(', '));
+  }
+  const [samples] = counts;
   const result = recheck(plan, pool.cases, { samples });
   return { ...result, runs: pool.runs, unbound: fiveStep.filter((r) => !bound.includes(r)).map((r) => r.case_id) };
 }

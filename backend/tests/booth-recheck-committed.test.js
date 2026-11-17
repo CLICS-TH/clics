@@ -21,3 +21,18 @@ test('every admitted NFCME-2026 case passes the re-check against the pool of all
   }).map((raw) => [raw.case_id, report.cases[raw.case_id]?.reasons ?? ['its table is not bound to its tree']]);
   expect(failing).toEqual([]);
 });
+
+test('the re-check refuses committed tables built with different samples per path, whose bands differ', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'recheck-'));
+  for (const f of fs.readdirSync(DIR).filter((n) => n.endsWith('.json'))) {
+    const raw = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8'));
+    if (raw.case_id === 'organophosphate') raw.path_score_table.provenance.samples_per_path = 1;
+    fs.writeFileSync(path.join(dir, f), JSON.stringify(raw));
+  }
+  let err;
+  try { execFileSync(process.execPath, [TOOL, '--cases', dir], { encoding: 'utf8', stdio: 'pipe' }); } catch (e) { err = e; }
+  fs.rmSync(dir, { recursive: true, force: true });
+  expect(err).toBeDefined();
+  expect(err.stderr).toMatch(/mix 3 and 1 samples per path|mix 1 and 3 samples per path/);
+  expect(err.stderr).toMatch(/organophosphate 1/);
+});
