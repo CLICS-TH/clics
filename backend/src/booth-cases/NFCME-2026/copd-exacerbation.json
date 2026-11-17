@@ -1,6 +1,6 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "14",
+  "version": "15",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
@@ -44,8 +44,8 @@
             "en": "Acute exacerbation of COPD"
           },
           "line": {
-            "th": "หอบมากขึ้นและเสมหะเปลี่ยนในคนสูบบุหรี่นาน",
-            "en": "Worse breathing and changed sputum in a long-term smoker."
+            "th": "สาเหตุที่พบบ่อยที่ทำให้คนสูบบุหรี่หอบมากขึ้น",
+            "en": "A common reason for a smoker's breathing to worsen."
           }
         },
         {
@@ -56,8 +56,8 @@
             "en": "COPD flare triggered by infection"
           },
           "line": {
-            "th": "เสมหะมากขึ้นและเขียวขึ้นชี้ว่าติดเชื้อกระตุ้น",
-            "en": "More and greener sputum points to an infective trigger."
+            "th": "การติดเชื้อเป็นตัวกระตุ้นที่พบบ่อยของการกำเริบ",
+            "en": "Infection is a frequent trigger of these flares."
           }
         },
         {
@@ -130,8 +130,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "หาสิ่งที่กระตุ้นการกำเริบครั้งนี้",
-              "en": "Looks for what set off this flare."
+              "th": "ชุดตรวจแรกมาตรฐานของการกำเริบ",
+              "en": "A standard first set for a flare."
             }
           },
           {
@@ -142,8 +142,8 @@
               "en": "Arterial blood gas and chest X-ray"
             },
             "line": {
-              "th": "SpO2 88% ทำให้ต้องดู CO2 คั่งก่อน",
-              "en": "His SpO2 of 88% makes CO2 the first thing to check."
+              "th": "การตรวจแรกสองอย่างที่ทำกันบ่อยในการกำเริบ",
+              "en": "Two common first tests in a flare."
             }
           },
           {
@@ -203,8 +203,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "หาสิ่งที่กระตุ้นการกำเริบครั้งนี้",
-              "en": "Looks for what set off this flare."
+              "th": "ชุดตรวจแรกมาตรฐานของการกำเริบ",
+              "en": "A standard first set for a flare."
             }
           },
           {
@@ -215,8 +215,8 @@
               "en": "Arterial blood gas and chest X-ray"
             },
             "line": {
-              "th": "SpO2 88% ทำให้ต้องดู CO2 คั่งก่อน",
-              "en": "His SpO2 of 88% makes CO2 the first thing to check."
+              "th": "การตรวจแรกสองอย่างที่ทำกันบ่อยในการกำเริบ",
+              "en": "Two common first tests in a flare."
             }
           },
           {
@@ -283,8 +283,8 @@
               "en": "Chest X-ray, ECG and ABG"
             },
             "line": {
-              "th": "หาสิ่งที่กระตุ้นการกำเริบครั้งนี้",
-              "en": "Looks for what set off this flare."
+              "th": "ชุดตรวจแรกมาตรฐานของการกำเริบ",
+              "en": "A standard first set for a flare."
             }
           },
           {
@@ -295,8 +295,8 @@
               "en": "Arterial blood gas and chest X-ray"
             },
             "line": {
-              "th": "SpO2 88% ทำให้ต้องดู CO2 คั่งก่อน",
-              "en": "His SpO2 of 88% makes CO2 the first thing to check."
+              "th": "การตรวจแรกสองอย่างที่ทำกันบ่อยในการกำเริบ",
+              "en": "Two common first tests in a flare."
             }
           },
           {
@@ -377,8 +377,8 @@
               "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อเข้ากับเสมหะเขียวของเขา",
-              "en": "Steroid with an antibiotic fits his green sputum."
+              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อที่ใช้กันบ่อย",
+              "en": "A common steroid and antibiotic pair."
             }
           },
           {
@@ -389,8 +389,8 @@
               "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อหลักที่ทำให้เสมหะเขียว",
-              "en": "Covers the main bacteria behind his green sputum."
+              "th": "สเตียรอยด์ร่วมยาฆ่าเชื้อที่ใช้กันแพร่หลาย",
+              "en": "A steroid with a widely used antibiotic."
             }
           },
           {
@@ -469,8 +469,8 @@
               "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อเข้ากับเสมหะเขียวของเขา",
-              "en": "Steroid with an antibiotic fits his green sputum."
+              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อที่ใช้กันบ่อย",
+              "en": "A common steroid and antibiotic pair."
             }
           },
           {
@@ -481,8 +481,8 @@
               "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อหลักที่ทำให้เสมหะเขียว",
-              "en": "Covers the main bacteria behind his green sputum."
+              "th": "สเตียรอยด์ร่วมยาฆ่าเชื้อที่ใช้กันแพร่หลาย",
+              "en": "A steroid with a widely used antibiotic."
             }
           },
           {
@@ -573,8 +573,8 @@
               "en": "Pred 5 days + amox-clav"
             },
             "line": {
-              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อเข้ากับเสมหะเขียวของเขา",
-              "en": "Steroid with an antibiotic fits his green sputum."
+              "th": "สเตียรอยด์คู่ยาฆ่าเชื้อที่ใช้กันบ่อย",
+              "en": "A common steroid and antibiotic pair."
             }
           },
           {
@@ -585,8 +585,8 @@
               "en": "Pred 5 days + doxycycline"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อหลักที่ทำให้เสมหะเขียว",
-              "en": "Covers the main bacteria behind his green sputum."
+              "th": "สเตียรอยด์ร่วมยาฆ่าเชื้อที่ใช้กันแพร่หลาย",
+              "en": "A steroid with a widely used antibiotic."
             }
           },
           {
@@ -1116,8 +1116,8 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-17",
-      "findings": "This is a fresh re-check by a non-author of the final tree of copd-exacerbation version 12 after the round-5 edits and one MUST-FIX round. It covered all 13 banks in Thai and English: every question variant, plus every option's label, line and tier. Sources checked against: the Thoracic Society of Thailand COPD guideline 2565 (2022) chapter 6 (the usual first antibiotic is a beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide; prednisolone for 5-7 days; NIV for raised PaCO2 at pH 7.25-7.35; criteria for invasive ventilation); GOLD 2025 chapter 5 (a 5-day steroid, the usual empirical antibiotics, NIV as the preferred first mode, IV magnesium not part of standard therapy); BTS/ICS AHRF 2016 (target 88-92%, NIV must not delay escalation, a plan for NIV failure); the Cochrane review of magnesium sulfate in COPD exacerbations (CD013506, 2022); and the WHO IMAI District Clinician Manual (WHO 2011) volume 2 section 10.6.5 on COPD. The first round of this re-check returned one tree MUST-FIX. On the paths that order no ABG (step 1 d or e, then step2.W d \"CBC and sputum culture\" or e \"CBC, electrolytes, blood culture\", then step3.W, whose variants give no gas), the step4.B v2 and step4.R v2 stems said \"Repeat ABG\" and the step4.R b label said \"Recheck the ABG\", so they referred to a gas that was never done. The stems now read \"ABG pH 7.39, PaCO2 46 mmHg...\" and \"ABG pH 7.36, PaCO2 50 mmHg...\" (\"ABG pH 7.39 PaCO2 46 mmHg ...\"), and the label reads \"ABG within 1 hour\" (\"ตรวจ ABG ใน 1 ชม.\"). Its line, \"Shows a rising CO2 early, before he tires.\", looks forward and holds on every path. A re-walk of every path into step4.B, step4.R and step5.W finds no other claim of an earlier gas. The step4.W stems and the step4.W b label keep \"repeat ABG\" correctly, because both step4.W variants show a gas. step3.B v3 (\"No pneumonia on CXR\") holds, since every best step-2 option includes a chest X-ray. step3.R v3 gives an ABG, and every reasonable step-2 option includes one. step5.R c (\"An X-ray and blood count is the usual check.\") holds on the paths with no earlier X-ray. Notable judgments:\n- step3 tiers stand: pred 5 days with amox-clav or doxycycline is best; azithromycin, levofloxacin, IV hydrocortisone with oral amox-clav, and IV amox-clav are reasonable; IV ceftriaxone and plain amoxicillin are weaker but safe, since each still treats.\n- step4.R d \"Switch to IV ceftriaxone\" is weaker and safe on every path into step4.R, where he is never already on ceftriaxone.\n- step4.W d stays weaker because it still starts NIV.\n- step5.W d \"Refer to ICU, double the steroid\" stays weaker and safe: it sends him to ICU and stops nothing that is running.\n- step5.W keeps the NIV bridge and intubation as best.\n- step5.R stays coherent after step4.W c (intubation), since a day-3 ward course after a short ventilation is plausible.\n- step2.W d and e stay weaker because they leave out tests, not treatment.\nThe teaser hints at no diagnosis. Thai and English agree, and the Thai reads naturally. MUST-FIX: none. Reviewed tree sha256 595b154aba47c7757eb1334bf5d7e3350e32e62dc9873359cc0f0ce5a5b289fc.",
-      "tree_sha256": "595b154aba47c7757eb1334bf5d7e3350e32e62dc9873359cc0f0ce5a5b289fc"
+      "findings": "This is a fresh re-check by a non-author of the final tree of copd-exacerbation after the round-8 edits, which made the best options' explanatory lines plainer at steps 1-3. It covered all 13 banks in Thai and English: the teaser, the vignette, every question variant, and every option's label, line and tier. The edits were compared with the tree at ab8aaba1, and the only changes are the lines of step1 a and b, step2.B/R/W a and b, and step3.B/R/W a and b. Labels, tiers, stems and links are unchanged.\n\nSources: GOLD 2025 report, chapter 5 (management of exacerbations), covering:\n- viral and bacterial infection as the main triggers;\n- hospital work-up with chest X-ray, ECG and arterial blood gas;\n- controlled oxygen to 88-92% with SABA plus or minus SAMA;\n- prednisolone 40 mg for 5 days;\n- antibiotics for increased sputum purulence, as an aminopenicillin with or without clavulanate, a macrolide or a tetracycline;\n- NIV as the first mode for acute respiratory acidosis.\n\nFurther sources:\n- the Thoracic Society of Thailand COPD guideline 2565 (2022), exacerbation chapter: beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide as the usual first antibiotic, prednisolone for 5-7 days, and NIV at pH 7.25-7.35;\n- BTS/ICS acute hypercapnic respiratory failure guideline 2016: target 88-92%, NIV that never delays escalation, and a plan for NIV failure;\n- Cochrane review CD013506 (2022) on magnesium sulfate in COPD exacerbations;\n- WHO IMAI District Clinician Manual (WHO 2011), COPD exacerbation guidance.\n\nEvery edited line was judged on every variant and path into its bank:\n- step1 a \"A common reason for a smoker's breathing to worsen.\" / \"สาเหตุที่พบบ่อยที่ทำให้คนสูบบุหรี่หอบมากขึ้น\" is true (GOLD 2025 ch. 5; Thai guideline 2565). As a general statement about smokers it holds for this ex-smoker, and it argues for its own label.\n- step1 b \"Infection is a frequent trigger of these flares.\" / \"การติดเชื้อเป็นตัวกระตุ้นที่พบบ่อยของการกำเริบ\" is true (GOLD 2025 ch. 5, triggers). It argues for the infective qualifier that separates b from a.\n- step2 a \"A standard first set for a flare.\" / \"ชุดตรวจแรกมาตรฐานของการกำเริบ\" is true for CXR, ECG and ABG (GOLD 2025 ch. 5, hospital assessment). It also holds on the step2.R and step2.W paths, where the player named pneumonia, heart failure or asthma, since that set is standard for each of those presentations.\n- step2 b \"Two common first tests in a flare.\" / \"การตรวจแรกสองอย่างที่ทำกันบ่อยในการกำเริบ\" is true for ABG and CXR (same section).\n- step3 a \"A common steroid and antibiotic pair.\" / \"สเตียรอยด์คู่ยาฆ่าเชื้อที่ใช้กันบ่อย\" and step3 b \"A steroid with a widely used antibiotic.\" / \"สเตียรอยด์ร่วมยาฆ่าเชื้อที่ใช้กันแพร่หลาย\" are true for pred 5 days with amox-clav or doxycycline (GOLD 2025 ch. 5; Thai guideline 2565 exacerbation chapter). They hold on every step-3 variant, including step3.B v3 (no pneumonia, pH 7.37), step3.R v3 (a gas) and step3.W v3 (green sputum, 37.8 °C).\n\nNone of the edited lines makes an argument against itself or for another option. None contains a word the contract test forbids. Thai and English agree in each, and the Thai reads as a Thai GP would write it.\n\nTiers checked closely:\n- The step2 best pair stands. ABG and CXR without ECG is still a careful first order at pulse 106.\n- step2.W d and e stay weaker, because they leave out tests, not treatment, while controlled oxygen runs.\n- step3 stands. Pred 5 days with amox-clav or doxycycline is best. Azithromycin, levofloxacin, IV hydrocortisone with oral amox-clav, and IV amox-clav are reasonable. IV ceftriaxone and plain amoxicillin are weaker but safe, since each still treats. GOLD allows plain aminopenicillin, but the Thai guideline prefers a beta-lactamase inhibitor in a hospitalised flare, so weaker holds.\n- step4.B d and e (magnesium, IV switch) and step4.R d (IV ceftriaxone) are weaker and safe, because none stops anything running.\n- step4.W d stays weaker because it still starts NIV.\n- step5.W keeps the NIV bridge and intubation as best, and d stays weaker and safe because it still sends him to ICU.\n\nThe teaser names no diagnosis. MUST-FIX: none. Reviewed tree sha256 9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e.",
+      "tree_sha256": "9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e"
     },
     "table_check": {
       "run_id": "ptb-202611170218-c75f",
