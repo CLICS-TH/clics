@@ -74,6 +74,9 @@ function regressionPlan(scripted) {
       };
     },
     judged: ({ table }, path) => (table ? [table.composites[path]] : []),
+    // A committed table read back for the re-check's pool: the composite of each scripted path's entry.
+    fromTable: (stored) => ({ composites: Object.fromEntries(Object.values(scripted)
+      .map((p) => [p, wholeComposite(stored.paths[p])])) }),
     runs: () => 1,
   };
 }
@@ -119,29 +122,29 @@ export function recheck(plan, cases, { samples, incomplete, pool } = {}) {
 }
 
 /**
- * The pool medians of an earlier build's report, for a build of only some of an event's cases (`--pool`): judged
- * against itself, a pool of a few cases has medians that are mostly the cases themselves and wider bands (bandFor
- * widens as the pool shrinks), so a partial rebuild is judged against the whole event's pool instead, as the sandbox's
- * `--pool` does. The earlier run must be complete, of the same method, and pooled from its own cases, each group from
- * MIN_POOL or more of them.
- * @param {object} earlier a build report (<run_id>.json)
- * @param {string} method this build's method
- * @returns {{ pool: { medians: Record<string, number>, pool_n: Record<string, number> }, run_id: string } | { why: string }}
+ * The event's other cases as the re-check pools them, for a build of only some of its cases (#497 P1). The re-check
+ * judges this build's cases against the medians of every case in the event on its current tree: this run's new tables,
+ * plus each other case's committed table bound to its current tree. An earlier run's medians are never reused, because
+ * they hold trees that have since changed. A case whose table is missing, is of another tree, or was built another way
+ * cannot stand in the pool, so it must be built in this run too.
+ * @param {ReturnType<typeof tablePlan>} plan
+ * @param {object[]} others the raw case files of the event that this run does not build
+ * @returns {{ cases: Record<string, { composites: {}, table: { composites: Record<string, number> } }>,
+ *   runs: Record<string, string> } | { why: string }}
  */
-export function poolFrom(earlier, method) {
-  const r = earlier?.recheck;
-  if (!earlier?.run_id || !r?.medians || !r?.pool_n) return { why: 'is not a path-table build report' };
-  if (earlier.method !== method) return { why: `is a ${earlier.method} build, not ${method}` };
-  if (earlier.stopped || earlier.over_cap || !(earlier.scored >= earlier.planned)) {
-    return { why: `is from an incomplete run (${earlier.scored} of ${earlier.planned} samples scored)` };
+export function committedPool(plan, others) {
+  if (!plan.fromTable) return { why: `a ${plan.method} re-check reads each case's own samples, so build every case of the event in one run` };
+  const cases = {};
+  const runs = {};
+  for (const raw of others) {
+    const table = raw.path_score_table;
+    if (!table) return { why: `${raw.case_id} has no path score table: build it in this run too` };
+    if (table.provenance.tree_sha256 !== treeSha(raw)) return { why: `${raw.case_id}'s table is of an earlier tree: build it in this run too` };
+    if (table.provenance.method !== plan.method) return { why: `${raw.case_id}'s table is a ${table.provenance.method} table, not ${plan.method}: build it in this run too` };
+    cases[raw.case_id] = { composites: {}, table: plan.fromTable(table) };
+    runs[raw.case_id] = table.provenance.run_id;
   }
-  if (r.pool_from !== 'this run') return { why: 'judged its cases against another run\'s pool: use the run that measured the pool' };
-  const thin = PATH_GROUPS.filter((g) => typeof r.medians[g] !== 'number' || !(r.pool_n[g] >= MIN_POOL));
-  if (thin.length) return { why: `has no median from ${MIN_POOL} or more cases for ${thin.join(', ')}` };
-  return {
-    run_id: earlier.run_id,
-    pool: { medians: Object.fromEntries(PATH_GROUPS.map((g) => [g, r.medians[g]])), pool_n: Object.fromEntries(PATH_GROUPS.map((g) => [g, r.pool_n[g]])) },
-  };
+  return { cases, runs };
 }
 
 // The variance, in one play's σ², of a fitted entry and of a fitted best − weakest: least squares' p/N and 6k/N on a
@@ -152,8 +155,11 @@ function fittedNoise(sampled, samples) {
   return { entry: (Math.PI / 2) * ((1 + 2 * k) / n), gap: (Math.PI / 2) * ((6 * k) / n) };
 }
 
-// Whose pool medians a re-check used: its own cases', or an earlier run's (--pool).
-const poolText = (report) => (report.pool_run ? `the pool of run ${report.pool_run} (--pool)` : 'this run\'s pool');
+// Whose pool medians a re-check used: this run's cases alone, or with the committed tables of the event's others.
+const poolText = (report) => {
+  const n = Object.keys(report.pooled_with ?? {}).length;
+  return n ? `the pool of this run's cases and the committed tables of ${n} more, each on its current tree` : 'this run\'s pool';
+};
 
 // How the summary tells each method: what a build samples, after "<n> samples per ", and what its re-check judges.
 const METHOD_TEXT = Object.freeze({

@@ -131,7 +131,9 @@ The build also re-runs ADR 0005's difficulty check on the table's own samples. A
 
 Either must name the run in `path_score_table.provenance.run_id`. A rebuilt table needs a new one, and a waiver of an earlier run admits nothing.
 
-The re-check pools the cases of its run. When you rebuild only some of an event's cases, pass `--pool <report.json>` with the last build of the whole event (its `<run_id>.json` under `scripts/booth/path-table-runs/`), so they are judged against the event's pool medians and bands. A pool of a few cases is mostly the cases themselves, and its bands are wider.
+The re-check pools every case of the event on its current tree. When you rebuild only some of an event's cases (`--case`), the others stand in with their committed tables, each bound to its current tree. The build refuses to spend while another case's table is missing or of an earlier tree: rebuild that case in the same run. An earlier run's medians are never reused, because they hold trees that have since changed (#497 P1).
+
+A table counts only while the reply bank it was scored on is the one shipped: its samples record the bank's `replies_sha256`, and `booth-case-tree.test.js` fails when a bank changes after its table (#497 M1). Edit a five-step case's replies, and you rebuild its table.
 
 ## The reply bank
 

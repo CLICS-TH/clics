@@ -292,6 +292,24 @@ describe('admission', () => {
       .map((k) => k.case_id)).toEqual([]);
   });
 
+  // #497 M1: a table is scored on the replies the kiosk showed in its samples. A reply bank edited after its table was
+  // built leaves a table that no longer measures what visitors see, and no schema hash catches it: the samples record it.
+  test('every NFCME-2026 five-step table was scored on the reply bank the kiosk ships, sample by sample (#497 M1)', () => {
+    const { repliesSha } = require('../src/booth-cases/reply-bank');
+    const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
+    const runs = path.join(__dirname, '../../scripts/booth/path-table-runs');
+    const off = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)))
+      .filter((k) => k.banks.step5 && k.path_score_table).flatMap((k) => {
+        const shipped = repliesSha(read(path.join(dir, 'replies', `${k.case_id}.json`)).replies);
+        const lines = fs.readFileSync(path.join(runs, `${k.path_score_table.provenance.run_id}.samples.jsonl`), 'utf8').trim().split('\n');
+        const samples = lines.slice(1).map((l) => JSON.parse(l)).filter((r) => r.case_id === k.case_id);
+        if (!samples.length) return [`${k.case_id}: run ${k.path_score_table.provenance.run_id} holds none of its samples`];
+        const other = samples.filter((r) => r.replies_sha256 !== shipped);
+        return other.length ? [`${k.case_id}: ${other.length} of ${samples.length} samples walked with replies ${String(other[0].replies_sha256).slice(0, 8)}, not the shipped ${shipped.slice(0, 8)}`] : [];
+      });
+    expect(off).toEqual([]);
+  });
+
   test('a case with no admission marker is valid but not admitted', () => {
     const k = structuredClone(good);
     delete k.admission;

@@ -586,27 +586,43 @@ describe('the build runner', () => {
     expect(built.path_score_table.paths.WRBWB).toEqual(DOMAINS);
   });
 
-  test('--pool judges the re-check against an earlier report\'s medians and names its run; a report that cannot pool is refused (#497)', () => {
-    const { dir, args } = throwawayBuild([KASE5]);
+  // #497 P1: the re-check of a partial build pools every case of the event on its current tree, never an earlier
+  // run's medians, which held trees that have since changed.
+  test('a partial build pools the other cases\' committed tables on their current trees; --pool is gone, and a stale table refuses the run (#497 P1)', () => {
+    const other = { ...KASE5, case_id: `${KASE5.case_id}-b`, path_score_table: {
+      provenance: { evaluator_model: 'fixture', prompt_sha256: 'a'.repeat(64), decoding: { temperature: 0, max_tokens: 100 },
+        samples_per_path: 3, method: 'median-regression', run_id: 'ptb-other', date: '2026-11-17', tree_sha256: 'x' },
+      paths: Object.fromEntries(tierPaths(5).map((p) => [p, { d1: 2, d2: 2, d3: 2, d4: 2, d5: 2, d6: 2, d7: 2 }])),
+    } };
+    const { dir, args } = throwawayBuild([KASE5, other]);
     const kase = JSON.parse(fs.readFileSync(path.join(dir, `${KASE5.case_id}.json`), 'utf8'));
     const out = args[args.indexOf('--out') + 1];
     const file = path.join(out, 'run.samples.jsonl');
-    const header = { run_id: 'ptb-part', date: '2026-11-15', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
+    const header = { run_id: 'ptb-part', date: '2026-11-17', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
     const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
       tree_sha256: treeSha(kase), replies_sha256: repliesSha(REPLIES5), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
     fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
-    const earlier = { run_id: 'ptb-all', method: 'median-regression', scored: 891, planned: 891,
-      recheck: { medians: { best: 55, mixed: 48, weakest: 39 }, pool_n: { best: 11, mixed: 11, weakest: 11 }, pool_from: 'this run' } };
-    const poolFile = path.join(out, 'earlier.json');
-    fs.writeFileSync(poolFile, JSON.stringify(earlier));
-    expect([0, 1]).toContain(run([...args, '--from', file, '--pool', poolFile]).status);
+    const part = [...args, '--case', KASE5.case_id, '--from', file];
+    expect([0, 1]).toContain(run(part).status);
     const report = JSON.parse(fs.readFileSync(path.join(out, 'ptb-part.json'), 'utf8'));
-    expect(report.pool_run).toBe('ptb-all');
-    expect(report.recheck).toMatchObject({ medians: earlier.recheck.medians, pool_n: earlier.recheck.pool_n, pool_from: 'earlier run' });
-    fs.writeFileSync(poolFile, JSON.stringify({ ...earlier, method: 'median' }));
-    const refused = run([...args, '--from', file, '--pool', poolFile]);
+    expect(report.pooled_with).toEqual({ [other.case_id]: 'ptb-other' });
+    expect(report).not.toHaveProperty('pool_run');
+    expect(report.recheck.pool_from).toBe('this run');
+    expect(Object.keys(report.recheck.cases).sort()).toEqual([KASE5.case_id, other.case_id].sort());
+    expect(report.recheck.pool_n).toEqual({ best: 2, mixed: 2, weakest: 2 });
+    // The old way, an earlier report's medians, is no longer an argument.
+    const stalePool = run([...part, '--pool', path.join(out, 'ptb-part.json')]);
+    expect(stalePool.status).toBe(2);
+    expect(stalePool.stderr).toMatch(/unknown argument --pool/);
+    // The other case's tree changes after its table was built: it can no longer stand in the pool.
+    const otherFile = path.join(dir, `${other.case_id}.json`);
+    const edited = JSON.parse(fs.readFileSync(otherFile, 'utf8'));
+    edited.vignette = { ...edited.vignette, en: `${edited.vignette.en} Edited.` };
+    fs.writeFileSync(otherFile, `${JSON.stringify(edited, null, 2)}\n`);
+    spawnSync('git', ['checkout', '-q', '--', `${KASE5.case_id}.json`], { cwd: dir }); // undo the first run's table
+    const refused = run(part);
     expect(refused.status).toBe(2);
-    expect(refused.stderr).toMatch(/--pool .* is a median build, not median-regression/);
+    expect(refused.stderr).toMatch(new RegExp(`pools every case of the event on its current tree, but ${other.case_id}'s table is of an earlier tree`));
   });
 
   test('--from refuses a five-step case\'s samples walked with another reply bank, or recording none, with zero rimpl calls; the current bank is accepted', async () => {

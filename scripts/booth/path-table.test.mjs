@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import pleGate from '../../backend/src/services/ple-gate.js';
-import { treeSha, reviewedTree, medianDomains, tablePlan, recheck, poolFrom, summaryMarkdown } from './path-table.mjs';
+import * as pathTable from './path-table.mjs';
+import { treeSha, reviewedTree, medianDomains, tablePlan, recheck, committedPool, summaryMarkdown } from './path-table.mjs';
 import { PATH_GROUPS, verdicts } from './sandbox-verdict.mjs';
 
 const { compositeScore } = pleGate;
@@ -280,50 +281,52 @@ test('a five-step summary with no reversed step says so, and a three-step summar
   assert.doesNotMatch(three, /Likely tier mislabels|JSON report holds/);
 });
 
-// --pool (#497): a rebuild of some of an event's cases is judged against the whole event's pool medians.
-const EARLIER = {
-  run_id: 'ptb-all', method: 'median-regression', scored: 891, planned: 891, stopped: false, over_cap: false,
-  recheck: { medians: { best: 55, mixed: 48, weakest: 39 }, pool_n: { best: 11, mixed: 11, weakest: 11 }, pool_from: 'this run' },
+// #497 P1: a rebuild of some of an event's cases is judged against every case of the event on its current tree, its
+// own new tables and the others' committed tables, never an earlier run's medians.
+const committed = (plan, id, built, { tree, method = plan.method } = {}) => {
+  const raw = { case_id: id, banks: { step1: id } };
+  return { ...raw, path_score_table: { provenance: { method, run_id: `ptb-${id}`, tree_sha256: tree ?? treeSha(raw) }, paths: built.table.paths } };
 };
 
-test('poolFrom takes a complete, self-pooled report of the same method, and refuses anything else', () => {
-  assert.deepEqual(poolFrom(EARLIER, 'median-regression'), {
-    run_id: 'ptb-all', pool: { medians: { best: 55, mixed: 48, weakest: 39 }, pool_n: { best: 11, mixed: 11, weakest: 11 } },
-  });
-  assert.match(poolFrom(EARLIER, 'median').why, /is a median-regression build, not median/);
-  assert.match(poolFrom({ ...EARLIER, scored: 890 }, 'median-regression').why, /incomplete run \(890 of 891/);
-  assert.match(poolFrom({ ...EARLIER, stopped: true }, 'median-regression').why, /incomplete run/);
-  assert.match(poolFrom({ ...EARLIER, recheck: { ...EARLIER.recheck, pool_from: 'earlier run' } }, 'median-regression').why, /another run's pool/);
-  assert.match(poolFrom({ ...EARLIER, recheck: { ...EARLIER.recheck, pool_n: { best: 11, mixed: 2, weakest: 11 } } }, 'median-regression').why, /3 or more cases for mixed/);
-  assert.match(poolFrom({ run_id: 'x' }, 'median-regression').why, /not a path-table build report/);
+test('committedPool reads a committed table back to the entries its build judged, and refuses one that cannot stand in the pool', () => {
+  assert.equal(pathTable.poolFrom, undefined, 'an earlier run\'s medians are no longer a pool');
+  const plan = tablePlan(5, FIVE);
+  const built = asBuilt(plan, around(additive(4, 0.2, 0.5)));
+  const got = committedPool(plan, [committed(plan, 'c1', built)]);
+  assert.deepEqual(got.runs, { c1: 'ptb-c1' });
+  for (const g of Object.keys(FIVE)) {
+    assert.deepEqual(plan.judged(got.cases.c1, FIVE[g]), plan.judged(built, FIVE[g]), g);
+  }
+  assert.match(committedPool(plan, [{ case_id: 'c2', banks: {} }]).why, /c2 has no path score table/);
+  assert.match(committedPool(plan, [committed(plan, 'c3', built, { tree: 'f'.repeat(64) })]).why, /c3's table is of an earlier tree/);
+  assert.match(committedPool(plan, [committed(plan, 'c4', built, { method: 'median' })]).why, /c4's table is a median table/);
+  assert.match(committedPool(THREE, []).why, /build every case of the event in one run/);
 });
 
-test('with an earlier pool, a lone rebuilt case is judged against its medians and bands, not against itself', () => {
+test('a lone rebuilt case is judged with the committed tables of the event\'s other cases, not against itself', () => {
   const plan = tablePlan(5, FIVE);
   // One case alone, 80 / 58 / 30: on its own pool it has no band (one case is under MIN_POOL), so it cannot pass.
   const lone = { five: asBuilt(plan, around(additive(4, 0.2, 0.5))) };
   assert.equal(recheck(plan, lone, { samples: 3 }).cases.five.pass, false);
-  const { pool } = poolFrom({ ...EARLIER, recheck: { ...EARLIER.recheck, medians: { best: 78, mixed: 57, weakest: 31 } } }, plan.method);
-  const v = recheck(plan, lone, { samples: 3, pool });
-  assert.deepEqual(v.medians, { best: 78, mixed: 57, weakest: 31 });
+  const others = Array.from({ length: 10 }, (_, i) => committed(plan, `c${i}`, asBuilt(plan, around(additive(4, 0.2, 0.5)))));
+  const { cases } = committedPool(plan, others);
+  const v = recheck(plan, { ...lone, ...cases }, { samples: 3 });
   assert.deepEqual(v.pool_n, { best: 11, mixed: 11, weakest: 11 });
-  assert.equal(v.pool_from, 'earlier run');
   assert.equal(v.cases.five.pass, true, v.cases.five.reasons.join('; '));
-  // The same band as the 11-case run's own (±7.25 at 11 cases), not a wider one.
-  assert.equal(v.bands.best, recheck(plan, Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`c${i}`, lone.five])), { samples: 3 }).bands.best);
-  const far = recheck(plan, lone, { samples: 3, pool: { ...pool, medians: { best: 60, mixed: 57, weakest: 31 } } });
-  assert.ok(far.cases.five.reasons.some((r) => /best mean 80 is 20 from the pool median 60/.test(r)), far.cases.five.reasons.join('; '));
+  // Ten others far easier: the lone case is now far from the pool and fails.
+  const easy = committedPool(plan, Array.from({ length: 10 }, (_, i) => committed(plan, `e${i}`, asBuilt(plan, around(additive(4.8, 0.05, 0.1))))));
+  assert.equal(recheck(plan, { ...lone, ...easy.cases }, { samples: 3 }).cases.five.pass, false);
 });
 
-test('a summary judged against an earlier pool names that run', () => {
+test('a summary judged with committed tables says how many it pooled', () => {
   const plan = tablePlan(5, FIVE);
   const five = asBuilt(plan, around(additive(4, 0.2, 0.5)));
-  const { pool } = poolFrom(EARLIER, plan.method);
+  const { cases, runs } = committedPool(plan, [committed(plan, 'c1', five), committed(plan, 'c2', five)]);
   const md = summaryMarkdown({
-    ...RUN, method: plan.method, scripted: FIVE, sampled: plan.sampled, pool_run: 'ptb-all',
+    ...RUN, method: plan.method, scripted: FIVE, sampled: plan.sampled, pooled_with: runs,
     cases: { five: { version: '2', tree_sha256: 'f'.repeat(64), reviewed_commit: 'abcdef1234', table: true, composites: five.table.composites, mislabels: five.table.mislabels } },
-    recheck: recheck(plan, { five }, { samples: 3, pool }),
+    recheck: recheck(plan, { five, ...cases }, { samples: 3 }),
   });
-  assert.match(md, /plays against the pool of run ptb-all \(--pool\): every entry/);
-  assert.match(md, /\| pool median \(cases\) \| 55 \(11\) \| 48 \(11\) \| 39 \(11\) \|/);
+  assert.match(md, /plays against the pool of this run's cases and the committed tables of 2 more, each on its current tree: every entry/);
+  assert.match(md, /\| pool median \(cases\) \| \d+ \(3\) \| \d+ \(3\) \| \d+ \(3\) \|/);
 });
