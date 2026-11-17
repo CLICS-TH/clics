@@ -1,0 +1,314 @@
+{
+  "run_id": "ptb-202611170517-8275",
+  "date": "2026-11-17",
+  "rimpl_url": "http://localhost:3003",
+  "cap_usd": 105,
+  "spent_usd": 6.296511,
+  "stopped": true,
+  "over_cap": false,
+  "samples": 3,
+  "planned": 243,
+  "scored": 18,
+  "evaluator": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "prompt_version": "pis7-prompt-59561c29",
+    "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
+    "decoding": {
+      "temperature": 0,
+      "max_tokens": 4096,
+      "top_p": null,
+      "seed": null,
+      "num_ctx": null
+    }
+  },
+  "method": "median-regression",
+  "scripted": {
+    "best": "BBBBB",
+    "mixed": "BRWRR",
+    "weakest": "WWWWW"
+  },
+  "sampled": [
+    "BBBBB",
+    "BBBRW",
+    "BBBWR",
+    "BRWBW",
+    "BRWRR",
+    "BRWWB",
+    "BWRBR",
+    "BWRRB",
+    "BWRWW",
+    "RBWBB",
+    "RBWRW",
+    "RBWWR",
+    "RRRBW",
+    "RRRRR",
+    "RRRWB",
+    "RWBBR",
+    "RWBRB",
+    "RWBWW",
+    "WBRBB",
+    "WBRRW",
+    "WBRWR",
+    "WRBBW",
+    "WRBRR",
+    "WRBWB",
+    "WWWBR",
+    "WWWRB",
+    "WWWWW"
+  ],
+  "pooled_with": {
+    "adhf": "ptb-202611150212-bdf7",
+    "alcohol-pancreatitis": "ptb-202611150212-bdf7",
+    "copd-exacerbation": "ptb-202611170218-c75f",
+    "ectopic-rupture": "ptb-202611170218-c75f",
+    "leptospirosis": "ptb-202611150212-bdf7",
+    "organophosphate": "ptb-202611161504-6f34",
+    "sjs-ten-allopurinol": "ptb-202611170347-83bd",
+    "toddler-gastro-dehydration": "ptb-202611150212-bdf7"
+  },
+  "cases": {
+    "dka-young-adult": {
+      "version": "14",
+      "tree_sha256": "7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab",
+      "reviewed_commit": "6eb2c21aabbbf643703f7e989629c82819623f18",
+      "table": false,
+      "why": "not every path is fully scored",
+      "composites": null
+    },
+    "melioidosis-farmer": {
+      "version": "11",
+      "tree_sha256": "085cbde56958c0f34616116eb7376e4326d81f9790b2011829525edb72be5b6d",
+      "reviewed_commit": "6eb2c21aabbbf643703f7e989629c82819623f18",
+      "table": false,
+      "why": "not every path is fully scored",
+      "composites": null
+    },
+    "motorcycle-shock": {
+      "version": "10",
+      "tree_sha256": "3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5",
+      "reviewed_commit": "6eb2c21aabbbf643703f7e989629c82819623f18",
+      "table": false,
+      "why": "not every path is fully scored",
+      "composites": null
+    }
+  },
+  "recheck": {
+    "medians": {
+      "best": 54,
+      "mixed": 48,
+      "weakest": 38
+    },
+    "pool_n": {
+      "best": 8,
+      "mixed": 8,
+      "weakest": 8
+    },
+    "bands": {
+      "best": 7.42,
+      "mixed": 7.42,
+      "weakest": 7.42
+    },
+    "gap_min": 6.59,
+    "pool_from": "this run",
+    "cases": {
+      "dka-young-adult": {
+        "means": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": null,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap",
+          "best: 0 of 1 plays scored",
+          "mixed: 0 of 1 plays scored",
+          "weakest: 0 of 1 plays scored"
+        ]
+      },
+      "melioidosis-farmer": {
+        "means": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": null,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap",
+          "best: 0 of 1 plays scored",
+          "mixed: 0 of 1 plays scored",
+          "weakest: 0 of 1 plays scored"
+        ]
+      },
+      "motorcycle-shock": {
+        "means": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": null,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap",
+          "best: 0 of 1 plays scored",
+          "mixed: 0 of 1 plays scored",
+          "weakest: 0 of 1 plays scored"
+        ]
+      },
+      "adhf": {
+        "means": {
+          "best": 58,
+          "mixed": 48,
+          "weakest": 37
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 21,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      },
+      "alcohol-pancreatitis": {
+        "means": {
+          "best": 55,
+          "mixed": 45,
+          "weakest": 39
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 16,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      },
+      "copd-exacerbation": {
+        "means": {
+          "best": 62,
+          "mixed": 52,
+          "weakest": 41
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 21,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap",
+          "best mean 62 is 8 from the pool median 54, beyond ±7.42"
+        ]
+      },
+      "ectopic-rupture": {
+        "means": {
+          "best": 58,
+          "mixed": 49,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 23,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      },
+      "leptospirosis": {
+        "means": {
+          "best": 51,
+          "mixed": 48,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 16,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      },
+      "organophosphate": {
+        "means": {
+          "best": 52,
+          "mixed": 48,
+          "weakest": 44
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 8,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      },
+      "sjs-ten-allopurinol": {
+        "means": {
+          "best": 50,
+          "mixed": 46,
+          "weakest": 38
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 12,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      },
+      "toddler-gastro-dehydration": {
+        "means": {
+          "best": 53,
+          "mixed": 49,
+          "weakest": 38
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 15,
+        "pass": false,
+        "reasons": [
+          "incomplete run: 18 of 243 samples scored, stopped at the cap"
+        ]
+      }
+    }
+  }
+}

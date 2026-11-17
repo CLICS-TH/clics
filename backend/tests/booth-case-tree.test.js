@@ -280,16 +280,41 @@ describe('admission', () => {
     expect(cases).toHaveLength(11);
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    expect(cases.filter((k) => k.path_score_table?.provenance.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
+    // dka, melioidosis and motorcycle were edited after failing their re-check; their rebuild stopped at the cap (run
+    // ptb-202611170517-8275), so they hold no table yet. Every other case's table is bound to its tree.
+    expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id).sort())
+      .toEqual(['dka-young-adult', 'melioidosis-farmer', 'motorcycle-shock']);
+    expect(cases.filter((k) => k.path_score_table && k.path_score_table.provenance.tree_sha256 !== treeSha(k))
+      .map((k) => k.case_id)).toEqual([]);
     const admitted = cases.filter(isAdmitted);
     expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Five are admitted (#510, route B). ectopic-rupture and melioidosis-farmer failed their re-check; dka-young-adult,
-    // motorcycle-shock, copd-exacerbation and sjs-ten-allopurinol had their admission taken back for the gate's
-    // findings. All six wait for the follow-up PR and hold no table check, sandbox record or waiver.
+    // Seven are admitted: five from #510 (route B), and ectopic-rupture and sjs-ten-allopurinol from #497 (re-check
+    // passed; sandbox run sbx-202611170505-80f6 failed and the #493 owner waiver covers it). copd-exacerbation's table
+    // (run ptb-202611170738-3cf7) failed its re-check, so it holds no table check, sandbox record or waiver; nor do
+    // dka-young-adult, melioidosis-farmer and motorcycle-shock, which have no table yet.
     expect(admitted.map((k) => k.case_id).sort())
-      .toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'organophosphate', 'toddler-gastro-dehydration']);
+      .toEqual(['adhf', 'alcohol-pancreatitis', 'ectopic-rupture', 'leptospirosis', 'organophosphate',
+        'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
     expect(cases.filter((k) => !isAdmitted(k) && (k.admission.table_check || k.admission.sandbox || k.admission.owner_waiver))
       .map((k) => k.case_id)).toEqual([]);
+  });
+
+  // #497 M1: a table is scored on the replies the kiosk showed in its samples. A reply bank edited after its table was
+  // built leaves a table that no longer measures what visitors see, and no schema hash catches it: the samples record it.
+  test('every NFCME-2026 five-step table was scored on the reply bank the kiosk ships, sample by sample (#497 M1)', () => {
+    const { repliesSha } = require('../src/booth-cases/reply-bank');
+    const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
+    const runs = path.join(__dirname, '../../scripts/booth/path-table-runs');
+    const off = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(path.join(dir, f)))
+      .filter((k) => k.banks.step5 && k.path_score_table).flatMap((k) => {
+        const shipped = repliesSha(read(path.join(dir, 'replies', `${k.case_id}.json`)).replies);
+        const lines = fs.readFileSync(path.join(runs, `${k.path_score_table.provenance.run_id}.samples.jsonl`), 'utf8').trim().split('\n');
+        const samples = lines.slice(1).map((l) => JSON.parse(l)).filter((r) => r.case_id === k.case_id);
+        if (!samples.length) return [`${k.case_id}: run ${k.path_score_table.provenance.run_id} holds none of its samples`];
+        const other = samples.filter((r) => r.replies_sha256 !== shipped);
+        return other.length ? [`${k.case_id}: ${other.length} of ${samples.length} samples walked with replies ${String(other[0].replies_sha256).slice(0, 8)}, not the shipped ${shipped.slice(0, 8)}`] : [];
+      });
+    expect(off).toEqual([]);
   });
 
   test('a case with no admission marker is valid but not admitted', () => {

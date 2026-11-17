@@ -1502,13 +1502,13 @@
             "safety": ""
           },
           {
-            "strength": "การนัดตรวจซ้ำตามเวลา เปลี่ยนการรอดูให้เป็นแผนที่วัดผลได้",
+            "strength": "การตรวจก๊าซตามเวลา เปลี่ยนการรอดูให้เป็นแผนที่วัดผลได้",
             "weigh": "ผลก๊าซช่วยตัดสินใจ แต่ไม่ควรทำให้การรักษาเสียงวี้ดช้าลงระหว่างรอ",
             "safety": ""
           },
           {
             "strength": "ติดตาม CO2 แต่เนิ่น ๆ ป้องกันการล้าที่ค่อย ๆ เกิดและมองข้ามได้ง่าย",
-            "weigh": "ควรแปลผลครั้งหน้าร่วมกับระดับความรู้สึกตัวและอัตราการหายใจ",
+            "weigh": "ควรแปลผลก๊าซร่วมกับระดับความรู้สึกตัวและอัตราการหายใจ",
             "safety": ""
           }
         ],
@@ -1519,13 +1519,13 @@
             "safety": ""
           },
           {
-            "strength": "A timed recheck turns watchful waiting into a measured plan.",
+            "strength": "A timed gas turns watchful waiting into a measured plan.",
             "weigh": "Worth weighing that the gas guides decisions but should not delay treating the wheeze meanwhile.",
             "safety": ""
           },
           {
             "strength": "Tracking CO2 early guards against a slow slide into tiredness that is easy to miss.",
-            "weigh": "Worth reading the next gas alongside his alertness and breathing rate, not on its own.",
+            "weigh": "Worth reading the gas alongside his alertness and breathing rate, not on its own.",
             "safety": ""
           }
         ]
@@ -1971,13 +1971,13 @@
       "c": {
         "th": [
           {
-            "strength": "ดูปอดซ้ำ เหมาะกับคนที่ฟื้นตัวช้า",
-            "weigh": "การฟื้นตัวช้าพบบ่อยหลังการกำเริบ การตรวจข้างเตียงอย่างใกล้ชิดมักบอกได้พอ ๆ กับภาพซ้ำ",
+            "strength": "ดูภาพปอด เหมาะกับคนที่ฟื้นตัวช้า",
+            "weigh": "การฟื้นตัวช้าพบบ่อยหลังการกำเริบ การตรวจข้างเตียงอย่างใกล้ชิดมักบอกได้พอ ๆ กับภาพเอกซเรย์",
             "safety": ""
           },
           {
-            "strength": "CBC ซ้ำช่วยบอกว่าการติดเชื้อกำลังดีขึ้นหรือไม่",
-            "weigh": "การตรวจซ้ำมีประโยชน์มากที่สุดเมื่อไข้หรือการหายใจเปลี่ยน มากกว่าทำเป็นประจำ",
+            "strength": "CBC ช่วยบอกว่าการติดเชื้อกำลังดีขึ้นหรือไม่",
+            "weigh": "การตรวจเหล่านี้มีประโยชน์มากที่สุดเมื่อไข้หรือการหายใจเปลี่ยน มากกว่าทำเป็นประจำ",
             "safety": ""
           },
           {
@@ -1988,13 +1988,13 @@
         ],
         "en": [
           {
-            "strength": "Looking again at the lungs suits a man who is slow to recover.",
-            "weigh": "Slow recovery is common after a flare; close bedside checks often say as much as a repeat film.",
+            "strength": "A film of the lungs suits a man who is slow to recover.",
+            "weigh": "Slow recovery is common after a flare; close bedside checks often say as much as a film.",
             "safety": ""
           },
           {
-            "strength": "A repeat count can show whether the infection is settling.",
-            "weigh": "Repeat tests help most when his fever or breathing changes, rather than as a routine.",
+            "strength": "A blood count can show whether the infection is settling.",
+            "weigh": "These tests help most when his fever or breathing changes, rather than as a routine.",
             "safety": ""
           },
           {
@@ -2008,7 +2008,7 @@
         "th": [
           {
             "strength": "คิดถึงทีมอายุรแพทย์ แสดงว่ารู้ขีดจำกัดของโรงพยาบาลตนเอง",
-            "weigh": "เขาคงที่ด้วยออกซิเจนอัตราต่ำ ซึ่งโรงพยาบาลชุมชนดูแลได้",
+            "weigh": "เขาคงที่ด้วยออกซิเจนคุม 88–92% ซึ่งโรงพยาบาลชุมชนดูแลได้",
             "safety": ""
           },
           {
@@ -2025,7 +2025,7 @@
         "en": [
           {
             "strength": "Thinking of a physician team shows you know the limits of a small hospital.",
-            "weigh": "He is stable on low-flow oxygen, a level of care a community hospital can give.",
+            "weigh": "He is stable on oxygen for 88–92%, a level of care a community hospital can give.",
             "safety": ""
           },
           {
@@ -2054,7 +2054,7 @@
           },
           {
             "strength": "เตรียมรับอาการทรุดเป็นเรื่องสมเหตุผล",
-            "weigh": "เตียง ICU มีจำกัด และออกซิเจนอัตราต่ำก็เพียงพอสำหรับเขา",
+            "weigh": "เตียง ICU มีจำกัด และออกซิเจนในหอผู้ป่วยก็เพียงพอสำหรับเขา",
             "safety": ""
           }
         ],
@@ -2071,7 +2071,7 @@
           },
           {
             "strength": "Planning for a turn for the worse is reasonable.",
-            "weigh": "ICU beds are scarce, and his needs are met with low-flow oxygen.",
+            "weigh": "ICU beds are scarce, and ward oxygen meets his needs.",
             "safety": ""
           }
         ]
@@ -2091,7 +2091,7 @@
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "มอง NIV เป็นการประคองไม่ใช่จุดสุดท้าย เมื่อผลก๊าซแย่ลง",
+            "strength": "มอง NIV เป็นการประคองไม่ใช่จุดสุดท้าย เมื่อผลก๊าซแย่ขนาดนี้",
             "weigh": "ควรมีคนเฝ้าข้างเตียงจนกว่าทีม ICU จะมาถึง",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           }
@@ -2108,7 +2108,7 @@
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "You treated NIV as holding support, not the endpoint, given his worsening gas.",
+            "strength": "You treated NIV as holding support, not the endpoint, given a gas this bad.",
             "weigh": "Worth weighing who stays at the bedside to watch him until the ICU team arrives.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           }
@@ -2118,7 +2118,7 @@
         "th": [
           {
             "strength": "เรียก **ICU และแพทย์อาวุโส**พร้อมกัน ได้ทักษะที่สถานการณ์นี้ต้องการ",
-            "weigh": "ความช่วยเหลือกำลังมา แต่ CO2 ที่สูงขึ้นยังต้องได้รับการช่วยในนาทีก่อนทีมถึง",
+            "weigh": "ความช่วยเหลือกำลังมา แต่ CO2 70 ยังต้องได้รับการช่วยในนาทีก่อนทีมถึง",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
@@ -2135,7 +2135,7 @@
         "en": [
           {
             "strength": "Calling for **ICU and a senior** at once brings the skills this moment needs.",
-            "weigh": "Help is on its way, and his rising CO2 still needs active support in the minutes before it arrives.",
+            "weigh": "Help is on its way, and a CO2 of 70 still needs active support in the minutes before it arrives.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
@@ -2158,12 +2158,12 @@
             "safety": ""
           },
           {
-            "strength": "อ่านอาการซึมและ CO2 ที่แย่ลงว่าการหายใจของเขาเองกำลังไม่พอ",
+            "strength": "อ่านอาการซึมกับ CO2 70 ว่าการหายใจของเขาเองกำลังไม่พอ",
             "weigh": "การถอดเครื่องช่วยหายใจอาจใช้เวลานานในปอดแบบนี้ ควรวางแผนตั้งแต่ต้น",
             "safety": ""
           },
           {
-            "strength": "แจ้ง ICU พร้อมลงมือทันที ไม่เสียเวลาขณะผลก๊าซแย่ลง",
+            "strength": "แจ้ง ICU พร้อมลงมือทันที ไม่เสียเวลาเมื่อผลก๊าซแย่ขนาดนี้",
             "weigh": "ควรดูว่าใครมีประสบการณ์ใส่ท่อมากพอในขณะนี้",
             "safety": ""
           }
@@ -2175,12 +2175,12 @@
             "safety": ""
           },
           {
-            "strength": "You read worsening drowsiness and CO2 as a sign that his own breathing is failing.",
+            "strength": "You read drowsiness with a CO2 of 70 as a sign that his own breathing is failing.",
             "weigh": "Weaning can be slow in lungs like his, worth planning for from the start.",
             "safety": ""
           },
           {
-            "strength": "Calling ICU while acting now avoids losing time to a deteriorating gas.",
+            "strength": "Calling ICU while acting now avoids losing time with a gas this bad.",
             "weigh": "Worth weighing who has the most airway experience available for this procedure.",
             "safety": ""
           }
@@ -2226,9 +2226,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-15",
-    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank: all three Thai and three English alternatives for every option of all 13 banks, read against every question variant and every path into each bank, for wrong facts, ranking or grading, previews of a later step, other options named, claims only some paths support, and the right safety line. The first round returned four MUST-FIXes, now fixed: the step4.R d replies follow the ceftriaxone label and no longer claim new quinolone risks (\"adds broad-spectrum exposure for no gain\" holds on every step4.R path); the step5.W d en1/th1 unanchored \"beyond 40 mg\" ceiling, wrong on the hydrocortisone path (step3.B d to step4.R d to step5.W), is now \"a higher steroid dose adds nothing\"; the magnesium weighs in step4.B d and step4.W d now say the evidence is unclear in both languages (\"ไม่มีหลักฐานชัดเจน\"), in line with the 2022 Cochrane review; step5.R e th1 is now natural Thai that matches the English. Also judged sound: the step5.W d weighs say the option leaves out support for his failing breathing, which holds even where he is on NIV since he is failing on it; the step5.W d th0 strength now says \"ส่ง ICU\", matching the label; the step4.B d and e and step4.R d weighs name each limitation plainly without ranking the choice; the safety lines are right for each option (CO2 checks on step2.W d and e, NIV escalation on step4.W, active support with ICU at the bedside on step5.W a, b and d, none where none is needed). Tree sha256 8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4. Replies sha256 6dc378a6d4cfe7e67b9d67cf5a946d67c5e04cb9daaf344ff4e44a993273d159.",
-    "tree_sha256": "8d7ece5099f9b608c0f66ba1449e644370946548a0a82da5ae1ee965aab7b4e4",
-    "replies_sha256": "6dc378a6d4cfe7e67b9d67cf5a946d67c5e04cb9daaf344ff4e44a993273d159"
+    "date": "2026-11-17",
+    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank against the round-8 tree. It covered all three Thai and three English replies for every option of all 13 banks, against every question variant and every path into each bank. The bank did not change in this round. The replies to the edited options (step1 a and b, step2.B/R/W a and b, step3.B/R/W a and b) carry no bold run, so none quotes an old line. Each still fits the plainer new line and the unchanged label:\n- step2 a \"These tests search for what set off the flare\" holds, since the CXR and ECG look for pneumonia and arrhythmia.\n- step1 b \"Reading the sputum change as infection\" draws on the vignette's sputum change, which every path shows.\n- step3 a and b \"A sound choice for a flare with green sputum\" and \"A standard oral antibiotic for this flare\" hold on every step-3 variant.\n\nAcross the whole bank:\n- No reply states a wrong fact. These were checked closely: macrolide resistance in Thailand, azithromycin and QT, doxycycline photosensitivity, fluoroquinolone restriction and TB masking, beta-lactamase producers against plain amoxicillin, magnesium evidence, and potassium with nebulisers and steroid.\n- No reply ranks or grades the choice, previews a later step or names another option.\n- No reply asserts a gas or X-ray that only some paths have.\n- The safety lines are right for each option: CO2 checks on step2.W d and e; NIV escalation on step4.W a, b and d; sedation and an ICU bed on step4.W c; active support with ICU at the bedside on step5.W a, b and d. Options that need none have none.\n\nTree sha256 9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e. Replies sha256 995e7d7f94df3c0f92081913fa5a5dd3273d6a06f7e6d67f4354431d141ec4b1.",
+    "tree_sha256": "9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e",
+    "replies_sha256": "995e7d7f94df3c0f92081913fa5a5dd3273d6a06f7e6d67f4354431d141ec4b1"
   }
 }

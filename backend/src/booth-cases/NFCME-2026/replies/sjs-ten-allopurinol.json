@@ -1320,7 +1320,7 @@
             "safety": ""
           },
           {
-            "strength": "ทดแทนน้ำต่อแม้อาการดูคงที่",
+            "strength": "ให้สารน้ำทดแทนตามที่เสียไป แม้อาการดูคงที่",
             "weigh": "ผู้ป่วยกลุ่มนี้ต้องการสารน้ำน้อยกว่าแผลไหม้ขนาดเท่ากัน จึงต้องระวังน้ำเกิน",
             "safety": ""
           },
@@ -1337,7 +1337,7 @@
             "safety": ""
           },
           {
-            "strength": "Keeps replacing fluid while he looks stable.",
+            "strength": "Matches fluid to his losses while he looks stable.",
             "weigh": "Fluid needs run lower than in burns of the same area, so overload is a risk.",
             "safety": ""
           },
@@ -1392,7 +1392,7 @@
             "safety": ""
           },
           {
-            "strength": "ตรวจเลือดซ้ำส่งได้ง่าย",
+            "strength": "ตรวจเลือดส่งได้ง่าย",
             "weigh": "ผลเลือดอย่างเดียวไม่ได้บอกว่าจะให้สารน้ำเท่าไร",
             "safety": ""
           },
@@ -1409,7 +1409,7 @@
             "safety": ""
           },
           {
-            "strength": "Repeat bloods are simple to send.",
+            "strength": "Blood tests are simple to send.",
             "weigh": "Results alone do not tell how much fluid to give.",
             "safety": ""
           },
@@ -1570,7 +1570,7 @@
         "th": [
           {
             "strength": "ช่วยให้**ผิวตาชุ่มชื้น**ระหว่างเตรียมส่งตัว",
-            "weigh": "ตาที่เคืองมากขึ้นอาจมีความเสียหายที่ยาหยอดอย่างเดียวช่วยไม่ได้",
+            "weigh": "อาการตาที่แย่ลงอาจบอกถึงความเสียหายที่การหยอดยาอย่างเดียวไม่ช่วยให้พบหรือรักษาได้",
             "safety": ""
           },
           {
@@ -1587,7 +1587,7 @@
         "en": [
           {
             "strength": "Protects the **eye surface** from drying while the transfer is arranged.",
-            "weigh": "Worsening grittiness can signal damage that drops alone may not reveal or treat.",
+            "weigh": "Worsening eye symptoms can signal damage that drops alone may not reveal or treat.",
             "safety": ""
           },
           {
@@ -2049,7 +2049,7 @@
           },
           {
             "strength": "**นัดดูตา 1 สัปดาห์** เพื่อจับปัญหาได้เร็ว",
-            "weigh": "ตาเคืองหลัง SJS/TEN อาจมีผิวตาเสียหายที่ยาหยอดอย่างเดียวแก้ไม่ได้",
+            "weigh": "อาการตาหลัง SJS/TEN อาจมาจากผิวตาที่เสียหายต่อเนื่องซึ่งยาหยอดอย่างเดียวแก้ไม่ได้",
             "safety": ""
           },
           {
@@ -2066,7 +2066,7 @@
           },
           {
             "strength": "Plans an early **recheck in 1 week** to catch problems.",
-            "weigh": "Gritty eyes weeks after SJS/TEN can mean ongoing surface damage that drops alone do not treat.",
+            "weigh": "Eye symptoms weeks after SJS/TEN can mean ongoing surface damage that drops alone do not treat.",
             "safety": ""
           },
           {
@@ -2298,9 +2298,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-16",
-    "findings": "Fresh claude-opus-5-5 reviewer that did not write the case or the replies, 2026-11-16: a re-check by a non-author of the final replies after one wording change since the bank reviewed as replies sha256 b7adfc5e. The changed reply is the third alternative of the skin-area option in step2.B. Its weigh line now reads 'Count skin that has come away or peels with a rub, not the redness around it.' (Thai: 'นับผิวที่หลุดแล้วและผิวที่ลอกเมื่อถู ไม่นับรอยแดงรอบ ๆ'). Source: BAD UK guidelines for the management of SJS/TEN in adults 2016 (Creamer and colleagues, Br J Dermatol 2016), section on initial assessment, which estimates the body surface area of detached plus detachable (Nikolsky-positive) epidermis and does not count erythema. The new line matches that section and the vignette's skin that peels off with a gentle rub over about 12% of the body. The Thai says the same as the English in natural Thai. The line holds on both question variants of step2.B and on its only tier path (after the best step 1 answer). It does not rank or grade the choice, name another option of its bank, or preview referral or any later step. The other two alternatives of the option still hold. The skin-area replies in step2.R and step2.W already count detached or rub-detachable skin and leave out the redness, so the bank is now consistent. A read of every other reply found none that contradicts it. Every safety line stays empty, which is right because every option is safe. MUST-FIX: none. Tree sha256 a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71. Replies sha256 bbf5f49a0dc061f79c20f5a02aa0c00d8a9cf6ed65e19d4e030ae5a376464f16.",
-    "tree_sha256": "a661bd65897e4dcddd23e687350d0a79e79b93b7aa40c608c787eb88dc914a71",
-    "replies_sha256": "bbf5f49a0dc061f79c20f5a02aa0c00d8a9cf6ed65e19d4e030ae5a376464f16"
+    "date": "2026-11-17",
+    "findings": "A fresh non-author reviewer, claude-opus-5-5, read every reply in all 13 banks on 2026-11-17: all 3 alternatives per option, in Thai and English, against every question variant of its bank and every path into it. Round 5 had two must-fixes, now applied. In step4.R d, alternative 1's weigh said \"Worsening grittiness\", which only v1 states. It now reads \"Worsening eye symptoms can signal damage that drops alone may not reveal or treat.\", with Thai \"อาการตาที่แย่ลงอาจบอกถึงความเสียหายที่การหยอดยาอย่างเดียวไม่ช่วยให้พบหรือรักษาได้\". In step5.R tears, alternative 2's weigh said \"Gritty eyes\", which only v1 states. It now reads \"Eye symptoms weeks after SJS/TEN can mean ongoing surface damage that drops alone do not treat.\", with Thai \"อาการตาหลัง SJS/TEN อาจมาจากผิวตาที่เสียหายต่อเนื่องซึ่งยาหยอดอย่างเดียวแก้ไม่ได้\". Both now hold on v1 and v2 of their banks. A diff of the bank against HEAD shows only these four strings changed. Other judgments:\n- The step4.B a alternative 2 reply (\"Matches fluid to his losses while he looks stable.\") and the step4.B c replies assume no fluids already running and no blood drawn before. They hold on every path from step3 a, which gives no fluids.\n- The SCORTEN reply (age 58 and 12% detachment already score) is correct.\n- The SSSS and erythema multiforme contrasts are correct.\n- The fluid-overload weigh lines match BAD 2016.\n- The steroid and albumin weigh lines state the weak evidence correctly.\nNo reply ranks the choice, previews a later step, or names another option of its bank. Every safety line is empty, which is right because every option is safe. Thai and English agree. The author ran the reply-bank check; it reported no problem beyond the expected stale-review binding. Tree sha256 3078dc8c0f1aa149af7cfd9bfbb87c7eb8be039b4f03e000f1b5045961080fed. Replies sha256 b52561019146fa305671be97ae9a4476a65035d468bc55a66e7428e7d140cb52.",
+    "tree_sha256": "3078dc8c0f1aa149af7cfd9bfbb87c7eb8be039b4f03e000f1b5045961080fed",
+    "replies_sha256": "b52561019146fa305671be97ae9a4476a65035d468bc55a66e7428e7d140cb52"
   }
 }

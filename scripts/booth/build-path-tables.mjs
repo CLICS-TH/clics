@@ -21,7 +21,8 @@
  * whole ledger, so runs at once share the cap; it is settled at its reported tokens plus the worst case of every
  * attempt rimpl retried, so a run killed mid-call stays charged its worst case. The first refused reservation stops
  * the run, and a missing or unreadable ledger refuses --go. The owner opens a new budget by raising CAP_USD in a
- * reviewed commit (#494 raised it from $25 to $70, over the $30.49 already spent; #497 to $85, over $65.32 booked).
+ * reviewed commit (#494 raised it from $25 to $70, over the $30.49 already spent; #497 to $85, over $65.32 booked, then to $95, over $82.24 booked, then to $105, over $93.43 booked, from the owner's one-off extra $10, then to $113, over $104.43 booked, on the
+ * owner's route A for copd on #511).
  *
  *   node scripts/booth/build-path-tables.mjs                       # checks trees and replies, spends nothing
  *   node --env-file=rimpl/.env scripts/booth/build-path-tables.mjs --go
@@ -37,8 +38,6 @@
  *   --go              spend: without it the script stops after the checks
  *   --from <jsonl>    build the tables from a saved run's samples, spending nothing
  *   --replies <dir>   a three-step case's sample replies (default scripts/booth/sample-replies/<event code>)
- *   --pool <json>     judge the re-check against an earlier build report's pool medians (path-table.mjs poolFrom), for
- *                     a build of only some of an event's cases: a pool of a few cases is mostly the cases themselves
  *
  * Env for --go: RIMPL_URL (default http://localhost:3003) and INTERNAL_TOKEN for rimpl. Its only calls are rimpl's
  * GET /manifest and POST /evaluate (shadow off). One probe call runs first: unless it was scored by the locked
@@ -48,6 +47,11 @@
  * (scripts/booth/path-table-runs/spend.jsonl) before its first reservation, holding the most it may spend, and a run
  * that ends by itself appends its spend there as a charge line (and to <out>/spend.jsonl). A later init counts an open
  * with no charge at its open amount, so a killed or crashed run never seeds a machine below what it may have spent.
+ *
+ * A build of only some of an event's cases (--case) judges its re-check against every case of the event on its current
+ * tree: its own new tables plus the others' committed tables, each bound to its current tree (path-table.mjs
+ * committedPool). It refuses to start, spending nothing, while another case's table is missing or of an earlier tree,
+ * because an earlier run's medians would judge against trees that have since changed (#497 P1).
  *
  * --from refuses a run that went over the cap it ran under (its header's prior spend plus its own), a sample scored on
  * another tree, a banked case's sample walked with a reply bank other than the current one (replies_sha256), and a sample not scored by the locked evaluator. The build refuses to run with a database client
@@ -59,7 +63,7 @@ import { randomBytes } from 'node:crypto';
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { reviewedTree, tablePlan, recheck, poolFrom, summaryMarkdown } from './path-table.mjs';
+import { reviewedTree, tablePlan, recheck, committedPool, summaryMarkdown } from './path-table.mjs';
 import { spent, reserve, settle, recordOpen, recordCharge, RECORD } from './spend-ledger.mjs';
 
 const require = createRequire(import.meta.url);
@@ -71,7 +75,7 @@ const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
 
-const CAP_USD = 85;
+const CAP_USD = 113;
 // What an evaluate call cost on average in #264's sandbox runs (sandbox-play.js TYPICAL_TOKENS).
 const TYPICAL_EVALUATE = [4000, 405];
 
@@ -102,7 +106,6 @@ function parseArgs(argv) {
     else if (flag === '--out') opts.out = path.resolve(v);
     else if (flag === '--replies') opts.replies = path.resolve(v);
     else if (flag === '--from') opts.from = path.resolve(v);
-    else if (flag === '--pool') opts.pool = path.resolve(v);
     else fail(`unknown argument ${flag}`);
   }
   if (opts.samples % 2 === 0) fail('--samples must be odd, so each median is a whole score');
@@ -158,14 +161,17 @@ const steps = stepCounts[0] ?? stepsOf(cases[0]);
 const scripted = PATHS_BY_STEPS[steps];
 let plan;
 try { plan = tablePlan(steps, scripted); } catch (err) { fail(err.message); }
-let pool = null;
-if (opts.pool) {
-  let earlier;
-  try { earlier = JSON.parse(readFileSync(opts.pool, 'utf8')); } catch { fail(`--pool ${opts.pool} is not a JSON report`); }
-  pool = poolFrom(earlier, plan.method);
-  if (pool.why) fail(`--pool ${opts.pool} ${pool.why}`);
-  console.log(`Re-check against the pool of run ${pool.run_id}: medians ${JSON.stringify(pool.pool.medians)} from ${JSON.stringify(pool.pool.pool_n)} cases.`);
-}
+// The re-check pools every case of the event of this step count on its current tree (#497 P1): the cases this run does
+// not build stand in with their committed tables. A dry run only reports a pool that is not ready; --go and --from
+// refuse it, before any spend or table.
+const buildingIds = new Set(building.map((c) => c.kase.case_id));
+const others = readdirSync(opts.cases).filter((f) => f.endsWith('.json')).sort()
+  .map((f) => JSON.parse(readFileSync(path.join(opts.cases, f), 'utf8')))
+  .filter((raw) => !buildingIds.has(raw.case_id) && Object.keys(raw.banks ?? {}).length === steps);
+const pooled = building.length && others.length ? committedPool(plan, others) : { cases: {}, runs: {} };
+const poolProblem = pooled.why ? `the re-check pools every case of the event on its current tree, but ${pooled.why}` : null;
+if (poolProblem) console.log(`Not ready: ${poolProblem}.`);
+else if (Object.keys(pooled.runs).length) console.log(`Re-check pool: this run's ${building.length} case(s) and the committed tables of ${Object.keys(pooled.runs).join(', ')}.`);
 for (const c of building.filter((b) => !banked(b.kase))) {
   let problems;
   try { c.replies = readReplies(c.kase, opts.replies); problems = replyProblems(c.kase, c.replies); } catch (err) { problems = [err.message]; }
@@ -210,6 +216,7 @@ if (opts.from) {
     fail(`--from ${opts.from}: ${unbanked.length} sample(s) were not walked with the current reply bank, first ${unbanked[0].case_id} `
       + `${unbanked[0].tier_path_planned}#${unbanked[0].sample} on ${unbanked[0].replies_sha256 ?? 'no recorded reply bank'}`);
   }
+  if (poolProblem) fail(poolProblem);
   const byKey = new Map(samples.map((r) => [keyOf(r.case_id, r.tier_path_planned, r.sample), r]));
   run = {
     ...header,
@@ -222,6 +229,7 @@ if (opts.from) {
     process.exit(0);
   }
   if (!jobs.length) fail('no case can be built');
+  if (poolProblem) fail(poolProblem);
   const build = [...new Set(building.map((c) => c.kase.event_code))].join('+');
   let priorUsd;
   try { priorUsd = spent(); } catch (err) { fail(err.message); }
@@ -352,7 +360,7 @@ const report = {
   ...(opts.from ? { finished_from: path.relative(ROOT, opts.from) } : {}),
   evaluator: { provider: first.provider, model: first.model, prompt_version: first.prompt_version, prompt_sha256: LOCKED.prompt_sha256, decoding: first.decoding },
   method: plan.method, scripted, sampled: plan.sampled,
-  ...(pool ? { pool_run: pool.run_id } : {}),
+  ...(others.length ? { pooled_with: pooled.runs } : {}),
   cases: {},
   recheck: null,
 };
@@ -364,9 +372,8 @@ const built = Object.fromEntries(building.map((c) => {
     table: complete ? plan.build((p) => samplesOf(id, p).map((r) => r.domains)) : null,
   }];
 }));
-report.recheck = recheck(plan, built, {
+report.recheck = recheck(plan, { ...built, ...pooled.cases }, {
   samples: opts.samples,
-  pool: pool?.pool,
   incomplete: run.stopped || overCap ? `${scored.length} of ${jobs.length} samples scored${run.stopped ? ', stopped at the cap' : ''}${overCap ? ', over the cap' : ''}` : undefined,
 });
 for (const c of cases) {
@@ -407,5 +414,5 @@ writeFileSync(jsonPath, `${JSON.stringify(report, null, 2)}\n`);
 const summary = summaryMarkdown(report);
 writeFileSync(mdPath, summary);
 console.log(`\n${summary}\nReport ${jsonPath}\nSummary ${mdPath}`);
-const ok = Object.values(report.cases).every((c) => c.table) && Object.values(report.recheck.cases).every((v) => v.pass);
+const ok = Object.values(report.cases).every((c) => c.table) && [...buildingIds].every((id) => report.recheck.cases[id]?.pass);
 process.exit(ok ? 0 : 1);
