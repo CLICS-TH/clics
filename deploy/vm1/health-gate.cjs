@@ -12,7 +12,9 @@
 // It is asked EVERY time, healthy or not, so exit 2 always means the token was accepted: rimpl's
 // /health/deep is 503 whenever any one dependency is down (Supabase, an exhausted Anthropic balance, an
 // unreachable local box), and the caller must be able to tell that from a token that is refused. A
-// degraded rimpl answers 500/503 on /evaluate, which the drain retries; only the 401 is the damage.
+// degraded rimpl answers 500/503 on /evaluate, which the drain retries instead of flagging at once (a
+// 401 is flagged on the first claim). The retries are bounded: EVAL_MAX_ATTEMPTS (20, about 4 h), then
+// each claimed PLE is flagged `exhausted` for manual QA, so a degraded rimpl must be fixed within hours.
 //
 // `backend` runs after it starts: /health/deep must report service "backend" (a rimpl image answering
 // on the backend's port is how prod went down on 2026-10-14), rimpl up and Supabase up.
