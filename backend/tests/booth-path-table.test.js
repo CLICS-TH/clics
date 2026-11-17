@@ -213,9 +213,9 @@ describe('the build runner', () => {
   });
 
   test.each([
-    ['--cap', '70.01', /--cap needs a number from 0\.01 to 70\b/],
+    ['--cap', '85.01', /--cap needs a number from 0\.01 to 85\b/],
     ['--samples', '2', /--samples must be odd/],
-  ])('refuses %s %s: the cap is at most $70 and a median needs an odd count', (flag, v, why) => {
+  ])('refuses %s %s: the cap is at most $85 and a median needs an odd count', (flag, v, why) => {
     const res = run([flag, v]);
     expect(res.status).toBe(2);
     expect(res.stderr).toMatch(why);
@@ -461,7 +461,7 @@ describe('the build runner', () => {
     }
   });
 
-  test('init seeds the ledger with the committed record\'s $48.82 (#497), refuses to run twice, and so refuses every --go under a $48 cap', async () => {
+  test('init seeds the ledger with the committed record\'s $82.24 (#497), refuses to run twice, and so refuses every --go under an $82 cap', async () => {
     const home = tmp();
     const co = checkout();
     const init = () => initIn(co, home);
@@ -469,7 +469,7 @@ describe('the build runner', () => {
     expect(fs.existsSync(ledgerFile(home))).toBe(true);
     const seeded = fs.readFileSync(ledgerFile(home), 'utf8');
     expect(ledgerOf(home)[0]).toMatchObject({ kind: 'init', seeded_from: 'scripts/booth/path-table-runs/spend.jsonl' });
-    expect(spentIn(ledgerOf(home))).toBeCloseTo(48.821065, 6);
+    expect(spentIn(ledgerOf(home))).toBeCloseTo(82.236019, 6);
     const again = init();
     expect(again.status).toBe(2);
     expect(again.stderr).toMatch(/already exists/);
@@ -477,10 +477,10 @@ describe('the build runner', () => {
     expect(fs.readdirSync(path.dirname(ledgerFile(home)))).toEqual(['ledger.jsonl']);
     const rimpl = await stubRimpl({ answer: locked() });
     try {
-      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '48'], goEnv(home, rimpl));
+      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '82'], goEnv(home, rimpl));
       expect(rimpl.calls).toEqual([]);
       expect(res.status).toBe(2);
-      expect(res.stderr).toMatch(/have spent \$48\.82 of the \$48 cap/);
+      expect(res.stderr).toMatch(/have spent \$82\.24 of the \$82 cap/);
     } finally {
       rimpl.close();
     }
@@ -584,6 +584,29 @@ describe('the build runner', () => {
     expect(built.path_score_table.provenance).toMatchObject({ method: 'median-regression', run_id: 'ptb-five', tree_sha256: treeSha(kase) });
     expect(Object.keys(built.path_score_table.paths)).toHaveLength(243);
     expect(built.path_score_table.paths.WRBWB).toEqual(DOMAINS);
+  });
+
+  test('--pool judges the re-check against an earlier report\'s medians and names its run; a report that cannot pool is refused (#497)', () => {
+    const { dir, args } = throwawayBuild([KASE5]);
+    const kase = JSON.parse(fs.readFileSync(path.join(dir, `${KASE5.case_id}.json`), 'utf8'));
+    const out = args[args.indexOf('--out') + 1];
+    const file = path.join(out, 'run.samples.jsonl');
+    const header = { run_id: 'ptb-part', date: '2026-11-15', build: kase.event_code, cap_usd: 25, prior_usd: 0, samples: 3 };
+    const samples = jobsFor([kase], 3).map((j) => ({ case_id: kase.case_id, tier_path_planned: j.tierPath, sample: j.sample,
+      tree_sha256: treeSha(kase), replies_sha256: repliesSha(REPLIES5), tier_path: j.tierPath, domains: DOMAINS, composite: 60, usd: 0, ...scored(locked()) }));
+    fs.writeFileSync(file, `${[header, ...samples].map((x) => JSON.stringify(x)).join('\n')}\n`);
+    const earlier = { run_id: 'ptb-all', method: 'median-regression', scored: 891, planned: 891,
+      recheck: { medians: { best: 55, mixed: 48, weakest: 39 }, pool_n: { best: 11, mixed: 11, weakest: 11 }, pool_from: 'this run' } };
+    const poolFile = path.join(out, 'earlier.json');
+    fs.writeFileSync(poolFile, JSON.stringify(earlier));
+    expect([0, 1]).toContain(run([...args, '--from', file, '--pool', poolFile]).status);
+    const report = JSON.parse(fs.readFileSync(path.join(out, 'ptb-part.json'), 'utf8'));
+    expect(report.pool_run).toBe('ptb-all');
+    expect(report.recheck).toMatchObject({ medians: earlier.recheck.medians, pool_n: earlier.recheck.pool_n, pool_from: 'earlier run' });
+    fs.writeFileSync(poolFile, JSON.stringify({ ...earlier, method: 'median' }));
+    const refused = run([...args, '--from', file, '--pool', poolFile]);
+    expect(refused.status).toBe(2);
+    expect(refused.stderr).toMatch(/--pool .* is a median build, not median-regression/);
   });
 
   test('--from refuses a five-step case\'s samples walked with another reply bank, or recording none, with zero rimpl calls; the current bank is accepted', async () => {

@@ -109,19 +109,21 @@ describe('the event pool holds one step count', () => {
     expect(pool.left.filter((l) => /three-step/.test(l.why)).map((l) => l.name)).toEqual([]);
   });
 
-  // #497: every five-step case has its table (run ptb-202611150212-bdf7) and a sandbox pass or owner waiver bound to
-  // its tree; the four whose table passed the re-check are admitted, and the seven that failed it wait for the owner.
+  // #497: every five-step case has a path table bound to its tree. Five passed the re-check and carry a sandbox pass or
+  // owner waiver bound to that tree, so they are admitted. ectopic-rupture and melioidosis-farmer failed it; dka,
+  // motorcycle, copd and sjs had their admission taken back for the gate's findings (#510, route B). All six wait.
   test('NFCME-2026 admits the five-step cases whose table passed its re-check, and only those (#497)', () => {
     const files = readEventFiles(path.join(__dirname, '../src/booth-cases'), 'NFCME-2026');
     const pool = eventPool('NFCME-2026', files);
-    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'toddler-gastro-dehydration']);
-    expect(pool.left.map((l) => [l.name, l.why])).toEqual(['copd-exacerbation', 'dka-young-adult', 'ectopic-rupture', 'melioidosis-farmer',
-      'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol'].map((id) => [`${id}.json`, 'is not admitted']));
+    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'leptospirosis', 'organophosphate',
+      'toddler-gastro-dehydration']);
+    expect(pool.left.map((l) => [l.name, l.why]).sort()).toEqual(['copd-exacerbation', 'dka-young-adult', 'ectopic-rupture',
+      'melioidosis-farmer', 'motorcycle-shock', 'sjs-ten-allopurinol'].map((id) => [`${id}.json`, 'is not admitted']));
     for (const { raw } of files) {
       const sha = treeSha(raw);
-      expect([raw.case_id, raw.path_score_table.provenance.run_id, raw.path_score_table.provenance.tree_sha256])
-        .toEqual([raw.case_id, 'ptb-202611150212-bdf7', sha]);
-      expect([raw.case_id, (raw.admission.sandbox ?? raw.admission.owner_waiver).tree_sha256]).toEqual([raw.case_id, sha]);
+      expect([raw.case_id, raw.path_score_table.provenance.tree_sha256]).toEqual([raw.case_id, sha]);
+      const verdict = raw.admission.sandbox ?? raw.admission.owner_waiver;
+      if (ids(pool).includes(raw.case_id)) expect([raw.case_id, verdict.tree_sha256]).toEqual([raw.case_id, sha]);
     }
   });
 });

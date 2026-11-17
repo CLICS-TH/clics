@@ -6,3 +6,17 @@
 {"kind":"charge","run_id":"ptb-202611150156-4a66","usd":0.986958,"date":"2026-11-15","build":"NFCME-2026"}
 {"kind":"open","run_id":"ptb-202611150212-bdf7","usd":38.485812,"date":"2026-11-15","build":"NFCME-2026"}
 {"kind":"charge","run_id":"ptb-202611150212-bdf7","usd":17.306877,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611150634-9b2a","usd":21.178935,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611150634-9b2a","usd":6.139968,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611150711-2b87","usd":15.038967,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611150711-2b87","usd":1.617534,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611150720-b5d7","usd":13.421433,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611150720-b5d7","usd":8.735364,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611151418-a3e1","usd":19.686069,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611151418-a3e1","usd":8.906829,"date":"2026-11-15","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611161504-6f34","usd":10.77924,"date":"2026-11-16","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611161504-6f34","usd":3.188037,"date":"2026-11-16","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611161522-9144","usd":7.591203,"date":"2026-11-16","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611161522-9144","usd":1.69236,"date":"2026-11-16","build":"NFCME-2026"}
+{"kind":"open","run_id":"ptb-202611161531-ff69","usd":5.898843,"date":"2026-11-16","build":"NFCME-2026"}
+{"kind":"charge","run_id":"ptb-202611161531-ff69","usd":3.134862,"date":"2026-11-16","build":"NFCME-2026"}

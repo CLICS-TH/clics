@@ -5,7 +5,7 @@
       "a": {
         "th": [
           {
-            "strength": "เชื่อม**ประจำเดือนขาด** ปวดท้องทันที และเป็นลม เข้าเป็นภาพเดียวกัน",
+            "strength": "เชื่อม**ประจำเดือนขาด** 7 สัปดาห์กับภาวะช็อก เข้าเป็นภาพเดียวกัน",
             "weigh": "ความดัน 88/56 และชีพจร 120 ทำให้ความเร็วในชั่วโมงถัดไปสำคัญพอกับการวินิจฉัย",
             "safety": ""
           },
@@ -22,7 +22,7 @@
         ],
         "en": [
           {
-            "strength": "You tied **a late period**, sudden pain and fainting into one pattern.",
+            "strength": "You tied a **7-week late period** to her shock in one pattern.",
             "weigh": "BP 88/56 and pulse 120 make the speed of the next hour matter as much as the diagnosis.",
             "safety": ""
           },
@@ -149,35 +149,35 @@
       "e": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับ**กดเจ็บ และเกร็ง** ว่าเป็นสัญญาณของภาวะทางศัลยกรรม",
-            "weigh": "การเป็นลม ปวดร้าวที่ไหล่ และความดัน 88/56 ชี้ไปที่การเสียเลือดมากกว่าการอักเสบ",
+            "strength": "นึกถึงสาเหตุทางศัลยกรรมที่พบบ่อยของ**ปวดท้องน้อย**",
+            "weigh": "การวินิจฉัยนี้อธิบายการเป็นลม ปวดร้าวที่ไหล่ และความดัน 88/56 ไม่ได้ ซึ่งชี้ไปที่การเสียเลือด",
             "safety": ""
           },
           {
-            "strength": "เห็นว่าเป็นปัญหาทางศัลยกรรมในท้องน้อย ทำให้ศัลยแพทย์อยู่ใกล้",
-            "weigh": "ไม่มีไข้และปวดขึ้นทันทีเพียง 2 ชั่วโมง ควรชั่งกับการวินิจฉัยนี้",
+            "strength": "คิดถึงปัญหาทางศัลยกรรม ทำให้ศัลยแพทย์อยู่ใกล้",
+            "weigh": "ไส้ติ่งอักเสบแทบไม่ทำให้ช็อกภายใน 2 ชั่วโมง และเธอไม่มีไข้",
             "safety": ""
           },
           {
-            "strength": "นึกถึงสาเหตุที่พบบ่อยของปวดท้องน้อย แสดงรายการเริ่มต้นที่กว้าง",
-            "weigh": "ประจำเดือนขาด 7 สัปดาห์ในหญิงอายุ 28 ปี ควรมีน้ำหนักมาก",
+            "strength": "ใช้ความเคยชินที่นึกถึง**ไส้ติ่งอักเสบ**ก่อน ทำให้เริ่มได้เร็ว",
+            "weigh": "ความเคยชินนำทางได้ไม่ดีในรายนี้ ประจำเดือนขาด 7 สัปดาห์และภาวะช็อกยังไม่ได้รับคำอธิบาย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You took the **guarding** and tenderness seriously as signs of a surgical abdomen.",
-            "weigh": "Fainting, shoulder-tip pain and BP 88/56 are worth weighing, as they point to blood loss more than inflammation.",
+            "strength": "You named a common surgical cause of **lower abdominal pain**.",
+            "weigh": "This label leaves her fainting, shoulder-tip pain and BP 88/56 unexplained, and they point to blood loss.",
             "safety": ""
           },
           {
-            "strength": "Recognising a surgical problem in the lower abdomen keeps a surgeon close.",
-            "weigh": "No fever and a sudden onset 2 hours ago are worth weighing against this label.",
+            "strength": "Thinking of a surgical problem keeps a surgeon close.",
+            "weigh": "Appendicitis rarely causes shock within 2 hours, and she has no fever.",
             "safety": ""
           },
           {
-            "strength": "Considering a common cause of lower abdominal pain shows a broad starting list.",
-            "weigh": "Her 7-week late period is worth weighing heavily in a woman of 28.",
+            "strength": "Going with the usual **first thought** gets you started quickly.",
+            "weigh": "Habit is a poor guide here: her 7-week late period and her shock are left unexplained.",
             "safety": ""
           }
         ]
@@ -185,35 +185,35 @@
       "f": {
         "th": [
           {
-            "strength": "จับได้ว่าปวด**ข้างเดียวขึ้นทันที** ซึ่งเป็นลักษณะที่ไม่ควรมองข้าม",
-            "weigh": "การเป็นลมและความดัน 88/56 ชี้ไปที่การเสียเลือด ควรชั่งกับรังไข่บิด",
+            "strength": "จับได้ว่า**ปวดท้องน้อยขึ้นทันที** ซึ่งอาจเป็นภาวะฉุกเฉิน",
+            "weigh": "รังไข่บิดขั้วอธิบายการเป็นลม ความดัน 88/56 และปวดร้าวที่ไหล่ไม่ได้ ซึ่งชี้ไปที่การเสียเลือด",
             "safety": ""
           },
           {
             "strength": "นึกถึงภาวะฉุกเฉินทางนรีเวชที่ต้องแข่งกับเวลา แสดงถึงความเร่งด่วน",
-            "weigh": "ปวดร้าวที่ปลายไหล่และซีด ชวนให้คิดถึงเลือดในช่องท้อง ควรชั่งน้ำหนัก",
+            "weigh": "รังไข่บิดขั้วแทบไม่ทำให้ช็อก ส่วนอาการซีดและปวดร้าวที่ไหล่ชี้ไปที่เลือดในช่องท้อง",
             "safety": ""
           },
           {
-            "strength": "คงภาวะฉุกเฉินของรังไข่ไว้ในรายการ ช่วยปกป้องการเจริญพันธุ์ในหญิงอายุ 28 ปี",
-            "weigh": "ประจำเดือนขาดและเลือดออกเล็กน้อย เป็นส่วนของเรื่องที่ชื่อโรคนี้ยังไม่ครอบคลุม",
+            "strength": "ใช้ความเคยชินที่มัก**นึกถึงภาวะนี้ก่อน** ทำให้เริ่มได้เร็ว",
+            "weigh": "ความเคยชินนำทางได้ไม่ดีในรายนี้ ประจำเดือนขาดและเลือดออกเล็กน้อยยังไม่ได้รับคำอธิบาย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You picked up on the **sudden one-sided** onset, a feature never to ignore.",
-            "weigh": "Fainting and BP 88/56 point to blood loss, which is worth weighing against a twisted ovary.",
+            "strength": "You noticed sudden **lower abdominal pain**, which can be an emergency.",
+            "weigh": "A twisted ovary leaves her fainting, BP 88/56 and shoulder-tip pain unexplained, and they point to blood loss.",
             "safety": ""
           },
           {
             "strength": "Thinking of a time-critical gynaecological emergency shows urgency.",
-            "weigh": "Shoulder-tip pain and pallor are worth weighing, as they suggest blood in the abdomen.",
+            "weigh": "Torsion seldom causes shock, while her pallor and shoulder-tip pain suggest blood in the abdomen.",
             "safety": ""
           },
           {
-            "strength": "Keeping an ovarian emergency on the list protects fertility in a woman of 28.",
-            "weigh": "Her late period and spotting add a part of the story this label does not cover.",
+            "strength": "Going with what **brings it to mind** first gives a quick start.",
+            "weigh": "Habit is a poor guide here: her late period and spotting are left unexplained by this label.",
             "safety": ""
           }
         ]
@@ -223,7 +223,7 @@
       "upt_scan": {
         "th": [
           {
-            "strength": "การตรวจคู่นี้**รู้ผลภายในนาที** ทันกับความเร่งด่วนของภาวะช็อก",
+            "strength": "**ผลบวก**ร่วมกับเลือดในท้อง ตัดสินเรื่องผ่าตัดได้ในไม่กี่นาที",
             "weigh": "ควรทำอัลตราซาวด์ไปพร้อมการกู้ชีพ ไม่ให้การตรวจทำให้การรักษาช้าลง",
             "safety": ""
           },
@@ -240,7 +240,7 @@
         ],
         "en": [
           {
-            "strength": "This pairing **answers in minutes**, matching the pace her shock demands.",
+            "strength": "A **positive test** with blood on the scan settles the need for theatre in minutes.",
             "weigh": "Worth weighing that the scan should run alongside resuscitation, never pause it.",
             "safety": ""
           },
@@ -264,7 +264,7 @@
             "safety": ""
           },
           {
-            "strength": "**เตรียมเลือดให้พร้อม**แต่เนิ่น ๆ ช่วยประหยัดนาทีที่มีค่าเมื่อความดัน 88/56",
+            "strength": "**จองเลือดไว้เลย** ช่วยประหยัดนาทีที่มีค่าเมื่อความดัน 88/56",
             "weigh": "ควรวางแผนไว้ หากเธอทรุดลงก่อนจองเลือดเสร็จ",
             "safety": ""
           },
@@ -281,7 +281,7 @@
             "safety": ""
           },
           {
-            "strength": "Getting **blood ready** early saves minutes that matter when BP is 88/56.",
+            "strength": "Choosing to **match it now** saves minutes that matter when BP is 88/56.",
             "weigh": "Worth having a plan if she worsens before the cross-match is complete.",
             "safety": ""
           },
@@ -292,74 +292,74 @@
           }
         ]
       },
-      "bhcg": {
+      "fast": {
         "th": [
           {
-            "strength": "ได้**ระดับฮอร์โมน**เป็นตัวเลขไว้อ่านคู่อัลตราซาวด์ ซึ่งช่วยได้ในผู้ป่วยที่คงที่",
-            "weigh": "ในภาวะช็อก ผลจากห้องแล็บมักมาช้าเกินจะเปลี่ยนการดูแลในชั่วโมงแรก",
+            "strength": "**อัลตราซาวด์ข้างเตียง**ตอบคำถามเรื่องเลือดออกได้โดยไม่ต้องย้ายเธอ",
+            "weigh": "น้ำในช่องท้องยืนยันว่ามีเลือดออก แต่ไม่บอกต้นเหตุ ควรชั่งขณะแปลผล",
             "safety": ""
           },
           {
-            "strength": "มองหาการยืนยันที่วัดได้ ไม่พึ่งประวัติอย่างเดียว",
-            "weigh": "ค่าครั้งเดียวบอกตำแหน่งไม่ได้ และตอนนี้เธอยังไม่คงที่ ควรชั่งให้ดี",
+            "strength": "หา**น้ำในช่องท้อง**ทันที เหมาะกับผู้ป่วยที่ไม่คงที่จนย้ายไม่ได้",
+            "weigh": "ผลขึ้นกับผู้ตรวจ และผลลบไม่ได้ตัดการเสียเลือดในภาวะช็อก ควรชั่งให้ดี",
             "safety": ""
           },
           {
-            "strength": "วางแผนแปลระดับฮอร์โมนร่วมกับอัลตราซาวด์ แสดงถึงแนวทางที่เป็นระบบ",
-            "weigh": "ควรชั่งเวลารอผลแล็บ กับความดัน 88/56 และชีพจร 120",
+            "strength": "เลือกการตรวจข้างเตียง ทำให้กู้ชีพและวินิจฉัยไปพร้อมกัน",
+            "weigh": "อัลตราซาวด์อย่างเดียวบอกไม่ได้ว่าน้ำในช่องท้องมาจากอะไร ควรชั่งไว้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **hormone level** gives a number to pair with the scan, which helps in stable patients.",
-            "weigh": "In shock, a lab level often returns too late to change the next hour.",
+            "strength": "A **Bedside FAST scan** answers the key question about blood in the abdomen without moving her.",
+            "weigh": "Free fluid confirms blood in the abdomen but not its source, worth weighing as you read it.",
             "safety": ""
           },
           {
-            "strength": "You looked for objective confirmation rather than relying on history alone.",
-            "weigh": "Worth weighing that a single level cannot show where the tissue lies, and she is unstable now.",
+            "strength": "Looking for **free fluid** at once fits a patient too unstable to leave the ER.",
+            "weigh": "Worth weighing that the scan is operator dependent, and a negative one does not settle it in shock.",
             "safety": ""
           },
           {
-            "strength": "Planning to read the hormone **alongside the scan** shows a structured approach.",
-            "weigh": "Worth weighing the wait for a lab result against BP 88/56 and pulse 120.",
+            "strength": "Choosing a test done at the bedside keeps resuscitation and diagnosis running together.",
+            "weigh": "Worth weighing that the scan alone cannot show why the fluid is there.",
             "safety": ""
           }
         ]
       },
-      "cbc_ua": {
+      "serial_cbc": {
         "th": [
           {
-            "strength": "**ค่าเม็ดเลือด**ให้ค่าพื้นฐานไว้ติดตามการเสียเลือดในชั่วโมงถัดไป",
-            "weigh": "ในการเสียเลือดเฉียบพลัน ค่าแรกอาจดูใกล้ปกติ จึงอาจประเมินการเสียเลือดต่ำไป",
+            "strength": "**เจาะซ้ำ**ทุกชั่วโมง ช่วยให้เห็นแนวโน้มของการเสียเลือด",
+            "weigh": "ในการเสียเลือดเฉียบพลัน Hb ลดลงช้ากว่าเลือดที่เสียจริง ชีพจรและความดันบอกได้เร็วกว่า",
             "safety": ""
           },
           {
-            "strength": "ตรวจปัสสาวะช่วยไม่ให้มองข้ามสาเหตุที่พบบ่อยของปวดท้องน้อย",
-            "weigh": "การเป็นลม ความดัน 88/56 และประจำเดือนขาด ควรชั่งกับสาเหตุจากทางเดินปัสสาวะ",
+            "strength": "เลือกการตรวจที่ทำได้ทุก รพ. และอ่านผลง่าย",
+            "weigh": "ควรชั่งว่าผลรายชั่วโมงจะเปลี่ยนการดูแลอะไร ขณะเธอช็อกและประจำเดือนขาด",
             "safety": ""
           },
           {
-            "strength": "เริ่มด้วยการตรวจง่ายและเร็ว แสดงการทำงานที่เป็นขั้นตอน",
-            "weigh": "ควรชั่งว่าผลเหล่านี้จะเปลี่ยนการดูแลอะไร ขณะเธอยังช็อกอยู่",
+            "strength": "ให้ความสำคัญกับการเสียเลือด ซึ่งเป็นปัญหาหลักของเธอตอนนี้",
+            "weigh": "ควรชั่งกับการตรวจที่บอกต้นเหตุของเลือดออกและการเตรียมเลือดไว้ใช้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **blood count** gives a baseline to track loss over the coming hours.",
-            "weigh": "In acute loss the first count can look near normal, so it may understate how much she has lost.",
+            "strength": "**Repeat counts** each hour show the trend of her blood loss.",
+            "weigh": "In acute loss Hb falls later than the blood lost, so pulse and BP tell sooner.",
             "safety": ""
           },
           {
-            "strength": "Screening the urine keeps a common cause of lower abdominal pain in view.",
-            "weigh": "Fainting, BP 88/56 and a late period are worth weighing against a urine cause.",
+            "strength": "You chose a test every hospital can run and read easily.",
+            "weigh": "Worth weighing what an hourly result will change while she is in shock with a late period.",
             "safety": ""
           },
           {
-            "strength": "Simple, quick tests show a methodical start to the work-up.",
-            "weigh": "Worth weighing what these results will change while she is in shock.",
+            "strength": "You kept her blood loss, the main problem right now, in focus.",
+            "weigh": "Worth weighing tests that find the source of the bleeding and get blood ready for use.",
             "safety": ""
           }
         ]
@@ -369,7 +369,7 @@
       "upt_scan": {
         "th": [
           {
-            "strength": "การตรวจคู่นี้**รู้ผลภายในนาที** ทันกับความเร่งด่วนของภาวะช็อก",
+            "strength": "**ผลบวก**ร่วมกับเลือดในท้อง ตัดสินเรื่องผ่าตัดได้ในไม่กี่นาที",
             "weigh": "ควรทำอัลตราซาวด์ไปพร้อมการกู้ชีพ ไม่ให้การตรวจทำให้การรักษาช้าลง",
             "safety": ""
           },
@@ -386,7 +386,7 @@
         ],
         "en": [
           {
-            "strength": "This pairing **answers in minutes**, matching the pace her shock demands.",
+            "strength": "A **positive test** with blood on the scan settles the need for theatre in minutes.",
             "weigh": "Worth weighing that the scan should run alongside resuscitation, never pause it.",
             "safety": ""
           },
@@ -410,7 +410,7 @@
             "safety": ""
           },
           {
-            "strength": "**เตรียมเลือดให้พร้อม**แต่เนิ่น ๆ ช่วยประหยัดนาทีที่มีค่าเมื่อความดัน 88/56",
+            "strength": "**จองเลือดไว้เลย** ช่วยประหยัดนาทีที่มีค่าเมื่อความดัน 88/56",
             "weigh": "ควรวางแผนไว้ หากเธอทรุดลงก่อนจองเลือดเสร็จ",
             "safety": ""
           },
@@ -427,7 +427,7 @@
             "safety": ""
           },
           {
-            "strength": "Getting **blood ready** early saves minutes that matter when BP is 88/56.",
+            "strength": "Choosing to **match it now** saves minutes that matter when BP is 88/56.",
             "weigh": "Worth having a plan if she worsens before the cross-match is complete.",
             "safety": ""
           },
@@ -474,38 +474,38 @@
           }
         ]
       },
-      "cbc_ua": {
+      "serial_cbc": {
         "th": [
           {
-            "strength": "**ค่าเม็ดเลือด**ให้ค่าพื้นฐานไว้ติดตามการเสียเลือดในชั่วโมงถัดไป",
-            "weigh": "ในการเสียเลือดเฉียบพลัน ค่าแรกอาจดูใกล้ปกติ จึงอาจประเมินการเสียเลือดต่ำไป",
+            "strength": "**เจาะซ้ำ**ทุกชั่วโมง ช่วยให้เห็นแนวโน้มของการเสียเลือด",
+            "weigh": "ในการเสียเลือดเฉียบพลัน Hb ลดลงช้ากว่าเลือดที่เสียจริง ชีพจรและความดันบอกได้เร็วกว่า",
             "safety": ""
           },
           {
-            "strength": "ตรวจปัสสาวะช่วยไม่ให้มองข้ามสาเหตุที่พบบ่อยของปวดท้องน้อย",
-            "weigh": "การเป็นลม ความดัน 88/56 และประจำเดือนขาด ควรชั่งกับสาเหตุจากทางเดินปัสสาวะ",
+            "strength": "เลือกการตรวจที่ทำได้ทุก รพ. และอ่านผลง่าย",
+            "weigh": "ควรชั่งว่าผลรายชั่วโมงจะเปลี่ยนการดูแลอะไร ขณะเธอช็อกและประจำเดือนขาด",
             "safety": ""
           },
           {
-            "strength": "เริ่มด้วยการตรวจง่ายและเร็ว แสดงการทำงานที่เป็นขั้นตอน",
-            "weigh": "ควรชั่งว่าผลเหล่านี้จะเปลี่ยนการดูแลอะไร ขณะเธอยังช็อกอยู่",
+            "strength": "ให้ความสำคัญกับการเสียเลือด ซึ่งเป็นปัญหาหลักของเธอตอนนี้",
+            "weigh": "ควรชั่งกับการตรวจที่บอกต้นเหตุของเลือดออกและการเตรียมเลือดไว้ใช้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **blood count** gives a baseline to track loss over the coming hours.",
-            "weigh": "In acute loss the first count can look near normal, so it may understate how much she has lost.",
+            "strength": "**Repeat counts** each hour show the trend of her blood loss.",
+            "weigh": "In acute loss Hb falls later than the blood lost, so pulse and BP tell sooner.",
             "safety": ""
           },
           {
-            "strength": "Screening the urine keeps a common cause of lower abdominal pain in view.",
-            "weigh": "Fainting, BP 88/56 and a late period are worth weighing against a urine cause.",
+            "strength": "You chose a test every hospital can run and read easily.",
+            "weigh": "Worth weighing what an hourly result will change while she is in shock with a late period.",
             "safety": ""
           },
           {
-            "strength": "Simple, quick tests show a methodical start to the work-up.",
-            "weigh": "Worth weighing what these results will change while she is in shock.",
+            "strength": "You kept her blood loss, the main problem right now, in focus.",
+            "weigh": "Worth weighing tests that find the source of the bleeding and get blood ready for use.",
             "safety": ""
           }
         ]
@@ -515,7 +515,7 @@
       "upt_scan": {
         "th": [
           {
-            "strength": "การตรวจคู่นี้**รู้ผลภายในนาที** ทันกับความเร่งด่วนของภาวะช็อก",
+            "strength": "**ผลบวก**ร่วมกับเลือดในท้อง ตัดสินเรื่องผ่าตัดได้ในไม่กี่นาที",
             "weigh": "ควรทำอัลตราซาวด์ไปพร้อมการกู้ชีพ ไม่ให้การตรวจทำให้การรักษาช้าลง",
             "safety": ""
           },
@@ -532,7 +532,7 @@
         ],
         "en": [
           {
-            "strength": "This pairing **answers in minutes**, matching the pace her shock demands.",
+            "strength": "A **positive test** with blood on the scan settles the need for theatre in minutes.",
             "weigh": "Worth weighing that the scan should run alongside resuscitation, never pause it.",
             "safety": ""
           },
@@ -556,7 +556,7 @@
             "safety": ""
           },
           {
-            "strength": "**เตรียมเลือดให้พร้อม**แต่เนิ่น ๆ ช่วยประหยัดนาทีที่มีค่าเมื่อความดัน 88/56",
+            "strength": "**จองเลือดไว้เลย** ช่วยประหยัดนาทีที่มีค่าเมื่อความดัน 88/56",
             "weigh": "ควรวางแผนไว้ หากเธอทรุดลงก่อนจองเลือดเสร็จ",
             "safety": ""
           },
@@ -573,7 +573,7 @@
             "safety": ""
           },
           {
-            "strength": "Getting **blood ready** early saves minutes that matter when BP is 88/56.",
+            "strength": "Choosing to **match it now** saves minutes that matter when BP is 88/56.",
             "weigh": "Worth having a plan if she worsens before the cross-match is complete.",
             "safety": ""
           },
@@ -656,38 +656,38 @@
           }
         ]
       },
-      "glu_lyte": {
+      "serial_cbc": {
         "th": [
           {
-            "strength": "ตรวจหา**สาเหตุทางเมแทบอลิก**ของการเป็นลม ครอบคลุมเหตุที่ตรวจง่ายและเร็ว",
-            "weigh": "ชีพจร 120 ความดัน 88/56 และซีด ชี้ไปที่การเสียสารน้ำมากกว่าเหตุทางเมแทบอลิก",
+            "strength": "**เจาะซ้ำ**ทุกชั่วโมง ช่วยให้เห็นแนวโน้มของการเสียเลือด",
+            "weigh": "ในการเสียเลือดเฉียบพลัน Hb ลดลงช้ากว่าเลือดที่เสียจริง ชีพจรและความดันบอกได้เร็วกว่า",
             "safety": ""
           },
           {
-            "strength": "ตรวจน้ำตาลได้เร็ว และจับสาเหตุของการเป็นลมที่แก้ได้",
-            "weigh": "ควรชั่งว่าผลเหล่านี้อธิบายอาการปวดไหล่และท้องเกร็งได้แค่ไหน",
+            "strength": "เลือกการตรวจที่ทำได้ทุก รพ. และอ่านผลง่าย",
+            "weigh": "ควรชั่งว่าผลรายชั่วโมงจะเปลี่ยนการดูแลอะไร ขณะเธอช็อกและประจำเดือนขาด",
             "safety": ""
           },
           {
-            "strength": "ไม่ด่วนสรุปสาเหตุของการเป็นลม แต่ตรวจสาเหตุพื้นฐานก่อน",
-            "weigh": "ควรชั่งว่าผลเหล่านี้จะเปลี่ยนการดูแลอะไร ขณะเธอยังช็อกอยู่",
+            "strength": "ให้ความสำคัญกับการเสียเลือด ซึ่งเป็นปัญหาหลักของเธอตอนนี้",
+            "weigh": "ควรชั่งกับการตรวจที่บอกต้นเหตุของเลือดออกและการเตรียมเลือดไว้ใช้",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Checking for a **metabolic cause** of fainting covers a quick, simple possibility.",
-            "weigh": "Pulse 120, BP 88/56 and pallor point to lost volume more than a metabolic cause.",
+            "strength": "**Repeat counts** each hour show the trend of her blood loss.",
+            "weigh": "In acute loss Hb falls later than the blood lost, so pulse and BP tell sooner.",
             "safety": ""
           },
           {
-            "strength": "A glucose check is fast and catches a reversible reason for collapse.",
-            "weigh": "Worth weighing how much these results explain her shoulder pain and guarding.",
+            "strength": "You chose a test every hospital can run and read easily.",
+            "weigh": "Worth weighing what an hourly result will change while she is in shock with a late period.",
             "safety": ""
           },
           {
-            "strength": "You did not assume the cause of her fainting, but tested a basic one.",
-            "weigh": "Worth weighing what these results will change while she is in shock.",
+            "strength": "You kept her blood loss, the main problem right now, in focus.",
+            "weigh": "Worth weighing tests that find the source of the bleeding and get blood ready for use.",
             "safety": ""
           }
         ]
@@ -719,7 +719,7 @@
             "safety": ""
           },
           {
-            "strength": "Giving blood while you **stop the bleeding** addresses both the loss and its cause.",
+            "strength": "Giving blood while removing the tube **stops the bleeding** and its cause together.",
             "weigh": "Worth a careful look at the other tube, since it matters for her future fertility.",
             "safety": ""
           },
@@ -738,7 +738,7 @@
             "safety": ""
           },
           {
-            "strength": "ทดแทน**เลือดที่เสียไป**ขณะศัลยแพทย์ห้ามเลือด ช่วยประคองระบบไหลเวียน",
+            "strength": "**ให้เลือดทดแทน**ขณะศัลยแพทย์ผ่าตัด ช่วยประคองระบบไหลเวียน",
             "weigh": "การให้เลือดจำนวนมากควรใช้ส่วนประกอบให้สมดุลและอุ่นเลือด ควรวางแผนไว้",
             "safety": ""
           },
@@ -755,7 +755,7 @@
             "safety": ""
           },
           {
-            "strength": "Replacing **lost blood** while the bleeding is stopped keeps her circulation going.",
+            "strength": "Choosing to **replace it** as the surgeon operates keeps her circulation going.",
             "weigh": "Large volumes need balanced products and warming, worth planning for.",
             "safety": ""
           },
@@ -901,7 +901,7 @@
             "safety": ""
           },
           {
-            "strength": "Giving blood while you **stop the bleeding** addresses both the loss and its cause.",
+            "strength": "Giving blood while removing the tube **stops the bleeding** and its cause together.",
             "weigh": "Worth a careful look at the other tube, since it matters for her future fertility.",
             "safety": ""
           },
@@ -920,7 +920,7 @@
             "safety": ""
           },
           {
-            "strength": "ทดแทน**เลือดที่เสียไป**ขณะศัลยแพทย์ห้ามเลือด ช่วยประคองระบบไหลเวียน",
+            "strength": "**ให้เลือดทดแทน**ขณะศัลยแพทย์ผ่าตัด ช่วยประคองระบบไหลเวียน",
             "weigh": "การให้เลือดจำนวนมากควรใช้ส่วนประกอบให้สมดุลและอุ่นเลือด ควรวางแผนไว้",
             "safety": ""
           },
@@ -937,7 +937,7 @@
             "safety": ""
           },
           {
-            "strength": "Replacing **lost blood** while the bleeding is stopped keeps her circulation going.",
+            "strength": "Choosing to **replace it** as the surgeon operates keeps her circulation going.",
             "weigh": "Large volumes need balanced products and warming, worth planning for.",
             "safety": ""
           },
@@ -1083,7 +1083,7 @@
             "safety": ""
           },
           {
-            "strength": "Giving blood while you **stop the bleeding** addresses both the loss and its cause.",
+            "strength": "Giving blood while removing the tube **stops the bleeding** and its cause together.",
             "weigh": "Worth a careful look at the other tube, since it matters for her future fertility.",
             "safety": ""
           },
@@ -1102,7 +1102,7 @@
             "safety": ""
           },
           {
-            "strength": "ทดแทน**เลือดที่เสียไป**ขณะศัลยแพทย์ห้ามเลือด ช่วยประคองระบบไหลเวียน",
+            "strength": "**ให้เลือดทดแทน**ขณะศัลยแพทย์ผ่าตัด ช่วยประคองระบบไหลเวียน",
             "weigh": "การให้เลือดจำนวนมากควรใช้ส่วนประกอบให้สมดุลและอุ่นเลือด ควรวางแผนไว้",
             "safety": ""
           },
@@ -1119,7 +1119,7 @@
             "safety": ""
           },
           {
-            "strength": "Replacing **lost blood** while the bleeding is stopped keeps her circulation going.",
+            "strength": "Choosing to **replace it** as the surgeon operates keeps her circulation going.",
             "weigh": "Large volumes need balanced products and warming, worth planning for.",
             "safety": ""
           },
@@ -1279,8 +1279,8 @@
       "rpt_hb": {
         "th": [
           {
-            "strength": "**ค่าที่สอง**เปลี่ยนตัวเลขครั้งเดียวให้เป็นแนวโน้มที่เชื่อถือได้",
-            "weigh": "ชีพจรและความดันของเธอบอกได้มากแล้วว่าเลือดหยุดหรือยัง ควรชั่งไว้",
+            "strength": "**ค่าที่สอง**เปลี่ยน Hb ครั้งเดียวให้เป็นแนวโน้ม เป็นการตรวจที่สมเหตุสมผลหลังเสียเลือดมาก",
+            "weigh": "สัญญาณชีพที่คงที่บอกได้มากแล้ว การตรวจซ้ำจึงเพิ่มข้อมูลได้ไม่มากในวันนี้",
             "safety": ""
           },
           {
@@ -1290,24 +1290,24 @@
           },
           {
             "strength": "ตรวจ Hb ซ้ำหลังสารน้ำเคลื่อนย้าย ให้ภาพที่จริงกว่าค่าแรก",
-            "weigh": "สารน้ำที่ได้หลังผ่าตัดอาจทำให้ Hb ลดลงเอง ควรชั่งก่อนตัดสินใจจากค่าที่ลด",
+            "weigh": "สารน้ำหลังผ่าตัดทำให้ Hb ลดลงเองได้ ควรอ่านค่าที่ลดเล็กน้อยคู่กับชีพจร",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **second value** turns a single snapshot into a trend you can trust.",
-            "weigh": "Worth weighing that her pulse and BP already tell you much about whether bleeding has stopped.",
+            "strength": "A **second value** turns one Hb into a trend, a fair test after heavy bleeding.",
+            "weigh": "Her stable vital signs already say much, so the repeat adds only a little today.",
             "safety": ""
           },
           {
-            "strength": "You wanted proof that the bleeding has stopped rather than assuming it.",
-            "weigh": "Worth weighing what Hb change would actually alter her care today.",
+            "strength": "You wanted proof the bleeding has stopped rather than assuming it.",
+            "weigh": "Worth weighing what Hb change would alter her care today.",
             "safety": ""
           },
           {
-            "strength": "Rechecking Hb after big fluid shifts gives a truer picture than the first value.",
-            "weigh": "Fluids after surgery can lower Hb on their own, worth weighing before acting on a drop.",
+            "strength": "Rechecking Hb after fluid shifts gives a truer picture than the first value.",
+            "weigh": "Fluids after surgery can lower Hb on their own, so read a small drop with her pulse.",
             "safety": ""
           }
         ]
@@ -1461,7 +1461,7 @@
       "two_units": {
         "th": [
           {
-            "strength": "ให้ 2 ยูนิตทดแทน**เลือดที่เสียไป**ได้มากขึ้นในรอบเดียว และยังประเมินซ้ำ",
+            "strength": "ให้ 2 ยูนิตเมื่อ **Hb 7.2 ชีพจร 106** แก้อาการได้เร็ว และยังประเมินซ้ำ",
             "weigh": "ควรชั่งเลือดแต่ละยูนิตกับอาการ เพราะทุกยูนิตมีความเสี่ยงของตัวเอง",
             "safety": ""
           },
@@ -1478,8 +1478,8 @@
         ],
         "en": [
           {
-            "strength": "Giving two units replaces more of her **lost blood** in one round, with a check after.",
-            "weigh": "Worth weighing each unit against her symptoms, since every unit carries its own risks.",
+            "strength": "Giving two units for **Hb 7.2 and pulse 106** treats her symptoms promptly, with a check after.",
+            "weigh": "Worth weighing each unit against her symptoms, since every unit carries its own risk.",
             "safety": ""
           },
           {
@@ -1643,35 +1643,35 @@
       "broad_abx": {
         "th": [
           {
-            "strength": "ลงมือ**ทันที**กับการติดเชื้อที่น่าจะเป็น ปกป้องเธอหากติดเชื้อในกระแสเลือด",
-            "weigh": "ไข้ช่วงแรกหลังผ่าตัดมักไม่ใช่การติดเชื้อ ต้นเหตุจึงยังสำคัญ ควรชั่งไว้",
+            "strength": "มอง**ไข้ใหม่หลังผ่าตัด**ว่าอาจเป็นการติดเชื้อในกระแสเลือด ช่วยปกป้องเธอได้ทัน",
+            "weigh": "ไข้ช่วงแรกหลังผ่าตัดมักไม่ใช่การติดเชื้อ ควรหาต้นเหตุควบคู่กันไป",
             "safety": ""
           },
           {
             "strength": "มองไข้ใหม่หลังผ่าตัดว่าอาจร้ายแรง ไม่ใช่เรื่องธรรมดา",
-            "weigh": "ยาครอบคลุมกว้างโดยไม่รู้แหล่ง อาจรักษาไข้ได้แต่ต้นเหตุยังซ่อนอยู่",
+            "weigh": "ยาครอบคลุมกว้างได้ผลดีที่สุดเมื่อรู้แหล่ง ควรหาแหล่งไปพร้อมกับยาเข็มแรก",
             "safety": ""
           },
           {
             "strength": "ให้ยาฉีดออกฤทธิ์กว้างอย่างรวดเร็ว เหมาะกับผู้ป่วยที่อาจกำลังติดเชื้อรุนแรง",
-            "weigh": "ควรชั่งว่าต้องครอบคลุมกว้างแค่ไหน สำหรับแหล่งติดเชื้อหลังผ่าตัดที่น่าจะเป็น",
+            "weigh": "เมื่อพบแหล่งติดเชื้อหลังผ่าตัดที่น่าจะเป็น ควรปรับยาให้แคบลง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Acting **without loss of time** on a likely infection protects her if she is septic.",
-            "weigh": "Early post-operative fever is often not infection, so the source still matters.",
+            "strength": "Treating a **new fever** after surgery as possible sepsis protects her if she is septic.",
+            "weigh": "Early post-operative fever is often not infection, so a search for the cause should run alongside.",
             "safety": ""
           },
           {
             "strength": "You treated a new fever after surgery as potentially serious, not routine.",
-            "weigh": "Broad cover without a known source risks treating the fever while the cause goes unseen.",
+            "weigh": "Broad cover works best with a known source, so look for one alongside the first dose.",
             "safety": ""
           },
           {
             "strength": "Prompt **Broad IV** treatment fits a patient who may be heading toward sepsis.",
-            "weigh": "Worth weighing how broad the cover needs to be for a likely post-operative source.",
+            "weigh": "Worth narrowing the cover once the likely post-operative source is found.",
             "safety": ""
           }
         ]
@@ -1722,7 +1722,7 @@
             "safety": ""
           },
           {
-            "strength": "รู้ว่าเธอเสี่ยงสูงขึ้น จึงวางแผนยืนยัน**ตำแหน่งการตั้งครรภ์**ได้เร็ว",
+            "strength": "รู้ว่าเธอ**เสี่ยงเป็นซ้ำ** จึงวางแผนยืนยันตำแหน่งครรภ์หน้าได้เร็ว",
             "weigh": "ควรใส่ใจด้านความรู้สึกในคำถามนี้ด้วย เพราะความกลัวว่าจะเกิดซ้ำพบได้บ่อย",
             "safety": ""
           },
@@ -1739,7 +1739,7 @@
             "safety": ""
           },
           {
-            "strength": "Knowing her raised risk, you planned to locate **a future pregnancy** early.",
+            "strength": "Knowing her **risk of another**, you planned to locate the next pregnancy early.",
             "weigh": "Worth weighing the emotional side of her question, since fear of a repeat is common.",
             "safety": ""
           },
@@ -1753,7 +1753,7 @@
       "fu_upt": {
         "th": [
           {
-            "strength": "**ผลลบ**ที่ 3 สัปดาห์ เป็นวิธีง่ายในการยืนยันว่าเนื้อเยื่อหมดแล้ว",
+            "strength": "**ผลลบครั้งเดียว**ที่ 3 สัปดาห์ เป็นวิธีง่ายในการยืนยันว่าเนื้อเยื่อหมดแล้ว",
             "weigh": "ควรวางแผนชัดว่าเธอต้องทำอย่างไรหากผลยังเป็นบวก",
             "safety": ""
           },
@@ -1780,7 +1780,7 @@
             "safety": ""
           },
           {
-            "strength": "Making sure the **tissue is gone** closes the loop on her treatment.",
+            "strength": "Making sure **the tissue is gone** closes the loop on her treatment.",
             "weigh": "Worth weighing her feelings, since a pregnancy test can be painful to take after this loss.",
             "safety": ""
           }
@@ -1794,7 +1794,7 @@
             "safety": ""
           },
           {
-            "strength": "ใส่ใจทั้งแผลและจิตใจ เป็นการดูแลเธอแบบองค์รวม",
+            "strength": "ใส่ใจทั้งแผลและการรับมือกับการสูญเสีย เป็นการดูแลเธอแบบองค์รวม",
             "weigh": "ควรชั่งว่า 2 สัปดาห์เร็วพอหรือไม่ กับความรู้สึกของเธอตอนนี้",
             "safety": ""
           },
@@ -1811,7 +1811,7 @@
             "safety": ""
           },
           {
-            "strength": "Looking at her coping as well as the wound treats her as a whole person.",
+            "strength": "Looking at her coping with the loss as well as the wound treats her as a whole person.",
             "weigh": "Worth weighing whether 2 weeks is soon enough given how she is feeling now.",
             "safety": ""
           },
@@ -1899,13 +1899,13 @@
       "phone_fu": {
         "th": [
           {
-            "strength": "โทรสั้น ๆ **ประหยัด** ติดต่อได้โดยไม่ต้องเดินทาง",
-            "weigh": "ควรชั่งสิ่งที่การโทรมองไม่เห็น เช่น แผลและค่า Hb",
+            "strength": "โทรใน 1 สัปดาห์ช่วยติดต่อกับเธอ**หลังเสียเลือดมาก** โดยไม่ต้องเดินทาง",
+            "weigh": "การโทรมองไม่เห็นแผลและค่า Hb จึงเหมาะเมื่อใช้คู่กับการนัดมาตรวจ",
             "safety": ""
           },
           {
             "strength": "เลือกการติดตามแบบเบาที่เหมาะกับคนที่ฟื้นตัวดีที่บ้าน",
-            "weigh": "ความอ่อนเพลียหลังเสียเลือดอาจต้องการมากกว่าการพูดคุย ควรชั่งไว้",
+            "weigh": "ความอ่อนเพลียหลังเสียเลือดอาจต้องตรวจ Hb ต่อหน้าด้วย",
             "safety": ""
           },
           {
@@ -1916,17 +1916,17 @@
         ],
         "en": [
           {
-            "strength": "A short call **at little cost** keeps contact without another trip.",
-            "weigh": "Worth weighing what a call cannot show, such as her wound and Hb.",
+            "strength": "A call in a week keeps contact after **major blood loss** without another trip.",
+            "weigh": "A call cannot see her wound or Hb, so it works best alongside a set visit.",
             "safety": ""
           },
           {
-            "strength": "You chose a light-touch check that suits a woman recovering well at home.",
-            "weigh": "Worth weighing that tiredness after blood loss may need more than a conversation.",
+            "strength": "You chose a light check that suits a woman recovering well at home.",
+            "weigh": "Tiredness after blood loss may need an Hb check in person as well.",
             "safety": ""
           },
           {
-            "strength": "Reaching out within 1 week keeps her from feeling left alone after a frightening event.",
+            "strength": "Reaching out within a week keeps her from feeling left alone after a frightening event.",
             "weigh": "Worth deciding who makes the call and what prompts them to ask her back in.",
             "safety": ""
           }
@@ -1971,7 +1971,7 @@
       "fu_upt": {
         "th": [
           {
-            "strength": "**ผลลบ**ที่ 3 สัปดาห์ เป็นวิธีง่ายในการยืนยันว่าเนื้อเยื่อหมดแล้ว",
+            "strength": "**ผลลบครั้งเดียว**ที่ 3 สัปดาห์ เป็นวิธีง่ายในการยืนยันว่าเนื้อเยื่อหมดแล้ว",
             "weigh": "ควรวางแผนชัดว่าเธอต้องทำอย่างไรหากผลยังเป็นบวก",
             "safety": ""
           },
@@ -1998,7 +1998,7 @@
             "safety": ""
           },
           {
-            "strength": "Making sure the **tissue is gone** closes the loop on her treatment.",
+            "strength": "Making sure **the tissue is gone** closes the loop on her treatment.",
             "weigh": "Worth weighing her feelings, since a pregnancy test can be painful to take after this loss.",
             "safety": ""
           }
@@ -2117,7 +2117,7 @@
       "fu_upt": {
         "th": [
           {
-            "strength": "**ผลลบ**ที่ 3 สัปดาห์ เป็นวิธีง่ายในการยืนยันว่าเนื้อเยื่อหมดแล้ว",
+            "strength": "**ผลลบครั้งเดียว**ที่ 3 สัปดาห์ เป็นวิธีง่ายในการยืนยันว่าเนื้อเยื่อหมดแล้ว",
             "weigh": "ควรวางแผนชัดว่าเธอต้องทำอย่างไรหากผลยังเป็นบวก",
             "safety": ""
           },
@@ -2144,7 +2144,7 @@
             "safety": ""
           },
           {
-            "strength": "Making sure the **tissue is gone** closes the loop on her treatment.",
+            "strength": "Making sure **the tissue is gone** closes the loop on her treatment.",
             "weigh": "Worth weighing her feelings, since a pregnancy test can be painful to take after this loss.",
             "safety": ""
           }
@@ -2158,7 +2158,7 @@
             "safety": ""
           },
           {
-            "strength": "ใส่ใจทั้งแผลและจิตใจ เป็นการดูแลเธอแบบองค์รวม",
+            "strength": "ใส่ใจทั้งแผลและการรับมือกับการสูญเสีย เป็นการดูแลเธอแบบองค์รวม",
             "weigh": "ควรชั่งว่า 2 สัปดาห์เร็วพอหรือไม่ กับความรู้สึกของเธอตอนนี้",
             "safety": ""
           },
@@ -2175,7 +2175,7 @@
             "safety": ""
           },
           {
-            "strength": "Looking at her coping as well as the wound treats her as a whole person.",
+            "strength": "Looking at her coping with the loss as well as the wound treats her as a whole person.",
             "weigh": "Worth weighing whether 2 weeks is soon enough given how she is feeling now.",
             "safety": ""
           },
@@ -2226,9 +2226,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-14",
-    "findings": "Fresh review by a non-author of every reply in all 13 banks, every option, all 3 alternatives, Thai and English, against every question variant. Sources opened: NICE NG126 (last updated 17 June 2026), chapter Anti-D immunoglobulin prophylaxis, rec 1.18.1 (no anti-D for ectopic pregnancy or miscarriage up to 11+6 weeks, surgical management included) and 1.18.2 (offer from 12+0 to 12+6 weeks); Srinagarind Med J 2018 abstract (62,201 Khon Kaen donors, Rh(D)-negative 0.2%, Thai range 0.1-0.3%); WikEM summary of the ACOG 2024 Clinical Practice Update (no routine RhIg before 12 weeks for abortion or pregnancy loss, ectopic pregnancy named as a possible exception). WHO MCPC 2017 and the RTCOG CPGs were not reopened; the case review's citations were relied on. Checked: clinical truth, safety, no leak, fit, Thai-English equivalence. No must-fix. step4.B anti_d: the weigh line on Rh-negative rarity is true (0.1-0.3% in Thais) and speaks to yield, not to withholding anti-D from a Rh-negative woman; the other two alternatives support checking her group and giving anti-D in time. The weaker tier matches NICE NG126 1.18.1 and WHO MCPC, but ACOG 2024 leaves ectopic pregnancy open, so it remains a contested case-level call (non-blocking, case issue). Empty safety lines accepted: no option in the tree is an action that could seriously harm her on its own (every step-3 option gives blood and surgery; the step-4 fluid bolus and the step-4.W antipyretic both carry weigh lines that flag the risk). Non-blocking notes: step4.W para could carry a safety line that a new fever with a fast pulse after surgery can signal sepsis or fresh bleeding; step4.R fluid en0/th0 weigh states the cause of her symptoms too firmly (could read likely); step2 fast en0/th0 weigh says free fluid confirms blood (suggests); step2.W glu_lyte th0 weigh uses the Thai for fluid loss where blood loss is meant; step4.B rpt_hb th2 strength reads translated; step4.R fluid en2/th2 strength mentions BP, which variant v2 does not give; step1 e/f weigh lines name blood loss or blood in the abdomen, an inference from vignette signs that names no diagnosis; bold label quotes keep label capitals mid-sentence (Bedside FAST scan, Broad IV, Check Rh); no step-3 reply says surgery does not wait for blood, as the case review asked on #470. Tree sha256 9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a. Gate fix round 1 on #503 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it. Replies sha256 d16dc58b228a8e3b17bb029db4e9417d8190cfb784f81ffc0367e6946d047812.",
-    "tree_sha256": "9ea1b398eaf6b5cc56699684fc4fe530617b1423ebe00aa935cb08dbed07091a",
-    "replies_sha256": "d16dc58b228a8e3b17bb029db4e9417d8190cfb784f81ffc0367e6946d047812"
+    "date": "2026-11-15",
+    "findings": "Fresh review by a non-author, 2026-11-16, of all three alternatives in Thai and English for every option of all 13 banks, read against every question variant of each bank and every path into it. The changed replies are step1 e and f, step2.B fast, step4.B rpt_hb, step4.R two_units, step4.W broad_abx, step5.R phone_fu and step5.B/W opd_2wk. The facts in the replies are right: appendicitis rarely causes shock within 2 hours; torsion seldom causes shock; free fluid on FAST confirms blood but not its source, and a negative scan does not settle it in shock; fluids after surgery can lower Hb on their own; early post-operative fever is often non-infectious; antibiotic cover is narrowed once a source is found. After the first pass, the two_units weigh no longer restates the one_unit option (\"Worth weighing each unit against her symptoms, since every unit carries its own risk.\"). The rpt_hb weigh no longer ranks the choice below early mobilisation (\"Worth weighing what Hb change would alter her care today.\"). The step1 f bold run is now lower case (\"You noticed sudden **lower abdominal pain**\"). No reply names another option or grades or ranks the choice. No reply previews a later step or asserts a fact that only some variants or paths give. The broad_abx replies fit the revised Thai line, and Thai alternative 0 names the bloodstream infection the English calls sepsis. The broad_abx and phone_fu weighs point to a source search or an in-person check as complements, not as rival options. Every `safety` field is empty, which is right, since no option in this case needs a safety warning. The Thai reads naturally and matches the English. `reply-bank.mjs check`: content ok. Tree sha256 1feb5fcf37c4ee3aac61bef39f645bb08780aff535414bcdbe55ab1e024959e6. Replies sha256 3c2a55ba493e82c29fd211595d0413d432ac3b13a83f72f9a7080738664f28e4.",
+    "tree_sha256": "1feb5fcf37c4ee3aac61bef39f645bb08780aff535414bcdbe55ab1e024959e6",
+    "replies_sha256": "3c2a55ba493e82c29fd211595d0413d432ac3b13a83f72f9a7080738664f28e4"
   }
 }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import pleGate from '../../backend/src/services/ple-gate.js';
-import { treeSha, reviewedTree, medianDomains, tablePlan, recheck, summaryMarkdown } from './path-table.mjs';
+import { treeSha, reviewedTree, medianDomains, tablePlan, recheck, poolFrom, summaryMarkdown } from './path-table.mjs';
 import { PATH_GROUPS, verdicts } from './sandbox-verdict.mjs';
 
 const { compositeScore } = pleGate;
@@ -278,4 +278,52 @@ test('a five-step summary with no reversed step says so, and a three-step summar
   assert.match(three, /3 samples per tier path, median per domain\. 1 of 1 cases have a table\./);
   assert.match(three, /3 sample composites \(best BBB, mixed BRW, weakest WWW\), judged/);
   assert.doesNotMatch(three, /Likely tier mislabels|JSON report holds/);
+});
+
+// --pool (#497): a rebuild of some of an event's cases is judged against the whole event's pool medians.
+const EARLIER = {
+  run_id: 'ptb-all', method: 'median-regression', scored: 891, planned: 891, stopped: false, over_cap: false,
+  recheck: { medians: { best: 55, mixed: 48, weakest: 39 }, pool_n: { best: 11, mixed: 11, weakest: 11 }, pool_from: 'this run' },
+};
+
+test('poolFrom takes a complete, self-pooled report of the same method, and refuses anything else', () => {
+  assert.deepEqual(poolFrom(EARLIER, 'median-regression'), {
+    run_id: 'ptb-all', pool: { medians: { best: 55, mixed: 48, weakest: 39 }, pool_n: { best: 11, mixed: 11, weakest: 11 } },
+  });
+  assert.match(poolFrom(EARLIER, 'median').why, /is a median-regression build, not median/);
+  assert.match(poolFrom({ ...EARLIER, scored: 890 }, 'median-regression').why, /incomplete run \(890 of 891/);
+  assert.match(poolFrom({ ...EARLIER, stopped: true }, 'median-regression').why, /incomplete run/);
+  assert.match(poolFrom({ ...EARLIER, recheck: { ...EARLIER.recheck, pool_from: 'earlier run' } }, 'median-regression').why, /another run's pool/);
+  assert.match(poolFrom({ ...EARLIER, recheck: { ...EARLIER.recheck, pool_n: { best: 11, mixed: 2, weakest: 11 } } }, 'median-regression').why, /3 or more cases for mixed/);
+  assert.match(poolFrom({ run_id: 'x' }, 'median-regression').why, /not a path-table build report/);
+});
+
+test('with an earlier pool, a lone rebuilt case is judged against its medians and bands, not against itself', () => {
+  const plan = tablePlan(5, FIVE);
+  // One case alone, 80 / 58 / 30: on its own pool it has no band (one case is under MIN_POOL), so it cannot pass.
+  const lone = { five: asBuilt(plan, around(additive(4, 0.2, 0.5))) };
+  assert.equal(recheck(plan, lone, { samples: 3 }).cases.five.pass, false);
+  const { pool } = poolFrom({ ...EARLIER, recheck: { ...EARLIER.recheck, medians: { best: 78, mixed: 57, weakest: 31 } } }, plan.method);
+  const v = recheck(plan, lone, { samples: 3, pool });
+  assert.deepEqual(v.medians, { best: 78, mixed: 57, weakest: 31 });
+  assert.deepEqual(v.pool_n, { best: 11, mixed: 11, weakest: 11 });
+  assert.equal(v.pool_from, 'earlier run');
+  assert.equal(v.cases.five.pass, true, v.cases.five.reasons.join('; '));
+  // The same band as the 11-case run's own (±7.25 at 11 cases), not a wider one.
+  assert.equal(v.bands.best, recheck(plan, Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`c${i}`, lone.five])), { samples: 3 }).bands.best);
+  const far = recheck(plan, lone, { samples: 3, pool: { ...pool, medians: { best: 60, mixed: 57, weakest: 31 } } });
+  assert.ok(far.cases.five.reasons.some((r) => /best mean 80 is 20 from the pool median 60/.test(r)), far.cases.five.reasons.join('; '));
+});
+
+test('a summary judged against an earlier pool names that run', () => {
+  const plan = tablePlan(5, FIVE);
+  const five = asBuilt(plan, around(additive(4, 0.2, 0.5)));
+  const { pool } = poolFrom(EARLIER, plan.method);
+  const md = summaryMarkdown({
+    ...RUN, method: plan.method, scripted: FIVE, sampled: plan.sampled, pool_run: 'ptb-all',
+    cases: { five: { version: '2', tree_sha256: 'f'.repeat(64), reviewed_commit: 'abcdef1234', table: true, composites: five.table.composites, mislabels: five.table.mislabels } },
+    recheck: recheck(plan, { five }, { samples: 3, pool }),
+  });
+  assert.match(md, /plays against the pool of run ptb-all \(--pool\): every entry/);
+  assert.match(md, /\| pool median \(cases\) \| 55 \(11\) \| 48 \(11\) \| 39 \(11\) \|/);
 });
