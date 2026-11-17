@@ -259,7 +259,7 @@
       "c": {
         "th": [
           {
-            "strength": "ตรวจ**ช่องอกและเชิงกราน** ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
+            "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
             "weigh": "เสียงหายใจเท่ากันและเชิงกรานกดไม่เจ็บ ทำให้ภาพนี้อาจอธิบายความดันต่ำได้น้อย",
             "safety": ""
           },
@@ -276,7 +276,7 @@
         ],
         "en": [
           {
-            "strength": "Checking the **chest and pelvis** covers two places where large bleeds can hide.",
+            "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
             "weigh": "With equal breath sounds and a non-tender pelvis, these films are less likely to explain his pressure.",
             "safety": ""
           },
@@ -405,7 +405,7 @@
       "c": {
         "th": [
           {
-            "strength": "ตรวจ**ช่องอกและเชิงกราน** ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
+            "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
             "weigh": "เสียงหายใจเท่ากันและเชิงกรานกดไม่เจ็บ ทำให้ภาพนี้อาจอธิบายความดันต่ำได้น้อย",
             "safety": ""
           },
@@ -422,7 +422,7 @@
         ],
         "en": [
           {
-            "strength": "Checking the **chest and pelvis** covers two places where large bleeds can hide.",
+            "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
             "weigh": "With equal breath sounds and a non-tender pelvis, these films are less likely to explain his pressure.",
             "safety": ""
           },
@@ -551,7 +551,7 @@
       "c": {
         "th": [
           {
-            "strength": "ตรวจ**ช่องอกและเชิงกราน** ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
+            "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
             "weigh": "เสียงหายใจเท่ากันและเชิงกรานกดไม่เจ็บ ทำให้ภาพนี้อาจอธิบายความดันต่ำได้น้อย",
             "safety": ""
           },
@@ -568,7 +568,7 @@
         ],
         "en": [
           {
-            "strength": "Checking the **chest and pelvis** covers two places where large bleeds can hide.",
+            "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
             "weigh": "With equal breath sounds and a non-tender pelvis, these films are less likely to explain his pressure.",
             "safety": ""
           },
@@ -1573,7 +1573,7 @@
       "c": {
         "th": [
           {
-            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมปลายทางรู้เรื่องครบโดยไม่ต้องรอ",
+            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมที่รับต่อรู้เรื่องครบโดยไม่ต้องรอ",
             "weigh": "ใบส่งตัวไม่ควรรอผลที่ค้าง เพราะเวลาออกเดินทางสำคัญกว่าในกรณีนี้",
             "safety": ""
           },
@@ -1583,14 +1583,14 @@
             "safety": ""
           },
           {
-            "strength": "โทรแจ้ง**ผลที่ค้าง**ตามทีหลัง ทำให้ทีมปลายทางได้ข้อมูลล่าสุดเสมอ",
+            "strength": "สรุปที่เขียนไว้ไปถึงพร้อมผู้ป่วย ทีมที่รับต่ออ่านได้ทันทีที่ถึง",
             "weigh": "การเขียนใช้เวลาหลายนาที ควรทำคู่กับงานอื่น ไม่ใช่ทำก่อนแล้วค่อยออกเดินทาง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sending **results so far** gives the receiving team the full story without delay.",
+            "strength": "Sending **results so far** gives the next team the full story without delay.",
             "weigh": "The letter should not wait for pending results, since departure time matters more here.",
             "safety": ""
           },
@@ -1600,7 +1600,7 @@
             "safety": ""
           },
           {
-            "strength": "Following up **pending results** by phone keeps the receiving team current.",
+            "strength": "A written summary that arrives with him lets the next team read it at once.",
             "weigh": "Writing takes minutes, so it is worth doing while other tasks proceed, not before them.",
             "safety": ""
           }
@@ -1719,7 +1719,7 @@
       "c": {
         "th": [
           {
-            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมปลายทางรู้เรื่องครบโดยไม่ต้องรอ",
+            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมที่รับต่อรู้เรื่องครบโดยไม่ต้องรอ",
             "weigh": "ใบส่งตัวไม่ควรรอผลที่ค้าง เพราะเวลาออกเดินทางสำคัญกว่าในกรณีนี้",
             "safety": ""
           },
@@ -1729,14 +1729,14 @@
             "safety": ""
           },
           {
-            "strength": "โทรแจ้ง**ผลที่ค้าง**ตามทีหลัง ทำให้ทีมปลายทางได้ข้อมูลล่าสุดเสมอ",
+            "strength": "สรุปที่เขียนไว้ไปถึงพร้อมผู้ป่วย ทีมที่รับต่ออ่านได้ทันทีที่ถึง",
             "weigh": "การเขียนใช้เวลาหลายนาที ควรทำคู่กับงานอื่น ไม่ใช่ทำก่อนแล้วค่อยออกเดินทาง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sending **results so far** gives the receiving team the full story without delay.",
+            "strength": "Sending **results so far** gives the next team the full story without delay.",
             "weigh": "The letter should not wait for pending results, since departure time matters more here.",
             "safety": ""
           },
@@ -1746,7 +1746,7 @@
             "safety": ""
           },
           {
-            "strength": "Following up **pending results** by phone keeps the receiving team current.",
+            "strength": "A written summary that arrives with him lets the next team read it at once.",
             "weigh": "Writing takes minutes, so it is worth doing while other tasks proceed, not before them.",
             "safety": ""
           }
@@ -1865,7 +1865,7 @@
       "c": {
         "th": [
           {
-            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมปลายทางรู้เรื่องครบโดยไม่ต้องรอ",
+            "strength": "ส่ง**ผลที่มีอยู่**ไปพร้อมใบส่งตัว ทีมที่รับต่อรู้เรื่องครบโดยไม่ต้องรอ",
             "weigh": "ใบส่งตัวไม่ควรรอผลที่ค้าง เพราะเวลาออกเดินทางสำคัญกว่าในกรณีนี้",
             "safety": ""
           },
@@ -1875,14 +1875,14 @@
             "safety": ""
           },
           {
-            "strength": "โทรแจ้ง**ผลที่ค้าง**ตามทีหลัง ทำให้ทีมปลายทางได้ข้อมูลล่าสุดเสมอ",
+            "strength": "สรุปที่เขียนไว้ไปถึงพร้อมผู้ป่วย ทีมที่รับต่ออ่านได้ทันทีที่ถึง",
             "weigh": "การเขียนใช้เวลาหลายนาที ควรทำคู่กับงานอื่น ไม่ใช่ทำก่อนแล้วค่อยออกเดินทาง",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sending **results so far** gives the receiving team the full story without delay.",
+            "strength": "Sending **results so far** gives the next team the full story without delay.",
             "weigh": "The letter should not wait for pending results, since departure time matters more here.",
             "safety": ""
           },
@@ -1892,7 +1892,7 @@
             "safety": ""
           },
           {
-            "strength": "Following up **pending results** by phone keeps the receiving team current.",
+            "strength": "A written summary that arrives with him lets the next team read it at once.",
             "weigh": "Writing takes minutes, so it is worth doing while other tasks proceed, not before them.",
             "safety": ""
           }
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-17",
-    "findings": "This is a fresh non-author re-check of every reply in all 13 banks: all three alternatives per option, in Thai and English. I checked each against every question variant of its bank and every path into it, with the paths into step3.B, step4.W and step5.* walked one by one. The step3 b replies say \"alert, helmeted\", as the vignette does, and no longer claim there is no head injury. The step3.B e alternative 2 holds whether or not group O is running from step2 b. The step3.R and step3.W e alternative 2 \"the plan still lacks resuscitation\" holds, because step2 b never leads into step3.R or step3.W. The step4.W b replies now carry blood, TXA and the surgeon. Their dose line, \"a gram over 10 minutes, then a gram over 8 hours\" inside 3 hours, is correct per CRASH-2 and the European guideline 6th ed. The step4.W d alternative 3 no longer assumes a transfusion. The step5.R a replies no longer assume blood was already running or that he had improved. Their bold runs (\"nurse escort\", \"fall again\", \"Blood running\", \"พยาบาลนำส่ง\", \"ตกซ้ำระหว่างทาง\") each quote the option's own label or line. No reply anywhere downstream of step3 e assumes blood or TXA was given before. The step3 a TXA window and dose and the step4.B b urine target of 0.5 mL/kg/h are correct. No reply ranks the choice, previews a later step, names another option, or cites a number that only some variants show. Every safety line fits its option: only the step3 e lines are filled, and they keep resuscitation running during the call. Thai and English agree. The author re-ran reply-bank.mjs check after the last edit and reports content ok, review pending; the author also reports that booth-case-tree.test.js passes for motorcycle-shock. This reviewer's read-only guard could not run node, so both results and both hashes below are as the author reported them. Tree sha256 0e0e1c51cd8acf618af849a403b671b1ee679415466d85493d167f02e1043e9a. Replies sha256 b1d0028b32e356454b21044ac43854c959b1002b5aafbc62becd82163520023f.",
-    "tree_sha256": "0e0e1c51cd8acf618af849a403b671b1ee679415466d85493d167f02e1043e9a",
-    "replies_sha256": "b1d0028b32e356454b21044ac43854c959b1002b5aafbc62becd82163520023f"
+    "findings": "This is a fresh non-author re-check of every reply in all 13 banks: all three alternatives per option, in Thai and English. I checked each against every question variant of its bank and every path into it. Round 7 unbolded the step2.B/R/W c alternative-1 strengths (\"Checking the chest and pelvis...\" / \"ตรวจช่องอกและเชิงกราน...\") because the new line no longer contains those words. They read naturally and remain true per ATLS 10th ed. This review raised one MUST-FIX on the step5.B/R/W c alternative-3 strength, and it is fixed. The Thai still said results would be phoned later (\"โทรแจ้งผลที่ค้างตามทีหลัง\"), which names option b's own word \"โทรแจ้ง\" and disagreed with the reworded English. Both languages also credited the player with following up pending results, which the option no longer says. That strength now reads \"A written summary that arrives with him lets the next team read it at once.\" / \"สรุปที่เขียนไว้ไปถึงพร้อมผู้ป่วย ทีมที่รับต่ออ่านได้ทันทีที่ถึง\". It comments only on the option's own label and line, and Thai and English agree. The step5 c alternative-1 strength now says \"next team\" / \"ทีมที่รับต่อ\" in both languages, and its bold run \"results so far\" / \"ผลที่มีอยู่\" quotes the option's own label. The TXA dose and 3 h window, the 0.5 mL/kg/h urine target and the 1 L crystalloid ceiling are correct per CRASH-2, the European guideline 6th ed. and ATLS 10th ed. No reply ranks the choice, previews a later step, names another option or asserts a fact only some variants or paths state. Every safety line fits its option: only the step3 e lines are filled, and they keep resuscitation running during the call. I read the fix as `git diff HEAD` on the replies file. The tree diff against HEAD stays at the 16 round-7 line edits, so the tree did not change during this review. This reviewer's read-only guard could not run node. The coordinator reports that reply-bank.mjs check prints \"content ok; review pending\", and both hashes below are as it printed them. booth-case-tree.test.js for motorcycle-shock was not run by this reviewer. Tree sha256 3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5. Replies sha256 0a14dbc44d8a92021d15d800819e35b4e58a9abda7e16392f6eb16f83523f569.",
+    "tree_sha256": "3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5",
+    "replies_sha256": "0a14dbc44d8a92021d15d800819e35b4e58a9abda7e16392f6eb16f83523f569"
   }
 }

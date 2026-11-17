@@ -5,7 +5,7 @@
       "a": {
         "th": [
           {
-            "strength": "การรวม**เบาหวาน**กับการทำนาหน้าฝนและปอดอักเสบ ใช้ปัจจัยเสี่ยงของพื้นที่ได้ตรงจุด",
+            "strength": "การรวมเบาหวานกับการทำนาหน้าฝนและปอดอักเสบ ใช้ปัจจัยเสี่ยงของพื้นที่ได้ตรงจุด",
             "weigh": "ชีพจร การหายใจ และออกซิเจนบ่งว่าผู้ป่วยป่วยหนักพอควร จึงควรชั่งความรุนแรงไปด้วย",
             "safety": ""
           },
@@ -22,7 +22,7 @@
         ],
         "en": [
           {
-            "strength": "Linking **diabetes** with rainy-season rice farming and pneumonia uses local risk factors well.",
+            "strength": "Linking diabetes with rainy-season rice farming and pneumonia uses local risk factors well.",
             "weigh": "His pulse, breathing rate and oxygen level mark him as quite unwell, so severity deserves weight too.",
             "safety": ""
           },
@@ -41,7 +41,7 @@
       "b": {
         "th": [
           {
-            "strength": "การใช้**เสียงกรอบแกรบ**ที่ปอดขวาบนร่วมกับประวัติ ทำให้ระบุตำแหน่งของโรคได้ชัด",
+            "strength": "การใช้เสียงกรอบแกรบที่ปอดขวาบนร่วมกับประวัติ ทำให้ระบุตำแหน่งของโรคได้ชัด",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายบอกว่าโรคอาจไม่ได้อยู่ที่ปอดอย่างเดียว ซึ่งควรชั่งไว้",
             "safety": ""
           },
@@ -58,7 +58,7 @@
         ],
         "en": [
           {
-            "strength": "Using the **upper-lung crackles** with his history pins down where the disease sits.",
+            "strength": "Using the upper-lung crackles with his history pins down where the disease sits.",
             "weigh": "Tenderness under his left ribs suggests the disease may not be confined to the lung.",
             "safety": ""
           },
@@ -2191,8 +2191,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-17",
-    "findings": "This is a fresh review of the melioidosis-farmer reply bank by a non-author who did not write the case. It read every reply in all 13 banks: every option, all 3 alternatives per option, in Thai and English. Each reply was checked against every question variant of its bank and every path into it. The round-5 edits were checked closely. First, the step2.W d alternative 2 weigh now reads \"this chest picture\" / \"ที่มีอาการทางปอดแบบนี้\", because only v1 reports the upper-lobe X-ray. Second, the step4.W c alternative 2 weigh now reads \"Without signs of shock, the first-line IV drug would do.\" / \"ถ้าไม่มีภาวะช็อก ยาฉีดตัวหลักก็เพียงพอ\". It is now conditional because neither step4.W stem gives vital signs. Both edits now hold on every variant, and Thai and English agree. Several paths were traced. step4.R follows meropenem or ceftazidime plus doxycycline, and its replies say \"the IV drug\" without naming one. step5.B can follow the relapse path, and no reply there assumes splenic abscesses or a first episode. Only step3.W's stems report a positive culture, and no reply elsewhere assumes one. step3's vital-sign claims (\"alert with BP 106/66\") come from the vignette and hold on every path. These clinical claims were checked and are correct:\n- blood culture misses about half of cases (Wiersinga et al., Nat Rev Dis Primers 2018);\n- background IHA positivity in Isan limits serology;\n- the Thai guidance gives a 12-20-week eradication phase;\n- co-amoxiclav relapses more often than TMP-SMX (Limmathurotsakul et al., Clin Infect Dis 2006);\n- adding doxycycline to TMP-SMX does not lower relapse (MERTH, Chetchotisakd et al., Lancet 2014);\n- deep abscesses need 4 weeks of IV therapy (2024 Darwin Melioidosis Treatment Guideline);\n- fever commonly lingers in the first week;\n- TMP-SMX can push some oral diabetes drugs into low glucose;\n- doxycycline causes photosensitivity.\n\nThe step4.W d safety line (choose a different oral drug after co-amoxiclav failed) is right for that option, and every other option rightly has an empty safety line. No reply withholds or delays treatment, ranks the choice against other options, previews a later step, or names another option. MUST-FIX: none. Tree sha256 f943500eed3e9c2fa0a99e846acd3fc19c057b4a8e9e29d6cfa32ef0fe84a414. Replies sha256 97c4dbf8df99a642c664290107814e60e02bccb79a9c4296c5953d817a4a62d0.",
-    "tree_sha256": "f943500eed3e9c2fa0a99e846acd3fc19c057b4a8e9e29d6cfa32ef0fe84a414",
-    "replies_sha256": "97c4dbf8df99a642c664290107814e60e02bccb79a9c4296c5953d817a4a62d0"
+    "findings": "This is a fresh review of the melioidosis-farmer reply bank by a non-author who did not write the case. I read every reply in all 13 banks: every option and all 3 alternatives per option, in Thai and English. I checked each reply against every question variant of its bank and every path into it. I checked the two round-7 unbolds closely. The step1 a alternative 1 strength now reads \"Linking diabetes with rainy-season rice farming and pneumonia uses local risk factors well.\" / \"การรวมเบาหวานกับการทำนาหน้าฝนและปอดอักเสบ ใช้ปัจจัยเสี่ยงของพื้นที่ได้ตรงจุด\". The step1 b alternative 1 strength now reads \"Using the upper-lung crackles with his history pins down where the disease sits.\" / \"การใช้เสียงกรอบแกรบที่ปอดขวาบนร่วมกับประวัติ ทำให้ระบุตำแหน่งของโรคได้ชัด\". Both bold runs quoted the old lines, and the words, now unbolded, are unchanged. Both strengths stay true, because every fact they use is in the vignette. Both read naturally in Thai and English. The English \"upper-lung\" against the Thai \"ปอดขวาบน\" is a harmless narrowing that the vignette states. The bold runs left in step1 quote only the chosen option's own label or line, unchanged by this round: b \"**melioidosis**\" and \"**เมลิออยโดสิสที่ปอด**\", c \"**productive cough**\" and \"**ไข้ ไอมีเสมหะ**\", d \"**TB**\" and \"**วัณโรค**\". So does every other bold run I read, for example step2 \"**usual first pair**\" and \"**routine blood set**\". I traced several paths. step4.R can follow meropenem or ceftazidime plus doxycycline, and its replies say \"the IV drug\" without naming one. step4.W is reached only after co-amoxiclav. step5.B can follow the relapse path, and no reply there assumes splenic abscesses. Only step3.W's stems report a positive culture, and no reply elsewhere assumes one. These clinical claims hold. Blood culture misses about half of cases. Background IHA positivity in Isan limits serology. Thai guidance gives a 12-20-week eradication phase. Co-amoxiclav relapses more often than TMP-SMX. Adding doxycycline does not lower relapse. A splenic abscess needs 4 weeks IV. Fever commonly lingers in the first week. TMP-SMX can push some oral diabetes drugs into low glucose. Doxycycline causes photosensitivity. The step4.W d safety line (choose a different oral drug after co-amoxiclav failed) is right for that option, and every other option rightly has an empty safety line. No reply withholds or delays treatment, ranks the choice against another option, previews a later step, or names another option. MUST-FIX: none. Tree sha256 085cbde56958c0f34616116eb7376e4326d81f9790b2011829525edb72be5b6d. Replies sha256 e9e507d009c7265f23920f466678be552c7fde242eec7fcb7306f53e5e9fdffb.",
+    "tree_sha256": "085cbde56958c0f34616116eb7376e4326d81f9790b2011829525edb72be5b6d",
+    "replies_sha256": "e9e507d009c7265f23920f466678be552c7fde242eec7fcb7306f53e5e9fdffb"
   }
 }

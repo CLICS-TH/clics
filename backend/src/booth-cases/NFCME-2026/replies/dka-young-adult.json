@@ -5,7 +5,7 @@
       "a": {
         "th": [
           {
-            "strength": "เชื่อมอาการกระหายน้ำและน้ำหนักลดสองสัปดาห์เข้ากับ**หายใจหอบลึก**ได้เป็นภาพเดียว",
+            "strength": "เชื่อมอาการกระหายน้ำและน้ำหนักลดสองสัปดาห์เข้ากับหายใจหอบลึกได้เป็นภาพเดียว",
             "weigh": "อาการซึมและชีพจร 120 บอกความรุนแรงได้มากพอ ๆ กับชื่อของภาวะนี้",
             "safety": ""
           },
@@ -15,14 +15,14 @@
             "safety": ""
           },
           {
-            "strength": "ใช้ประวัติ**ผอมลง**ช่วงสองสัปดาห์ ไม่ได้ดูแค่อาการอาเจียนวันนี้",
+            "strength": "ใช้ประวัติผอมลงช่วงสองสัปดาห์ ไม่ได้ดูแค่อาการอาเจียนวันนี้",
             "weigh": "ปวดท้องมักดีขึ้นเมื่อภาวะกรดลดลง หากยังปวดอยู่ควรประเมินท้องซ้ำ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "It ties two weeks of thirst and weight loss to today's **deep breathing** in one explanation.",
+            "strength": "It ties two weeks of thirst and weight loss to today's deep breathing in one explanation.",
             "weigh": "Her drowsiness and pulse of 120 say as much about severity as the name of the crisis does.",
             "safety": ""
           },
@@ -32,7 +32,7 @@
             "safety": ""
           },
           {
-            "strength": "It makes use of the two-week history of **weight loss**, not just today's vomiting.",
+            "strength": "It makes use of the two-week history of weight loss, not just today's vomiting.",
             "weigh": "Abdominal pain often settles as the acidosis is treated, so pain that persists is worth a second look.",
             "safety": ""
           }
@@ -41,7 +41,7 @@
       "b": {
         "th": [
           {
-            "strength": "บอกทั้งโรคพื้นฐานและภาวะวิกฤต โดยอาศัย**อายุน้อย**และน้ำหนักที่ลดเร็ว",
+            "strength": "บอกทั้งโรคพื้นฐานและภาวะวิกฤต โดยอาศัยอายุน้อยและน้ำหนักที่ลดเร็ว",
             "weigh": "อายุ 20 ปีและผอมลง ชนิดที่ 1 เป็นไปได้มากสุด แต่ชนิดที่ 2 ก็เกิด DKA ได้ จึงยืนยันชนิดภายหลัง",
             "safety": ""
           },
@@ -51,14 +51,14 @@
             "safety": ""
           },
           {
-            "strength": "อ่านอายุ น้ำหนักที่ลดเร็ว และภาวะกรดคีโตน รวมเป็นเรื่องเดียวกัน",
+            "strength": "อ่านอายุและน้ำหนักที่ลดเร็วรวมเป็นเรื่องเดียวกัน",
             "weigh": "ความรุนแรงที่เห็นจากอาการซึมและความดัน 100/62 ควรได้รับความสนใจพอ ๆ กับสาเหตุ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "It names the disease behind the crisis, drawing on her youth and **losing weight fast**.",
+            "strength": "It names the disease behind the crisis, drawing on her youth and losing weight fast.",
             "weigh": "At 20 with weight loss, type 1 is most likely, but DKA also occurs in type 2, so the type is settled later.",
             "safety": ""
           },
@@ -68,7 +68,7 @@
             "safety": ""
           },
           {
-            "strength": "Her age, the fast weight loss and the ketoacidosis are read together as one story.",
+            "strength": "Her age and the fast weight loss are read together as one story.",
             "weigh": "Severity, shown by her drowsiness and BP of 100/62, deserves as much attention as the cause.",
             "safety": ""
           }
@@ -187,7 +187,7 @@
       "a": {
         "th": [
           {
-            "strength": "เจาะครั้งเดียว**วัดความเป็นกรด** ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
+            "strength": "เจาะครั้งเดียววัดความเป็นกรด ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
             "weigh": "K แรกรับที่ดูปกติอาจซ่อนการขาด K ทั้งร่างกาย จึงควรแปลผลด้วยความระวัง",
             "safety": ""
           },
@@ -197,14 +197,14 @@
             "safety": ""
           },
           {
-            "strength": "ได้**ค่า K** ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
+            "strength": "ได้ค่า K ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
             "weigh": "ในโรงพยาบาลชุมชน เวลารอผล VBG และเกลือแร่อาจเป็นตัวกำหนดจังหวะการดูแล",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "One draw **measures acidity** and K as well as glucose and ketones, covering severity and type.",
+            "strength": "One draw measures acidity and K as well as glucose and ketones, covering severity and type.",
             "weigh": "A first K that looks normal can hide a total-body shortfall, so read it with that in mind.",
             "safety": ""
           },
@@ -333,7 +333,7 @@
       "a": {
         "th": [
           {
-            "strength": "เจาะครั้งเดียว**วัดความเป็นกรด** ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
+            "strength": "เจาะครั้งเดียววัดความเป็นกรด ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
             "weigh": "K แรกรับที่ดูปกติอาจซ่อนการขาด K ทั้งร่างกาย จึงควรแปลผลด้วยความระวัง",
             "safety": ""
           },
@@ -343,14 +343,14 @@
             "safety": ""
           },
           {
-            "strength": "ได้**ค่า K** ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
+            "strength": "ได้ค่า K ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
             "weigh": "ในโรงพยาบาลชุมชน เวลารอผล VBG และเกลือแร่อาจเป็นตัวกำหนดจังหวะการดูแล",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "One draw **measures acidity** and K as well as glucose and ketones, covering severity and type.",
+            "strength": "One draw measures acidity and K as well as glucose and ketones, covering severity and type.",
             "weigh": "A first K that looks normal can hide a total-body shortfall, so read it with that in mind.",
             "safety": ""
           },
@@ -369,7 +369,7 @@
       "b": {
         "th": [
           {
-            "strength": "**แยก DKA ออกจาก HHS** และได้ค่า K ในการเจาะครั้งเดียว",
+            "strength": "แยก DKA ออกจาก HHS และได้ค่า K ในการเจาะครั้งเดียว",
             "weigh": "ออสโมลาลิตีที่คำนวณได้มักเร็วกว่าการวัดจริง และพอสำหรับแยกชนิดของภาวะวิกฤต",
             "safety": ""
           },
@@ -386,7 +386,7 @@
         ],
         "en": [
           {
-            "strength": "It **tells DKA from HHS** and gets K in the same draw, so type and safety come together.",
+            "strength": "It tells DKA from HHS and gets K in the same draw, so type and safety come together.",
             "weigh": "A calculated osmolality is usually quicker than a measured one and is enough to sort the crisis.",
             "safety": ""
           },
@@ -479,7 +479,7 @@
       "a": {
         "th": [
           {
-            "strength": "เจาะครั้งเดียว**วัดความเป็นกรด** ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
+            "strength": "เจาะครั้งเดียววัดความเป็นกรด ได้ค่า K น้ำตาล และคีโตน บอกทั้งชนิดและความรุนแรง",
             "weigh": "K แรกรับที่ดูปกติอาจซ่อนการขาด K ทั้งร่างกาย จึงควรแปลผลด้วยความระวัง",
             "safety": ""
           },
@@ -489,14 +489,14 @@
             "safety": ""
           },
           {
-            "strength": "ได้**ค่า K** ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
+            "strength": "ได้ค่า K ตั้งแต่ต้น ซึ่งเป็นตัวเลขสำคัญต่อความปลอดภัยของการรักษา",
             "weigh": "ในโรงพยาบาลชุมชน เวลารอผล VBG และเกลือแร่อาจเป็นตัวกำหนดจังหวะการดูแล",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "One draw **measures acidity** and K as well as glucose and ketones, covering severity and type.",
+            "strength": "One draw measures acidity and K as well as glucose and ketones, covering severity and type.",
             "weigh": "A first K that looks normal can hide a total-body shortfall, so read it with that in mind.",
             "safety": ""
           },
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-17",
-    "findings": "I reviewed every reply in all 13 banks (#497): every option, all 3 alternatives, Thai and English. I judged each one against every question variant of its bank and every path into it:\n- step3.B follows the full-panel tests, so K 4.6 and pH 7.15 are known.\n- step3.R and step3.W follow bedside-only tests, so no K value has been shown.\n- step4.B follows a best step-3 pick, step4.R follows a bolus and drip, and step4.W follows a 0.05 start, so \"full dose\" means 0.1.\n- step5.W follows step4.B d, step4.R d or step4.W d.\n\nThe step4.W replies no longer claim that K is falling, which no stem or path showed on the step3.R d and step3.W d routes. a alt 2 now says \"more insulin pulls K down\", b alt 2 and d alt 1 name \"K 3.7\", and d alt 3 says \"guards against K dropping\". Each is the same in Thai and English. The remaining uses of \"further\" (step4.R a and c, step4.R d, step4.W a) speak of future change from the value shown, and they hold on every path.\n\nNo wrong fact. I checked these closely:\n- K 3.7 sits just above the 3.5 pause level.\n- A bolus adds little once a 0.1 drip runs.\n- Urine ketones lag the blood.\n- Saline in volume adds an acid load.\n- Stress leukocytosis is common in DKA.\n- Ketosis-prone type 2 diabetes can present with DKA.\n- A calculated osmolality is enough to sort the crisis.\n- The ketone target is 0.5 mmol/L an hour.\n- The overlap is 2 h.\n\nEvery number a reply cites (4.6, 4.0, 3.7, 3.9, 100/62, 120, 30/min, 4 kg) appears in every variant of its bank or in the vignette. \"Acidosis still present\" (step4.W) and \"rising acid\" (step5.W) hold on every path, because every stem reports a slow response or a worse patient. No reply ranks or grades the choice, previews a later step or names another option. Every safety field is empty, which is right, since the weigh fields carry the cautions. Thai and English agree and the Thai is natural. Non-blocking: in step4.B d alt 1, the English \"for a day\" is \"นาน\" in Thai, and in step5.B c alt 2 the English \"in a Thai setting\" has no Thai counterpart. Check results: the author's `reply-bank.mjs check` printed \"content ok\", with only the stale binding left; I did not run it myself. The bank changed during the review only by the commit (f63f0ece) of the edits I had already read. Tree sha256 f68ab500d63513d7ffd28114f188cd596fe7e67ecc6a1076507a55634c163703. Replies sha256 0f0cec17d566c9dc2a2b09681ce8fb351b668472284c5f595b162addfe22e063.",
-    "tree_sha256": "f68ab500d63513d7ffd28114f188cd596fe7e67ecc6a1076507a55634c163703",
-    "replies_sha256": "0f0cec17d566c9dc2a2b09681ce8fb351b668472284c5f595b162addfe22e063"
+    "findings": "I reviewed every reply in all 13 banks (#497): every option, all 3 alternatives, Thai and English. I judged each one against every question variant of its bank and every path into it. Round 7 changed 19 lines: 17 fields lost their bold markers, and the step1 b alt 3 strength was reworded in both languages.\n- The unbolded fields keep the same words. They read naturally and are still true. They are step1 a alts 1 and 3, step1 b alt 1, step2.B, step2.R and step2.W a alts 1 and 3 (in step2.B, step2.R and step2.W, the English loses its bold only in alt 1), and step2.R b alt 1.\n- Step1 b alt 3 now reads \"Her age and the fast weight loss are read together as one story.\" / \"อ่านอายุและน้ำหนักที่ลดเร็วรวมเป็นเรื่องเดียวกัน\". It is true, it names no other option, and the Thai now matches the English and reads naturally. I confirmed with `git diff HEAD` that this Thai line is the only change since my first pass, and that the tree diff is unchanged.\n- I checked every remaining bold run by hand. Each quotes its own option's current label or line, including after the round-7 line changes.\n- Replies still match the new lines. Step2.R b alt 1 (\"tells DKA from HHS\") rests on the label's osmolality. Step2.B, step2.R and step2.W a alt 1 (\"measures acidity and K\") rest on the label's VBG and electrolytes.\n- No wrong fact. I re-checked: K 3.7 sits just above the 3.5 pause level; a bolus adds little once a 0.1 drip runs; urine ketones lag the blood; saline in volume adds an acid load; stress leukocytosis; ketosis-prone type 2 can present with DKA; a calculated osmolality is enough to sort the crisis; the 0.5 mmol/L an hour target; the 2-hour overlap.\n- Every number a reply cites appears in every variant of its bank or in the vignette.\n- No reply ranks or grades the choice, previews a later step, names another option, or asserts what only some variants or paths state.\n- Every safety field is empty, which is right, since the weigh fields carry the cautions.\n- Thai and English agree, and the Thai is natural. The earlier non-blocking gaps in step4.B d alt 1 and step5.B c alt 2 remain.\nCheck results: I could not run `reply-bank.mjs check` myself (the read-only guard refuses node). The coordinator's run printed \"content ok; review pending\" with the hashes below. Tree sha256 7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab. Replies sha256 d463857bf3cc19ab6d4ee59428a665ccbfbca618dfcb76bf718b47185b194878.",
+    "tree_sha256": "7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab",
+    "replies_sha256": "d463857bf3cc19ab6d4ee59428a665ccbfbca618dfcb76bf718b47185b194878"
   }
 }

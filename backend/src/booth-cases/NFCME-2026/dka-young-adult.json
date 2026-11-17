@@ -44,8 +44,8 @@
             "en": "Diabetic ketoacidosis"
           },
           "line": {
-            "th": "กระหายน้ำ ปัสสาวะบ่อย ผอมลง หายใจหอบลึก เข้ากันได้ดี",
-            "en": "Thirst, polyuria, weight loss and deep breathing fit it."
+            "th": "ภาวะแรกที่ควรยืนยันในผู้ป่วยรายนี้",
+            "en": "The first condition to confirm in her."
           }
         },
         {
@@ -56,8 +56,8 @@
             "en": "New-onset diabetes with DKA"
           },
           "line": {
-            "th": "อายุน้อย ผอมลงเร็ว และมาด้วยภาวะกรดคีโตน",
-            "en": "Young, losing weight fast, and presenting with ketoacidosis."
+            "th": "เบาหวานอาจแสดงตัวครั้งแรกด้วยภาวะวิกฤตนี้",
+            "en": "Diabetes can first show itself as this crisis."
           }
         },
         {
@@ -130,8 +130,8 @@
               "en": "Glucose, ketones, VBG, electrolytes"
             },
             "line": {
-              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
-              "en": "Confirms the crisis type, measures acidity and K."
+              "th": "ชุดตรวจแรกมาตรฐานของภาวะวิกฤตนี้",
+              "en": "The standard first panel for this crisis."
             }
           },
           {
@@ -203,8 +203,8 @@
               "en": "Glucose, ketones, VBG, electrolytes"
             },
             "line": {
-              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
-              "en": "Confirms the crisis type, measures acidity and K."
+              "th": "ชุดตรวจแรกมาตรฐานของภาวะวิกฤตนี้",
+              "en": "The standard first panel for this crisis."
             }
           },
           {
@@ -215,8 +215,8 @@
               "en": "Glucose, ketone, osmolality, VBG, K"
             },
             "line": {
-              "th": "แยก DKA ออกจาก HHS และได้ค่า K ในคราวเดียว",
-              "en": "Tells DKA from HHS and measures K in one go."
+              "th": "ชุดตรวจแรกแบบครบสำหรับภาวะน้ำตาลวิกฤต",
+              "en": "A full first panel for a sugar crisis."
             }
           },
           {
@@ -276,8 +276,8 @@
               "en": "Glucose, ketones, VBG, electrolytes"
             },
             "line": {
-              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
-              "en": "Confirms the crisis type, measures acidity and K."
+              "th": "ชุดตรวจแรกมาตรฐานของภาวะวิกฤตนี้",
+              "en": "The standard first panel for this crisis."
             }
           },
           {
@@ -992,8 +992,8 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-17",
-      "findings": "This is a fresh re-check by a non-author of the final tree after the round-5 edits to dka-young-adult, version 12 (#497). I read every question variant and every option of all 13 banks, in Thai and English, plus the teaser and the vignette, and compared them with origin/master and with the round-5 fixes in 2de63d97 and f63f0ece. Two changes since the last review: the step3.R d and step3.W d Thai lines are now conditional (\"ถ้า K ปลอดภัย\"), which matches \"Once K is safe\"; and the step4.W v2 English stem now reads \"K 3.7\", not \"K fallen to 3.7\", so the two languages agree. The Thai stem has no room to add a trend, since it already uses 47 of its 48 characters. Sources: the hyperglycaemic crises consensus (Diabetologia 2024;67:1455-79), its insulin section (fixed-rate IV insulin at 0.1 U/kg/h; below 250 mg/dL add dextrose and reduce the rate; no insulin while K is below 3.5; replace K below 5.0; overlap basal insulin before stopping the drip) and its Table 2 (moderate DKA, pH 7.00-7.24); the JBDS 02 pathway 2023 (FRIII 0.1 unit/kg/h; ketones should fall by at least 0.5 mmol/L an hour, and if they do not, check the line and raise the insulin); and the Thai DM CPG 2566 ch.12 (0.1 U/kg/h; dextrose with a lower insulin rate as glucose reaches 200-250 mg/dL). WHO guidance (HEARTS-D 2020) gives no inpatient DKA insulin protocol, so the consensus and the Thai CPG set the bar here. I did not open these documents this session; I relied on my own knowledge of them and on the earlier reviews' recorded quotes. Judgments:\n- Step 1: HHS stays reasonable (a hyperglycaemic crisis, but less likely at 20 with Kussmaul breathing and fruity breath); gastroenteritis and appendicitis stay weaker and safe, since step2.W still leads to tests that find the crisis.\n- Step 3: the best options gate insulin on K. Step3.B a adds K at 4.6, which is correct. Step3.B c and step3.R/W c (bolus) stay reasonable. The 0.05 U/kg/h starts in step3.B d, step3.R d and step3.W d stay weaker: they are safe and still run insulin, but clear ketones more slowly.\n- Step 4: step4.B a and b (cut insulin, add 5% dextrose at 240-250 mg/dL) stay best, and step4.B c (10% dextrose, same rate, as in JBDS) stays reasonable. Step4.R d and step4.W d (another litre of saline) stay weaker and safe, because insulin keeps running and step4.W d adds K. Every bank that raises insulin has K of at least 3.7.\n- Step 5: the resolution stems (pH at least 7.3, HCO3 at least 18, eating) fit the consensus. The 2-hour basal overlap is correct. Premixed twice daily stays reasonable, and keeping the drip 2 more days stays weaker and safe. In step5.W, full insulin with transfer stays best, and referral alone stays weaker but safe, since it escalates care.\nEvery weaker option is safe. No line withholds or delays treatment. Each line argues for its own option. The teaser does not hint the diagnosis. Thai and English agree and the Thai is natural. Non-blocking: the vignette's Thai \"ซึมเล็กน้อย\" is milder than the English \"drowsy\". The step4.W b Thai line leaves out \"that needs treating\". The step4.B a Thai line still lacks มก./ดล. (budget). Check results: the author's `reply-bank.mjs check` printed \"content ok\" with only the stale review binding. I could not run `booth-case-tree.test.js -t 'dka-young-adult'`, because the read-only guard blocks node and jest. Changes during the review: the uncommitted edits I read were committed as f63f0ece while I worked, with the same content in both dka files, and nothing else changed after that. MUST-FIX: none. Reviewed tree sha256 f68ab500d63513d7ffd28114f188cd596fe7e67ecc6a1076507a55634c163703.",
-      "tree_sha256": "f68ab500d63513d7ffd28114f188cd596fe7e67ecc6a1076507a55634c163703"
+      "findings": "This is a fresh re-check by a non-author of the final tree after the round-7 edits to dka-young-adult, version 14 (#497). I read the teaser, the vignette, and every question variant and option of all 13 banks in Thai and English. I also diffed the tree against d59a55b1. Six lines changed: step1 a and b, step2.B a, step2.R a, step2.W a, and step2.R b. Labels, tiers, stems, default trios and bank links did not change.\n\nSources:\n- The hyperglycaemic crises consensus (ADA/EASD/JBDS/AACE/DTS, Diabetologia 2024;67:1455-79). I used its diagnosis and initial-evaluation sections: glucose, beta-hydroxybutyrate, venous pH and bicarbonate, electrolytes with K, and osmolality to tell DKA from HHS. I used its note that DKA can be the first presentation of diabetes. I used its insulin section: fixed-rate 0.1 U/kg/h, an optional 0.1 U/kg bolus, dextrose with a lower rate below 250 mg/dL, no insulin while K is below 3.5, K added below 5.0, and basal overlap before stopping the drip. I used its resolution criteria (pH at least 7.3 or HCO3 at least 18).\n- The JBDS 02 pathway 2023: FRIII 0.1 unit/kg/h; ketones should fall at least 0.5 mmol/L an hour, and if they do not, check the line and raise the insulin; 10% glucose below 14 mmol/L.\n- The Thai DM CPG 2566 ch.12: 0.1 U/kg/h, and dextrose with a lower insulin rate as glucose reaches 200-250 mg/dL.\n- WHO guidance (HEARTS-D 2020) gives no inpatient DKA insulin protocol, so the consensus and the Thai CPG set the bar here.\nI did not open these documents this session. I relied on my own knowledge of them.\n\nEdited lines:\n- Step1 a, \"The first condition to confirm in her.\" / \"ภาวะแรกที่ควรยืนยันในผู้ป่วยรายนี้\". It is true on all three variants, which all ask for the diagnosis. It argues for its own option, and the two languages agree (consensus 2024, diagnosis section).\n- Step1 b, \"Diabetes can first show itself as this crisis.\" / \"เบาหวานอาจแสดงตัวครั้งแรกด้วยภาวะวิกฤตนี้\". It is true (consensus 2024; Thai DM CPG 2566 ch.12). \"This crisis\" points to the DKA in its own label. The Thai is natural.\n- Step2.B, step2.R and step2.W a, \"The standard first panel for this crisis.\" / \"ชุดตรวจแรกมาตรฐานของภาวะวิกฤตนี้\". It matches the consensus initial-evaluation panel. It is true on both step2.B variants (DKA suspected) and both step2.R variants (hyperglycaemic crisis, DKA vs HHS). Non-blocking: the step2.W stems (polyuria, fruity breath) name no crisis, so \"this crisis\" has nothing in the stem to refer to. It is still true of the patient (vignette: drowsy, pulse 120, deep rapid breathing at 30/min), and the old line already said \"the crisis\".\n- Step2.R b, \"A full first panel for a sugar crisis.\" / \"ชุดตรวจแรกแบบครบสำหรับภาวะน้ำตาลวิกฤต\". Its label covers glucose, ketone, osmolality, acid-base and K, which are the measures the consensus uses to tell DKA from HHS. \"Full\" is the line's case for its own option, not a false fact. The Thai matches the step2.R v1 stem (\"ภาวะน้ำตาลสูงวิกฤต\").\nNone of the four edited texts (six lines) argues against its option or for another, and their tiers stay right.\n\nTiers I checked closely:\n- Step 1: HHS stays reasonable. It is a hyperglycaemic crisis, but less likely at 20 with deep breathing and fruity breath. Gastroenteritis and appendicitis stay weaker and safe, since step2.W still leads to tests that find the crisis.\n- Step 2: fingerstick ketone and urine dipstick stay reasonable. Glucose alone, and glucose with CBC, stay weaker and safe.\n- Step 3: step3.B a adds K at 4.6, which is correct below 5.0. In step3.R and step3.W, the best options start fluids at once and give insulin once K is safe. The bolus options stay reasonable. The 0.05 U/kg/h starts stay weaker but safe, since insulin still runs.\n- Step 4: step4.B a and b (cut insulin, add 5% dextrose at 240-250 mg/dL) stay best, as in the Thai CPG. Step4.B c (10% dextrose at the same rate, the JBDS approach) stays reasonable. Raising insulin when ketones fall too slowly matches the JBDS 0.5 mmol/L target. Every bank that raises insulin has K of at least 3.7. The extra-saline options stay weaker and safe, because insulin keeps running.\n- Step 5: the resolution stems fit the consensus. The 2-hour basal overlap is correct. Premixed insulin twice daily stays reasonable. Keeping the drip 2 more days stays weaker and safe. In step5.W, every option escalates care.\nEvery weaker option is safe, and no line withholds or delays treatment. The teaser does not hint the diagnosis.\n\nCheck results: I could not run `reply-bank.mjs check` or `booth-case-tree.test.js -t 'dka-young-adult'`, because this agent's read-only guard refuses node and jest. Line budgets and the word scan are therefore unverified by execution. The diff against d59a55b1 matched what I read (24 tree lines, 36 reply lines), so no file changed while I was reviewing. MUST-FIX: none. Reviewed tree sha256 7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab.",
+      "tree_sha256": "7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab"
     }
   },
   "path_score_table": {

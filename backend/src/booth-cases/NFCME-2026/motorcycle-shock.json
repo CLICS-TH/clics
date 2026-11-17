@@ -147,8 +147,8 @@
               "en": "Chest and pelvic X-rays"
             },
             "line": {
-              "th": "หาเลือดออกในช่องอกและเชิงกรานได้ในห้องฉุกเฉิน",
-              "en": "Looks for bleeding into the chest and pelvis in the emergency room."
+              "th": "ภาพถ่ายรังสีที่ทำเป็นประจำหลังอุบัติเหตุใหญ่",
+              "en": "Routine films after a major crash."
             }
           },
           {
@@ -220,8 +220,8 @@
               "en": "Chest and pelvic X-rays"
             },
             "line": {
-              "th": "หาเลือดออกในช่องอกและเชิงกรานได้ในห้องฉุกเฉิน",
-              "en": "Looks for bleeding into the chest and pelvis in the emergency room."
+              "th": "ภาพถ่ายรังสีที่ทำเป็นประจำหลังอุบัติเหตุใหญ่",
+              "en": "Routine films after a major crash."
             }
           },
           {
@@ -293,8 +293,8 @@
               "en": "Chest and pelvic X-rays"
             },
             "line": {
-              "th": "หาเลือดออกในช่องอกและเชิงกรานได้ในห้องฉุกเฉิน",
-              "en": "Looks for bleeding into the chest and pelvis in the emergency room."
+              "th": "ภาพถ่ายรังสีที่ทำเป็นประจำหลังอุบัติเหตุใหญ่",
+              "en": "Routine films after a major crash."
             }
           },
           {
@@ -688,8 +688,8 @@
               "en": "Bedside FAST now"
             },
             "line": {
-              "th": "ดูว่าตอนนี้มีของเหลวในช่องท้องมากเพียงใด",
-              "en": "Shows how much fluid is in the abdomen now."
+              "th": "ดูช่องท้องด้วยอัลตราซาวด์",
+              "en": "An ultrasound look at the abdomen."
             }
           },
           {
@@ -749,8 +749,8 @@
               "en": "Bedside FAST now"
             },
             "line": {
-              "th": "ดูว่าตอนนี้มีของเหลวในช่องท้องมากเพียงใด",
-              "en": "Shows how much fluid is in the abdomen now."
+              "th": "ดูช่องท้องด้วยอัลตราซาวด์",
+              "en": "An ultrasound look at the abdomen."
             }
           },
           {
@@ -824,8 +824,8 @@
               "en": "Referral letter with results so far"
             },
             "line": {
-              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
-              "en": "The receiving team gets the story; pending results follow by phone."
+              "th": "สรุปเป็นลายลักษณ์อักษรไปพร้อมผู้ป่วย",
+              "en": "A written summary travels with him."
             }
           },
           {
@@ -897,8 +897,8 @@
               "en": "Referral letter with results so far"
             },
             "line": {
-              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
-              "en": "The receiving team gets the story; pending results follow by phone."
+              "th": "สรุปเป็นลายลักษณ์อักษรไปพร้อมผู้ป่วย",
+              "en": "A written summary travels with him."
             }
           },
           {
@@ -970,8 +970,8 @@
               "en": "Referral letter with results so far"
             },
             "line": {
-              "th": "ทีมปลายทางรู้เรื่องครบ ผลที่ค้างโทรแจ้งตามทีหลัง",
-              "en": "The receiving team gets the story; pending results follow by phone."
+              "th": "สรุปเป็นลายลักษณ์อักษรไปพร้อมผู้ป่วย",
+              "en": "A written summary travels with him."
             }
           },
           {
@@ -999,8 +999,8 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-17",
-      "findings": "This is a fresh re-check by a non-author of the final tree after the round-5 and round-6 edits to motorcycle-shock version 9. I read every question variant and option of all 13 banks in Thai and English, against the vignette and every tier path. I walked every path into step3.B, into step4.W (reached only through step3 e) and into each step5 bank. Sources: ATLS 10th ed. ch. 3 (crystalloid capped at 1 L, early blood in class III/IV shock, baseline bloods drawn at cannulation, adult urine target 0.5 mL/kg/h); the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023), Rec 13 (systolic 80-90 mmHg until bleeding is controlled, no TBI), Rec 15 (restricted volume replacement) and the TXA recommendation (as early as possible, within 3 h, 1 g over 10 min then 1 g over 8 h); CRASH-2 (Lancet 2010, and the 2011 timing analysis); WHO/ICRC Basic Emergency Care 2018, trauma module (TXA within 3 h for significant haemorrhage); the WHO Model List of Essential Medicines (tranexamic acid); and the Thai National List of Essential Medicines (บัญชียาหลักแห่งชาติ) 2559, which lists tranexamic acid injection. This round's re-check raised two tree MUST-FIX items, and both are fixed. First, step5.R a \"a nurse keeps blood going\" / \"ให้เลือดต่อ\" assumed blood was already running. That was false on paths through step3 e and step4.W c without step2 b. The line now reads \"BP may fall again on the road, so a nurse gives blood all the way.\" / \"ความดันอาจตกซ้ำระหว่างทาง พยาบาลจึงให้เลือดตลอดทาง\". \"Again\" holds on every path, because he arrived at 86/60. Second, the step4.W best option left out TXA, although no path into step4.W gives TXA and he is inside 3 h. It is now \"Blood and TXA, hasten transfer\" / \"ให้เลือดและ TXA เร่งส่งต่อ\", with the line \"Still in shock within 3 hours, he needs blood, TXA and surgery.\" / \"ยังช็อกอยู่ใน 3 ชม. ต้องได้เลือด TXA และผ่าตัด\". TXA audit: step-3 a, b and c give TXA once and lead to step4.B or step4.R, which offer none. Neither step2 nor step3 e gives TXA, so step4.W b gives the first and only dose, and no step-5 option offers more. No path gets TXA twice, and the path of best answers after step3 e gives it inside 3 h. The step4.W stems now say only that the surgeon was called, which is true on every path in. The step3.R and step3.W stems (\"X-rays are clear\", \"first tests are normal\") each match the one step-2 option that leads there. Tiers checked closely: step3 a and b best (blood, TXA, transfer; permissive systolic near 90 per Rec 13 in an alert, helmeted man). Step3 c is reasonable (saline 1 L, within the ATLS cap, then blood). Step3 e is weaker but safe: it speeds definitive care, its replies keep resuscitation running, and the best next answer gives blood and TXA. Also step4.B a and b, step4.R a and b, step4.W b and step5 a and b are best. \"Repeat haemoglobin\" holds on every path, since ATLS 10th ed. draws baseline bloods at cannulation. The step4.W v2 \"stays at 124\" reads as \"still tachycardic\", which is acceptable wording. Each bank has one option per tier. No option is unsafe or withholds care, and no tier is mislabelled. The teaser hints no diagnosis, and Thai and English agree and read naturally. MUST-FIX: none. Reviewed tree sha256 0e0e1c51cd8acf618af849a403b671b1ee679415466d85493d167f02e1043e9a.",
-      "tree_sha256": "0e0e1c51cd8acf618af849a403b671b1ee679415466d85493d167f02e1043e9a"
+      "findings": "This is a fresh re-check by a non-author of the final tree after the round-7 edits to motorcycle-shock version 10. I read every question variant and option of all 13 banks in Thai and English, against the vignette and every tier path into each bank. Sources: ATLS 10th ed. ch. 1 (chest and pelvic X-rays as adjuncts to the primary survey in blunt multisystem trauma; FAST as a bedside adjunct), ch. 3 (crystalloid capped at 1 L, early blood in class III/IV shock, baseline bloods at cannulation, adult urine target 0.5 mL/kg/h) and the transfer chapter (a written record of findings and treatment travels with the patient, plus doctor-to-doctor communication); the European guideline on major bleeding and coagulopathy following trauma, 6th ed. (Rossaint et al., Crit Care 2023), Rec 13 (systolic 80-90 mmHg until bleeding is controlled, no TBI), Rec 15 and the TXA recommendation (within 3 h, 1 g over 10 min then 1 g over 8 h); CRASH-2 (Lancet 2010, and the 2011 timing analysis); WHO/ICRC Basic Emergency Care 2018, trauma module, and the WHO Model List of Essential Medicines (tranexamic acid); and the Thai National List of Essential Medicines (บัญชียาหลักแห่งชาติ) 2559, which lists tranexamic acid injection. The round-7 edits each hold on every variant and every path into their banks. Step2.B/R/W c \"Routine films after a major crash.\" / \"ภาพถ่ายรังสีที่ทำเป็นประจำหลังอุบัติเหตุใหญ่\" is true per ATLS 10th ed. ch. 1. It argues for its own option and stays reasonable behind FAST or eFAST and crossmatch. Step4.R/W c \"An ultrasound look at the abdomen.\" / \"ดูช่องท้องด้วยอัลตราซาวด์\" describes FAST truly, argues for no other option and stays reasonable: in a transient or non-responder, FAST confirms what the vital signs show and should not hold the transfer. Step5.B/R/W c \"A written summary travels with him.\" / \"สรุปเป็นลายลักษณ์อักษรไปพร้อมผู้ป่วย\" is supported by the ATLS 10th ed. transfer chapter's written record and stays reasonable behind the escorted transfer with blood running and the call to the receiving surgeon. Thai and English agree on all three edits, and none hints the diagnosis. Tiers I checked closely: step1 a and b are best and c is reasonable. Step3 a and b are best (blood, TXA, transfer; permissive systolic near 90 in an alert, helmeted man, per Rec 13). Step3 c is reasonable (saline 1 L, within the ATLS cap, then blood). Step3 e is weaker but safe, because it speeds definitive care and its replies carry a safety line that keeps resuscitation running. Step4.B a and b, step4.R a and b, step4.W b and step5 a and b are best. TXA is given at most once on every path and inside 3 h on the best path after step3 e. No option is unsafe or withholds or delays a needed treatment, no tier is mislabelled, and the teaser hints no diagnosis. MUST-FIX: none. Reviewed tree sha256 3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5.",
+      "tree_sha256": "3ea824702e9f44f8c83038b91ef5375479165dd81dbc61881d2496bb34d46cf5"
     }
   },
   "path_score_table": {
