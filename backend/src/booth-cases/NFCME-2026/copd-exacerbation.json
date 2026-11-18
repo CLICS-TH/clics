@@ -1,6 +1,6 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "16",
+  "version": "18",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
@@ -80,8 +80,8 @@
             "en": "Acute heart failure"
           },
           "line": {
-            "th": "หอบเหนื่อยในผู้สูงอายุมักมาจากหัวใจ",
-            "en": "Breathlessness in older adults often comes from the heart."
+            "th": "อายุ 68 ปีและหอบเหนื่อย",
+            "en": "He is 68 and breathless."
           }
         },
         {
@@ -92,8 +92,8 @@
             "en": "Acute asthma attack"
           },
           "line": {
-            "th": "เสียงวี้ดและหายใจออกยาวพบบ่อยในหอบหืด",
-            "en": "Wheeze and a long expiration are common in asthma."
+            "th": "มีเสียงวี้ด",
+            "en": "He has a wheeze."
           }
         }
       ],
@@ -166,8 +166,8 @@
               "en": "ABG and sputum culture"
             },
             "line": {
-              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
-              "en": "Checks CO2 retention and looks for the germ in the sputum."
+              "th": "ส่งก๊าซในเลือดและเพาะเชื้อเสมหะ",
+              "en": "Sends a blood gas and a sputum culture."
             }
           }
         ],
@@ -239,8 +239,8 @@
               "en": "ABG and sputum culture"
             },
             "line": {
-              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
-              "en": "Checks CO2 retention and looks for the germ in the sputum."
+              "th": "ส่งก๊าซในเลือดและเพาะเชื้อเสมหะ",
+              "en": "Sends a blood gas and a sputum culture."
             }
           }
         ],
@@ -319,8 +319,8 @@
               "en": "CBC and sputum culture"
             },
             "line": {
-              "th": "ชุดตรวจแรกที่ส่งกันประจำเมื่อเสมหะเขียว",
-              "en": "The usual first tests for green sputum."
+              "th": "ส่งตรวจนับเม็ดเลือดและเพาะเชื้อเสมหะ",
+              "en": "Sends a blood count and a sputum culture."
             }
           },
           {
@@ -331,8 +331,8 @@
               "en": "CBC, electrolytes, blood culture"
             },
             "line": {
-              "th": "ตรวจเลือดให้ครบชุดไว้ก่อนเพื่อความรอบคอบ",
-              "en": "A full set of bloods, to be thorough."
+              "th": "ส่งตรวจนับเม็ดเลือด เกลือแร่ และเพาะเชื้อในเลือด",
+              "en": "Sends a blood count, electrolytes and a blood culture."
             }
           }
         ],
@@ -425,8 +425,8 @@
               "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
+              "th": "ยาฆ่าเชื้อที่ให้ทางหลอดเลือดดำ",
+              "en": "An antibiotic given into the vein."
             }
           }
         ],
@@ -517,8 +517,8 @@
               "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
+              "th": "ยาฆ่าเชื้อที่ให้ทางหลอดเลือดดำ",
+              "en": "An antibiotic given into the vein."
             }
           },
           {
@@ -529,8 +529,8 @@
               "en": "Pred 5 days + amoxicillin"
             },
             "line": {
-              "th": "amoxicillin เป็นยาฆ่าเชื้อทางเดินหายใจที่ใช้กันประจำ",
-              "en": "Plain amoxicillin is the usual chest antibiotic."
+              "th": "amoxicillin เป็นยาฆ่าเชื้อชนิดกินที่ใช้บ่อย",
+              "en": "Amoxicillin is a common oral antibiotic."
             }
           }
         ],
@@ -609,8 +609,8 @@
               "en": "Pred 5 days + IV ceftriaxone"
             },
             "line": {
-              "th": "ครอบคลุมเชื้อกว้างทางหลอดเลือดดำ",
-              "en": "Gives broad IV cover."
+              "th": "ยาฆ่าเชื้อที่ให้ทางหลอดเลือดดำ",
+              "en": "An antibiotic given into the vein."
             }
           },
           {
@@ -633,8 +633,8 @@
               "en": "Pred 5 days + amoxicillin"
             },
             "line": {
-              "th": "amoxicillin เป็นยาฆ่าเชื้อทางเดินหายใจที่ใช้กันประจำ",
-              "en": "Plain amoxicillin is the usual chest antibiotic."
+              "th": "amoxicillin เป็นยาฆ่าเชื้อชนิดกินที่ใช้บ่อย",
+              "en": "Amoxicillin is a common oral antibiotic."
             }
           }
         ],
@@ -1115,9 +1115,9 @@
   "admission": {
     "safety_review": {
       "model": "claude-opus-5-5",
-      "date": "2026-11-17",
-      "findings": "This is a fresh re-check by a non-author of the final tree of copd-exacerbation after the round-8 edits, which made the best options' explanatory lines plainer at steps 1-3. It covered all 13 banks in Thai and English: the teaser, the vignette, every question variant, and every option's label, line and tier. The edits were compared with the tree at ab8aaba1, and the only changes are the lines of step1 a and b, step2.B/R/W a and b, and step3.B/R/W a and b. Labels, tiers, stems and links are unchanged.\n\nSources: GOLD 2025 report, chapter 5 (management of exacerbations), covering:\n- viral and bacterial infection as the main triggers;\n- hospital work-up with chest X-ray, ECG and arterial blood gas;\n- controlled oxygen to 88-92% with SABA plus or minus SAMA;\n- prednisolone 40 mg for 5 days;\n- antibiotics for increased sputum purulence, as an aminopenicillin with or without clavulanate, a macrolide or a tetracycline;\n- NIV as the first mode for acute respiratory acidosis.\n\nFurther sources:\n- the Thoracic Society of Thailand COPD guideline 2565 (2022), exacerbation chapter: beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide as the usual first antibiotic, prednisolone for 5-7 days, and NIV at pH 7.25-7.35;\n- BTS/ICS acute hypercapnic respiratory failure guideline 2016: target 88-92%, NIV that never delays escalation, and a plan for NIV failure;\n- Cochrane review CD013506 (2022) on magnesium sulfate in COPD exacerbations;\n- WHO IMAI District Clinician Manual (WHO 2011), COPD exacerbation guidance.\n\nEvery edited line was judged on every variant and path into its bank:\n- step1 a \"A common reason for a smoker's breathing to worsen.\" / \"สาเหตุที่พบบ่อยที่ทำให้คนสูบบุหรี่หอบมากขึ้น\" is true (GOLD 2025 ch. 5; Thai guideline 2565). As a general statement about smokers it holds for this ex-smoker, and it argues for its own label.\n- step1 b \"Infection is a frequent trigger of these flares.\" / \"การติดเชื้อเป็นตัวกระตุ้นที่พบบ่อยของการกำเริบ\" is true (GOLD 2025 ch. 5, triggers). It argues for the infective qualifier that separates b from a.\n- step2 a \"A standard first set for a flare.\" / \"ชุดตรวจแรกมาตรฐานของการกำเริบ\" is true for CXR, ECG and ABG (GOLD 2025 ch. 5, hospital assessment). It also holds on the step2.R and step2.W paths, where the player named pneumonia, heart failure or asthma, since that set is standard for each of those presentations.\n- step2 b \"Two common first tests in a flare.\" / \"การตรวจแรกสองอย่างที่ทำกันบ่อยในการกำเริบ\" is true for ABG and CXR (same section).\n- step3 a \"A common steroid and antibiotic pair.\" / \"สเตียรอยด์คู่ยาฆ่าเชื้อที่ใช้กันบ่อย\" and step3 b \"A steroid with a widely used antibiotic.\" / \"สเตียรอยด์ร่วมยาฆ่าเชื้อที่ใช้กันแพร่หลาย\" are true for pred 5 days with amox-clav or doxycycline (GOLD 2025 ch. 5; Thai guideline 2565 exacerbation chapter). They hold on every step-3 variant, including step3.B v3 (no pneumonia, pH 7.37), step3.R v3 (a gas) and step3.W v3 (green sputum, 37.8 °C).\n\nNone of the edited lines makes an argument against itself or for another option. None contains a word the contract test forbids. Thai and English agree in each, and the Thai reads as a Thai GP would write it.\n\nTiers checked closely:\n- The step2 best pair stands. ABG and CXR without ECG is still a careful first order at pulse 106.\n- step2.W d and e stay weaker, because they leave out tests, not treatment, while controlled oxygen runs.\n- step3 stands. Pred 5 days with amox-clav or doxycycline is best. Azithromycin, levofloxacin, IV hydrocortisone with oral amox-clav, and IV amox-clav are reasonable. IV ceftriaxone and plain amoxicillin are weaker but safe, since each still treats. GOLD allows plain aminopenicillin, but the Thai guideline prefers a beta-lactamase inhibitor in a hospitalised flare, so weaker holds.\n- step4.B d and e (magnesium, IV switch) and step4.R d (IV ceftriaxone) are weaker and safe, because none stops anything running.\n- step4.W d stays weaker because it still starts NIV.\n- step5.W keeps the NIV bridge and intubation as best, and d stays weaker and safe because it still sends him to ICU.\n\nThe teaser names no diagnosis. MUST-FIX: none. Reviewed tree sha256 9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e.",
-      "tree_sha256": "9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e"
+      "date": "2026-11-18",
+      "findings": "This is a fresh re-check by a non-author of the final tree of copd-exacerbation version 17, made after the round-9 edits and the three fixes from this review's first pass. It covered all 13 banks in Thai and English: the teaser, the vignette, every question variant, and every option's label, line and tier. Compared with HEAD (ea6b6c2c), the only tree changes are the version and the lines of step1 d and e, step2.B and step2.R d, step2.W d and e, step3.B/R/W f, and step3.R/W h. Labels, tiers, stems, links and default trios are unchanged.\n\nSources:\n- GOLD 2025 report, chapter 5 (exacerbations). It covers the differential including heart failure; the hospital work-up with blood count, electrolytes, arterial blood gas, chest X-ray and ECG; controlled oxygen to 88-92%; prednisolone 40 mg for 5 days; antibiotic choice for purulent sputum; and NIV for acute respiratory acidosis.\n- The Thoracic Society of Thailand COPD guideline 2565 (2022), exacerbation chapter. It covers a beta-lactam/beta-lactamase inhibitor, doxycycline, a respiratory quinolone or a macrolide as the usual first antibiotic; prednisolone for 5-7 days; and NIV at pH 7.25-7.35.\n- GINA 2024 for asthma.\n- ESC 2021 heart-failure guideline (acute heart failure presentation).\n- BTS/ICS acute hypercapnic respiratory failure guideline 2016.\n- Cochrane review CD013506 (2022) on magnesium sulfate in COPD exacerbations.\n- WHO IMAI District Clinician Manual (WHO 2011), COPD exacerbation guidance.\n\nEvery edited line was judged on every variant and path into its bank:\n- step1 d \"He is 68 and breathless.\" / \"อายุ 68 ปีและหอบเหนื่อย\" is true from the vignette and gives one cue for its own label (ESC 2021; GOLD 2025 ch. 5 differential).\n- step1 e \"He has a wheeze.\" / \"มีเสียงวี้ด\" is true, since he wheezes on both sides, and gives one cue for asthma (GINA 2024).\n- step2.B and step2.R d \"Sends a blood gas and a sputum culture.\" / \"ส่งก๊าซในเลือดและเพาะเชื้อเสมหะ\" describes its label exactly (GOLD 2025 ch. 5, hospital work-up).\n- step2.W d \"Sends a blood count and a sputum culture.\" / \"ส่งตรวจนับเม็ดเลือดและเพาะเชื้อเสมหะ\" describes its label exactly (same section).\n- step2.W e \"Sends a blood count, electrolytes and a blood culture.\" / \"ส่งตรวจนับเม็ดเลือด เกลือแร่ และเพาะเชื้อในเลือด\" describes its label exactly. It no longer calls a blood culture routine; neither GOLD 2025 ch. 5 nor the Thai guideline 2565 lists blood cultures in the routine work-up of a flare.\n- step3.B/R/W f \"An antibiotic given into the vein.\" / \"ยาฆ่าเชื้อที่ให้ทางหลอดเลือดดำ\" is true for IV ceftriaxone (GOLD 2025 ch. 5; Thai guideline 2565).\n- step3.R/W h \"Amoxicillin is a common oral antibiotic.\" / \"amoxicillin เป็นยาฆ่าเชื้อชนิดกินที่ใช้บ่อย\" is true (GOLD 2025 ch. 5; Thai guideline 2565).\n\nEach edited line argues only for its own option and names no other. Each holds on every variant, including step3.B v3 (no pneumonia, pH 7.37), step3.R v3 (a gas) and step3.W v3 (green sputum, 37.8 °C). None carries a word the contract test forbids. Thai and English agree in each, and the Thai reads as a Thai GP would write it.\n\nTiers checked closely:\n- step1 d and e stay weaker and safe. No leg swelling, the fever and the purulent sputum weigh against heart failure, and age 68 with 40 years of smoking weighs against new asthma. Neither choice stops the bronchodilator and controlled oxygen that step 2 shows running.\n- step2.B and step2.R d stay weaker. They keep the gas but leave out the chest X-ray, and add a culture that returns too late to guide today's care.\n- step2.W d and e stay weaker and safe. They leave out tests, not treatment, while controlled oxygen runs, and their replies carry a CO2 safety line.\n- step3 stands:\n  - Pred 5 days with amox-clav or with doxycycline is best.\n  - Azithromycin, levofloxacin, IV hydrocortisone with oral amox-clav, and IV amox-clav are reasonable.\n  - IV ceftriaxone (over-broad, with a needless cannula) and plain amoxicillin (beta-lactamase producers; the Thai guideline prefers a beta-lactamase inhibitor in a hospitalised flare) are weaker but safe, since each still treats.\n- The unchanged step4 and step5 banks stand. Their weaker options stop nothing he needs, step4.W d still starts NIV, and step5.W d still sends him to ICU.\n\nThe teaser names no diagnosis. MUST-FIX: none. Reviewed tree sha256 2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42.",
+      "tree_sha256": "2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42"
     }
   },
   "path_score_table": {
@@ -1130,9 +1130,9 @@
       },
       "samples_per_path": 3,
       "method": "median-regression",
-      "run_id": "ptb-202611170738-3cf7",
-      "date": "2026-11-17",
-      "tree_sha256": "9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e"
+      "run_id": "ptb-202611180421-d261",
+      "date": "2026-11-18",
+      "tree_sha256": "2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42"
     },
     "paths": {
       "BBBBB": {
@@ -1140,49 +1140,49 @@
         "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "BBBBR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BBBBW": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BBBRB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BBBRR": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BBBRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1194,76 +1194,76 @@
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "BBBWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "BBBWW": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BBRBB": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "BBRBR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BBRBW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BBRRB": {
         "d1": 3,
-        "d2": 2.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "BBRRR": {
-        "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
+      },
+      "BBRRR": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.3,
+        "d6": 1,
+        "d7": 2
       },
       "BBRRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1272,79 +1272,79 @@
       },
       "BBRWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "BBRWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "BBRWW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BBWBB": {
         "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "BBWBR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "BBWBW": {
-        "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
-      "BBWRB": {
+      "BBWBR": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "BBWBW": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
+      },
+      "BBWRB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
       },
       "BBWRR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BBWRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1353,52 +1353,52 @@
       },
       "BBWWB": {
         "d1": 3,
-        "d2": 2.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3.3
-      },
-      "BBWWR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "BBWWW": {
-        "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
-      "BRBBB": {
+      "BBWWR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
-      "BRBBR": {
+      "BBWWW": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "BRBBB": {
         "d1": 3,
         "d2": 3.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
+      },
+      "BRBBR": {
+        "d1": 3,
+        "d2": 3.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.3,
+        "d6": 1,
+        "d7": 2
       },
       "BRBBW": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1407,16 +1407,16 @@
       },
       "BRBRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRBRR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1425,61 +1425,61 @@
       },
       "BRBRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BRBWB": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "BRBWR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BRBWW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRRBB": {
+        "d1": 3,
+        "d2": 3.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "BRRBR": {
         "d1": 3,
         "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
-      },
-      "BRRBR": {
-        "d1": 3,
-        "d2": 3.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRRBW": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1488,16 +1488,16 @@
       },
       "BRRRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRRRR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1506,57 +1506,57 @@
       },
       "BRRRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "BRRWB": {
+        "d1": 3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
-      "BRRWB": {
+      "BRRWR": {
         "d1": 3,
         "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 3
-      },
-      "BRRWR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BRRWW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRWBB": {
         "d1": 3,
         "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BRWBR": {
         "d1": 3,
-        "d2": 3.7,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRWBW": {
         "d1": 3,
@@ -1569,12 +1569,12 @@
       },
       "BRWRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BRWRR": {
         "d1": 3,
@@ -1587,12 +1587,12 @@
       },
       "BRWRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BRWWB": {
         "d1": 3,
@@ -1601,56 +1601,56 @@
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "BRWWR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BRWWW": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BWBBB": {
+        "d1": 3,
+        "d2": 2.8,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.3,
+        "d6": 1,
+        "d7": 2
+      },
+      "BWBBR": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
-      },
-      "BWBBR": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
       "BWBBW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BWBRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1659,43 +1659,43 @@
       },
       "BWBRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BWBRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "BWBWB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "BWBWR": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
-      },
-      "BWBWR": {
-        "d1": 3,
-        "d2": 2.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BWBWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1707,16 +1707,16 @@
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BWRBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
@@ -1725,13 +1725,13 @@
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BWRRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1743,36 +1743,36 @@
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BWRRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "BWRWB": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BWRWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BWRWW": {
         "d1": 3,
@@ -1785,34 +1785,34 @@
       },
       "BWWBB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BWWBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
       "BWWBW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BWWRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1821,43 +1821,43 @@
       },
       "BWWRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "BWWRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "BWWWB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "BWWWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "BWWWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1866,52 +1866,52 @@
       },
       "RBBBB": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "RBBBR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RBBBW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RBBRB": {
         "d1": 3,
-        "d2": 2.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "RBBRR": {
-        "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
+      },
+      "RBBRR": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.3,
+        "d6": 1,
+        "d7": 2
       },
       "RBBRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -1920,79 +1920,79 @@
       },
       "RBBWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "RBBWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "RBBWW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RBRBB": {
         "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "RBRBR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "RBRBW": {
-        "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
-      "RBRRB": {
+      "RBRBR": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "RBRBW": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
+      },
+      "RBRRB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
       },
       "RBRRR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RBRRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2001,75 +2001,75 @@
       },
       "RBRWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "RBRWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "RBRWW": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "RBWBB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "RBWBR": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
-      },
-      "RBWBB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "RBWBR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RBWBW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RBWRB": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RBWRR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RBWRW": {
         "d1": 3,
@@ -2082,52 +2082,52 @@
       },
       "RBWWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "RBWWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "RBWWW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RRBBB": {
+        "d1": 3,
+        "d2": 3.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "RRBBR": {
         "d1": 3,
         "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
-      },
-      "RRBBR": {
-        "d1": 3,
-        "d2": 3.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRBBW": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2136,16 +2136,16 @@
       },
       "RRBRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRBRR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2154,57 +2154,57 @@
       },
       "RRBRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "RRBWB": {
+        "d1": 3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
-      "RRBWB": {
+      "RRBWR": {
         "d1": 3,
         "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 3
-      },
-      "RRBWR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RRBWW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRRBB": {
         "d1": 3,
         "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RRRBR": {
         "d1": 3,
-        "d2": 3.7,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRRBW": {
         "d1": 3,
@@ -2217,12 +2217,12 @@
       },
       "RRRRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRRRR": {
         "d1": 3,
@@ -2235,12 +2235,12 @@
       },
       "RRRRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RRRWB": {
         "d1": 3,
@@ -2249,47 +2249,47 @@
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "RRRWR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RRRWW": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRWBB": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RRWBR": {
         "d1": 3,
-        "d2": 3.7,
+        "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRWBW": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2298,16 +2298,16 @@
       },
       "RRWRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RRWRR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2316,55 +2316,55 @@
       },
       "RRWRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RRWWB": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "RRWWR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "RRWWW": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
+      },
+      "RRWWW": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2.3,
+        "d6": 1,
+        "d7": 2
       },
       "RWBBB": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RWBBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
@@ -2373,13 +2373,13 @@
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RWBRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2391,36 +2391,36 @@
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RWBRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "RWBWB": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RWBWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RWBWW": {
         "d1": 3,
@@ -2433,34 +2433,34 @@
       },
       "RWRBB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RWRBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
       "RWRBW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RWRRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2469,43 +2469,43 @@
       },
       "RWRRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RWRRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "RWRWB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RWRWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RWRWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2514,34 +2514,34 @@
       },
       "RWWBB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RWWBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
       "RWWBW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RWWRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2550,43 +2550,43 @@
       },
       "RWWRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "RWWRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "RWWWB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "RWWWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "RWWWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.7,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2595,52 +2595,52 @@
       },
       "WBBBB": {
         "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "WBBBR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "WBBBW": {
-        "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
-      "WBBRB": {
+      "WBBBR": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "WBBBW": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
+      },
+      "WBBRB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
       },
       "WBBRR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WBBRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2649,75 +2649,75 @@
       },
       "WBBWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "WBBWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "WBBWW": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "WBRBB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "WBRBR": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
-      },
-      "WBRBB": {
-        "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "WBRBR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WBRBW": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WBRRB": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WBRRR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WBRRW": {
         "d1": 3,
@@ -2730,79 +2730,79 @@
       },
       "WBRWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "WBRWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "WBRWW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WBWBB": {
         "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "WBWBR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "WBWBW": {
-        "d1": 3,
-        "d2": 2.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
-      },
-      "WBWRB": {
-        "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
+      },
+      "WBWBR": {
+        "d1": 3,
+        "d2": 2.2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "WBWBW": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.3,
+        "d6": 1,
+        "d7": 2
+      },
+      "WBWRB": {
+        "d1": 3,
+        "d2": 2.2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
       },
       "WBWRR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WBWRW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2811,48 +2811,48 @@
       },
       "WBWWB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 3.3
+        "d7": 2
       },
       "WBWWR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "WBWWW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 1.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WRBBB": {
         "d1": 3,
         "d2": 3.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WRBBR": {
         "d1": 3,
-        "d2": 3.7,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRBBW": {
         "d1": 3,
@@ -2865,12 +2865,12 @@
       },
       "WRBRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRBRR": {
         "d1": 3,
@@ -2883,12 +2883,12 @@
       },
       "WRBRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WRBWB": {
         "d1": 3,
@@ -2897,47 +2897,47 @@
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "WRBWR": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WRBWW": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRRBB": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 3.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WRRBR": {
         "d1": 3,
-        "d2": 3.7,
+        "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRRBW": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2946,16 +2946,16 @@
       },
       "WRRRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRRRR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -2964,61 +2964,61 @@
       },
       "WRRRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WRRWB": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
         "d6": 1,
-        "d7": 3
+        "d7": 2
       },
       "WRRWR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "WRRWW": {
         "d1": 3,
         "d2": 2.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
+      },
+      "WRRWW": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2.3,
+        "d6": 1,
+        "d7": 2
       },
       "WRWBB": {
         "d1": 3,
-        "d2": 3.3,
+        "d2": 3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WRWBR": {
         "d1": 3,
-        "d2": 3.7,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRWBW": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -3027,16 +3027,16 @@
       },
       "WRWRB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WRWRR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.7,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -3045,70 +3045,70 @@
       },
       "WRWRW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.5,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WRWWB": {
         "d1": 3,
-        "d2": 3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 3
-      },
-      "WRWWR": {
-        "d1": 3,
-        "d2": 3.3,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.7
-      },
-      "WRWWW": {
-        "d1": 3,
         "d2": 2.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
-      },
-      "WWBBB": {
-        "d1": 3,
-        "d2": 2.7,
-        "d3": 3,
-        "d4": 3,
-        "d5": 2,
-        "d6": 1,
-        "d7": 2.3
-      },
-      "WWBBR": {
-        "d1": 3,
-        "d2": 3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
         "d6": 1,
         "d7": 2
       },
-      "WWBBW": {
+      "WRWWR": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
+      },
+      "WRWWW": {
         "d1": 3,
         "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
+      },
+      "WWBBB": {
+        "d1": 3,
+        "d2": 2.5,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.3,
+        "d6": 1,
+        "d7": 2
+      },
+      "WWBBR": {
+        "d1": 3,
+        "d2": 2.3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "WWBBW": {
+        "d1": 3,
+        "d2": 2.2,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1.7,
+        "d6": 1,
+        "d7": 2
       },
       "WWBRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -3117,43 +3117,43 @@
       },
       "WWBRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WWBRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "WWBWB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WWBWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WWBWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -3162,34 +3162,34 @@
       },
       "WWRBB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.3,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WWRBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
       "WWRBW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WWRRB": {
         "d1": 3,
-        "d2": 2,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -3198,43 +3198,43 @@
       },
       "WWRRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WWRRW": {
         "d1": 3,
-        "d2": 1.7,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "WWRWB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WWRWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WWRWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.7,
         "d3": 3,
         "d4": 3,
         "d5": 2,
@@ -3243,30 +3243,30 @@
       },
       "WWWBB": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 2.2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WWWBR": {
         "d1": 3,
-        "d2": 3,
+        "d2": 2,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1,
         "d6": 1,
         "d7": 2
       },
       "WWWBW": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WWWRB": {
         "d1": 3,
@@ -3279,43 +3279,43 @@
       },
       "WWWRR": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 1.7
+        "d7": 2
       },
       "WWWRW": {
         "d1": 3,
         "d2": 1.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 2.3,
         "d6": 1,
-        "d7": 1.3
+        "d7": 2
       },
       "WWWWB": {
         "d1": 3,
-        "d2": 2.3,
+        "d2": 1.8,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.7,
         "d6": 1,
-        "d7": 2.7
+        "d7": 2
       },
       "WWWWR": {
         "d1": 3,
-        "d2": 2.7,
+        "d2": 1.7,
         "d3": 3,
         "d4": 3,
-        "d5": 2,
+        "d5": 1.3,
         "d6": 1,
-        "d7": 2.3
+        "d7": 2
       },
       "WWWWW": {
         "d1": 3,
-        "d2": 2,
+        "d2": 1.5,
         "d3": 3,
         "d4": 3,
         "d5": 2,
