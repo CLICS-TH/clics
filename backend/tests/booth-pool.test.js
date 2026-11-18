@@ -109,15 +109,15 @@ describe('the event pool holds one step count', () => {
     expect(pool.left.filter((l) => /three-step/.test(l.why)).map((l) => l.name)).toEqual([]);
   });
 
-  // #497: nine cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
-  // to it, so they are admitted. copd's table (run ptb-202611170738-3cf7) and melioidosis's (run ptb-202611170622-b39a)
-  // failed their re-check, so they are not.
-  const FAILED = ['copd-exacerbation', 'melioidosis-farmer'];
+  // #497: ten cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
+  // to it, so they are admitted. copd's table (run ptb-202611180421-d261, after its second fix round) failed its
+  // re-check, so it is not.
+  const FAILED = ['copd-exacerbation'];
   test('NFCME-2026 admits the five-step cases whose table passed its re-check, and only those (#497)', () => {
     const files = readEventFiles(path.join(__dirname, '../src/booth-cases'), 'NFCME-2026');
     const pool = eventPool('NFCME-2026', files);
     expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'dka-young-adult', 'ectopic-rupture',
-      'leptospirosis', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+      'leptospirosis', 'melioidosis-farmer', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
     expect(pool.left.map((l) => [l.name, l.why]).sort()).toEqual(FAILED.map((id) => [`${id}.json`, 'is not admitted']));
     expect(files.filter(({ raw }) => !raw.path_score_table).map(({ raw }) => raw.case_id)).toEqual([]);
     for (const { raw } of files.filter(({ raw }) => raw.path_score_table)) {

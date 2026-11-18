@@ -1082,6 +1082,13 @@
     "table_check": {
       "run_id": "ptb-202611180354-b428",
       "date": "2026-11-18"
+    },
+    "owner_waiver": {
+      "date": "2026-11-18",
+      "adr": "0005",
+      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611180446-4cdc: strong: 1 of 3 plays scored",
+      "sandbox_run_id": "sbx-202611180446-4cdc",
+      "tree_sha256": "b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7"
     }
   },
   "path_score_table": {

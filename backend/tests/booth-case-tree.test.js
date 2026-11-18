@@ -280,21 +280,22 @@ describe('admission', () => {
     expect(cases).toHaveLength(11);
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Every case has a table bound to its tree: dka, melioidosis and motorcycle from run ptb-202611170622-b39a.
+    // Every case has a table bound to its tree: dka and motorcycle from run ptb-202611170622-b39a, melioidosis from
+    // run ptb-202611180354-b428 and copd from run ptb-202611180421-d261 (#497 round 9).
     expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id).sort()).toEqual([]);
     expect(cases.filter((k) => k.path_score_table && k.path_score_table.provenance.tree_sha256 !== treeSha(k))
       .map((k) => k.case_id)).toEqual([]);
     const admitted = cases.filter(isAdmitted);
     expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Nine are admitted: five from #510 (route B); ectopic-rupture and sjs-ten-allopurinol from #511 (re-check passed;
+    // Ten are admitted: five from #510 (route B); ectopic-rupture and sjs-ten-allopurinol from #511 (re-check passed;
     // sandbox run sbx-202611170505-80f6 failed and the #493 owner waiver covers it); dka-young-adult and
     // motorcycle-shock from #497's last PR (table run ptb-202611170622-b39a passed; sandbox run sbx-202611171429-9729
-    // failed on unscored plays only and the #493 owner waiver covers it). copd-exacerbation (run ptb-202611170738-3cf7)
-    // and melioidosis-farmer (run ptb-202611170622-b39a) failed their re-check, so they hold no table check, sandbox
-    // record or waiver.
+    // failed on unscored plays only and the #493 owner waiver covers it); melioidosis-farmer from the owner's second fix
+    // round (table run ptb-202611180354-b428 passed). copd-exacerbation (run ptb-202611180421-d261, after its second
+    // fix round) failed its re-check, so it holds no table check, sandbox record or waiver.
     expect(admitted.map((k) => k.case_id).sort())
       .toEqual(['adhf', 'alcohol-pancreatitis', 'dka-young-adult', 'ectopic-rupture', 'leptospirosis',
-        'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+        'melioidosis-farmer', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
     expect(cases.filter((k) => !isAdmitted(k) && (k.admission.table_check || k.admission.sandbox || k.admission.owner_waiver))
       .map((k) => k.case_id)).toEqual([]);
   });
