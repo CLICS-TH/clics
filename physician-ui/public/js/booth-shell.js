@@ -41,9 +41,13 @@ async function eventStatus() {
  *  column it would compute from the shorter page would shrink every text under the visitor's typing. */
 function pinColumn() {
   let width = -1;
+  let height = -1;
+  // An on-screen keyboard only shortens the page, so the column re-pins on a new width or a taller page (a window still
+  // settling at boot), never on a shorter one.
   const pin = () => {
-    if (innerWidth === width) return;
+    if (innerWidth === width && innerHeight <= height) return;
     width = innerWidth;
+    height = innerHeight;
     document.documentElement.style.setProperty('--col', `${Math.min(innerWidth, innerHeight * 9 / 16)}px`);
   };
   pin();

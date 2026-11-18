@@ -2,7 +2,7 @@
 
 **1. เปิดเครื่อง** หน้าบูทคือ `physician-ui.vercel.app/booth` เปิดจอก่อน แล้วเปิดมินิพีซี Chrome จะเปิดหน้านี้เต็มจอเอง ถ้าไม่ขึ้นหรือถามกู้คืนแท็บ ให้กด Alt+F4 แล้วดับเบิลคลิก `booth-kiosk.cmd` บนเดสก์ท็อป
 
-**2. ระบบสัมผัส** แตะมุมจอ จุดที่ตอบสนองต้องตรงนิ้ว ถ้าไม่ตรง: Settings > Display > Orientation = Portrait แล้ว Control Panel > Tablet PC Settings > Setup แล้วแตะจอตามที่บอก
+**2. ระบบสัมผัส** แตะมุมจอ จุดที่ตอบสนองต้องตรงนิ้ว ถ้าไม่ตรง: Settings > Display > Orientation ให้ตรงกับที่จอตั้งอยู่ (จอตั้ง = Portrait, จอนอน = Landscape ห้ามหมุนจอนอนเป็น Portrait) แล้ว Control Panel > Tablet PC Settings > Setup แล้วแตะจอตามที่บอก
 
 **3. อินเทอร์เน็ต** ใช้ Wi-Fi ของงานเป็นหลัก เปิดฮอตสปอตโทรศัพท์สำรองไว้ตลอด (ตั้ง Connect automatically ทั้งคู่) ถ้าเครื่องไม่ต่อฮอตสปอตเอง ให้เลือกที่ไอคอน Wi-Fi มุมขวาล่าง
 

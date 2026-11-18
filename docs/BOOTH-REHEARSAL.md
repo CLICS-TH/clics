@@ -89,7 +89,8 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 - [ ] Cold boot: the mini-PC starts Chrome into `/booth` full screen with no restore-session prompt and no browser
       chrome.
 - [ ] Kill Chrome from Task Manager, run the launcher again: no "Restore pages?" bubble.
-- [ ] Touch lands under the finger in all four corners of the portrait panel. Option cards and "type my own" take
+- [ ] Touch lands under the finger in all four corners of the panel, portrait or landscape (on a landscape panel the
+      kiosk is a centred column: a tap on a blank side of the loop starts a play). Option cards and "type my own" take
       one tap each. The on-screen keyboard leaves the typing box visible.
 - [ ] Alt+F4 exits kiosk mode.
 
