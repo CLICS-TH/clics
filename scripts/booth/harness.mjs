@@ -52,6 +52,7 @@ const DESIGNED_SCROLLERS = [
   ['.case-text', 'a case\'s vignette can be longer than its card: read in full on its own screen, then peeking above the step sheet'],
   ['.result-more', 'the five other domains sit under Practise next and the leaderboard button; the card\'s head (score, QR, radar) stays put'],
   ['.reveal-steps', 'the steps\' questions, answers and best options outgrow one screen in a two-language look; the title and Close stay put'],
+  ['.case-read', 'Read the case again shows the whole vignette, which a long case can make taller than the screen; the title and Close stay put'],
 ];
 
 /** In a one-language look, text the booth wrote holds no word of the other language, except these. Text whose nearest
@@ -440,7 +441,10 @@ async function phone(path, { width = 375, height = 812 } = {}) {
 }
 
 function measure({ floor, banned, demo, demoLabel, looks, scrollers, neutral, notCopy, phone }) {
-  const scale = innerWidth / 1080;
+  // The floors scale with the kiosk's 9:16 column (booth.css --col), which is the screen's width only on a portrait
+  // screen; a page with no column (the result page on a phone) scales with the screen.
+  const column = phone ? null : document.getElementById('booth');
+  const scale = (column ? column.getBoundingClientRect().width : innerWidth) / 1080;
   const out = [];
   const say = (e) => (e.innerText || e.value || e.getAttribute('aria-label') || e.tagName).replace(/\s+/g, ' ').trim().slice(0, 50);
   const cvs = document.createElement('canvas'); cvs.width = 1; cvs.height = 1;

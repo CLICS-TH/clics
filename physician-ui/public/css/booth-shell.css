@@ -73,10 +73,11 @@
 .shell-bar:empty { display: none; }
 
 /* "Still there?" and the Start over confirm sit inside #booth, so the shell's ghost-tap guard covers them. On "Still
-   there?" the whole scrim is the tap target; on the confirm, the scrim outside the card. */
+   there?" the whole scrim is the tap target; on the confirm, the scrim outside the card. Like every overlay, the scrim
+   covers the whole screen, the sides of a landscape screen too, and its card stays in the column. */
 .still-there, .leave-confirm {
   position: fixed; inset: 0; z-index: 10; box-sizing: border-box;
-  display: flex; align-items: center; justify-content: center; padding: var(--gutter);
+  display: flex; align-items: center; justify-content: center; padding: var(--gutter) calc(var(--side) + var(--gutter));
   background: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 .still-card, .leave-card {
@@ -96,11 +97,12 @@
 /* The language look control (js/booth-look.js): above the loop's tap layer (.shell-tap 1, its leaderboard button 2)
    and every overlay (9, 10), so it is reachable on every screen and a tap on it reaches no play or overlay. It floats
    over each screen's top padding instead of a band of its own, which would cost the tallest step its fit; every box
-   that scrolls starts below it, and the harness checks it covers no text at any scroll position. The pressed state
-   also shows as a tick, not by colour alone. */
+   that scrolls starts below it, and the harness checks it covers no text at any scroll position. It sits at the
+   column's corner, not the screen's, on a landscape screen too. The pressed state also shows as a tick, not by colour
+   alone. */
 .look-control {
   --look-inset: calc(8 * var(--u));
-  position: fixed; top: var(--look-inset); right: var(--look-inset); z-index: 11; display: flex; gap: calc(8 * var(--u));
+  position: fixed; top: var(--look-inset); right: calc(var(--side) + var(--look-inset)); z-index: 11; display: flex; gap: calc(8 * var(--u));
 }
 .look-segs { display: flex; border-radius: 999px; box-shadow: var(--shadow-card); }
 .look-btn {

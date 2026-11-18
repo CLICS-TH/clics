@@ -6,7 +6,8 @@ import { FIT_TEXT, atCut } from './play.mjs';
 const REPLY_KEY = 'POST /booth/plays/:id/reply';
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const DRAW_KEY = 'POST /booth/draw';
-const SIZES = [[1080, 1920], [2160, 3840]];
+/** Portrait, its 4K double, and a landscape screen, where the kiosk is a 9:16 column in the middle. */
+const SIZES = [[1080, 1920], [2160, 3840], [1920, 1080]];
 const TYPED = 'ไข้ ไอ และหอบ ตรวจเอกซเรย์ปอดก่อน';
 const BOARD = {
   today: [7, 19, 42, 3, 25].map((tag, i) => ({ tag, score: 91.2 - i * 3.4, at: '2026-11-03T02:00:00.000Z' })),
@@ -107,7 +108,8 @@ const readControl = (page) => page.evaluate(() => {
   scrollers.forEach((e, i) => { e.scrollTop = was[i]; });
   const top = document.elementFromPoint((cr.left + cr.right) / 2, (cr.top + cr.bottom) / 2);
   return {
-    box: { top: cr.top, right: innerWidth - cr.right, width: cr.width, height: cr.height }, fixed: getComputedStyle(c).position === 'fixed',
+    // Its corner is the column's (#booth), which is the screen's only on a portrait screen.
+    box: { top: cr.top, right: document.getElementById('booth').getBoundingClientRect().right - cr.right, width: cr.width, height: cr.height }, fixed: getComputedStyle(c).position === 'fixed',
     outside: !c.closest('#booth'), modal: !!document.querySelector('[aria-modal="true"]'), topmost: c.contains(top),
     scrolled: scrollers.map((e) => e.className || e.tagName),
     buttons: [...c.querySelectorAll('button')].map((b) => {
@@ -127,7 +129,7 @@ const readControl = (page) => page.evaluate(() => {
 async function checkControl(h, k, label, look) {
   const c = await readControl(k.page);
   if (!h.check(!!c, `${label}: the look control is on screen`)) return;
-  const scale = await k.page.evaluate(() => innerWidth / 1080);
+  const scale = await k.page.evaluate(() => document.getElementById('booth').getBoundingClientRect().width / 1080);
   const round = (b) => Object.fromEntries(Object.entries(b).map(([key, v]) => [key, Math.round(v)]));
   // The width follows the look: "show both" is named in the primary language only.
   const corner = ({ top, right, height }) => ({ top, right, height });
@@ -136,7 +138,7 @@ async function checkControl(h, k, label, look) {
   const pressed = c.buttons.every((b) => (b.key === 'both' ? both : b.key === primary) === (b.pressed === 'true')
     && (b.pressed === 'true') === (b.tick === 'visible'));
   h.check(c.fixed && c.outside && h.same(corner(round(c.box)), k.corner) && Math.abs(c.box.top - 8 * scale) <= 1 && Math.abs(c.box.right - 8 * scale) <= 1,
-    `${label}: the control is fixed top right, outside the play, in the same corner as on every screen (${JSON.stringify(round(c.box))})`);
+    `${label}: the control is fixed at the column's top right, outside the play, in the same corner as on every screen (${JSON.stringify(round(c.box))})`);
   h.check(c.buttons.length === 3 && c.buttons.every((b) => b.w >= h.FLOOR.tapPx * scale - 0.01 && b.h >= h.FLOOR.tapPx * scale - 0.01) && pressed,
     `${label}: ไทย, English and Both are each >= ${Math.round(h.FLOOR.tapPx * scale)} px, the ${look} look pressed and ticked (${c.buttons.map((b) => `${b.key} ${Math.round(b.w)}x${Math.round(b.h)} ${b.pressed}`).join(', ')})`);
   h.check(c.topmost, `${label}: the control is on top${c.modal ? ' of the open overlay' : ''}, so a tap on it reaches it`);
@@ -408,7 +410,7 @@ export default [
     },
   },
   {
-    name: 'four looks at 1080x1920 and 2160x3840: every booth screen in each look, switched through the control mid-play, '
+    name: 'four looks at 1080x1920, 2160x3840 and 1920x1080 landscape: every booth screen in each look, switched through the control mid-play, '
       + 'every request carrying the look, and a fresh kiosk at ไทย+EN',
     async run(h) {
       const urls = await Promise.all(SIZES.map(([width, height]) => playAllLooks(h, width, height)));
@@ -423,7 +425,7 @@ export default [
     },
   },
   {
-    name: 'the shell\'s checking, closed and offline screens in each look, at 1080x1920 and 2160x3840',
+    name: 'the shell\'s checking, closed and offline screens in each look, at 1080x1920, 2160x3840 and 1920x1080 landscape',
     async run(h) {
       await Promise.all(SIZES.map(async ([width, height]) => {
         const stub = h.makeStub();

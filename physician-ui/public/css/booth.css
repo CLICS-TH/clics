@@ -1,5 +1,12 @@
 :root {
-  --u: calc(100vw / 1080);
+  /* The kiosk is a 9:16 column, 1080 units wide: the whole width of a portrait screen, the middle of a landscape one
+     (the forum's 50-inch monitor may stand either way). booth-shell.js pins --col in px at load and on a width change,
+     so an on-screen keyboard, which only shortens the page, never shrinks the column under a visitor's typing. */
+  --col: min(100vw, calc(100dvh * 9 / 16));
+  --u: calc(var(--col) / 1080);
+  /* The screen on each side of the column (0 on a portrait screen). An overlay's scrim covers it too, and pads its card
+     back into the column. */
+  --side: calc((100vw - var(--col)) / 2);
 
   --canvas: #faf9f5;
   --card: #ffffff;
@@ -53,8 +60,10 @@ body.booth {
   -webkit-user-select: none; user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-#booth { display: flex; flex-direction: column; width: 100vw; height: 100dvh; }
-.booth-stage { flex: 1 1 auto; min-height: 0; position: relative; }
+#booth { display: flex; flex-direction: column; width: var(--col); height: 100dvh; margin-inline: auto; }
+/* The play's screens query the column, not the screen (the typing sheet below). The overlays are #booth's children,
+   outside this container, so their fixed scrims still cover the whole screen. */
+.booth-stage { flex: 1 1 auto; min-height: 0; position: relative; container-type: size; }
 .booth p { margin: 0; }
 
 /* Sizes go to slots, not scripts (#377): the primary language is .bi-main, the other .bi-sub, drawn after it. */
@@ -106,12 +115,17 @@ body.booth {
   flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--gap);
   margin: 0 calc(-1 * var(--gutter)) calc(-1 * var(--gutter)); padding: calc(24 * var(--u)) var(--gutter); background: var(--band);
 }
-/* Start over shares the demo label's band: one line, at the tap floor, no taller than the label's two lines, so the
-   band and the step above it keep their height. */
-.booth-btn.start-over { flex: none; min-height: calc(80 * var(--u)); padding: calc(8 * var(--u)) calc(28 * var(--u)); }
-.start-over .bi { display: flex; flex-direction: row; align-items: baseline; column-gap: calc(16 * var(--u)); }
-.start-over .bi-main { font-size: var(--text-small-th); }
-.start-over .bi-sub { font-size: var(--text-en); }
+/* Read the case again and Start over share the demo label's band, side by side at its end: each at the tap floor, its
+   two languages stacked, no taller than the label's two lines, so the band and the step above it keep their height;
+   and narrow enough that both sit beside the label in every look. */
+.foot-actions { flex: none; display: flex; align-items: center; gap: calc(16 * var(--u)); }
+.booth-btn.foot-btn { flex: none; justify-content: center; min-height: calc(80 * var(--u)); padding: 0 calc(20 * var(--u)); text-align: center; white-space: nowrap; }
+.foot-btn .bi-main { font-size: var(--text-small-th); line-height: 1.4; }
+.foot-btn .bi-sub { font-size: var(--text-en); line-height: 1.3; }
+/* English first: the English label steps down to the size it had under the Thai, and the Thai under it keeps the
+   Thai floor's leading, so the pair stays as short as the Thai-first one. */
+:root:lang(en) .foot-btn .bi-main { font-size: var(--text-en); line-height: 1.3; }
+:root:lang(en) .foot-btn .bi > .bi-sub[lang="th"] { line-height: 1.4; }
 
 .case-card {
   flex: 0 1 auto; min-height: calc(220 * var(--u)); box-sizing: border-box;
@@ -197,7 +211,8 @@ body.booth {
 :root:lang(en) .opt-line .bi-main { font-size: var(--text-en); }
 
 .typing-sheet { animation: none; max-height: calc(52dvh - var(--gutter)); overflow-y: auto; }
-@media (min-aspect-ratio: 3/4) {
+/* The column turns this wide only when an on-screen keyboard shortens it: the case card behind the sheet gives way. */
+@container (min-aspect-ratio: 3/4) {
   .typing-sheet { max-height: none; }
   .case-card--behind { display: none; }
 }
@@ -297,6 +312,25 @@ body.booth {
 /* English first: Latin set at the Thai main sizes runs longer, and the leaderboard button would wrap under the ranks and
    below the fold. These main slots take the sizes English had under the Thai, no smaller than the Thai under them. */
 :root:lang(en) :is(.domain-band, .rank-label, .domain-name) .bi-main { font-size: var(--text-en); line-height: 1.35; }
+
+/* "Read the case again" (js/booth-case.js): the dealt case's whole vignette over the play, at the vignette screen's
+   sizes; the answers overlay's pattern (booth-answers.css). */
+.case-overlay {
+  position: fixed; inset: 0; z-index: 9; box-sizing: border-box;
+  display: flex; padding: var(--gutter) calc(var(--side) + var(--gutter));
+  background: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+.case-sheet {
+  box-sizing: border-box; width: 100%; max-height: 100%; margin: auto; display: flex; flex-direction: column; gap: var(--gap);
+  padding: calc(48 * var(--u)); background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-card);
+}
+.case-sheet > :not(.case-read) { flex: none; }
+.case-title { margin: 0; font: inherit; }
+.case-title .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
+.case-title .bi-sub { font-size: var(--text-en); line-height: 1.35; }
+.case-read { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.case-read .vignette .bi-main { font-size: calc(42 * var(--u)); line-height: 1.65; }
+.case-read .vignette .bi-sub { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 
 @keyframes booth-pulse { 50% { opacity: .3; transform: scale(.8); } }
 .waiting-dots { display: flex; gap: calc(20 * var(--u)); }

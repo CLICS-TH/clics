@@ -5,7 +5,9 @@ import { readRadar, checkRadar } from '../radar-check.mjs';
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const START_KEY = 'POST /booth/plays';
 const BOARD_KEY = 'GET /booth/board';
-const SIZES = [[1080, 1920], [2160, 3840]];
+/** Portrait 1080x1920 and its 4K double, then landscape (the forum's 50-inch monitor may stand either way), where the
+ *  kiosk is a 9:16 column in the middle of the screen. */
+const SIZES = [[1080, 1920], [2160, 3840], [1920, 1080], [3840, 2160]];
 const BANDS = ['low', 'mid', 'high'];
 const KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const BAD = /on[-\s]?premise|validated\b|certif|ติดตั้งภายในองค์กร|ใบรับรอง/i;

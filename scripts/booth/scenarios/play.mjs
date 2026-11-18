@@ -17,7 +17,9 @@ const FIT_TEXT_EN = {
 };
 /** 120 characters, the bridge ceiling, and one sentence by the backend's rule (no sentence mark before its end). */
 const LONG_BRIDGE_EN = 'You tied the fever and productive cough to the crackles at the right base, so think next about what test will confirm it';
-const SIZES = [[1080, 1920], [2160, 3840]];
+/** Portrait 1080x1920 and its 4K double, then landscape (the forum's 50-inch monitor may stand either way), where the
+ *  kiosk is a 9:16 column in the middle of the screen. */
+const SIZES = [[1080, 1920], [2160, 3840], [1920, 1080], [3840, 2160]];
 const LANGS = ['th', 'en'];
 /** The looks whose primary language is `lang`: the language the AI replies and bridges in. */
 const looksIn = (h, lang) => Object.keys(h.LOOKS).filter((look) => h.LOOKS[look].primary === lang);
@@ -421,7 +423,7 @@ export default [
     },
   },
   {
-    name: 'fit: every bank of every case file, its tallest texts under a 120-character bridge, in each look, at 1080x1920 and 2160x3840',
+    name: 'fit: every bank of every case file, its tallest texts under a 120-character bridge, in each look, portrait and landscape',
     async run(h) {
       const bridges = { th: h.LONG_BRIDGE, en: LONG_BRIDGE_EN };
       h.check(LANGS.every((lang) => [...bridges[lang]].length === 120) && !/[!?…]|\.(?!\d)/u.test(LONG_BRIDGE_EN),
@@ -476,7 +478,7 @@ export default [
     },
   },
   {
-    name: 'fit: three reply fields as long as the server can send, in the look\'s language, under the tallest question and tapped answer of the case files, in each look, at 1080x1920 and 2160x3840',
+    name: 'fit: three reply fields as long as the server can send, in the look\'s language, under the tallest question and tapped answer of the case files, in each look, portrait and landscape',
     async run(h) {
       const visible = (f) => plainOf(f).length;
       if (!h.check([h.FIELD_MAX_CHARS, h.BOLD_MAX_RUNS, h.BOLD_MAX_CHARS].every(Number.isInteger),

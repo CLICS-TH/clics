@@ -5,7 +5,9 @@ import { readRadar, checkRadar } from '../radar-check.mjs';
 const START_KEY = 'POST /booth/plays';
 const REPLY_KEY = 'POST /booth/plays/:id/reply';
 const SCORE_KEY = 'POST /booth/plays/:id/score';
-const SIZES = [[1080, 1920], [2160, 3840]];
+/** Portrait 1080x1920 and its 4K double, then landscape (the forum's 50-inch monitor may stand either way), where the
+ *  kiosk is a 9:16 column in the middle of the screen. */
+const SIZES = [[1080, 1920], [2160, 3840], [1920, 1080], [3840, 2160], [1920, 1080, 'fine']];
 const PHONES = [[375, 812], [320, 640]];
 const KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 /** The five taps, one tier each: every tier, on tier path BRWBR, whose fitted d5 (2.6) is in the middle band only once
@@ -90,12 +92,12 @@ export default [
       h.check(parseResultFragment(`#${resultFragment({ ...r, domains: { ...domains, d5: 2.65 } })}`) === null, 'link: a domain with two decimals does not read');
     },
   },
-  ...SIZES.map(([width, height]) => ({
-    name: `five-step play at ${width}x${height} in each look: "Step n of 5", five replies, the reveal's five rows, one-decimal bars from the fitted table`,
+  ...SIZES.map(([width, height, pointer = 'coarse']) => ({
+    name: `five-step play at ${width}x${height}${pointer === 'fine' ? ', fine pointer,' : ''} in each look: "Step n of 5", five replies, the reveal's five rows, one-decimal bars from the fitted table`,
     async run(h) {
       const stub = h.makeStub({ tree: h.TREE5, table: h.TABLE5 });
       const release = stub.hold(SCORE_KEY);
-      const k = await h.kiosk({ width, height, stub });
+      const k = await h.kiosk({ width, height, pointer, stub });
       const { page } = k;
       const looks = Object.keys(h.LOOKS);
       await k.shell('start');

@@ -12,6 +12,7 @@ import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
 import { revealRows, answersButton } from './booth-answers.js';
+import { openCase, closeCase } from './booth-case.js';
 import { resultUrl, boothDate } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
 import { el, phrases, markedPhrases, bi, textLang, currentLook, onLook } from './booth-dom.js';
@@ -65,6 +66,8 @@ export const SCREEN = Object.freeze(['drawing', 'teaser', 'starting', 'vignette'
 const TERMINAL = new Set(['scored', 'unavailable', 'stopped']);
 /** The screens that offer Start over. A confirm left open outlives a redraw to one of them. */
 const START_OVER = new Set(['vignette', 'step', 'typing', 'replying', 'reply']);
+/** The screens that offer "Read the case again": those after the vignette that show it only in part, or not at all. */
+const READ_CASE = new Set(['step', 'typing', 'replying', 'reply']);
 
 /**
  * Deal cases until the visitor starts one. The cases seen so far live in this call only; the server restarts the
@@ -299,11 +302,16 @@ function render(s, dispatch, { root, host, api, reset }) {
   const { at } = s.screen;
   const view = VIEWS[at](s, { button: buttonsFor(dispatch), host, api });
   if (START_OVER.has(at)) {
-    view.querySelector('.play-foot').append(buttonsFor(() => confirmLeave(host, reset))(
-      labelled(COPY.startOver), 'secondary start-over', () => null, { 'data-action': 'start-over' }));
+    view.querySelector('.play-foot').append(el('div', { class: 'foot-actions' },
+      READ_CASE.has(at) ? buttonsFor(() => openCase(host, s.play.vignette))(
+        labelled(COPY.readCase), 'secondary foot-btn', () => null, { 'data-action': 'read-case' }) : null,
+      buttonsFor(() => confirmLeave(host, reset))(
+        labelled(COPY.startOver), 'secondary foot-btn start-over', () => null, { 'data-action': 'start-over' })));
   } else {
-    // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone.
+    // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone,
+    // and the case it was read beside is over.
     host.querySelector('[data-leave-confirm]')?.remove();
+    closeCase(host);
   }
   draw(root, at, view);
 }

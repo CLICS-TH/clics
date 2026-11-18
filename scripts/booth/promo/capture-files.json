@@ -13,6 +13,7 @@
   "physician-ui/public/js/booth-api.js",
   "physician-ui/public/js/booth-bands.js",
   "physician-ui/public/js/booth-board.js",
+  "physician-ui/public/js/booth-case.js",
   "physician-ui/public/js/booth-copy.js",
   "physician-ui/public/js/booth-dom.js",
   "physician-ui/public/js/booth-domains.js",

@@ -14,7 +14,7 @@
 
 .reveal-overlay {
   position: fixed; inset: 0; z-index: 9; box-sizing: border-box;
-  display: flex; padding: var(--gutter);
+  display: flex; padding: var(--gutter) calc(var(--side) + var(--gutter));
   background: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 .reveal-card {
