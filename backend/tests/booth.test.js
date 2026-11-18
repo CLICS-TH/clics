@@ -27,6 +27,7 @@ const usage = require('../src/lib/usage');
 const { fenced } = require('../src/services/booth');
 const { evaluateRequest } = require('../src/services/booth-dialogue');
 const { compositeScore } = require('../src/services/ple-gate');
+const { displayScore } = require('../src/booth-cases/display-score');
 const app = require('../src/index');
 
 // The fixture case, never a real one: its admission block and its path score table are stand-ins, so the gate is
@@ -2582,10 +2583,15 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
     const composite = Math.round(compositeScore(domains));
     expect(composite).not.toBe(compositeScore(domains));
     const { body } = await score(p);
-    expect(body).toMatchObject({ status: 'scored', composite, domains, rank_event: 1 });
+    // ADR 0013: the visitor sees the display rescale; the row keeps the raw composite and the raw domains.
+    expect(body).toMatchObject({ status: 'scored', composite: displayScore(composite, 5), domains, rank_event: 1 });
+    expect(body.composite).not.toBe(composite);
+    expect(body.board.event[0].score).toBe(displayScore(composite, 5));
     expect(body.steps).toEqual(stepsOf(p));
     expect(body.steps.map((s) => s.tier)).toEqual(['best', 'reasonable', 'weaker', 'reasonable', 'best']);
     expect(plays.get(p.id)).toMatchObject({ status: 'scored', ...domains, composite, tier_path: 'BRWRB', replied_step: 5 });
+    const replay = await score(p);
+    expect(replay.body.composite).toBe(displayScore(composite, 5));
     expect(plays.get(p.id).steps.map((s) => s.reply)).toEqual(p.d.replies);
   });
 
@@ -2737,7 +2743,11 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
       const fiveScore = (await score(five)).body;
       expect(fiveScore).toMatchObject({ status: 'scored', rank_today: 1, rank_event: 1 });
       expect(fiveScore.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
-      expect((await get('/booth/board')).body.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
+      const board = (await get('/booth/board')).body.board;
+      expect(board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
+      // ADR 0013: the loop board shows the display rescale too; raw 50 shows as 62.
+      expect(board.event[1].score).toBe(displayScore(50, 5));
+      expect(board.event[1].score).toBe(62);
       expect(standingsReads()).toHaveLength(2);
       for (const read of standingsReads()) expect(read.likes).toEqual([['tier_path', '_____']]);
     });
