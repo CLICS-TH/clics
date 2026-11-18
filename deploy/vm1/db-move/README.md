@@ -45,7 +45,7 @@ it can be pasted into #432.
 ## Audit chain: a decision before the window
 
 `move.sh` needs `public.audit_log_verify` on the source. Production reports `audit_chain=not_installed`.
-Two ways, and the owner picks one before the rehearsal:
+Two ways. **Decided 2026-11-18: (a).** Option (b) stays in the script as a fallback only:
 
 - **(a) Apply `db/migration-audit-log-chain.sql` to production first** (as `docs/deployment.md` says: the
   backend is already deployed, so the migration goes on, then `GET /oversight/audit-log/verify` answers
@@ -82,7 +82,8 @@ With neither, the preflight stops: `AUDIT_CHAIN=required` refuses a source witho
    with the password URL-encoded and `?sslmode=require` (as `rehearsal/README.md` step 3).
 4. **The users' notice,** a week before: the date and hour; CLICS answers "being moved" for up to an hour;
    everyone signs in once afterwards, with the same password or Google; an unfinished PLE is kept.
-5. **The audit-chain decision** above.
+5. **The audit chain on production** (decision (a) above): `db/migration-audit-log-chain.sql` applied by the
+   owner, `GET /oversight/audit-log/verify` answers `consistent`, and the head is recorded outside Supabase.
 6. **The rehearsal on a copy** (below) has passed, its report is on #432, and the old-password check of
    `rehearsal/README.md` ("Old passwords, for real") says `N of N verify`. If it does not, the force-reset
    plan below is ready and the notice says so.
