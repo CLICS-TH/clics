@@ -295,12 +295,12 @@
       "c": {
         "th": [
           {
-            "strength": "ส่งก๊าซตั้งแต่แรก ทำให้เห็นภาวะ CO2 คั่งได้ทัน",
+            "strength": "ABG วัดค่า CO2 ได้",
             "weigh": "เอกซเรย์จะช่วยได้มากกว่าในตอนนี้ เพราะไข้และเสมหะเขียวทำให้ต้องคิดถึงปอดอักเสบ",
             "safety": ""
           },
           {
-            "strength": "มีก๊าซอยู่ในชุดตรวจ แสดงว่ารู้ว่าความเสี่ยงอยู่ที่ใดเมื่อให้ออกซิเจน",
+            "strength": "เกลือแร่บอกระดับโพแทสเซียม",
             "weigh": "เลือดชุดพื้นฐานตอบคำถามวันนี้ได้น้อยกว่าการดูภาพปอด",
             "safety": ""
           },
@@ -312,12 +312,12 @@
         ],
         "en": [
           {
-            "strength": "Sending the gas early keeps CO2 retention in view.",
+            "strength": "An ABG measures his CO2.",
             "weigh": "A look at the lungs would add more here, since fever and green sputum raise the question of pneumonia.",
             "safety": ""
           },
           {
-            "strength": "Including the gas shows you know where the danger lies on oxygen.",
+            "strength": "Electrolytes show his potassium level.",
             "weigh": "A routine panel answers fewer of today's questions than a look at the lungs would.",
             "safety": ""
           },
@@ -441,34 +441,34 @@
       "c": {
         "th": [
           {
-            "strength": "ใช้ผลเลือดช่วยตัดสินใจเรื่อง**ยาปฏิชีวนะ** สะท้อนการใช้ยาอย่างรอบคอบ",
+            "strength": "CRP เป็นค่าหนึ่งที่ใช้ประกอบการตัดสินใจเรื่องยาปฏิชีวนะ",
             "weigh": "เสมหะเขียวก็สนับสนุนการให้ยาปฏิชีวนะอยู่แล้ว CRP จึงอาจเปลี่ยนแผนไม่มาก",
             "safety": ""
           },
           {
-            "strength": "ผูกการตรวจกับการตัดสินใจที่ชัดเจน ไม่ได้สั่งตามความเคยชิน",
+            "strength": "ABG วัดค่า CO2 ได้",
             "weigh": "CRP สูงได้จากหลายสาเหตุของไข้ จึงช่วยหนุนแต่ไม่ได้ชี้ขาดการเลือกยา",
             "safety": ""
           },
           {
-            "strength": "ให้ CO2 คั่งมาก่อน พร้อมวางแผนการรักษาไปด้วย เป็นลำดับความสำคัญที่ชัด",
+            "strength": "CBC บอกจำนวนเม็ดเลือดขาว",
             "weigh": "ควรดูว่า รพ.ชุมชนได้ผล CRP เร็วพอจะใช้ตัดสินใจวันนี้หรือไม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Using a marker to guide the **antibiotic** decision reflects careful stewardship.",
+            "strength": "A CRP is one marker used in the antibiotic decision.",
             "weigh": "Green sputum already supports an antibiotic, so CRP may change little in this case.",
             "safety": ""
           },
           {
-            "strength": "You tied the tests to a concrete decision rather than ordering them by habit.",
+            "strength": "An ABG measures his CO2.",
             "weigh": "A raised CRP fits several causes of fever, so it supports rather than settles the choice.",
             "safety": ""
           },
           {
-            "strength": "Keeping CO2 retention first while planning treatment shows sound priorities.",
+            "strength": "A blood count shows the white cell count.",
             "weigh": "Worth weighing whether CRP can return fast enough at a community hospital to matter today.",
             "safety": ""
           }
@@ -551,34 +551,34 @@
       "c": {
         "th": [
           {
-            "strength": "ยังเปิดโอกาสสาเหตุจากหัวใจไว้ และใช้การตรวจช่วยแยกแทนการเดา",
+            "strength": "NT-proBNP เป็นการตรวจเลือดที่บอกภาวะหัวใจทำงานหนัก",
             "weigh": "NT-proBNP สูงได้จากภาระของปอดเอง ค่าที่ก้ำกึ่งจึงอาจแยกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "แยก**หัวใจล้มเหลว**จากโรคปอดตั้งแต่ต้น ช่วยไม่ให้พลาดสาเหตุที่สอง",
+            "strength": "ABG วัดค่า CO2 ได้",
             "weigh": "ขาไม่บวม โอกาสเป็นหัวใจล้มเหลวก่อนตรวจจึงไม่สูง ควรชั่งก่อนแปลผล",
             "safety": ""
           },
           {
-            "strength": "ก๊าซในเลือดคู่กับสารบ่งชี้หัวใจ ครอบคลุมสองสาเหตุหอบที่พบบ่อยในวัย 68",
+            "strength": "ทั้งสองอย่างเป็นการตรวจเลือดที่ส่งจากห้องฉุกเฉินได้",
             "weigh": "ควรดูว่า รพ.ชุมชนได้ผลเร็วพอจะเปลี่ยนการดูแลวันนี้หรือไม่",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You kept a heart cause open with a test meant to settle it, not just a hunch.",
+            "strength": "An NT-proBNP is a blood test for heart strain.",
             "weigh": "NT-proBNP can rise with lung strain alone, so a middling value may not settle the question.",
             "safety": ""
           },
           {
-            "strength": "Separating **heart failure** from lung disease early guards against missing a second cause.",
+            "strength": "An ABG measures his CO2.",
             "weigh": "With no leg swelling, the pre-test chance of heart failure here is worth weighing first.",
             "safety": ""
           },
           {
-            "strength": "Pairing the gas with a cardiac marker covers two common causes of breathlessness at 68.",
+            "strength": "Both are blood tests sent from the ER.",
             "weigh": "Worth weighing whether the result returns fast enough at a community hospital to change today's care.",
             "safety": ""
           }
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-opus-5-5",
     "date": "2026-11-18",
-    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank against the version-17 tree. It covered all three Thai and three English alternatives for every option of all 13 banks, against every question variant and every path into each bank.\n\nThis round changed the strength fields of:\n- step1 d and e;\n- step2.B, step2.R and step2.W d, and step2.W e;\n- step3.B/R/W f;\n- alternative 0 of step3.R/W h.\n\nThe weigh and safety fields are unchanged. Each new strength is a plain, true fact about its own option: heart failure as a cause of breathlessness at 68; wheeze in asthma; an ABG measuring CO2; a sputum or blood culture naming a germ later; a CBC giving the white cell count; electrolytes giving potassium; a blood count and electrolytes as basic blood tests; ceftriaxone covering the usual chest bacteria; prednisolone for 5 days treating airway inflammation; amoxicillin as an oral antibiotic. Each holds on every variant and path, and none praises, ranks or grades the choice. The Thai of step2.B and step2.R d alternative 2 now reads \"เป็นการตรวจ\", and the step2.W e alternative 0 strength no longer calls a blood culture routine.\n\nNo reply names another option. ABG, CBC, culture, electrolytes, ceftriaxone and amoxicillin all come from the option's own label, and \"Prednisolone\" appears in no option's label. No edited reply carries a bold run.\n\nAcross the whole bank:\n- No reply states a wrong fact. These were checked closely: macrolide resistance in Thailand, azithromycin and QT, doxycycline photosensitivity, fluoroquinolone restriction and TB masking, beta-lactamase producers against plain amoxicillin, magnesium evidence, and potassium with nebulisers and steroid.\n- No reply previews a later step or asserts a gas or X-ray result that only some paths have.\n- The safety lines are right for each option: CO2 checks on step2.W d and e; NIV escalation on step4.W a, b and d; sedation and an ICU bed on step4.W c; active support with ICU at the bedside on step5.W a, b and d. Options that need none have none.\n\nTree sha256 2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42. Replies sha256 5643352a174b9514f8e80150d4976c9fe37c813c38cdc30143c21a75ef08da3a.",
-    "tree_sha256": "2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42",
-    "replies_sha256": "5643352a174b9514f8e80150d4976c9fe37c813c38cdc30143c21a75ef08da3a"
+    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank against the version-19 tree. It covered all three Thai and three English alternatives for every option of all 13 banks, against every question variant and every path into each bank.\n\nThis round changed the strength fields of:\n- step2.R c, all three alternatives;\n- step2.W c, all three alternatives;\n- step2.B c, alternatives 0 and 1.\n\nThe weigh and safety fields are unchanged. Each new strength is a plain, true fact about its own option: an ABG measures his CO2; electrolytes show potassium; a CRP is one marker used in the antibiotic decision; a blood count shows the white cell count; an NT-proBNP is a blood test for heart strain; ABG and NT-proBNP are both blood tests sent from the ER. None praises, ranks or grades the choice. Each term (ABG, CBC, CRP, electrolytes, NT-proBNP) comes from the option's own label, and no new strength carries a bold run.\n\nThe replies of the restored best lines still fit:\n- step1 b: a likely trigger, and sputum colour as an imperfect marker.\n- step2 b: CO2 first on controlled oxygen.\n- step3 a: a sound choice for a flare with green sputum.\n\nAcross the whole bank:\n- No reply states a wrong fact. These were checked closely: macrolide resistance in Thailand, azithromycin and QT, doxycycline photosensitivity, fluoroquinolone restriction and TB masking, beta-lactamase producers against plain amoxicillin, magnesium evidence, potassium with nebulisers and steroid, and NT-proBNP rising with lung strain.\n- No reply names another option, previews a later step, or asserts a gas or X-ray result that only some paths have.\n- The safety lines are right for each option: CO2 checks on step2.W d and e; NIV escalation on step4.W a, b and d; sedation and an ICU bed on step4.W c; active support with ICU at the bedside on step5.W a, b and d. Every step2 c option contains a blood gas, so it rightly carries none, and the other options that need none have none.\n\nTree sha256 7d491fde81cc90b396e27055a065cbe2283e3f198f0241b5122ed1f70bf7f210. Replies sha256 67eb9e2320f49ff08d2009fb26d7f0fe0adca136d1975d11b56a82938b8e0291.",
+    "tree_sha256": "7d491fde81cc90b396e27055a065cbe2283e3f198f0241b5122ed1f70bf7f210",
+    "replies_sha256": "67eb9e2320f49ff08d2009fb26d7f0fe0adca136d1975d11b56a82938b8e0291"
   }
 }
