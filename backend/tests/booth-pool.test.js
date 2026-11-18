@@ -110,7 +110,7 @@ describe('the event pool holds one step count', () => {
   });
 
   // #497: ten cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
-  // to it, so they are admitted. copd's table (run ptb-202611180708-4072, after its third fix round) failed its
+  // to it, so they are admitted. copd's table (run ptb-202611180804-ca37, after its fourth fix round) failed its
   // re-check, so it is not.
   const FAILED = ['copd-exacerbation'];
   test('NFCME-2026 admits the five-step cases whose table passed its re-check, and only those (#497)', () => {

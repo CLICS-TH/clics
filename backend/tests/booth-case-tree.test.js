@@ -281,7 +281,7 @@ describe('admission', () => {
     expect(cases.filter((k) => !k.banks.step5).map((k) => k.case_id)).toEqual([]);
     expect(cases.filter((k) => k.admission.safety_review?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
     // Every case has a table bound to its tree: dka and motorcycle from run ptb-202611170622-b39a, melioidosis from
-    // run ptb-202611180354-b428 and copd from run ptb-202611180708-4072 (#497, copd's third fix round).
+    // run ptb-202611180354-b428 and copd from run ptb-202611180804-ca37 (#497, copd's fourth fix round).
     expect(cases.filter((k) => !k.path_score_table).map((k) => k.case_id).sort()).toEqual([]);
     expect(cases.filter((k) => k.path_score_table && k.path_score_table.provenance.tree_sha256 !== treeSha(k))
       .map((k) => k.case_id)).toEqual([]);
@@ -291,7 +291,7 @@ describe('admission', () => {
     // sandbox run sbx-202611170505-80f6 failed and the #493 owner waiver covers it); dka-young-adult and
     // motorcycle-shock from #497's last PR (table run ptb-202611170622-b39a passed; sandbox run sbx-202611171429-9729
     // failed on unscored plays only and the #493 owner waiver covers it); melioidosis-farmer from the owner's second fix
-    // round (table run ptb-202611180354-b428 passed). copd-exacerbation (run ptb-202611180708-4072, after its third
+    // round (table run ptb-202611180354-b428 passed). copd-exacerbation (run ptb-202611180804-ca37, after its fourth
     // fix round) failed its re-check, so it holds no table check, sandbox record or waiver.
     expect(admitted.map((k) => k.case_id).sort())
       .toEqual(['adhf', 'alcohol-pancreatitis', 'dka-young-adult', 'ectopic-rupture', 'leptospirosis',

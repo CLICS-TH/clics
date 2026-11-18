@@ -461,7 +461,7 @@ describe('the build runner', () => {
     }
   });
 
-  test('init seeds the ledger with the committed record\'s $115.51 (#497), refuses to run twice, and so refuses every --go under a $115 cap', async () => {
+  test('init seeds the ledger with the committed record\'s $117.07 (#497), refuses to run twice, and so refuses every --go under a $117 cap', async () => {
     const home = tmp();
     const co = checkout();
     const init = () => initIn(co, home);
@@ -469,7 +469,7 @@ describe('the build runner', () => {
     expect(fs.existsSync(ledgerFile(home))).toBe(true);
     const seeded = fs.readFileSync(ledgerFile(home), 'utf8');
     expect(ledgerOf(home)[0]).toMatchObject({ kind: 'init', seeded_from: 'scripts/booth/path-table-runs/spend.jsonl' });
-    expect(spentIn(ledgerOf(home))).toBeCloseTo(115.509946, 6);
+    expect(spentIn(ledgerOf(home))).toBeCloseTo(117.072412, 6);
     const again = init();
     expect(again.status).toBe(2);
     expect(again.stderr).toMatch(/already exists/);
@@ -477,10 +477,10 @@ describe('the build runner', () => {
     expect(fs.readdirSync(path.dirname(ledgerFile(home)))).toEqual(['ledger.jsonl']);
     const rimpl = await stubRimpl({ answer: locked() });
     try {
-      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '115'], goEnv(home, rimpl));
+      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '117'], goEnv(home, rimpl));
       expect(rimpl.calls).toEqual([]);
       expect(res.status).toBe(2);
-      expect(res.stderr).toMatch(/have spent \$115\.51 of the \$115 cap/);
+      expect(res.stderr).toMatch(/have spent \$117\.07 of the \$117 cap/);
     } finally {
       rimpl.close();
     }
