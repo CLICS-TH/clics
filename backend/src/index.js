@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const { limit } = require('./lib/rate-limit');
+const { maintenanceOn, refuseDuringMaintenance } = require('./lib/maintenance');
 
 // Fail closed in production: the encrypted identity vault, signed guest tokens, RIMPL shared secret,
 // and locked CORS all depend on these. Refuse to start without them rather than degrade silently.
@@ -53,6 +54,9 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json({ limit: '1mb' })); // cap payloads (transcripts fit well under 1mb); after CORS
+// The database-move window (#432): with CLICS_MAINTENANCE=1 every route but /health answers 503, before
+// any route can write. After CORS, so the browser can read the 503.
+app.use(refuseDuringMaintenance);
 
 // Rate limits: a general cap + stricter caps on the abuse-prone endpoints (auth + the costly guest AI).
 app.use(limit(60_000, 300, 'Too many requests — slow down.'));            // general: 300/min/IP
@@ -97,7 +101,7 @@ app.use((err, req, res, _next) => {
 // (default 6h; 0/negative disables). First run lands one interval after boot, and a sweep still in
 // flight makes the next tick skip rather than overlap.
 const RECONCILE_INTERVAL_MS = parseInt(process.env.RECONCILE_INTERVAL_MS || `${6 * 60 * 60_000}`, 10);
-if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
+if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0 && !maintenanceOn()) {
   const { reconcileEvaluations } = require('./services/reconcile');
   let sweeping = false;
   setInterval(async () => {
@@ -119,7 +123,10 @@ if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
 // EVAL_DRAIN_INTERVAL_MS is just the fallback tick (default 60s); 0 turns the tick off and leaves the
 // drain kick-only (enqueue sites wake it), which means a deferred retry waits for the next kick.
 const EVAL_DRAIN_INTERVAL_MS = parseInt(process.env.EVAL_DRAIN_INTERVAL_MS || '60000', 10);
-if (process.env.NODE_ENV !== 'test') {
+// Not during the database-move window (CLICS_MAINTENANCE=1): a claim is a write.
+if (process.env.NODE_ENV !== 'test' && maintenanceOn()) {
+  console.log('[maintenance] CLICS_MAINTENANCE=1: every route but /health answers 503; eval drain and reconcile sweep not started');
+} else if (process.env.NODE_ENV !== 'test') {
   require('./services/eval-drain').start({ intervalMs: EVAL_DRAIN_INTERVAL_MS });
   console.log(`[eval-drain] running — fallback tick ${EVAL_DRAIN_INTERVAL_MS > 0 ? `${EVAL_DRAIN_INTERVAL_MS}ms` : 'OFF (kick-only)'},`
     + ` concurrency ${process.env.EVAL_DRAIN_CONCURRENCY || '1'} (setting eval_drain_concurrency wins),`

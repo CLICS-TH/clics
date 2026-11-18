@@ -2,6 +2,7 @@
 // stays a pure liveness ping; GET /health/deep probes the backend's own Supabase plus RIMPL's deep
 // check, so an outage of either surfaces as one clean 503 + a per-dependency map instead of as a
 // per-message 502. Unauthenticated, like /health (no verifyJwt on this router).
+const { maintenanceOn } = require('../lib/maintenance');
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { probeRimplDeep } = require('../services/rimpl-client');
@@ -230,6 +231,8 @@ router.get('/deep', async (_req, res) => {
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'backend',
+    // Only while the database-move switch is on (lib/maintenance.js); the runbook reads it before the dump.
+    ...(maintenanceOn() ? { maintenance: true } : {}),
     checks,
   });
 });
