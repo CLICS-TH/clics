@@ -113,34 +113,34 @@
       "d": {
         "th": [
           {
-            "strength": "การนึกถึง**หัวใจ**ในผู้สูงอายุที่หอบเหนื่อย เป็นนิสัยที่รอบคอบ",
+            "strength": "หัวใจล้มเหลวเป็นสาเหตุหนึ่งของอาการหอบในวัย 68 ปี",
             "weigh": "ขาไม่บวม มีเสียงวี้ดทั้งสองข้าง และเสมหะเขียว ควรชั่งน้ำหนักกับสาเหตุจากหัวใจ",
             "safety": ""
           },
           {
-            "strength": "ไม่ปล่อยให้ประวัติสูบบุหรี่ปิดโอกาสคิดถึงหัวใจเร็วเกินไป",
+            "strength": "ตัวเลือกนี้มองอาการหอบว่ามาจากหัวใจ",
             "weigh": "ไข้ 37.8 °C และเสมหะที่เปลี่ยนสี เข้ากับสาเหตุจากหัวใจได้ไม่ดีนัก",
             "safety": ""
           },
           {
-            "strength": "คิดถึงหัวใจช่วยไม่ให้พลาดสาเหตุที่พบบ่อยของอาการหอบในวัย 68 ปี",
+            "strength": "หัวใจล้มเหลวพบบ่อยในผู้สูงอายุ",
             "weigh": "อาการและสิ่งที่ตรวจพบครั้งนี้ชี้ไปที่หลอดลมมากกว่าการไหลเวียน ควรชั่งน้ำหนักดู",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Keeping the **heart** in mind for an older breathless man is a sound habit.",
+            "strength": "Heart failure is one cause of breathlessness at 68.",
             "weigh": "No leg swelling, wheeze on both sides and green sputum are worth weighing against a cardiac cause.",
             "safety": ""
           },
           {
-            "strength": "You did not let the smoking history close off a cardiac cause too early.",
+            "strength": "This choice reads the breathlessness as cardiac.",
             "weigh": "A fever of 37.8 °C and changed sputum fit poorly with the heart as the whole story.",
             "safety": ""
           },
           {
-            "strength": "Considering the heart guards against missing a common cause of breathlessness at 68.",
+            "strength": "Heart failure is common in older adults.",
             "weigh": "Worth weighing that the findings here sit in the airways more than in the circulation.",
             "safety": ""
           }
@@ -149,34 +149,34 @@
       "e": {
         "th": [
           {
-            "strength": "อ่าน**เสียงวี้ด**และหายใจออกยาวว่าเป็นหลอดลมตีบได้แม่นยำ",
+            "strength": "เสียงวี้ดเป็นอาการที่พบบ่อยในหอบหืด",
             "weigh": "อายุ 68 ปีและสูบบุหรี่ 40 ปี ควรชั่งกับโรคที่มักเริ่มตั้งแต่อายุน้อย",
             "safety": ""
           },
           {
-            "strength": "จับการอุดกั้นทางเดินหายใจได้จากการตรวจร่างกาย เป็นจุดเริ่มที่มั่นคง",
+            "strength": "ตัวเลือกนี้มองเสียงวี้ดว่าเป็นหอบหืด",
             "weigh": "เสมหะเขียวและไข้ต่ำ ๆ เป็นอีกส่วนของเรื่องที่ชื่อโรคนี้ยังไม่ครอบคลุม",
             "safety": ""
           },
           {
-            "strength": "เชื่อมเสียงวี้ดกับหายใจออกยาวเข้ากับหลอดลมตีบ เป็นเหตุผลข้างเตียงที่หนักแน่น",
+            "strength": "หอบหืดเป็นสาเหตุหนึ่งของเสียงวี้ดและอาการหอบ",
             "weigh": "ประวัติสูบบุหรี่นานมีน้ำหนักมากต่อการบอกว่าเป็นโรคหลอดลมชนิดใด",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You read the **wheeze** and long expiration accurately as narrowed airways.",
+            "strength": "Wheeze is a common sign of asthma.",
             "weigh": "Age 68 with 40 years of smoking is worth weighing against a diagnosis that usually begins earlier in life.",
             "safety": ""
           },
           {
-            "strength": "Spotting airflow obstruction from the exam is a solid start.",
+            "strength": "This choice reads the wheeze as asthma.",
             "weigh": "His green sputum and low fever add a part of the story this label does not cover.",
             "safety": ""
           },
           {
-            "strength": "Linking wheeze with a long expiration to tight airways is sound bedside reasoning.",
+            "strength": "Asthma is one cause of wheeze and breathlessness.",
             "weigh": "The long smoking history weighs heavily on what kind of airway disease this is.",
             "safety": ""
           }
@@ -259,34 +259,34 @@
       "d": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับ **CO2 คั่ง** ซึ่งผูกกับความปลอดภัยของการให้ออกซิเจนโดยตรง",
+            "strength": "ABG วัดค่า CO2 ได้",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงแทบไม่เปลี่ยนการดูแลวันนี้ใน รพ.ชุมชน",
             "safety": ""
           },
           {
-            "strength": "อยากรู้เชื้อที่ทำให้เสมหะเขียว แสดงว่าใส่ใจกับสาเหตุของอาการ",
+            "strength": "การเพาะเชื้อเสมหะอาจบอกชื่อเชื้อได้ภายหลัง",
             "weigh": "ผลเพาะเชื้อมักกลับมาช้าเกินกว่าจะช่วยการตัดสินใจในชั่วโมงแรก",
             "safety": ""
           },
           {
-            "strength": "เริ่มจากก๊าซในเลือด ให้ความสำคัญกับการหายใจ เหมาะกับ SpO2 88% ตอนแรกรับ",
+            "strength": "ชุดนี้เป็นการตรวจเลือดหนึ่งอย่างและตรวจเสมหะหนึ่งอย่าง",
             "weigh": "เสมหะมักปนเชื้อในช่องปาก ผลเพาะเชื้อจึงอาจทำให้สับสนมากกว่าช่วยตัดสินใจ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You kept **CO2 retention** in view, the result most tied to his safety on oxygen.",
+            "strength": "An ABG measures his CO2.",
             "weigh": "Sputum results take days, so they seldom shape today's care at a community hospital.",
             "safety": ""
           },
           {
-            "strength": "Wanting to know the germ behind the green sputum shows attention to the cause.",
+            "strength": "A sputum culture can name the germ later.",
             "weigh": "A germ result rarely returns in time to guide the first hours of his care.",
             "safety": ""
           },
           {
-            "strength": "Starting with the gas puts his ventilation first, which fits SpO2 88% on arrival.",
+            "strength": "This pair is one blood test and one sputum test.",
             "weigh": "Sputum often carries mouth germs, so a result may confuse more than guide.",
             "safety": ""
           }
@@ -405,34 +405,34 @@
       "d": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับ **CO2 คั่ง** ซึ่งผูกกับความปลอดภัยของการให้ออกซิเจนโดยตรง",
+            "strength": "ABG วัดค่า CO2 ได้",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงแทบไม่เปลี่ยนการดูแลวันนี้ใน รพ.ชุมชน",
             "safety": ""
           },
           {
-            "strength": "อยากรู้เชื้อที่ทำให้เสมหะเขียว แสดงว่าใส่ใจกับสาเหตุของอาการ",
+            "strength": "การเพาะเชื้อเสมหะอาจบอกชื่อเชื้อได้ภายหลัง",
             "weigh": "ผลเพาะเชื้อมักกลับมาช้าเกินกว่าจะช่วยการตัดสินใจในชั่วโมงแรก",
             "safety": ""
           },
           {
-            "strength": "เริ่มจากก๊าซในเลือด ให้ความสำคัญกับการหายใจ เหมาะกับ SpO2 88% ตอนแรกรับ",
+            "strength": "ชุดนี้เป็นการตรวจเลือดหนึ่งอย่างและตรวจเสมหะหนึ่งอย่าง",
             "weigh": "เสมหะมักปนเชื้อในช่องปาก ผลเพาะเชื้อจึงอาจทำให้สับสนมากกว่าช่วยตัดสินใจ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You kept **CO2 retention** in view, the result most tied to his safety on oxygen.",
+            "strength": "An ABG measures his CO2.",
             "weigh": "Sputum results take days, so they seldom shape today's care at a community hospital.",
             "safety": ""
           },
           {
-            "strength": "Wanting to know the germ behind the green sputum shows attention to the cause.",
+            "strength": "A sputum culture can name the germ later.",
             "weigh": "A germ result rarely returns in time to guide the first hours of his care.",
             "safety": ""
           },
           {
-            "strength": "Starting with the gas puts his ventilation first, which fits SpO2 88% on arrival.",
+            "strength": "This pair is one blood test and one sputum test.",
             "weigh": "Sputum often carries mouth germs, so a result may confuse more than guide.",
             "safety": ""
           }
@@ -587,34 +587,34 @@
       "d": {
         "th": [
           {
-            "strength": "หาเชื้อที่ทำให้เสมหะเขียว แสดงว่าคิดถึงตัวกระตุ้น",
+            "strength": "การเพาะเชื้อเสมหะอาจบอกชื่อเชื้อได้ภายหลัง",
             "weigh": "SpO2 88% ตอนแรกรับ ทำให้การตรวจก๊าซดู CO2 เร่งด่วนกว่าการเพาะเชื้อ",
             "safety": "ขณะได้ออกซิเจน CO2 อาจคั่งโดยไม่มีอาการชัด หากเริ่มซึมให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "CBC และการเพาะเชื้อส่งง่าย และช่วยเลือกยาฆ่าเชื้อภายหลัง",
+            "strength": "CBC และการเพาะเชื้อส่งได้ง่าย",
             "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ขณะที่การตั้งเป้าออกซิเจนต้องรู้ค่า CO2 ภายในชั่วโมงนี้",
             "safety": "หากซึมลงหรือหายใจช้าลงขณะได้ออกซิเจน อาจเป็น CO2 คั่ง ให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "คิดถึงการติดเชื้อ เข้ากับไข้และเสมหะที่เปลี่ยนสี",
+            "strength": "CBC บอกจำนวนเม็ดเลือดขาว",
             "weigh": "ผลเพาะเชื้อมักไม่เปลี่ยนยาฆ่าเชื้อตัวแรก ค่า CO2 ต่างหากที่กำหนดการดูแลวันนี้",
             "safety": "CO2 คั่งอาจเงียบขณะได้ออกซิเจน ให้สังเกตความรู้สึกตัว และตรวจก๊าซหากเริ่มล้า"
           }
         ],
         "en": [
           {
-            "strength": "Looking for the germ behind green sputum shows you are thinking about the trigger.",
+            "strength": "A sputum culture can name the germ later.",
             "weigh": "His SpO2 of 88% on arrival makes a gas for CO2 more urgent than a culture.",
             "safety": "On oxygen he can retain CO2 unseen: if he grows drowsy, check a gas at once."
           },
           {
-            "strength": "A count and culture are simple to send and guide a later antibiotic choice.",
+            "strength": "A count and culture are simple to send.",
             "weigh": "Sputum results take days, while his oxygen target needs a CO2 answer within the hour.",
             "safety": "Drowsiness or a slowing breath rate on oxygen can mean rising CO2: check a gas at once."
           },
           {
-            "strength": "Thinking about infection fits his fever and the change in sputum colour.",
+            "strength": "A CBC shows the white cell count.",
             "weigh": "Culture rarely changes the first antibiotic in a flare like this; the CO2 level guides today's care.",
             "safety": "Rising CO2 can be silent on oxygen: watch his alertness and check a gas if he tires."
           }
@@ -623,34 +623,34 @@
       "e": {
         "th": [
           {
-            "strength": "ตรวจเลือดครบชุด ทำให้แทบไม่มีค่าพื้นฐานใดตกหล่น",
+            "strength": "CBC และเกลือแร่เป็นการตรวจเลือดพื้นฐาน",
             "weigh": "SpO2 88% ทำให้การดู CO2 เป็นการตรวจที่เปลี่ยนการดูแลได้ก่อน",
             "safety": "ขณะได้ออกซิเจน CO2 อาจคั่งโดยไม่มีอาการชัด หากเริ่มซึมให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "เพาะเชื้อในเลือดเข้ากับไข้ และอาจได้ชื่อเชื้อหากเกิดติดเชื้อในกระแสเลือด",
+            "strength": "เพาะเชื้อในเลือดอาจได้ชื่อเชื้อหากมีเชื้อในกระแสเลือด",
             "weigh": "เลือดชุดใหญ่ตอบคำถามวันนี้ได้น้อยกว่าผลก๊าซและภาพปอด",
             "safety": "หากซึมลงหรือหายใจช้าลงขณะได้ออกซิเจน อาจเป็น CO2 คั่ง ให้ตรวจก๊าซทันที"
           },
           {
-            "strength": "เกลือแร่ช่วยจับโพแทสเซียมต่ำจากยาพ่นได้เร็ว",
+            "strength": "เกลือแร่บอกระดับโพแทสเซียม",
             "weigh": "ไข้ต่ำและรู้สึกตัวดี เรื่องติดเชื้อในกระแสเลือดจึงน่ากังวลน้อยกว่า CO2 ขณะได้ออกซิเจน",
             "safety": "CO2 คั่งอาจเงียบขณะได้ออกซิเจน ให้สังเกตความรู้สึกตัว และตรวจก๊าซหากเริ่มล้า"
           }
         ],
         "en": [
           {
-            "strength": "Being thorough with the bloods leaves little unchecked in the routine panel.",
+            "strength": "A blood count and electrolytes are basic blood tests.",
             "weigh": "His SpO2 of 88% makes a CO2 check the test that changes care first.",
             "safety": "On oxygen he can retain CO2 unseen: if he grows drowsy, check a gas at once."
           },
           {
-            "strength": "Blood cultures fit his fever and may name the germ if he becomes septic.",
+            "strength": "A blood culture can name the germ if it is in his blood.",
             "weigh": "A full panel answers fewer of today's questions than a gas and a look at the lungs.",
             "safety": "Drowsiness or a slowing breath rate on oxygen can mean rising CO2: check a gas at once."
           },
           {
-            "strength": "Electrolytes catch a low potassium from nebulisers early.",
+            "strength": "Electrolytes show his potassium level.",
             "weigh": "With a low fever and a clear mind, sepsis is less of a worry than his CO2 on oxygen.",
             "safety": "Rising CO2 can be silent on oxygen: watch his alertness and check a gas if he tires."
           }
@@ -769,34 +769,34 @@
       "f": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับเชื้อที่เป็นตัวกระตุ้น และต้องการให้ยาครอบคลุมแน่นอน",
+            "strength": "ceftriaxone ครอบคลุมเชื้อทางเดินหายใจที่พบบ่อย",
             "weigh": "ยาฉีดออกฤทธิ์กว้างมักเก็บไว้ใช้กับผู้ป่วยที่หนักกว่า ที่นี่อาจเพิ่มเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "จับคู่ **pred 5 วัน** กับยาฆ่าเชื้อ จัดการทั้งหลอดลมและตัวกระตุ้น",
+            "strength": "pred 5 วันลดการอักเสบของหลอดลม",
             "weigh": "เขารู้ตัวดีและกลืนได้ ยาฉีดจึงเพิ่มการเปิดเส้นและผูกเขาไว้กับหอผู้ป่วย",
             "safety": ""
           },
           {
-            "strength": "เลือก**ครอบคลุมเชื้อกว้าง** สะท้อนความระวังไม่ให้พลาดเชื้อดื้อยา",
+            "strength": "ยาฉีดให้ในหอผู้ป่วย",
             "weigh": "ยาออกฤทธิ์กว้างเพิ่มโอกาสเชื้อดื้อยาและท้องเสียในผู้สูงอายุ ควรชั่งให้ดี",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You took the bacterial trigger seriously and made sure the cover is reliable.",
+            "strength": "Ceftriaxone covers the usual chest bacteria.",
             "weigh": "Broad IV cover is usually kept for sicker patients; here it adds resistance pressure for uncertain gain.",
             "safety": ""
           },
           {
-            "strength": "Pairing **Pred 5 days** with an antibiotic treats both the airways and the likely trigger.",
+            "strength": "Prednisolone for 5 days treats the airway inflammation.",
             "weigh": "He is alert and can swallow, so an IV line adds a cannula and ties him to the ward.",
             "safety": ""
           },
           {
-            "strength": "Choosing **broad IV cover** reflects caution about missing a resistant germ.",
+            "strength": "An IV drug is given on the ward.",
             "weigh": "Worth weighing that broad cover raises the risk of resistant germs and diarrhoea in older adults.",
             "safety": ""
           }
@@ -951,34 +951,34 @@
       "f": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับเชื้อที่เป็นตัวกระตุ้น และต้องการให้ยาครอบคลุมแน่นอน",
+            "strength": "ceftriaxone ครอบคลุมเชื้อทางเดินหายใจที่พบบ่อย",
             "weigh": "ยาฉีดออกฤทธิ์กว้างมักเก็บไว้ใช้กับผู้ป่วยที่หนักกว่า ที่นี่อาจเพิ่มเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "จับคู่ **pred 5 วัน** กับยาฆ่าเชื้อ จัดการทั้งหลอดลมและตัวกระตุ้น",
+            "strength": "pred 5 วันลดการอักเสบของหลอดลม",
             "weigh": "เขารู้ตัวดีและกลืนได้ ยาฉีดจึงเพิ่มการเปิดเส้นและผูกเขาไว้กับหอผู้ป่วย",
             "safety": ""
           },
           {
-            "strength": "เลือก**ครอบคลุมเชื้อกว้าง** สะท้อนความระวังไม่ให้พลาดเชื้อดื้อยา",
+            "strength": "ยาฉีดให้ในหอผู้ป่วย",
             "weigh": "ยาออกฤทธิ์กว้างเพิ่มโอกาสเชื้อดื้อยาและท้องเสียในผู้สูงอายุ ควรชั่งให้ดี",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You took the bacterial trigger seriously and made sure the cover is reliable.",
+            "strength": "Ceftriaxone covers the usual chest bacteria.",
             "weigh": "Broad IV cover is usually kept for sicker patients; here it adds resistance pressure for uncertain gain.",
             "safety": ""
           },
           {
-            "strength": "Pairing **Pred 5 days** with an antibiotic treats both the airways and the likely trigger.",
+            "strength": "Prednisolone for 5 days treats the airway inflammation.",
             "weigh": "He is alert and can swallow, so an IV line adds a cannula and ties him to the ward.",
             "safety": ""
           },
           {
-            "strength": "Choosing **broad IV cover** reflects caution about missing a resistant germ.",
+            "strength": "An IV drug is given on the ward.",
             "weigh": "Worth weighing that broad cover raises the risk of resistant germs and diarrhoea in older adults.",
             "safety": ""
           }
@@ -1023,7 +1023,7 @@
       "h": {
         "th": [
           {
-            "strength": "สเตียรอยด์ 5 วันคู่ยาฆ่าเชื้อ ดูแลทั้งการกำเริบและเสมหะเขียว",
+            "strength": "amoxicillin เป็นยาฆ่าเชื้อชนิดกิน",
             "weigh": "เชื้อทางเดินหายใจหลายตัวสร้างเอนไซม์เบตาแลคแทมเมส ซึ่งทำลาย amoxicillin ได้",
             "safety": ""
           },
@@ -1040,7 +1040,7 @@
         ],
         "en": [
           {
-            "strength": "Pairing a 5-day steroid with an antibiotic treats both the flare and the green sputum.",
+            "strength": "Amoxicillin is an oral antibiotic.",
             "weigh": "Many chest bacteria make beta-lactamase, which breaks down plain amoxicillin.",
             "safety": ""
           },
@@ -1169,34 +1169,34 @@
       "f": {
         "th": [
           {
-            "strength": "ให้ความสำคัญกับเชื้อที่เป็นตัวกระตุ้น และต้องการให้ยาครอบคลุมแน่นอน",
+            "strength": "ceftriaxone ครอบคลุมเชื้อทางเดินหายใจที่พบบ่อย",
             "weigh": "ยาฉีดออกฤทธิ์กว้างมักเก็บไว้ใช้กับผู้ป่วยที่หนักกว่า ที่นี่อาจเพิ่มเชื้อดื้อยา",
             "safety": ""
           },
           {
-            "strength": "จับคู่ **pred 5 วัน** กับยาฆ่าเชื้อ จัดการทั้งหลอดลมและตัวกระตุ้น",
+            "strength": "pred 5 วันลดการอักเสบของหลอดลม",
             "weigh": "เขารู้ตัวดีและกลืนได้ ยาฉีดจึงเพิ่มการเปิดเส้นและผูกเขาไว้กับหอผู้ป่วย",
             "safety": ""
           },
           {
-            "strength": "เลือก**ครอบคลุมเชื้อกว้าง** สะท้อนความระวังไม่ให้พลาดเชื้อดื้อยา",
+            "strength": "ยาฉีดให้ในหอผู้ป่วย",
             "weigh": "ยาออกฤทธิ์กว้างเพิ่มโอกาสเชื้อดื้อยาและท้องเสียในผู้สูงอายุ ควรชั่งให้ดี",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "You took the bacterial trigger seriously and made sure the cover is reliable.",
+            "strength": "Ceftriaxone covers the usual chest bacteria.",
             "weigh": "Broad IV cover is usually kept for sicker patients; here it adds resistance pressure for uncertain gain.",
             "safety": ""
           },
           {
-            "strength": "Pairing **Pred 5 days** with an antibiotic treats both the airways and the likely trigger.",
+            "strength": "Prednisolone for 5 days treats the airway inflammation.",
             "weigh": "He is alert and can swallow, so an IV line adds a cannula and ties him to the ward.",
             "safety": ""
           },
           {
-            "strength": "Choosing **broad IV cover** reflects caution about missing a resistant germ.",
+            "strength": "An IV drug is given on the ward.",
             "weigh": "Worth weighing that broad cover raises the risk of resistant germs and diarrhoea in older adults.",
             "safety": ""
           }
@@ -1241,7 +1241,7 @@
       "h": {
         "th": [
           {
-            "strength": "สเตียรอยด์ 5 วันคู่ยาฆ่าเชื้อ ดูแลทั้งการกำเริบและเสมหะเขียว",
+            "strength": "amoxicillin เป็นยาฆ่าเชื้อชนิดกิน",
             "weigh": "เชื้อทางเดินหายใจหลายตัวสร้างเอนไซม์เบตาแลคแทมเมส ซึ่งทำลาย amoxicillin ได้",
             "safety": ""
           },
@@ -1258,7 +1258,7 @@
         ],
         "en": [
           {
-            "strength": "Pairing a 5-day steroid with an antibiotic treats both the flare and the green sputum.",
+            "strength": "Amoxicillin is an oral antibiotic.",
             "weigh": "Many chest bacteria make beta-lactamase, which breaks down plain amoxicillin.",
             "safety": ""
           },
@@ -2226,9 +2226,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-17",
-    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank against the round-8 tree. It covered all three Thai and three English replies for every option of all 13 banks, against every question variant and every path into each bank. The bank did not change in this round. The replies to the edited options (step1 a and b, step2.B/R/W a and b, step3.B/R/W a and b) carry no bold run, so none quotes an old line. Each still fits the plainer new line and the unchanged label:\n- step2 a \"These tests search for what set off the flare\" holds, since the CXR and ECG look for pneumonia and arrhythmia.\n- step1 b \"Reading the sputum change as infection\" draws on the vignette's sputum change, which every path shows.\n- step3 a and b \"A sound choice for a flare with green sputum\" and \"A standard oral antibiotic for this flare\" hold on every step-3 variant.\n\nAcross the whole bank:\n- No reply states a wrong fact. These were checked closely: macrolide resistance in Thailand, azithromycin and QT, doxycycline photosensitivity, fluoroquinolone restriction and TB masking, beta-lactamase producers against plain amoxicillin, magnesium evidence, and potassium with nebulisers and steroid.\n- No reply ranks or grades the choice, previews a later step or names another option.\n- No reply asserts a gas or X-ray that only some paths have.\n- The safety lines are right for each option: CO2 checks on step2.W d and e; NIV escalation on step4.W a, b and d; sedation and an ICU bed on step4.W c; active support with ICU at the bedside on step5.W a, b and d. Options that need none have none.\n\nTree sha256 9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e. Replies sha256 995e7d7f94df3c0f92081913fa5a5dd3273d6a06f7e6d67f4354431d141ec4b1.",
-    "tree_sha256": "9f7707e0612c0c3dd5fda67a9af675490472e26bae3fa0ae4bba99d8ec015b4e",
-    "replies_sha256": "995e7d7f94df3c0f92081913fa5a5dd3273d6a06f7e6d67f4354431d141ec4b1"
+    "date": "2026-11-18",
+    "findings": "This is a re-check by a non-author of the copd-exacerbation reply bank against the version-17 tree. It covered all three Thai and three English alternatives for every option of all 13 banks, against every question variant and every path into each bank.\n\nThis round changed the strength fields of:\n- step1 d and e;\n- step2.B, step2.R and step2.W d, and step2.W e;\n- step3.B/R/W f;\n- alternative 0 of step3.R/W h.\n\nThe weigh and safety fields are unchanged. Each new strength is a plain, true fact about its own option: heart failure as a cause of breathlessness at 68; wheeze in asthma; an ABG measuring CO2; a sputum or blood culture naming a germ later; a CBC giving the white cell count; electrolytes giving potassium; a blood count and electrolytes as basic blood tests; ceftriaxone covering the usual chest bacteria; prednisolone for 5 days treating airway inflammation; amoxicillin as an oral antibiotic. Each holds on every variant and path, and none praises, ranks or grades the choice. The Thai of step2.B and step2.R d alternative 2 now reads \"เป็นการตรวจ\", and the step2.W e alternative 0 strength no longer calls a blood culture routine.\n\nNo reply names another option. ABG, CBC, culture, electrolytes, ceftriaxone and amoxicillin all come from the option's own label, and \"Prednisolone\" appears in no option's label. No edited reply carries a bold run.\n\nAcross the whole bank:\n- No reply states a wrong fact. These were checked closely: macrolide resistance in Thailand, azithromycin and QT, doxycycline photosensitivity, fluoroquinolone restriction and TB masking, beta-lactamase producers against plain amoxicillin, magnesium evidence, and potassium with nebulisers and steroid.\n- No reply previews a later step or asserts a gas or X-ray result that only some paths have.\n- The safety lines are right for each option: CO2 checks on step2.W d and e; NIV escalation on step4.W a, b and d; sedation and an ICU bed on step4.W c; active support with ICU at the bedside on step5.W a, b and d. Options that need none have none.\n\nTree sha256 2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42. Replies sha256 5643352a174b9514f8e80150d4976c9fe37c813c38cdc30143c21a75ef08da3a.",
+    "tree_sha256": "2e4e8fa154616eed0e05d2506b1fd6016ed6e19776a3be202fb1977665d43f42",
+    "replies_sha256": "5643352a174b9514f8e80150d4976c9fe37c813c38cdc30143c21a75ef08da3a"
   }
 }
