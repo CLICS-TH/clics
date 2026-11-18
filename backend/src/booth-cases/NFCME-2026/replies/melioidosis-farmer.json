@@ -295,34 +295,34 @@
       "c": {
         "th": [
           {
-            "strength": "การส่ง**เอกซเรย์ปอด** ให้ภาพปอดตั้งต้นไว้ติดตาม",
+            "strength": "เอกซเรย์ปอดแสดงภาพของปอด",
             "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "ชุดตรวจแรกนี้ทำได้เร็วและมีในโรงพยาบาลส่วนใหญ่",
+            "strength": "การตรวจสองอย่างนี้ทำเป็นประจำในโรงพยาบาลส่วนใหญ่",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "ผลเพาะเชื้อเลือดที่ขึ้นเป็นหลักฐานยืนยันเชื้อโดยตรง",
+            "strength": "การเพาะเชื้อเลือดอาจพบเชื้อได้",
             "weigh": "การมองเป็นปอดอักเสบทั่วไป อาจทำให้ขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **chest X-ray** gives a baseline picture of the lung to follow.",
+            "strength": "A chest X-ray shows the lung.",
             "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
             "safety": ""
           },
           {
-            "strength": "This **usual first pair** is quick and available in most hospitals.",
+            "strength": "These two tests are routine in most hospitals.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "A blood culture gives direct proof of the organism when it grows.",
+            "strength": "A blood culture can grow the organism.",
             "weigh": "Treating this as any pneumonia can leave out the extra sites this disease asks you to sample.",
             "safety": ""
           }
@@ -331,34 +331,34 @@
       "d": {
         "th": [
           {
-            "strength": "**CBC** และค่าไตให้ภาพพื้นฐาน ในผู้ป่วยที่ชีพจรและการหายใจเร็ว",
+            "strength": "CBC และค่าไตเป็นเลือดพื้นฐานตอนรับไว้",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "ค่าไตตั้งต้นช่วยได้หากต้องปรับขนาดยาภายหลัง",
+            "strength": "ค่าไตบอกการทำงานของไต",
             "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "**ชุดเลือด**นี้ส่งได้เร็วและทำได้ทุกโรงพยาบาล",
+            "strength": "เลือดชุดนี้ส่งได้เร็ว",
             "weigh": "ชุดตรวจตามปกติดูแลเหมือนผู้ป่วยทั่วไป อาจขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **CBC** and creatinine give a baseline for a patient with a fast pulse and breathing.",
+            "strength": "A CBC and creatinine are routine admission bloods.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "Baseline kidney function helps if drug doses need adjusting later.",
+            "strength": "Creatinine shows his kidney function.",
             "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
             "safety": ""
           },
           {
-            "strength": "The **routine blood set** is quick to send and widely available.",
+            "strength": "These bloods are quick to send.",
             "weigh": "A routine set treats him like any admission and leaves out the sites this disease asks you to sample.",
             "safety": ""
           }
@@ -441,34 +441,34 @@
       "b": {
         "th": [
           {
-            "strength": "การส่ง**เสมหะหาวัณโรค**ในผู้ป่วยเบาหวานที่ไอและน้ำหนักลด ช่วยไม่มองข้ามโรคที่พบบ่อย",
+            "strength": "การส่งเสมหะใช้ตรวจหาวัณโรค",
             "weigh": "ไข้สูงเฉียบพลันและการลงนาในโคลนหน้าฝน ยังควรชั่งร่วมกับผลตรวจนี้",
             "safety": ""
           },
           {
-            "strength": "การหาเชื้อในเลือดและตรวจเสมหะไปพร้อมกัน ช่วยประหยัดเวลาในการแยกโรค",
+            "strength": "การเพาะเชื้อเลือดใช้หาเชื้อในกระแสเลือด",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "การนึกถึงโรคที่แพร่สู่ผู้อื่นได้ ช่วยให้วางมาตรการป้องกันในหอผู้ป่วยได้ทัน",
+            "strength": "การตรวจหาวัณโรคมีในโรงพยาบาลไทยส่วนใหญ่",
             "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Sending **sputum TB tests** in a diabetic with cough and weight loss keeps a common Thai infection in view.",
+            "strength": "Sputum TB tests look for tuberculosis.",
             "weigh": "The high fever of only 10 days and rainy-season mud work still deserve weight alongside these results.",
             "safety": ""
           },
           {
-            "strength": "Looking for **bacteraemia** and testing sputum together saves time in sorting the cause.",
+            "strength": "The blood culture looks for bacteraemia.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "Thinking of a transmissible infection allows timely isolation on the ward.",
+            "strength": "TB tests are available in most Thai hospitals.",
             "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
             "safety": ""
           }
@@ -477,34 +477,34 @@
       "c": {
         "th": [
           {
-            "strength": "การส่ง**เอกซเรย์ปอด** ให้ภาพปอดตั้งต้นไว้ติดตาม",
+            "strength": "เอกซเรย์ปอดแสดงภาพของปอด",
             "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "ชุดตรวจแรกนี้ทำได้เร็วและมีในโรงพยาบาลส่วนใหญ่",
+            "strength": "การตรวจสองอย่างนี้ทำเป็นประจำในโรงพยาบาลส่วนใหญ่",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "ผลเพาะเชื้อเลือดที่ขึ้นเป็นหลักฐานยืนยันเชื้อโดยตรง",
+            "strength": "การเพาะเชื้อเลือดอาจพบเชื้อได้",
             "weigh": "การมองเป็นปอดอักเสบทั่วไป อาจทำให้ขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **chest X-ray** gives a baseline picture of the lung to follow.",
+            "strength": "A chest X-ray shows the lung.",
             "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
             "safety": ""
           },
           {
-            "strength": "This **usual first pair** is quick and available in most hospitals.",
+            "strength": "These two tests are routine in most hospitals.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "A blood culture gives direct proof of the organism when it grows.",
+            "strength": "A blood culture can grow the organism.",
             "weigh": "Treating this as any pneumonia can leave out the extra sites this disease asks you to sample.",
             "safety": ""
           }
@@ -587,34 +587,34 @@
       "b": {
         "th": [
           {
-            "strength": "การส่ง**ตรวจเลปโตด่วน**ควบคู่กับเพาะเชื้อ ช่วยตอบคำถามจากการลงโคลนได้เร็ว",
+            "strength": "ชุดตรวจเลปโตด่วนให้ผลได้เร็ว",
             "weigh": "ชุดตรวจเร็วมีความไวจำกัด และอาการเด่นที่ปอดยังควรชั่งร่วมกับผลนี้",
             "safety": ""
           },
           {
-            "strength": "การหาเชื้อในเลือดและตรวจแยกโรคไปพร้อมกัน ช่วยประหยัดเวลาในผู้ป่วยที่ป่วยหนัก",
+            "strength": "การเพาะเชื้อเลือดใช้หาเชื้อในกระแสเลือด",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "การนำประวัติอาชีพมากำหนดการตรวจ แสดงการคิดตามความเสี่ยงของผู้ป่วยรายนี้",
+            "strength": "เลปโตสไปโรสิสพบบ่อยในชาวนา",
             "weigh": "ควรแจ้งห้องปฏิบัติการว่าสงสัยเชื้อใด เพื่อเพาะเชื้อได้เหมาะและปลอดภัย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Adding a **rapid lepto test** answers the mud-exposure question quickly.",
+            "strength": "A rapid lepto test gives a quick result.",
             "weigh": "Rapid tests have limited sensitivity, and the chest-led illness still deserves weight beside the result.",
             "safety": ""
           },
           {
-            "strength": "Looking for **bacteraemia** and testing at once saves time in a sick patient.",
+            "strength": "The blood culture looks for bacteraemia.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "Letting his work history shape the tests reflects reasoning from his own risks.",
+            "strength": "Leptospirosis is common in rice farmers.",
             "weigh": "Telling the lab what is suspected helps it pick suitable media and handle the organism safely.",
             "safety": ""
           }
@@ -623,34 +623,34 @@
       "c": {
         "th": [
           {
-            "strength": "**CBC** และค่าไตให้ภาพพื้นฐาน ในผู้ป่วยที่ชีพจรและการหายใจเร็ว",
+            "strength": "CBC และค่าไตเป็นเลือดพื้นฐานตอนรับไว้",
             "weigh": "การกดเจ็บใต้ชายโครงซ้ายยังควรชั่ง ว่าโรคอาจอยู่นอกปอดด้วยหรือไม่",
             "safety": ""
           },
           {
-            "strength": "ค่าไตตั้งต้นช่วยได้หากต้องปรับขนาดยาภายหลัง",
+            "strength": "ค่าไตบอกการทำงานของไต",
             "weigh": "การเพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ผลลบจึงยังตัดโรคนี้ออกไม่ได้",
             "safety": ""
           },
           {
-            "strength": "**ชุดเลือด**นี้ส่งได้เร็วและทำได้ทุกโรงพยาบาล",
+            "strength": "เลือดชุดนี้ส่งได้เร็ว",
             "weigh": "ชุดตรวจตามปกติดูแลเหมือนผู้ป่วยทั่วไป อาจขาดการเก็บตัวอย่างจากตำแหน่งอื่นที่โรคนี้ต้องการ",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **CBC** and creatinine give a baseline for a patient with a fast pulse and breathing.",
+            "strength": "A CBC and creatinine are routine admission bloods.",
             "weigh": "The tender left upper abdomen still deserves weight as a sign of disease beyond the lung.",
             "safety": ""
           },
           {
-            "strength": "Baseline kidney function helps if drug doses need adjusting later.",
+            "strength": "Creatinine shows his kidney function.",
             "weigh": "A blood culture alone misses some cases, so a negative result leaves the diagnosis open.",
             "safety": ""
           },
           {
-            "strength": "The **routine blood set** is quick to send and widely available.",
+            "strength": "These bloods are quick to send.",
             "weigh": "A routine set treats him like any admission and leaves out the sites this disease asks you to sample.",
             "safety": ""
           }
@@ -1825,34 +1825,34 @@
       "c": {
         "th": [
           {
-            "strength": "การ**ติดตามที่ รพ.จังหวัด** ทำให้อายุรแพทย์ดูยาและภาวะแทรกซ้อนได้ใกล้ชิด",
+            "strength": "การติดตามที่ รพ.จังหวัด ส่งผู้ป่วยไปพบอายุรแพทย์",
             "weigh": "การเดินทางไกลไปโรงพยาบาลจังหวัดเป็นภาระของชาวนา ซึ่งอาจกระทบการมาตามนัด",
             "safety": ""
           },
           {
-            "strength": "การให้อายุรแพทย์ร่วมดูแล ช่วยจับภาวะแทรกซ้อนระยะยาวของโรคนี้ได้ทัน",
+            "strength": "อายุรแพทย์ได้พบผู้ป่วยระหว่างคอร์สยายาว",
             "weigh": "ยากินในโรคนี้ใช้เวลาหลายเดือน จึงควรชั่งวิธีช่วยให้ผู้ป่วยกินยาครบ",
             "safety": ""
           },
           {
-            "strength": "การส่งต่อการดูแลระยะยาวให้ชัด ช่วยไม่ให้ผู้ป่วยหลุดจากระบบระหว่างกินยา",
+            "strength": "การส่งต่อระบุว่าใครเป็นผู้ติดตาม",
             "weigh": "ควรชั่งว่าข้อมูลการรักษาถึงปลายทางครบ และใครเป็นผู้ดูแลหลักระหว่างกินยา",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "**Provincial follow-up** lets an internist watch the drug and any complication closely.",
+            "strength": "Provincial follow-up sends him to an internist.",
             "weigh": "Long trips to the provincial hospital burden a farmer and may affect attendance.",
             "safety": ""
           },
           {
-            "strength": "Bringing in an internist helps catch late complications of this disease in time.",
+            "strength": "An internist sees him during the long course.",
             "weigh": "The oral phase runs for months, so weigh how to support him to finish it.",
             "safety": ""
           },
           {
-            "strength": "Handing over long-term care clearly keeps him from falling out of the system mid-course.",
+            "strength": "The referral names who follows him.",
             "weigh": "Weigh whether his records reach the receiving team in full and who leads his care.",
             "safety": ""
           }
@@ -1971,12 +1971,12 @@
       "c": {
         "th": [
           {
-            "strength": "การ**ส่งคลินิกเบาหวาน** ให้ทีมที่ดูแลน้ำตาลทุกวันช่วยปรับยา",
+            "strength": "การส่งคลินิกเบาหวาน ส่งต่อการดูแลน้ำตาลไปให้คลินิก",
             "weigh": "ควรชั่งว่าคลินิกเบาหวานจะเห็นผู้ป่วยได้เร็วเพียงใด เพราะน้ำตาลยังสูงอยู่ตอนนี้",
             "safety": ""
           },
           {
-            "strength": "การส่งต่อเรื่องน้ำตาล ช่วยให้ปัจจัยเสี่ยงนี้ถูกดูแลตลอดคอร์สยายาว",
+            "strength": "คลินิกปรับยาเบาหวานให้ได้",
             "weigh": "ระหว่างรอคิวคลินิก ควรชั่งว่าใครเป็นผู้ดูแลน้ำตาลของผู้ป่วยในช่วงนี้",
             "safety": ""
           },
@@ -1988,12 +1988,12 @@
         ],
         "en": [
           {
-            "strength": "A **diabetes clinic** referral puts his glucose with a team that manages it every day.",
+            "strength": "A diabetes clinic referral passes his glucose care on.",
             "weigh": "Weigh how soon the clinic can see him, since his glucose is high now.",
             "safety": ""
           },
           {
-            "strength": "Handing glucose care on keeps this risk factor in view during the long course.",
+            "strength": "The clinic can adjust his diabetes drugs.",
             "weigh": "While he waits for the clinic, weigh who manages his glucose in the meantime.",
             "safety": ""
           },
@@ -2117,34 +2117,34 @@
       "c": {
         "th": [
           {
-            "strength": "การให้ **อสม.** ติดตามที่บ้าน ใช้เครือข่ายสุขภาพชุมชนช่วยให้กินยาต่อเนื่อง",
+            "strength": "อสม. ไปเยี่ยมผู้ป่วยที่บ้าน",
             "weigh": "อสม. ช่วยเรื่องการกินยาได้ แต่ควรชั่งว่าใครจะดูผลข้างเคียงและอาการที่ต้องพบแพทย์",
             "safety": ""
           },
           {
-            "strength": "การดูแลถึงบ้านลดภาระการเดินทางของชาวนาที่กลับไปทำงานในนา",
+            "strength": "การเยี่ยมบ้านช่วยลดการเดินทาง",
             "weigh": "ยากินในโรคนี้ใช้เวลาหลายเดือน การเยี่ยมจึงควรต่อเนื่องตลอดคอร์สยา",
             "safety": ""
           },
           {
-            "strength": "การใช้ทรัพยากรในชุมชน แสดงความเข้าใจระบบปฐมภูมิของไทย",
+            "strength": "อสม. เป็นส่วนหนึ่งของระบบปฐมภูมิของไทย",
             "weigh": "น้ำตาลที่คุมไม่ดีและการกลับไปลงโคลนยังเป็นความเสี่ยง ซึ่งควรมีที่ในแผนดูแลด้วย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "A **health volunteer** at home uses community networks to keep him on the drug.",
+            "strength": "A health volunteer visits him at home.",
             "weigh": "A volunteer can support adherence, but weigh who watches for side effects and symptoms needing a doctor.",
             "safety": ""
           },
           {
-            "strength": "Care at home spares a working farmer the journey from his fields.",
+            "strength": "Home visits save him a trip.",
             "weigh": "The oral phase runs for months, so visits need to continue through the course.",
             "safety": ""
           },
           {
-            "strength": "Using community resources shows grasp of Thai primary care.",
+            "strength": "Volunteers are part of Thai primary care.",
             "weigh": "Poor glucose control and a return to the mud remain risks that deserve a place in the plan.",
             "safety": ""
           }
@@ -2190,9 +2190,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-17",
-    "findings": "This is a fresh review of the melioidosis-farmer reply bank by a non-author who did not write the case. I read every reply in all 13 banks: every option and all 3 alternatives per option, in Thai and English. I checked each reply against every question variant of its bank and every path into it. I checked the two round-7 unbolds closely. The step1 a alternative 1 strength now reads \"Linking diabetes with rainy-season rice farming and pneumonia uses local risk factors well.\" / \"การรวมเบาหวานกับการทำนาหน้าฝนและปอดอักเสบ ใช้ปัจจัยเสี่ยงของพื้นที่ได้ตรงจุด\". The step1 b alternative 1 strength now reads \"Using the upper-lung crackles with his history pins down where the disease sits.\" / \"การใช้เสียงกรอบแกรบที่ปอดขวาบนร่วมกับประวัติ ทำให้ระบุตำแหน่งของโรคได้ชัด\". Both bold runs quoted the old lines, and the words, now unbolded, are unchanged. Both strengths stay true, because every fact they use is in the vignette. Both read naturally in Thai and English. The English \"upper-lung\" against the Thai \"ปอดขวาบน\" is a harmless narrowing that the vignette states. The bold runs left in step1 quote only the chosen option's own label or line, unchanged by this round: b \"**melioidosis**\" and \"**เมลิออยโดสิสที่ปอด**\", c \"**productive cough**\" and \"**ไข้ ไอมีเสมหะ**\", d \"**TB**\" and \"**วัณโรค**\". So does every other bold run I read, for example step2 \"**usual first pair**\" and \"**routine blood set**\". I traced several paths. step4.R can follow meropenem or ceftazidime plus doxycycline, and its replies say \"the IV drug\" without naming one. step4.W is reached only after co-amoxiclav. step5.B can follow the relapse path, and no reply there assumes splenic abscesses. Only step3.W's stems report a positive culture, and no reply elsewhere assumes one. These clinical claims hold. Blood culture misses about half of cases. Background IHA positivity in Isan limits serology. Thai guidance gives a 12-20-week eradication phase. Co-amoxiclav relapses more often than TMP-SMX. Adding doxycycline does not lower relapse. A splenic abscess needs 4 weeks IV. Fever commonly lingers in the first week. TMP-SMX can push some oral diabetes drugs into low glucose. Doxycycline causes photosensitivity. The step4.W d safety line (choose a different oral drug after co-amoxiclav failed) is right for that option, and every other option rightly has an empty safety line. No reply withholds or delays treatment, ranks the choice against another option, previews a later step, or names another option. MUST-FIX: none. Tree sha256 085cbde56958c0f34616116eb7376e4326d81f9790b2011829525edb72be5b6d. Replies sha256 e9e507d009c7265f23920f466678be552c7fde242eec7fcb7306f53e5e9fdffb.",
-    "tree_sha256": "085cbde56958c0f34616116eb7376e4326d81f9790b2011829525edb72be5b6d",
-    "replies_sha256": "e9e507d009c7265f23920f466678be552c7fde242eec7fcb7306f53e5e9fdffb"
+    "date": "2026-11-18",
+    "findings": "This is a fresh review of the melioidosis-farmer reply bank by a non-author who did not write the case. I read every reply in all 13 banks: every option and all 3 alternatives per option, in Thai and English. I checked each reply against every question variant of its bank and every path into it. I checked the round-9 `strength` rewrites closely. The `weigh` and `safety` fields are unchanged.\n- step2.B c and step2.R c (blood culture and chest X-ray): \"A chest X-ray shows the lung.\" / \"เอกซเรย์ปอดแสดงภาพของปอด\"; \"These two tests are routine in most hospitals.\" / \"การตรวจสองอย่างนี้ทำเป็นประจำในโรงพยาบาลส่วนใหญ่\"; \"A blood culture can grow the organism.\" / \"การเพาะเชื้อเลือดอาจพบเชื้อได้\". Source: Wiersinga 2018 and Limmathurotsakul AJTMH 2010. A blood culture can grow the organism, but with limited sensitivity, which the unchanged `weigh` lines state.\n- step2.B d and step2.W c (blood culture, CBC, creatinine): \"A CBC and creatinine are routine admission bloods.\" / \"CBC และค่าไตเป็นเลือดพื้นฐานตอนรับไว้\"; \"Creatinine shows his kidney function.\" / \"ค่าไตบอกการทำงานของไต\"; \"These bloods are quick to send.\" / \"เลือดชุดนี้ส่งได้เร็ว\". These match the option's own line (\"The routine blood set for any admission\"). Source: Thai DDC melioidosis guideline 2015/2558 (renal dosing of ceftazidime).\n- step2.R b (blood culture and sputum TB tests): \"Sputum TB tests look for tuberculosis.\"; \"The blood culture looks for bacteraemia.\"; \"TB tests are available in most Thai hospitals.\", with matching Thai. Source: WHO consolidated TB guidelines, Module 3 (diagnosis), and the Thai national TB guideline 2564 (2021) on smear and Xpert access.\n- step2.W b (blood culture and rapid lepto test): \"A rapid lepto test gives a quick result.\"; \"The blood culture looks for bacteraemia.\"; \"Leptospirosis is common in rice farmers.\", with matching Thai. Source: the Thai DDC leptospirosis guideline. Rice farmers are the main occupational risk group in Thailand.\n- step5.B c (provincial follow-up): \"Provincial follow-up sends him to an internist.\"; \"An internist sees him during the long course.\"; \"The referral names who follows him.\", with matching Thai. Source: Wiersinga 2018 and the Thai DDC guideline 2015/2558 on a months-long TMP-SMX phase. Thai provincial hospitals have internists, and a referral is how follow-up moves there.\n- step5.R c, alternatives 0 and 1 (diabetes clinic referral): \"A diabetes clinic referral passes his glucose care on.\"; \"The clinic can adjust his diabetes drugs.\", with matching Thai. Source: Thai DM CPG 2566 (2023).\n- step5.W c (village volunteer visit): \"A health volunteer visits him at home.\"; \"Home visits save him a trip.\"; \"Volunteers are part of Thai primary care.\", with matching Thai (อสม.). Source: the Thai village health volunteer (อสม.) programme of the Ministry of Public Health.\n\nEach rewrite is a plain fact that is true on every question variant of its bank and every path into it. The step2.W v1 X-ray stem, the step2.R entry after a reasonable step-1 answer of pneumonia or TB, and the step5.B entry after relapse all leave these facts true. Each rewrite argues for its own option's tests or plan. None ranks or grades the choice, previews a later step, names another option of its bank or asserts a fact that only some variants state. None adds a bold run, and each Thai and English pair agrees. I read the unchanged replies again too. Their clinical claims still hold: blood culture misses about half of cases, IHA has a high background rate in Isan, the eradication phase is 12-20 weeks, co-amoxiclav relapses more often, doxycycline adds no relapse benefit and causes photosensitivity, a splenic abscess needs 4 weeks IV, and TMP-SMX can cause hypoglycaemia with some oral diabetes drugs. The step4.W d safety line (choose a different oral drug after co-amoxiclav failed) is right, and every other option rightly has an empty safety line. MUST-FIX: none. Tree sha256 b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7. Replies sha256 e6c8215105982cb12886b19be5dfccfea75ceb8cb61c605cb76a671510bc1be1.",
+    "tree_sha256": "b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7",
+    "replies_sha256": "e6c8215105982cb12886b19be5dfccfea75ceb8cb61c605cb76a671510bc1be1"
   }
 }
