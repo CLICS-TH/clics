@@ -1,6 +1,6 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "20",
+  "version": "21",
   "event_code": "NFCME-2026",
   "teaser": {
     "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
@@ -672,8 +672,8 @@
               "en": "Keep the plan, SpO2 at 88–92%"
             },
             "line": {
-              "th": "ตอบสนองดีแล้ว ให้ยาชุดเดิมต่อจนครบคอร์ส",
-              "en": "He is responding, so the same course runs on to its end."
+              "th": "เขาตอบสนองดี และคุม SpO2 88–92% กัน CO2 ไม่ให้กลับสูงขึ้น",
+              "en": "He is responding, and SpO2 at 88–92% keeps his CO2 from rising again."
             }
           },
           {
@@ -696,8 +696,8 @@
               "en": "Check CBC and electrolytes"
             },
             "line": {
-              "th": "ยาพ่นและสเตียรอยด์อาจทำให้โพแทสเซียมต่ำ",
-              "en": "Nebulisers and steroid can lower potassium."
+              "th": "ส่งตรวจ CBC และเกลือแร่",
+              "en": "Sends a blood count and electrolytes."
             }
           },
           {

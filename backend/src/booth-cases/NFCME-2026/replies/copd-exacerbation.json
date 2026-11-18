@@ -738,7 +738,7 @@
             "safety": ""
           },
           {
-            "strength": "เลือกยาที่กินง่าย แสดงว่าคิดถึงการกินยาให้ครบคอร์ส",
+            "strength": "azithromycin กินวันละครั้ง",
             "weigh": "azithromycin อาจรบกวนจังหวะการเต้นของหัวใจ ควรระวังในวัย 68 ปีที่ชีพจร 106",
             "safety": ""
           },
@@ -755,7 +755,7 @@
             "safety": ""
           },
           {
-            "strength": "Choosing an antibiotic he can take simply shows attention to completing the course.",
+            "strength": "Azithromycin is taken once a day.",
             "weigh": "Azithromycin can disturb heart rhythm, worth weighing in a 68-year-old with pulse 106.",
             "safety": ""
           },
@@ -920,7 +920,7 @@
             "safety": ""
           },
           {
-            "strength": "เลือกยาที่กินง่าย แสดงว่าคิดถึงการกินยาให้ครบคอร์ส",
+            "strength": "azithromycin กินวันละครั้ง",
             "weigh": "azithromycin อาจรบกวนจังหวะการเต้นของหัวใจ ควรระวังในวัย 68 ปีที่ชีพจร 106",
             "safety": ""
           },
@@ -937,7 +937,7 @@
             "safety": ""
           },
           {
-            "strength": "Choosing an antibiotic he can take simply shows attention to completing the course.",
+            "strength": "Azithromycin is taken once a day.",
             "weigh": "Azithromycin can disturb heart rhythm, worth weighing in a 68-year-old with pulse 106.",
             "safety": ""
           },
@@ -1138,7 +1138,7 @@
             "safety": ""
           },
           {
-            "strength": "เลือกยาที่กินง่าย แสดงว่าคิดถึงการกินยาให้ครบคอร์ส",
+            "strength": "azithromycin กินวันละครั้ง",
             "weigh": "azithromycin อาจรบกวนจังหวะการเต้นของหัวใจ ควรระวังในวัย 68 ปีที่ชีพจร 106",
             "safety": ""
           },
@@ -1155,7 +1155,7 @@
             "safety": ""
           },
           {
-            "strength": "Choosing an antibiotic he can take simply shows attention to completing the course.",
+            "strength": "Azithromycin is taken once a day.",
             "weigh": "Azithromycin can disturb heart rhythm, worth weighing in a 68-year-old with pulse 106.",
             "safety": ""
           },
@@ -1210,7 +1210,7 @@
             "safety": ""
           },
           {
-            "strength": "ต้องการครอบคลุม**เชื้อทางเดินหายใจ**ให้แน่นอน แสดงถึงความระวังเรื่องเชื้อดื้อยา",
+            "strength": "levofloxacin เป็นยากิน",
             "weigh": "ในไทยยากลุ่มนี้อาจกดอาการวัณโรคไว้และทำให้วินิจฉัยช้า ควรชั่งก่อนใช้",
             "safety": ""
           },
@@ -1227,7 +1227,7 @@
             "safety": ""
           },
           {
-            "strength": "Wanting reliable cover of **respiratory bacteria** shows concern for a resistant trigger.",
+            "strength": "Levofloxacin is taken by mouth.",
             "weigh": "In Thailand a fluoroquinolone can partly treat tuberculosis and delay its diagnosis, worth weighing first.",
             "safety": ""
           },
@@ -1351,34 +1351,34 @@
       "c": {
         "th": [
           {
-            "strength": "คาดการณ์ว่ายาที่ให้อาจทำให้**โพแทสเซียมต่ำ** แสดงถึงการรู้ทันผลของยา",
+            "strength": "เกลือแร่บอกระดับโพแทสเซียม",
             "weigh": "เมื่อเขาดีขึ้นชัดเจน ตรวจครั้งเดียวมักพอ เว้นแต่อาการเปลี่ยน",
             "safety": ""
           },
           {
-            "strength": "เฝ้าระวังผลข้างเคียงของการรักษาแม้อาการดีขึ้น เป็นการดูแลที่รอบคอบ",
+            "strength": "CBC บอกจำนวนเม็ดเลือดขาว",
             "weigh": "ควรชั่งว่า CBC จะเพิ่มข้อมูลอะไรเมื่อเขาดีขึ้นชัดแล้ว",
             "safety": ""
           },
           {
-            "strength": "ตรวจโพแทสเซียมช่วยปกป้องหัวใจ ขณะยังพ่นยาขนาดสูงอยู่",
+            "strength": "ยาพ่นและสเตียรอยด์ทำให้โพแทสเซียมต่ำได้",
             "weigh": "ควรดูจังหวะเวลา เพราะตรวจหลังพ่นยาไปหลายรอบจะบอกได้มากกว่าตรวจเร็วเกินไป",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Anticipating that his treatment can **lower potassium** shows awareness of drug effects.",
+            "strength": "Electrolytes show his potassium level.",
             "weigh": "With him clearly improving, one check is likely enough unless his course changes.",
             "safety": ""
           },
           {
-            "strength": "Watching for treatment side effects while he improves is careful, thorough care.",
+            "strength": "A blood count shows the white cell count.",
             "weigh": "Worth weighing what the blood count adds now that he is clearly better.",
             "safety": ""
           },
           {
-            "strength": "A potassium check guards the heart while high-dose nebulisers continue.",
+            "strength": "Nebulisers and steroid can lower potassium.",
             "weigh": "Worth weighing the timing, since a check after several doses tells you more than one taken early.",
             "safety": ""
           }
@@ -1393,7 +1393,7 @@
           },
           {
             "strength": "ให้ได้ง่าย",
-            "weigh": "ยังไม่มีหลักฐานชัดเจนว่าได้ผลในการกำเริบของปอดอุดกั้นเรื้อรัง และอาจทำให้ความดันลด",
+            "weigh": "เขาดีขึ้นแล้ว และยานี้อาจทำให้ความดันลด",
             "safety": ""
           },
           {
@@ -1410,7 +1410,7 @@
           },
           {
             "strength": "It is simple to give.",
-            "weigh": "Evidence for it in COPD flares is unclear, and it can lower blood pressure.",
+            "weigh": "He is already better, and it can lower his blood pressure.",
             "safety": ""
           },
           {
@@ -1533,34 +1533,34 @@
       "c": {
         "th": [
           {
-            "strength": "เมื่อตอบสนองช้า การมองหา**สาเหตุอื่น**เป็นการคิดที่มีวินัย",
+            "strength": "เอกซเรย์ปอดเห็นลมรั่วหรือปอดอักเสบได้",
             "weigh": "ควรระวังไม่ให้การถ่ายภาพทำให้การพ่นยาต้องหยุดชะงัก",
             "safety": ""
           },
           {
-            "strength": "นึกถึง**ลมรั่ว**เมื่อเสียงวี้ดยังไม่ดีขึ้น ช่วยจับสาเหตุที่มองข้ามได้ง่าย",
+            "strength": "ลมรั่วทำให้เสียงวี้ดไม่ดีขึ้นได้",
             "weigh": "การตอบสนองช้าในช่วงแรกพบได้บ่อย ฟิล์มจึงอาจไม่พบสิ่งใหม่",
             "safety": ""
           },
           {
-            "strength": "ไม่ด่วนสรุปว่าการรักษาล้มเหลว แต่ถามว่ามีอะไรอื่นทำให้ช้า",
+            "strength": "เอกซเรย์ปอดเป็นการตรวจที่ทำได้ทั่วไปในหอผู้ป่วย",
             "weigh": "ควรดูว่า รพ.ชุมชนถ่ายและอ่านฟิล์มได้เร็วแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "When the response stalls, looking for **another cause** is disciplined thinking.",
+            "strength": "A chest X-ray can show an air leak or a pneumonia.",
             "weigh": "Worth weighing that the film should not pause his ongoing nebulised treatment.",
             "safety": ""
           },
           {
-            "strength": "Thinking of an **air leak** when wheeze persists catches a cause that is easy to miss.",
+            "strength": "An air leak can keep a wheeze from settling.",
             "weigh": "A slow early response is common, so the film may well show little new.",
             "safety": ""
           },
           {
-            "strength": "You did not assume treatment failure, but asked what else could be slowing him down.",
+            "strength": "A chest X-ray is a common ward test.",
             "weigh": "Worth weighing how quickly the film can be done and read at a community hospital.",
             "safety": ""
           }
@@ -1684,7 +1684,7 @@
             "safety": "หากใส่ท่อ ให้วางแผนยานอนหลับและเตียง ICU ก่อนเริ่ม"
           },
           {
-            "strength": "เลือกการช่วยหายใจที่แน่นอน แสดงว่าให้ความสำคัญกับอาการซึม",
+            "strength": "การช่วยหายใจผ่านท่อลด CO2 ได้",
             "weigh": "แนวทางแนะนำให้ลองแบบหน้ากากก่อน ขณะที่เขายังปกป้องทางเดินหายใจได้เอง",
             "safety": "หากใส่ท่อ ให้วางแผนยานอนหลับและเตียง ICU ก่อนเริ่ม"
           },
@@ -1701,7 +1701,7 @@
             "safety": "If he is intubated, plan the sedation and the ICU bed before you start."
           },
           {
-            "strength": "Choosing definitive support shows you take the drowsiness seriously.",
+            "strength": "Ventilation through a tube lowers his CO2.",
             "weigh": "Guidelines favour a mask trial first while he can still protect his airway.",
             "safety": "If he is intubated, plan the sedation and the ICU bed before you start."
           },
@@ -1726,7 +1726,7 @@
           },
           {
             "strength": "พยายามลดเสียงวี้ด",
-            "weigh": "แมกนีเซียมยังไม่มีหลักฐานชัดเจนในปอดอุดกั้นเรื้อรังและอาจทำให้ความดันลด อีกทั้งยังขาดการตรวจก๊าซตามเวลา",
+            "weigh": "ยานี้อาจทำให้ความดันลด และยังขาดการตรวจก๊าซตามเวลาที่เขาต้องการ",
             "safety": "ซึมลงขณะใช้ NIV อาจแย่ลงเร็ว หากซึมมากขึ้นหรือไม่ดีขึ้นภายในหนึ่งชั่วโมง ให้ยกระดับการดูแลทันที"
           }
         ],
@@ -1743,7 +1743,7 @@
           },
           {
             "strength": "You tried to ease the wheeze.",
-            "weigh": "Evidence for magnesium in COPD is unclear, it can lower blood pressure, and the timed gas he needs is missing.",
+            "weigh": "It can lower his blood pressure, and the timed gas he needs is missing.",
             "safety": "Drowsiness on NIV can deepen fast: if he grows drowsier or is no better within the hour, escalate at once."
           }
         ]
@@ -1835,7 +1835,7 @@
             "safety": ""
           },
           {
-            "strength": "คิดถึงช่วงแรกที่บ้าน แสดงถึงการวางแผนที่ใช้ได้จริงและยึดผู้ป่วยเป็นศูนย์กลาง",
+            "strength": "ยาพ่นบรรเทาอาการที่บ้านเป็นส่วนหนึ่งของแผนจำหน่ายส่วนใหญ่",
             "weigh": "ถ้าต้องใช้ยาบรรเทาบ่อยที่บ้าน ควรถือเป็นสัญญาณว่าการคุมโรคกำลังแย่ลง",
             "safety": ""
           }
@@ -1852,7 +1852,7 @@
             "safety": ""
           },
           {
-            "strength": "Thinking about the first days at home shows practical, patient-centred planning.",
+            "strength": "A reliever at home is part of most discharge plans.",
             "weigh": "Frequent reliever use at home is worth treating as a sign that control is slipping.",
             "safety": ""
           }
@@ -2007,7 +2007,7 @@
       "d": {
         "th": [
           {
-            "strength": "คิดถึงทีมอายุรแพทย์ แสดงว่ารู้ขีดจำกัดของโรงพยาบาลตนเอง",
+            "strength": "โรงพยาบาลจังหวัดมีทีมอายุรแพทย์",
             "weigh": "เขาคงที่ด้วยออกซิเจนคุม 88–92% ซึ่งโรงพยาบาลชุมชนดูแลได้",
             "safety": ""
           },
@@ -2017,14 +2017,14 @@
             "safety": ""
           },
           {
-            "strength": "วางแผนล่วงหน้าสำหรับการฟื้นตัวช้าเป็นเรื่องสมเหตุผล",
+            "strength": "การส่งต่อเป็นทางหนึ่งเมื่อฟื้นตัวช้า",
             "weigh": "การดีขึ้นช้าแต่ต่อเนื่องพบบ่อยหลังการกำเริบ การย้ายจึงได้ประโยชน์น้อย",
             "safety": ""
           }
         ],
         "en": [
           {
-            "strength": "Thinking of a physician team shows you know the limits of a small hospital.",
+            "strength": "A provincial hospital has a physician team.",
             "weigh": "He is stable on oxygen for 88–92%, a level of care a community hospital can give.",
             "safety": ""
           },
@@ -2034,7 +2034,7 @@
             "safety": ""
           },
           {
-            "strength": "Planning ahead for a slow recovery is sensible.",
+            "strength": "Referral is one route for a slow recovery.",
             "weigh": "Slow but steady progress is common after a flare, and moving him gains little.",
             "safety": ""
           }
@@ -2122,12 +2122,12 @@
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "ยกระดับไปหาผู้ชำนาญแต่เนิ่น ๆ เป็นขั้นความปลอดภัยสำคัญในผู้ป่วยที่ซึมลง",
+            "strength": "ทีม ICU เริ่มการช่วยหายใจได้",
             "weigh": "ควรคิดว่าระหว่างรอทีม อะไรจะประคองการหายใจและภาวะเลือดเป็นกรดของเขา",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           },
           {
-            "strength": "รู้ว่าถึงจุดเปลี่ยน และไม่รับมือเพียงลำพัง",
+            "strength": "แพทย์อาวุโสช่วยตัดสินเรื่องใส่ท่อได้",
             "weigh": "อาการซึมกับ pH 7.26 อาจลึกลงได้ภายในไม่กี่นาทีหลังโทร ควรชั่งให้ดี",
             "safety": "ซึมลงกับ pH 7.26 PaCO2 70 คือการหายใจล้มเหลวที่แย่ลง ต้องช่วยการหายใจอย่างจริงจังและให้ทีม ICU มาข้างเตียงทันที"
           }
@@ -2139,12 +2139,12 @@
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "Escalating early to experienced hands is a key safety step in a drowsy patient.",
+            "strength": "An ICU team can start ventilation.",
             "weigh": "Worth weighing what holds his breathing and acidosis while the team is on its way.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           },
           {
-            "strength": "You recognised a turning point and did not manage it alone.",
+            "strength": "A senior can help decide on a tube.",
             "weigh": "Worth weighing that drowsiness with pH 7.26 can deepen within minutes of the call.",
             "safety": "Drowsy with pH 7.26 and PaCO2 70, his breathing is failing: it needs active support and ICU at the bedside now."
           }
