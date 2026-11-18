@@ -8,6 +8,7 @@ const { rimplChat } = require('./rimpl-client');
 const { TIERS, MAX_STEPS, tableScore } = require('../booth-cases/tree-schema');
 const { readEventFiles, eventPool } = require('../booth-cases/event-pool');
 const { readStudyCase } = require('../booth-cases/study-snapshot');
+const { displayScore } = require('../booth-cases/display-score');
 const {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, bankOutcome, stepTiers,
@@ -318,10 +319,14 @@ function standings(rows, dayOf) {
   return { event, today };
 }
 
-const entry = (r) => ({ tag: r.tag, score: r.composite, at: r.scored_at });
+/** The board shows the display score (ADR 0013); rows keep and rank on the raw composite. */
+const entryOf = (steps) => (r) => ({ tag: r.tag, score: displayScore(r.composite, steps), at: r.scored_at });
 
 /** @returns {Board} */
-const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(entry), event: event.slice(0, BOARD_SIZE).map(entry) });
+const boardOf = ({ today, event }, steps) => {
+  const entry = entryOf(steps);
+  return { today: today.slice(0, BOARD_SIZE).map(entry), event: event.slice(0, BOARD_SIZE).map(entry) };
+};
 
 /** The board ranks one scale (spec #370, #386): only plays of the event's step count, so the three-step plays made
  *  before an event moved to five steps never rank against five-step ones. */
@@ -346,9 +351,9 @@ async function scoredBody(playId, event, composite, domains, scoredAt, steps) {
     return i >= 0 ? i + 1 : null;
   };
   return {
-    status: 'scored', composite, domains, steps,
+    status: 'scored', composite: displayScore(composite, event.steps), domains, steps,
     rank_today: rank(s?.today ?? []), rank_event: rank(s?.event ?? []),
-    board: s ? boardOf(s) : null,
+    board: s ? boardOf(s, event.steps) : null,
   };
 }
 
@@ -456,7 +461,7 @@ async function boardFor(now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
   const s = await readStandings(opened.event, now.getTime());
-  return s ? { body: { board: boardOf(s) } } : { refused: 'unavailable' };
+  return s ? { body: { board: boardOf(s, opened.event.steps) } } : { refused: 'unavailable' };
 }
 
 /** One reply per step: step n is claimed only from n - 1, so a re-posted reply (to draw the AI's tier again) is refused. */
