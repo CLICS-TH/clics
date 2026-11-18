@@ -24,8 +24,22 @@ Both front ends call `/api` on their own origin (`physician-ui/public/js/config.
 `NEXT_PUBLIC_API_URL`, which defaults to `/api`). Locally, `npm run dev` adds the same routing on
 `http://localhost:3080` (`scripts/dev/one-origin.mjs`); open the app there to hand off to the dashboard.
 Every script reads the API origin from `scripts/lib/api-origin.cjs` (override: `CLICS_API_ORIGIN`).
-Sign-in and the database stay in Supabase (Tokyo) until #427 and #432. The Railway commands below are today's
-deploy path and, after the cutover, the rollback, which keeps running unchanged for 7 days.
+Sign-in and the database stay in Supabase (Tokyo) until #427 and #432; *Data custody* below says where the data is.
+The Railway commands below are today's deploy path and, after the cutover, the rollback, which keeps running unchanged for 7 days.
+
+## Data custody
+
+Participant data is in the Supabase project (Tokyo) until the date recorded here. [ADR 0012](adr/0012-on-prem-data-custody.md)
+moves it to a private data host on CME's network (#432); the move, its verify report, the nightly encrypted
+backup and the restore drill are in [`deploy/vm1/db-move/README.md`](../deploy/vm1/db-move/README.md) (prepared,
+not run). Until the deletion below is recorded, no doc or CREC-facing text may say that the data is in Thailand.
+
+| Record | Value |
+|---|---|
+| Move window run (report on #432) | not yet |
+| Supabase project deleted, with its backups | not yet |
+| Supabase's deletion confirmation (quoted, with its date) | not yet |
+| Project ref no longer answers (`curl` status and `dig +short` output, on the deletion date) | not yet |
 
 ## Deploy commands (and the gotchas that break prod silently)
 

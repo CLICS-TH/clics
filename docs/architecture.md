@@ -26,6 +26,11 @@ Supabase (PostgreSQL · AES-256)
   Tables: professionals · councils · ples · audit_scores · lpdp_snapshots
 ```
 
+**Data custody:** the database (and its `auth` schema) is in Supabase, Tokyo, until the Supabase deletion date
+recorded in [deployment.md, *Data custody*](deployment.md#data-custody). [ADR 0012](adr/0012-on-prem-data-custody.md)
+moves it to a private data host on CME's network that only vm1 can reach (#432,
+[`deploy/vm1/db-move/`](../deploy/vm1/db-move/README.md)). Until that date no text may say the data is in Thailand.
+
 **Critical data-boundary rule:** PII never leaves the on-premise RIMPL layer. Only de-identified JSON fragments reach cloud AI providers. (The physician's structured `patient_ref` is the one PII field passed *into* RIMPL — on-prem, exclusively so RIMPL can scrub it from the narrative; it is never forwarded to the cloud.)
 
 ## Planned vs. as-built

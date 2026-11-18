@@ -4,6 +4,7 @@
   cutover in [`deploy/vm1/README.md`](../../deploy/vm1/README.md) is run.
 - **Scope:** where the CLICS backend and RIMPL run, how the backend reaches RIMPL, and what the host must
   enforce while they run there. The front ends (Vercel) and the database (Supabase, Tokyo) do not move.
+  [ADR 0012](0012-on-prem-data-custody.md) later moves both; for where the data is, see its custody line.
 - **Supersedes in part [ADR 0001](0001-d3-transport-topology.md).** Its decision was to build no
   transport until a GDCC host existed. One now does, and its first trigger row ("VM provisioned, answers
   to 1–3 favourable → adopt Topology B, close #90, write ADR 0002") is what this record carries out. Its
@@ -63,6 +64,7 @@ browser ──HTTPS──▶ nginx on vm1 (CME's; vhost clics.ccme.or.th) ──
 
 - The **front ends stay on Vercel**. At cutover they point at `https://clics.ccme.or.th`.
 - The **database stays in Supabase, Tokyo.** Moving the application does not move data custody.
+  (Superseded by [ADR 0012](0012-on-prem-data-custody.md): the database moves to a private data host, #432.)
 - **No Tailscale runs inside any container.** RIMPL's optional userspace client (`rimpl/Dockerfile`)
   stays off because `TS_AUTHKEY` is never set on vm1. Model endpoints on the tailnet or the GDCC LAN are
   reached through the host's own routing table, via docker's default NAT egress.
@@ -100,7 +102,7 @@ That holds only while these requirements hold. They are requirements, not prefer
 | R2 | **`no-new-privileges`**, **all capabilities dropped**, **read-only root filesystem** (tmpfs `/tmp` only) | `docker-compose.yml` `x-hardened`; guard test; CI asserts docker reports `ReadonlyRootfs: true` for both containers, and that in each a write to world-writable `/var/tmp` fails while the same write to `/tmp` succeeds |
 | R3 | The backend is **published on `127.0.0.1` only** | compose `ports`; guard test (text and, in CI, docker's own rendering); `deploy.sh` refuses a listener beyond loopback |
 | R4 | **RIMPL is not published at all.** It is reachable only on the project's docker network | compose; guard test; CI reads RIMPL's bindings with `docker inspect` and fails on any published port or port binding (not `docker compose port`, which prints `:0` for a port the image exposes but compose does not publish) |
-| R5 | **No PII at rest on vm1**: no volumes, database in Supabase, RIMPL stateless | compose declares no volume; the apps write no files (checked 2026-10-21) |
+| R5 | **No PII at rest on vm1**: no volumes, database in Supabase (from ADR 0012: on the data host, off vm1), RIMPL stateless | compose declares no volume; the apps write no files (checked 2026-10-21) |
 | R6 | **Env files mode 600, owned by `clics`**, placed by a human, never shipped by the deploy | `deploy.sh` preflight refuses otherwise; the tarball check refuses any env file; `deploy/vm1/.gitignore` |
 | R7 | **Memory, CPU and process limits** (1 GiB, no swap, 2 CPUs, 256 pids each) | `docker-compose.yml` |
 | R8 | **Log rotation**: json-file, 10 MB × 5 per container | `docker-compose.yml` |
@@ -170,7 +172,8 @@ no WireGuard. **The hop D7 accepted is never built in this topology,** so D7 doe
 - **Data custody.** PII at rest stays in Supabase, Tokyo. The backend still reads raw transcripts from
   Tokyo over TLS. They now arrive in Thailand (vm1) instead of the United States (Railway). "PII never
   leaves Thailand" is still false and must not be written anywhere (`docs/LOCAL-MODEL-ROADMAP.md`, *The
-  PII hop*). The storage leg is A3, and A3 is a separate decision that has not been taken.
+  PII hop*). The storage leg is A3, decided by [ADR 0012](0012-on-prem-data-custody.md); until the Supabase deletion
+  date recorded in `docs/deployment.md` (*Data custody*), the data is still in Tokyo and this paragraph holds.
 - **PII in memory on a host we do not administer.** On Railway that meant Railway. On vm1 it means CME
   and the residual risks above.
 - **What reaches a model is de-identified.** RIMPL strips PII before any model call. Today the model is
@@ -236,4 +239,4 @@ It is safe **on four conditions**:
 | CME cannot close password SSH, or a runner user turns out to be in the docker group | Re-open this record. Ask for a dedicated VM rather than accept that exposure for participant data. |
 | Tailscale is removed from vm1 | Backend and RIMPL are unaffected (their hop needs no tailnet). Model endpoints are then reached over the GDCC LAN only. |
 | Anything is put in front of vm1's nginx (CDN, load balancer) | A configuration change, not a new decision. nginx needs `real_ip`, or the backend's `trust proxy` must count the extra hop, or every user shares one rate-limit bucket. |
-| The database moves to Thailand (A3) | A separate ADR. This one does not cover data custody. |
+| The database moves to Thailand (A3) | [ADR 0012](0012-on-prem-data-custody.md) and #432. This one does not cover data custody. |

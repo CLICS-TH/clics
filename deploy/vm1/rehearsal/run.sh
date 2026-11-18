@@ -8,6 +8,8 @@
 #   rehearsal/run.sh vm1-paths ENV_DIR   vm1: replay the sign-in paths against it
 #   rehearsal/run.sh vm1-mail ENV_DIR    vm1: recreate GoTrue (after gotrue.env's SMTP lines changed) and ask it
 #                                        for one recovery mail to the address on stdin
+#   rehearsal/run.sh vm1-drill ENV_DIR   vm1: restore a decrypted nightly backup (stdin) into the in-memory db
+#                                        and check it (../db-move/README.md, Restore drill)
 #   rehearsal/run.sh down [ENV_DIR]      stop and remove the rehearsal project; the tmpfs database goes with it
 #
 # Everything runs under the compose project `clics-rehearsal`, never `clics`. The rehearsal backend has no host
@@ -314,10 +316,25 @@ case "${1:-}" in
       });'
     unset TO
     ;;
+  vm1-drill)
+    # The restore drill (db-move/README.md, Restore drill): a decrypted nightly backup on stdin goes into the
+    # rehearsal's in-memory db, after GoTrue has migrated its auth schema, and move.sh checks it against the
+    # report the backup carries. The stream goes straight into the db container; nothing reaches a disk.
+    [ -n "${2:-}" ] || die "usage: gpg --decrypt BACKUP | run.sh vm1-drill ENV_DIR"
+    [ ! -t 0 ] || die "vm1-drill reads a decrypted backup stream on stdin"
+    export_env "$2"
+    up_db
+    dc up -d --wait --wait-timeout 180 gotrue
+    dc stop gotrue
+    dc cp db-move/move.sh db:/tmp/move.sh
+    dc exec -T db bash -c 'set -euo pipefail; umask 077
+      printf "127.0.0.1:5432:postgres:supabase_admin:%s\n" "$POSTGRES_PASSWORD" > /tmp/pgpass
+      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 exec bash /tmp/move.sh drill'
+    ;;
   down)
     if [ -n "${2:-}" ]; then export_env "$2"; else export_env "$(mktemp -d)"; fi
     dc --profile mail down -v --remove-orphans
     docker volume rm -f "$PKI_VOLUME" >/dev/null 2>&1 || true
     ;;
-  *) die "usage: run.sh hermetic | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | down [ENV_DIR]" ;;
+  *) die "usage: run.sh hermetic | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | vm1-drill ENV_DIR | down [ENV_DIR]" ;;
 esac

@@ -229,7 +229,10 @@ test('no IPv4 literal other than 127.0.0.1 / 0.0.0.0, and no tailnet domain, und
   for (const f of filesUnder(VM1)) {
     const text = readFileSync(f, 'utf8');
     // An image tag can look like an address (supabase/postgres:17.6.1.136); `image:` lines name no host.
-    const hosts = text.split('\n').filter((l) => !/^\s*image:\s*[\w./-]+:[\w.-]+\s*$/.test(l)).join('\n');
+    // The same tag named in a script or runbook (`docker run ... supabase/postgres:17.6.1.136`) is an
+    // owner/name:tag reference, never a host, so the reference itself is dropped, not the whole line.
+    const hosts = text.split('\n').filter((l) => !/^\s*image:\s*[\w./-]+:[\w.-]+\s*$/.test(l)).join('\n')
+      .replace(/\b[\w-]+\/[\w-]+:(?:\d+\.){3}\d+\b/g, '');
     for (const m of hosts.matchAll(/(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])/g)) {
       assert.ok(allowed.has(m[0]), `${path.relative(ROOT, f)} contains the IPv4 literal ${m[0]}`);
     }

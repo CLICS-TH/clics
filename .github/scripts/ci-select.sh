@@ -26,7 +26,7 @@ quality           ^(scripts/quality/|scripts/probe/|rimpl/src/|physician-ui/publ
 vm1               ^(deploy/|scripts/deploy/|scripts/dev/|scripts/lib/|scripts/readability/|scripts/responsive/nav-width-audit\.mjs$|physician-ui/|audit-dashboard/|backend/|rimpl/|db/schema\.sql$)
 vm1_guards        (\.md$|^scripts/|^physician-ui/public/js/config\.js$|^(physician-ui|audit-dashboard)/vercel\.json$)
 manifest          ^(scripts/manifest/|rimpl/src/)
-pg                ^(scripts/db/|db/)
+pg                ^(scripts/db/|db/|deploy/vm1/db-move/)
 calibration       ^(scripts/calibration/|scripts/probe/(lib|agreement-stats)\.mjs$|rimpl/src/|backend/src/(services|lib)/)
 manuals           ^(scripts/manuals/|docs/manuals/|physician-ui/public/|audit-dashboard/|rimpl/src/|backend/src/lib/pii-spans\.js$)
 portal_browser    ^(scripts/auth/|physician-ui/public/|audit-dashboard/)
