@@ -255,6 +255,61 @@ export default [
     },
   },
   {
+    name: 'promo: the CCME mark sits inside the safe box, clear of the kiosk\'s language buttons and of every scene\'s content',
+    async run(h) {
+      const index = await readFile(join(PROMO_DIR, 'index.html'), 'utf8');
+      const style = index.match(/<style>([\s\S]*?)<\/style>/)[1];
+      const brand = index.match(/<div id="brand"[\s\S]*?<\/div>/)[0];
+      const manifest = JSON.parse(await readFile(join(PUBLIC, 'booth-loop', 'manifest.json'), 'utf8'));
+      const safe = manifest.items.find((i) => i.src === PROMO_SRC)?.safe;
+      // What the attract screen lays over the reel, in the reel's own pixels: the portrait kiosk cover-fills its
+      // stage with the 1080x1920 file, so a control at stage (x, y) covers the file at ((x - dx) / s, (y - dy) / s).
+      const over = [];
+      for (const [width, height] of [[1080, 1920], [2160, 3840]]) {
+        const k = await h.kiosk({ width, height, files: { [PROMO_SRC]: CLIP } });
+        await k.page.waitForSelector('.loop-media video', { timeout: 15_000 });
+        over.push(...await k.page.evaluate(() => {
+          const stage = document.querySelector('.loop-media').getBoundingClientRect();
+          const s = Math.max(stage.width / 1080, stage.height / 1920);
+          const dx = stage.left + (stage.width - 1080 * s) / 2;
+          const dy = stage.top + (stage.height - 1920 * s) / 2;
+          return [...document.querySelectorAll('button')].map((b) => b.getBoundingClientRect())
+            .filter((r) => r.width && r.height && r.width < stage.width * 0.9 && r.bottom > stage.top && r.top < stage.bottom)
+            .map((r) => [(r.left - dx) / s, (r.top - dy) / s, (r.right - dx) / s, (r.bottom - dy) / s].map(Math.round));
+        }));
+        await k.close();
+      }
+      const { ctx, page } = await promoPage(h);
+      const hits = [];
+      let box = null;
+      for (const f of (await readdir(SCENES)).filter((x) => x.endsWith('.html')).sort()) {
+        const body = (await readFile(join(SCENES, f), 'utf8')).match(/<template>([\s\S]*)<\/template>/)[1].replace(/<script>[\s\S]*?<\/script>/g, '');
+        await page.route('http://promo.test/__brand.html', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8"><style>${style} body{margin:0} #frame{position:relative;width:1080px;height:1920px;overflow:hidden}</style></head><body><div id="frame">${body}${brand}</div></body></html>` }));
+        await page.goto('http://promo.test/__brand.html');
+        await page.evaluate(() => Promise.all([document.fonts.ready, ...[...document.images].map((i) => i.decode().catch(() => {}))]));
+        const r = await page.evaluate(() => {
+          const frame = document.getElementById('frame').getBoundingClientRect();
+          const at = (e) => { const b = e.getBoundingClientRect(); return [b.left - frame.left, b.top - frame.top, b.right - frame.left, b.bottom - frame.top]; };
+          const mark = at(document.getElementById('brand'));
+          const meet = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+          // What a scene draws: text, images and drawings, never the full-frame grounds and wrappers they sit in.
+          const drawn = [...document.querySelectorAll('#root *')].filter((e) => !e.closest('#brand') && !e.matches('.ground')
+            && (e.matches('img, svg, canvas, video') || [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())));
+          return { mark: mark.map(Math.round), hits: drawn.filter((e) => meet(mark, at(e))).map((e) => `${e.id ? `#${e.id}` : e.className?.baseVal ?? e.className ?? e.tagName} ${at(e).map(Math.round).join(',')}`) };
+        });
+        box = r.mark;
+        hits.push(...r.hits.map((x) => `${f}: ${x}`));
+      }
+      await ctx.close();
+      const meet = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+      const inSafe = !!safe && !!box && box[0] >= safe[0] && box[1] >= safe[1] && box[2] <= safe[2] && box[3] <= safe[3];
+      h.check(inSafe, `promo: the CCME mark ${JSON.stringify(box)} sits inside the safe box ${JSON.stringify(safe)}, so the kiosk's cover crop never cuts it`);
+      const covered = over.filter((b) => meet(b, box ?? [0, 0, 0, 0]));
+      h.check(over.length >= 3 && covered.length === 0, `promo: no kiosk control covers the CCME mark on a portrait kiosk (${over.length} controls over the reel${covered.length ? `; covering: ${JSON.stringify(covered)}` : ''})`);
+      h.check(hits.length === 0, `promo: the CCME mark overlaps no scene content${hits.length ? ` (${hits.slice(0, 6).join('; ')})` : ''}`);
+    },
+  },
+  {
     name: 'promo: every QR in the reel decodes, off the shipped frames, to exactly the Portal',
     async run(h) {
       const k = await h.kiosk();
