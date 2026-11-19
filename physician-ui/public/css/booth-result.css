@@ -38,4 +38,39 @@ body.booth-result { color: var(--ink); font-family: var(--font-sans); line-heigh
 .tier-step-n { display: flex; flex-flow: row wrap; align-items: baseline; column-gap: 12px; }
 .tier-step-n .bi-main { font-size: var(--text-small-th); font-weight: 600; line-height: 1.5; }
 .tier-step-n .bi-sub { font-size: var(--text-en); line-height: 1.35; }
-.try-clics { justify-content: center; text-align: center; text-decoration: none; }
+.try-clics, .workshop-open { justify-content: center; text-align: center; text-decoration: none; }
+/* The workshop invitation (booth-workshop.js): the band's tint with an accent rule, so it reads as the next step. */
+.workshop-card {
+  display: flex; flex-direction: column; gap: 12px; padding: 20px;
+  background: var(--band); border-top: calc(6 * var(--u)) solid var(--accent); border-radius: var(--radius);
+}
+/* The title and the button (booth-result.js enFirst): English first and large, Thai under it in a two-language look
+   (owner, 2026-11-19). A one-language look shows its own language alone, at the large size. */
+.en-first { display: flex; flex-direction: column; }
+.en-first > span { display: block; }
+:root[data-look="th"] .en-first-en, :root[data-look="en"] .en-first-th { display: none; }
+.workshop-title .en-first-en, :root[data-look="th"] .workshop-title .en-first-th { font-family: var(--font-serif); font-size: max(26px, var(--text-title-th)); font-weight: 600; line-height: 1.25; color: var(--ink); }
+.workshop-title .en-first-th { font-size: var(--text-label-en); font-weight: 500; line-height: 1.5; color: var(--ink); margin-top: 6px; }
+:root[data-look="th"] .workshop-title .en-first-th { line-height: 1.45; margin-top: 0; }
+.workshop-open .en-first-en, :root[data-look="th"] .workshop-open .en-first-th { font-size: var(--text-th); font-weight: 600; line-height: 1.4; }
+.workshop-open .en-first-th { font-size: var(--text-en); font-weight: 500; line-height: 1.5; }
+.workshop-line .bi-main { font-size: var(--text-small-th); line-height: 1.55; }
+.workshop-line .bi-sub, .workshop-when .bi-sub { font-size: var(--text-en); line-height: 1.4; }
+.workshop-when .bi-main { font-size: var(--text-small-th); font-weight: 600; line-height: 1.5; }
+.workshop-card .workshop-open { margin-top: 4px; }
+/* What each domain looks at, and how to read 0-5 (booth-bands.js MEASURES, SCALE_NOTE): the result page only. */
+.scale-note .bi-main, .domain-measure .bi-main { font-size: var(--text-small-th); line-height: 1.5; color: var(--body); }
+.scale-note .bi-sub, .domain-measure .bi-sub { font-size: var(--text-en); line-height: 1.35; color: var(--body); }
+.domain-measure { margin-bottom: 4px; }
+:root:lang(en) .domain-measure .bi-main, :root:lang(en) .scale-note .bi-main { font-size: var(--text-en); line-height: 1.35; }
+/* Each step explained (r2 links): the kiosk's reveal rows at phone scale, with each option's reviewed line under it. */
+.result-steps .reveal-steps { overflow: visible; gap: 12px; }
+/* No frame round the list, only round each step: every phone pixel goes to the step's lines (320 px leaves 244). */
+.result-tiers.result-steps { padding: 0; background: none; border: 0; }
+.result-steps .reveal-step { padding: 14px 12px; }
+.result-steps .reveal-answer, .result-steps .reveal-best { padding: 10px 12px; }
+/* A step's long Thai phrases (a question, an option) must fit a phone line whole: the label size, not the kiosk's. */
+.result-steps :is(.reveal-question, .reveal-given) .bi-main { font-size: var(--text-small-th); }
+.reveal-line .bi-main { font-size: var(--text-small-th); line-height: 1.5; }
+.reveal-line .bi-sub { font-size: var(--text-en); line-height: 1.35; }
+.result-steps .tier-chip { align-self: flex-start; }

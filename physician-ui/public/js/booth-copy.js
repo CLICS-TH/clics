@@ -114,6 +114,7 @@ export const COPY = Object.freeze({
   answersTitle: { th: 'เฉลยทีละขั้น', en: 'The answers, step by step' },
   stepN: { th: 'ขั้นที่ {n}', en: 'Step {n}' },
   bestOffered: { th: 'ตัวเลือกที่ดีที่สุดในขั้นนี้', en: 'Best option offered' },
+  typedOwn: { th: 'คุณพิมพ์คำตอบเอง', en: 'You typed your own answer' },
   stepTiers: { th: 'คำตอบของคุณแต่ละขั้น', en: 'Your answer at each step' },
   tryClics: { th: 'ลองใช้ CLICS', en: 'Try CLICS' },
 });

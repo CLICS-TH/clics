@@ -14,7 +14,7 @@ const BAD = /on[-\s]?premise|validated\b|certif|ติดตั้งภาย�
 
 // booth-bands.js has no imports, so a data: URL loads it as the module it is.
 const SOURCE = await readFile(fileURLToPath(new URL('../../../physician-ui/public/js/booth-bands.js', import.meta.url)), 'utf8');
-const { BAND_LINES, SAFETY_REVIEW, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
+const { BAND_LINES, SAFETY_REVIEW, MEASURES, SCALE_NOTE, MEASURES_REVIEW, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
 
 const size = (line) => line.th.length + line.en.length;
 
@@ -147,6 +147,10 @@ export default [
       h.check(lines.every(([, , l]) => !BAD.test(`${l.th} ${l.en}`)), 'bands: no line says validated, on-premise or certificate');
       h.check(lines.every(([, , l]) => l.th.length <= 60 && l.en.length <= 70), 'bands: Thai lines <= 60 characters and English <= 70, so each stays within two lines');
       h.check(SAFETY_REVIEW?.model && /^\d{4}-\d{2}-\d{2}$/.test(SAFETY_REVIEW.date) && SAFETY_REVIEW.findings, 'bands: the AI safety review is recorded with its model, date and findings (ADR 0005)');
+      h.check(h.same(Object.keys(MEASURES), KEYS) && KEYS.every((k) => MEASURES[k].th && MEASURES[k].en && !BAD.test(MEASURES[k].th + MEASURES[k].en))
+        && SCALE_NOTE.th && SCALE_NOTE.en, 'measures: what each of d1..d7 looks at, Thai and English, and the 0-5 scale note');
+      h.check(MEASURES_REVIEW?.model && MEASURES_REVIEW.model !== 'PENDING' && /^\d{4}-\d{2}-\d{2}$/.test(MEASURES_REVIEW.date) && MEASURES_REVIEW.findings,
+        'measures: their AI safety review is recorded with its model, date and findings (ADR 0005)');
       h.check([0, 1, 2, 3, 4, 5].map(bandOf).join() === 'low,low,low,mid,high,high', 'bands: 0-2 low, 3 middle, 4-5 high');
       h.check([2.4, 2.5, 2.6, 3.4, 3.5, 4.9].map(bandOf).join() === 'low,mid,mid,mid,high,high', 'bands: a fitted one-decimal score takes the band of its rounded value (2.5 and 3.4 middle)');
       h.check(weakestFirst({ d1: 3, d2: 1, d3: 3, d4: 1, d5: 5, d6: 0, d7: 3 }).slice(0, 3).join() === 'd6,d2,d4', 'bands: weakest first, a tie keeping the rubric\'s order');
@@ -167,6 +171,7 @@ export default [
           await h.shot(page, `result-bands-${width}-${label.split(' ').slice(0, 2).join('-')}-${look}`);
           checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary);
 
+          h.check(await page.locator('.domain-measure, .scale-note').count() === 0, `${tag}: the kiosk card shows no measure lines or scale note (the phone page has them)`);
           const order = weakestFirst(domains);
           const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
           const other = await page.$$eval('.other-domains .domain', (els) => els.map((e) => e.dataset.key));

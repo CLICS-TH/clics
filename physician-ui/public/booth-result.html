@@ -2,7 +2,8 @@
 <!--
   Booth result page (#251): the kiosk's result QR opens it with the play's result in the URL fragment, which the
   browser never sends. Its own head, like booth.html: no js/boot.js and no storage. The CSP's connect-src 'none'
-  makes "no request carries the result" a browser rule; the page loads only same-origin files and fonts.
+  makes "no request carries the result" a browser rule; the page loads only same-origin files and fonts. An r2 link
+  also loads /booth-steps/<case>@<version>.js, so the server's log sees which case was played (never the score).
 -->
 <html lang="th">
 <head>

@@ -16,6 +16,7 @@ import { join, extname, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { chromium } from 'playwright';
+import { stepTextFile } from './step-text.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const CASES = fileURLToPath(new URL('../../backend/src/booth-cases', import.meta.url));
@@ -30,6 +31,7 @@ const TREE = await fixture('booth-case-tree.json');
  *  fitted path score table, whose domains carry one decimal. */
 const TREE5 = await fixture('booth-case-tree-5.json');
 const TABLE5 = await fixture('booth-path-score-table-5.json');
+const FIXTURE_TEXT = new Map([TREE, TREE5].map((t) => [`/booth-steps/${t.case_id}@${t.version}.js`, stepTextFile(t, `backend/tests/fixtures (${t.case_id})`)]));
 // The server's reply limits, read from its source: CI runs this without the backend's dependencies.
 const DIALOGUE = await readFile(fileURLToPath(new URL('../../backend/src/services/booth-dialogue.js', import.meta.url)), 'utf8');
 const serverConst = (name) => Number(new RegExp(`\\bconst ${name} = (\\d+);`).exec(DIALOGUE)?.[1]);
@@ -38,7 +40,7 @@ const [FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS] = ['FIELD_MAX_CHARS', 'BO
 const SERVER_LOOKS = /^const LOOK_LANGUAGE = Object\.freeze\(\{(.*)\}\);$/m.exec(DIALOGUE)?.[1]
   .split(',').map((pair) => pair.split(':')[0].trim().replace(/^'(.*)'$/, '$1')) ?? null;
 /** The `case` a started play carries: the vignette only; each step's text arrives in a Next. */
-const KASE = { vignette: TREE.vignette };
+const KASE = { vignette: TREE.vignette, version: TREE.version };
 
 const BANNED = [/on[-\s]?premise/i, /validated/i, /ติดตั้งภายในองค์กร/];
 const withoutDemoLabel = (text) => text.split(DEMO_LABEL.th).join('').split(DEMO_LABEL.en).join('');
@@ -92,6 +94,9 @@ function startServer() {
       if (p.endsWith('/')) p += 'index.html';
       let file = normalize(join(ROOT, p));
       if (file !== ROOT && !file.startsWith(ROOT + sep)) { res.writeHead(403).end(); return; }
+      // The fixture cases' step text, as scripts/booth/step-text.mjs writes an admitted case's (the result page's r2 links).
+      const fixtureText = FIXTURE_TEXT.get(p);
+      if (fixtureText) { res.writeHead(200, { 'content-type': MIME['.js'], 'cache-control': 'no-store' }).end(fixtureText); return; }
       let s = await stat(file).catch(() => null);
       if (!s?.isFile() && !extname(file)) { file += '.html'; s = await stat(file).catch(() => null); }
       if (!s?.isFile()) { res.writeHead(404).end('not found'); return; }
@@ -198,7 +203,7 @@ const SIG = (n) => `sig-${n}`;
 /** The de-identified copy of typed answer n, which its reply carries and the kiosk posts back (ADR 0010). */
 const DEIDENTIFIED = (n) => `de-identified answer ${n}`;
 /** What a start answers on `tree`: the play, its vignette, step 1's Next, the first sig and the case's step count. */
-const startFor = (tree) => ({ play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: { vignette: tree.vignette }, next: nextFor(tree, ''), sig: SIG(0),
+const startFor = (tree) => ({ play_id: PLAY_ID, tag: 42, answer_max_chars: 500, case: { vignette: tree.vignette, version: tree.version }, next: nextFor(tree, ''), sig: SIG(0),
   step_count: stepCount(tree) });
 const START = startFor(TREE);
 /** What a draw answers: the case id and its teaser, nothing else of the case. */
@@ -235,7 +240,7 @@ const scoredFor = (call, over = {}, tree = TREE) => ({ status: 200, body: { ...S
  * TREE5 is the five-step one). Default routes:
  *   'GET /booth/status'            { open: true, event_code }
  *   'POST /booth/draw'             drawOf(tree): { case_id, teaser }
- *   'POST /booth/plays'            startFor(tree): { play_id, tag: 42, answer_max_chars: 500, case: { vignette }, next, sig,
+ *   'POST /booth/plays'            startFor(tree): { play_id, tag: 42, answer_max_chars: 500, case: { vignette, version }, next, sig,
  *                                  step_count: the tree's step count }; 400 bad_request unless the body names a case_id
  *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), DEIDENTIFIED(n) for
  *                                  a typed answer n, next for the tier path walked (n < the tree's step count)

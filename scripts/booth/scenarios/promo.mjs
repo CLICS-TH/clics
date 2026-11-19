@@ -160,6 +160,26 @@ export default [
     },
   },
   {
+    name: 'promo: every asset the scenes name (the music, the CCME logo), other than the capture output, is in the source digest',
+    async run(h) {
+      const sources = [join(PROMO_DIR, 'index.html'), ...(await readdir(SCENES)).filter((f) => f.endsWith('.html')).map((f) => join(SCENES, f))];
+      const named = new Set();
+      for (const f of sources) {
+        for (const m of (await readFile(f, 'utf8')).matchAll(/\b(?:src|href)="(assets\/[^"]+)"/g)) {
+          if (!m[1].startsWith('assets/capture/')) named.add(join(PROMO_DIR, m[1]));
+        }
+      }
+      const base = await sourcesDigest();
+      const missed = [];
+      for (const file of named) {
+        const read = async (f, enc) => (f === file ? Buffer.concat([await readFile(f), Buffer.from('edit')]) : readFile(f, enc));
+        if (await sourcesDigest({ read }) === base) missed.push(file.slice(PROMO_DIR.length + 1));
+      }
+      h.check(named.size >= 2 && missed.length === 0,
+        `promo: an edit to any of ${named.size} scene assets moves the source digest${missed.length ? ` (not covered: ${missed.join(', ')})` : ''}`);
+    },
+  },
+  {
     name: 'promo: its captions follow the copy rule, and every scene built on a scored screen carries the demo label',
     async run(h) {
       const files = (await readdir(SCENES)).filter((f) => f.endsWith('.html')).sort();

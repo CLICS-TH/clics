@@ -15,14 +15,14 @@
   </style>
   <div id="root" class="on-ink" data-composition-id="draw" data-width="1080" data-height="1920">
     <div class="ground ink"></div>
-    <div id="draw-head" class="step clip" data-start="0" data-duration="3.5" data-track-index="2">
+    <div id="draw-head" class="step clip" data-start="0" data-duration="3" data-track-index="2">
       <span class="num" id="draw-num">1</span>
       <div>
         <p class="th" lang="th"><span class="ln"><span id="draw-l1">สุ่มเคส</span></span></p>
         <p class="en" lang="en"><span class="ln"><span id="draw-e1">Draw a case</span></span></p>
       </div>
     </div>
-    <div id="draw-deck" class="clip" data-start="0" data-duration="3.5" data-track-index="3" data-layout-allow-overlap>
+    <div id="draw-deck" class="clip" data-start="0" data-duration="3" data-track-index="3" data-layout-allow-overlap>
       <div id="draw-c3" class="draw-card draw-back"><svg viewBox="0 0 64 64" fill="none" data-layout-ignore><path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" stroke="#faf9f5" stroke-width="5" stroke-linecap="round" /><path d="M42 32 H47 L50 25 L54 39 L57 32 H60" stroke="#faf9f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
       <div id="draw-c2" class="draw-card draw-back"><svg viewBox="0 0 64 64" fill="none" data-layout-ignore><path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" stroke="#faf9f5" stroke-width="5" stroke-linecap="round" /><path d="M42 32 H47 L50 25 L54 39 L57 32 H60" stroke="#faf9f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
       <div id="draw-flip" class="draw-card">
@@ -51,9 +51,9 @@
     tl.to("#draw-c2", { x: 40, rotation: 4, duration: 0.2, ease: "power2.out" }, 1.25);
     tl.fromTo("#draw-flip", { rotationY: 0 }, { rotationY: 180, duration: 0.55, ease: "power3.inOut" }, 1.2);
     tl.fromTo("#draw-flip", { scale: 1 }, { scale: 1.04, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 1.65);
-    tl.to(["#draw-l1", "#draw-e1"], { yPercent: -115, duration: 0.22, ease: "power3.in" }, 3.25);
-    tl.to("#draw-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 3.25);
-    tl.to("#draw-deck", { y: -1500, duration: 0.3, ease: "power3.in" }, 3.2);
+    tl.to(["#draw-l1", "#draw-e1"], { yPercent: -115, duration: 0.22, ease: "power3.in" }, 2.75);
+    tl.to("#draw-num", { scale: 0, duration: 0.2, ease: "power3.in" }, 2.75);
+    tl.to("#draw-deck", { y: -1500, duration: 0.3, ease: "power3.in" }, 2.7);
     window.__timelines["draw"] = tl;
   </script>
 </template>

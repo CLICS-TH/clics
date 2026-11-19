@@ -88,7 +88,7 @@ export default [
         && KEYS.some((k) => bandWant(domains[k]) !== BAND_OF_WHOLE[Math.trunc(domains[k])]),
       `fixtures: table entry ${path} has a one-decimal domain, a whole one, and one whose band moves when rounded (${JSON.stringify(domains)})`);
       const r = { score: 72, domains, tag: 42, date: '2026-11-11', teaser: h.TREE5.teaser, tiers: PLAN, look: 'en+th' };
-      h.check(h.same(parseResultFragment(`#${resultFragment(r)}`), r), 'link: one-decimal domains and five tiers come back as written');
+      h.check(h.same(parseResultFragment(`#${resultFragment(r)}`), { ...r, caseId: null, caseVersion: null, picks: null }), 'link: one-decimal domains and five tiers come back as written');
       h.check(parseResultFragment(`#${resultFragment({ ...r, domains: { ...domains, d5: 2.65 } })}`) === null, 'link: a domain with two decimals does not read');
     },
   },

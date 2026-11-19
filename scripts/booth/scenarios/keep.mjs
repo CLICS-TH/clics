@@ -1,9 +1,10 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { readRadar, checkRadar } from '../radar-check.mjs';
 
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+const STEPS = fileURLToPath(new URL('../../../physician-ui/public/booth-steps/', import.meta.url));
 const js = (name) => fileURLToPath(new URL(`../../../physician-ui/public/js/${name}`, import.meta.url));
 
 const dataUrl = (text) => `data:text/javascript,${encodeURIComponent(text)}`;
@@ -12,7 +13,8 @@ const dataUrl = (text) => `data:text/javascript,${encodeURIComponent(text)}`;
 const COPY_URL = dataUrl(await readFile(js('booth-copy.js'), 'utf8'));
 const load = async (name) => import(dataUrl((await readFile(js(name), 'utf8')).replaceAll("'./booth-copy.js'", JSON.stringify(COPY_URL))));
 const { parseResultFragment, resultFragment, boothDate, RESULT_PATH } = await load('booth-result-link.js');
-const { BAND_LINES, bandOf } = await load('booth-bands.js');
+const { BAND_LINES, MEASURES, SCALE_NOTE, bandOf } = await load('booth-bands.js');
+const { WORKSHOP_COPY, WORKSHOP_PATH } = await load('booth-workshop.js');
 
 async function toResult(k) {
   await k.shell('start');
@@ -30,8 +32,19 @@ async function toResult(k) {
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const GOOD = { s: 72, d: [4, 3, 4, 2, 3, 5, 1], t: 42, at: '2026-11-03', th: 'ชาวนา', en: 'A farmer' };
 
+const GOOD2 = { s: 72, d: [4, 3, 4, 2, 3, 5, 1], t: 42, at: '2026-11-03', c: 'cap-adult', v: '1', p: 'BWR', a: 'v1.a.,v2.c.b,v3..a' };
+
 /** Fragments that must show the plain message, each with what is wrong with it. */
 const MALFORMED = [
+  [`#r2.${b64({ ...GOOD2, c: 'Cap Adult' })}`, 'an r2 case id outside a-z, 0-9 and -'],
+  [`#r2.${b64({ ...GOOD2, c: '../js/booth-play' })}`, 'an r2 case id that is a path'],
+  [`#r2.${b64({ ...GOOD2, v: undefined })}`, 'an r2 link with no case version'],
+  [`#r2.${b64({ ...GOOD2, v: '../1' })}`, 'a case version that is a path'],
+  [`#r2.${b64({ ...GOOD2, th: 'ชาวนา', en: 'A farmer' })}`, 'an r2 link that also carries a teaser'],
+  [`#r2.${b64({ ...GOOD2, a: 'v1.a.,v2.c.b' })}`, 'fewer picks than tiers'],
+  [`#r2.${b64({ ...GOOD2, a: 'v1.a,v2.c.b,v3..a' })}`, 'a pick without its best field'],
+  [`#r2.${b64({ ...GOOD2, p: undefined })}`, 'picks with no tiers'],
+  [`#r1.${b64({ ...GOOD, a: 'v1.a.' , p: 'B' })}`, 'picks on an r1 link'],
   ['', 'no fragment'],
   ['#', 'an empty fragment'],
   ['#r1.', 'the format and no data'],
@@ -76,18 +89,44 @@ const checkTry = (h, label, seen, origin) => h.check(seen.count === 1 && seen.ta
   && seen.text.includes('ลองใช้ CLICS') && seen.text.includes('Try CLICS'),
 `${label}: one "Try CLICS" link to the Portal root, ${seen.href} (no /login, no play id, no query or fragment)`);
 
+const WORKSHOP_KEY = '[data-action="workshop"]';
+/** The workshop invitation as the phone page draws it: its link resolved the way a tap would follow it, and whether it
+ *  sits above "Try CLICS" as the result's next step. */
+const workshopLink = (page) => page.evaluate((key) => {
+  const links = document.querySelectorAll(key);
+  const a = links[0];
+  const card = a?.closest('[data-workshop]');
+  const tryLink = document.querySelector('[data-action="try-clics"]');
+  return { count: links.length, cards: document.querySelectorAll('[data-workshop]').length, raw: a?.getAttribute('href'), href: a?.href, tag: a?.tagName,
+    target: a?.getAttribute('target'), text: card?.innerText.replace(/\s+/g, ' ') ?? '', primary: a?.classList.contains('primary'),
+    above: !!(card && tryLink && card.compareDocumentPosition(tryLink) & Node.DOCUMENT_POSITION_FOLLOWING), trySecondary: tryLink?.classList.contains('secondary') };
+}, WORKSHOP_KEY);
+const checkWorkshop = (h, label, seen, origin) => {
+  const words = Object.values(WORKSHOP_COPY).flatMap((b) => [b.th, b.en]);
+  h.check(seen.count === 1 && seen.cards === 1 && seen.tag === 'A' && seen.raw === WORKSHOP_PATH && seen.href === `${origin}${WORKSHOP_PATH}` && seen.target === null
+    && words.every((w) => seen.text.replace(/\s+/g, '').includes(w.replace(/\s+/g, ''))),
+  `${label}: one workshop card, Thai and English, whose link opens ${WORKSHOP_PATH} on the Portal in the same tab (${seen.href})`);
+  h.check(seen.primary && seen.above && seen.trySecondary, `${label}: the workshop link is the primary next step, above a secondary "Try CLICS"`);
+};
+
 export default [
   {
     name: 'result link: the fragment round-trips the result, and every malformed fragment parses to null',
     async run(h) {
       const r = { score: 72.4, domains: h.SCORED.domains, tag: 42, date: '2026-11-03', teaser: h.TREE.teaser, tiers: ['best', 'weaker', 'reasonable'], look: 'en+th' };
       const back = parseResultFragment(`#${resultFragment(r)}`);
-      h.check(h.same(back, { ...r, score: 72 }), 'link: score (rounded), d1-d7, tag, date, both teasers, the three tiers and the look come back as written');
+      h.check(h.same(back, { ...r, score: 72, caseId: null, caseVersion: null, picks: null }), 'link: score (rounded), d1-d7, tag, date, both teasers, the three tiers and the look come back as written');
       const untiered = parseResultFragment(`#${resultFragment({ ...r, tiers: null })}`);
-      h.check(h.same(untiered, { ...r, score: 72, tiers: null }), 'link: a result with no tiers comes back with tiers null');
+      h.check(h.same(untiered, { ...r, score: 72, tiers: null, caseId: null, caseVersion: null, picks: null }), 'link: a result with no tiers comes back with tiers null');
       h.check(Object.keys(h.LOOKS).every((look) => parseResultFragment(`#${resultFragment({ ...r, look })}`)?.look === look), `link: each of the ${Object.keys(h.LOOKS).length} looks comes back as written`);
       h.check(h.same(parseResultFragment(`#r1.${b64(GOOD)}`), { score: 72, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 }, tag: 42, date: '2026-11-03',
-        teaser: { th: 'ชาวนา', en: 'A farmer' }, tiers: null, look: h.DEFAULT_LOOK }), `link: a link made before tiers and looks were kept (3-4 Nov, no p, no l) still reads, with tiers null and the look ${h.DEFAULT_LOOK}`);
+        teaser: { th: 'ชาวนา', en: 'A farmer' }, tiers: null, look: h.DEFAULT_LOOK, caseId: null, caseVersion: null, picks: null }), `link: a link made before tiers and looks were kept (3-4 Nov, no p, no l) still reads, with tiers null and the look ${h.DEFAULT_LOOK}`);
+      const picks = [{ variant: 'v1', chosen: 'a', best: null }, { variant: 'v2', chosen: 'c', best: 'b' }, { variant: 'v3', chosen: null, best: 'a' }];
+      const r2 = { ...r, teaser: null, caseId: h.TREE.case_id, caseVersion: h.TREE.version, picks };
+      h.check(h.same(parseResultFragment(`#${resultFragment(r2)}`), { ...r2, score: 72 }) && resultFragment(r2).startsWith('r2.'),
+        'link: an r2 link (a case id and no teaser) round-trips each step\'s variant, pick (null when typed) and best option');
+      h.check(h.same(parseResultFragment(`#${resultFragment({ ...r2, tiers: null })}`), { ...r2, score: 72, tiers: null, picks: null }),
+        'link: an r2 link without tiers carries no picks');
       h.check(/^r1\.[A-Za-z0-9_-]+$/.test(resultFragment(r)), 'link: the fragment is base64url behind its format prefix, no character a scanner or browser rewrites');
       h.check(MALFORMED.every(([f]) => parseResultFragment(f) === null), `link: ${MALFORMED.length} malformed fragments all parse to null`);
       h.check(boothDate(new Date('2026-11-03T18:30:00Z')) === '2026-11-04', 'link: the date is Bangkok\'s day, not UTC\'s');
@@ -107,16 +146,110 @@ export default [
       h.check(url.origin === new URL(page.url()).origin && url.pathname === RESULT_PATH && url.search === '',
         `${width}: the QR opens ${RESULT_PATH} on the Portal with no query (${url.origin}${url.pathname}${url.search})`);
       const kept = parseResultFragment(url.hash);
-      const tiers = h.stepsFor(h.TREE, k.stub.of(SCORE_KEY)[0].body).map((st) => st.tier);
-      h.check(h.same(kept, { score: 72, domains: h.SCORED.domains, tag: 42, date: boothDate(), teaser: h.TREE.teaser, tiers, look: h.DEFAULT_LOOK }),
-        `${width}: the fragment holds the score, d1-d7, tag, today's date, the drawn case's teaser, the tier of each step (${tiers}) and the look (${kept?.look})`);
+      const scored = k.stub.of(SCORE_KEY)[0].body;
+      const steps = h.stepsFor(h.TREE, scored);
+      const tiers = steps.map((st) => st.tier);
+      const picks = scored.asks.map((ask, i) => ({ variant: ask.variant, chosen: 'choice' in scored.answers[i] ? scored.answers[i].choice : null,
+        best: steps[i].options.find((o) => o.tier === 'best')?.id ?? null }));
+      h.check(h.same(kept, { score: 72, domains: h.SCORED.domains, tag: 42, date: boothDate(), teaser: null, tiers, look: h.DEFAULT_LOOK, caseId: h.TREE.case_id, caseVersion: h.TREE.version, picks }),
+        `${width}: the fragment (r2) holds the score, d1-d7, tag, today's date, the drawn case's id and no teaser, the tier, variant, pick and best option of each step (${tiers}) and the look (${kept?.look})`);
+      h.check(qr.url.length < 300, `${width}: the result link is ${qr.url.length} characters, so the QR stays sparse`);
       h.check(qr.w >= 320 * (width / 1080) - 1 && qr.w === qr.h, `${width}: the QR is square and ${Math.round(qr.w)} px wide`);
       h.check(qr.caption.includes('Scan to keep your result') && qr.caption.includes('สแกน'), `${width}: the QR is captioned in Thai and English`);
       const sent = k.stub.calls.filter((c) => JSON.stringify(c).includes(url.hash.slice(4, 40)));
       h.check(sent.length === 0, `${width}: no booth API call carried the result link`);
+      const invite = await page.evaluate(() => document.querySelectorAll('[data-workshop], [data-action="workshop"], a[href*="workshop"]').length);
+      h.check(invite === 0, `${width}: the kiosk's result card carries no workshop card or link (a touch screen link goes nowhere; ${invite} found)`);
       await h.screenCheck(page, `result card with the result QR ${width}x${height}`, { demo: true });
       await h.shot(page, `keep-qr-${width}`);
       await k.close();
+    },
+  })),
+  {
+    name: 'result page at 320px for every admitted case from an r2 link: each step\'s longest question and options fit',
+    async run(h) {
+      const admitted = new Set((await readdir(STEPS)).filter((f) => f.endsWith('.js')).map((f) => f.replace(/\.js$/, '')));
+      const trees = (await h.caseTrees()).filter(([f, t]) => !f.includes('versions/') && admitted.has(`${t.case_id}@${t.version}`));
+      h.check(trees.length === admitted.size, `${trees.length} admitted cases have step text (${[...admitted].join(', ')})`);
+      // A Thai line breaks only between phrases, so rank by each text's longest phrase: that is what must fit a line.
+      const len = (b) => Math.max(...b.th.split(/ +/).map((ph) => ph.length));
+      const p = await h.phone(RESULT_PATH, { width: 320, height: 640 });
+      for (const [file, tree] of trees) {
+        let path = '';
+        const picks = [];
+        for (let i = 0; i < h.stepCount(tree); i++) {
+          const bank = h.bankFor(tree, path);
+          const variant = [...bank.variants].sort((x, y) => len(y.question) - len(x.question))[0];
+          const longest = (os) => [...os].sort((x, y) => len(y.label) + len(y.line) - len(x.label) - len(x.line))[0];
+          const best = longest(bank.options.filter((o) => o.tier === 'best'));
+          const chosen = longest(bank.options.filter((o) => o.tier !== 'best')) ?? best;
+          picks.push({ variant: variant.id, chosen: chosen.id, best: best.id });
+          path += { best: 'B', reasonable: 'R', weaker: 'W' }[chosen.tier];
+        }
+        const tiers = [...path].map((c) => ({ B: 'best', R: 'reasonable', W: 'weaker' })[c]);
+        const domains = Object.fromEntries(KEYS.map((k) => [k, 2]));
+        await p.page.evaluate((f) => { location.hash = f; }, resultFragment({ score: 50, domains, tag: 7, date: '2026-11-19', tiers, look: 'th+en', caseId: tree.case_id, caseVersion: tree.version, picks }));
+        await p.page.waitForFunction((n) => document.querySelectorAll('.result-steps .reveal-step').length === n, tiers.length);
+        await h.screenCheck(p.page, `explained steps, ${file}, 320px`, { demo: 'auto', phone: true });
+      }
+      await p.close();
+    },
+  },
+  ...[[375, 812], [320, 640]].map(([width, height]) => ({
+    name: `result page at ${width}px from an r2 link: each step's question, the answer and its reason, the best option when missed, a typed answer, and the case's teaser`,
+    async run(h) {
+      // A five-step walk through cap-adult-5: step 2 taps a weaker option, step 4 is typed (the stub sorts it best).
+      const tree = h.TREE5;
+      const plan = [];
+      let path = '';
+      for (let i = 0; i < 5; i++) {
+        const bank = h.bankFor(tree, path);
+        const best = bank.options.find((o) => o.tier === 'best');
+        const pickOf = i === 1 ? bank.options.find((o) => o.tier === 'weaker') : best;
+        const typed = i === 3;
+        plan.push({ bank, variant: bank.variants[0], given: typed ? null : pickOf, best });
+        path += typed ? h.TYPED_TIER : { best: 'B', reasonable: 'R', weaker: 'W' }[pickOf.tier];
+      }
+      const tiers = [...path].map((c) => ({ B: 'best', R: 'reasonable', W: 'weaker' })[c]);
+      const picks = plan.map((st) => ({ variant: st.variant.id, chosen: st.given?.id ?? null, best: st.best.id }));
+      const domains = h.TABLE5.paths[path];
+      const fragment = resultFragment({ score: 72, domains, tag: 42, date: '2026-11-19', tiers, look: 'th+en', caseId: tree.case_id, caseVersion: tree.version, picks });
+      const p = await h.phone(`${RESULT_PATH}#${fragment}`, { width, height });
+      const { page } = p;
+      await page.waitForSelector('#result[data-rendered] .result-steps');
+      const seen = await page.evaluate(() => ({
+        teaser: document.querySelector('.result-case .teaser')?.innerText,
+        steps: [...document.querySelectorAll('.result-steps .reveal-step')].map((e) => ({
+          tier: e.dataset.tier,
+          question: e.querySelector('.reveal-question .bi-en')?.textContent,
+          given: e.querySelector('.reveal-answer .reveal-given .bi-en')?.textContent,
+          line: e.querySelector('.reveal-answer .reveal-line .bi-en')?.textContent ?? null,
+          best: e.querySelector('.reveal-best .reveal-given .bi-en')?.textContent ?? null,
+          bestLine: e.querySelector('.reveal-best .reveal-line .bi-en')?.textContent ?? null,
+        })),
+        tierList: document.querySelectorAll('.tier-step').length,
+        scrollX: document.documentElement.scrollWidth - innerWidth,
+      }));
+      h.check(seen.teaser?.includes(tree.teaser.en), `${width}: the case teaser comes from the case's step text`);
+      h.check(seen.steps.length === 5 && seen.tierList === 0, `${width}: five explained steps replace the tier list (${seen.steps.length}, ${seen.tierList})`);
+      seen.steps.forEach((st, i) => {
+        const want = plan[i];
+        const missed = want.given && want.given.id !== want.best.id;
+        h.check(st.tier === tiers[i] && st.question === want.variant.question.en
+          && st.given === (want.given ? want.given.label.en : h.COPY.typedOwn.en) && st.line === (want.given ? want.given.line.en : null)
+          && st.best === (missed || !want.given ? want.best.label.en : null) && st.bestLine === (missed || !want.given ? want.best.line.en : null),
+        `${width}: step ${i + 1} shows its question, ${want.given ? 'the tapped answer and its reason' : 'that the answer was typed'}, the ${tiers[i]} tier${missed || !want.given ? ' and the best option with its reason' : ''}`);
+      });
+      h.check(seen.scrollX <= 0, `${width}: no sideways scroll (${seen.scrollX} px over)`);
+      await h.screenCheck(page, `explained result page ${width}px`, { demo: 'auto', phone: true });
+      await h.shot(page, `result-page-steps-${width}`, { fullPage: true });
+      // A link from another case version: an id the text lacks falls back to the tier list, never to wrong text.
+      const stale = resultFragment({ score: 72, domains, tag: 42, date: '2026-11-19', tiers, look: 'th+en', caseId: tree.case_id, caseVersion: tree.version,
+        picks: picks.map((k, i) => (i === 2 ? { ...k, variant: 'zz9' } : k)) });
+      await page.evaluate((f) => { location.hash = f; }, stale);
+      await page.waitForFunction(() => document.querySelectorAll('.tier-step').length === 5);
+      h.check(await page.locator('.result-steps').count() === 0, `${width}: an id the case's text lacks shows the tier list, not explained steps`);
+      await p.close();
     },
   })),
   ...[[375, 812], [320, 640]].map(([width, height]) => ({
@@ -139,7 +272,9 @@ export default [
         rows: [...document.querySelectorAll('.result-card .domain')].map((e) => ({
           key: e.dataset.key, value: e.dataset.value, bar: e.querySelector('.domain-bar > span').getBoundingClientRect().width / e.querySelector('.domain-bar').getBoundingClientRect().width,
           th: e.querySelector('.domain-band .bi-th').textContent, en: e.querySelector('.domain-band .bi-en').textContent,
+          mth: e.querySelector('.domain-measure .bi-th')?.textContent, men: e.querySelector('.domain-measure .bi-en')?.textContent,
         })),
+        scale: document.querySelector('.result-card .scale-note')?.innerText,
         next: [...document.querySelectorAll('.practise-next .domain')].map((e) => e.dataset.key),
         scrollX: document.documentElement.scrollWidth - innerWidth,
         smallest: Math.min(...[...document.querySelectorAll('.result-page *')].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
@@ -152,6 +287,9 @@ export default [
         && Math.abs(row.bar - domains[row.key] / 5) < 0.02
         && row.th === BAND_LINES[row.key][bandOf(domains[row.key])].th && row.en === BAND_LINES[row.key][bandOf(domains[row.key])].en),
       `${width}: 7 rows, each bar at its score and carrying its domain's band line in Thai and English`);
+      h.check(seen.rows.every((row) => row.mth === MEASURES[row.key].th && row.men === MEASURES[row.key].en),
+        `${width}: every row says what its domain looks at, in Thai and English (booth-bands.js MEASURES)`);
+      h.check(seen.scale?.includes(SCALE_NOTE.th.split(' ')[0]) && seen.scale.includes(SCALE_NOTE.en), `${width}: the 0-5 scale note sits above the domains`);
       h.check(h.same(seen.next, ['d4', 'd1']), `${width}: Practise next lists the two weakest first (${seen.next})`);
       h.check(seen.scrollX <= 0, `${width}: no sideways scroll (${seen.scrollX} px over)`);
       h.check(seen.smallest >= 16, `${width}: no text under 16 px (smallest ${seen.smallest} px)`);
@@ -165,12 +303,16 @@ export default [
       h.check(tinted.length === 0, `${width}: no tier chip wears an --ai-* colour${tinted.length ? ` (${[...new Set(tinted)].slice(0, 3).join('; ')})` : ''}`);
       const origin = new URL(page.url()).origin;
       checkTry(h, `${width}`, await tryLink(page), origin);
+      checkWorkshop(h, `${width}`, await workshopLink(page), origin);
       for (const y of [0, 1e6]) {
         await page.evaluate((to) => document.scrollingElement.scrollTo(0, to), y);
         await page.evaluate(() => window.scrollTo(0, 0));
       }
       await h.screenCheck(page, `result page ${width}px`, { demo: 'auto', phone: true });
       await h.shot(page, `result-page-${width}`, { fullPage: true });
+      await page.evaluate(() => document.querySelector('[data-workshop]').scrollIntoView({ block: 'center' }));
+      await h.shot(page, `result-page-register-${width}`);
+      await page.evaluate(() => window.scrollTo(0, 0));
       await page.evaluate((f) => { location.hash = f; }, `r1.${b64({ ...GOOD, s: 91 })}`);
       await page.waitForFunction(() => document.querySelector('[data-score]')?.textContent === '91');
       h.check(await page.locator('.tier-step').count() === 0 && await page.locator('[data-radar]').count() === 1,

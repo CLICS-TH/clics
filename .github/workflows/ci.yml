@@ -209,6 +209,10 @@ jobs:
         working-directory: backend
       - run: npm test -- --coverage
         working-directory: backend
+      # The phone result page explains each step from physician-ui/public/booth-steps/, generated from the admitted
+      # cases: a case edited without `node scripts/booth/step-text.mjs --write` fails here.
+      - name: booth-steps match the admitted cases
+        run: node scripts/booth/step-text.mjs
 
   # rimpl: all 8 suites are hermetic — Supabase + the Anthropic SDK are jest.mock'd (incl. the PII
   # boundary + adversarial-leak suites), so no env is needed. test:ci == test (jest --runInBand).

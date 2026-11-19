@@ -1,0 +1,139 @@
+<!doctype html>
+<!--
+  CLICS Calibration Workshop, World's First Cohort: an invitation, linked from the booth result page. Its own head, like
+  booth-result.html: no js/boot.js, no script at all, no storage. The CSP lets the page load only its own CSS, fonts and
+  images and send nothing (connect-src 'none', form-action 'none'); Register is a plain link to the owner's Google Form,
+  opened in a new tab. Headings are English first, Thai under them (owner, 2026-11-19); body text is Thai first. Thai lines break between phrases only: each Thai phrase is a .ph span (as booth-dom.js does).
+-->
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light">
+  <title>CLICS Calibration Workshop: World's First Cohort</title>
+  <meta name="description" content="CLICS Calibration Workshop รุ่นแรกของโลก: แพทย์ให้คะแนนเคสชุดเดียวกันตามเกณฑ์ PIS-7 แล้วเทียบกัน CLICS Calibration Workshop, World's First Cohort.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/workshop.css">
+</head>
+<body class="ws">
+  <header class="ws-top">
+    <div class="ws-wrap ws-top-row">
+      <img class="ccme-logo" src="/img/ccme-logo.png" width="900" height="301" alt="CCME">
+      <a class="clics-mark" href="/"><img src="/favicon.svg" width="32" height="32" alt=""><span>CLICS</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="ws-hero" aria-labelledby="ws-title">
+      <div class="ws-wrap hero-grid">
+        <div class="hero-text">
+          <p class="invite"><span class="bi en-first"><span lang="en">An invitation to physicians</span><span lang="th"><span class="ph">ขอเชิญแพทย์เข้าร่วม</span></span></span></p>
+          <h1 id="ws-title">
+            <span class="event-name" lang="en">CLICS Calibration Workshop</span>
+            <span class="bi en-first cohort"><span lang="en"><span class="cohort-line">World’s First</span><span class="cohort-line">Cohort</span></span><span lang="th"><span class="ph">รุ่นแรกของโลก</span></span></span>
+          </h1>
+          <p class="lede"><span class="bi"><span lang="th"><span class="ph">ร่วมเป็นแพทย์กลุ่มแรก</span> <span class="ph">ที่วางมาตรฐานร่วมกัน</span> <span class="ph">ว่าการให้เหตุผลทางคลินิกที่ดี</span> <span class="ph">มีหน้าตาอย่างไร</span> <span class="ph">บนเกณฑ์</span> <span class="ph">PIS-7</span></span><span lang="en">Be among the first physicians to set a shared standard for what good clinical reasoning looks like on the PIS-7 rubric.</span></span></p>
+          <dl class="tba">
+            <dt><span class="bi en-first"><span lang="en">Date, time and venue</span><span lang="th"><span class="ph">วัน</span> <span class="ph">เวลา</span> <span class="ph">และสถานที่</span></span></span></dt>
+            <dd><span class="bi en-first tba-value"><span lang="en">To be announced soon</span><span lang="th"><span class="ph">จะประกาศเร็วๆ</span> <span class="ph">นี้</span></span></span></dd>
+          </dl>
+          <div class="cta">
+            <a class="ws-btn primary" href="https://docs.google.com/forms/d/e/1FAIpQLSfXEcHv5YuyK6rVu_gsW_-KM9yqsTRITljVCFgZ17j4Bu2eFA/viewform" target="_blank" rel="noopener noreferrer"><span class="bi en-first btn-text"><span lang="en">Register</span><span lang="th"><span class="ph">ลงทะเบียน</span> <span class="ph">Workshop</span></span></span></a>
+            <p class="cta-note"><span class="bi"><span lang="th"><span class="ph">เปิดแบบฟอร์ม</span> <span class="ph">Google</span> <span class="ph">ในแท็บใหม่</span></span><span lang="en">Opens a Google Form in a new tab</span></span></p>
+          </div>
+        </div>
+        <figure class="hero-fig">
+          <svg class="cal-fig" viewBox="-128 -128 256 256" role="img" aria-labelledby="fig-title">
+      <title id="fig-title">PIS-7: seven domains, d1 to d7, scored 0 to 5. Three physicians' scores of the same case draw close to one shared reading.</title>
+      <g class="grid"><polygon class="ring" points="0.0,-20.0 15.6,-12.5 19.5,4.5 8.7,18.0 -8.7,18.0 -19.5,4.5 -15.6,-12.5"/><polygon class="ring" points="0.0,-40.0 31.3,-24.9 39.0,8.9 17.4,36.0 -17.4,36.0 -39.0,8.9 -31.3,-24.9"/><polygon class="ring" points="0.0,-60.0 46.9,-37.4 58.5,13.4 26.0,54.1 -26.0,54.1 -58.5,13.4 -46.9,-37.4"/><polygon class="ring" points="0.0,-80.0 62.5,-49.9 78.0,17.8 34.7,72.1 -34.7,72.1 -78.0,17.8 -62.5,-49.9"/><polygon class="ring" points="0.0,-100.0 78.2,-62.3 97.5,22.3 43.4,90.1 -43.4,90.1 -97.5,22.3 -78.2,-62.3"/><line class="spoke" x1="0" y1="0" x2="0.0" y2="-100.0"/><line class="spoke" x1="0" y1="0" x2="78.2" y2="-62.3"/><line class="spoke" x1="0" y1="0" x2="97.5" y2="22.3"/><line class="spoke" x1="0" y1="0" x2="43.4" y2="90.1"/><line class="spoke" x1="0" y1="0" x2="-43.4" y2="90.1"/><line class="spoke" x1="0" y1="0" x2="-97.5" y2="22.3"/><line class="spoke" x1="0" y1="0" x2="-78.2" y2="-62.3"/></g>
+      <polygon class="rater rater-1" points="0.0,-88.0 53.2,-42.4 72.1,16.5 22.6,46.9 -36.4,75.7 -64.3,14.7 -67.2,-53.6"/>
+      <polygon class="rater rater-2" points="0.0,-72.0 43.8,-34.9 83.8,19.1 29.5,61.3 -32.1,66.7 -52.6,12.0 -59.4,-47.4"/>
+      <polygon class="rater rater-3" points="0.0,-84.0 50.0,-39.9 74.1,16.9 27.8,57.7 -38.2,79.3 -68.2,15.6 -56.3,-44.9"/>
+      <polygon class="shared" pathLength="100" points="0.0,-80.0 46.9,-37.4 78.0,17.8 26.0,54.1 -34.7,72.1 -58.5,13.4 -62.5,-49.9"/>
+      <g class="axes"><text class="axis" x="0.0" y="-113.0">d1</text><text class="axis" x="92.3" y="-68.6">d2</text><text class="axis" x="115.0" y="31.3">d3</text><text class="axis" x="51.2" y="111.3">d4</text><text class="axis" x="-51.2" y="111.3">d5</text><text class="axis" x="-115.0" y="31.3">d6</text><text class="axis" x="-92.3" y="-68.6">d7</text></g>
+    </svg>
+          <figcaption><span class="bi"><span lang="th"><span class="ph">เจ็ดด้านของ</span> <span class="ph">PIS-7</span> <span class="ph">แต่ละด้าน</span> <span class="ph">0</span> <span class="ph">ถึง</span> <span class="ph">5</span> <span class="ph">คะแนน</span> <span class="ph">เส้นประคือคะแนนของแพทย์แต่ละคน</span> <span class="ph">เส้นทึบคือการอ่านเกณฑ์ร่วมกัน</span></span><span lang="en">The seven PIS-7 domains, each 0 to 5. Dashed lines: each physician’s scores. Solid line: the shared reading.</span></span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="ws-sec" aria-labelledby="what-h">
+      <div class="ws-wrap sec-grid">
+        <h2 id="what-h"><span class="bi en-first"><span lang="en">What calibration means</span><span lang="th"><span class="ph">Calibration</span> <span class="ph">คืออะไร</span></span></span></h2>
+        <div class="sec-body">
+          <p><span class="bi"><span lang="th"><span class="ph">CLICS</span> <span class="ph">ประเมินการให้เหตุผลทางคลินิก</span> <span class="ph">จากบทสนทนาระหว่างแพทย์กับ</span> <span class="ph">AI</span> <span class="ph">ด้วยเกณฑ์</span> <span class="ph">PIS-7</span> <span class="ph">ซึ่งมีเจ็ดด้าน</span> <span class="ph">ด้านละ</span> <span class="ph">0</span> <span class="ph">ถึง</span> <span class="ph">5</span> <span class="ph">คะแนน</span></span><span lang="en">CLICS scores clinical reasoning from a physician’s dialogue with an AI, on the PIS-7 rubric: seven domains, each scored 0 to 5.</span></span></p>
+          <p><span class="bi"><span lang="th"><span class="ph">Calibration</span> <span class="ph">คือการที่แพทย์หลายคน</span> <span class="ph">ให้คะแนนเคสชุดเดียวกัน</span> <span class="ph">ตามเกณฑ์เดียวกัน</span> <span class="ph">แล้วนำคะแนนมาเทียบกัน</span> <span class="ph">เพื่อให้ทุกคน</span> <span class="ph">อ่านเกณฑ์ไปในทางเดียวกัน</span></span><span lang="en">Calibration means several physicians score the same cases against the same rubric, then compare their scores, so that everyone reads the rubric the same way.</span></span></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="ws-sec" aria-labelledby="why-h">
+      <div class="ws-wrap sec-grid">
+        <h2 id="why-h"><span class="bi en-first"><span lang="en">Why physicians</span><span lang="th"><span class="ph">ทำไมต้องเป็นแพทย์</span></span></span></h2>
+        <div class="sec-body">
+          <p><span class="bi"><span lang="th"><span class="ph">คะแนนจาก</span> <span class="ph">AI</span> <span class="ph">ต้องถูกตรวจเทียบ</span> <span class="ph">กับมาตรฐานของมนุษย์</span> <span class="ph">และมาตรฐานนั้น</span> <span class="ph">มาจากแพทย์ที่ให้คะแนน</span> <span class="ph">สอดคล้องกัน</span></span><span lang="en">The AI scorer is checked against a human standard, and that standard comes from physicians whose scores agree.</span></span></p>
+          <p class="pull"><span class="bi"><span lang="th"><span class="ph">รุ่นนี้คือแพทย์กลุ่มแรก</span> <span class="ph">ที่จะวางมาตรฐานร่วมนั้น</span></span><span lang="en">This cohort is the first group of physicians to build that shared standard.</span></span></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="ws-sec" aria-labelledby="do-h">
+      <div class="ws-wrap sec-grid">
+        <h2 id="do-h"><span class="bi en-first"><span lang="en">What the cohort does</span><span lang="th"><span class="ph">สิ่งที่รุ่นนี้จะทำ</span></span></span></h2>
+        <ol class="steps sec-body">
+          <li><span class="bi"><span lang="th"><span class="ph">อ่านเกณฑ์</span> <span class="ph">PIS-7</span> <span class="ph">ทั้งเจ็ดด้าน</span> <span class="ph">ไปด้วยกัน</span></span><span lang="en">Read the seven PIS-7 domains together</span></span></li>
+          <li><span class="bi"><span lang="th"><span class="ph">ให้คะแนนเคสชุดเดียวกัน</span> <span class="ph">แต่ละคนแยกกัน</span></span><span lang="en">Score the same cases, each on your own</span></span></li>
+          <li><span class="bi"><span lang="th"><span class="ph">เทียบคะแนน</span> <span class="ph">แล้วคุยกัน</span> <span class="ph">ในจุดที่ให้คะแนนต่างกัน</span></span><span lang="en">Compare scores and talk through where they differ</span></span></li>
+          <li><span class="bi"><span lang="th"><span class="ph">มุ่งสู่ความเข้าใจร่วมกัน</span> <span class="ph">ว่าแต่ละระดับคะแนน</span> <span class="ph">หมายถึงอะไร</span></span><span lang="en">Work toward a shared reading of what each score means</span></span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="ws-sec" aria-labelledby="dom-h">
+      <div class="ws-wrap sec-grid">
+        <h2 id="dom-h"><span class="bi en-first"><span lang="en">The seven PIS-7 domains</span><span lang="th"><span class="ph">เจ็ดด้านของ</span> <span class="ph">PIS-7</span></span></span></h2>
+        <ul class="domains sec-body">
+          <li><span class="d-key" aria-hidden="true">d1</span><span class="bi"><span lang="th"><span class="ph">ปัญญาในการตั้งคำถามคลินิก</span></span><span lang="en">Clinical Question Intelligence</span></span></li>
+          <li><span class="d-key" aria-hidden="true">d2</span><span class="bi"><span lang="th"><span class="ph">ความลึกของการให้เหตุผล</span></span><span lang="en">Reasoning Depth</span></span></li>
+          <li><span class="d-key" aria-hidden="true">d3</span><span class="bi"><span lang="th"><span class="ph">การบูรณาการบริบท</span></span><span lang="en">Contextual Integration</span></span></li>
+          <li><span class="d-key" aria-hidden="true">d4</span><span class="bi"><span lang="th"><span class="ph">การสืบค้นแบบต่อยอด</span></span><span lang="en">Iterative Inquiry</span></span></li>
+          <li><span class="d-key" aria-hidden="true">d5</span><span class="bi"><span lang="th"><span class="ph">การประเมินอย่างมีวิจารณญาณ</span></span><span lang="en">Critical Appraisal</span></span></li>
+          <li><span class="d-key" aria-hidden="true">d6</span><span class="bi"><span lang="th"><span class="ph">การสังเคราะห์เชิงสะท้อนคิด</span></span><span lang="en">Reflective Synthesis</span></span></li>
+          <li><span class="d-key" aria-hidden="true">d7</span><span class="bi"><span lang="th"><span class="ph">ความรู้เท่าทัน</span> <span class="ph">AI</span> <span class="ph">และทักษะการพรอมต์</span></span><span lang="en">AI Literacy & Prompt Skill</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="ws-sec" aria-labelledby="who-h">
+      <div class="ws-wrap sec-grid">
+        <h2 id="who-h"><span class="bi en-first"><span lang="en">Who can join</span><span lang="th"><span class="ph">ใครเข้าร่วมได้</span></span></span></h2>
+        <div class="sec-body">
+          <p><span class="bi"><span lang="th"><span class="ph">แพทย์</span></span><span lang="en">Physicians.</span></span></p>
+          <dl class="tba">
+            <dt><span class="bi en-first"><span lang="en">Date, time, venue and other details</span><span lang="th"><span class="ph">วัน</span> <span class="ph">เวลา</span> <span class="ph">สถานที่</span> <span class="ph">และรายละเอียดอื่น</span></span></span></dt>
+            <dd><span class="bi en-first tba-value"><span lang="en">To be announced soon</span><span lang="th"><span class="ph">จะประกาศเร็วๆ</span> <span class="ph">นี้</span></span></span></dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="ws-close" aria-labelledby="join-h">
+      <div class="ws-wrap close-inner">
+        <h2 id="join-h"><span class="bi en-first"><span lang="en">Join the first cohort</span><span lang="th"><span class="ph">ร่วมเป็นรุ่นแรก</span></span></span></h2>
+        <a class="ws-btn on-dark" href="https://docs.google.com/forms/d/e/1FAIpQLSfXEcHv5YuyK6rVu_gsW_-KM9yqsTRITljVCFgZ17j4Bu2eFA/viewform" target="_blank" rel="noopener noreferrer"><span class="bi en-first btn-text"><span lang="en">Register</span><span lang="th"><span class="ph">ลงทะเบียน</span> <span class="ph">Workshop</span></span></span></a>
+        <p class="cta-note"><span class="bi"><span lang="th"><span class="ph">หน้านี้ไม่ขอข้อมูล</span> <span class="ph">และไม่ส่งข้อมูลใด</span> <span class="ph">ๆ</span> <span class="ph">การลงทะเบียนทำในแบบฟอร์ม</span> <span class="ph">Google</span> <span class="ph">ซึ่งเปิดในแท็บใหม่</span></span><span lang="en">This page asks for nothing and sends nothing. You register on a Google Form, which opens in a new tab.</span></span></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ws-foot">
+    <div class="ws-wrap foot-row">
+      <p class="foot-name" lang="en">CLICS: Case-based Learning Intelligence Credit System</p>
+      <a class="foot-link" href="/"><span class="bi"><span lang="th"><span class="ph">เกี่ยวกับ</span> <span class="ph">CLICS</span></span><span lang="en">About CLICS</span></span></a>
+    </div>
+  </footer>
+</body>
+</html>
