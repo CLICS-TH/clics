@@ -9,7 +9,7 @@ import { chromium } from 'playwright';
 import { PORTAL_URL, PROMO } from './lock.mjs';
 
 /** Frames that show the QR: the result card at rest, and the QR scene after its one scan-line pass. */
-export const QR_TIMES = [16, 17.6, 19.7, 20.5];
+export const QR_TIMES = [17, 18.6, 20.2, 21];
 const JSQR = createRequire(import.meta.url).resolve('jsqr/dist/jsQR.js');
 
 /** What jsQR reads at each of `times` (seconds) of the MP4 at `file`: { t, text, size } per frame, text null if none. */

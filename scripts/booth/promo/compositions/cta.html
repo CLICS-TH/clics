@@ -13,7 +13,7 @@
   </style>
   <div id="root" data-composition-id="cta" data-width="1080" data-height="1920">
     <div class="ground"></div>
-    <div id="cta-lockup" class="clip" data-start="0" data-duration="3" data-track-index="2">
+    <div id="cta-lockup" class="clip" data-start="0" data-duration="2.5" data-track-index="2">
       <svg id="cta-icon" viewBox="0 0 64 64" data-layout-ignore>
         <rect width="64" height="64" rx="14" fill="#a9583e" />
         <path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" fill="none" stroke="#faf9f5" stroke-width="7" stroke-linecap="round" />
@@ -21,7 +21,7 @@
       </svg>
       <span id="cta-word">CLICS</span>
     </div>
-    <div id="cta-tapclip" class="clip" data-start="0" data-duration="3" data-track-index="3">
+    <div id="cta-tapclip" class="clip" data-start="0" data-duration="2.5" data-track-index="3">
       <div id="cta-tap">
         <p class="th" lang="th"><span class="ln"><span id="cta-l1">แตะเพื่อเริ่ม</span></span></p>
         <p class="en" lang="en"><span class="ln"><span id="cta-e1">Tap to start</span></span></p>
@@ -33,7 +33,7 @@
       <div id="cta-dot"></div>
     </div>
     <!-- Ends on hook.html's frame 0: the flat line alone on the canvas, so the loop has no seam. -->
-    <svg id="cta-ecg" class="clip" data-start="0" data-duration="3" data-track-index="4" viewBox="0 0 864 120" fill="none" data-layout-ignore>
+    <svg id="cta-ecg" class="clip" data-start="0" data-duration="2.5" data-track-index="4" viewBox="0 0 864 120" fill="none" data-layout-ignore>
       <path id="cta-ecg-line" opacity="0" pathLength="100" stroke="#141413" stroke-width="5" stroke-linecap="round" d="M0 60 H864" />
     </svg>
   </div>
@@ -50,11 +50,11 @@
       tl.fromTo(sel, { scale: 1, opacity: 1, transformOrigin: "50% 50%" }, { scale: 3, opacity: 0, duration: 0.7, ease: "power2.out", immediateRender: false }, at);
     });
     tl.to("#cta-dot", { scale: 0.85, duration: 0.12, ease: "power2.in", yoyo: true, repeat: 1 }, 0.8);
-    tl.to("#cta-dot", { scale: 0.85, duration: 0.12, ease: "power2.in", yoyo: true, repeat: 1 }, 1.7);
-    tl.to(["#cta-l1", "#cta-e1"], { yPercent: -115, duration: 0.25, ease: "power3.in", stagger: 0.03 }, 2.4);
-    tl.to(["#cta-icon", "#cta-word", "#cta-dot"], { scale: 0.6, opacity: 0, duration: 0.25, ease: "power3.in" }, 2.4);
-    tl.set("#cta-ecg-line", { opacity: 1 }, 2.6);
-    tl.fromTo("#cta-ecg-line", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 2.6);
+    tl.to("#cta-dot", { scale: 0.85, duration: 0.12, ease: "power2.in", yoyo: true, repeat: 1 }, 1.4);
+    tl.to(["#cta-l1", "#cta-e1"], { yPercent: -115, duration: 0.25, ease: "power3.in", stagger: 0.03 }, 1.9);
+    tl.to(["#cta-icon", "#cta-word", "#cta-dot"], { scale: 0.6, opacity: 0, duration: 0.25, ease: "power3.in" }, 1.9);
+    tl.set("#cta-ecg-line", { opacity: 1 }, 2.1);
+    tl.fromTo("#cta-ecg-line", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 2.1);
     window.__timelines["cta"] = tl;
   </script>
 </template>

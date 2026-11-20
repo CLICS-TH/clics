@@ -27,7 +27,10 @@ const sha = (buf) => createHash('sha256').update(buf).digest('hex');
  */
 export async function sourcesDigest({ read = readFile } = {}) {
   const scenes = (await readdir(join(HERE, 'compositions'))).filter((f) => f.endsWith('.html')).sort();
+  // The brand marks the scenes overlay (the CCME logo): a swapped file must move the digest like any scene.
+  const brand = (await readdir(join(HERE, 'assets', 'brand')).catch(() => [])).sort();
   const files = [
+    ...brand.map((f) => join(HERE, 'assets', 'brand', f)),
     ...['index.html', 'hyperframes.json', 'capture.mjs', 'stub.mjs', 'render.sh', 'capture-files.json', 'lock.mjs'].map((f) => join(HERE, f)),
     ...JSON.parse(await read(SERVED, 'utf8').catch(() => '[]')).map((f) => join(REPO, f)),
     ...scenes.map((f) => join(HERE, 'compositions', f)),

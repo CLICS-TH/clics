@@ -36,6 +36,24 @@ async function eventStatus() {
   }
 }
 
+/** The kiosk's 9:16 column (booth.css --col), in px: the screen's width, or 9/16 of its height when that is narrower.
+ *  Set again only when the width changes: an on-screen keyboard shortens the page and never narrows it, and the
+ *  column it would compute from the shorter page would shrink every text under the visitor's typing. */
+function pinColumn() {
+  let width = -1;
+  let height = -1;
+  // An on-screen keyboard only shortens the page, so the column re-pins on a new width or a taller page (a window still
+  // settling at boot), never on a shorter one.
+  const pin = () => {
+    if (innerWidth === width && innerHeight <= height) return;
+    width = innerWidth;
+    height = innerHeight;
+    document.documentElement.style.setProperty('--col', `${Math.min(innerWidth, innerHeight * 9 / 16)}px`);
+  };
+  pin();
+  addEventListener('resize', pin);
+}
+
 /** A tap on a control drawn under 350 ms ago is the tail of the tap that drew it: swallow it. */
 function guardGhostTaps() {
   const drawnAt = new WeakMap();
@@ -66,6 +84,15 @@ function keepingCase(base) {
       return res;
     },
   };
+}
+
+/** On a landscape screen the column leaves a blank screen on each side. On the loop a passer-by's tap there starts a play
+ *  as a tap on the loop does; anywhere else it does nothing (the overlays' scrims cover the sides themselves). */
+function sidesStartPlay() {
+  document.addEventListener('click', (e) => {
+    if (e.target !== document.body && e.target !== document.documentElement) return;
+    if (root.dataset.shell === 'start') root.querySelector('[data-action="start"]')?.click();
+  });
 }
 
 /** Offline cache (booth-sw.js): the page tells the worker what it loaded, so there is no hand-kept list. */
@@ -155,8 +182,10 @@ async function play() {
   root.dataset.shell = 'done';
 }
 
+pinColumn();
 setLook(DEFAULT_LOOK);
 mountLookControl(document.body);
 guardGhostTaps();
+sidesStartPlay();
 showLoop();
 registerWorker();

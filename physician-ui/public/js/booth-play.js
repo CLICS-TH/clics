@@ -12,7 +12,8 @@ import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
 import { revealRows, answersButton } from './booth-answers.js';
-import { resultUrl, boothDate } from './booth-result-link.js';
+import { openCase, closeCase } from './booth-case.js';
+import { resultUrl, boothDate, CASE_VERSION } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
 import { el, phrases, markedPhrases, bi, textLang, currentLook, onLook } from './booth-dom.js';
 
@@ -31,7 +32,8 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ id: string, label: Bi, line: Bi }} Option
  * @typedef {{ variant: string, bridge: string, options: string[] }} Ask   ids only, posted back as the server sent it
  * @typedef {{ ask: Ask, question: Bi, options: Option[] }} Next   options in ask.options order, text from the case file
- * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, answerMax: number, stepCount: number }} Play
+ * @typedef {{ id: string, tag: number, vignette: Bi, teaser: Bi, caseId: string, caseVersion: string | null, answerMax: number, stepCount: number }} Play
+ *   caseVersion: the version dealt (null from a backend older than the r2 link); without it the QR keeps an r1 link.
  *   stepCount: how many answers the play takes (1-5), from the start; the last reply carries no Next.
  * @typedef {{ choice: string } | { text: string, deidentified?: string }} Answer
  *   deidentified: the server's de-identified copy of a typed answer, from its reply, posted back untouched (ADR 0010).
@@ -65,6 +67,8 @@ export const SCREEN = Object.freeze(['drawing', 'teaser', 'starting', 'vignette'
 const TERMINAL = new Set(['scored', 'unavailable', 'stopped']);
 /** The screens that offer Start over. A confirm left open outlives a redraw to one of them. */
 const START_OVER = new Set(['vignette', 'step', 'typing', 'replying', 'reply']);
+/** The screens that offer "Read the case again": those after the vignette that show it only in part, or not at all. */
+const READ_CASE = new Set(['step', 'typing', 'replying', 'reply']);
 
 /**
  * Deal cases until the visitor starts one. The cases seen so far live in this call only; the server restarts the
@@ -81,7 +85,7 @@ async function startOnADealtCase(root, api) {
     if (await offerCase(root, dealt) === 'reroll') continue;
     draw(root, 'starting', frame([waitView(COPY.starting)]));
     try {
-      return parseStart(await api.post('/booth/plays', { case_id: dealt.caseId }, { timeoutMs: START_TIMEOUT_MS }), dealt.teaser);
+      return parseStart(await api.post('/booth/plays', { case_id: dealt.caseId }, { timeoutMs: START_TIMEOUT_MS }), dealt);
     } catch (e) {
       // The case was switched off after it was dealt: deal another, with no word to the visitor.
       if (!(e instanceof BoothApiError && e.kind === 'http' && e.reason === 'case_off')) throw e;
@@ -230,7 +234,7 @@ function parseDraw(body) {
   return { caseId: body.case_id, teaser: { th: body.teaser.th, en: body.teaser.en }, live };
 }
 
-function parseStart(body, teaser) {
+function parseStart(body, { caseId, teaser }) {
   const next = parseNext(body?.next);
   const stepCount = body?.step_count === undefined ? OLDER_BACKEND_STEPS : body.step_count;
   if (!isId(body?.play_id) || !Number.isInteger(body.tag) || body.tag < 1
@@ -239,7 +243,8 @@ function parseStart(body, teaser) {
     || !Number.isInteger(stepCount) || stepCount < 1 || stepCount > MAX_STEPS) {
     return null;
   }
-  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette, teaser, stepCount }, next, sig: body.sig };
+  return { play: { id: body.play_id, tag: body.tag, answerMax: body.answer_max_chars, vignette: body.case.vignette, teaser, caseId,
+    caseVersion: typeof body.case.version === 'string' && CASE_VERSION.test(body.case.version) ? body.case.version : null, stepCount }, next, sig: body.sig };
 }
 
 function parseScore(body, s) {
@@ -299,11 +304,16 @@ function render(s, dispatch, { root, host, api, reset }) {
   const { at } = s.screen;
   const view = VIEWS[at](s, { button: buttonsFor(dispatch), host, api });
   if (START_OVER.has(at)) {
-    view.querySelector('.play-foot').append(buttonsFor(() => confirmLeave(host, reset))(
-      labelled(COPY.startOver), 'secondary start-over', () => null, { 'data-action': 'start-over' }));
+    view.querySelector('.play-foot').append(el('div', { class: 'foot-actions' },
+      READ_CASE.has(at) ? buttonsFor(() => openCase(host, s.play.vignette))(
+        labelled(COPY.readCase), 'secondary foot-btn', () => null, { 'data-action': 'read-case' }) : null,
+      buttonsFor(() => confirmLeave(host, reset))(
+        labelled(COPY.startOver), 'secondary foot-btn start-over', () => null, { 'data-action': 'start-over' })));
   } else {
-    // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone.
+    // The play moved on by itself (a score came back): a Start over still asking would ask about a screen now gone,
+    // and the case it was read beside is over.
     host.querySelector('[data-leave-confirm]')?.remove();
+    closeCase(host);
   }
   draw(root, at, view);
 }
@@ -422,7 +432,7 @@ const VIEWS = {
               el('span', { class: 'result-outof' }, '/ 100'))),
           radar(score.domains)),
         el('div', { class: 'result-side' },
-          keepQr(s.play, score),
+          keepQr(s, score),
           score.steps ? answersButton({ host, rows: revealRows(s.steps, s.answers, score.steps) }) : null)),
       // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
       el('div', { class: 'result-more' }, ...domainSections(score.domains, s.play.stepCount, el('div', { class: 'result-board-row' },
@@ -502,14 +512,26 @@ function svgEl(tag, attrs, ...kids) {
   return e;
 }
 
+/** Each step's variant, the option tapped (null when typed) and the best option offered (null when none), for the
+ *  result link: the phone page explains each step from these ids (booth-steps/<case_id>.js). Null without tiers. */
+function keptPicks(s, score) {
+  if (!score.steps) return null;
+  return s.answers.map((answer, i) => ({
+    variant: s.steps[i].ask.variant,
+    chosen: 'choice' in answer ? answer.choice : null,
+    best: score.steps[i].options.find((o) => o.tier === 'best')?.id ?? null,
+  }));
+}
+
 // The QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.
 // The link carries the look, so it is drawn again on a switch; the card itself is not, or the result's idle timer
 // (booth-idle.js, keyed on data-screen) would start over.
-function keepQr(play, score) {
+function keepQr(s, score) {
+  const { play } = s;
   const fig = el('figure', { class: 'keep-qr', dataset: { keepQr: '' } }, bi(COPY.keepResult, 'keep-qr-caption'));
   const drawQr = () => {
     const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser,
-      tiers: score.steps?.map((st) => st.tier) ?? null, look: currentLook() });
+      tiers: score.steps?.map((st) => st.tier) ?? null, look: currentLook(), caseId: play.caseVersion ? play.caseId : null, caseVersion: play.caseVersion, picks: keptPicks(s, score) });
     const qr = window.qrcode(0, 'L');
     qr.addData(url);
     qr.make();

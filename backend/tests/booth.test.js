@@ -401,7 +401,7 @@ describe('POST /booth/plays', () => {
     rpcOverride.booth_start_play = () => ({ data: [{ play_id: playId, play_tag: 42 }], error: null });
     const res = await post('/booth/plays', { case_id: KASE.case_id });
     expect(res.status).toBe(201);
-    expect(res.body).toEqual({ play_id: playId, tag: 42, step_count: 3, answer_max_chars: 500, case: { vignette: KASE.vignette },
+    expect(res.body).toEqual({ play_id: playId, tag: 42, step_count: 3, answer_max_chars: 500, case: { vignette: KASE.vignette, version: KASE.version },
       next: shown(bank(''), res.body.next.ask), sig: expect.any(String) });
     const { ask } = res.body.next;
     expect(ask.bridge).toBe('');

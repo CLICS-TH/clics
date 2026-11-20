@@ -487,10 +487,10 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
   it('every page head carries the same theme snippet and the two theme-color metas', () => {
     // The pre-paint snippet is hand-duplicated (no build step), so drift is the failure mode: a head left
     // on the old snippet flashes the wrong theme for System readers.
-    // The booth pages are the exceptions: the kiosk (#210) and its result page (#251) store nothing, so they
-    // carry no theme snippet at all.
+    // The exceptions store nothing, so they carry no theme snippet at all: the kiosk (#210), its result page
+    // (#251), and the Calibration Workshop page its result card links to (script-src 'none').
     const dir = path.join(REPO, 'physician-ui', 'public');
-    const booth = ['booth.html', 'booth-result.html'];
+    const booth = ['booth.html', 'booth-result.html', 'workshop.html'];
     const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html') && !booth.includes(f)).map((f) => path.join(dir, f))
       .concat(path.join(dir, 'auth', 'callback.html'));
     expect(pages.length).toBe(18);

@@ -56,6 +56,33 @@ export const BAND_LINES = Object.freeze({
   },
 });
 
+/** What each domain looks at, for the phone result page only (the kiosk card has no room): a plain reading of the
+ *  rubric's domain definition (rimpl/src/lib/prompts.js DOMAINS AND WEIGHTS), never a claim about the physician. d5-d7
+ *  say outright that a booth play gives little room for them: no step lets a player question or prompt the AI or write a
+ *  reflection, and a typed answer scores as the tier it is sorted into (ADR 0009). */
+export const MEASURES = Object.freeze({
+  d1: { th: 'ดูว่าคำตอบของคุณเจาะจงกับเคสนี้ และตรงกับจุดตัดสินใจสำคัญของเคสหรือไม่', en: 'Whether your answers are specific to this case and aim at its key decisions.' },
+  d2: { th: 'ดูว่าคุณเลือกและเรียงลำดับความเป็นไปได้พร้อมเหตุผล ชั่งประโยชน์กับความเสี่ยง และปรับความคิดเมื่อได้ข้อมูลใหม่หรือไม่', en: 'Whether you commit to ranked possibilities with reasons, weigh benefit against risk, and update when new facts arrive.' },
+  d3: { th: 'ดูว่าอายุ โรคประจำตัว และบริบทของผู้ป่วยรายนี้ เปลี่ยนการตัดสินใจของคุณหรือไม่', en: 'Whether this patient\'s age, other conditions and setting change your decisions.' },
+  d4: { th: 'ดูว่าแต่ละขั้นต่อยอดจากขั้นก่อนหน้าหรือไม่ ทั้งการซักต่อ การจำกัดความเป็นไปได้ให้แคบลง และการทดสอบสมมติฐาน', en: 'Whether each step builds on the one before: probing further, narrowing the possibilities and testing them.' },
+  d5: { th: 'ดูว่าคุณตั้งคำถามกับคำตอบของ AI ขอหลักฐาน หรือระบุความไม่แน่นอนหรือไม่ การเล่นที่บูทมีโอกาสแสดงด้านนี้น้อย คะแนนด้านนี้จึงบอกได้ไม่มาก', en: 'Whether you question the AI\'s replies, ask for evidence or note uncertainty. A booth play gives little room for this, so this score says little.' },
+  d6: { th: 'ดูว่าคุณสรุปสิ่งที่ได้จากเคสนี้ด้วยคำพูดของตัวเองหรือไม่ การเล่นที่บูทมีโอกาสแสดงด้านนี้น้อย คะแนนด้านนี้จึงบอกได้ไม่มาก', en: 'Whether you sum up what you took from this case in your own words. A booth play gives little room for this, so this score says little.' },
+  d7: { th: 'ดูว่าคุณสั่งงาน AI ได้ชัดเจน ตรวจสอบคำตอบของ AI และยังเป็นผู้ตัดสินแผนการดูแลเองหรือไม่ การเล่นที่บูทมีโอกาสแสดงด้านนี้น้อย คะแนนด้านนี้จึงบอกได้ไม่มาก', en: 'Whether you prompt the AI clearly, check its replies and keep the care plan your own decision. A booth play gives little room for this, so this score says little.' },
+});
+
+/** The line above the domains on the result page: how to read a 0-5 value (the rubric's SCALE, 0 = no evidence). */
+export const SCALE_NOTE = Object.freeze({
+  th: 'แต่ละด้านมีคะแนน 0–5 ตามสิ่งที่เห็นจากการเล่นรอบนี้ 0 คือยังไม่เห็นหลักฐาน 5 คือเห็นชัดเจนและลึกซึ้ง คะแนนนี้ไม่ใช่การประเมินความสามารถของคุณ',
+  en: 'Each domain is scored 0–5 from what this play showed: 0 is no evidence yet, 5 is clear and deep. It does not rate your ability.',
+});
+
+/** The AI safety review of MEASURES and SCALE_NOTE, recorded like SAFETY_REVIEW (ADR 0005). */
+export const MEASURES_REVIEW = Object.freeze({
+  model: 'claude-opus-5-5',
+  date: '2026-11-19',
+  findings: 'A fresh review of the seven MEASURES pairs and SCALE_NOTE against the PIS-7 rubric (prompts.js DOMAINS AND WEIGHTS, SCALE, PER-DOMAIN ANCHORS) and ADR 0009. None makes a clinical claim, judges the physician or demeans; each follows its domain definition, and SCALE_NOTE matches the 0-5 scale with 0 as no evidence and says a score does not rate ability. Fixed: d1 named the player\'s questions, which a booth play has none of; d4 Thai lacked หรือไม่ and so claimed more than the English; the d5-d7 caveat said tapping alone shows little, implying a typed answer would show more, when every score is read from the tier path (ADR 0009), so it now says a booth play gives little room for these domains; SCALE_NOTE and d2, d5 Thai wording.',
+});
+
 /**
  * The domain keys, weakest first. A tie keeps the rubric's order (d1 before d2), so the same score always lists
  * the same two domains.

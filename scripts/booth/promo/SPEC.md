@@ -27,24 +27,26 @@ COPY:    only what is true now. The demo label, "คะแนนสาธิต:
 CASE:    leptospirosis, one of the NFCME-2026 pool's five-step cases (#386). No pool case is admitted yet: each still
          needs its path score table (#408) and its sandbox pass or owner waiver. The capture plays it through the
          stub's five steps, so the result card is a five-step play's (domains to one decimal). The reel shows only its teaser
-         (draw.html, by hand; lock.mjs digests it), never its options or its diagnosis. The answer scene is a made-up
-         headache example, labelled so.
+         (draw.html, by hand; lock.mjs digests it), never its options or its diagnosis. The answer scene is five made-up
+         headache questions, labelled so.
 SHOTS:
   0-4     hook. Frame 0: the flat ECG line. The accent beat fires, then the owner's headline slams in, line by
           line: "การเรียนรู้ที่แท้จริง / วัดจากกระบวนการคิด / ไม่ใช่เวลา", English under it.
   4-6.5   try (accent flood). "ลองเล่นได้เลย / Try it right here"; a ring draws round "5 นาที / minutes";
           "ไม่ต้องลงชื่อเข้าใช้ / No sign-in needed".
-  6.5-10  1 draw (ink). Three card backs shuffle, the top one flips to the case teaser.
-  10-14.5 2 "ฝึกวินิจฉัยผ่าน AI / Practise diagnosis with AI" (canvas). A made-up example step ("ตัวอย่างสมมติ / Made-up example", headache options) rises
-          tilted; a fingertip picks B; five step pills fill 1-2-3-4-5.
+  6.5-9.5 1 draw (ink). Three card backs shuffle, the top one flips to the case teaser.
+  9.5-15.5 2 "ฝึกวินิจฉัยผ่าน AI / Practise diagnosis with AI" (canvas). Five made-up example steps ("ตัวอย่างสมมติ / Made-up
+          example", one headache case: history, exam, test, diagnosis, plan), one per step: the first rises tilted, each
+          next one slides in from the right as the last leaves left, a fingertip taps its pick, and that step's pill
+          fills, 1-2-3-4-5, 1 s apart, so each card holds about 0.7 s still.
           "แตะตัวเลือก หรือพิมพ์เอง / Tap a choice, or type your own".
-  14.5-18.5 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
+  15.5-19 3 result (canvas). The real result card, its full width (no crop inside the card), punches in;
           "and what to practise next";
           the demo label throughout.
-  18.5-21 4 QR (ink). The card's QR, redrawn at capture to hold https://physician-ui.vercel.app/ (EC level M,
+  19-21.5 4 QR (ink). The card's QR, redrawn at capture to hold https://physician-ui.vercel.app/ (EC level M,
           4-module quiet zone), at 1.85x in scan brackets; one scan-line pass, then it stands clear;
           "ไม่เก็บข้อมูลส่วนตัว / No personal data kept".
-  21-24   CTA (canvas). Logo + wordmark, "แตะเพื่อเริ่ม / Tap to start", a pulsing tap; everything clears to
+  21.5-24 CTA (canvas). Logo + wordmark, "แตะเพื่อเริ่ม / Tap to start", a pulsing tap; everything clears to
           the flat line of frame 0.
 QR:      every QR in the reel opens the Portal, https://physician-ui.vercel.app/ (lock.mjs PORTAL_URL), never a
          result page or the capture server. qr-check.mjs decodes it with jsQR off the rendered frames; the harness

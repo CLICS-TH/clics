@@ -1,7 +1,9 @@
 const REPLY_KEY = 'POST /booth/plays/:id/reply';
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const STATUS_KEY = 'GET /booth/status';
-const SIZES = [[1080, 1920], [2160, 3840]];
+/** Portrait 1080x1920 and its 4K double, then landscape (the forum's 50-inch monitor may stand either way), where the
+ *  kiosk is a 9:16 column in the middle of the screen. */
+const SIZES = [[1080, 1920], [2160, 3840], [1920, 1080], [3840, 2160]];
 
 const opt = (n) => `.options > [data-option]:nth-child(${n})`;
 const pressed = (page) => page.$$eval('.options > [data-option]', (els) => els.map((e) => e.getAttribute('aria-pressed')));

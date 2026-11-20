@@ -84,6 +84,8 @@ const PAGES = [
   { path: '/ple-result?id=smoke', token: true, label: 'ple-result' },
   // Public: /manual carries data-public so a reader stuck at sign-in can still read how to sign in.
   { path: '/manual', token: false, label: 'manual' },
+  // Public: the calibration workshop invitation, linked from the booth result page. Light only, like the booth pages.
+  { path: '/workshop', token: false, label: 'workshop' },
 ];
 
 // The DOM assertions run in the page. Returns { overflow, badTargets[], badInputs[] }.
