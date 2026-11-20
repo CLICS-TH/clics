@@ -226,6 +226,9 @@ revoke all on function public.audit_log_row_hash(bytea, bigint, uuid, timestampt
   from public, anon, authenticated;
 revoke all on function public.audit_log_genesis() from public, anon, authenticated;
 revoke all on function public.audit_log_chain() from public, anon, authenticated;
+-- The trigger function too: a trigger fires without its caller's EXECUTE, so nothing needs the PUBLIC grant,
+-- and /health/deep's postgrest_surface check reads it as exposed (#516 post-check, 2026-11-18).
+revoke all on function public.audit_log_immutable() from public, anon, authenticated;
 grant execute on function public.audit_log_row_hash(bytea, bigint, uuid, timestamptz, uuid, text, text, text, text, uuid, jsonb)
   to service_role;
 grant execute on function public.audit_log_genesis()           to service_role;
