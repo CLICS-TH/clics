@@ -1,3 +1,8 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+// booth-workshop.js has no imports: a data: URL loads it as the module it is.
+const { WORKSHOP_COPY } = await import(`data:text/javascript,${encodeURIComponent(await readFile(fileURLToPath(new URL('../../../physician-ui/public/js/booth-workshop.js', import.meta.url)), 'utf8'))}`);
 const REPLY_KEY = 'POST /booth/plays/:id/reply';
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const EMPTY = { strength: '', weigh: '', safety: '' };
@@ -300,8 +305,22 @@ export default [
 
       await k.shell('done');
       await k.tap('[data-action="done"]');
+      await k.shell('invite');
+      await h.screenCheck(k.page, 'workshop invitation after Done');
+      await h.shot(k.page, 'invite');
+      const invite = await page.evaluate(() => {
+        const qr = document.querySelector('[data-invite-qr]');
+        const svg = qr?.querySelector('svg')?.getBoundingClientRect();
+        return { text: document.querySelector('[data-invite]')?.innerText ?? '', url: qr?.dataset.inviteQr, qr: svg ? Math.round(svg.width) : 0,
+          finish: !!document.querySelector('.shell-bar [data-action="finish"]') };
+      });
+      h.check(invite.text.includes(WORKSHOP_COPY.title.en) && invite.text.includes(WORKSHOP_COPY.scan.th)
+        && invite.url === new URL('/workshop.html', page.url()).href && invite.qr >= 400 && invite.finish,
+        `Done shows the Calibration Workshop invitation with a QR to /workshop.html (${invite.url}, ${invite.qr} px) and a Finish button`);
+      h.check(stub.of('GET /booth/status').length === 1, 'the invitation is on the same page: no reload yet');
+      await k.tap('[data-action="finish"]');
       await k.shell('start');
-      h.check(stub.of('GET /booth/status').length === 2, 'Done reloads the page to a fresh start screen');
+      h.check(stub.of('GET /booth/status').length === 2, 'Finish reloads the page to a fresh start screen');
       await k.close();
     },
   },

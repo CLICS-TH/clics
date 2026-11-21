@@ -27,7 +27,7 @@ const sha = (buf) => createHash('sha256').update(buf).digest('hex');
  */
 export async function sourcesDigest({ read = readFile } = {}) {
   const scenes = (await readdir(join(HERE, 'compositions'))).filter((f) => f.endsWith('.html')).sort();
-  // The brand marks the scenes overlay (the CCME logo): a swapped file must move the digest like any scene.
+  // Any brand mark the scenes overlay (none since the kiosk draws CCME's mark itself): a swapped file must move the digest.
   const brand = (await readdir(join(HERE, 'assets', 'brand')).catch(() => [])).sort();
   const files = [
     ...brand.map((f) => join(HERE, 'assets', 'brand', f)),
