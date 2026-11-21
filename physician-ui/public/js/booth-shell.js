@@ -3,7 +3,8 @@ import { runPlay } from './booth-play.js';
 import * as board from './booth-board.js';
 import { mountLoop, loadLoopItems } from './booth-loop.js';
 import { watchIdle } from './booth-idle.js';
-import { mountLookControl } from './booth-look.js';
+import { mountLookControl, mountBrand } from './booth-look.js';
+import { showInvite } from './booth-invite.js';
 import { COPY, DEFAULT_LOOK } from './booth-copy.js';
 import { el, bi, setLook, currentLook, onLook } from './booth-dom.js';
 
@@ -177,7 +178,8 @@ async function play() {
   watchIdle({ stage, host: root, reset });
   await outcome;
   const done = el('button', { type: 'button', class: 'booth-btn primary wide', dataset: { action: 'done' } }, bi(COPY.done, 'btn-label'));
-  done.addEventListener('click', reset, { once: true });
+  // Done shows the workshop invitation (booth-invite.js), whose Finish or timeout starts over.
+  done.addEventListener('click', () => { showInvite({ stage, bar, reset }); root.dataset.shell = 'invite'; }, { once: true });
   bar.append(done);
   root.dataset.shell = 'done';
 }
@@ -185,6 +187,7 @@ async function play() {
 pinColumn();
 setLook(DEFAULT_LOOK);
 mountLookControl(document.body);
+mountBrand(document.body);
 guardGhostTaps();
 sidesStartPlay();
 showLoop();

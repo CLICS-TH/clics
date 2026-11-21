@@ -131,4 +131,39 @@
 .look-both .bi-sub { display: none; }
 .look-btn .bi-main { font-size: inherit; line-height: inherit; }
 
+/* CCME's mark (js/booth-shell.js mountBrand): the look control's twin in the column's other top corner, the same inset,
+   height and plate, so the two read as one row on every screen. Not a button: taps pass through to what is under it. */
+.booth-brand {
+  position: fixed; top: calc(8 * var(--u)); left: calc(var(--side) + 8 * var(--u)); z-index: 11;
+  box-sizing: border-box; display: flex; align-items: center; height: calc(84 * var(--u)); padding: 0 calc(24 * var(--u));
+  background: var(--card); border: var(--line) solid var(--edge); border-radius: 999px; box-shadow: var(--shadow-card);
+  pointer-events: none;
+}
+.booth-brand img { display: block; height: calc(52 * var(--u)); width: auto; }
+/* During a play the corner holds the step counter, and the play's overlays dim the screen under it: the mark shows on
+   the loop, the result and the invitation only. */
+#booth[data-shell="play"] ~ .booth-brand { display: none; }
+
+/* The workshop invitation after Done (js/booth-invite.js): the phone card's band and accent rule at kiosk scale, the
+   title English first (owner, 2026-11-19), and a QR to /workshop.html large enough to scan from a step back. */
+.invite-body { justify-content: center; }
+.invite-card {
+  display: flex; flex-direction: column; align-items: center; gap: calc(32 * var(--u)); text-align: center;
+  padding: calc(56 * var(--u)) calc(48 * var(--u)); background: var(--band); color: var(--ink); --bi-sub: var(--ink);
+  border-top: calc(10 * var(--u)) solid var(--accent); border-radius: var(--radius);
+}
+.en-first { display: flex; flex-direction: column; }
+.en-first > span { display: block; }
+:root[data-look="th"] .en-first-en, :root[data-look="en"] .en-first-th { display: none; }
+.invite-title .en-first-en, :root[data-look="th"] .invite-title .en-first-th { font-family: var(--font-serif); font-size: calc(64 * var(--u)); font-weight: 600; line-height: 1.2; }
+.invite-title .en-first-th { font-size: var(--text-th); font-weight: 500; line-height: 1.5; margin-top: calc(12 * var(--u)); }
+:root[data-look="th"] .invite-title .en-first-th { line-height: 1.4; margin-top: 0; }
+.invite-line .bi-main, .invite-when .bi-main { font-size: var(--text-th); line-height: 1.55; }
+.invite-line .bi-sub, .invite-when .bi-sub { font-size: var(--text-label-en); line-height: 1.4; }
+.invite-when .bi-main { font-weight: 600; }
+.invite-qr { margin: 0; display: flex; flex-direction: column; align-items: center; gap: calc(16 * var(--u)); }
+.invite-qr svg { display: block; width: calc(480 * var(--u)); height: calc(480 * var(--u)); }
+.invite-scan .bi-main { font-size: var(--text-th); font-weight: 600; line-height: 1.5; }
+.invite-scan .bi-sub { font-size: var(--text-label-en); line-height: 1.4; }
+
 @media (prefers-reduced-motion: reduce) { .shell-tap .loop-bar, .look-btn { transition: none; } .tap-cue::after { animation: none; opacity: 0; } }

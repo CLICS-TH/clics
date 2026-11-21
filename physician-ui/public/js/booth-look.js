@@ -32,3 +32,10 @@ export function mountLookControl(host) {
   host.append(control);
   window.hydrateIcons?.(control);
 }
+
+/** CCME's mark, in the column's other top corner, level with the look control (booth-shell.css .booth-brand). Outside
+ *  #booth like the control, so the loop and the play never redraw it; it takes no taps. @param {HTMLElement} host */
+export function mountBrand(host) {
+  host.append(el('div', { class: 'booth-brand', dataset: { boothBrand: '' } },
+    el('img', { src: '/img/ccme-logo.png', alt: 'CCME', width: '900', height: '301', decoding: 'async' })));
+}
