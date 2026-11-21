@@ -285,7 +285,9 @@ export default [
         const body = (await readFile(join(SCENES, f), 'utf8')).match(/<template>([\s\S]*)<\/template>/)[1].replace(/<script>[\s\S]*?<\/script>/g, '');
         await page.route('http://promo.test/__corner.html', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8"><style>${style} body{margin:0} #frame{position:relative;width:1080px;height:1920px;overflow:hidden}</style></head><body><div id="frame">${body}</div></body></html>` }));
         await page.goto('http://promo.test/__corner.html');
-        await page.evaluate(() => Promise.all([document.fonts.ready, ...[...document.images].map((i) => i.decode())]));
+        // The capture frames are rendered locally and absent on CI; every other image must decode.
+        await page.evaluate(() => Promise.all([document.fonts.ready, ...[...document.images].map((i) => i.decode()
+          .catch((e) => { if (!i.src.includes('/assets/capture/')) throw e; }))]));
         const r = await page.evaluate((over) => {
           const frame = document.getElementById('frame').getBoundingClientRect();
           const at = (e) => { const b = e.getBoundingClientRect(); return [b.left - frame.left, b.top - frame.top, b.right - frame.left, b.bottom - frame.top]; };
