@@ -143,6 +143,15 @@
 /* During a play the corner holds the step counter, and the play's overlays dim the screen under it: the mark shows on
    the loop, the result and the invitation only. */
 #booth[data-shell="play"] ~ .booth-brand { display: none; }
+/* The screens that show the mark start their card under the corner row (8u inset + 84u + 8u), so neither pill sits on
+   the card's edge (owner, 2026-11-22). The result card gives back what this costs, or the leaderboard button would drop
+   below the fold (result.mjs): 8u off its top padding, 8u off the summary's gaps and the score's rule, 8u off each gap
+   between its blocks and 8u off Practise next's padding. The result QR keeps its 320u (keep.mjs). */
+.booth-stage[data-screen="scored"] > .play-frame, .booth-stage[data-screen="invite"] > .play-frame { padding-top: calc(100 * var(--u)); }
+.play-body > .result-card { padding-top: calc(32 * var(--u)); gap: calc(16 * var(--u)); }
+.play-body > .result-card .result-summary { gap: calc(16 * var(--u)); }
+.play-body > .result-card .result-total { padding-bottom: calc(16 * var(--u)); }
+.play-body > .result-card .practise-next { padding: calc(20 * var(--u)); }
 
 /* The workshop invitation after Done (js/booth-invite.js): the phone card's band and accent rule at kiosk scale, the
    title English first (owner, 2026-11-19), and a QR to /workshop.html large enough to scan from a step back. */

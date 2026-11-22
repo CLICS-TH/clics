@@ -156,6 +156,15 @@ async function checkControl(h, k, label, look) {
   h.check(b.fixed && b.outside && b.loaded && Math.abs(b.box.top - c.box.top) <= 1 && Math.abs(b.box.height - c.buttons[0].h) <= 1
     && Math.abs(b.box.left - 8 * scale) <= 1 && b.box.left + b.box.width < c.box.col - c.box.right - c.box.width,
     `${label}: CCME's mark is fixed at the column's top left, level with the control and as tall as its buttons, its logo loaded (${JSON.stringify(round(b.box))})`);
+  // A card's edge under either pill reads as overlap even with no text there (owner, 2026-11-22): the cards start below.
+  const edges = await k.page.evaluate(() => {
+    const pills = [...document.querySelectorAll('[data-booth-brand], [data-look-control]')].map((e) => e.getBoundingClientRect());
+    return [...document.querySelectorAll('.result-card, .invite-card, .end-card')].filter((c) => {
+      const r = c.getBoundingClientRect();
+      return r.height > 0 && pills.some((p) => r.left < p.right && p.left < r.right && r.top < p.bottom && p.top < r.bottom);
+    }).map((c) => c.className);
+  });
+  h.check(edges.length === 0, `${label}: no card runs under CCME's mark or the look control${edges.length ? ` (${edges.join(', ')})` : ''}`);
   h.check(b.over.length === 0, `${label}: CCME's mark covers no text, tap target or QR${b.scrolled.length ? `, with ${b.scrolled.join(', ')} scrolled to top, middle and bottom` : ''}`
     + `${b.over.length ? ` (covers ${b.over.slice(0, 4).join(', ')})` : ''}`);
 }
