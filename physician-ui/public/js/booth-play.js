@@ -523,7 +523,20 @@ function keptPicks(s, score) {
   }));
 }
 
-// The QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.
+/** A QR for `url` as an SVG, from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js): nothing leaves the kiosk.
+ *  Black on a white quiet zone of four modules, whatever the theme. */
+export function qrSvg(url, label) {
+  const qr = window.qrcode(0, 'L');
+  qr.addData(url);
+  qr.make();
+  const n = qr.getModuleCount();
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
+  return svgEl('svg', { viewBox: `0 0 ${n + 8} ${n + 8}`, 'shape-rendering': 'crispEdges', role: 'img', 'aria-label': label },
+    svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', { fill: '#000', d }));
+}
+
+// The result QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.
 // The link carries the look, so it is drawn again on a switch; the card itself is not, or the result's idle timer
 // (booth-idle.js, keyed on data-screen) would start over.
 function keepQr(s, score) {
@@ -532,16 +545,8 @@ function keepQr(s, score) {
   const drawQr = () => {
     const url = resultUrl(location.origin, { score: score.composite, domains: score.domains, tag: play.tag, date: boothDate(), teaser: play.teaser,
       tiers: score.steps?.map((st) => st.tier) ?? null, look: currentLook(), caseId: play.caseVersion ? play.caseId : null, caseVersion: play.caseVersion, picks: keptPicks(s, score) });
-    const qr = window.qrcode(0, 'L');
-    qr.addData(url);
-    qr.make();
-    const n = qr.getModuleCount();
-    let d = '';
-    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
-    const svg = svgEl('svg', { viewBox: `0 0 ${n + 8} ${n + 8}`, 'shape-rendering': 'crispEdges', role: 'img', 'aria-label': COPY.keepResult.en },
-      svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', { fill: '#000', d }));
     fig.querySelector('svg')?.remove();
-    fig.prepend(svg);
+    fig.prepend(qrSvg(url, COPY.keepResult.en));
     fig.dataset.resultUrl = url;
   };
   drawQr();

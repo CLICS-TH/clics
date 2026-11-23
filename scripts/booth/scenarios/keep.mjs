@@ -102,7 +102,8 @@ const workshopLink = (page) => page.evaluate((key) => {
     above: !!(card && tryLink && card.compareDocumentPosition(tryLink) & Node.DOCUMENT_POSITION_FOLLOWING), trySecondary: tryLink?.classList.contains('secondary') };
 }, WORKSHOP_KEY);
 const checkWorkshop = (h, label, seen, origin) => {
-  const words = Object.values(WORKSHOP_COPY).flatMap((b) => [b.th, b.en]);
+  // The card's own lines; scan and finish belong to the kiosk's invitation screen.
+  const words = ['title', 'line', 'when', 'open'].flatMap((key) => [WORKSHOP_COPY[key].th, WORKSHOP_COPY[key].en]);
   h.check(seen.count === 1 && seen.cards === 1 && seen.tag === 'A' && seen.raw === WORKSHOP_PATH && seen.href === `${origin}${WORKSHOP_PATH}` && seen.target === null
     && words.every((w) => seen.text.replace(/\s+/g, '').includes(w.replace(/\s+/g, ''))),
   `${label}: one workshop card, Thai and English, whose link opens ${WORKSHOP_PATH} on the Portal in the same tab (${seen.href})`);

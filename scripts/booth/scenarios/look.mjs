@@ -66,10 +66,10 @@ async function checkSlots(h, page, label, look) {
     + `${both ? ', the other language under it' : ', the other hidden'}${bad.length ? ` (wrong: ${bad.slice(0, 3).map((p) => JSON.stringify(p)).join('; ')})` : ''}`);
 }
 
-/** The control: its box, its buttons, whether it is the topmost thing at its centre, and everything it overlaps with
- *  every scroll box on screen at its top, middle and bottom (each put back after). */
-const readControl = (page) => page.evaluate(() => {
-  const c = document.querySelector('[data-look-control]');
+/** The control (or CCME's mark, `sel`): its box, its buttons, whether it is the topmost thing at its centre, and
+ *  everything it overlaps with every scroll box on screen at its top, middle and bottom (each put back after). */
+const readControl = (page, sel = '[data-look-control]') => page.evaluate((sel) => {
+  const c = document.querySelector(sel);
   if (!c) return null;
   const cr = c.getBoundingClientRect();
   const scrollers = [...document.body.querySelectorAll('*')].filter((e) => /auto|scroll/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 1);
@@ -109,7 +109,8 @@ const readControl = (page) => page.evaluate(() => {
   const top = document.elementFromPoint((cr.left + cr.right) / 2, (cr.top + cr.bottom) / 2);
   return {
     // Its corner is the column's (#booth), which is the screen's only on a portrait screen.
-    box: { top: cr.top, right: document.getElementById('booth').getBoundingClientRect().right - cr.right, width: cr.width, height: cr.height }, fixed: getComputedStyle(c).position === 'fixed',
+    box: { top: cr.top, right: document.getElementById('booth').getBoundingClientRect().right - cr.right, width: cr.width, height: cr.height,
+      left: cr.left - document.getElementById('booth').getBoundingClientRect().left, col: document.getElementById('booth').getBoundingClientRect().width }, fixed: getComputedStyle(c).position === 'fixed',
     outside: !c.closest('#booth'), modal: !!document.querySelector('[aria-modal="true"]'), topmost: c.contains(top),
     scrolled: scrollers.map((e) => e.className || e.tagName),
     buttons: [...c.querySelectorAll('button')].map((b) => {
@@ -117,9 +118,9 @@ const readControl = (page) => page.evaluate(() => {
       return { w: r.width, h: r.height, key: b.dataset.lookPrimary ?? 'both', pressed: b.getAttribute('aria-pressed'),
         tick: getComputedStyle(b.querySelector('.look-tick')).visibility };
     }),
-    over: [...over],
+    over: [...over], loaded: [...c.querySelectorAll('img')].every((i) => i.complete && i.naturalWidth > 0),
   };
-});
+}, sel);
 
 /**
  * The control on this screen in this look: in the same fixed corner as on every screen before it, every button at
@@ -144,6 +145,28 @@ async function checkControl(h, k, label, look) {
   h.check(c.topmost, `${label}: the control is on top${c.modal ? ' of the open overlay' : ''}, so a tap on it reaches it`);
   h.check(c.over.length === 0, `${label}: the control covers no text, tap target or QR${c.scrolled.length ? `, with ${c.scrolled.join(', ')} scrolled to top, middle and bottom` : ''}`
     + `${c.over.length ? ` (covers ${c.over.slice(0, 4).join(', ')})` : ''}`);
+  // CCME's mark: the control's twin at the column's top left, level with it, drawn, and covering nothing either.
+  const shell = await k.page.evaluate(() => document.getElementById('booth').dataset.shell);
+  const b = await readControl(k.page, '[data-booth-brand]');
+  if (shell === 'play') {
+    h.check(!!b && b.box.width === 0, `${label}: during the play CCME's mark steps aside for the step counter`);
+    return;
+  }
+  if (!h.check(!!b && b.box.width > 0, `${label}: CCME's mark is on screen (${shell})`)) return;
+  h.check(b.fixed && b.outside && b.loaded && Math.abs(b.box.top - c.box.top) <= 1 && Math.abs(b.box.height - c.buttons[0].h) <= 1
+    && Math.abs(b.box.left - 8 * scale) <= 1 && b.box.left + b.box.width < c.box.col - c.box.right - c.box.width,
+    `${label}: CCME's mark is fixed at the column's top left, level with the control and as tall as its buttons, its logo loaded (${JSON.stringify(round(b.box))})`);
+  // A card's edge under either pill reads as overlap even with no text there (owner, 2026-11-22): the cards start below.
+  const edges = await k.page.evaluate(() => {
+    const pills = [...document.querySelectorAll('[data-booth-brand], [data-look-control]')].map((e) => e.getBoundingClientRect());
+    return [...document.querySelectorAll('.result-card, .invite-card, .end-card')].filter((c) => {
+      const r = c.getBoundingClientRect();
+      return r.height > 0 && pills.some((p) => r.left < p.right && p.left < r.right && r.top < p.bottom && p.top < r.bottom);
+    }).map((c) => c.className);
+  });
+  h.check(edges.length === 0, `${label}: no card runs under CCME's mark or the look control${edges.length ? ` (${edges.join(', ')})` : ''}`);
+  h.check(b.over.length === 0, `${label}: CCME's mark covers no text, tap target or QR${b.scrolled.length ? `, with ${b.scrolled.join(', ')} scrolled to top, middle and bottom` : ''}`
+    + `${b.over.length ? ` (covers ${b.over.slice(0, 4).join(', ')})` : ''}`);
 }
 
 /** The screen as it is, in `look`: the booth's screen checks, the slots and the control. */
@@ -344,6 +367,9 @@ async function playAllLooks(h, width, height) {
   const before = await lookNow(page);
   await k.shell('done');
   await k.tap('[data-action="done"]');
+  await k.shell('invite');
+  await checkControl(h, k, `${k.label} workshop invitation`, before);
+  await k.tap('[data-action="finish"]');
   await k.shell('start');
   const fresh = await readControl(page);
   h.check(before !== h.DEFAULT_LOOK && await lookNow(page) === h.DEFAULT_LOOK && h.same(fresh?.buttons.map((b) => [b.key, b.pressed]), [['th', 'true'], ['en', 'false'], ['both', 'true']]),
