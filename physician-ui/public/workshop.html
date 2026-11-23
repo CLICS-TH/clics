@@ -4,7 +4,8 @@
   invitation QR. Its own head, like booth-result.html: no js/boot.js and no storage. Scripts are this site's own only:
   js/scrollcraft.js (the scroll engine, copied unmodified, MIT, see js/scrollcraft.LICENSE) and js/workshop.js (the
   language switch, the convergence figure and the seven-domain radar). The CSP still lets the page send nothing
-  (connect-src 'none', form-action 'none'); Register is a plain link to the owner's Google Form, opened in a new tab.
+  (connect-src 'none', form-action 'none'); Register your interest is a plain link to the owner's Google Form, opened in a
+  new tab. The workshop is held alongside each specialty's Specialty Audit (owner, 2026-11-23).
 
   One language at a time, Thai by default (owner, 2026-11-22): every pair is a .bi holding a [lang="th"] and a
   [lang="en"] span, and <html lang> picks which one shows. The event's name stays English in both. Thai lines break
@@ -51,10 +52,16 @@
       <div class="ws-wrap title-page">
         <div class="title-head">
           <p class="invite bi"><span lang="th"><span class="ph">ขอเชิญแพทย์เข้าร่วม</span></span><span lang="en">An invitation to physicians</span></p>
-          <dl class="when">
-            <dt class="bi"><span lang="th"><span class="ph">วัน</span> <span class="ph">เวลา</span> <span class="ph">และสถานที่</span></span><span lang="en">Date, time and venue</span></dt>
-            <dd class="bi"><span lang="th"><span class="ph">จะประกาศเร็วๆ</span> <span class="ph">นี้</span></span><span lang="en">To be announced soon</span></dd>
-          </dl>
+          <div class="title-meta">
+            <dl class="when">
+              <dt class="bi"><span lang="th"><span class="ph">จัดควบคู่กับ</span></span><span lang="en">Held alongside</span></dt>
+              <dd class="bi"><span lang="th"><span class="ph">Specialty</span> <span class="ph">Audit</span> <span class="ph">ของแต่ละสาขา</span></span><span lang="en">each specialty’s Specialty Audit</span></dd>
+            </dl>
+            <dl class="when">
+              <dt class="bi"><span lang="th"><span class="ph">วัน</span> <span class="ph">เวลา</span> <span class="ph">และสถานที่</span></span><span lang="en">Date, time and venue</span></dt>
+              <dd class="bi"><span lang="th"><span class="ph">จะประกาศเร็วๆ</span> <span class="ph">นี้</span></span><span lang="en">To be announced soon</span></dd>
+            </dl>
+          </div>
         </div>
         <h1 id="ws-title">
           <span class="event-name" lang="en">CLICS Calibration Workshop</span>
@@ -64,7 +71,7 @@
         <div class="title-foot">
           <p class="lede bi"><span lang="th"><span class="ph">มาวางมาตรฐานร่วมกัน</span> <span class="ph">ว่าการให้เหตุผลทางคลินิกที่ดี</span> <span class="ph">หน้าตาเป็นอย่างไร</span></span><span lang="en">Help set the shared standard for what good clinical reasoning looks like.</span></p>
           <div class="cta">
-            <a class="ws-btn primary" href="https://docs.google.com/forms/d/e/1FAIpQLSfXEcHv5YuyK6rVu_gsW_-KM9yqsTRITljVCFgZ17j4Bu2eFA/viewform" target="_blank" rel="noopener noreferrer"><span class="bi"><span lang="th"><span class="ph">ลงทะเบียน</span></span><span lang="en">Register</span></span></a>
+            <a class="ws-btn primary" href="https://docs.google.com/forms/d/e/1FAIpQLSfXEcHv5YuyK6rVu_gsW_-KM9yqsTRITljVCFgZ17j4Bu2eFA/viewform" target="_blank" rel="noopener noreferrer"><span class="bi"><span lang="th"><span class="ph">ลงทะเบียนความสนใจ</span></span><span lang="en">Register your interest</span></span></a>
             <p class="cta-note bi"><span lang="th"><span class="ph">เปิดแบบฟอร์ม</span> <span class="ph">Google</span> <span class="ph">ในแท็บใหม่</span></span><span lang="en">Opens a Google Form in a new tab</span></p>
           </div>
         </div>
@@ -164,7 +171,7 @@
       </div>
     </section>
 
-    <section class="ch ch-colophon" data-sc-act="flow" data-folio-th="ลงทะเบียน" data-folio-en="Register" aria-labelledby="join-h">
+    <section class="ch ch-colophon" data-sc-act="flow" data-folio-th="ลงทะเบียนความสนใจ" data-folio-en="Register interest" aria-labelledby="join-h">
       <div class="ws-wrap colophon">
         <div class="colo-mark" data-sc-reveal="iris" data-sc-reveal-at="0.08 0.4" aria-hidden="true">
           <svg viewBox="-110 -110 220 220"><polygon class="ring" points="0,-100 78.2,-62.3 97.5,22.3 43.4,90.1 -43.4,90.1 -97.5,22.3 -78.2,-62.3"/><polygon class="shared" points="0,-80 46.9,-37.4 68.2,15.6 21.7,45 -26,54.1 -58.5,13.4 -54.7,-43.6"/></svg>
@@ -172,12 +179,13 @@
         <div class="colo-text" data-sc-in>
           <h2 id="join-h" class="bi"><span lang="th"><span class="ph">ร่วมเป็นรุ่นแรก</span></span><span lang="en">Join the first cohort</span></h2>
           <p class="line bi"><span lang="th"><span class="ph">มาตรฐานที่รุ่นนี้วางร่วมกัน</span> <span class="ph">คือมาตรฐานที่ใช้ตรวจคะแนนของ</span> <span class="ph">AI</span></span><span lang="en">The standard this cohort sets is the one the AI scorer is checked against.</span></p>
-          <p class="run-cta"><a href="https://docs.google.com/forms/d/e/1FAIpQLSfXEcHv5YuyK6rVu_gsW_-KM9yqsTRITljVCFgZ17j4Bu2eFA/viewform" target="_blank" rel="noopener noreferrer"><span class="bi"><span lang="th"><span class="ph">ลงทะเบียน</span> <span class="ph">Workshop</span></span><span lang="en">Register for the workshop</span></span><span class="arrow" aria-hidden="true">→</span></a></p>
+          <p class="run-cta"><a href="https://docs.google.com/forms/d/e/1FAIpQLSfXEcHv5YuyK6rVu_gsW_-KM9yqsTRITljVCFgZ17j4Bu2eFA/viewform" target="_blank" rel="noopener noreferrer"><span class="bi"><span lang="th"><span class="ph">ลงทะเบียน</span><span class="ph">ความสนใจ</span> <span class="ph">เข้าร่วม</span> <span class="ph">Workshop</span></span><span lang="en">Register your interest</span></span><span class="arrow" aria-hidden="true">→</span></a></p>
           <dl class="colo-meta">
             <div><dt class="bi"><span lang="th">เปิดรับ</span><span lang="en">Open to</span></dt><dd class="bi"><span lang="th">แพทย์</span><span lang="en">Physicians</span></dd></div>
+            <div><dt class="bi"><span lang="th">จัดควบคู่กับ</span><span lang="en">Held alongside</span></dt><dd class="bi"><span lang="th"><span class="ph">Specialty</span> <span class="ph">Audit</span> <span class="ph">ของแต่ละสาขา</span></span><span lang="en">each specialty’s Specialty Audit</span></dd></div>
             <div><dt class="bi"><span lang="th"><span class="ph">วัน</span> <span class="ph">เวลา</span> <span class="ph">และสถานที่</span></span><span lang="en">Date, time and venue</span></dt><dd class="bi"><span lang="th"><span class="ph">จะประกาศเร็วๆ</span> <span class="ph">นี้</span></span><span lang="en">To be announced soon</span></dd></div>
           </dl>
-          <p class="colo-note bi"><span lang="th"><span class="ph">หน้านี้ไม่ขอข้อมูล</span> <span class="ph">และไม่ส่งข้อมูลใดๆ</span> <span class="ph">การลงทะเบียนทำในแบบฟอร์ม</span> <span class="ph">Google</span> <span class="ph">ซึ่งเปิดในแท็บใหม่</span></span><span lang="en">This page asks for nothing and sends nothing. You register on a Google Form, which opens in a new tab.</span></p>
+          <p class="colo-note bi"><span lang="th"><span class="ph">หน้านี้ไม่ขอข้อมูล</span> <span class="ph">และไม่ส่งข้อมูลใดๆ</span> <span class="ph">การลงทะเบียนความสนใจ</span> <span class="ph">ทำในแบบฟอร์ม</span> <span class="ph">Google</span> <span class="ph">ซึ่งเปิดในแท็บใหม่</span></span><span lang="en">This page asks for nothing and sends nothing. You register your interest on a Google Form, which opens in a new tab.</span></p>
         </div>
       </div>
     </section>

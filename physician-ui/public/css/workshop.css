@@ -102,6 +102,7 @@ html:not(.js) .lang { visibility: hidden; }
 .title-page { display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding-block: clamp(28px, 5svh, 64px); }
 .title-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 32px; }
 .invite > [lang] { font-size: 17.6px; font-weight: 500; color: var(--accent); }
+.title-meta { display: flex; flex-wrap: wrap; gap: 4px 32px; }
 .when { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
 .when dt > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--body); }
 .when dd > [lang] { font-family: var(--font-serif); font-size: 21px; font-weight: 600; line-height: 1.4; }
@@ -284,6 +285,14 @@ html:not(.js) .lang { visibility: hidden; }
     background: var(--canvas); border: 1px solid var(--hairline-strong); border-radius: 999px; pointer-events: none;
   }
   .folio .bi > [lang] { font-size: 15.36px; line-height: 1.4; letter-spacing: 0.04em; color: var(--body); white-space: nowrap; }
+}
+/* A short phone (360x640, 375x667): the title page tightens so Register your interest stays on the first screen. */
+@media (max-height: 720px) and (orientation: portrait) {
+  .title-page { gap: 16px; padding-block: 16px; }
+  .cohort { margin-top: 10px; padding-top: 12px; }
+  .cohort-th > [lang] { margin-top: 6px; }
+  .lede > [lang] { font-size: 18px; line-height: 1.55; }
+  .title-foot { gap: 16px; }
 }
 /* A short phone (320x568): the pinned chapter still fits its screen, heading to last step. */
 @media (max-height: 620px) and (orientation: portrait) {

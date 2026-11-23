@@ -15,7 +15,7 @@ export const WORKSHOP_COPY = Object.freeze({
     en: 'Physicians score the same cases on the PIS-7 rubric, then compare.',
   },
   when: { th: 'วันและสถานที่ จะประกาศเร็วๆ นี้', en: 'Date and venue to be announced soon' },
-  open: { th: 'ลงทะเบียน Workshop และดูรายละเอียด', en: 'Register / Details' },
+  open: { th: 'ลงทะเบียนความสนใจ และดูรายละเอียด', en: 'Register interest / Details' },
   // The kiosk's screen after Done.
   scan: { th: 'สแกนเพื่อลงทะเบียนความสนใจเข้าร่วม', en: 'Scan to register your interest' },
   finish: { th: 'จบการเล่น', en: 'Finish' },
