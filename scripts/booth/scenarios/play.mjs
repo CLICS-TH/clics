@@ -196,7 +196,25 @@ export default [
       h.check((await text(page, '.step-of')).includes('1'), 'step 1: "Step 1 of 3"');
       const pick1 = ask1.options[1];
 
+      const box = (r) => [r.x, r.y, r.width, r.height].map(Math.round).join();
+      const before = await page.$eval('.options > [data-option]:nth-child(2)', (e) => e.getBoundingClientRect().toJSON());
       await k.choose(2);
+      const chosen = await page.evaluate(async () => {
+        // The tint fades in over the button's 120 ms colour transition.
+        await Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {})));
+        const shown = (e) => !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0;
+        const all = [...document.querySelectorAll('.options > [data-option]')];
+        const on = all.filter((e) => e.getAttribute('aria-pressed') === 'true');
+        const off = all.filter((e) => e.getAttribute('aria-pressed') !== 'true');
+        return { count: on.length, box: on[0]?.getBoundingClientRect().toJSON(), tint: on[0] && getComputedStyle(on[0]).backgroundColor,
+          plain: off.map((e) => getComputedStyle(e).backgroundColor), tick: shown(on[0]?.querySelector('.opt-letter svg')),
+          letter: shown(on[0]?.querySelector('.opt-mark')), othersLettered: off.every((e) => shown(e.querySelector('.opt-mark')) && !shown(e.querySelector('.opt-letter svg'))) };
+      });
+      h.check(chosen.count === 1 && chosen.plain.every((c) => c !== chosen.tint) && chosen.tick && !chosen.letter && chosen.othersLettered
+        && box(chosen.box) === box(before),
+        `step 1: the chosen option takes a filled tint (${chosen.tint}) and a tick for its letter, the others keep theirs, and it moves nothing (${box(before)} -> ${box(chosen.box)})`);
+      await h.screenCheck(page, 'step 1 with an option chosen');
+      await h.shot(page, 'step-chosen');
       await k.doubleTap('[data-action="send"]');
       await k.screen('reply');
       h.check(stub.of(REPLY_KEY).length === 1, `a double tap on Send sends one reply request (${stub.of(REPLY_KEY).length})`);
@@ -281,7 +299,7 @@ export default [
       h.check(score.length === 1 && h.same(score[0].body, {
         answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)], look: 'th+en',
       }), 'score: one request with three answers (the typed one with the de-identified text its reply gave), three replies, three asks and four sigs as the stub sent them');
-      h.check(await page.locator('.result-card .booth-tag').innerText() === 'Booth #042', 'result: the booth tag "Booth #042"');
+      h.check(await page.locator('.result-card .booth-tag').innerText() === 'Player #042', 'result: the booth tag "Player #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
       const bars = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
         key: e.dataset.key, th: e.querySelector('.domain-name .bi-th').textContent, en: e.querySelector('.domain-name .bi-en').textContent,
@@ -311,12 +329,23 @@ export default [
       const invite = await page.evaluate(() => {
         const qr = document.querySelector('[data-invite-qr]');
         const svg = qr?.querySelector('svg')?.getBoundingClientRect();
+        // The lines "Specialty Audit" sits on in the English alongside line: one, kept by its no-break space.
+        const en = document.querySelector('.invite-alongside .bi-en');
+        const node = [...(en?.childNodes ?? [])].find((n) => n.nodeType === 3 && n.data.includes('Specialty\u00a0Audit'));
+        const at = node?.data.indexOf('Specialty\u00a0Audit') ?? -1;
+        const range = document.createRange();
+        if (at >= 0) { range.setStart(node, at); range.setEnd(node, at + 'Specialty Audit'.length); }
+        const lines = at >= 0 ? new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size : 0;
         return { text: document.querySelector('[data-invite]')?.innerText ?? '', url: qr?.dataset.inviteQr, qr: svg ? Math.round(svg.width) : 0,
-          finish: !!document.querySelector('.shell-bar [data-action="finish"]') };
+          finish: !!document.querySelector('.shell-bar [data-action="finish"]'), auditLines: lines };
       });
       h.check(invite.text.includes(WORKSHOP_COPY.title.en) && invite.text.includes(WORKSHOP_COPY.scan.th)
         && invite.url === new URL('/workshop.html', page.url()).href && invite.qr >= 400 && invite.finish,
         `Done shows the Calibration Workshop invitation with a QR to /workshop.html (${invite.url}, ${invite.qr} px) and a Finish button`);
+      const flat = (t) => t.replace(/\s+/g, '');
+      h.check(['when', 'alongside'].every((key) => flat(invite.text).includes(flat(WORKSHOP_COPY[key].th)) && flat(invite.text).includes(flat(WORKSHOP_COPY[key].en))),
+        'the invitation gives the date and that the workshop is held alongside the visitor\'s own specialty\'s Specialty Audit, Thai and English');
+      h.check(invite.auditLines === 1, `the English line keeps "Specialty Audit" on one line (${invite.auditLines})`);
       h.check(stub.of('GET /booth/status').length === 1, 'the invitation is on the same page: no reload yet');
       await k.tap('[data-action="finish"]');
       await k.shell('start');
@@ -410,6 +439,46 @@ export default [
         if (await k.screenNow() !== 'stopped') shown.push(name);
       }
       h.check(shown.length === 0, `each of ${bad.map(([name]) => name).join(', ')} stops the play${shown.length ? ` (drawn instead: ${shown.join(', ')})` : ''}`);
+      await k.close();
+    },
+  },
+  {
+    name: 'phrases: a reading stays one phrase with its short label and its unit, and a long phrase before it keeps its own',
+    async run(h) {
+      const k = await h.kiosk();
+      await k.shell('start');
+      const cases = [
+        ['ลงดำนาในโคลนทุกวัน อุณหภูมิ 39.2 °C ชีพจร 112 หายใจ 24 ครั้ง/นาที', ['ลงดำนาในโคลนทุกวัน', 'อุณหภูมิ 39.2 °C', 'ชีพจร 112', 'หายใจ 24 ครั้ง/นาที']],
+        ['กดเจ็บใต้ชายโครงซ้าย น้ำตาลปลายนิ้ว 342 มก./ดล. รู้สึกตัวดี', ['กดเจ็บใต้ชายโครงซ้าย', 'น้ำตาลปลายนิ้ว 342 มก./ดล.', 'รู้สึกตัวดี']],
+        ['และนัดติดตามอาการภายใน 3 เดือน', ['และนัดติดตามอาการภายใน', '3 เดือน']],
+        ['SpO2 92% ขณะหายใจอากาศปกติ', ['SpO2 92%', 'ขณะหายใจอากาศปกติ']],
+      ];
+      const got = await k.page.evaluate(async (texts) => {
+        const { phrases } = await import('/js/booth-dom.js');
+        return texts.map((t) => phrases(t).filter((n) => typeof n !== 'string').map((n) => n.textContent));
+      }, cases.map(([t]) => t));
+      cases.forEach(([text, want], i) => h.check(h.same(got[i], want), `phrases: "${text}" draws as ${JSON.stringify(want)} (${JSON.stringify(got[i])})`));
+
+      // Case text: a reading binds the run before it however long; a phrase wider than its column breaks only before a
+      // word that opens a phrase, its last word kept with the reading. English keeps a number with its unit and label.
+      const teaser = { th: 'ชาวนาเบาหวานวัย 55 ปี มาโรงพยาบาลชุมชนด้วยไข้และไอ 10 วัน', en: 'with 10 days of fever. Temperature 39.2 °C, respiratory rate 24, BP 106/66, glucose 342 mg/dL.' };
+      const drawn = await k.page.evaluate(async (pair) => {
+        const { caseBi } = await import('/js/booth-dom.js');
+        const b = caseBi(pair, 'teaser');
+        const th = b.querySelector('[lang="th"]');
+        return {
+          phrases: [...th.querySelectorAll(':scope > .ph')].map((e) => e.textContent),
+          parts: [...th.querySelectorAll('.ph-part')].map((e) => e.textContent),
+          keep: [...th.querySelectorAll('.ph-keep')].map((e) => e.textContent),
+          text: [th.textContent, b.querySelector('[lang="en"]').textContent],
+          readings: [...b.querySelectorAll('[lang="en"] .reading')].map((e) => e.textContent),
+        };
+      }, teaser);
+      h.check(h.same(drawn.text, [teaser.th, teaser.en]), 'case text: drawn word for word, Thai and English');
+      h.check(h.same(drawn.phrases, ['ชาวนาเบาหวานวัย 55 ปี', 'มาโรงพยาบาลชุมชนด้วยไข้และไอ 10 วัน']), `case text: a reading binds the run before it however long (${JSON.stringify(drawn.phrases)})`);
+      h.check(h.same(drawn.parts, ['มาโรงพยาบาลชุมชน', 'ด้วยไข้และไอ 10 วัน']) && h.same(drawn.keep, ['วัย 55 ปี', 'ไอ 10 วัน']),
+        `case text: a long phrase may break only before ด้วย, and "ไข้และไอ" stays with its reading (parts ${JSON.stringify(drawn.parts)}, kept ${JSON.stringify(drawn.keep)})`);
+      h.check(h.same(drawn.readings, ['with 10 days', 'Temperature 39.2 °C,', 'rate 24,', 'BP 106/66,', 'glucose 342 mg/dL.']), `case text: an English number stays with its unit and the word before it (${JSON.stringify(drawn.readings)})`);
       await k.close();
     },
   },

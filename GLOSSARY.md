@@ -81,7 +81,7 @@ The demo score of every tier path of one booth case version, measured by the PIS
 _Avoid_: score cache, answer key, lookup table
 
 **Booth tag**:
-The auto-made label, such as "Booth #042", that names one visitor's play on the booth leaderboard. The visitor never types it.
+The auto-made label, such as "Player #042" (Thai "ผู้เล่น #042"), that names one visitor's play on the booth leaderboard. The visitor never types it.
 _Avoid_: nickname, username, player name
 
 **Booth case**:

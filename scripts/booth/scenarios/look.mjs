@@ -13,6 +13,9 @@ const BOARD = {
   today: [7, 19, 42, 3, 25].map((tag, i) => ({ tag, score: 91.2 - i * 3.4, at: '2026-11-03T02:00:00.000Z' })),
   event: [101, 7, 88, 19, 42].map((tag, i) => ({ tag, score: 96.6 - i * 3.4, at: '2026-11-03T02:00:00.000Z' })),
 };
+/** Every card a screen or an overlay draws: none may run under the corner pills. */
+const CARDS = ['.case-card', '.step-sheet', '.answer-card', '.ai-bubble', '.reply-note', '.end-card', '.result-card', '.invite-card',
+  '.reveal-card', '.case-sheet', '.board-card', '.leave-card', '.still-card'].join(', ');
 
 const js = (name) => fileURLToPath(new URL(`../../../physician-ui/public/js/${name}`, import.meta.url));
 const dataUrl = (text) => `data:text/javascript,${encodeURIComponent(text)}`;
@@ -145,6 +148,17 @@ async function checkControl(h, k, label, look) {
   h.check(c.topmost, `${label}: the control is on top${c.modal ? ' of the open overlay' : ''}, so a tap on it reaches it`);
   h.check(c.over.length === 0, `${label}: the control covers no text, tap target or QR${c.scrolled.length ? `, with ${c.scrolled.join(', ')} scrolled to top, middle and bottom` : ''}`
     + `${c.over.length ? ` (covers ${c.over.slice(0, 4).join(', ')})` : ''}`);
+  // A card's edge under either pill reads as overlap even with no text there (owner, 2026-11-22): on every screen and
+  // overlay, every card starts below the pills on show (CCME's mark is hidden during the play).
+  const edges = await k.page.evaluate((cards) => {
+    const pills = [...document.querySelectorAll('[data-booth-brand], [data-look-control]')].map((e) => e.getBoundingClientRect())
+      .filter((p) => p.width > 0 && p.height > 0);
+    return [...document.querySelectorAll(cards)].filter((c) => {
+      const r = c.getBoundingClientRect();
+      return r.height > 0 && pills.some((p) => r.left < p.right && p.left < r.right && r.top < p.bottom && p.top < r.bottom);
+    }).map((c) => c.className);
+  }, CARDS);
+  h.check(edges.length === 0, `${label}: no card runs under CCME's mark or the look control${edges.length ? ` (${edges.join(', ')})` : ''}`);
   // CCME's mark: the control's twin at the column's top left, level with it, drawn, and covering nothing either.
   const shell = await k.page.evaluate(() => document.getElementById('booth').dataset.shell);
   const b = await readControl(k.page, '[data-booth-brand]');
@@ -156,15 +170,6 @@ async function checkControl(h, k, label, look) {
   h.check(b.fixed && b.outside && b.loaded && Math.abs(b.box.top - c.box.top) <= 1 && Math.abs(b.box.height - c.buttons[0].h) <= 1
     && Math.abs(b.box.left - 8 * scale) <= 1 && b.box.left + b.box.width < c.box.col - c.box.right - c.box.width,
     `${label}: CCME's mark is fixed at the column's top left, level with the control and as tall as its buttons, its logo loaded (${JSON.stringify(round(b.box))})`);
-  // A card's edge under either pill reads as overlap even with no text there (owner, 2026-11-22): the cards start below.
-  const edges = await k.page.evaluate(() => {
-    const pills = [...document.querySelectorAll('[data-booth-brand], [data-look-control]')].map((e) => e.getBoundingClientRect());
-    return [...document.querySelectorAll('.result-card, .invite-card, .end-card')].filter((c) => {
-      const r = c.getBoundingClientRect();
-      return r.height > 0 && pills.some((p) => r.left < p.right && p.left < r.right && r.top < p.bottom && p.top < r.bottom);
-    }).map((c) => c.className);
-  });
-  h.check(edges.length === 0, `${label}: no card runs under CCME's mark or the look control${edges.length ? ` (${edges.join(', ')})` : ''}`);
   h.check(b.over.length === 0, `${label}: CCME's mark covers no text, tap target or QR${b.scrolled.length ? `, with ${b.scrolled.join(', ')} scrolled to top, middle and bottom` : ''}`
     + `${b.over.length ? ` (covers ${b.over.slice(0, 4).join(', ')})` : ''}`);
 }
@@ -540,9 +545,12 @@ export default [
         await page.waitForFunction((l) => document.documentElement.dataset.look === l && document.querySelector('.result-card'), look);
         await page.evaluate(() => document.fonts.ready);
         const label = `result page ${width}px, ${look}`;
+        // Closed, each fold's summary names it in the look's language(s); then open, so what is in them is checked too.
+        await checkSlots(h, page, `${label}, folds closed`, look);
+        await page.evaluate(() => { for (const d of document.querySelectorAll('details.result-fold')) d.open = true; });
         await h.screenCheck(page, label, { demo: 'auto', phone: true });
         await checkSlots(h, page, label, look);
-        checkRadar(h, label, await readRadar(page), r.domains, h.LOOKS[look].primary);
+        checkRadar(h, label, await readRadar(page), r.domains, h.LOOKS[look].primary, { phone: true });
         const seen = await page.evaluate(() => ({
           control: document.querySelectorAll('[data-look-control]').length, scrollX: document.documentElement.scrollWidth - innerWidth,
           smallest: Math.min(...[...document.querySelectorAll('.result-page *')].filter((e) => getComputedStyle(e).display !== 'none'

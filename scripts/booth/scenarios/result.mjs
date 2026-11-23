@@ -14,7 +14,7 @@ const BAD = /on[-\s]?premise|validated\b|certif|ติดตั้งภาย�
 
 // booth-bands.js has no imports, so a data: URL loads it as the module it is.
 const SOURCE = await readFile(fileURLToPath(new URL('../../../physician-ui/public/js/booth-bands.js', import.meta.url)), 'utf8');
-const { BAND_LINES, SAFETY_REVIEW, MEASURES, SCALE_NOTE, MEASURES_REVIEW, bandOf, weakestFirst } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
+const { BAND_LINES, SAFETY_REVIEW, MEASURES, SCALE_NOTE, MEASURES_REVIEW, bandOf, weakestFirst, practiseNext, PRACTISE_KEYS } = await import(`data:text/javascript,${encodeURIComponent(SOURCE)}`);
 
 const size = (line) => line.th.length + line.en.length;
 
@@ -29,9 +29,10 @@ const lookIn = (page, look) => page.evaluate(async (l) => {
 }, look);
 const RANKS = { rank_today: 3, rank_event: 5 };
 
-/** The score sets the card is checked with: every domain at each band, and the two longest low lines made weakest. */
+/** The score sets the card is checked with: every domain at each band, and the two longest low lines Practise next may
+ *  name made weakest. */
 function scoreSets() {
-  const longest = [...KEYS].sort((a, b) => size(BAND_LINES[b].low) - size(BAND_LINES[a].low)).slice(0, 2);
+  const longest = [...PRACTISE_KEYS].sort((a, b) => size(BAND_LINES[b].low) - size(BAND_LINES[a].low)).slice(0, 2);
   return [
     ['all low', Object.fromEntries(KEYS.map((k) => [k, 1]))],
     ['all middle', Object.fromEntries(KEYS.map((k) => [k, 3]))],
@@ -40,18 +41,51 @@ function scoreSets() {
   ];
 }
 
-async function toResult(k) {
+async function toResult(k, steps = 3) {
   await k.shell('start');
   await k.toVignette();
   await k.tap('[data-action="begin"]');
-  for (let n = 1; n <= 3; n++) {
+  for (let n = 1; n <= steps; n++) {
     await k.screen('step');
     await k.answer(1);
     await k.screen('reply');
-    await k.tap(`[data-action="${n === 3 ? 'see-score' : 'next'}"]`);
+    await k.tap(`[data-action="${n === steps ? 'see-score' : 'next'}"]`);
   }
   await k.screen('scored');
 }
+
+/** The card's own lines: the rescale note under a five-step score, Practise next's line and the d5-d7 tags. */
+const readNotes = (page) => page.evaluate(() => {
+  const pair = (e) => ({ th: e.querySelector('.bi-th')?.textContent, en: e.querySelector('.bi-en')?.textContent });
+  return {
+    score: [...document.querySelectorAll('.result-card .score-note')].map(pair),
+    practise: [...document.querySelectorAll('.practise-next .section-note')].map(pair),
+    otherNotes: document.querySelectorAll('.other-domains .section-note').length,
+    tags: [...document.querySelectorAll('.result-card .domain')].map((e) => ({ key: e.dataset.key, tags: [...e.querySelectorAll('.domain-tag')].map(pair) })),
+  };
+});
+
+/** "Scroll for more" at the top of the card's scroll box, at its end and back at the top. */
+const readHint = (page) => page.evaluate(async () => {
+  const more = document.querySelector('.result-more');
+  const hint = document.querySelector('[data-more-hint]');
+  const settle = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const box = (s) => document.querySelector(s)?.getBoundingClientRect();
+  const shown = () => !hint.hidden && hint.getBoundingClientRect().height > 0;
+  const over = (a, b) => !!a && !!b && a.width > 0 && b.width > 0 && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  more.scrollTop = 0;
+  await settle();
+  const at = hint.getBoundingClientRect();
+  const fold = Math.min(innerHeight, ...['.play-body', '.result-more'].map((s) => box(s).bottom));
+  const top = { below: more.scrollHeight - more.clientHeight > 2, shown: shown(), inside: at.bottom <= fold + 0.5,
+    covers: ['.practise-next', '.result-board-row .rank-lines', '.result-board-row [data-action="leaderboard"]'].filter((s) => over(at, box(s))) };
+  more.scrollTop = more.scrollHeight;
+  await settle();
+  const end = shown();
+  more.scrollTop = 0;
+  await settle();
+  return { ...top, end, back: shown() };
+});
 
 const TYPED = 'ไข้ ไอ และหอบ ตรวจเอกซเรย์ปอดก่อน';
 
@@ -145,7 +179,16 @@ export default [
       h.check(lines.length === 21 && lines.every(([, , l]) => /[฀-๿]/.test(l?.th ?? '') && /[A-Za-z]/.test(l?.en ?? '') && !/[฀-๿]/.test(l.en)),
         'bands: 7 domains x 3 bands, each with a Thai line and an English line in its own script');
       h.check(lines.every(([, , l]) => !BAD.test(`${l.th} ${l.en}`)), 'bands: no line says validated, on-premise or certificate');
-      h.check(lines.every(([, , l]) => l.th.length <= 60 && l.en.length <= 70), 'bands: Thai lines <= 60 characters and English <= 70, so each stays within two lines');
+      h.check(lines.every(([, , l]) => h.unbroken(l.th).length <= 60 && l.en.length <= 70), 'bands: Thai lines <= 60 characters and English <= 70, so each stays within two lines');
+      // The copy's line breaks (booth-copy.js BREAK) add places a line may end and nothing else: no word changes.
+      h.check(h.DOMAINS.every((d) => h.unbroken(h.DOMAIN_BREAKS[d.key]) === d.th),
+        'domain names: each one\'s line breaks leave the rubric\'s Thai name word for word (DOMAIN_BREAKS)');
+      const marked = [...lines.map(([, , l]) => l.th), ...KEYS.map((k) => MEASURES[k].th), SCALE_NOTE.th, ...Object.values(h.DOMAIN_BREAKS), h.COPY.littleRoom.th];
+      h.check(marked.every((t) => !new RegExp(`(^|[\\s])${h.BREAK}|${h.BREAK}($|[\\s])|${h.BREAK}{2}|(^|[\\s])(และ|หรือ)${h.BREAK}`).test(t)),
+        'breaks: each sits between two words, never at a phrase\'s edge, doubled, or after the และ or หรือ that opens a phrase');
+      // d5-d7 say a booth play gives them little room through their tag alone, not again in their line (panel, round 7).
+      h.check(KEYS.every((k) => !h.unbroken(MEASURES[k].th).includes(h.unbroken(h.COPY.littleRoom.th)) && !MEASURES[k].en.includes(h.COPY.littleRoom.en)),
+        'measures: no line repeats the d5-d7 tag (a booth play gives little room for this)');
       h.check(SAFETY_REVIEW?.model && /^\d{4}-\d{2}-\d{2}$/.test(SAFETY_REVIEW.date) && SAFETY_REVIEW.findings, 'bands: the AI safety review is recorded with its model, date and findings (ADR 0005)');
       h.check(h.same(Object.keys(MEASURES), KEYS) && KEYS.every((k) => MEASURES[k].th && MEASURES[k].en && !BAD.test(MEASURES[k].th + MEASURES[k].en))
         && SCALE_NOTE.th && SCALE_NOTE.en, 'measures: what each of d1..d7 looks at, Thai and English, and the 0-5 scale note');
@@ -154,33 +197,47 @@ export default [
       h.check([0, 1, 2, 3, 4, 5].map(bandOf).join() === 'low,low,low,mid,high,high', 'bands: 0-2 low, 3 middle, 4-5 high');
       h.check([2.4, 2.5, 2.6, 3.4, 3.5, 4.9].map(bandOf).join() === 'low,mid,mid,mid,high,high', 'bands: a fitted one-decimal score takes the band of its rounded value (2.5 and 3.4 middle)');
       h.check(weakestFirst({ d1: 3, d2: 1, d3: 3, d4: 1, d5: 5, d6: 0, d7: 3 }).slice(0, 3).join() === 'd6,d2,d4', 'bands: weakest first, a tie keeping the rubric\'s order');
+      h.check(practiseNext({ d1: 3, d2: 1, d3: 3, d4: 1, d5: 5, d6: 0, d7: 3 }).join() === 'd2,d4' && practiseNext({ d1: 4, d2: 4, d3: 4, d4: 4, d5: 0, d6: 0, d7: 0 }).join() === 'd1,d2',
+        'bands: Practise next names the two weakest of d1-d4, never d5-d7 however low (a booth play gives them little room)');
     },
   },
-  ...SIZES.map(([width, height]) => ({
-    name: `result card at ${width}x${height} in each look: the radar, a descriptor per domain, the two weakest first under Practise next, the leaderboard button above the fold`,
+  // A five-step play's card adds the rescale line under its score (ADR 0013), the tallest card the kiosk draws.
+  ...SIZES.flatMap(([width, height]) => [3, 5].map((steps) => ({
+    name: `result card at ${width}x${height}, ${steps} steps, in each look: the radar, a descriptor per domain, the two weakest first under Practise next and its line, d5-d7 tagged, ${steps === 5 ? 'the rescale line, ' : ''}the leaderboard button above the fold and "Scroll for more" clear of it`,
     async run(h) {
+      const tree = steps === 5 ? h.TREE5 : h.TREE;
       for (const [label, domains] of scoreSets()) {
-        const stub = h.makeStub({ routes: { [SCORE_KEY]: (call) => h.scoredFor(call, { domains, ...RANKS }) } });
+        const stub = h.makeStub({ tree, ...(steps === 5 ? { table: h.TABLE5 } : {}), routes: { [SCORE_KEY]: (call) => h.scoredFor(call, { domains, ...RANKS }, tree) } });
         const k = await h.kiosk({ width, height, stub });
         const { page } = k;
-        await toResult(k);
+        await toResult(k, steps);
         for (const look of Object.keys(h.LOOKS)) {
           await lookIn(page, look);
-          const tag = `${width}x${height} ${label}, ${look}`;
+          const tag = `${width}x${height} ${steps} steps ${label}, ${look}`;
           await h.screenCheck(page, `result card ${tag}`, { demo: true });
-          await h.shot(page, `result-bands-${width}-${label.split(' ').slice(0, 2).join('-')}-${look}`);
+          await h.shot(page, `result-bands-${width}-${steps === 5 ? 'five-' : ''}${label.split(' ').slice(0, 2).join('-')}-${look}`);
+          const notes = await readNotes(page);
+          h.check(h.same(notes.score, steps === 5 ? [h.COPY.displayScale] : []),
+            `${tag}: ${steps === 5 ? 'the rescaled score says so under its number, Thai and English (ADR 0013)' : 'a three-step score, shown as stored, has no rescale line'} (${JSON.stringify(notes.score)})`);
+          h.check(h.same(notes.practise, [h.COPY.practiseFrom]) && notes.otherNotes === 0, `${tag}: Practise next, and only it, says it draws on the 4 domains a booth play can show`);
+          h.check(notes.tags.every((r) => h.same(r.tags, PRACTISE_KEYS.includes(r.key) ? [] : [{ ...h.COPY.littleRoom, th: h.unbroken(h.COPY.littleRoom.th) }])),
+            `${tag}: the d5-d7 rows, and only they, carry the tag that a booth play gives them little room (${notes.tags.filter((r) => r.tags.length).map((r) => r.key)})`);
+          const hint = await readHint(page);
+          h.check(hint.below && hint.shown && hint.inside && hint.covers.length === 0 && !hint.end && hint.back,
+            `${tag}: "Scroll for more" shows over the fade while more lies below, covering none of Practise next, the ranks and the leaderboard button, and goes at the scroll's end (${JSON.stringify(hint)})`);
           checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary);
 
           h.check(await page.locator('.domain-measure, .scale-note').count() === 0, `${tag}: the kiosk card shows no measure lines or scale note (the phone page has them)`);
-          const order = weakestFirst(domains);
+          const want = practiseNext(domains);
+          const rest = weakestFirst(domains).filter((key) => !want.includes(key));
           const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
           const other = await page.$$eval('.other-domains .domain', (els) => els.map((e) => e.dataset.key));
-          h.check(h.same(next, order.slice(0, 2)) && h.same(other, order.slice(2)),
-            `${tag}: Practise next lists ${order.slice(0, 2)} first, then the other five (${next} | ${other})`);
+          h.check(h.same(next, want) && h.same(other, rest),
+            `${tag}: Practise next lists ${want}, the two weakest of d1-d4, then the other five weakest first (${next} | ${other})`);
           const rows = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
             key: e.dataset.key, th: e.querySelector('.domain-band .bi-th')?.textContent, en: e.querySelector('.domain-band .bi-en')?.textContent,
           })));
-          h.check(rows.length === 7 && rows.every((r) => r.th === BAND_LINES[r.key][bandOf(domains[r.key])].th && r.en === BAND_LINES[r.key][bandOf(domains[r.key])].en),
+          h.check(rows.length === 7 && rows.every((r) => r.th === h.unbroken(BAND_LINES[r.key][bandOf(domains[r.key])].th) && r.en === BAND_LINES[r.key][bandOf(domains[r.key])].en),
             `${tag}: each of the 7 rows carries the Thai and English line of its domain and band`);
           // The fold is the lowest edge nothing scrolls past: the screen, the play body and the card's scroll box.
           const fit = await page.evaluate(() => {
@@ -191,17 +248,21 @@ export default [
             return {
               tall: [...document.querySelectorAll('.domain-band span[lang]')].filter((e) => e.getBoundingClientRect().height > 0 && lines(e) > 2).length,
               buttonBottom: Math.round(button.bottom), nextBottom: Math.round(next.bottom), fold: Math.round(fold),
+              column: document.querySelector('#booth').getBoundingClientRect().width,
               sheetBelowFold: document.querySelector('.other-domains').getBoundingClientRect().top >= next.bottom,
+              othersTop: document.querySelector('.other-domains').getBoundingClientRect().top,
             };
           });
           h.check(fit.tall === 0, `${tag}: no descriptor runs past two lines`);
+          // At rest the card ends on the board row: no part of Other domains (its title) peeks out above the fold.
+          h.check(fit.othersTop >= fit.fold - 0.5, `${tag}: at rest nothing of Other domains shows above the fold, so its title shows whole or not at all (it starts at ${Math.round(fit.othersTop)}, fold ${fit.fold})`);
           h.check(fit.nextBottom <= fit.fold && fit.buttonBottom <= fit.fold && fit.sheetBelowFold,
-            `${tag}: with both ranks, Practise next, the ranks and the leaderboard button are visible without scrolling (their row ends ${fit.buttonBottom}, fold ${fit.fold}, ${Math.round((fit.fold - fit.buttonBottom) * 1080 / width)}u to spare)`);
+            `${tag}: with both ranks, Practise next, the ranks and the leaderboard button are visible without scrolling (their row ends ${fit.buttonBottom}, fold ${fit.fold}, ${Math.round((fit.fold - fit.buttonBottom) * 1080 / fit.column)}u to spare)`);
         }
         await k.close();
       }
     },
-  })),
+  }))),
   {
     name: 'leaderboard buttons: the result card and the loop each open the board, and a tap on the loop button starts no play',
     async run(h) {

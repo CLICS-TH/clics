@@ -1,5 +1,5 @@
 // Booth Mode board (#212). booth-play.js and booth-shell.js call three seams and never reach inside:
-//   renderTag(tag)                              the result card's tag, "Booth #NNN" with its icon
+//   renderTag(tag)                              the result card's tag, "Player #NNN" with its icon
 //   mountResultBoard(slot, { tag, scoreBody })  the result card's ranks and Landing QR, from the score response
 //                                               (rank_today, rank_event)
 //   mountLoopBoard(slot, { api }) -> stop()     the loop's board, fetched from GET /booth/board every minute

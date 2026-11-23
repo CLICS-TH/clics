@@ -2,7 +2,7 @@
 // Close; the answers overlay's pattern (booth-answers.js). It shows only what the play already holds, so it makes no
 // request, and the play under it stays as it was: a chosen option, a typed draft, a reply landing meanwhile.
 import { COPY } from './booth-copy.js';
-import { el, bi } from './booth-dom.js';
+import { el, bi, caseBi } from './booth-dom.js';
 
 const OVERLAY = '[data-case-overlay]';
 
@@ -17,7 +17,7 @@ export function openCase(host, vignette) {
   const overlay = el('div', { class: 'case-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': `${COPY.caseTitle.th} ${COPY.caseTitle.en}`, dataset: { caseOverlay: '' } },
     el('div', { class: 'case-sheet' },
       el('h2', { class: 'case-title' }, bi(COPY.caseTitle)),
-      el('div', { class: 'case-read' }, bi(vignette, 'vignette')),
+      el('div', { class: 'case-read' }, caseBi(vignette, 'vignette')),
       close));
   // The screen under it may have been redrawn meanwhile (a reply landed): the focus goes to that screen's opener.
   close.addEventListener('click', () => {

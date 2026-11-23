@@ -54,7 +54,9 @@
 .shell-tap:focus-visible { outline: calc(6 * var(--u)) solid var(--ai-border); outline-offset: calc(-12 * var(--u)); }
 .shell-tap .loop-bar { background: var(--accent); color: var(--on-accent); --bi-sub: var(--on-accent); transition: background-color 120ms ease-out; }
 .shell-tap:active .loop-bar { background: var(--accent-down); }
-/* Attract mode: a larger prompt beside a fingertip cue whose ring pulses out every 1.6 s. */
+/* Attract mode: a larger prompt beside a fingertip cue whose ring pulses out every 1.6 s. The open bar can grow by 16u
+   at most: cover crops half of any growth off the reel's top, and the corner controls must stay above each scene's
+   head at reel y 200 (promo.mjs). */
 .shell-tap .loop-bar { gap: calc(40 * var(--u)); }
 .shell-tap .bar-label { text-align: start; }
 .shell-tap .bar-label .bi-main { font-size: var(--text-title-th); font-weight: 700; }
@@ -143,15 +145,20 @@
 /* During a play the corner holds the step counter, and the play's overlays dim the screen under it: the mark shows on
    the loop, the result and the invitation only. */
 #booth[data-shell="play"] ~ .booth-brand { display: none; }
-/* The screens that show the mark start their card under the corner row (8u inset + 84u + 8u), so neither pill sits on
-   the card's edge (owner, 2026-11-22). The result card gives back what this costs, or the leaderboard button would drop
-   below the fold (result.mjs): 8u off its top padding, 8u off the summary's gaps and the score's rule, 8u off each gap
-   between its blocks and 8u off Practise next's padding. The result QR keeps its 320u (keep.mjs). */
-.booth-stage[data-screen="scored"] > .play-frame, .booth-stage[data-screen="invite"] > .play-frame { padding-top: calc(100 * var(--u)); }
-.play-body > .result-card { padding-top: calc(32 * var(--u)); gap: calc(16 * var(--u)); }
-.play-body > .result-card .result-summary { gap: calc(16 * var(--u)); }
-.play-body > .result-card .result-total { padding-bottom: calc(16 * var(--u)); }
-.play-body > .result-card .practise-next { padding: calc(20 * var(--u)); }
+/* Every screen whose card starts at the top starts it under the corner row (--corner-room), so neither pill sits on
+   the card's edge (owner, 2026-11-22). The step screen pays with a closer gap above its sheet: the tallest step under a
+   long bridge is the booth's tightest fit (play.mjs). The result card gives back what this, a five-step play's score
+   line and Practise next's own line cost, or the leaderboard button would drop below the fold (result.mjs): it sets its
+   blocks closer than the result page does. The result QR keeps its 320u (keep.mjs). */
+.booth-stage:is([data-screen="teaser"], [data-screen="vignette"], [data-screen="step"], [data-screen="typing"], [data-screen="scored"], [data-screen="invite"]) > .play-frame { padding-top: var(--corner-room); }
+.booth-stage[data-screen="step"] .play-body { gap: calc(16 * var(--u)); }
+.play-body > .result-card { padding-top: calc(24 * var(--u)); gap: calc(12 * var(--u)); }
+.play-body > .result-card .result-summary { gap: calc(12 * var(--u)); }
+.play-body > .result-card .result-total { padding-bottom: calc(12 * var(--u)); }
+.play-body > .result-card .result-more { gap: calc(16 * var(--u)); }
+.play-body > .result-card .practise-next { padding: calc(16 * var(--u)); }
+.play-body > .result-card .domain-section { gap: calc(12 * var(--u)); }
+.play-body > .result-card .domains { gap: calc(16 * var(--u)); }
 
 /* The workshop invitation after Done (js/booth-invite.js): the phone card's band and accent rule at kiosk scale, the
    title English first (owner, 2026-11-19), and a QR to /workshop.html large enough to scan from a step back. */
@@ -170,6 +177,10 @@
 .invite-line .bi-main, .invite-when .bi-main { font-size: var(--text-th); line-height: 1.55; }
 .invite-line .bi-sub, .invite-when .bi-sub { font-size: var(--text-label-en); line-height: 1.4; }
 .invite-when .bi-main { font-weight: 600; }
+/* The description and the Specialty Audit line read as one block: the second is why a College member would scan. */
+.invite-lead { display: flex; flex-direction: column; gap: calc(12 * var(--u)); }
+.invite-alongside .bi-main { font-size: var(--text-th); font-weight: 600; line-height: 1.5; }
+.invite-alongside .bi-sub { font-size: var(--text-label-en); font-weight: 600; line-height: 1.4; }
 .invite-qr { margin: 0; display: flex; flex-direction: column; align-items: center; gap: calc(16 * var(--u)); }
 .invite-qr svg { display: block; width: calc(480 * var(--u)); height: calc(480 * var(--u)); }
 .invite-scan .bi-main { font-size: var(--text-th); font-weight: 600; line-height: 1.5; }

@@ -24,7 +24,7 @@ const SCENARIOS = new URL('./scenarios/', import.meta.url);
 
 // booth-copy.js has no imports, so a data: URL loads it as the module it is, without a package.json type.
 const COPY_SOURCE = await readFile(join(ROOT, 'js', 'booth-copy.js'), 'utf8');
-const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
+const { DEMO_LABEL, DOMAINS, DOMAIN_SHORT, DOMAIN_BREAKS, BREAK, unbroken, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY } = await import(`data:text/javascript,${encodeURIComponent(COPY_SOURCE)}`);
 const fixture = async (name) => JSON.parse(await readFile(fileURLToPath(new URL(`../../backend/tests/fixtures/${name}`, import.meta.url)), 'utf8'));
 const TREE = await fixture('booth-case-tree.json');
 /** The five-step fixture (spec #370): cap-adult-5, whose banks after step 1 are keyed by the previous tier, and its
@@ -521,7 +521,8 @@ function measure({ floor, banned, demo, demoLabel, looks, scrollers, neutral, no
     const own = [...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('') + (e.value || '');
     if (/[฀-๿]/.test(own)) {
       const lh = cs.lineHeight === 'normal' ? 0 : px(cs.lineHeight) / size;
-      if (lh < floor.thaiLeading) out.push(`Thai line-height ${cs.lineHeight} (${lh.toFixed(2)}) < ${floor.thaiLeading}: "${say(e)}"`);
+      // A column scaled to a fractional size rounds the computed line-height (37.3333 / 26.6667 = 1.39999), as the size floor allows for.
+      if (lh < floor.thaiLeading - 0.001) out.push(`Thai line-height ${cs.lineHeight} (${lh.toFixed(2)}) < ${floor.thaiLeading}: "${say(e)}"`);
     }
     const r = e.getBoundingClientRect();
     if (r.left < -1 || r.right > innerWidth + 1) out.push(`text outside the screen (x ${Math.round(r.left)}..${Math.round(r.right)}): "${say(e)}"`);
@@ -531,12 +532,18 @@ function measure({ floor, banned, demo, demoLabel, looks, scrollers, neutral, no
     const size = px(getComputedStyle(e).fontSize);
     if (size < floor.optionLabelPx * scale - 0.01) out.push(`option label ${size}px < ${floor.optionLabelPx * scale}px: "${say(e)}"`);
   }
-  const taps = [...document.querySelectorAll('button, [role="button"], textarea, input, a[href]')].filter(shown);
+  const taps = [...document.querySelectorAll('button, [role="button"], textarea, input, a[href], summary')].filter(shown);
   for (const e of taps) {
     const r = e.getBoundingClientRect();
     if (r.width < floor.tapPx * scale - 0.01 || r.height < floor.tapPx * scale - 0.01) out.push(`tap target ${Math.round(r.width)}x${Math.round(r.height)} < ${floor.tapPx * scale}px: "${say(e)}"`);
   }
   const pen = document.createElement('canvas').getContext('2d');
+  const thaiWords = new Intl.Segmenter('th', { granularity: 'word' });
+  // A domain's name and its lines carry the breaks their copy places (booth-copy.js BREAK, drawn as .ph-piece runs):
+  // there a line may end only at one of them. A word segmenter's boundary is not enough: it splits compounds
+  // ("ขั้นก่อน|หน้า", "ด้วยคำ|พูด"), and so does the browser's own Thai breaking.
+  const placedOnly = '.domain-name, .domain-measure, .domain-band, .scale-note, .section-note, .domain-tag';
+  const piece = (node) => node.parentElement.closest('.ph-piece');
   for (const th of [...document.body.querySelectorAll('[lang="th"]:not(textarea)')].filter(shown)) {
     if (!/[฀-๿]/.test(th.textContent)) continue;
     const chars = [];
@@ -557,9 +564,21 @@ function measure({ floor, banned, demo, demoLabel, looks, scrollers, neutral, no
         const b = end === -1 ? line.length : k + end;
         const cs = getComputedStyle(n.parentElement);
         pen.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-        if (pen.measureText(line.slice(a, b)).width < th.clientWidth - 1) out.push(`Thai line broken inside a phrase: "${line.slice(a, k)}|${line.slice(k, b)}"`);
+        // A phrase span wider than its column (case text binds a run to its reading) may break, but only where a word
+        // ends: at a boundary the word segmenter finds.
+        const span = n.parentElement.closest('.ph');
+        const atWord = [...thaiWords.segment(line.slice(a, b))].some((s) => s.index === k - a);
+        const wide = span && th.contains(span) && pen.measureText(span.textContent).width >= th.clientWidth - 1;
+        const placed = piece(prev.n) && piece(n) && piece(prev.n) !== piece(n);
+        if (placed) {
+          // A break the copy placed.
+        } else if (th.closest(placedOnly)) {
+          out.push(`Thai line broken where its copy places no break: "${line.slice(a, k)}|${line.slice(k, b)}"`);
+        } else if (pen.measureText(line.slice(a, b)).width < th.clientWidth - 1 && !(wide && atWord)) {
+          out.push(`Thai line broken inside a phrase: "${line.slice(a, k)}|${line.slice(k, b)}"`);
+        }
       }
-      prev = { top, k };
+      prev = { top, k, n };
     });
   }
 
@@ -706,7 +725,7 @@ async function shot(page, name, { fullPage = false } = {}) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY, SERVER_LOOKS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, TREE5, TABLE5, stepCount, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
+const h = { kiosk, phone, makeStub, screenCheck, aiTinted, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, DOMAIN_SHORT, DOMAIN_BREAKS, BREAK, unbroken, TIERS, COPY, REPLY_FIELDS, LOOKS, DEFAULT_LOOK, LOOK_COPY, SERVER_LOOKS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, BOLD_MAX_CHARS, KASE, TREE, TREE5, TABLE5, stepCount, PLAY_ID, TYPED_TIER, REPLY, SIG, DEIDENTIFIED, SCORED, scoredFor, stepsFor,
   START, DRAW, drawOf, BRIDGE, LONG_BRIDGE, bankFor, pathOf, nextFor, longestNext, caseTrees, caseBankNexts, replyBody };
 
 try {

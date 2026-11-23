@@ -52,6 +52,8 @@ body.ws {
 html[lang="th"] .bi > [lang="en"], html[lang="en"] .bi > [lang="th"] { display: none; }
 .ph { display: inline-block; max-width: 100%; }
 .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* A figure's label pair is two <tspan lang> in one <text>: the same switch, inside the SVG. */
+html[lang="th"] svg [lang="en"], html[lang="en"] svg [lang="th"] { display: none; }
 
 .ws a:focus-visible, .ws button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
 .ch-cal :focus-visible, .ch-colophon :focus-visible { outline-color: var(--focus-on-dark) !important; }
@@ -77,10 +79,8 @@ html:not(.js) .lang { visibility: hidden; }
   color: var(--ink); text-decoration: none; font-weight: 600; font-size: 17px; letter-spacing: 0.04em;
 }
 .clics-mark img { width: 28px; height: 28px; }
-.clics-mark span { display: none; }
+.clics-mark { display: none; }
 
-/* ---- folio: the chapter's title in the left margin, wide screens only (no fixed bar on this page) ---- */
-.folio { display: none; }
 
 /* ---- chapters: each its own ground, hard cuts between them ---- */
 .ch { padding-block: clamp(72px, 12vh, 136px); }
@@ -100,22 +100,25 @@ html:not(.js) .lang { visibility: hidden; }
 /* ---- title page: type on paper, the invitation's one loud moment ---- */
 .ch-title { display: flex; min-height: calc(100svh - 69px); padding-block: 0; }
 .title-page { display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding-block: clamp(28px, 5svh, 64px); }
-.title-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 32px; }
 .invite > [lang] { font-size: 17.6px; font-weight: 500; color: var(--accent); }
-.title-meta { display: flex; flex-wrap: wrap; gap: 4px 32px; }
-.when { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
-.when dt > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--body); }
-.when dd > [lang] { font-family: var(--font-serif); font-size: 21px; font-weight: 600; line-height: 1.4; }
 .ws h1 { font-family: var(--font-serif); font-weight: 600; }
 .event-name { display: block; font-size: clamp(26px, min(5.6vw, 5svh), 46px); line-height: 1.2; }
 .cohort { display: block; margin-top: 14px; padding-top: 16px; border-top: 3px solid var(--accent); font-size: clamp(56px, min(16vw, 15svh), 150px); line-height: 0.96; letter-spacing: -0.015em; }
 .cohort-line { display: block; width: max-content; max-width: 100%; }
-.cohort-th > [lang] { margin-top: 12px; font-size: clamp(30px, min(7.4vw, 6svh), 54px); line-height: 1.4; }
+/* In Thai the Thai cohort name is the headline and the English one a line under it; in English, English alone. */
+html[lang="th"] .cohort-th > [lang] { margin-top: 14px; padding-top: 14px; border-top: 3px solid var(--accent); font-size: clamp(44px, min(13vw, 11svh), 112px); line-height: 1.3; }
+html[lang="th"] .cohort { margin-top: 4px; padding-top: 0; border-top: 0; font-size: clamp(22px, min(6vw, 4.6svh), 40px); line-height: 1.25; letter-spacing: 0; color: var(--body); }
+html[lang="th"] .cohort-line { display: inline; }
 .title-foot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: end; }
 .lede { max-width: 26em; }
 .lede > [lang] { font-size: 20px; line-height: 1.65; color: var(--ink); }
 .cta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.cta-note > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--muted); }
+.cta-note > [lang] { font-size: 16px; line-height: 1.6; color: var(--body); }
+/* The details, under the button and quieter than it. */
+.title-meta { display: flex; flex-wrap: wrap; gap: 12px 32px; }
+.title-meta > div { display: flex; flex-direction: column; }
+.title-meta dt > [lang] { font-size: 16px; line-height: 1.6; color: var(--body); }
+.title-meta dd > [lang] { font-size: 16px; font-weight: 600; line-height: 1.6; color: var(--ink); }
 .ws-btn {
   box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
   min-height: 60px; min-width: 220px; padding: 10px 36px; border-radius: 12px;
@@ -128,8 +131,12 @@ html:not(.js) .lang { visibility: hidden; }
 /* ---- one case: three physicians' scores, wiped in ---- */
 .strip-fig { display: flex; flex-direction: column; gap: 16px; }
 .strip { width: 100%; max-width: 560px; height: auto; overflow: visible; }
-.strip .tick { font: 600 13px var(--font-sans); fill: var(--muted); text-anchor: middle; }
-.strip .dk { font: 600 15px var(--font-sans); fill: var(--ink); }
+/* The 0-5 scale reads at the row names' size: 19 units is 15px on screen where the strip draws smallest. */
+.strip .tick { font: 600 19px var(--font-sans); fill: var(--body); text-anchor: middle; }
+/* The row names sit in viewBox units: on a 320px phone the strip draws at 0.78x, so Thai at 20 is 15.6px on screen. */
+.strip .dk { font: 600 19px var(--font-sans); fill: var(--ink); text-anchor: end; }
+.strip .dk [lang="th"] { font-size: 20px; }
+@media (min-width: 480px) { .strip .dk { font-size: 13.5px; } .strip .dk [lang="th"] { font-size: 14px; } .strip .tick { font-size: 13.5px; } }
 .strip .track { stroke: var(--hairline-strong); stroke-width: 2; }
 .strip .spread { fill: #ddd2c2; }
 .mk-a { fill: var(--ink); }
@@ -141,7 +148,7 @@ html:not(.js) .lang { visibility: hidden; }
 .legend .bi > [lang] { font-size: 16px; line-height: 1.5; color: var(--ink); }
 .strip-fig figcaption > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--body); }
 
-/* ---- calibration: the pinned peak. js/workshop.js moves the three shapes and the band between them onto one line ---- */
+/* ---- calibration: the pinned peak. js/workshop.js draws the three shapes closing in ---- */
 .cal-stage { display: flex; align-items: center; }
 .cal-grid {
   display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "fig" "steps";
@@ -153,7 +160,7 @@ html:not(.js) .lang { visibility: hidden; }
 .ch-cal h2 > [lang="th"] { font-size: clamp(26px, 6.2vw, 46px); }
 .cal-steps { grid-area: steps; }
 .cal-figure { grid-area: fig; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.cal { width: min(100%, 40svh, 560px); height: auto; overflow: visible; }
+.cal { width: min(100%, 56svh, 600px); height: auto; overflow: visible; }
 .cal .ring { fill: none; stroke: var(--dark-line); stroke-width: 1; }
 .cal .spoke { stroke: var(--dark-line); stroke-width: 1; }
 .cal .band { fill: var(--on-dark-body); fill-opacity: 0.12; transition: fill-opacity 320ms ease-out; }
@@ -163,14 +170,21 @@ html:not(.js) .lang { visibility: hidden; }
 .cal [data-rater="b"] { stroke-dasharray: 2 4; }
 .cal [data-rater="c"] { stroke-dasharray: 10 4 2 4; }
 .cal .shared { fill: rgba(232, 144, 111, 0.18); stroke: var(--coral-on-dark); stroke-width: 3; stroke-linejoin: round; }
-.cal .axis { font: 600 10.5px var(--font-sans); fill: var(--on-dark-muted); text-anchor: middle; }
+/* The domain names around the figure. Their size is in viewBox units, which js/workshop.js sets from the figure's drawn
+   width (--axis-u) so they never draw under 15.6px on screen. With no script they stay hidden. */
+.cal .axes { display: none; }
+.cal[data-labels] .axes { display: inline; }
+.cal .axis { font: 600 var(--axis-u, 11px) var(--font-sans); fill: var(--on-dark-muted); }
 .cal-figure figcaption { max-width: 30em; text-align: center; }
-.cal-figure figcaption > [lang] { font-size: 15.36px; line-height: 1.55; color: var(--on-dark-muted); }
+.cal-figure figcaption > [lang] { font-size: 16px; line-height: 1.55; color: var(--on-dark-body); }
+/* Its own line, so while it is hidden the visible sentence still centres and the line keeps its height. */
+.cap-agreed { display: block; transition: opacity 200ms ease-out; }
 
 .cal-steps { list-style: none; padding: 0; position: relative; display: grid; gap: 2px; }
 .cal-steps::before { content: ''; position: absolute; left: 12px; top: 22px; bottom: 22px; width: 2px; background: var(--dark-line); }
 .cal-steps li { position: relative; padding: 7px 0 7px 38px; color: var(--on-dark-muted); transition: color 240ms ease-out; }
 .cal-steps li > [lang] { font-size: 18px; line-height: 1.5; }
+.cal-steps li > [lang="en"] { text-wrap: balance; }
 .cal-steps li::before {
   content: ''; position: absolute; left: 6px; top: 50%; width: 14px; height: 14px; margin-top: -7px;
   box-sizing: border-box; border: 2px solid #6f6b63; border-radius: 50%; background: var(--dark);
@@ -186,7 +200,9 @@ html:not(.js) .lang { visibility: hidden; }
 .dom-split h2 { grid-area: head; }
 .dom-split .line { grid-area: line; }
 .dom-split .dom-cards { grid-area: cards; }
-.dom-fig { grid-area: fig; display: flex; justify-content: center; margin-top: 28px; }
+.dom-fig { grid-area: fig; display: flex; flex-direction: column; align-items: center; margin-top: 28px; }
+.fig-note { margin-top: 12px; text-align: center; }
+.fig-note > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--body); }
 .dom-radar { position: relative; width: min(100%, 480px); aspect-ratio: 1; }
 .dom-radar svg { width: 100%; height: 100%; overflow: visible; }
 .dom-radar .wedge { fill: var(--accent); opacity: 0; transition: opacity 240ms ease-out; }
@@ -195,22 +211,23 @@ html:not(.js) .lang { visibility: hidden; }
 .dom-radar .shared { fill: rgba(169, 88, 62, 0.1); stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
 .dom-radar .spoke { stroke: var(--hairline-strong); stroke-width: 1.2; transition: stroke 240ms ease-out; }
 .dom-radar .spoke.on { stroke: var(--accent); stroke-width: 3; }
+/* A pill on each axis, named. The side ones lean inward (translate) so a long name never leaves the radar's box. */
 .ax {
-  position: absolute; box-sizing: border-box; width: 52px; height: 52px; margin: -26px 0 0 -26px; padding: 0;
-  border: 1.5px solid var(--hairline-strong); border-radius: 50%; background: var(--canvas); color: var(--ink);
-  font: 600 17px/1 var(--font-sans); cursor: pointer;
+  position: absolute; box-sizing: border-box; min-height: 44px; padding: 4px 12px; translate: -50% -50%;
+  border: 1.5px solid var(--hairline-strong); border-radius: 999px; background: var(--canvas); color: var(--ink);
+  font: 600 15.36px/1.25 var(--font-sans); white-space: nowrap; cursor: pointer;
   transition: background-color 160ms ease-out, border-color 160ms ease-out, color 160ms ease-out, transform 160ms ease-out;
 }
 .ax:hover { border-color: var(--accent); }
 .ax:active { transform: scale(0.94); }
 .ax[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #ffffff; }
-.ax-1 { left: 50%; top: 9%; }
-.ax-2 { left: 82.1%; top: 24.4%; }
-.ax-3 { left: 90%; top: 59.1%; }
-.ax-4 { left: 67.8%; top: 86.9%; }
-.ax-5 { left: 32.2%; top: 86.9%; }
-.ax-6 { left: 10%; top: 59.1%; }
-.ax-7 { left: 17.9%; top: 24.4%; }
+.ax-1 { left: 50%; top: 7%; }
+.ax-2 { left: 92%; top: 24.4%; translate: -100% -50%; }
+.ax-3 { left: 100%; top: 59.1%; translate: -100% -50%; }
+.ax-4 { left: 69%; top: 90%; }
+.ax-5 { left: 31%; top: 90%; }
+.ax-6 { left: 0; top: 59.1%; translate: 0 -50%; }
+.ax-7 { left: 8%; top: 24.4%; translate: 0 -50%; }
 
 .dom-cards { margin-top: 28px; display: grid; gap: 12px; }
 /* With the script, one card at a time, every card in the same cell so a switch never moves the page. */
@@ -231,23 +248,27 @@ html:not(.js) .lang { visibility: hidden; }
 .colo-mark .ring { fill: none; stroke: var(--dark-line); stroke-width: 2; }
 .colo-mark .shared { fill: rgba(232, 144, 111, 0.18); stroke: var(--coral-on-dark); stroke-width: 4; stroke-linejoin: round; }
 .colo-text { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.ch-colophon .line { margin-top: 0; color: var(--on-dark-body); }
-/* Set inline, so a two-line Register still reads as one underlined line of type with its arrow at the end. A .ph is
-   an inline-block, which its link's underline does not reach: each carries its own. */
-.run-cta { font-family: var(--font-serif); font-size: clamp(30px, 7.6vw, 52px); font-weight: 600; line-height: 1.3; }
-.run-cta a { padding: 6px 2px; color: var(--on-dark); transition: color 160ms ease-out; }
-.run-cta a, .run-cta .ph {
-  text-decoration: underline; text-decoration-color: var(--coral-on-dark); text-decoration-thickness: 3px; text-underline-offset: 0.2em;
-}
-.run-cta .bi, .run-cta .bi > [lang] { display: inline; }
-.run-cta a:hover { color: var(--coral-on-dark); }
-.run-cta .arrow { display: inline-block; margin-left: 0.3em; transition: transform 200ms ease-out; }
-.run-cta a:hover .arrow { transform: translateX(6px); }
+.ch-colophon .line { margin-top: 0; color: var(--on-dark-body); text-wrap: balance; }
+/* The page's last button, coral on the dark ground (ink on coral 7.4:1). */
+.run-cta .ws-btn.primary { min-height: 64px; padding: 12px 44px; font-size: 22px; }
 .colo-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 48px; }
-.colo-meta dt > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--on-dark-muted); }
+.colo-meta dt > [lang] { font-size: 16px; line-height: 1.6; color: var(--on-dark-body); }
 .colo-meta dd > [lang] { font-family: var(--font-serif); font-size: 25px; font-weight: 600; line-height: 1.35; color: var(--on-dark); }
 .colo-note { max-width: 34em; }
-.colo-note > [lang] { font-size: 15.36px; line-height: 1.6; color: var(--on-dark-muted); }
+/* What the page does with your data: a reassurance, so it reads as body text, not small print. */
+.colo-note > [lang] { font-size: 16px; line-height: 1.6; color: var(--on-dark-body); }
+
+/* Register, floating at the foot of the screen between the title page's button and the closing one. */
+.ws-dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; justify-content: center;
+  padding: 12px var(--gutter) calc(14px + env(safe-area-inset-bottom)); pointer-events: none;
+  visibility: hidden; opacity: 0; transform: translateY(14px);
+  transition: opacity 200ms ease-out, transform 200ms ease-out, visibility 0s linear 200ms;
+}
+.ws-dock.on { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+/* Where it would cover a figure, the radar, the open domain card or the last step (js/workshop.js), the dock steps aside. */
+.ws-dock.on.aside { visibility: hidden; opacity: 0; transform: translateY(14px); transition-delay: 0s, 0s, 200ms; }
+.ws-dock .ws-btn { pointer-events: auto; min-height: 50px; min-width: 0; padding: 8px 28px; font-size: 17.6px; box-shadow: 0 6px 22px rgba(20, 20, 19, 0.3); }
 
 .ws-foot { background: var(--band); padding: 20px 0; }
 .foot-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
@@ -256,58 +277,72 @@ html:not(.js) .lang { visibility: hidden; }
 .foot-link .bi > [lang] { font-size: 15.36px; }
 .foot-link .ph { text-decoration: underline; text-underline-offset: 0.2em; }
 
+@media (max-width: 899px) {
+  .ch-dom { padding-top: clamp(48px, 7vh, 72px); }
+  .dom-fig { margin-top: 20px; }
+  .fig-note { margin-top: 8px; }
+  .dom-cards { margin-top: 20px; }
+}
 @media (max-width: 399px) {
   .ch-cal h2 > [lang="th"] { font-size: 24px; }
   .ch-cal h2 > [lang="en"] { font-size: 28px; }
 }
 @media (min-width: 400px) {
   .ccme-logo { height: 34px; }
-  .clics-mark span { display: inline; }
+  .clics-mark { display: inline-flex; }
 }
 @media (min-width: 900px) {
   :root { --gutter: 48px; }
   .split { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 72px; }
-  .dom-split { grid-template-areas: "head fig" "line fig" "cards fig"; grid-template-rows: auto auto 1fr; column-gap: 72px; align-items: start; }
+  .dom-split { grid-template-areas: "head fig" "line fig" "cards fig"; grid-template-rows: auto auto 1fr; gap: 0 72px; align-items: start; }
   .dom-split .dom-fig { margin-top: 0; align-self: center; }
-  .title-foot { grid-template-columns: minmax(0, 1fr) auto; gap: 56px; }
-  .title-foot .cta { align-items: flex-end; text-align: right; }
+  .title-page { justify-content: center; gap: 28px; }
+  .title-foot { grid-template-columns: auto auto; justify-content: start; gap: 28px 64px; margin-top: 28px; }
+  .title-foot .cta { align-self: center; }
+  /* Under the lede, at its size: Specialty Audit is the reason a college member reads on. */
+  .title-meta { grid-column: 1; }
+  .title-meta dt > [lang], .title-meta dd > [lang] { font-size: 18px; }
+  .ws-dock { justify-content: flex-end; padding-right: 32px; }
   .cal-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); grid-template-areas: none; gap: 64px; align-items: center; }
   .cal-copy { display: flex; flex-direction: column; gap: 32px; grid-column: 2; grid-row: 1; }
   .cal-figure { grid-column: 1; grid-row: 1; }
-  .cal { width: min(100%, 72svh, 600px); }
+  .cal { width: min(100%, 100svh, 820px); }
   .cal-steps li > [lang] { font-size: 20px; }
+  .strip-fig figcaption > [lang], .cal-figure figcaption > [lang], .fig-note > [lang] { font-size: 18px; }
   .cal-steps li { padding-block: 10px; }
-}
-@media (min-width: 1240px) {
-  .folio {
-    display: block; position: fixed; left: 22px; top: 50%; z-index: 30; margin: 0; padding: 14px 7px;
-    transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl;
-    background: var(--canvas); border: 1px solid var(--hairline-strong); border-radius: 999px; pointer-events: none;
-  }
-  .folio .bi > [lang] { font-size: 15.36px; line-height: 1.4; letter-spacing: 0.04em; color: var(--body); white-space: nowrap; }
+  /* The radar's names at the hint's size on a big screen. */
+  .ax { font-size: 17.6px; }
 }
 /* A short phone (360x640, 375x667): the title page tightens so Register your interest stays on the first screen. */
 @media (max-height: 720px) and (orientation: portrait) {
   .title-page { gap: 16px; padding-block: 16px; }
   .cohort { margin-top: 10px; padding-top: 12px; }
-  .cohort-th > [lang] { margin-top: 6px; }
+  html[lang="th"] .cohort-th > [lang] { margin-top: 10px; padding-top: 10px; }
   .lede > [lang] { font-size: 18px; line-height: 1.55; }
   .title-foot { gap: 16px; }
+  /* The radar and the space around it give way so the open domain card's name shows under it on the same screen. */
+  .ch-dom { padding-top: 32px; }
+  .dom-radar { width: min(100%, 40svh); }
+  .dom-cards { margin-top: 8px; }
 }
 /* A short phone (320x568): the pinned chapter still fits its screen, heading to last step. */
 @media (max-height: 620px) and (orientation: portrait) {
-  .cal { width: min(100%, 36svh); }
-  .cal-grid { gap: 10px; padding-block: 14px; }
+  .cal { width: min(100%, 46svh); }
+  /* Below this the radar's pills would touch each other. */
+  .dom-radar { width: min(100%, 46svh); }
+  .cal-figure figcaption > [lang] { font-size: 15.36px; line-height: 1.5; }
+  .cal-grid { gap: 8px; padding-block: 8px; }
   .cal-steps li { padding-block: 4px; }
 }
 /* A short, wide window (a phone on its side): the pinned figure gives way to the steps. */
 @media (max-height: 560px) and (orientation: landscape) {
   .cal-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "fig head" "fig steps"; gap: 8px 32px; }
-  .cal { width: min(100%, 78svh); }
+  .cal { width: min(100%, 110svh); }
   .cal-figure figcaption { display: none; }
   .ch-cal h2 > [lang] { font-size: 26px; }
   .cal-steps li { padding-block: 3px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .run-cta a:hover .arrow, .ax:active { transform: none; }
+  .ax:active, .ws-dock, .ws-dock.on.aside { transform: none; }
+  .ws-dock { transition: opacity 200ms ease-out, visibility 0s linear 200ms; }
 }

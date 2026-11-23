@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const BOARD_KEY = 'GET /booth/board';
@@ -40,8 +41,19 @@ const rowsOf = (page, list) => page.$$eval(`[data-board] .board-list:nth-of-type
   drawn: !!e.querySelector('.booth-icon svg'), mine: e.getAttribute('aria-current') === 'true',
 })));
 
+/** The rows of board list `list` once they read as `want`, or as they stand after `ms`: the overlay draws its rows
+ *  first and their icons a frame or more later, so a read the moment it shows can miss an icon. */
+async function settledRows(page, list, want, ms = 5_000) {
+  const until = Date.now() + ms;
+  for (;;) {
+    const rows = await rowsOf(page, list);
+    if (isDeepStrictEqual(rows, want) || Date.now() > until) return rows;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
+
 const expectRows = (list, mine) => list.map((e, i) => ({
-  rank: String(i + 1), tag: `Booth #${String(e.tag).padStart(3, '0')}`, score: String(Math.round(e.score)),
+  rank: String(i + 1), tag: `Player #${String(e.tag).padStart(3, '0')}`, score: String(Math.round(e.score)),
   icon: TAG_ICONS[(e.tag * 7) % TAG_ICONS.length], drawn: true, mine: e.tag === mine,
 }));
 
@@ -62,13 +74,14 @@ export default [
       const tag = await page.locator('.result-card .booth-tag').evaluate((e) => ({
         text: e.innerText, icon: e.querySelector('.booth-icon')?.dataset.icon, drawn: !!e.querySelector('.booth-icon svg'),
       }));
-      h.check(tag.text === 'Booth #042' && tag.icon === TAG_ICONS[(42 * 7) % TAG_ICONS.length] && tag.drawn,
-        `result: "Booth #042" with its icon from the Portal set (${JSON.stringify(tag)})`);
+      h.check(tag.text === 'Player #042' && tag.icon === TAG_ICONS[(42 * 7) % TAG_ICONS.length] && tag.drawn,
+        `result: "Player #042" with its icon from the Portal set (${JSON.stringify(tag)})`);
       const ranks = await page.$$eval('.result-card .rank', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').trim()));
       h.check(ranks.length === 2 && ranks[0].includes('อันดับของคุณวันนี้') && ranks[0].includes('Your rank today') && ranks[0].endsWith('#3')
         && ranks[1].includes('Your rank for the event') && ranks[1].endsWith('#5'), `result: today's rank #3 and the event's rank #5 (${ranks.join(' | ')})`);
-      h.check(h.same(await rowsOf(page, 1), expectRows(BOARD.today, 42)), 'board: top 10 today in order, each with rank, icon, tag and whole score; the visitor\'s row marked');
-      h.check(h.same(await rowsOf(page, 2), expectRows(BOARD.event, 42)), 'board: top 10 for the event in order');
+      const [today, event] = [expectRows(BOARD.today, 42), expectRows(BOARD.event, 42)];
+      h.check(h.same(await settledRows(page, 1, today), today), 'board: top 10 today in order, each with rank, icon, tag and whole score; the visitor\'s row marked');
+      h.check(h.same(await settledRows(page, 2, event), event), 'board: top 10 for the event in order');
       const label = await page.locator('[data-board] [data-demo-label]').innerText().catch(() => '');
       h.check(label.includes(h.DEMO_LABEL.th) && label.includes(h.DEMO_LABEL.en), 'board: the panel carries the demo label, TH and EN');
       h.check(await page.locator('[data-board] button, [data-board] a').count() === 0, 'board: no controls in the panel');
@@ -128,7 +141,8 @@ export default [
       await page.evaluate(() => document.fonts.ready);
       await h.screenCheck(page, 'loop board', { demo: true });
       await h.shot(page, 'loop-board');
-      h.check(h.same(await rowsOf(page, 1), expectRows(BOARD.today, null)) && h.same(await rowsOf(page, 2), expectRows(BOARD.event, null)),
+      const [today, event] = [expectRows(BOARD.today, null), expectRows(BOARD.event, null)];
+      h.check(h.same(await settledRows(page, 1, today), today) && h.same(await settledRows(page, 2, event), event),
         'loop board: top 10 today and for the event, no row marked');
       h.check(await page.locator('[data-board] button, [data-board] a').count() === 0, 'loop board: no controls, so a tap on it starts a play');
       h.check(stub.of(BOARD_KEY).length === 1, 'loop board: one request on mount');

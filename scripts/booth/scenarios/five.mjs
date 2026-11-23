@@ -39,8 +39,10 @@ const stepOf = (page) => page.evaluate(() => {
   return { th: head?.querySelector('.bi-th').textContent, en: head?.querySelector('.bi-en').textContent };
 });
 
-/** The two weakest domains first, a tie in the rubric's order. */
-const weakest = (d) => [...KEYS].sort((a, b) => d[a] - d[b] || KEYS.indexOf(a) - KEYS.indexOf(b));
+/** The domains Practise next draws from: a booth play gives d5-d7 little room (booth-bands.js MEASURES). */
+const PRACTISE = ['d1', 'd2', 'd3', 'd4'];
+/** The weakest of PRACTISE first, a tie in the rubric's order. */
+const weakest = (d) => [...PRACTISE].sort((a, b) => d[a] - d[b] || KEYS.indexOf(a) - KEYS.indexOf(b));
 
 /** Each domain row as drawn: its value text, band, bar fill (0-1) and band line. */
 const readRows = (page) => page.$$eval('.result-card .domain', (els) => els.map((e) => ({
@@ -54,7 +56,7 @@ function checkRows(h, tag, rows, domains, want) {
   const off = rows.filter((r) => {
     const v = domains[r.key];
     const line = BAND_LINES[r.key][bandWant(v)];
-    return r.text !== `${want(v)} / 5` || Math.abs(r.fill - v / 5) > 0.01 || r.band !== bandWant(v) || r.th !== line.th || r.en !== line.en;
+    return r.text !== `${want(v)} / 5` || Math.abs(r.fill - v / 5) > 0.01 || r.band !== bandWant(v) || r.th !== h.unbroken(line.th) || r.en !== line.en;
   });
   h.check(rows.length === 7 && off.length === 0,
     `${tag}: seven rows, each with its value, its bar at value/5 and the band line of its rounded value `
@@ -76,6 +78,9 @@ const readReveal = (page) => page.$$eval('[data-reveal-overlay] .reveal-step', (
   th: li.querySelector('.step-of .bi-th').textContent, en: li.querySelector('.step-of .bi-en').textContent,
   tier: li.querySelector('.reveal-answer .tier-chip').dataset.tier,
 })));
+
+/** The line under a five-step score saying it is the 0-100 rescale (ADR 0013), as drawn. */
+const readScoreNote = (page) => page.$$eval('.result-card .score-note', (els) => els.map((e) => ({ th: e.querySelector('.bi-th')?.textContent, en: e.querySelector('.bi-en')?.textContent })));
 
 export default [
   {
@@ -155,10 +160,11 @@ export default [
         await h.screenCheck(page, tag, { demo: true });
         checkRows(h, tag, await readRows(page), domains, (v) => v.toFixed(1));
         checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary);
+        h.check(h.same(await readScoreNote(page), [h.COPY.displayScale]), `${tag}: under the score, the line saying it is a demo score rescaled to 0-100 (ADR 0013)`);
         if (look === h.DEFAULT_LOOK) await h.shot(page, `five-step-${width}-result`);
       }
       const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
-      h.check(h.same(next, weakest(domains).slice(0, 2)), `${width}: Practise next lists the two weakest, a fitted 2.6 among them (${next})`);
+      h.check(h.same(next, weakest(domains).slice(0, 2)), `${width}: Practise next lists the two weakest of d1-d4, not the weaker fitted d5 (2.6) or d6 (${next})`);
       const kept = parseResultFragment(new URL(await page.locator('[data-keep-qr]').getAttribute('data-result-url')).hash);
       h.check(h.same(kept?.domains, domains) && h.same(kept?.tiers, PLAN) && kept?.score === 72,
         `${width}: the result QR keeps the fitted domains, the five tiers and the composite (${JSON.stringify(kept?.domains)}, ${kept?.tiers})`);
@@ -191,19 +197,24 @@ export default [
       for (const look of Object.keys(h.LOOKS)) {
         await page.evaluate((url) => { location.hash = new URL(url, location.href).hash; }, link(look));
         await page.waitForFunction((l) => document.documentElement.dataset.look === l && document.querySelector('.result-card'), look);
+        // The page draws Other domains and the steps folded (booth-result.js fold): open, so every row is measured.
+        await page.evaluate(() => { for (const d of document.querySelectorAll('details.result-fold')) d.open = true; });
         await page.evaluate(() => document.fonts.ready);
         const tag = `${width}px five-step result page, ${look}`;
         checkRows(h, tag, await readRows(page), domains, (v) => v.toFixed(1));
-        checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary);
+        checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary, { phone: true });
         const tiers = await page.$$eval('.tier-step', (els) => els.map((e) => ({ th: e.querySelector('.tier-step-n .bi-th').textContent, tier: e.dataset.tier })));
         h.check(h.same(tiers, PLAN.map((tier, i) => ({ th: `ขั้นที่ ${i + 1}`, tier }))), `${tag}: five steps, each with its tier (${tiers.map((t) => t.tier).join(', ')})`);
+        h.check(h.same(await readScoreNote(page), [h.COPY.displayScale]), `${tag}: under the score, the line saying it is a demo score rescaled to 0-100 (ADR 0013)`);
         await h.screenCheck(page, tag, { demo: 'auto', phone: true });
         if (look === h.DEFAULT_LOOK) await h.shot(page, `five-step-result-page-${width}`, { fullPage: true });
       }
       const three = { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 };
       await page.evaluate((url) => { location.hash = new URL(url, location.href).hash; }, link(h.DEFAULT_LOOK, { domains: three, tiers: PLAN.slice(0, 3) }));
       await page.waitForFunction(() => document.querySelectorAll('.tier-step').length === 3);
+      await page.evaluate(() => { for (const d of document.querySelectorAll('details.result-fold')) d.open = true; });
       checkRows(h, `${width}px three-step result page`, await readRows(page), three, String);
+      h.check((await readScoreNote(page)).length === 0, `${width}px three-step result page: its score, shown as stored, has no rescale line`);
       await p.close();
     },
   })),
