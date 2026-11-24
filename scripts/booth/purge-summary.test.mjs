@@ -175,6 +175,17 @@ test('purge-event, committed: refused while switched on, then the delete labels 
   assert.deepEqual(state().booth_feedback.map((r) => r.id), ['fo'], 'the event feedback rows go with its plays, other events are kept');
 });
 
+test('purge-event, committed: an event with no plays but feedback rows says the feedback was deleted, exit 0', (t) => {
+  const { state, set, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
+  set({ booth_plays: state().booth_plays.filter((r) => r.event_code !== 'NFCME-2026') });
+  const r = run(['--event', 'NFCME-2026', '--delete']);
+  assert.equal(r.code, 0);
+  assert.match(r.out, /feedback: 0 rows remain/);
+  assert.match(r.out, /Next step: Done: 4 feedback rows deleted, no plays to report\. Nothing to send CCME\. Nothing else to run\.\n$/);
+  assert.doesNotMatch(r.out, /Check the event code/);
+  assert.deepEqual(state().booth_feedback.map((f) => f.id), ['fo']);
+});
+
 test('purge-event: a dry run counts the event feedback rows and deletes none', (t) => {
   const { state, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
   const dry = run(['--event', 'NFCME-2026']);

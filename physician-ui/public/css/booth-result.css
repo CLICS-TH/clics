@@ -102,7 +102,7 @@ body.booth-result { color: var(--ink); font-family: var(--font-sans); line-heigh
 .reveal-line .bi-sub { font-size: var(--text-en); line-height: 1.35; }
 .result-steps .tier-chip { align-self: flex-start; }
 
-/* The feedback card (js/booth-feedback-qr.js feedbackCard): a whole-card link to the form, a quieter neighbour of the
+/* The feedback card (js/booth-feedback-card.js feedbackCard): a whole-card link to the form, a quieter neighbour of the
    workshop card (white with an edge, not the band's tint with an accent rule), so the two never read as one. */
 .feedback-link {
   display: flex; align-items: center; gap: 16px; padding: 20px; min-height: 44px; box-sizing: border-box;

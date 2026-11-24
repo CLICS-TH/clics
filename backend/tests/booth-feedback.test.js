@@ -174,6 +174,17 @@ it('says unavailable when the row cannot be written', async () => {
   expect(res.body.reason).toBe('unavailable');
 });
 
+it('logs a failed insert by its code alone, never the answers or the comment', async () => {
+  insertError = { code: '42501', message: 'permission denied for ' + JSON.stringify(GOOD.answers) };
+  rimplDeidentify.mockResolvedValue({ messages: [{ role: 'user', content: 'ความเห็นลับ' }] });
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    await post({ ...GOOD, comment: 'ความเห็นลับ' });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith('[booth-feedback] insert failed', '42501');
+  } finally { warn.mockRestore(); }
+});
+
 describe('admin', () => {
   const row = (over) => ({ id: 'id-x', event_code: 'NFCME-2026', case_id: kase.case_id, form: 'fb-1', submitted_on: '2026-11-20',
     answers: GOOD.answers, comment: null, ...over });
@@ -213,6 +224,20 @@ describe('admin', () => {
     expect((await as(SUPERADMIN)('/admin/booth/feedback')).status).toBe(502);
     expect((await as(SUPERADMIN)('/admin/booth/feedback.json')).status).toBe(502);
     expect(logEventStrict).not.toHaveBeenCalled();
+  });
+
+  it('with no event code set, reads as an empty event and exports an empty file, not an outage', async () => {
+    settings.delete('booth_event_code');
+    stored = [row({ id: 'a' })];
+    const read = await as(SUPERADMIN)('/admin/booth/feedback');
+    expect(read.status).toBe(200);
+    expect(read.body).toEqual({ event_code: null, form: 'fb-1', rows: [], counts: { answers: 0, comments: 0, comments_withheld: 0 } });
+    const file = await as(SUPERADMIN)('/admin/booth/feedback.json');
+    expect(file.status).toBe(200);
+    expect(file.headers['content-disposition']).toBe('attachment; filename="booth-feedback-none.json"');
+    expect(JSON.parse(file.text)).toEqual({ export: { event_code: null, counts: { answers: 0, comments: 0, comments_withheld: 0 }, form: 'fb-1' }, rows: [] });
+    expect(logEventStrict).toHaveBeenCalledWith(expect.objectContaining({ action: 'booth.feedback_export',
+      metadata: { event_code: null, answers: 0, comments: 0, comments_withheld: 0 } }));
   });
 
   it('only a superadmin can read or export', async () => {

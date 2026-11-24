@@ -69,8 +69,12 @@ async function submitFeedback(input, now = new Date()) {
   const { error } = await supabase.from('booth_feedback').insert({
     event_code: code, case_id: known ? case_id : null, form, submitted_on: bangkokDate(now), answers, comment: masked,
   });
+  // The code only: never the answers, the comment, or an id.
+  if (error) console.warn('[booth-feedback] insert failed', error.code);
   return error ? { refused: 'unavailable' } : { body: {} };
 }
+
+const NO_COUNTS = { answers: 0, comments: 0, comments_withheld: 0 };
 
 // answers as text with sorted keys, so two rows of equal answers compare equal whatever order the database kept them in
 const stableText = (v) => JSON.stringify(v, (_k, x) => (x && typeof x === 'object' && !Array.isArray(x)
@@ -111,7 +115,9 @@ async function eventRows(code) {
 /** Every row of the event the booth settings name, open or not. @returns {Promise<{ body: object } | null>} */
 async function readFeedback() {
   const event = await readBoothEvent();
-  if (!event?.code) return null;
+  if (!event) return null;
+  // No event code set is an empty event, not an outage: the booth monitor treats it the same way.
+  if (!event.code) return { body: { event_code: null, form: FORM_VERSION, rows: [], counts: NO_COUNTS } };
   const read = await eventRows(event.code);
   return read && { body: { event_code: event.code, form: FORM_VERSION, rows: read.rows, counts: read.counts } };
 }
@@ -119,12 +125,12 @@ async function readFeedback() {
 /** @returns {Promise<{ filename: string, body: object } | null>} */
 async function exportFeedback() {
   const event = await readBoothEvent();
-  if (!event?.code) return null;
-  const read = await eventRows(event.code);
+  if (!event) return null;
+  const read = event.code ? await eventRows(event.code) : { rows: [], counts: NO_COUNTS };
   if (!read) return null;
   return {
-    filename: `booth-feedback-${event.code.replace(/[^A-Za-z0-9-]/g, '_')}.json`,
-    body: { export: { event_code: event.code, counts: read.counts, form: FORM_VERSION }, rows: read.rows },
+    filename: `booth-feedback-${(event.code ?? 'none').replace(/[^A-Za-z0-9-]/g, '_')}.json`,
+    body: { export: { event_code: event.code ?? null, counts: read.counts, form: FORM_VERSION }, rows: read.rows },
   };
 }
 

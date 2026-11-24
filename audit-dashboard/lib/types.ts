@@ -464,7 +464,7 @@ export interface BoothFeedbackRow {
   withheld?: 'flagged';         // the comment was screened out: its text never reaches the page
 }
 export interface BoothFeedback {
-  event_code: string;
+  event_code: string | null;   // null: the booth settings name no event yet
   form: string;
   rows: BoothFeedbackRow[];
   counts: { answers: number; comments: number; comments_withheld: number };

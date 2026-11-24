@@ -202,7 +202,7 @@ export function BoothFeedback() {
         <h2 id="booth-feedback-heading" className="font-heading text-2xl font-semibold text-foreground">
           <BiLabel th="ความเห็นผู้เล่น" en="Player feedback" />
         </h2>
-        {data && <ExportButton eventCode={data.event_code} />}
+        {data?.event_code && <ExportButton eventCode={data.event_code} />}
       </div>
 
       {!data ? (

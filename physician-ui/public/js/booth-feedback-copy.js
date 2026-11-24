@@ -62,7 +62,7 @@ export const FEEDBACK_COPY = freezeDeep({
     scan: { th: 'สแกนด้วยกล้องมือถือ', en: 'Scan with your phone camera' },
     close: { th: 'ปิด', en: 'Close' },
   },
-  /** The phone result page's card (booth-feedback-qr.js feedbackCard). */
+  /** The phone result page's card (booth-feedback-card.js feedbackCard). */
   card: {
     title: { th: 'ช่วยประเมิน CLICS (1\u00a0นาที)', en: 'Rate CLICS (1\u00a0minute)' },
     line: { th: 'ไม่ระบุตัวตน ไม่เก็บชื่อและหมายเลขผู้เล่น', en: 'Anonymous: we keep no name or player number' },

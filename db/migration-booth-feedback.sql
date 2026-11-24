@@ -23,6 +23,7 @@ create index if not exists booth_feedback_event_date_idx on public.booth_feedbac
 
 -- DENY-ALL (RLS on, no policy): only the backend's service role reads or writes booth feedback.
 alter table public.booth_feedback enable row level security;
+revoke all on public.booth_feedback from public, anon, authenticated;
 
 comment on table public.booth_feedback is
   'Booth Mode anonymous feedback (ADR 0015): form version, the seven answers, an optional de-identified comment, the '

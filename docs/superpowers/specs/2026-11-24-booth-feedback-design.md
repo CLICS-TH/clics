@@ -199,7 +199,7 @@ Add the next free ADR, expected to be 0015: "Booth visitors can leave anonymous 
 2. Backend deploy (route, service, admin read, purge script).
 3. Dashboard deploy (pre-cutover recipe).
 4. Portal deploy, with `CLICS_BOOTH_FEEDBACK` still `false`.
-5. Smoke test without spending: submit one test answer through the form against a non-prod backend, or against prod with a test event if the owner allows. The booth never needs an AI call for this, since `/deidentify` makes none. Then delete it with the purge tool, or leave it marked by its date.
+5. Smoke test without spending: submit one test answer through the form against a non-prod backend, or against prod while NFCME-2026 is open. The booth never needs an AI call for this, since `/deidentify` makes none. On prod, a feedback row can be stored only while NFCME-2026 is open: `openEvent` refuses any event code without a case folder, and a test event cannot be opened on prod without its own case folder. So leave the smoke row in place (its date marks it), or have the owner delete that one row by SQL matching `event_code`, `submitted_on` and `case_id`. Never use `purge-event.mjs` to remove a smoke answer: it deletes every `booth_plays` row of the event first, refuses while the booth is on, and ADR 0010 keeps rehearsal plays. Against a non-prod backend the row can be removed freely.
 6. Flip `CLICS_BOOTH_FEEDBACK` to `true` and deploy the Portal.
 
 ## Tests the builder must add

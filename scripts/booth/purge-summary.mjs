@@ -41,7 +41,7 @@ export const command = (code, flags = '') => `node ../scripts/booth/purge-event.
 /**
  * Pure: what one run of purge-event.mjs ends with. `ccme` is the one block to send CCME, or null with `none` saying
  * why there is none yet; `next` is the exact next step. `outcome` is what the run observed:
- *   { kind: 'deleted', summary }                     a --delete that committed (summary.recorded: the latest earlier purge)
+ *   { kind: 'deleted', summary, feedbackDeleted? }   a --delete that committed (summary.recorded: the latest earlier purge)
  *   { kind: 'read', summary, attempt }               a dry run; `attempt` is the --attempt id it was given, if any
  *   { kind: 'refused' } · { kind: 'missing' }        BP409 · the purge migration is not applied
  *   { kind: 'failed', del, attempt }                 the call failed; with del, `attempt` is the delete's id
@@ -71,6 +71,10 @@ export function plan(code, outcome) {
       if (summary.recorded) {
         return { ccme: { title: `recorded when ${code} was purged at ${at(summary.recorded)}`, summary: summary.recorded.summary },
           next: 'Done: nothing was left to delete. Send the CCME summary block above to CCME. Nothing else to run.' };
+      }
+      if (outcome.feedbackDeleted > 0) {
+        return { ccme: null, none: `none (${code} has no plays and no recorded purge)`,
+          next: `Done: ${outcome.feedbackDeleted} feedback rows deleted, no plays to report. Nothing to send CCME. Nothing else to run.` };
       }
       return { ccme: null, none: `none (${code} has no plays and no recorded purge)`, next: 'Nothing to do. Check the event code.' };
     }

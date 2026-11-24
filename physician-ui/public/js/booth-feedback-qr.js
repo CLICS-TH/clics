@@ -1,8 +1,7 @@
-// The kiosk's feedback button and its QR pop-up, and the phone result page's card (spec 2026-11-24, sections 1 and 2).
-// Both show only when js/config.js sets window.CLICS_BOOTH_FEEDBACK to true. The link is the form with the case and the
-// look in the fragment (booth-feedback-link.js): no tag and no play id is ever in it, so an answer cannot be traced back
-// to a play. The QR is drawn on the kiosk (booth-play.js qrSvg), so nothing leaves it. qrSvg is a function declaration,
-// so the import cycle with booth-play.js is safe: nothing here runs before booth-play.js has loaded.
+// The kiosk's feedback button and its QR pop-up (spec 2026-11-24, section 1). The phone result page's card is in
+// booth-feedback-card.js. They show only when js/config.js sets window.CLICS_BOOTH_FEEDBACK to true. The link is the
+// form with the case and the look in the fragment (booth-feedback-link.js): no tag and no play id is ever in it, so an
+// answer cannot be traced back to a play. The QR is drawn on the kiosk (booth-play.js qrSvg), so nothing leaves it.
 import { FEEDBACK_COPY } from './booth-feedback-copy.js';
 import { feedbackIcon } from './booth-feedback-icons.js';
 import { feedbackUrl } from './booth-feedback-link.js';

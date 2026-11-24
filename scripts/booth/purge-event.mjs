@@ -114,6 +114,7 @@ console.log(`deleted ${summary.plays} rows, ${left} remain\n`);
 if (left > 0) end({ ...p, next: `${left} plays remain. Send the CCME summary block above, then run \`${command(code)}\` and follow its next step.` }, 1);
 
 // The plays are gone: now the event's anonymous feedback rows (ADR 0015), counted again the same way.
+const { count: feedbackBefore } = await supabase.from('booth_feedback').select('id', { count: 'exact', head: true }).eq('event_code', code);
 const { error: feedbackDeleteError } = await supabase.from('booth_feedback').delete().eq('event_code', code);
 if (feedbackDeleteError) console.error(`booth_feedback delete failed: ${feedbackDeleteError.message}`);
 const { count: feedbackLeft, error: feedbackCountError } = await supabase.from('booth_feedback').select('id', { count: 'exact', head: true }).eq('event_code', code);
@@ -123,4 +124,4 @@ if (feedbackCountError || feedbackLeft == null) {
 }
 console.log(`feedback: ${feedbackLeft} rows remain\n`);
 if (feedbackLeft > 0) end({ ...p, next: `${feedbackLeft} feedback rows remain. Send the CCME summary block above, then run \`${command(code, '--delete')}\` again.` }, 1);
-end(p, 0);
+end(plan(code, { kind: 'deleted', summary, feedbackDeleted: Math.max(0, (feedbackBefore ?? 0) - feedbackLeft) }), 0);
