@@ -408,4 +408,18 @@ describe('the reply bank', () => {
     });
     expect(problems).toEqual(SHORT_ACRONYMS);
   });
+
+  // The internal export (ADR 0014, booth-monitor exportDialogue) screens every stored reply with the auditor read's screen
+  // and withholds a step that trips it. A reviewed bank reply that tripped it (a Thai digit, a six-digit run) would be
+  // withheld from every play that tapped it: reword the reply, e.g. 110,000 as 110 พัน or Arabic digits.
+  test('no reviewed bank reply trips the auditor screen, so the export keeps every tapped reply', () => {
+    const { flaggedForAuditor } = require('../src/services/booth-dialogue');
+    const texts = (o) => (typeof o === 'string' ? [o] : o && typeof o === 'object' ? Object.values(o).flatMap(texts) : []);
+    const tripped = CASE_FILES.flatMap(({ name, file }) => {
+      const bankFile = path.join(path.dirname(file), 'replies', path.basename(file));
+      if (!fs.existsSync(bankFile)) return [];
+      return texts(read(bankFile).replies).filter((t) => t && flaggedForAuditor(t)).map((t) => `${name}: ${t}`);
+    });
+    expect(tripped).toEqual([]);
+  });
 });

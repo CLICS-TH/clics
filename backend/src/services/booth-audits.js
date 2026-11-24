@@ -138,4 +138,4 @@ async function summary() {
   };
 }
 
-module.exports = { queue, study, submit, summary, BLIND_COLUMNS, REVEAL_COLUMNS, AUDIT_COLUMNS };
+module.exports = { queue, study, submit, summary, readAll, BLIND_COLUMNS, REVEAL_COLUMNS, AUDIT_COLUMNS };

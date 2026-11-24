@@ -4,9 +4,9 @@
 // Since #429 a dashboard built the default way (NEXT_PUBLIC_API_URL unset, basePath /audit) calls the relative
 // /api on its own origin. The readability gate and the wide-nav audit answered only http://localhost:3001, so
 // against that build every fixture was skipped and the dashboard pages rendered their error or empty states;
-// and the readability gate had no /admin/booth fixture, so the superadmin overview fell into its error
-// boundary. These checks need no browser: they read the matcher both scripts use, the scripts' own source, and
-// the fixture the overview's BoothCard reads.
+// and the readability gate had no /admin/booth fixture, so the superadmin overview (where BoothCard sat until
+// 2026-11-24) fell into its error boundary. These checks need no browser: they read the matcher both scripts
+// use, the scripts' own source, and the fixtures the Booth Mode page (/admin/booth) reads.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -45,7 +45,7 @@ test('readability/audit.mjs and responsive/nav-width-audit.mjs route backend cal
   }
 });
 
-test('the readability fixtures answer the overview\'s /admin/booth with a BoothSettings, on either API base', () => {
+test('the readability fixtures answer BoothCard\'s /admin/booth with a BoothSettings, on either API base', () => {
   for (const u of ['http://127.0.0.1:3002/api/admin/booth', 'http://localhost:3001/admin/booth']) {
     const b = fixtureFor(u);
     assert.notEqual(b, FALLBACK, `${u} has its own fixture`);
@@ -61,4 +61,24 @@ test('the readability fixtures answer the overview\'s /admin/booth with a BoothS
   }
   // The overview-counts entry is not shadowed by the new one.
   assert.ok(Array.isArray(fixtureFor('http://127.0.0.1:3002/api/admin/overview-counts')));
+});
+
+// The leaderboard treats a body without both lists as a failed load, so a standings URL answered by the
+// BoothSettings entry above (or the fallback) would measure the error state and pass.
+test('the readability fixtures answer /admin/booth/standings with ranked BoothStandings, on either API base', () => {
+  for (const u of ['http://127.0.0.1:3002/api/admin/booth/standings', 'http://localhost:3001/admin/booth/standings']) {
+    const s = fixtureFor(u);
+    assert.notEqual(s, FALLBACK, `${u} has its own fixture`);
+    assert.notEqual(s, fixtureFor('http://localhost:3001/admin/booth'), 'not the BoothSettings body');
+    assert.ok(Array.isArray(s.overall) && s.overall.length > 0, 'overall is a non-empty row list');
+    assert.ok(Array.isArray(s.cases) && s.cases.length > 0, 'cases is a non-empty list');
+    assert.equal(typeof s.generated_at, 'string');
+    for (const list of [s.overall, ...s.cases.map((c) => c.rows)]) {
+      assert.deepEqual(list.map((r) => r.rank), list.map((_, i) => i + 1), 'each list arrives ranked from 1');
+      for (const r of list) {
+        assert.ok(Number.isInteger(r.tag) && typeof r.score === 'number' && typeof r.raw === 'number');
+        assert.ok(!Number.isNaN(Date.parse(r.scored_at)), 'scored_at is an ISO time');
+      }
+    }
+  }
 });

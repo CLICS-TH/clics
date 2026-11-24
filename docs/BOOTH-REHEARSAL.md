@@ -73,7 +73,7 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
 
 ## 1. Event switch, on and off
 
-In the dashboard Overview, Booth Mode card. The card saves two ways: the switch saves itself the moment it is
+In the dashboard's Booth Mode page (`/admin/booth`, menu System → Booth Mode), Event settings card. The card saves two ways: the switch saves itself the moment it is
 tapped, but opens-at, closes-at and the per-play ceiling are saved only by the card's **บันทึก / Save** button. A
 time typed and not saved changes nothing, and the backend refuses to switch on a booth with no saved window.
 
@@ -131,7 +131,7 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 
 ## 6. Clean up after rehearsal
 
-- [ ] Tap the switch **off** in the Booth Mode card (it saves itself).
+- [ ] Tap the switch **off** in the Event settings card on the Booth Mode page (it saves itself).
 - [ ] Delete nothing. The rehearsal plays stay with the event's plays (ADR 0010). Removing them is an
       owner-ordered removal, decided by the owner, and `purge-event.mjs` cannot do it: it deletes the whole event.
 - [ ] Set opens-at and closes-at to Tue 3 Nov's booth hours and press **Save**. Reload the page and check both

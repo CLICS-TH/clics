@@ -52,7 +52,7 @@ const NEEDED: [links: number, fitsFromPx: number][] = [
   [2, 945],     // auditor
   [3, 1327],    // dual-role physician (2 links + Return to Physician)
   [9, 2348],    // admin
-  [14, 3265],   // superadmin
+  [16, 3620],   // superadmin: re-measured 2026-11-24 at 16 links (Settings, Booth Mode); it was [14, 3265]
 ];
 
 /*
@@ -92,7 +92,9 @@ describe('the desktop nav collapses before its row can overflow', () => {
     ['analyst', ANALYST_LINKS, 1],
     ['ethics', ETHICS_LINKS, 1],
     ['admin', ADMIN_LINKS, 9],
-    ['superadmin', SUPERADMIN_LINKS, 14],
+    // 16 since 2026-11-24 (Settings and Booth Mode). Its row would need 3797px inline, wider than any real
+    // monitor, so the superadmin always gets the menu, which groups these links under six headings.
+    ['superadmin', SUPERADMIN_LINKS, 16],
   ])('%s ships the pinned number of links', (_role, links, count) => {
     expect((links as unknown[]).length).toBe(count);
   });

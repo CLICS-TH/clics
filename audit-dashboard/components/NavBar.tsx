@@ -17,7 +17,10 @@ import { Menu } from 'lucide-react';
 // superadmin-only (those endpoints 403 for admins). Requests was retired with the
 // request-access flow (onboarding = Google self-service + invites).
 // Labels are {th, en} for the hierarchy renderer (#12a) — Thai primary, English smaller + dimmed.
-export const ADMIN_LINKS = [
+export type NavLink = { href: string; th: string; en?: string };
+export type NavGroup = { th: string; en?: string; links: NavLink[] };
+
+export const ADMIN_LINKS: NavLink[] = [
   { href: '/admin/ples', th: 'PLEs' },
   { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
@@ -28,31 +31,49 @@ export const ADMIN_LINKS = [
   { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
-export const SUPERADMIN_LINKS = [
-  { href: '/admin/overview', th: 'ภาพรวม', en: 'Overview' },
-  { href: '/admin/ples', th: 'PLEs' },
-  { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
-  { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
-  { href: '/admin/flagged', th: 'QA Queue' },
-  { href: '/admin/privacy', th: 'ความเป็นส่วนตัว', en: 'Privacy' },
-  { href: '/admin/integrity', th: 'ความสุจริต', en: 'Integrity' },
-  { href: '/admin/identity', th: 'ยืนยันตัวตน', en: 'Identity' },
-  { href: '/admin/icc', th: 'ICC' },
-  { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
-  { href: '/admin/governance', th: 'ธรรมาภิบาล', en: 'Governance' },
-  { href: '/admin/ai-readiness', th: 'ความพร้อม AI', en: 'AI readiness' },
-  { href: '/admin/evaluator-lock', th: 'ล็อกโมเดล', en: 'Model Lock' },
-  { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
+// The superadmin menu is grouped: 16 links in one flat list were a wall to scan. The row this roster would need
+// inline is wider than any real monitor (nav-width.test.ts), so in practice it is always the menu, and the menu
+// shows these headings. The inline row, on the rare screen wide enough for it, lists the same links in this order.
+export const SUPERADMIN_GROUPS: NavGroup[] = [
+  { th: 'ภาพรวม', en: 'Overview', links: [
+    { href: '/admin/overview', th: 'ภาพรวม', en: 'Overview' },
+    { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
+    { href: '/admin/icc', th: 'ICC' },
+  ] },
+  { th: 'งานตรวจ', en: 'Review', links: [
+    { href: '/admin/ples', th: 'PLEs' },
+    { href: '/admin/flagged', th: 'QA Queue' },
+  ] },
+  { th: 'บุคคล', en: 'People', links: [
+    { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
+    { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
+    { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
+  ] },
+  { th: 'ธรรมาภิบาล', en: 'Governance', links: [
+    { href: '/admin/privacy', th: 'ความเป็นส่วนตัว', en: 'Privacy' },
+    { href: '/admin/integrity', th: 'ความสุจริต', en: 'Integrity' },
+    { href: '/admin/identity', th: 'ยืนยันตัวตน', en: 'Identity' },
+    { href: '/admin/governance', th: 'ธรรมาภิบาล', en: 'Governance' },
+  ] },
+  { th: 'AI', links: [
+    { href: '/admin/ai-readiness', th: 'ความพร้อม AI', en: 'AI readiness' },
+    { href: '/admin/evaluator-lock', th: 'ล็อกโมเดล', en: 'Model Lock' },
+  ] },
+  { th: 'ระบบ', en: 'System', links: [
+    { href: '/admin/settings', th: 'การตั้งค่า', en: 'Settings' },
+    { href: '/admin/booth', th: 'โหมดบูธ', en: 'Booth Mode' },
+  ] },
 ];
-export const AUDITOR_LINKS = [
+export const SUPERADMIN_LINKS: NavLink[] = SUPERADMIN_GROUPS.flatMap((g) => g.links);
+export const AUDITOR_LINKS: NavLink[] = [
   { href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' },
   // /manual, NOT /auditor/manual: isActive below treats any /auditor/* path as the queue, so a
   // manual under that prefix would keep Queue lit while the reader is in the manual.
   { href: '/manual', th: 'คู่มือ', en: 'Manual' },
 ];
 // Tier-3 analyst (aggregates only) + Tier-4 ethics (aggregates + audit log). Read-only, no transcripts.
-export const ANALYST_LINKS = [{ href: '/analyst', th: 'ภาพรวม', en: 'Analytics' }];
-export const ETHICS_LINKS = [{ href: '/ethics', th: 'บันทึกตรวจสอบ', en: 'Audit log' }];
+export const ANALYST_LINKS: NavLink[] = [{ href: '/analyst', th: 'ภาพรวม', en: 'Analytics' }];
+export const ETHICS_LINKS: NavLink[] = [{ href: '/ethics', th: 'บันทึกตรวจสอบ', en: 'Audit log' }];
 
 export function NavBar() {
   const pathname = usePathname();
@@ -130,6 +151,14 @@ export function NavBar() {
       ? 'whitespace-nowrap text-link border-b-2 border-primary pb-0.5 text-sm font-medium'
       : 'whitespace-nowrap text-muted-foreground hover:text-foreground text-sm';
 
+  const groups = user.role === 'superadmin' ? SUPERADMIN_GROUPS : null;
+  const menuLink = (l: NavLink) => (
+    <Link key={l.href} href={l.href} onClick={() => setOpen(false)} aria-current={isActive(l.href) ? 'page' : undefined}
+      className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-coral-on-tint font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+      <BiLabel th={l.th} en={l.en} />
+    </Link>
+  );
+
   return (
     <nav className="sticky top-0 z-40 border-b border-border bg-background px-6 py-4 md:px-8">
       <div className="flex items-center gap-4">
@@ -190,12 +219,21 @@ export function NavBar() {
             {specialtyLine && <p className="text-xs text-muted-foreground">{specialtyLine}</p>}
             <RoleBadge fullLabel className="mt-1.5 block w-fit max-w-full sm:hidden" />
           </div>
-          {links.map(l => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} aria-current={isActive(l.href) ? 'page' : undefined}
-              className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-coral-on-tint font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
-              <BiLabel th={l.th} en={l.en} />
-            </Link>
-          ))}
+          {/* Grouped (superadmin): each heading names a group of links for a screen reader as well, and the groups
+              sit side by side once the menu has the width, so 16 links do not run down the whole screen. */}
+          {groups ? (
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-3">
+              {groups.map((g, i) => (
+                <div key={g.th} role="group" aria-labelledby={`${menuId}-g${i}`} className="flex flex-col gap-1">
+                  {/* text-foreground, not muted: in the one-column phone menu a muted heading read as one more link. */}
+                  <p id={`${menuId}-g${i}`} className="px-2 text-xs font-semibold text-foreground">
+                    <BiLabel th={g.th} en={g.en} />
+                  </p>
+                  {g.links.map(menuLink)}
+                </div>
+              ))}
+            </div>
+          ) : links.map(menuLink)}
           {isSpecial && (
             <button onClick={returnToPhysician}
               className="rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-link">

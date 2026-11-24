@@ -158,10 +158,17 @@ const DASH_PAGES = [
   { path: '/admin/compensation?as=admin', role: 'admin', expect: ['text:฿4,500'] },
   { path: '/admin/invites', role: 'superadmin', expect: ['text:revoked.account@example.ac.th'] },
   { path: '/admin/users', role: 'superadmin', expect: ['text:14/14', 'text:P-002'] },
-  // The provider panel and the Local AI capacity card carry most of the overview's help text. Both
-  // markers come from fixture data: the unbound-lock note needs evaluator_lock.manifest_bound false,
-  // and 64,000 is the fixture's transcript cap, shown as the card's current value.
-  { path: '/admin/overview', role: 'superadmin', expect: ['text:0.75', 'text:declared before locks were bound', 'text:64,000'] },
+  // The overview is read only (2026-11-24). 0.75 is the ICC chart's threshold line, drawn only with ICC
+  // data; $46.20 is the fixture's spend, drawn only once the budget has loaded.
+  { path: '/admin/overview', role: 'superadmin', expect: ['text:0.75', 'text:$46.20'] },
+  // Settings holds the controls, and with the provider panel and the Local AI capacity card most of the
+  // help text that used to be on the overview. Both markers come from fixture data: the unbound-lock note
+  // needs evaluator_lock.manifest_bound false, and 64,000 is the fixture's transcript cap, shown as the
+  // card's current value.
+  { path: '/admin/settings', role: 'superadmin', expect: ['text:declared before locks were bound', 'text:64,000'] },
+  // Booth Mode: BoothCard (HA-2026 is the fixture's event code) and the leaderboard, from the standings
+  // fixture: a four-digit tag, a padded one, and a raw composite.
+  { path: '/admin/booth', role: 'superadmin', expect: ['text:HA-2026', 'text:ผู้เล่น #1207', 'text:Player #042', 'text:63.8'] },
   // The integrity queue. Its severity badges paint text on a TINT (`bg-primary/12`,
   // `bg-destructive/10`), which is where --link and --destructive both fail as text and where
   // --coral-on-tint / --danger exist — so it is exactly the kind of page this gate is for. It had no

@@ -754,7 +754,7 @@ function BlockerDetail({ blocker, state }: { blocker: string; state: EvaluatorLo
             {' '}สลับผู้ให้คะแนนไปที่ผู้ท้าชิงก่อนแล้วจึงล็อก / Switch evaluate to the candidate first, then lock: a lock freezes the instrument that is actually scoring.
           </p>
           <p>
-            <Link href="/admin/overview#ai-provider" className="text-link underline underline-offset-2">ไปที่ตัวสลับผู้ให้บริการ AI / Open the AI provider switch</Link>
+            <Link href="/admin/settings#ai-provider" className="text-link underline underline-offset-2">ไปที่ตัวสลับผู้ให้บริการ AI / Open the AI provider switch</Link>
           </p>
         </>
       );

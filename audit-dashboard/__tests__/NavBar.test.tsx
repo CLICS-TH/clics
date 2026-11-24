@@ -34,6 +34,8 @@ const signIn = (u: Record<string, unknown>) =>
 describe('NavBar — what the width model is sized by', () => {
   it.each([
     ['admin', 9, { role: 'admin' }],
+    // The grouped menu's headings are not links: the row is sized by the 16 links alone.
+    ['superadmin', 16, { role: 'superadmin' }],
     ['auditor', 2, { role: 'auditor' }],
     ['dual-role physician (Return counts)', 3, { role: 'physician', can_audit: true }],
   ])('%s → %i', (_label, n, u) => {
@@ -119,6 +121,65 @@ describe('NavBar — mobile menu', () => {
       .toEqual(['/admin/users']);
     act(() => { fireEvent.click(items.find((a) => a.getAttribute('href') === '/admin/invites')!); });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+// The superadmin's 16 links are grouped under six headings in the menu (2026-11-24). Each group is a
+// role="group" named by its heading, so a screen reader announces "Review, group" before PLEs and QA Queue.
+describe('NavBar — the superadmin menu is grouped', () => {
+  beforeEach(() => { mockCompact = true; signIn({ role: 'superadmin' }); });
+  const open = () => { render(<NavBar />); fireEvent.click(screen.getByRole('button', { name: /เมนู/ })); };
+  const groups = () => screen.getAllByRole('group');
+  const hrefs = (el: HTMLElement) => Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+
+  it('six named groups, in the approved order, holding every link once', () => {
+    open();
+    const gs = groups();
+    // Each group is named by its heading, Thai then English (the accessible name puts a space between BiLabel's halves).
+    expect(gs.map((g) => document.getElementById(g.getAttribute('aria-labelledby')!)?.textContent))
+      .toEqual(['ภาพรวมOverview', 'งานตรวจReview', 'บุคคลPeople', 'ธรรมาภิบาลGovernance', 'AI', 'ระบบSystem']);
+    expect(screen.getByRole('group', { name: 'งานตรวจ Review' })).toBe(gs[1]);
+    expect(gs.map(hrefs)).toEqual([
+      ['/admin/overview', '/admin/stats', '/admin/icc'],
+      ['/admin/ples', '/admin/flagged'],
+      ['/admin/users', '/admin/invites', '/admin/compensation'],
+      ['/admin/privacy', '/admin/integrity', '/admin/identity', '/admin/governance'],
+      ['/admin/ai-readiness', '/admin/evaluator-lock'],
+      ['/admin/settings', '/admin/booth'],
+    ]);
+    const all = gs.flatMap(hrefs);
+    expect(new Set(all).size).toBe(16);
+  });
+
+  it('lights the current page inside its group, and only there', () => {
+    mockPath = '/admin/booth';
+    open();
+    const current = within().filter((a) => a.getAttribute('aria-current') === 'page');
+    expect(current.map((a) => a.getAttribute('href'))).toEqual(['/admin/booth']);
+    expect(current[0].closest('[role="group"]')).toBe(screen.getByRole('group', { name: 'ระบบ System' }));
+  });
+
+  it('choosing a grouped link closes the menu', () => {
+    open();
+    act(() => { fireEvent.click(within().find((a) => a.getAttribute('href') === '/admin/settings')!); });
+    expect(screen.getByRole('button', { name: /เมนู/ })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('the inline row stays flat: the same 16 links in group order, with no headings', () => {
+    mockCompact = false;
+    render(<NavBar />);
+    expect(screen.queryAllByRole('group')).toHaveLength(0);
+    const row = Array.from(document.querySelectorAll('nav > div a')).map((a) => a.getAttribute('href')).filter((h) => h !== '/home');
+    expect(row).toHaveLength(16);
+    expect(row.slice(0, 3)).toEqual(['/admin/overview', '/admin/stats', '/admin/icc']);
+    expect(row.slice(-2)).toEqual(['/admin/settings', '/admin/booth']);
+  });
+
+  it('an admin menu is not grouped', () => {
+    signIn({ role: 'admin' });
+    open();
+    expect(screen.queryAllByRole('group')).toHaveLength(0);
+    expect(within()).toHaveLength(9);
   });
 });
 

@@ -52,7 +52,7 @@ export function plan(code, outcome) {
   switch (outcome.kind) {
     case 'refused':
       return { ccme: null, none: 'none yet (nothing was deleted)',
-        next: `Switch the booth off on the superadmin overview (tap the Booth Mode switch), then run ${deleteCmd}.` };
+        next: `Switch the booth off on the superadmin Booth Mode page (tap the Booth event switch), then run ${deleteCmd}.` };
     case 'missing':
       return { ccme: null, none: 'none yet (nothing was deleted)',
         next: `Ask the owner to apply db/migration-booth-purge.sql, then run \`${command(code)}\`.` };

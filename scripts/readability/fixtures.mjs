@@ -76,6 +76,31 @@ const ICC_DATA = {
   },
 };
 
+// The booth leaderboard. `score` is the display score of `raw` on the 5-step booth's 26-65 display scale, as
+// backend/src/booth-cases/display-score.js computes it; scored_at counts back from 16:00 Bangkok on the event day.
+const boothPlay = (rank, tag, raw, caseId, minutesAgo) => ({
+  rank, tag, raw, score: +Math.max(0, Math.min(100, ((raw - 26) / 39) * 100)).toFixed(1),
+  case_id: caseId, case_version: caseId === 'bc-01' ? 'v3' : caseId ? 'v1' : null,
+  scored_at: new Date(Date.UTC(2026, 10, 2, 9, 0) - minutesAgo * 60_000).toISOString(),
+});
+const BOOTH_PLAYS = [
+  boothPlay(1, 1207, 63.8, 'bc-01', 4), boothPlay(2, 42, 61.7, 'bc-02', 32), boothPlay(3, 315, 58.2, 'bc-01', 61),
+  boothPlay(4, 8, 55.0, 'bc-01', 95), boothPlay(5, 990, 49.3, null, 140), boothPlay(6, 77, 41.6, 'bc-02', 188),
+  boothPlay(7, 1101, 33.1, 'bc-00', 240), boothPlay(8, 5, 26.0, 'bc-01', 302),
+];
+const rerank = (plays) => plays.map((p, i) => ({ ...p, rank: i + 1 }));
+const BOOTH_STANDINGS = {
+  event_code: 'HA-2026', steps: 5, generated_at: new Date(Date.UTC(2026, 10, 2, 9, 1)).toISOString(), total: BOOTH_PLAYS.length,
+  overall: BOOTH_PLAYS,
+  cases: [
+    { case_id: 'bc-01', version: 'v3', teaser: { th: LONG_TH, en: 'A 78-year-old woman with chronic heart failure declines dialysis' },
+      rows: rerank(BOOTH_PLAYS.filter((p) => p.case_id === 'bc-01')) },
+    { case_id: 'bc-02', version: 'v1', teaser: { th: 'ชายอายุ ๕๒ ปี เจ็บหน้าอกขณะออกกำลังกาย', en: 'A 52-year-old man with chest pain on exertion' },
+      rows: rerank(BOOTH_PLAYS.filter((p) => p.case_id === 'bc-02')) },
+    { case_id: 'bc-00', version: null, teaser: null, rows: rerank(BOOTH_PLAYS.filter((p) => p.case_id === 'bc-00')) },
+  ],
+};
+
 export const FIXTURES = [
   // Ahead of the portal's generic /ples/<uuid> entry below, which would otherwise answer these.
   [new RegExp(`/auditor/ples/${AUDITOR_PLE_OPEN}(\\?|$)`), { messages: AUDITOR_TRANSCRIPT, audit_score: null }],
@@ -133,7 +158,7 @@ export const FIXTURES = [
   }],
 
   // ---- superadmin: AI provider switch, local-AI capacity, readiness, Model Lock, integrity ------
-  // The overview's AiProviderPanel and LocalAiCapacityCard read these two; without them the panel
+  // The Settings page's AiProviderPanel and LocalAiCapacityCard read these two; without them the panel
   // stays a skeleton and the capacity card's queue row reads "—", so neither one's notes are measured.
   [/\/admin\/ai-providers/, {
     providers: { chat: 'anthropic', evaluate: 'local', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' },
@@ -331,12 +356,12 @@ export const FIXTURES = [
     { physician_id: 'p3', name: 'นายแพทย์ธนกฤต', pseudonym: 'P-003', completed_cles: 2, owed_thb: 1000, paid_thb: 0,
       outstanding_thb: 1000, has_payment_info: true, account_masked: 'PromptPay ••••6612' },
   ] }],
-  // One settings object serves compensation (comp_*), users and overview (the UsageSettings keys).
-  // The pool sits at 92% so the users page's >= 90% red figure renders.
+  // One settings object serves compensation (comp_*), users, the overview's budget and Settings (the
+  // UsageSettings keys). The pool sits at 92% so the users page's >= 90% red figure renders.
   [/\/admin\/usage-settings/, { comp_rate_thb: 500, comp_cap_cles: 3, standard_usage_limit_usd: 0.5,
     standard_limit_usd: 0.5, auditor_standard_limit_usd: 0.5, api_budget_pool_usd: 50, total_used_usd: 46.2,
     auditor_api_budget_pool_usd: 10, auditor_total_used_usd: 3.1,
-    // The overview's toggles and the Local AI capacity card (their descriptions and field notes).
+    // Settings' rule switches and the Local AI capacity card (their descriptions and field notes).
     pilot_test_mode: true, peer_calibration_enabled: true, hold_result_until_audited: true, min_auditors_per_cle: 2,
     standard_limit_tokens: 300000, auditor_standard_limit_tokens: 0, ple_max_transcript_tokens: 64000,
     ple_transcript_warn_pct: 80, eval_drain_concurrency: 1, eval_p50_seconds: 90, eval_drain_exclude_councils: 'SBX' }],
@@ -378,9 +403,10 @@ export const FIXTURES = [
     { id: 'p2', pseudonym: 'P-002', full_name_th: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ', role: 'auditor', status: 'active',
       specialty_name_th: 'สูติศาสตร์-นรีเวชวิทยา', usage_usd: 0.49, usage_limit_usd: 0.5, can_audit: true },
   ]],
-  // GET /admin/booth is a BoothSettings (lib/types.ts), read by the overview's BoothCard. Without it the
-  // FALLBACK envelope reached the card, `booth.cases.length` threw, and the whole overview fell into its
-  // error boundary: its three markers went MISSING (the #488 review).
+  // GET /admin/booth is a BoothSettings (lib/types.ts), read by BoothCard on /admin/booth. Without it the
+  // FALLBACK envelope reached the card, `booth.cases.length` threw, and the whole page fell into its
+  // error boundary: its markers went MISSING (the #488 review, when the card sat on the overview).
+  // Its pattern stops at /admin/booth: /admin/booth/standings, below, is a different body.
   [/\/admin\/booth(\?|$)/, {
     event_code: 'HA-2026', enabled: true, opens_at: '2026-11-02T08:00:00+07:00', closes_at: '2026-11-02T17:00:00+07:00',
     ceiling_usd: 2, state: 'open', plays: 1284, scored: 1207, spend_usd: 14.62,
@@ -392,6 +418,10 @@ export const FIXTURES = [
     ],
     audits: { audits: 42, auditors: 6, plays: 31, mean_gap: { d1: 0.4, d2: -0.25, d3: 0, d4: 1.1, d5: -0.6, d6: 0.2, d7: -0.05 } },
   }],
+  // GET /admin/booth/standings (lib/types.ts BoothStandings), the Booth Mode leaderboard. Ranked as the server
+  // ranks it. A four-digit tag (#1207) and a padded one (#042) for the player column's width, a play with no case
+  // (case_id null, shown "—"), a retired case with no teaser, and the long Thai teaser on bc-01 for the picker.
+  [/\/admin\/booth\/standings/, BOOTH_STANDINGS],
   // The overview page fetches /admin/overview-counts (CountRow[]), never /admin/overview. This entry
   // was keyed /admin\/overview/, which also matched -counts and handed the page an object.
   [/\/admin\/overview-counts/, [

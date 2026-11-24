@@ -37,6 +37,8 @@ const config = {
     'components/DriftKeyList.tsx',
     'components/StatStrip.tsx',
     'lib/radio-keys.ts',
+    'components/ui/switch.tsx',
+    'lib/booth.ts',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },

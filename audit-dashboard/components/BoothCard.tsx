@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Overlays';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { DOMAIN_LABELS } from '@/lib/labels';
 import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
 import { type ApiResult, type BoothAuditSummary, type BoothSettings, type BoothState, formatApiError } from '@/lib/types';
@@ -172,15 +173,17 @@ export function BoothCard() {
 
   return (
     <section className="space-y-3">
-      <h2 className="font-heading text-xl text-foreground">
-        Booth Mode{booth?.event_code ? ` · ${booth.event_code}` : ''}
+      <h2 className="font-heading text-2xl font-semibold text-foreground">
+        {/* nowrap: a phone otherwise breaks the code at its hyphen (HA- / 2026). */}
+        <BiLabel th="การตั้งค่างาน" en="Event settings" />
+        {booth?.event_code ? <>{' '}<span className="whitespace-nowrap">· {booth.event_code}</span></> : null}
       </h2>
       <div className="space-y-5 rounded-xl border p-5">
         {loadError ? <p className="text-sm text-danger">{loadError}</p> : !booth ? <Skeleton className="h-40 w-full" /> : (
           <>
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-sm font-medium">🎪 เปิดบูธ / Booth event switch</p>
+                <p className="text-sm font-medium">เปิดบูธ / Booth event switch</p>
                 <p className="text-sm text-muted-foreground">
                   ตู้เกมรับผู้เล่นเฉพาะเมื่อเปิดสวิตช์และอยู่ในช่วงเวลาเท่านั้น •
                   The kiosk takes plays only while this is on and inside the window.
@@ -191,17 +194,12 @@ export function BoothCard() {
                   </Badge>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={() => toggle({ enabled: !booth.enabled })}
-                aria-disabled={busy || undefined}
-                aria-pressed={booth.enabled}
+              <Switch
+                checked={booth.enabled}
+                onCheckedChange={(enabled) => toggle({ enabled })}
+                busy={busy}
                 aria-label="Booth event switch"
-                className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors aria-disabled:cursor-wait aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100 ${booth.enabled ? 'bg-primary' : 'bg-muted'}`}
-                title={booth.enabled ? 'Booth event is ON' : 'Booth event is OFF'}
-              >
-                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${booth.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-              </button>
+              />
             </div>
 
             <div className="grid gap-4 @min-[640px]:grid-cols-3">
@@ -266,21 +264,19 @@ export function BoothCard() {
                         <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{c.teaser.en}</p>
                         <p className="flex flex-wrap gap-x-3 text-sm text-muted-foreground tabular-nums">
                           <span className="[overflow-wrap:anywhere]">{c.case_id} · {c.version}</span>
-                          <span><BiLabel th="รับรองเมื่อ" en="Admitted" /> {c.admitted_on}</span>
+                          {/* nowrap on the date: a phone otherwise breaks it at a hyphen (2026-10- / 28). */}
+                          <span><BiLabel th="รับรองเมื่อ" en="Admitted" /> <span className="whitespace-nowrap">{c.admitted_on}</span></span>
                           <span><BiLabel th="เล่นแล้ว" en="Plays" /> {count(c.plays)}</span>
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => toggle({ cases: { [c.case_id]: !c.on } })}
-                        aria-disabled={busy || undefined}
-                        aria-pressed={c.on}
+                      {/* -mt-2.5 sets the 28px track level with the teaser's first line; the 44px target overhangs. */}
+                      <Switch
+                        checked={c.on}
+                        onCheckedChange={(on) => toggle({ cases: { [c.case_id]: on } })}
+                        busy={busy}
                         aria-label={`Case ${c.case_id} switch`}
-                        className={`relative mt-0.5 inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors aria-disabled:cursor-wait aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100 ${c.on ? 'bg-primary' : 'bg-muted'}`}
-                        title={c.on ? `Case ${c.case_id} is ON` : `Case ${c.case_id} is OFF`}
-                      >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${c.on ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
+                        className="-mt-2.5"
+                      />
                     </li>
                   ))}
                 </ul>
