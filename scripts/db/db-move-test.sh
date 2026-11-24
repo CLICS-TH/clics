@@ -31,7 +31,7 @@ PG_BIN="${PG_BIN:-$(dirname "$(command -v pg_ctl || echo /opt/homebrew/opt/postg
 export PG_BIN
 DIR="$(mktemp -d "${TMPDIR:-/tmp}/db-move-test.XXXXXX")"
 # shellcheck disable=SC2154 # c is the loop variable inside the trap string
-trap 'for c in src dst; do "$PG_BIN/pg_ctl" -D "$DIR/$c" stop -m fast >/dev/null 2>&1 || true; done; rm -rf "$DIR"' EXIT
+trap 'for c in src dst plain; do "$PG_BIN/pg_ctl" -D "$DIR/$c" stop -m fast >/dev/null 2>&1 || true; done; rm -rf "$DIR"' EXIT
 
 # TCP only: a socket path under a long TMPDIR exceeds the 103-byte Unix-socket limit on macOS. The first
 # free port from START up: a port in use makes the postmaster exit, and we try the next.
@@ -47,9 +47,10 @@ start_cluster() { # start_cluster <name> <first port> [extra -c options] -> prin
 }
 openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=localhost" \
   -keyout "$DIR/server.key" -out "$DIR/server.crt" >/dev/null 2>&1
-CERT=1 SPORT=$(start_cluster src "${PORT:-55471}" "-c ssl=on")
-DPORT=$(start_cluster dst $((SPORT + 21)))
-echo "postgres $("$PG_BIN/postgres" --version | awk '{print $3}'): source 127.0.0.1:$SPORT (TLS), target 127.0.0.1:$DPORT"
+export CERT=1
+SPORT=$(start_cluster src "${PORT:-55471}" "-c ssl=on")
+DPORT=$(start_cluster dst $((SPORT + 21)) "-c ssl=on")
+echo "postgres $("$PG_BIN/postgres" --version | awk '{print $3}'): source 127.0.0.1:$SPORT, target 127.0.0.1:$DPORT (both TLS)"
 
 S() { local db=$1; shift; "$PG_BIN/psql" -h 127.0.0.1 -p "$SPORT" -U postgres -d "$db" -v ON_ERROR_STOP=1 -X -q -At -P pager=off "$@"; }
 D() { local db=$1; shift; "$PG_BIN/psql" -h 127.0.0.1 -p "$DPORT" -U postgres -d "$db" -v ON_ERROR_STOP=1 -X -q -At -P pager=off "$@"; }
@@ -164,6 +165,8 @@ target_db() { # target_db <name>
 create schema auth;
 create function auth.uid() returns uuid language sql stable as $$
   select (nullif(current_setting('request.jwt.claims', true), '')::jsonb->>'sub')::uuid $$;
+create function auth.role() returns text language sql stable as $$
+  select nullif(current_setting('request.jwt.claims', true), '')::jsonb->>'role' $$;
 -- GoTrue's own migrations: columns in another order, and one the hosted project lacks.
 create table auth.users (id uuid primary key, is_sso_user boolean not null default false, email text,
   created_at timestamptz not null default now(), encrypted_password text, instance_id uuid);
@@ -191,6 +194,16 @@ has "a target GoTrue has not migrated" "start GoTrue against it once" "$(mv_ nog
 D t5 -c "create table public.stray (id int)"
 has "a target whose public schema is not empty" "public schema is not empty" "$(mv_ t5 src preflight 2>&1 || true)"
 has "an unchained source, AUDIT_CHAIN=required (the default)" "audit_chain=not_installed" "$(mv_ t3 nochain preflight 2>&1 || true)"
+has "a plaintext data-host hop (CLICS_DATA_SSLMODE=prefer)" "lets the data host hop run in clear" \
+  "$(src_url src | CLICS_DATA_DB=t1 CLICS_DATA_SSLMODE=prefer bash "$MOVE" preflight 2>&1 || true)"
+S postgres -c "create role dashboard_user nologin"
+S src -c "grant select on public.councils to dashboard_user"
+has "a role the source grants to and the target lacks" "the target lacks what the restore names: role dashboard_user" \
+  "$(mv_ t1 src preflight 2>&1 || true)"
+S src -c "revoke all on public.councils from dashboard_user"; S postgres -c "drop role dashboard_user"
+D t1 -c "alter function auth.uid() rename to uid_x"
+has "a target without auth.uid()" "function auth.uid()" "$(mv_ t1 src preflight 2>&1 || true)"
+D t1 -c "alter function auth.uid_x() rename to uid"
 has "a passing preflight" "preflight ok" "$(mv_ t1 src preflight 2>&1)"
 
 echo "move.sh move (stream, restore with triggers off, sequences, verify)"
@@ -334,5 +347,46 @@ D t1 -c "revoke execute on function public.next_pseudonym() from public; alter r
 has "roles.sql refuses an app role that is a superuser" "role authenticator is a superuser" "$(D t1 -f "$ROLES" 2>&1 || true)"
 D t1 -c "alter role authenticator nosuperuser; grant select on public.ples to anon"
 has "roles.sql refuses a schema whose postgrest_exposure lists a grant" "ADR 0007 wants none" "$(D t1 -f "$ROLES" 2>&1 || true)"
+
+echo "plain PostgreSQL target (prepare-plain-pg.sql, database clics_mentor, superuser postgres)"
+# A cluster with none of the image's roles: what CME's plain PostgreSQL starts as.
+PPORT=$(start_cluster plain $((DPORT + 21)) "-c ssl=on")
+P() { local db=$1; shift; "$PG_BIN/psql" -h 127.0.0.1 -p "$PPORT" -U postgres -d "$db" -v ON_ERROR_STOP=1 -X -q -At -P pager=off "$@"; }
+P postgres -c "create database clics_mentor"
+mvp() { src_url src | CLICS_DATA_PORT=$PPORT CLICS_DATA_DB=clics_mentor CLICS_DATA_USER=postgres bash "$MOVE" "$@"; }
+RUNS=""
+for _ in 1 2; do if P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" >/dev/null; then RUNS="$RUNS ok"; else RUNS="$RUNS fail"; fi; done
+expect "prepare-plain-pg.sql applies twice (idempotent)" " ok ok" "$RUNS"
+expect "  → the image's roles, none a superuser, supabase_admin without login" "6|0|f" \
+  "$(P postgres -c "select count(*), count(*) filter (where rolsuper), bool_or(rolcanlogin and rolname = 'supabase_admin') from pg_roles
+                    where rolname in ('anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin')")"
+expect "  → auth is supabase_auth_admin's; authenticator can switch to service_role" "supabase_auth_admin|t" \
+  "$(P clics_mentor -c "select nspowner::regrole, pg_has_role('authenticator', 'service_role', 'MEMBER') from pg_namespace where nspname = 'auth'")"
+has "preflight before GoTrue ran" "start GoTrue against it once" "$(mvp preflight 2>&1 || true)"
+# GoTrue's first start, as supabase_auth_admin (it owns auth): its tables and functions.
+P clics_mentor <<'SQL'
+set role supabase_auth_admin;
+create function auth.uid() returns uuid language sql stable as $$
+  select (nullif(current_setting('request.jwt.claims', true), '')::jsonb->>'sub')::uuid $$;
+create function auth.role() returns text language sql stable as $$
+  select nullif(current_setting('request.jwt.claims', true), '')::jsonb->>'role' $$;
+create table auth.users (id uuid primary key, is_sso_user boolean not null default false, email text,
+  created_at timestamptz not null default now(), encrypted_password text, instance_id uuid);
+create table auth.identities (id uuid primary key, user_id uuid not null references auth.users(id), provider text);
+create table auth.refresh_tokens (id bigserial primary key, token text, user_id text);
+create table auth.schema_migrations (version text primary key);
+insert into auth.schema_migrations values ('gotrue-v2.197.0');
+SQL
+OUT="$(mvp move 2>&1)" || true
+has "move into plain PostgreSQL: VERIFY: PASS" "VERIFY: PASS" "$OUT"
+has "  → anchored at the source head" "anchored at the source head seq 7" "$OUT"
+expect "  → roles.sql then passes there" "0" "$(rc P clics_mentor -f "$ROLES")"
+expect "  → PUBLIC cannot connect; the CLICS logins and the analyst can" "f|t|t" \
+  "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT')")"
+P postgres -c "create database clics_evaluator"
+has "prepare-plain-pg.sql stops on a shared cluster whose roles exist" "may be another service's logins" \
+  "$(P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" 2>&1 || true)"
+expect "  → and goes on once the operator confirms (clics.shared_roles_ok=on)" "0" \
+  "$(rc env PGOPTIONS='-c clics.shared_roles_ok=on' "$PG_BIN/psql" -h 127.0.0.1 -p "$PPORT" -U postgres -d clics_mentor -v ON_ERROR_STOP=1 -X -q -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql")"
 
 if [ "$FAIL" = 0 ]; then echo "ALL PASS"; else echo "FAILURES"; exit 1; fi

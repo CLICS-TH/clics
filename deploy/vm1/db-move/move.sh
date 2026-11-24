@@ -18,8 +18,10 @@
 # it is never in an argv (ps). SRC_FROM=data-host makes the data host the source instead (backup.sh).
 # Target: CLICS_DATA_HOST (required; a name or address from the environment, never one in this kit),
 # CLICS_DATA_PORT (5432), CLICS_DATA_DB (postgres), CLICS_DATA_USER (supabase_admin, a superuser:
-# session_replication_role needs one), CLICS_DATA_SSLMODE (prefer: the hop is the tailnet), and the
-# password from a pgpass file (PGPASSFILE).
+# session_replication_role needs one), CLICS_DATA_SSLMODE (require; verify-ca or verify-full are
+# stronger; the participant data crosses the tailnet to another host, so the hop is TLS too), and the
+# password from a pgpass file (PGPASSFILE). A plaintext hop (CLICS_DATA_SSLMODE=disable, allow or prefer)
+# is refused unless CLICS_DATA_PLAINTEXT_OK=1 is also set, for a throwaway target only.
 # AUDIT_CHAIN=required (the default) fails the report when the source has no audit_log chain;
 # AUDIT_CHAIN=checksum accepts audit_log's row checksum in its place (README.md, "Audit chain").
 # SNAPSHOT=<exported snapshot id> makes every source read, pg_dump included, see that one snapshot.
@@ -31,7 +33,8 @@ set -euo pipefail
 export LC_ALL=C LANG=C
 # Only what this script sets reaches libpq: a PGHOST or PGPASSWORD inherited from the caller's shell
 # would otherwise point one end somewhere else. PGPASSFILE is kept: it is how the target's password comes in.
-unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE PGSERVICE PGSERVICEFILE PGOPTIONS PGTARGETSESSIONATTRS
+unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE PGSERVICE PGSERVICEFILE PGOPTIONS PGTARGETSESSIONATTRS \
+  PGSSLROOTCERT
 REQUIRED_TABLES=(public.booth_plays public.booth_sort_memos public.booth_event_purges)
 AUDIT_CHAIN=${AUDIT_CHAIN:-required}
 SRC_FROM=${SRC_FROM:-stdin}
@@ -47,9 +50,18 @@ case "$SRC_FROM" in stdin|data-host) ;; *) die "SRC_FROM must be stdin or data-h
 # ---- connections ----------------------------------------------------------------------------------------
 dst() {
   [ -n "${CLICS_DATA_HOST:-}" ] || die "CLICS_DATA_HOST is not set (the data host's tailnet name or address)"
-  PGHOST=$CLICS_DATA_HOST PGPORT=${CLICS_DATA_PORT:-5432} PGDATABASE=${CLICS_DATA_DB:-postgres} \
-    PGUSER=${CLICS_DATA_USER:-supabase_admin} PGSSLMODE=${CLICS_DATA_SSLMODE:-prefer} PGAPPNAME=clics-db-move "$@"
+  # A subshell, so the data host's root certificate (verify-full) never reaches a source command.
+  ( [ -z "${CLICS_DATA_SSLROOTCERT:-}" ] || export PGSSLROOTCERT=$CLICS_DATA_SSLROOTCERT
+    PGHOST=$CLICS_DATA_HOST PGPORT=${CLICS_DATA_PORT:-5432} PGDATABASE=${CLICS_DATA_DB:-postgres} \
+      PGUSER=${CLICS_DATA_USER:-supabase_admin} PGSSLMODE=${CLICS_DATA_SSLMODE:-require} PGAPPNAME=clics-db-move "$@" )
 }
+case "${CLICS_DATA_SSLMODE:-require}" in
+  require|verify-ca|verify-full) ;;
+  disable|allow|prefer)
+    [ "${CLICS_DATA_PLAINTEXT_OK:-}" = 1 ] ||
+      die "CLICS_DATA_SSLMODE=${CLICS_DATA_SSLMODE} lets the data host hop run in clear: use require or stricter (CLICS_DATA_PLAINTEXT_OK=1 for a throwaway target only)" ;;
+  *) die "CLICS_DATA_SSLMODE must be require, verify-ca or verify-full, not '${CLICS_DATA_SSLMODE}'" ;;
+esac
 
 SU='' SP='' SH='' SPORT='' SDB='' SSL=''
 read_source() {
@@ -318,7 +330,12 @@ preflight() {
               select 'super|' || rolsuper::text from pg_catalog.pg_roles where rolname = current_user;
               select 'public|' || count(*) from pg_catalog.pg_class
                 where relnamespace = 'public'::regnamespace and relkind in ('r', 'p', 'v', 'm', 'S', 'f');
+              select 'ssl|' || coalesce((select ssl::text from pg_catalog.pg_stat_ssl where pid = pg_catalog.pg_backend_pid()), 'false');
 " | q_dst) || die "cannot read the data host"
+  if [ "$(awk -F'|' '$1 == "ssl" { print $2 }' <<< "$out")" != true ]; then
+    [ "${CLICS_DATA_PLAINTEXT_OK:-}" = 1 ] || die "the data host connection is not TLS"
+    log "WARNING: the data host connection is not TLS (CLICS_DATA_PLAINTEXT_OK=1)"
+  fi
   if [ "$(has target auth.users)" = true ]; then
     out="$out
 auth_users|$(echo 'select count(*) from auth.users;' | q_dst)"
@@ -340,6 +357,39 @@ auth_users|absent"
     absent) die "the target has no auth.users: start GoTrue against it once, so its migrations make the auth schema" ;;
     *) die "the target's auth.users is not empty" ;;
   esac
+  # What the restore stream names on the target must be there first, or the load stops halfway (and rolls
+  # back): every role the source's public schema grants to or makes a policy for, every extension it keeps
+  # in public, and the auth functions its policies call. The supabase/postgres image has them all; plain
+  # PostgreSQL needs prepare-plain-pg.sql, the extensions installed, and GoTrue's migrations run.
+  local roles exts missing
+  roles=$(q_src <<'SQL'
+select coalesce(string_agg(distinct pg_catalog.pg_get_userbyid(g), ' '), '') from (
+  select (pg_catalog.aclexplode(c.relacl)).grantee g from pg_catalog.pg_class c
+   where c.relnamespace = 'public'::regnamespace and c.relacl is not null
+  union select (pg_catalog.aclexplode(a.attacl)).grantee from pg_catalog.pg_attribute a
+    join pg_catalog.pg_class c on c.oid = a.attrelid
+   where c.relnamespace = 'public'::regnamespace and a.attacl is not null
+  union select (pg_catalog.aclexplode(p.proacl)).grantee from pg_catalog.pg_proc p
+   where p.pronamespace = 'public'::regnamespace and p.proacl is not null
+  union select (pg_catalog.aclexplode(n.nspacl)).grantee from pg_catalog.pg_namespace n
+   where n.nspname = 'public' and n.nspacl is not null
+  union select d.defaclrole from pg_catalog.pg_default_acl d where d.defaclnamespace = 'public'::regnamespace
+  union select (pg_catalog.aclexplode(d.defaclacl)).grantee from pg_catalog.pg_default_acl d
+   where d.defaclnamespace = 'public'::regnamespace
+  union select unnest(pol.polroles) from pg_catalog.pg_policy pol join pg_catalog.pg_class c on c.oid = pol.polrelid
+   where c.relnamespace = 'public'::regnamespace
+) x where g <> 0 and pg_catalog.pg_get_userbyid(g) <> 'clics_analyst';
+SQL
+)
+  exts=$(echo "select coalesce(string_agg(e.extname, ' ' order by e.extname), '') from pg_catalog.pg_extension e
+                 where e.extnamespace = 'public'::regnamespace;" | q_src)
+  # shellcheck disable=SC2086 # word lists
+  missing=$({
+    for r in $roles; do echo "select $(lit "role $r") where pg_catalog.to_regrole($(lit "\"$r\"")) is null;"; done
+    for e in $exts; do echo "select 'extension $e' where not exists (select 1 from pg_catalog.pg_available_extensions where name = $(lit "$e"));"; done
+    for f in 'auth.uid()' 'auth.role()'; do echo "select 'function $f' where pg_catalog.to_regprocedure($(lit "$f")) is null;"; done
+  } | q_dst | paste -sd ',' - | sed 's/,/, /g')
+  [ -z "$missing" ] || die "the target lacks what the restore names: $missing (plain PostgreSQL: README.md, Plain PostgreSQL target)"
   (( dver / 10000 >= sver / 10000 )) || die "the target's PostgreSQL ($dver) is older than the source's ($sver)"
   local pgd
   pgd=$("$(tool_path pg_dump)" --version | sed -n 's/.* \([0-9][0-9]*\)\..*/\1/p')

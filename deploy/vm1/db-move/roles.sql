@@ -31,7 +31,7 @@ declare r text;
 begin
   foreach r in array array['authenticator', 'supabase_auth_admin', 'service_role', 'anon', 'authenticated'] loop
     if not exists (select 1 from pg_catalog.pg_roles where rolname = r) then
-      raise exception 'role % is missing: is this the supabase/postgres image?', r;
+      raise exception 'role % is missing: on plain PostgreSQL run prepare-plain-pg.sql first', r;
     end if;
     if exists (select 1 from pg_catalog.pg_roles where rolname = r and (rolsuper or rolreplication)) then
       raise exception 'role % is a superuser or a replication role; the app must not log in as one', r;
@@ -58,6 +58,8 @@ alter role clics_analyst with login nosuperuser nocreatedb nocreaterole noreplic
 -- A default the session could switch off; the grants below are what refuse a write.
 alter role clics_analyst set default_transaction_read_only = on;
 alter role clics_analyst set statement_timeout = '5min';
+-- A database whose PUBLIC CONNECT was revoked (prepare-plain-pg.sql) needs it granted by name.
+do $$ begin execute format('grant connect on database %I to clics_analyst', current_database()); end $$;
 
 revoke all on schema auth from clics_analyst;
 grant usage on schema public to clics_analyst;
