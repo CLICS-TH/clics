@@ -41,28 +41,30 @@ beforeEach(() => {
   mockToast.mockReset();
 });
 
-const text = (id: string) => screen.getByTestId(id).textContent;
+const n = (id: string) => screen.getByTestId(id).textContent;   // a node holding only its number
 
 describe('BoothFeedback', () => {
   it("shows counts, per-date split and every question's distribution", async () => {
     wire(DATA);
     render(<BoothFeedback />);
     await screen.findByTestId('fb-answers');
-    expect(text('fb-answers')).toContain('4');
-    expect(text('fb-date-2026-11-25')).toContain('2');
-    expect(text('fb-date-2026-11-24')).toContain('2');
-    // easy: (5+4+3+2)/4 = 3.5
-    expect(text('fb-mean-easy')).toContain('3.5');
+    expect(n('fb-answers')).toBe('4');
+    expect(n('fb-date-n-2026-11-25')).toBe('2');
+    expect(n('fb-date-n-2026-11-24')).toBe('2');
+    // easy: (5+4+3+2)/4 = 3.5, n = 4
+    expect(n('fb-mean-easy')).toBe('3.5');
+    expect(n('fb-mean-easy-n')).toBe('4');
     // felt_like is multi-choice: game x2, exam x2, textbook x1, the others 0
-    expect(text('fb-bar-felt_like-game')).toContain('2');
-    expect(text('fb-bar-felt_like-exam')).toContain('2');
-    expect(text('fb-bar-felt_like-textbook')).toContain('1');
-    expect(text('fb-bar-felt_like-ward_round')).toContain('0');
-    expect(screen.getAllByTestId(/^fb-bar-felt_like-/)).toHaveLength(6);
-    expect(text('fb-bar-role-physician')).toContain('2');
-    expect(text('fb-bar-mood-confused')).toContain('1');
-    expect(text('fb-bar-use-10')).toContain('1');
-    expect(screen.getAllByTestId(/^fb-bar-use-/)).toHaveLength(11);
+    expect(n('fb-bar-felt_like-game-n')).toBe('2');
+    expect(n('fb-bar-felt_like-exam-n')).toBe('2');
+    expect(n('fb-bar-felt_like-textbook-n')).toBe('1');
+    expect(n('fb-bar-felt_like-ward_round-n')).toBe('0');
+    expect(screen.getAllByTestId(/^fb-bar-felt_like-[a-z_]+$/)).toHaveLength(6);
+    expect(n('fb-bar-role-physician-n')).toBe('2');
+    expect(n('fb-bar-mood-confused-n')).toBe('1');
+    expect(n('fb-bar-use-10-n')).toBe('1');
+    expect(n('fb-bar-use-1-n')).toBe('0');
+    expect(screen.getAllByTestId(/^fb-bar-use-\d+$/)).toHaveLength(11);
   });
 
   it('a case filter narrows every number', async () => {
@@ -70,12 +72,14 @@ describe('BoothFeedback', () => {
     render(<BoothFeedback />);
     await screen.findByTestId('fb-answers');
     fireEvent.change(screen.getByRole('combobox', { name: /เคส/ }), { target: { value: 'cap-adult' } });
-    expect(text('fb-answers')).toContain('2');
-    expect(screen.queryByTestId('fb-date-2026-11-24')).toHaveTextContent('1');
-    expect(text('fb-date-2026-11-25')).toContain('1');
-    expect(text('fb-mean-easy')).toContain('4.0');   // (5+3)/2
-    expect(text('fb-bar-felt_like-textbook')).toContain('1');
-    expect(text('fb-bar-role-student')).toContain('0');
+    expect(n('fb-answers')).toBe('2');
+    expect(n('fb-date-n-2026-11-24')).toBe('1');
+    expect(n('fb-date-n-2026-11-25')).toBe('1');
+    expect(n('fb-mean-easy')).toBe('4.0');   // (5+3)/2
+    expect(n('fb-mean-easy-n')).toBe('2');   // n follows the filter
+    expect(n('fb-mean-use-n')).toBe('2');
+    expect(n('fb-bar-felt_like-textbook-n')).toBe('1');
+    expect(n('fb-bar-role-student-n')).toBe('0');
   });
 
   it('a withheld comment shows its reason, never text', async () => {

@@ -68,19 +68,20 @@ function Bars({ title, bars, total, mean, meanId }: { title: Label; bars: Bar[];
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-sm font-medium text-foreground"><BiLabel th={title.th} en={title.en} /></h3>
         {meanId && (
-          <p className="text-sm text-muted-foreground tabular-nums" data-testid={meanId}>
-            <BiLabel th="ค่าเฉลี่ย" en="mean" /> {mean == null ? '—' : mean.toFixed(1)}
+          <p className="text-sm text-muted-foreground tabular-nums">
+            <BiLabel th="ค่าเฉลี่ย" en="mean" /> <span data-testid={meanId}>{mean == null ? '—' : mean.toFixed(1)}</span>
+            {' · '}n = <span data-testid={`${meanId}-n`}>{total}</span>
           </p>
         )}
       </div>
       <ul className="space-y-1.5">
         {bars.map((b) => (
-          <li key={b.key} data-testid={b.testId} className="grid grid-cols-[minmax(0,11rem)_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
+          <li key={b.key} data-testid={b.testId} className="grid grid-cols-[minmax(0,45%)_minmax(3rem,1fr)_2.5rem] items-center gap-3 text-sm">
             <span className="flex items-center gap-2 text-foreground [overflow-wrap:anywhere]">{b.label}</span>
             <span className="h-3 rounded-sm bg-muted" aria-hidden="true">
               <span className="block h-3 rounded-sm" style={{ width: `${total ? (b.count / total) * 100 : 0}%`, background: color }} />
             </span>
-            <span className="text-right font-medium text-foreground tabular-nums">{b.count}</span>
+            <span className="text-right font-medium text-foreground tabular-nums" data-testid={`${b.testId}-n`}>{b.count}</span>
           </li>
         ))}
       </ul>
@@ -234,7 +235,7 @@ export function BoothFeedback() {
           <ul aria-label="จำนวนต่อวัน / Per date" className="flex flex-wrap gap-2">
             {dates.map(([d, n]) => (
               <li key={d} data-testid={`fb-date-${d}`} className="rounded-lg border px-3 py-1.5 text-sm text-foreground tabular-nums">
-                {d} <span className="font-medium">{n}</span>
+                {d} <span className="font-medium" data-testid={`fb-date-n-${d}`}>{n}</span>
               </li>
             ))}
           </ul>
