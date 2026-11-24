@@ -413,4 +413,5 @@ module.exports = {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, DEFAULT_LOOK, replyLanguage, bankAt, bankKey, stepCount, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply,
   comparable, checkedField, replyText, sortedTier, chatRequest, chatOutcome, bankOutcome, echoesAnswer, evaluateRequest, stepTiers, stepRecords, studyTranscript,
+  flaggedForAuditor,
 };

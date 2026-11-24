@@ -71,7 +71,8 @@ const PERSONAS = [
   { key: 'analyst', user: { role: 'analyst' }, n: 1 },
   { key: 'ethics', user: { role: 'ethics' }, n: 1 },
   { key: 'admin', user: { role: 'admin' }, n: 9 },
-  { key: 'superadmin', user: { role: 'superadmin' }, n: 14 },
+  // 16 since Settings and Booth Mode joined the roster (2026-11-24); the menu groups them under headings.
+  { key: 'superadmin', user: { role: 'superadmin' }, n: 16 },
 ];
 
 // The model, read from the source it lives in rather than copied here, so the threshold samples
@@ -84,8 +85,9 @@ const threshold = (n) => CHROME + n * PER_LINK;   // inline at width >= this (na
 
 const BASE_WIDTHS = [320, 390, 768, 1279, 1280, 1536, 1920, 2240, 2560, 3100, 3400];
 
-// Breakpoint bands inside which "fits" is monotonic (see the header).
-const BANDS = [[600, 639], [640, 767], [768, 1279], [1280, 1599], [1600, 1919], [1920, 3600]];
+// Breakpoint bands inside which "fits" is monotonic (see the header). The top band runs to 4400px (it was 3600):
+// the 16-link superadmin row fits only from 3620px (measured 2026-11-24), which the old ceiling reported as "never".
+const BANDS = [[600, 639], [640, 767], [768, 1279], [1280, 1599], [1600, 1919], [1920, 4400]];
 
 async function measure(browser, persona, width, { forceInline = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 900 } });

@@ -87,7 +87,7 @@ against prod's SANDBOX council — `single` PASS, `burst` n=5 FIFO + exactly-onc
 (see [HANDOFF](HANDOFF.md)). Migrations applied to prod the same day.
 
 **Cutover is a toggle, not a deploy.** Since 2026-08-26 the provider for each purpose is a superadmin
-setting (`app_settings.ai_provider_<purpose>`, *Admin → Overview*), layered over the env chain below
+setting (`app_settings.ai_provider_<purpose>`, *Admin → Settings*), layered over the env chain below
 and audit-logged on every change. `evaluate` is guarded separately: it takes a typed confirmation
 (`CHANGE EVALUATOR`), and once `evaluator_locked_at` is set the backend **refuses** the change
 outright rather than warning about it — see §10.2's locked-configuration requirement.
@@ -204,7 +204,7 @@ All default to the pre-existing behaviour; setting none of these changes anythin
 
 | Variable | Default | Meaning |
 |---|---|---|
-| **`app_settings.ai_provider_<purpose>`** | `anthropic` (`openai` for `embed`) | **the superadmin toggle — outranks every variable below.** Set from *Admin → Overview → ผู้ให้บริการ AI*, audit-logged, effective on the next request |
+| **`app_settings.ai_provider_<purpose>`** | `anthropic` (`openai` for `embed`) | **the superadmin toggle — outranks every variable below.** Set from *Admin → Settings → ผู้ให้บริการ AI*, audit-logged, effective on the next request |
 | `AI_PROVIDER` | `anthropic` | provider for every purpose, when no DB override is stored |
 | `AI_PROVIDER_CHAT` / `_EVALUATE` / `_CRITERIA` / `_DISCUSS` / `_EMBED` | *(unset)* | per-purpose override |
 | `EMBED_PROVIDER` | `openai` | global fallback for RAG embeddings (`openai` \| `local`) |

@@ -1,6 +1,6 @@
-// BoothCard (#214) drives the Booth Mode event from /admin/overview. What has to be RIGHT here: times leave
-// with an explicit +07:00 offset and come back as Bangkok wall-clock; the switch shows the server's echo, not
-// the click; a window that closes before it opens or an out-of-range ceiling never leaves the page; and a
+// BoothCard (#214) drives the Booth Mode event from /admin/booth. What has to be RIGHT here: times leave
+// with an explicit +07:00 offset and come back as Bangkok wall-clock; the switch (role="switch", the shared
+// components/ui/switch.tsx) shows the server's echo, not the click; a window that closes before it opens or an out-of-range ceiling never leaves the page; and a
 // failed count read shows "—", never 0.
 import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -30,7 +30,7 @@ function wire(get: unknown = BOOTH, patch: (body: Record<string, unknown>) => un
   });
 }
 const patches = () => apiFetch.mock.calls.filter(([, o]) => o?.method === 'PATCH').map(([, o]) => JSON.parse(String(o.body)));
-const loaded = () => screen.findByRole('button', { name: 'Booth event switch' });
+const loaded = () => screen.findByRole('switch', { name: 'Booth event switch' });
 
 beforeEach(() => { wire(); toast.mockReset(); });
 
@@ -52,7 +52,7 @@ describe('BoothCard', () => {
   it('shows the switch, the window, the ceiling and the totals', async () => {
     render(<BoothCard />);
     const sw = await loaded();
-    expect(sw).toHaveAttribute('aria-pressed', 'false');
+    expect(sw).toHaveAttribute('aria-checked', 'false');
     expect(screen.getByLabelText(/Opens at/)).toHaveValue('2026-11-03T08:00');
     expect(screen.getByLabelText(/Closes at/)).toHaveValue('2026-11-04T18:00');
     expect(screen.getByLabelText(/Per-play ceiling/)).toHaveValue(3);
@@ -67,7 +67,7 @@ describe('BoothCard', () => {
     wire(BOOTH, (b) => ({ ...BOOTH, ...b, state: 'not_yet' }));
     render(<BoothCard />);
     fireEvent.click(await loaded());
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Booth event switch' })).toHaveAttribute('aria-pressed', 'true'));
+    await waitFor(() => expect(screen.getByRole('switch', { name: 'Booth event switch' })).toHaveAttribute('aria-checked', 'true'));
     expect(patches()).toEqual([{ enabled: true }]);
     expect(screen.getByTestId('booth-state')).toHaveTextContent('Not open yet');
   });
@@ -91,12 +91,12 @@ describe('BoothCard', () => {
     fireEvent.change(screen.getByLabelText(/Opens at/), { target: { value: '2026-11-03T09:30' } });
     fireEvent.click(screen.getByRole('button', { name: /Save/ }));
     await waitFor(() => expect(patches()).toHaveLength(1));
-    fireEvent.click(screen.getByRole('button', { name: 'Booth event switch' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Booth event switch' }));
     await act(async () => { await Promise.resolve(); });
     releaseSave();
     await waitFor(() => expect(screen.getByRole('button', { name: /Save/ })).toBeDisabled());
     await act(async () => { await Promise.resolve(); });
-    expect(screen.getByRole('button', { name: 'Booth event switch' })).toHaveAttribute('aria-pressed', String(server.enabled));
+    expect(screen.getByRole('switch', { name: 'Booth event switch' })).toHaveAttribute('aria-checked', String(server.enabled));
   });
 
   it('sends the state shown on the switch the moment it is clicked', async () => {
@@ -111,7 +111,7 @@ describe('BoothCard', () => {
     render(<BoothCard />);
     fireEvent.click(await loaded());
     await waitFor(() => expect(toast).toHaveBeenCalledWith('boom', 'error'));
-    expect(screen.getByRole('button', { name: 'Booth event switch' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('switch', { name: 'Booth event switch' })).toHaveAttribute('aria-checked', 'false');
   });
 
   it('saves only the edited fields, with the +07:00 offset', async () => {
@@ -162,15 +162,15 @@ describe('BoothCard', () => {
     expect(pool.getByText(/cap-adult · v3/)).toBeInTheDocument();
     expect(pool.getByText(/2026-10-29/)).toBeInTheDocument();
     expect(pool.getByText(/Plays/).parentElement?.parentElement).toHaveTextContent(/Plays\s*7$/);
-    expect(pool.getByRole('button', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-pressed', 'true');
+    expect(pool.getByRole('switch', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-checked', 'true');
   });
 
   it('switches a case off with its own PATCH and shows the server\'s echo', async () => {
     wire(BOOTH, (b) => ({ ...BOOTH, cases: [{ ...CASE, on: (b.cases as Record<string, boolean>)['cap-adult'] }] }));
     render(<BoothCard />);
     await loaded();
-    fireEvent.click(screen.getByRole('button', { name: 'Case cap-adult switch' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-pressed', 'false'));
+    fireEvent.click(screen.getByRole('switch', { name: 'Case cap-adult switch' }));
+    await waitFor(() => expect(screen.getByRole('switch', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-checked', 'false'));
     expect(patches()).toEqual([{ cases: { 'cap-adult': false } }]);
   });
 
@@ -178,9 +178,9 @@ describe('BoothCard', () => {
     wire(BOOTH, () => ({ error: 'boom' }));
     render(<BoothCard />);
     await loaded();
-    fireEvent.click(screen.getByRole('button', { name: 'Case cap-adult switch' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Case cap-adult switch' }));
     await waitFor(() => expect(toast).toHaveBeenCalledWith('boom', 'error'));
-    expect(screen.getByRole('button', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('switch', { name: 'Case cap-adult switch' })).toHaveAttribute('aria-checked', 'true');
   });
 
   it('says so when the event has no admitted case', async () => {
@@ -194,7 +194,7 @@ describe('BoothCard', () => {
     wire({ error: 'Could not read the booth settings — try again' });
     render(<BoothCard />);
     expect(await screen.findByText(/Could not read the booth settings/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Booth event switch' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('switch', { name: 'Booth event switch' })).not.toBeInTheDocument();
   });
 });
 

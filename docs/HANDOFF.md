@@ -426,13 +426,13 @@ Three PRs merged to `master` (`680dd3e` → `19de2f0`) and **live in prod** (2 m
 
 **Verification:** 293 backend + 226 RIMPL + 35 dashboard hermetic tests; build/lint/tsc; responsive smoke (0 overflow @ 320/375/768/1280); **live-DB E2E** on a disposable Supabase DB (branching needs the Pro plan — blocked) — migrations apply clean, owed/cap, peer-excludes-self, ICC one-human-per-PLE, guard + `23505` + RLS DENY-ALL all confirmed; prod migration verified (8 assignments backfilled, RLS DENY-ALL on `payment_info`/`payouts`, `audit_scores` unique on `(ple_id, auditor_id)` — old name `audit_scores_ple_auditor_uniq`, so the dup-score backstop is live).
 
-**Prod state to mind:** `peer_calibration` is **OFF** (zero behavior change until a superadmin flips it on `/admin/overview`). A few throwaway soak/smoke test PLEs (`is_test=true`) exist from the go-live runs — excluded from the research export; cleared by `db/reset-demo.js`.
+**Prod state to mind:** `peer_calibration` is **OFF** (zero behavior change until a superadmin flips it on `/admin/settings`). A few throwaway soak/smoke test PLEs (`is_test=true`) exist from the go-live runs — excluded from the research export; cleared by `db/reset-demo.js`.
 
 ### Plan for next session (2026-06-26)
 *06-25 update: item 5 (CI wiring) + the reset-usage and peer-n=1-label parts of the old item 6 are **DONE** (PRs #48, #49) — see "What just shipped (2026-06-25)". Remaining:*
-1. **Exercise multi-auditor end-to-end** — flip Peer Calibration on `/admin/overview`; assign **2+ auditors** to an `evaluated` PLE; have them score; confirm the you-vs-other-auditors radar (per-PLE + home aggregate) + `/admin/icc` (per-PLE aggregation) on real data.
-2. **Exercise compensation end-to-end** — physician saves payout details at `/payment`; superadmin reviews owed/paid/outstanding, marks a payout, exports the payout CSV; download the multi-sheet XLSX from `/admin/overview`.
-3. **Full authenticated browser E2E** of the new dashboard surfaces (deferred 06-24) — superadmin login → users (two usage bars), compensation, overview toggles + export.
+1. **Exercise multi-auditor end-to-end** — flip Peer Calibration on `/admin/settings`; assign **2+ auditors** to an `evaluated` PLE; have them score; confirm the you-vs-other-auditors radar (per-PLE + home aggregate) + `/admin/icc` (per-PLE aggregation) on real data.
+2. **Exercise compensation end-to-end** — physician saves payout details at `/payment`; superadmin reviews owed/paid/outstanding, marks a payout, exports the payout CSV; download the multi-sheet XLSX from `/admin/settings`.
+3. **Full authenticated browser E2E** of the new dashboard surfaces (deferred 06-24) — superadmin login → users (two usage bars), compensation, Settings switches + export.
 4. **Pre-pilot cleanup** — run `db/reset-demo.js` to clear soak/smoke test data; rotate demo credentials (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)).
 5. **Enable the opt-in go-live CI** — add the `SMOKE_PHYS_EMAIL` + `SMOKE_PHYS_PW` repo secrets (admin-only) so the `include_ai_smoke` path in `staging-smoke.yml` can run against a non-prod stack.
 6. **Remaining Thai-font polish** — revisit any tight Thai-font spots flagged during the 06-24 UX pass.
@@ -538,7 +538,7 @@ redeployed). This is the cycle that built the **research experiment** the protoc
   **natural** (no forced ❓); CLE2 runs **Socratic-from-start**; a natural session flips to Socratic
   `t1_remediation` after **3 consecutive Tier-1 fails** (resets on a pass). The rimpl prompt split into
   NATURAL / EXAMINER variants threaded by a `socratic` flag. Physician sees "PLE n/3" but not the mode.
-- **Pilot Test Mode.** Superadmin toggle (`app_settings.pilot_test_mode`, on the dashboard Overview)
+- **Pilot Test Mode.** Superadmin toggle (`app_settings.pilot_test_mode`, on the dashboard Settings page)
   that lets the team pick Natural/Socratic directly + bypass the 3-PLE cap; such PLEs are `is_test`
   (out of real export/ICC). Exercises Socratic without completing CLE1→CLE2.
 - **PLE → PLE rename** across DB + all 4 layers + tests + docs (table `ples`→`ples`, `ple_id`→`ple_id`).

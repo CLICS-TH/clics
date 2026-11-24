@@ -207,7 +207,7 @@ describe('Model Lock — every blocker is its own reason', () => {
     await screen.findByText(/Why the lock cannot be declared/);
     expect(item('candidate_not_serving')).toHaveTextContent('Candidate local · ให้คะแนนอยู่ / Serving anthropic');
     expect(within(item('candidate_not_serving')).getByRole('link', { name: /Open the AI provider switch/ }))
-      .toHaveAttribute('href', '/admin/overview#ai-provider');
+      .toHaveAttribute('href', '/admin/settings#ai-provider');
     expect(screen.getByText(/Not the candidate/)).toHaveClass('text-danger');
   });
 

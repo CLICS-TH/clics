@@ -1,6 +1,7 @@
 'use client';
 // Superadmin card for the on-prem evaluator's capacity settings plus a read-only glance at the
-// evaluation queue. Sits on /admin/overview under "Capacity & budget", beside the $ pool.
+// evaluation queue. Sits on /admin/settings in the AI section, under the provider switch. The $ budget pool
+// is read on /admin/overview.
 //
 // WHAT IT CONTROLS. The local model is priced at $0, so the $ ceilings never throttle it; tokens are
 // the honest unit (the two ceilings). A transcript that outgrows the served context cannot be scored
@@ -9,12 +10,12 @@
 // scores one council on the local model, this backend must leave that council's queue alone (the
 // exclude-councils partition).
 //
-// HOW IT SAVES. Each field PATCHes /admin/usage-settings on its own — the endpoint the toggles on the
+// HOW IT SAVES. Each field PATCHes /admin/usage-settings on its own — the endpoint the switches on the
 // same page use — with the backend's zod bounds mirrored here so a typo is refused before it travels.
-// The PATCH response echoes only the ORIGINAL ten settings (superadmin.js re-reads those keys, not
-// these), so after a save the card re-reads GET /admin/usage-settings and hands the fresh object up via
-// onChange. That also shows what the server actually stored (council codes come back upper-cased)
-// rather than the operator's raw draft.
+// The PATCH response echoes every key the GET returns except the spend totals (total_used_usd and the
+// other *_used_usd, superadmin.js), so after a save the card re-reads GET /admin/usage-settings and hands
+// the whole object up via onChange: handing up the echo alone would drop those totals. The re-read also
+// shows what the server actually stored (council codes come back upper-cased) rather than the raw draft.
 //
 // Drafts are a sparse map keyed by field: an input shows the draft if the operator has typed, else the
 // server value. No effect seeds inputs when `usage` arrives, and a saved field simply drops its draft.
@@ -282,7 +283,7 @@ export function LocalAiCapacityCard({ usage, onChange }: { usage: UsageSettings 
 
   return (
     <section className="space-y-3">
-      <h2 className="font-heading text-xl text-foreground">ความจุ AI ภายใน / Local AI capacity</h2>
+      <h3 className="font-heading text-xl text-foreground">ความจุ AI ภายใน / Local AI capacity</h3>
       <div className="space-y-4 rounded-xl border p-5">
         <p className="text-sm text-muted-foreground">
           เพดานโทเคน ขนาดบทสนทนา และคิวการให้คะแนนของโมเดลในองค์กร — โมเดลภายในคิดราคา $0 จึงใช้โทเคนเป็นหน่วยจำกัดแทนเงิน •

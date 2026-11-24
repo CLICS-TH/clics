@@ -2,8 +2,9 @@
 //
 // A group announced as a radiogroup is operated with arrows, not Tab — that is what the role
 // promises. A screen-reader user who hears "radio group" presses an arrow key; if nothing happens,
-// the control is broken for them. Shared by DomainScorer (score + anchor-clarity chips) and the
-// overview's minimum-auditors group, so every radiogroup in the dashboard behaves the same way.
+// the control is broken for them. Shared by DomainScorer (score + anchor-clarity chips), the Settings
+// page's minimum-auditors group and the Booth Mode case picker, so every radiogroup in the dashboard
+// behaves the same way.
 //
 // Attach the returned handler to the radiogroup element. Pair it with a roving tabIndex on the
 // options: 0 on the checked option (or the first when none is checked), -1 on the rest.

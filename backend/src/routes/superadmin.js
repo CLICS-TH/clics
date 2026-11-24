@@ -15,6 +15,7 @@ const { logEvent, logEventStrict } = require('../lib/audit');
 const retention = require('../services/retention');
 const booth = require('../services/booth');
 const boothAudits = require('../services/booth-audits');
+const boothMonitor = require('../services/booth-monitor');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep, fetchRimplLocalOnly } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
@@ -576,6 +577,26 @@ router.patch('/booth', async (req, res) => {
   const body = await boothCard();
   if (!body) return res.status(502).json({ error: 'Saved, but the booth settings could not be re-read — reload' });
   res.json(body);
+});
+
+// The Booth Mode page's leaderboard: every ranked play, overall and per case, whatever the event's window.
+router.get('/booth/standings', async (_req, res) => {
+  const body = await boothMonitor.leaderboard();
+  if (!body) return res.status(502).json({ error: 'Could not read the booth standings — try again' });
+  res.json(body);
+});
+
+// Every play of the event for internal research (ADR 0014). The audit row is the record of who took the file, so a
+// failed audit write sends nothing.
+router.get('/booth/export.json', async (req, res) => {
+  const out = await boothMonitor.exportPlays();
+  if (!out) return res.status(502).json({ error: 'Could not read the booth plays — try again' });
+  const audit = await logEventStrict({ actorId: req.user.id, actorRole: 'superadmin', action: 'booth.export', targetType: 'export',
+    metadata: { event_code: out.body.export.event_code, ...out.body.export.counts } });
+  if (audit.error) return res.status(503).json({ error: 'The export could not be recorded in the audit log, so nothing was exported — try again' });
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${out.filename}"`);
+  res.send(JSON.stringify(out.body, null, 2));
 });
 
 // ---------------------------------------------------------------------------------------------

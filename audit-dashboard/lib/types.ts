@@ -413,8 +413,37 @@ export type BoothStudy =
     };
 export interface BoothAuditSummary { audits: number; auditors: number; plays: number; mean_gap: Pis7Scores | null }
 
-// GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the overview page, the users
-// page and the Local AI capacity card, so a setting cannot be typed three different ways. The $ budget
+// GET /admin/booth/standings (superadmin): the Booth Mode page's leaderboard. Mirrors leaderboard() in
+// backend/src/services/booth-monitor.js. Every list arrives RANKED, the kiosk's order (rank 1..n, restarting per
+// case), and holds every row, not the kiosk's top ten. `score` is the display score the visitor saw (ADR 0013),
+// `raw` the stored composite the ranking uses. `cases` lists the whole pool, a case nobody has played included.
+export interface BoothStanding {
+  rank: number;
+  tag: number;
+  score: number;
+  raw: number;
+  case_id: string | null;
+  case_version: string | null;
+  scored_at: string;
+}
+export interface BoothStandingsCase {
+  case_id: string;
+  version: string | null;
+  /** null for a case dropped from the pool after it was played. */
+  teaser: { th: string; en: string } | null;
+  rows: BoothStanding[];
+}
+export interface BoothStandings {
+  event_code: string | null;
+  steps: number;
+  generated_at: string;
+  total: number;
+  overall: BoothStanding[];
+  cases: BoothStandingsCase[];
+}
+
+// GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the Settings page, the overview's
+// budget card, the users page and the Local AI capacity card, so a setting cannot be typed four different ways. The $ budget
 // keys were always here; the token / transcript / evaluation-drain keys arrived with
 // db/migration-local-ai-capacity.sql. On a token ceiling, 0 or a missing key means NO cap
 // (backend/src/lib/usage.js standardTokenLimit) — never "capped at zero".

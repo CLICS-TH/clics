@@ -164,7 +164,7 @@ export function AiProviderPanel() {
   return (
     // id: the Model Lock page links here (#ai-provider) when the candidate is not the serving evaluator.
     <section id="ai-provider" className="scroll-mt-20 space-y-3">
-      <h2 className="font-heading text-xl text-foreground">ผู้ให้บริการ AI / AI provider</h2>
+      <h3 className="font-heading text-xl text-foreground">ผู้ให้บริการ AI / AI provider</h3>
 
       {err && (
         <p role="alert" className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-foreground">

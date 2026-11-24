@@ -106,7 +106,7 @@ export default function UsersPage() {
   const [editAuditorTokens, setEditAuditorTokens] = useState(''); // same, for the auditor pool
   const [stdLimit, setStdLimit] = useState('');             // org standard usage limit ($)
   const [auditorStdLimit, setAuditorStdLimit] = useState(''); // org standard AUDITOR usage limit ($)
-  const [stdTokens, setStdTokens] = useState(0);              // org token ceiling per physician (0 = no cap); set on /admin/overview
+  const [stdTokens, setStdTokens] = useState(0);              // org token ceiling per physician (0 = no cap); set on /admin/settings
   const [auditorStdTokens, setAuditorStdTokens] = useState(0); // org token ceiling per auditor (0 = no cap)
   const [poolLimit, setPoolLimit] = useState('');           // total API budget pool ($)
   const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
@@ -199,7 +199,7 @@ export default function UsersPage() {
       setPoolLimit(d?.api_budget_pool_usd ? String(d.api_budget_pool_usd) : '');
       setTotalUsed(Number(d?.total_used_usd ?? 0));
       setAuditorTotalUsed(Number(d?.auditor_total_used_usd ?? 0));
-      // Token ceilings: absent/0 = no cap. Edited on /admin/overview (Local AI capacity), read here for the meters.
+      // Token ceilings: absent/0 = no cap. Edited on /admin/settings (Local AI capacity), read here for the meters.
       setStdTokens(Math.max(0, Number(d?.standard_limit_tokens ?? 0) || 0));
       setAuditorStdTokens(Math.max(0, Number(d?.auditor_standard_limit_tokens ?? 0) || 0));
     });

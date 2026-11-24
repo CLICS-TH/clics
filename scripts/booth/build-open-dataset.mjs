@@ -116,7 +116,7 @@ export async function run({ opts, db, aiRead, caseFile, currentCases, now, log }
     return 2;
   }
   if (Number(setting.value) !== 0) {
-    log.err(`refused: the booth is switched on (booth_enabled = ${setting.value}). Switch it off on the superadmin overview, then run this again.`);
+    log.err(`refused: the booth is switched on (booth_enabled = ${setting.value}). Switch it off on the superadmin Booth Mode page, then run this again.`);
     return 2;
   }
 

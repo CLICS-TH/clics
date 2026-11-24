@@ -67,7 +67,7 @@ const DASH_PAIRS: [string, string, string][] = [
   ['danger', 'card', 'ai-readiness "could not reach RIMPL" panel, evaluator-lock gate notes'],
   ['ok', 'background', 'success text'],
   ['ok', 'card', 'ai-readiness embedding + context readings'],
-  ['primary-foreground', 'coral-active', 'Button default + Badge default (white on coral), overview Download'],
+  ['primary-foreground', 'coral-active', 'Button default + Badge default (white on coral), settings Download, booth Export + selected leaderboard tab'],
   ['link', 'background', 'link variant'],
   // The manual (/manual). Its quoted UI-label chips sit on a TINT by design, where --link fails
   // (4.20:1 on --muted, 3.94:1 on --secondary) — which is why --coral-on-tint exists.
@@ -255,6 +255,10 @@ const DA_PAIRS: MinPair[] = [
   ['ring', 'card', NON_TEXT, ':focus-visible inside a Card'],
   ['ring', 'secondary', NON_TEXT, ':focus-visible on a tinted panel'],
   ['ring', 'muted', NON_TEXT, ':focus-visible on a bg-muted panel'],
+  // --- ui/switch (1.4.11): ON is a --primary track with a --primary-foreground thumb; OFF is a --field
+  // edge and a --field thumb on the page, pinned by ['field', 'background'] above.
+  ['primary', 'background', NON_TEXT, 'ui/switch on: the track against the page (settings, booth)'],
+  ['primary-foreground', 'primary', NON_TEXT, 'ui/switch on: the thumb against its track'],
   // --- chart marks vs the card they are drawn on (1.4.11). `fail` is a mark AND a 4xl stat figure.
   ['chart-pass', 'card', NON_TEXT, 'ICC bars, usage meter pass fill'],
   ['chart-fail', 'card', NON_TEXT, 'ICC fail bars, limits of agreement'],

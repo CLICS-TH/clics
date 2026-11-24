@@ -101,7 +101,11 @@ export async function apiDownload(path: string, filename: string): Promise<{ err
     return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error. Please try again.' };
   }
   if (res.status === 401 && typeof window !== 'undefined') { redirectToLogin(); return {}; }
-  if (!res.ok) return { error: `ดาวน์โหลดไม่สำเร็จ / Download failed (status ${res.status}).` };
+  if (!res.ok) {
+    // The backend's own {error} says why (the booth export's 503: the audit-log row could not be written).
+    const reason = await res.json().then((b) => (typeof b?.error === 'string' ? b.error : ''), () => '');
+    return { error: reason || `ดาวน์โหลดไม่สำเร็จ / Download failed (status ${res.status}).` };
+  }
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

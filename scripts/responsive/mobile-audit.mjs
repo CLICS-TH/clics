@@ -253,7 +253,7 @@ async function run() {
   const DASH = process.env.DASH_URL, BACKEND = process.env.BACKEND_URL || apiOrigin();
   const roleCfg = [
     { role: 'superadmin', email: process.env.SUPER_EMAIL, pw: process.env.SUPER_PW,
-      paths: ['/home','/admin/overview','/admin/ples','/admin/users','/admin/invites','/admin/flagged','/admin/compensation','/admin/stats','/admin/icc','/ethics','/analyst'] },
+      paths: ['/home','/admin/overview','/admin/settings','/admin/booth','/admin/ples','/admin/users','/admin/invites','/admin/flagged','/admin/compensation','/admin/stats','/admin/icc','/ethics','/analyst'] },
     { role: 'auditor', email: process.env.AUDITOR_EMAIL, pw: process.env.AUDITOR_PW,
       paths: ['/home','/auditor/queue'] },
   ].filter(r => r.email && r.pw);
