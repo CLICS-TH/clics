@@ -2,7 +2,9 @@
 // no play id and no time to POST /booth/feedback. A slider the visitor has not touched sends nothing and blocks Send,
 // so the starting value is never counted as an answer. The comment is de-identified by rimpl before it is stored; when
 // that fails the backend stores nothing and the page offers a retry or a send without it.
-import { FEEDBACK_COPY as C, LOOKS, fill } from './booth-copy.js';
+import { LOOKS, fill } from './booth-copy.js';
+import { FEEDBACK_COPY as C } from './booth-feedback-copy.js';
+import { FEEDBACK_ICONS, feedbackIcon } from './booth-feedback-icons.js';
 import { el, bi, setLook, currentLook } from './booth-dom.js';
 import { createBoothApi } from './booth-api.js';
 import { MOODS, moodFace, scaleFace } from './booth-faces.js';
@@ -31,7 +33,7 @@ const answers = { felt_like: new Set() };
 
 const icon = (name, size = 20) => {
   const span = el('span', { class: 'fb-ic', 'aria-hidden': 'true' });
-  span.innerHTML = window.icon(name, size);
+  span.innerHTML = FEEDBACK_ICONS.includes(name) ? feedbackIcon(name, size) : window.icon(name, size);
   return span;
 };
 const faceNode = (markup, cls) => {

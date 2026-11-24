@@ -213,6 +213,8 @@ export default [
       h.check(r.path === '/booth-feedback.html' && r.url === `${r.origin}/booth-feedback.html#c=cap-adult&l=th`, `feedbackUrl is absolute from the origin, with the case and look in the fragment (${r.url})`);
       h.check(h.same(r.parsed, { caseId: 'cap-adult', look: 'th' }) && h.same(r.roundTrip, { caseId: 'cap-adult', look: r.defaultLook }), `the default look "${r.defaultLook}" survives the URL (${r.urlDefault})`);
       h.check(r.badCase === null && r.longCase === null && r.badLook === r.defaultLook && h.same(r.none, { caseId: null, look: r.defaultLook }), 'a case id outside /^[a-z0-9-]{1,64}$/ is null, an unknown look is the default');
+      const privacy = await page.locator('.fb-privacy').innerText();
+      h.check(privacy.includes('ไม่เก็บชื่อ หมายเลขผู้เล่น หรือเวลาที่เล่น') && privacy.includes('เก็บเพียงวันที่ส่ง'), 'the privacy line says no name, player number or time of play, and that only the date sent is kept');
       h.check(h.same(r.moods, ['stressed', 'confused', 'neutral', 'enjoyed', 'excited']), 'MOODS lists the five moods in order');
       h.check(r.every && r.distinct === 5, 'every face is a 48-unit SVG, aria-hidden, with no emoji or other non-ASCII, and the five moods differ');
       h.check(h.same(r.brows, [true, false, false, false, false]) && h.same(r.cheeks, [false, false, true, true, true]) && h.same(r.happy, [false, false, false, true, true]),
