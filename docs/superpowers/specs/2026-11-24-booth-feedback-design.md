@@ -161,7 +161,7 @@ The new migration `db/migration-booth-feedback.sql` creates `public.booth_feedba
 - **Access:** RLS on with no policy, so only the service role can read or write, the same deny-all stance as `booth_plays`.
 - **Index:** on `(event_code, submitted_on)`.
 - **Clock:** `id` must not be a time-ordered uuid (gen_random_uuid is v4, fine). The backend must not log the request with its time on purpose (no `console.log` of a submit).
-- **Scope of "anonymous" (owner, 2026-11-24):** what CLICS stores and shows (the table, the admin page, the export) cannot be matched to a play. Server access logs (the vm1 proxy, the backend's request logs) and the in-memory rate-limit store keep recording request times as they do for every booth request today. They are readable only by whoever runs the server and are never joined to the feedback data. The ADR states this limit; no log redaction is built.
+- **Scope of "anonymous" (owner, 2026-11-24):** what CLICS stores and shows (the table, the admin page, the export) holds nothing that matches an answer to a play (ADR 0015: no timestamp, no tag, no play id; rows are sorted by content, never in database order). Server access logs (the vm1 proxy, the backend's request logs) and the in-memory rate-limit store keep recording request times as they do for every booth request today. They are readable only by whoever runs the server and are never joined to the feedback data. The ADR states this limit; no log redaction is built.
 - **Purge:** `scripts/booth/purge-event.mjs` also deletes the event's `booth_feedback` rows, then counts what is left for that event and fails if any remain, as it does for `booth_plays`. Nothing is added to the per-event stats in `migration-booth-purge.sql`.
 
 ### 6. Admin view (audit-dashboard)

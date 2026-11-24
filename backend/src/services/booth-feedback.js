@@ -3,7 +3,9 @@
 // tag, no play id. Taken only while the booth is open. The comment is never logged.
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
-const { openEvent, eventCases } = require('./booth');
+const { openEvent, eventCases, readBoothEvent } = require('./booth');
+const { readAll } = require('./booth-audits');
+const { flaggedForAuditor } = require('./booth-dialogue');
 const { rimplDeidentify } = require('./rimpl-client');
 
 const FORM_VERSION = 'fb-1';
@@ -70,4 +72,60 @@ async function submitFeedback(input, now = new Date()) {
   return error ? { refused: 'unavailable' } : { body: {} };
 }
 
-module.exports = { FORM_VERSION, COMMENT_MAX_CHARS, ROLES, MOODS, FELT_LIKE, FeedbackSchema, feedbackOpen, submitFeedback };
+// answers as text with sorted keys, so two rows of equal answers compare equal whatever order the database kept them in
+const stableText = (v) => JSON.stringify(v, (_k, x) => (x && typeof x === 'object' && !Array.isArray(x)
+  ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, x[k]])) : x));
+const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+/** Newest date first; within a date by case id (none last), then the answers as text, then id. Never database order:
+ *  heap and insertion order would line rows up against the timestamped play export (ADR 0015). The id only breaks
+ *  ties and never leaves this module. */
+function inContentOrder(rows) {
+  return rows.map((r) => ({ r, answersText: stableText(r.answers) })).sort((x, y) =>
+    cmp(y.r.submitted_on, x.r.submitted_on)
+    || (x.r.case_id === null) - (y.r.case_id === null)
+    || cmp(x.r.case_id, y.r.case_id)
+    || cmp(x.answersText, y.answersText)
+    || cmp(x.r.id, y.r.id)).map((x) => x.r);
+}
+
+/** @returns {{ rows: object[], counts: object } | null} the event's rows as a superadmin sees them, null when unreadable */
+async function eventRows(code) {
+  // .order('id') only keeps the pages stable while they are read; the order that is shown is set in code afterwards.
+  const raw = await readAll(() => supabase.from('booth_feedback').select('id, submitted_on, case_id, answers, comment')
+    .eq('event_code', code).order('id'));
+  if (!raw) return null;
+  const rows = inContentOrder(raw).map((r) => {
+    const out = { date: r.submitted_on, case_id: r.case_id, answers: r.answers, comment: r.comment };
+    if (r.comment !== null && flaggedForAuditor(r.comment)) { out.comment = null; out.withheld = 'flagged'; }
+    return out;
+  });
+  const counts = {
+    answers: rows.length,
+    comments: rows.filter((r) => r.comment !== null || r.withheld).length,
+    comments_withheld: rows.filter((r) => r.withheld).length,
+  };
+  return { rows, counts };
+}
+
+/** Every row of the event the booth settings name, open or not. @returns {Promise<{ body: object } | null>} */
+async function readFeedback() {
+  const event = await readBoothEvent();
+  if (!event?.code) return null;
+  const read = await eventRows(event.code);
+  return read && { body: { event_code: event.code, form: FORM_VERSION, rows: read.rows, counts: read.counts } };
+}
+
+/** @returns {Promise<{ filename: string, body: object } | null>} */
+async function exportFeedback() {
+  const event = await readBoothEvent();
+  if (!event?.code) return null;
+  const read = await eventRows(event.code);
+  if (!read) return null;
+  return {
+    filename: `booth-feedback-${event.code.replace(/[^A-Za-z0-9-]/g, '_')}.json`,
+    body: { export: { event_code: event.code, counts: read.counts, form: FORM_VERSION }, rows: read.rows },
+  };
+}
+
+module.exports = { readFeedback, exportFeedback, FORM_VERSION, COMMENT_MAX_CHARS, ROLES, MOODS, FELT_LIKE, FeedbackSchema, feedbackOpen, submitFeedback };

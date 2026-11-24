@@ -103,11 +103,20 @@ function fakeBackend(t, settings) {
     }
     function from(table) {
       const filters = [];
+      let del = false;
       const b = {
         select() { return b; },
+        delete() { del = true; return b; },
         eq(k, v) { filters.push((r) => r[k] === v); return b; },
         then(ok, no) {
-          const count = load()[table].filter((r) => filters.every((f) => f(r))).length;
+          const db = load();
+          const rows = db[table] ?? [];
+          if (del) {
+            db[table] = rows.filter((r) => !filters.every((f) => f(r)));
+            save(db);
+            return Promise.resolve({ data: null, error: null }).then(ok, no);
+          }
+          const count = rows.filter((r) => filters.every((f) => f(r))).length;
           return Promise.resolve({ data: null, error: null, count }).then(ok, no);
         },
       };
@@ -118,7 +127,8 @@ function fakeBackend(t, settings) {
   const db = join(dir, 'db.json');
   const play = (i, event_code = 'NFCME-2026') => ({ id: String(i), event_code, status: i % 2 ? 'scored' : 'abandoned' });
   const plays = [...Array.from({ length: 21 }, (_, i) => play(i)), play(9999, 'OTHER-2025')];
-  writeFileSync(db, JSON.stringify({ booth_plays: plays, purges: [], settings, calls: [] }));
+  const feedback = [...Array.from({ length: 4 }, (_, i) => ({ id: `f${i}`, event_code: 'NFCME-2026' })), { id: 'fo', event_code: 'OTHER-2025' }];
+  writeFileSync(db, JSON.stringify({ booth_plays: plays, booth_feedback: feedback, purges: [], settings, calls: [] }));
   const state = () => JSON.parse(readFileSync(db, 'utf8'));
   const set = (patch) => writeFileSync(db, JSON.stringify({ ...state(), ...patch }));
   const run = (args, env = {}) => {
@@ -161,6 +171,16 @@ test('purge-event, committed: refused while switched on, then the delete labels 
   assert.match(deleted.out, /Next step: Done\. Send the CCME summary block above to CCME\. Nothing else to run\.\n$/);
   assert.equal(state().calls.length, 1, 'one rpc call does both');
   assert.deepEqual(state().booth_plays.map((r) => r.event_code), ['OTHER-2025'], 'other events are kept');
+  assert.match(deleted.out, /feedback: 0 rows remain/);
+  assert.deepEqual(state().booth_feedback.map((r) => r.id), ['fo'], 'the event feedback rows go with its plays, other events are kept');
+});
+
+test('purge-event: a dry run counts the event feedback rows and deletes none', (t) => {
+  const { state, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
+  const dry = run(['--event', 'NFCME-2026']);
+  assert.equal(dry.code, 0);
+  assert.match(dry.out, /feedback rows: 4\n/);
+  assert.equal(state().booth_feedback.length, 5);
 });
 
 test('purge-event, already purged: a --delete rerun deletes 0 and labels the recorded summary, never the zeros', (t) => {

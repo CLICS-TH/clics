@@ -118,7 +118,7 @@
 - Consumes: Task 1's table and constants, `flaggedForAuditor`, `logEventStrict` from `lib/audit`, and `readBoothEvent`.
 - Produces:
   - `FeedbackRow = { date: string, case_id: string|null, answers: object, comment: string|null, withheld?: 'flagged' }`. When withheld, `comment` is null.
-  - `readFeedback() -> Promise<{ body: { event_code: string, form: 'fb-1', rows: FeedbackRow[], counts: { answers: number, comments: number, comments_withheld: number } } } | null>`. Rows are newest date first; within a date, order is the database's.
+  - `readFeedback() -> Promise<{ body: { event_code: string, form: 'fb-1', rows: FeedbackRow[], counts: { answers: number, comments: number, comments_withheld: number } } } | null>`. Rows are newest date first; within a date they are sorted in code by case id (none last), then the answers as text, then id, never in database order (ADR 0015). The id is used only for the sort and is not in the row.
   - `exportFeedback() -> Promise<{ filename: string, body } | null>`, where `filename` is `booth-feedback-<EVENT>.json` and `body` is `{ export: { event_code, counts, form }, rows }`.
   - `GET /admin/booth/feedback` returns 200 with the `readFeedback` body, or 502.
   - `GET /admin/booth/feedback.json` returns the attachment after the audit row `booth.feedback_export` (metadata `{event_code, ...counts}`). If the audit write fails, it returns 503 and sends nothing.

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /*
  * Booth purge (#217, ADR 0004, 0010): prints the counts summary for CCME and, with --delete, removes every
- * booth_plays row of one event. Booth plays are kept as research data with no 30-day delete (ADR 0010): run it only
- * for a test event or an owner-ordered removal.
+ * booth_plays row of one event, then that event's booth_feedback rows (ADR 0015). Booth plays are kept as research data
+ * with no 30-day delete (ADR 0010): run it only for a test event or an owner-ordered removal. The dry run also prints how
+ * many feedback rows the event holds.
  *
  * Needs db/migration-booth-purge.sql applied: one call to booth_event_summary() checks the switch, deletes and
  * summarizes in one transaction, so the printed summary describes exactly the rows deleted. That transaction also
@@ -92,6 +93,8 @@ if (error || !summary) {
 
 if (!del) {
   console.log(`Live plays of ${code} now (dry run: nothing deleted):\n${report(code, summary)}\n`);
+  const { count: feedback, error: feedbackError } = await supabase.from('booth_feedback').select('id', { count: 'exact', head: true }).eq('event_code', code);
+  console.log(feedbackError || feedback == null ? `feedback rows: could not be counted (${feedbackError?.message ?? 'no count'})\n` : `feedback rows: ${feedback}\n`);
   const p = plan(code, { kind: 'read', summary, attempt });
   const earlier = summary.recorded;
   const shown = p.ccme && (p.ccme.summary === earlier?.summary || earlier?.purged_at === summary.attempt?.purged_at);
@@ -109,4 +112,15 @@ if (countError || left == null) {
 }
 console.log(`deleted ${summary.plays} rows, ${left} remain\n`);
 if (left > 0) end({ ...p, next: `${left} plays remain. Send the CCME summary block above, then run \`${command(code)}\` and follow its next step.` }, 1);
+
+// The plays are gone: now the event's anonymous feedback rows (ADR 0015), counted again the same way.
+const { error: feedbackDeleteError } = await supabase.from('booth_feedback').delete().eq('event_code', code);
+if (feedbackDeleteError) console.error(`booth_feedback delete failed: ${feedbackDeleteError.message}`);
+const { count: feedbackLeft, error: feedbackCountError } = await supabase.from('booth_feedback').select('id', { count: 'exact', head: true }).eq('event_code', code);
+if (feedbackCountError || feedbackLeft == null) {
+  console.error(`booth_feedback recount failed: ${feedbackCountError?.message ?? 'no count'}`);
+  end({ ...p, next: `The plays are deleted and the CCME summary is above: send it. Then run \`${command(code)}\` and check the feedback rows count.` }, 1);
+}
+console.log(`feedback: ${feedbackLeft} rows remain\n`);
+if (feedbackLeft > 0) end({ ...p, next: `${feedbackLeft} feedback rows remain. Send the CCME summary block above, then run \`${command(code, '--delete')}\` again.` }, 1);
 end(p, 0);
