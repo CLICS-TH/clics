@@ -13,6 +13,8 @@ decisions (who holds the LUKS passphrase among them).
 | `pg_hba.conf.template` | vm1 only, TLS only, `clics_mentor` only; the superuser only through the container's socket |
 | `setup.sh` | Every step below, each printing what it did and stopping on the first problem |
 
+The restore drill on vm1 (`../vm1/db-move/README.md`, Restore drill) runs this same image, in memory.
+
 What it guarantees, and how each is checked:
 
 - **Encrypted at rest.** The data directory exists only inside a LUKS2 volume. While the volume is locked,

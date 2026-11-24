@@ -7,8 +7,9 @@ backend has no host port.
 
 | File | What it is |
 |---|---|
-| `run.sh` | Drives it: `hermetic`, `vm1-env`, `vm1-up`, `vm1-paths`, `vm1-mail`, `down` |
+| `run.sh` | Drives it: `hermetic`, `vm1-env`, `vm1-up`, `vm1-paths`, `vm1-mail`, `down`; also `vm1-drill`, the nightly backup's restore drill (`../db-move/README.md`, Restore drill) |
 | `docker-compose.rehearsal.yml` | Adds a throwaway `supabase/postgres` on **tmpfs**, mailpit, and takes the backend's host port away |
+| `docker-compose.drill.yml` | `vm1-drill` only: the database becomes the data host's PostgreSQL 18 (`../../data-host/`), still on tmpfs. `run.sh` checks, on the running container, that the data directory is a tmpfs and no volume is mounted |
 | `auth-paths.mjs` | The replay. Runs in a one-off backend container on the rehearsal network |
 | `failure-probes.mjs` | `hermetic` only, after the replay: a failed mail send and one client's wrong codes and passwords (429 expected), then `run.sh` checks no auth container log names an address |
 | `docker-compose.hermetic.yml` | `hermetic` only: the stand-ins for Google (`fake-google.mjs`, as `accounts.google.com`) and for Resend's relay (mailpit as `smtp.resend.com:465`, implicit TLS and SMTP AUTH), on certificates from a throwaway CA only the rehearsal's GoTrue trusts. A vm1 run never loads it |
@@ -75,8 +76,8 @@ database that lives **in memory only**, inside the rehearsal container. No copy 
 laptop, and step 7 deletes it. While the rehearsal runs, vm1 holds participant data in RAM, which R5 does
 not otherwise allow. Keep the window short.
 
-1. **Ship the files.** The rehearsal needs `backend/` and `deploy/vm1/` of the branch under test. From the
-   Mac:
+1. **Ship the files.** The rehearsal needs `backend/` and `deploy/vm1/` of the branch under test (the restore
+   drill, `vm1-drill`, also needs `deploy/data-host/`, and runs from the release instead). From the Mac:
    ```bash
    git archive --format=tar HEAD backend deploy/vm1 | tailscale ssh root@VM1_TAILNET_NAME \
      'install -d -m 700 /opt/clics/rehearsal /opt/clics/rehearsal/src /opt/clics/rehearsal/env && tar -x -C /opt/clics/rehearsal/src'

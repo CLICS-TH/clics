@@ -577,7 +577,7 @@ test('gate backend: requires service "backend", rimpl up and Supabase up; other 
 // The fake records each invocation's argv and stdin and never contacts anything. The throwaway repo holds
 // deploy/vm1 as committed here plus stub backend/, rimpl/, physician-ui/ and audit-dashboard/ trees, so a
 // real `git archive` runs.
-function fakeRepo({ trackedEnv = false } = {}) {
+function fakeRepo({ trackedEnv = false, dataHost = true } = {}) {
   const dir = scratch('repo');
   const repo = path.join(dir, 'repo');
   mkdirSync(path.join(repo, 'deploy', 'vm1', 'nginx'), { recursive: true });
@@ -600,6 +600,11 @@ function fakeRepo({ trackedEnv = false } = {}) {
   mkdirSync(path.join(repo, 'audit-dashboard'), { recursive: true });
   writeFileSync(path.join(repo, 'audit-dashboard', 'package.json'), '{}\n');
   if (trackedEnv) writeFileSync(path.join(repo, 'rimpl', '.env'), 'SECRET=x\n');
+  // The data host's Dockerfile, which the restore drill builds on vm1; a ref from before it has none.
+  if (dataHost) {
+    mkdirSync(path.join(repo, 'deploy', 'data-host'), { recursive: true });
+    writeFileSync(path.join(repo, 'deploy', 'data-host', 'Dockerfile'), 'FROM postgres:18.7\n');
+  }
   const git = (...args) => {
     const r = spawnSync('git', ['-C', repo, ...args], { encoding: 'utf8' });
     assert.equal(r.status, 0, `git ${args.join(' ')}: ${r.stderr}`);
@@ -707,9 +712,21 @@ test('deploy.sh ships tracked code only, stages and launches the activation, and
     assert.ok(files.includes('rimpl/Dockerfile'));
     assert.ok(files.includes('physician-ui/public/index.html'), 'the Portal ships');
     assert.ok(files.includes('audit-dashboard/package.json'), 'the dashboard ships');
+    assert.ok(files.includes('deploy/data-host/Dockerfile'), 'the data host\'s Dockerfile ships, for the restore drill');
     assert.ok(!files.includes('deploy/vm1/backend.env'), 'an untracked env file never ships');
     assert.deepEqual(files.filter((f) => /(^|\/)(\.env|[^/]*\.env|\.env\.[^/]*)$/.test(f) && !f.endsWith('.env.example')), []);
     assert.ok(!up.stdin.includes(Buffer.from('do-not-ship')));
+  } finally { cleanFx(fx); }
+});
+
+test('deploy.sh still ships a ref from before deploy/data-host existed', () => {
+  const fx = fakeRepo({ dataHost: false });
+  try {
+    const r = runDeploy(fx, ['HEAD']);
+    assert.equal(r.status, 0, r.stderr + r.stdout);
+    const files = tarList(r.calls[1].stdin, fx.dir);
+    assert.ok(files.includes('deploy/vm1/docker-compose.yml'));
+    assert.ok(!files.some((f) => f.startsWith('deploy/data-host')));
   } finally { cleanFx(fx); }
 });
 

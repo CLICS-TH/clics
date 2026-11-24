@@ -314,6 +314,17 @@ expect "  → and every auth row (RLS hides none from clics_backup)" "t" \
 expect "backup carries its report as SQL comments" "t" \
   "$(grep -q '^-- clics-report table|public.booth_plays|25|' "$DIR/backup.sql" && echo t || echo f)"
 expect "  → and the anchored chain head" "t" "$(grep -q '^-- clics-report audit_head|7|' "$DIR/backup.sql" && echo t || echo f)"
+expect "  → and its source's PostgreSQL version (pg_dump's header)" "t" \
+  "$(grep -q '^-- Dumped from database version [0-9]' "$DIR/backup.sql" && echo t || echo f)"
+# A backup from a newer major than the drill database's (PostgreSQL 18's data host into a 17 drill): refused
+# before its first row, and the load's transaction never commits.
+EXTS="$(S drill -c "select count(*) from pg_extension")"
+OUT="$(sed 's/^-- Dumped from database version [0-9]*/-- Dumped from database version 99/' "$DIR/backup.sql" |
+  CLICS_DATA_PORT=$SPORT CLICS_DATA_DB=drill bash "$MOVE" drill 2>&1)" && RC=0 || RC=$?
+expect "restore drill refuses a backup from a newer PostgreSQL than its own" "3" "$RC"
+has "  → says which versions" "comes from PostgreSQL 99 and this drill database runs" "$OUT"
+expect "  → and leaves the drill database as it was" "0|$EXTS|0" \
+  "$(S drill -c "select (select count(*) from pg_class where relnamespace = 'public'::regnamespace), (select count(*) from pg_extension), (select count(*) from auth.users)")"
 OUT="$(CLICS_DATA_PORT=$SPORT CLICS_DATA_DB=drill bash "$MOVE" drill < "$DIR/backup.sql" 2>&1)" || true
 has "restore drill: the backup restores and passes its own report" "VERIFY: PASS" "$OUT"
 D t1 -c "insert into public.booth_sort_memos (memo) values ('after the backup')"

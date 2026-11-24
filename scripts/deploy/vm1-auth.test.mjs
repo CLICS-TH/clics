@@ -150,6 +150,38 @@ test('the rehearsal never takes the live backend\'s port and keeps its database 
   assert.match(read('rehearsal', 'run.sh'), /^PROJECT=clics-rehearsal$/m, 'its own compose project, never clics');
 });
 
+// The restore drill (#432): a nightly backup of the PostgreSQL 18 data host restores into that same PostgreSQL,
+// never an older one, in a database that lives in memory like the rehearsal's.
+test('the restore drill runs on the data host\'s PostgreSQL, in memory, and only in vm1-drill', () => {
+  const drill = read('rehearsal', 'docker-compose.drill.yml');
+  const dataHost = readFileSync(path.join(ROOT, 'deploy', 'data-host', 'docker-compose.yml'), 'utf8');
+  const image = /^ {4}image: (clics-data-pg:\S+)$/m.exec(dataHost)?.[1];
+  assert.ok(image, 'the data host names its image');
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(drill, new RegExp(`^ {4}image: ${esc(image)}$`, 'm'), 'the drill runs the data host\'s image');
+  assert.match(drill, /^ {6}context: \.\.\/data-host$/m, 'built from the data host\'s Dockerfile');
+  assert.match(drill, /^ {6}PGDATA: \/var\/lib\/postgresql\/data$/m, 'its data in the rehearsal\'s tmpfs');
+  assert.match(drill, /tmpfs:\n {6}- \/var\/lib\/postgresql:rw,/, 'the image\'s volume path is a tmpfs too');
+  assert.ok(!/mem_limit|memswap_limit|volumes:/.test(meaningful(drill).join('\n')), 'the memory cap and the no-volume rule stay the rehearsal\'s');
+  // A damaged backup's ERROR quotes row values: the drill logs as the data host does, which is no ERROR at all.
+  const conf = readFileSync(path.join(ROOT, 'deploy', 'data-host', 'postgresql.conf'), 'utf8');
+  for (const k of ['log_min_messages', 'log_min_error_statement', 'log_error_verbosity']) {
+    const v = new RegExp(`^${k} = '([a-z]+)'$`, 'm').exec(conf)?.[1];
+    assert.ok(v, `the data host sets ${k}`);
+    assert.match(drill, new RegExp(`"-c", "${k}=${v}"`), `the drill sets ${k}=${v}, as the data host does`);
+  }
+  const run = read('rehearsal', 'run.sh');
+  assert.match(run, /^DRILL=$/m, 'a DRILL inherited from the caller is dropped');
+  assert.equal(run.match(/^\s*DRILL=1$/gm)?.length, 1, 'DRILL=1 is set in one place');
+  const start = run.indexOf('\n  vm1-drill)\n');
+  const branch = run.slice(start, run.indexOf('\n    ;;\n', start));
+  assert.match(branch, /^ {4}DRILL=1$/m, 'and that place is vm1-drill');
+  assert.match(branch, /^ {4}exec 3<&0 <\/dev\/null$/m, 'the backup stream is kept from every exec before the drill');
+  assert.match(branch, /exec bash \/tmp\/move\.sh drill' <&3$/m, 'and handed to the drill alone');
+  assert.match(run, /up_db\(\) \{[^}]*assert_in_memory/, 'up_db checks the data is in memory before any is loaded');
+  assert.match(read('deploy.sh'), /release_paths\+=\(deploy\/data-host\)/, 'the release carries the data host\'s Dockerfile');
+});
+
 // The Google and Resend stand-ins replace the real services, so a vm1 rehearsal must never load them: there
 // GoTrue has to reach the real Google and the real relay with the system's trust store.
 test('the Google and SMTP stand-ins load only in the hermetic run, never on vm1', () => {

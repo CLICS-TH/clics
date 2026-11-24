@@ -312,10 +312,12 @@ Set-up, once:
 Monthly, and before the window is declared closed. On vm1, into a throwaway database that lives in memory
 (the rehearsal's tmpfs database, `../rehearsal/README.md`), never into the data host:
 
-> **Open for the cme-dev data host.** The rehearsal's database is `supabase/postgres:17.6.1.136`. A backup
-> of the PostgreSQL 18 data host (`../../data-host/`) would be restored into an older server, which
-> PostgreSQL does not support. Before the first drill there, the drill's database must run PostgreSQL 18:
-> `clics-data-pg:18.7-pgvector0.8.7` with `prepare-plain-pg.sql`, as on the data host. Not built yet.
+The drill's database is the data host's own PostgreSQL (`../rehearsal/docker-compose.drill.yml`:
+`clics-data-pg:18.7-pgvector0.8.7` from `../../data-host/`, with `prepare-plain-pg.sql`), so a backup is
+restored into the major version it was taken from. `move.sh drill` refuses a backup from a newer major
+than the drill database's, before its first row. The first drill on vm1 builds that image from the
+release's `deploy/data-host/`, which needs Docker Hub and github.com; without them, copy the image cme-dev
+built: `docker save clics-data-pg:18.7-pgvector0.8.7` there, `docker load` on vm1 (an image, no data).
 
 1. Fresh rehearsal secrets, as for the sign-in rehearsal: `rehearsal/run.sh vm1-env ENV_DIR` (a root-only
    directory).

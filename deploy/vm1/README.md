@@ -44,7 +44,7 @@ Rimpl is built from `rimpl/Dockerfile` unchanged.
 ```
 /opt/clics/
   releases/<sha>/      one immutable release per commit (git archive of backend/ rimpl/ physician-ui/
-                       audit-dashboard/ deploy/vm1/)
+                       audit-dashboard/ deploy/vm1/ deploy/data-host/, the last for the restore drill)
   current -> releases/<sha>    the live release (moves only after both gates pass)
   previous -> releases/<sha>   the one before it
   env/                 owner clics, mode 700

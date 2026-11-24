@@ -8,8 +8,9 @@
 #   rehearsal/run.sh vm1-paths ENV_DIR   vm1: replay the sign-in paths against it
 #   rehearsal/run.sh vm1-mail ENV_DIR    vm1: recreate GoTrue (after gotrue.env's SMTP lines changed) and ask it
 #                                        for one recovery mail to the address on stdin
-#   rehearsal/run.sh vm1-drill ENV_DIR   vm1: restore a decrypted nightly backup (stdin) into the in-memory db
-#                                        and check it (../db-move/README.md, Restore drill)
+#   rehearsal/run.sh vm1-drill ENV_DIR   vm1: restore a decrypted nightly backup (stdin) into an in-memory copy
+#                                        of the data host's PostgreSQL and check it (../db-move/README.md,
+#                                        Restore drill)
 #   rehearsal/run.sh down [ENV_DIR]      stop and remove the rehearsal project; the tmpfs database goes with it
 #
 # Everything runs under the compose project `clics-rehearsal`, never `clics`. The rehearsal backend has no host
@@ -25,18 +26,25 @@ PKI_VOLUME=clics-rehearsal-pki
 # HERMETIC=1 adds the stand-ins for Google and Resend. Only the hermetic command sets it; one inherited from
 # the caller's shell is dropped here.
 HERMETIC=
+# DRILL=1 makes the database the data host's own PostgreSQL 18 (docker-compose.drill.yml) instead of the
+# supabase/postgres image. Only the vm1-drill command sets it; one inherited from the caller's shell is dropped.
+DRILL=
 dc() {
   local files=(-f docker-compose.yml -f docker-compose.auth.yml -f rehearsal/docker-compose.rehearsal.yml)
   [ -z "$HERMETIC" ] || files+=(-f rehearsal/docker-compose.hermetic.yml)
+  [ -z "$DRILL" ] || files+=(-f rehearsal/docker-compose.drill.yml)
   docker compose -p "$PROJECT" "${files[@]}" "$@"
 }
+# The database's superuser, reached through the container's socket: supabase_admin in the supabase/postgres
+# image, postgres in the data host's.
+db_su() { if [ -n "$DRILL" ]; then echo postgres; else echo supabase_admin; fi; }
 
 # supabase/postgres creates the API and auth roles without a usable password; the stack logs in as two of
 # them. The password goes in on stdin, never on a command line.
 set_role_passwords() {
-  dc exec -T db sh -c 'for r in authenticator supabase_auth_admin; do
+  dc exec -T -e "DB_SU=$(db_su)" db sh -c 'for r in authenticator supabase_auth_admin; do
       echo "alter role $r with login password '"'"'$POSTGRES_PASSWORD'"'"';"
-    done | psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q'
+    done | psql -U "$DB_SU" -d postgres -v ON_ERROR_STOP=1 -X -q'
 }
 
 # The db container must not swap (mem_limit = memswap_limit in docker-compose.rehearsal.yml): its tmpfs holds
@@ -49,9 +57,28 @@ assert_no_swap() {
   log "db cannot swap (memory.swap.max 0)"
 }
 
+# The data directory must be the tmpfs (docker-compose.rehearsal.yml), read from the running server: an image
+# that keeps its data elsewhere (PostgreSQL 18's /var/lib/postgresql/18/docker, an anonymous volume on vm1's
+# disk) stops the rehearsal before any data is loaded.
+assert_in_memory() {
+  local dir fs vols
+  dir=$(dc exec -T db psql -U "$(db_su)" -d postgres -AtX -c 'show data_directory') || die "cannot read the db's data directory"
+  fs=$(dc exec -T db stat -f -c %T "$dir") || die "cannot read the file system under $dir"
+  [ "$fs" = tmpfs ] || die "the db keeps its data in $dir, on $fs, not in memory: a restored copy would reach vm1's disk"
+  # A volume an image declares (PostgreSQL 18's /var/lib/postgresql) becomes an anonymous one on vm1's disk
+  # unless a tmpfs covers it.
+  vols=$(docker inspect -f '{{range .Mounts}}{{if eq .Type "volume"}}{{.Destination}} {{end}}{{end}}' "$(dc ps -q db)")
+  [ -z "$vols" ] || die "the db has a docker volume on vm1's disk at: $vols"
+  log "db data in memory ($dir on tmpfs, no volume)"
+}
+
 up_db() {
   dc up -d --wait --wait-timeout 180 db
   assert_no_swap
+  assert_in_memory
+  # The data host's PostgreSQL is plain: it gets the roles and the auth schema the supabase/postgres image has,
+  # as the data host itself did (../data-host/setup.sh init).
+  [ -z "$DRILL" ] || dc exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -X -q < db-move/prepare-plain-pg.sql
   set_role_passwords
 }
 
@@ -317,21 +344,26 @@ case "${1:-}" in
     unset TO
     ;;
   vm1-drill)
-    # The restore drill (db-move/README.md, Restore drill): a decrypted nightly backup on stdin goes into the
-    # rehearsal's in-memory db, after GoTrue has migrated its auth schema, and move.sh checks it against the
-    # report the backup carries. The stream goes straight into the db container; nothing reaches a disk.
+    # The restore drill (db-move/README.md, Restore drill): a decrypted nightly backup on stdin goes into an
+    # in-memory copy of the data host's PostgreSQL (docker-compose.drill.yml), after GoTrue has migrated its
+    # auth schema, and move.sh checks it against the report the backup carries. The stream goes straight into
+    # the db container; nothing reaches a disk.
     [ -n "${2:-}" ] || die "usage: gpg --decrypt BACKUP | run.sh vm1-drill ENV_DIR"
     [ ! -t 0 ] || die "vm1-drill reads a decrypted backup stream on stdin"
+    # Every `docker compose exec` forwards its stdin and would eat the head of the stream (its report): the
+    # stream waits on fd 3 for the drill itself, and everything before it reads /dev/null.
+    exec 3<&0 </dev/null
+    DRILL=1
     export_env "$2"
     up_db
     dc up -d --wait --wait-timeout 180 gotrue
     dc stop gotrue
     dc cp db-move/move.sh db:/tmp/move.sh
     dc exec -T db bash -c 'set -euo pipefail; umask 077
-      printf "127.0.0.1:5432:postgres:supabase_admin:%s\n" "$POSTGRES_PASSWORD" > /tmp/pgpass
+      printf "127.0.0.1:5432:postgres:postgres:%s\n" "$POSTGRES_PASSWORD" > /tmp/pgpass
       # Loopback inside the throwaway db container: nothing crosses a network, so the hop may be plain.
-      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 CLICS_DATA_SSLMODE=prefer CLICS_DATA_PLAINTEXT_OK=1 \
-        exec bash /tmp/move.sh drill'
+      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 CLICS_DATA_USER=postgres CLICS_DATA_SSLMODE=prefer \
+        CLICS_DATA_PLAINTEXT_OK=1 exec bash /tmp/move.sh drill' <&3
     ;;
   down)
     if [ -n "${2:-}" ]; then export_env "$2"; else export_env "$(mktemp -d)"; fi

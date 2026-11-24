@@ -463,11 +463,24 @@ backup() {
 }
 drill() {
   [ ! -t 0 ] || die "drill reads a decrypted backup stream on stdin"
-  local rep
+  local rep tver
   rep=$(mktemp "${TMPDIR:-/tmp}/db-move-report.XXXXXX")
   # shellcheck disable=SC2064
   trap "rm -f '$rep'" RETURN
-  awk -v f="$rep" 'index($0, "-- clics-report ") == 1 { print substr($0, 17) > f } { print }' | load
+  tver=$(echo "select current_setting('server_version_num');" | q_dst) || die "cannot read the drill database"
+  # A backup restores into its own PostgreSQL major version or a newer one, never an older one (PostgreSQL does
+  # not support that). pg_dump names the source's version in a comment before the first row; an older drill
+  # database stops the stream there, and the load's transaction ends without its commit, so nothing stays.
+  awk -v f="$rep" -v tmaj="$(( tver / 10000 ))" '
+    index($0, "-- clics-report ") == 1 { print substr($0, 17) > f }
+    !seen && index($0, "-- Dumped from database version ") == 1 {
+      seen = 1; smaj = int(substr($0, 33) + 0)
+      if (smaj > tmaj) {
+        printf "[db-move] ERROR: the backup comes from PostgreSQL %d and this drill database runs %d: restore it into %d or newer\n", smaj, tmaj, smaj > "/dev/stderr"
+        exit 3
+      }
+    }
+    { print }' | load
   grep -q '^table|' "$rep" || die "the stream carries no report: is it a backup.sh stream?"
   check "$rep"
 }
