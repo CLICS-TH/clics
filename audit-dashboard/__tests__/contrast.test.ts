@@ -492,9 +492,10 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
     // The pre-paint snippet is hand-duplicated (no build step), so drift is the failure mode: a head left
     // on the old snippet flashes the wrong theme for System readers.
     // The exceptions store nothing, so they carry no theme snippet at all: the kiosk (#210), its result page
-    // (#251), and the Calibration Workshop page its result card links to (its scripts keep the language in memory only).
+    // (#251), the Calibration Workshop page its result card links to (its scripts keep the language in memory only), and
+    // the anonymous feedback form (spec 2026-11-24; a sessionStorage flag only, nothing in localStorage).
     const dir = path.join(REPO, 'physician-ui', 'public');
-    const booth = ['booth.html', 'booth-result.html', 'workshop.html'];
+    const booth = ['booth.html', 'booth-result.html', 'workshop.html', 'booth-feedback.html'];
     const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html') && !booth.includes(f)).map((f) => path.join(dir, f))
       .concat(path.join(dir, 'auth', 'callback.html'));
     expect(pages.length).toBe(18);
