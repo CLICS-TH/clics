@@ -1,0 +1,59 @@
+# deploy/data-host/docker-compose.yml: the CLICS data host on cme-dev (ADR 0012, #432). One service,
+# `clics-mentor-postgres`, a PostgreSQL cluster of its own holding only `clics_mentor`. README.md says how
+# it is set up, started after a reboot, and checked.
+#
+#   cd /opt/clics-data/current/deploy/data-host && ./setup.sh start    (setup.sh adds the env file)
+#
+# Settings come from /opt/clics-data/env/data.env (root, 600), never from this file:
+#   CLICS_DATA_BIND   the cme-dev tailnet address the port listens on (never 0.0.0.0)
+#   CLICS_DATA_ROOT   where the LUKS volume is mounted (default /srv/clics-data; set only for a local test)
+services:
+  clics-mentor-postgres:
+    build: .
+    image: clics-data-pg:18.7-pgvector0.8.7
+    # The official image runs as postgres (999) when started as it: no root step, so every capability can go.
+    user: "999:999"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    command: ["postgres", "-c", "config_file=/etc/clics/postgresql.conf"]
+    environment:
+      # First start only: initdb reads the superuser password from this file. `setup.sh init` then sets the
+      # superuser's password to NULL and empties the file (the image reads it on every start, so it stays,
+      # empty), so the cluster keeps no superuser password at rest.
+      POSTGRES_PASSWORD_FILE: /var/lib/postgresql/bootstrap/superuser
+      POSTGRES_DB: clics_mentor
+      POSTGRES_INITDB_ARGS: "--auth-local=peer --auth-host=scram-sha-256 --data-checksums"
+    ports:
+      - "${CLICS_DATA_BIND:?set in data.env}:5432:5432"
+    volumes:
+      # The data directory lives only inside the LUKS volume. When the volume is not open, this path does not
+      # exist and Docker refuses to start the container, rather than making an empty cluster on a plain disk.
+      - type: bind
+        source: ${CLICS_DATA_ROOT:-/srv/clics-data}/pg
+        target: /var/lib/postgresql
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${CLICS_DATA_ROOT:-/srv/clics-data}/conf
+        target: /etc/clics
+        read_only: true
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /var/run/postgresql:uid=999,gid=999,mode=0775
+      - /tmp:uid=999,gid=999,mode=1777
+    shm_size: 256m
+    stop_grace_period: 60s
+    restart: unless-stopped
+    # Docker keeps the log on the plain disk: bounded, and postgresql.conf keeps values out of it.
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "clics_mentor", "-h", "/var/run/postgresql"]
+      interval: 10s
+      timeout: 5s
+      retries: 30

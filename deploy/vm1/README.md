@@ -28,7 +28,7 @@ to this origin (cutover step 4).
 | `dashboard.Dockerfile` (+ `.dockerignore`) | The dashboard image: `next build` with `NEXT_PUBLIC_API_URL=/api`, run as Next's standalone server |
 | `backend.Dockerfile` (+ `.dockerignore`) | The backend image. Deliberately **not** `backend/Dockerfile`, which Railway would detect |
 | `backend.env.example`, `rimpl.env.example` | Variable **names** only, each marked same / changes on vm1 / Railway-only |
-| `nginx/clics.ccme.or.th.conf` | The vhost CME installs: TLS, and the one-origin routing above (the chat turn's SSE unbuffered) |
+| `nginx/clics.ccme.or.th.conf` | The vhost, installed by hand at a time agreed with CME (section 2): TLS with clics's own Let's Encrypt certificate, and the one-origin routing above (the chat turn's SSE unbuffered) |
 | `deploy.sh` | Run on the Mac: ship a git ref over Tailscale SSH, build, gate, start, flip `current`; `--attach` re-follows the last activation |
 | `remote/*.sh` | The steps `deploy.sh` runs on vm1: preflight, launch (starts activate detached, then follows it), activate, attach. `lib.sh` is prepended to each |
 | `health-gate.cjs` | The two health gates, run inside the backend image on the compose network |
@@ -93,25 +93,55 @@ names in `backend.env.example` and `rimpl.env.example`:
 - If a value contains `$`, `#` or a space, wrap it in single quotes. Compose interpolates unquoted
   values.
 
-## 2. Asks to the CME team
+## 2. The site: access from CME, then our steps
 
-1. **DNS:** an A record `clics.ccme.or.th` pointing to vm1's public IPv4.
-2. **Certificate:** issue one for `clics.ccme.or.th` from the cert-manager runner, and fill in the two
-   `PLACEHOLDER` paths in `nginx/clics.ccme.or.th.conf` with where it writes the files.
-3. **nginx:** install the site, test it, then reload:
+We do the work; CME gives the access and the go-ahead. From CME:
+
+1. **DNS:** an A record `clics.ccme.or.th` pointing to vm1's public IPv4 (we add it if given access to
+   the zone).
+2. **Port 80** open from the internet to vm1: Let's Encrypt's HTTP-01 challenge, for the first certificate
+   and every renewal. Whether users reach vm1 directly or through CME's WAF; with the WAF, its address
+   ranges, for `real_ip` (open question 3 below).
+3. **A time** to edit the shared nginx: it also serves ccme.or.th, headscale and score, so a reload happens
+   only at an agreed time and only after `nginx -t` passes.
+4. **SSH:** password authentication off on the public SSH port (key-only, or SSH only from the tailnet or
+   LAN). This is CME's change. We do not make it.
+
+Then, at the agreed time, as root on vm1:
+
+1. **The first certificate.** A one-off port-80 server answers the challenge, then goes:
+   ```bash
+   apt-get install -y certbot
+   install -d -m 755 /var/www/letsencrypt
+   cat > /etc/nginx/sites-enabled/clics-acme-once.conf <<'EOF'
+   server {
+       listen 80;
+       server_name clics.ccme.or.th;
+       location ^~ /.well-known/acme-challenge/ { root /var/www/letsencrypt; default_type text/plain; }
+       location / { return 404; }
+   }
+   EOF
+   nginx -t && systemctl reload nginx
+   certbot certonly --webroot -w /var/www/letsencrypt -d clics.ccme.or.th \
+     --deploy-hook 'nginx -t && systemctl reload nginx'
+   rm /etc/nginx/sites-enabled/clics-acme-once.conf
+   ```
+   The key stays under `/etc/letsencrypt` (root only). Never `/home/ssl`: that directory is writable by
+   another group.
+2. **The site:**
    ```bash
    cp clics.ccme.or.th.conf /etc/nginx/sites-available/clics.ccme.or.th.conf
    ln -s /etc/nginx/sites-available/clics.ccme.or.th.conf /etc/nginx/sites-enabled/
    nginx -t && systemctl reload nginx
+   certbot renew --dry-run
    ```
-   `nginx -t` fails until the certificate paths are real. That is deliberate.
+   `nginx -t` fails until the certificate exists. That is deliberate. Renewals go through the site's own
+   port-80 server (its `/.well-known/acme-challenge/` location), and the deploy hook reloads nginx.
    The site proxies four loopback ports (3101 backend, 3102 GoTrue, 3103 Portal, 3104 dashboard). If
    the site is already installed from an earlier version of this file (which sent `/` to the backend),
-   CME replaces it with this one before cutover step 3. If a Vercel front end already calls
+   replace it with this one before cutover step 3. If a Vercel front end already calls
    `https://clics.ccme.or.th` at its root (a deploy of #426's `config.js`), the swap breaks it, so make
    the swap in the same sitting as step 4 instead.
-4. **SSH:** turn off password authentication on the public SSH port (key-only, or SSH only from the
-   tailnet or LAN). This is CME's change. We do not make it.
 
 ### Open questions for CME
 
@@ -121,8 +151,7 @@ names in `backend.env.example` and `rimpl.env.example`:
 3. Is anything in front of nginx (CDN, GDCC load balancer, WAF)? If so, nginx needs `real_ip`. Without
    it every user shares one client address and the backend's login limit (10/min per IP) locks
    everyone out.
-4. Which challenge does the cert-manager runner use (HTTP-01 via webroot, or DNS-01)? Where does it
-   write the files, and does it reload nginx itself?
+4. (Settled: clics has its own Let's Encrypt certificate, section 2, not one from CME's cert-manager.)
 5. Does the nginx install use `sites-enabled/` or `conf.d/`? Which nginx version is it?
 6. Is egress filtered? Builds need Docker Hub, `deb.debian.org`, `registry.npmjs.org` and
    `pkgs.tailscale.com`. At runtime the services need Supabase, Anthropic and Resend on 443.
@@ -200,7 +229,7 @@ Tailscale SSH in "check" mode may open a browser to re-authenticate on the first
 
 ## 4. Cutover (in this order)
 
-**Before:** the CME asks are done (`clics.ccme.or.th` resolves, the certificate is installed, the site
+**Before:** section 2 is done (`clics.ccme.or.th` resolves, the certificate is issued, the site
 is enabled), all env files are filled in, `RECONCILE_INTERVAL_MS=0` is set on vm1, `ALLOWED_ORIGINS` and
 `SITE_URL` in `backend.env` are `https://clics.ccme.or.th`, and you are deploying the commit Railway runs.
 
@@ -212,7 +241,9 @@ is enabled), all env files are filled in, `RECONCILE_INTERVAL_MS=0` is set on vm
    origins keep working until step 4:
    - **Google Cloud console**, the OAuth client: `https://clics.ccme.or.th` under *Authorized JavaScript
      origins* (Google Identity Services checks the page's origin, ADR 0008), and
-     `https://clics.ccme.or.th/auth/callback` under *Authorized redirect URIs*.
+     `https://clics.ccme.or.th/auth/v1/callback` under *Authorized redirect URIs*: GoTrue's callback, used
+     by the redirect fallback once sign-in runs on vm1 (#432). Google returns there, never to the Portal's
+     `/auth/callback`; the in-page popup needs only the origin.
    - **Supabase**, Authentication → URL Configuration: `https://clics.ccme.or.th/**` under *Redirect
      URLs*. Leave *Site URL* on the Vercel Portal until step 4.
 
@@ -300,7 +331,8 @@ this origin's root, which after #429 is the Portal, not the backend).
 
 **Remove CLICS from vm1 entirely:** `docker rm -f clics-backend-1 clics-rimpl-1 clics-portal-1
 clics-dashboard-1`, `docker network rm clics_clics`, `docker image rm` the `clics-*` images,
-`rm -rf /opt/clics`. Then ask CME to remove the nginx site, the certificate and the DNS record.
+`rm -rf /opt/clics`. Then, at a time agreed with CME, remove the nginx site (`nginx -t` before the reload) and the
+certificate (`certbot delete --cert-name clics.ccme.or.th`), and ask CME to remove the DNS record.
 
 ## On-prem model block (declared, never routed)
 

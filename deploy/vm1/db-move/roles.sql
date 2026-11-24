@@ -12,15 +12,19 @@
 --      authenticator         PostgREST's login; it switches to service_role for the backend and RIMPL
 --      supabase_auth_admin   GoTrue's login (owns the auth schema)
 --      service_role          what the backend's requests run as: bypasses RLS, owns nothing
---    None of them, nor anon or authenticated, may be a superuser. The one superuser, supabase_admin, is for
---    the move, the backup and this file, and no service's env names it.
+--    None of them, nor anon or authenticated, may be a superuser. The one superuser (supabase_admin, or
+--    postgres on plain PostgreSQL) is for the move and this file, and no service's env names it.
 -- 2. clics_analyst: read-only rater/analyst access. Not a superuser. It reads the public tables a rating or
 --    an analysis needs: scores, timings, codes and pseudonyms. Never the identity tables, never free text
 --    (a turn, a title, a note can carry a patient's name), never the auth schema, and it can call no
 --    SECURITY DEFINER function (one could write on its behalf).
 --    It bypasses RLS: every public table has RLS on with policies keyed on auth.uid(), so without BYPASSRLS
 --    it would read nothing. Its column grants, not RLS, are what limit it.
--- 3. ADR 0007 is untouched: nothing here grants to anon or authenticated, and the last block fails if
+-- 3. clics_backup: the nightly backup's login (backup.sh). Not a superuser, so once the move is over no
+--    file on vm1 holds a superuser's password. It reads every row, as a dump must (pg_read_all_data, and
+--    BYPASSRLS so RLS never hides a row from it), may call audit_log_head() for the backup's report, and
+--    writes nothing.
+-- 4. ADR 0007 is untouched: nothing here grants to anon or authenticated, and the last block fails if
 --    postgrest_exposure() lists anything.
 
 begin;
@@ -110,24 +114,72 @@ begin
 end $$;
 revoke all on all sequences in schema public from clics_analyst;
 
--- A SECURITY DEFINER function runs as its owner, so one the analyst could call would write for it.
--- Functions keep PUBLIC's EXECUTE unless a migration revoked it; ADR 0007's migrations revoke it from the
--- app's functions, so this finds none on a schema that passes postgrest_exposure().
+-- ---- 3. clics_backup -------------------------------------------------------------------------------------
+do $$
+begin
+  if not exists (select 1 from pg_catalog.pg_roles where rolname = 'clics_backup') then
+    create role clics_backup;
+  end if;
+end $$;
+-- INHERIT: its reads come from pg_read_all_data's membership. Three connections: the snapshot session
+-- move.sh holds open, and one read at a time beside it.
+alter role clics_backup with login nosuperuser nocreatedb nocreaterole noreplication bypassrls inherit
+  connection limit 3;
+alter role clics_backup set default_transaction_read_only = on;
+grant pg_read_all_data to clics_backup;
+do $$ begin execute format('grant connect on database %I to clics_backup', current_database()); end $$;
+-- The backup's report reads the audit chain's head through this function, which is service_role's only.
+do $$
+begin
+  if pg_catalog.to_regprocedure('public.audit_log_head()') is not null then
+    grant execute on function public.audit_log_head() to clics_backup;
+  end if;
+end $$;
+-- pg_read_all_data reads; it never writes. A write grant or a membership given by hand would.
 do $$
 declare bad text;
 begin
-  select string_agg(p.oid::regprocedure::text, ', ') into bad
-    from pg_catalog.pg_proc p
-   where p.pronamespace = 'public'::regnamespace and p.prosecdef
-     and pg_catalog.has_function_privilege('clics_analyst', p.oid, 'EXECUTE')
-     and not exists (select 1 from pg_catalog.pg_depend d
-                      where d.classid = 'pg_catalog.pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e');
+  select string_agg(g.rolname, ', ') into bad
+    from pg_catalog.pg_auth_members m
+    join pg_catalog.pg_roles g on g.oid = m.roleid
+   where m.member = 'clics_backup'::regrole and g.rolname <> 'pg_read_all_data';
   if bad is not null then
-    raise exception 'clics_analyst can execute SECURITY DEFINER functions: % (revoke EXECUTE from PUBLIC on them)', bad;
+    raise exception 'clics_backup is a member of %: it must hold pg_read_all_data only', bad;
+  end if;
+  -- Through any route (its own grant, PUBLIC's, a membership): has_table_privilege sees them all.
+  select string_agg(format('%I.%I', c.relnamespace::regnamespace, c.relname), ', ') into bad
+    from pg_catalog.pg_class c
+   where c.relnamespace in ('public'::regnamespace, 'auth'::regnamespace) and c.relkind in ('r', 'p', 'v', 'm', 'f')
+     and pg_catalog.has_table_privilege('clics_backup', c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE');
+  if bad is not null then
+    raise exception 'clics_backup can write to %: it must only read', bad;
   end if;
 end $$;
 
--- ---- 3. ADR 0007 still holds -----------------------------------------------------------------------------
+-- A SECURITY DEFINER function runs as its owner, so one the analyst or the backup could call would write
+-- for it. Functions keep PUBLIC's EXECUTE unless a migration revoked it; ADR 0007's migrations revoke it
+-- from the app's functions, so this finds none on a schema that passes postgrest_exposure(). The one
+-- exception is the backup's audit_log_head(), granted above: it only reads.
+do $$
+declare
+  r text;
+  bad text;
+begin
+  foreach r in array array['clics_analyst', 'clics_backup'] loop
+    select string_agg(p.oid::regprocedure::text, ', ') into bad
+      from pg_catalog.pg_proc p
+     where p.pronamespace = 'public'::regnamespace and p.prosecdef
+       and pg_catalog.has_function_privilege(r, p.oid, 'EXECUTE')
+       and not (r = 'clics_backup' and p.oid = pg_catalog.to_regprocedure('public.audit_log_head()'))
+       and not exists (select 1 from pg_catalog.pg_depend d
+                        where d.classid = 'pg_catalog.pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e');
+    if bad is not null then
+      raise exception '% can execute SECURITY DEFINER functions: % (revoke EXECUTE from PUBLIC on them)', r, bad;
+    end if;
+  end loop;
+end $$;
+
+-- ---- 4. ADR 0007 still holds -----------------------------------------------------------------------------
 do $$
 declare n bigint;
 begin

@@ -296,9 +296,12 @@ stream() {
   src "$(tool_path pg_dump)" ${snap[@]+"${snap[@]}"} --no-owner --no-privileges --data-only --schema=auth --exclude-table=auth.schema_migrations \
     "${auth_skip[@]}"
   # After roles.sql has run on the source (a backup of the data host), the public dump carries grants to
-  # clics_analyst; a fresh restore target lacks that role. Made here without login; roles.sql sets the rest.
-  echo "do \$\$ begin if not exists (select 1 from pg_roles where rolname = 'clics_analyst') then
-    create role clics_analyst nologin; end if; end \$\$;"
+  # clics_analyst and clics_backup; a fresh restore target lacks those roles. Made here without login;
+  # roles.sql sets the rest.
+  for r in clics_analyst clics_backup; do
+    echo "do \$\$ begin if not exists (select 1 from pg_roles where rolname = '$r') then
+    create role $r nologin; end if; end \$\$;"
+  done
   # The target already has the (empty) public schema, and its default ACLs hang off it: keep it.
   src "$(tool_path pg_dump)" ${snap[@]+"${snap[@]}"} --no-owner --schema=public | sed '/^CREATE SCHEMA public;$/d'
   # Every sequence in public and auth, set from the source, after pg_dump's own setval lines.

@@ -354,7 +354,7 @@ jobs:
           d="$RUNNER_TEMP/nginx"; mkdir -p "$d"
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=clics.ccme.or.th' \
             -keyout "$d/privkey.pem" -out "$d/fullchain.pem" 2>/dev/null
-          sed 's#/PLACEHOLDER/cme-cert-manager/clics.ccme.or.th/#/etc/nginx/test-cert/#' \
+          sed 's#/etc/letsencrypt/live/clics.ccme.or.th/#/etc/nginx/test-cert/#' \
             deploy/vm1/nginx/clics.ccme.or.th.conf > "$d/clics.conf"
           docker run --rm -v "$d/clics.conf:/etc/nginx/conf.d/clics.conf:ro" \
             -v "$d:/etc/nginx/test-cert:ro" nginx:1.18 nginx -t

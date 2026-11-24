@@ -11,7 +11,8 @@
 # /opt/clics/backup/ (root, mode 700) holds:
 #   backup.env       CLICS_DATA_HOST and, if they differ from move.sh's defaults, CLICS_DATA_PORT,
 #                    CLICS_DATA_DB, CLICS_DATA_USER, CLICS_DATA_SSLMODE (NAME=value lines, mode 600)
-#   pgpass           the data host's password for CLICS_DATA_USER, in pgpass format (mode 600)
+#   pgpass           the data host's password for CLICS_DATA_USER (clics_backup), in pgpass format (mode 600)
+#   data-ca.crt      optional: the data host's certificate, for CLICS_DATA_SSLMODE=verify-full
 #   recipients.d/    one PUBLIC key per key holder, NAME.asc; the dump is encrypted to every one of them,
 #                    so any one holder can decrypt it. (A single recipient.asc in /opt/clics/backup/ is
 #                    still read, as one more key.) Their private halves are held by the key holders, on
@@ -67,6 +68,9 @@ while IFS= read -r line; do
   esac
 done < "$CONF/backup.env"
 printf '%s\n' "${envs[@]}" | grep -q '^CLICS_DATA_HOST=' || die "backup.env has no CLICS_DATA_HOST"
+# The data host's certificate, when there is one: verify-full then checks the server is the data host.
+ca=()
+[ ! -f "$CONF/data-ca.crt" ] || ca=(-v "$CONF/data-ca.crt:/run/data-ca.crt:ro" -e CLICS_DATA_SSLROOTCERT=/run/data-ca.crt)
 
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
 part="$OUT/.clics-$stamp.sql.gpg.partial"
@@ -77,7 +81,7 @@ log "dumping the data host into $final"
 docker run --rm -i --network host --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
     --memory 1g --pids-limit 256 \
     -v "$HERE/move.sh:/db-move/move.sh:ro" -v "$CONF/pgpass:/run/pgpass:ro" -e PGPASSFILE=/run/pgpass \
-    "${envs[@]}" --entrypoint bash "$IMAGE" /db-move/move.sh backup < /dev/null |
+    "${envs[@]}" ${ca[@]+"${ca[@]}"} --entrypoint bash "$IMAGE" /db-move/move.sh backup < /dev/null |
   gpg --batch --no-tty --quiet --trust-model always "${keys[@]}" --encrypt --output - > "$part"
 [ -s "$part" ] || die "the encrypted dump is empty"
 mv "$part" "$final"

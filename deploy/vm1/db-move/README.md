@@ -9,7 +9,7 @@ data sits on commercial cloud, and no doc or CREC-facing text may say it is in T
 | File | What it is |
 |---|---|
 | `move.sh` | The move, run on vm1: preflight, the restore stream (Supabase to the data host, never on a disk), the verify report; also `backup` and `drill` for the nightly dump |
-| `roles.sql` | The data host's roles after the move: the app's logins checked not superuser, and `clics_analyst`, a read-only rater/analyst role that reads numbers, times, codes and pseudonyms, never free text or an identity table |
+| `roles.sql` | The data host's roles after the move: the app's logins checked not superuser; `clics_analyst`, a read-only rater/analyst role that reads numbers, times, codes and pseudonyms, never free text or an identity table; and `clics_backup`, the nightly backup's login, which reads every row and writes nothing, so no file on vm1 holds a superuser's password after the move |
 | `prepare-plain-pg.sql` | Only for a data host on plain PostgreSQL (not the `supabase/postgres` image): the roles and the `auth` schema the image would have, before GoTrue's first start |
 | `backup.sh` | The nightly encrypted dump, run on vm1 from cron |
 | [`scripts/db/db-move-test.sh`](../../../scripts/db/db-move-test.sh) | The hermetic test of all three, against two throwaway PostgreSQL clusters (CI job `fast-checks`, step `db-move`) |
@@ -68,13 +68,15 @@ With neither, the preflight stops: `AUDIT_CHAIN=required` refuses a source witho
 
 ## Before the window (owner steps)
 
-1. **The data host exists** (Aj. Chanvit): either its own `supabase/postgres:17.6.1.136` container, or a
+1. **The data host exists**: on cme-dev, the PostgreSQL cluster of its own that [`../../data-host/`](../../data-host/README.md)
+   sets up (plain PostgreSQL 18 with pgvector, on an encrypted volume); or its own
+   `supabase/postgres:17.6.1.136` container, or a
    plain PostgreSQL database prepared as in *Plain PostgreSQL target* below, best in a cluster of its own
    (the Supabase role names are cluster-wide and GoTrue's JWTs name them, so two such stacks cannot share
    them safely); not a database another service writes to; listening on its tailnet address only, with
    TLS on; `pg_hba.conf` (`hostssl` lines naming the target database, e.g. `clics_mentor`) allows only
    vm1's tailnet address and the host GoTrue and PostgREST run on, for the move's superuser,
-   `authenticator`, `supabase_auth_admin` and `clics_analyst`; no `db/migration-*.sql` run on it (the
+   `authenticator`, `supabase_auth_admin`, `clics_backup` and `clics_analyst`; no `db/migration-*.sql` run on it (the
    schema comes from the dump). Disk encryption, capacity and login access are CME's answers on #432.
 2. **The access probe** (owner-run, output into the PR): from vm1, `psql` connects; from another tailnet
    node, the connection is refused; from the internet, nothing answers. A refusal from another tailnet node
@@ -104,7 +106,8 @@ The commands below run on vm1 from the release the move ships in:
 cd /opt/clics/current/deploy/vm1/db-move
 export CLICS_DATA_HOST=DATA_HOST       # the data host's tailnet name; never written into this kit
 # The image: supabase/postgres:17.6.1.136 for an image data host; for plain PostgreSQL 18, an image of
-# that major with bash, psql and pg_dump, e.g. postgres:18 (pin the digest the rehearsal used).
+# that major with bash, psql and pg_dump: the cme-dev data host's base (../../data-host/Dockerfile),
+# postgres:18.7@sha256:f5cbc081c25690710f3fc6f4c61a7565382bae01ca0d0f2028a53d7926b85a20.
 export CLICS_PG_IMAGE=supabase/postgres:17.6.1.136
 # Plain PostgreSQL only (the defaults are postgres / supabase_admin):
 # export CLICS_DATA_DB=clics_mentor CLICS_DATA_USER=postgres
@@ -229,8 +232,9 @@ Everything here is the owner's to run, in this order. Expect 30 to 60 minutes.
    go to *Rollback*. Attach the report to #432.
 5. **Roles.** On the data host, as the move's superuser, in the target database:
    `psql -X -v ON_ERROR_STOP=1 -d DBNAME -f roles.sql` (copy it
-   over, or pipe it in), then `\password clics_analyst`. It must end `COMMIT` with no error: the app's
-   roles are not superusers, and `postgrest_exposure()` lists nothing.
+   over, or pipe it in), then `\password clics_analyst` and `\password clics_backup`. It must end `COMMIT`
+   with no error: the app's roles are not superusers, `clics_backup` can write nothing, and
+   `postgrest_exposure()` lists nothing.
 6. **Switch the services to the data host.**
    - Start the sign-in services for good, wherever they run. On vm1:
      `docker compose -p clics -f docker-compose.yml -f docker-compose.auth.yml up -d --wait gotrue postgrest supabase-gw`;
@@ -250,9 +254,13 @@ Everything here is the owner's to run, in this order. Expect 30 to 60 minutes.
    - An unfinished PLE opens with its whole transcript and takes a turn.
    - A token issued by Supabase before the window gets 401, and the Portal shows its login page (no loop,
      no blank page).
-8. **Supabase becomes the read-only rollback.** No writer points at it: Railway stopped, vm1's env files
-   no longer name it, no script's env does. Record on #432 the time the window closed. Keep the
-   Supabase project unchanged until the deletion below.
+8. **Supabase becomes the read-only rollback, and the move's secrets go.** No writer points at it:
+   Railway stopped, vm1's env files no longer name it, no script's env does. Record on #432 the time the
+   window closed. Keep the Supabase project unchanged until the deletion below. Nothing needs the move's
+   secrets any more, so delete their directory: `rm -r /opt/clics/db-move` (the backup keeps its own copy
+   of the public certificate, `/opt/clics/backup/data-ca.crt`). Then the superuser loses its password
+   on the data host, so no file anywhere holds one: on cme-dev, `setup.sh lock`, and `setup.sh check` prints
+   `ok    superuser has no password` (`../../data-host/README.md`).
 9. **Nightly backup on** (below), and the first restore drill passes before the window is declared closed.
 
 ### Rollback (any step before 8 fails)
@@ -285,8 +293,11 @@ snapshot, with that snapshot's verify report carried inside the stream as SQL co
 straight into `gpg`, encrypted to every key holder's public key, and only the encrypted file is written.
 Set-up, once:
 
-- `/opt/clics/backup/` (root, 700) with `backup.env` (`CLICS_DATA_HOST=...`, and for plain PostgreSQL
-  `CLICS_DATA_DB=clics_mentor` and `CLICS_DATA_USER=postgres`), `pgpass` (both root, 600), `image` (one
+- `/opt/clics/backup/` (root, 700) with `backup.env` (`CLICS_DATA_HOST=...`, `CLICS_DATA_USER=clics_backup`,
+  and for plain PostgreSQL `CLICS_DATA_DB=clics_mentor`), `pgpass` (one line,
+  `DATA_HOST:5432:DBNAME:clics_backup:PASSWORD`, the password set at step 5; both root, 600), optionally
+  `data-ca.crt` (the data host's certificate; with it, put `CLICS_DATA_SSLMODE=verify-full` in
+  `backup.env`), `image` (one
   line, the same image as `CLICS_PG_IMAGE` above; without it, `supabase/postgres:17.6.1.136`) and
   `recipients.d/NAME.asc`, one **public** key per key holder (Aj. Chanvit's answer on #432; two holders
   mean any one of them can decrypt, so a lost key does not lose the backups). Each holder makes the key
@@ -300,6 +311,11 @@ Set-up, once:
 
 Monthly, and before the window is declared closed. On vm1, into a throwaway database that lives in memory
 (the rehearsal's tmpfs database, `../rehearsal/README.md`), never into the data host:
+
+> **Open for the cme-dev data host.** The rehearsal's database is `supabase/postgres:17.6.1.136`. A backup
+> of the PostgreSQL 18 data host (`../../data-host/`) would be restored into an older server, which
+> PostgreSQL does not support. Before the first drill there, the drill's database must run PostgreSQL 18:
+> `clics-data-pg:18.7-pgvector0.8.7` with `prepare-plain-pg.sql`, as on the data host. Not built yet.
 
 1. Fresh rehearsal secrets, as for the sign-in rehearsal: `rehearsal/run.sh vm1-env ENV_DIR` (a root-only
    directory).

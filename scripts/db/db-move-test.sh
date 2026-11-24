@@ -299,12 +299,18 @@ expect "a report holds no row: no email, no transcript text" "0" "$(grep -cE 'ex
 TCL=S target_db drill
 expect "the drill's cluster has no clics_analyst role" "0" "$(S postgres -c "select count(*) from pg_roles where rolname = 'clics_analyst'")"
 # roles.sql has run on the data host before any nightly backup (the window's order), so the dump carries
-# grants to clics_analyst.
+# grants to clics_analyst and clics_backup.
 D t1 -f "$ROLES" >/dev/null
-# the nightly backup: the data host is the source, read in one exported snapshot, its report inside
-CLICS_DATA_DB=t1 bash "$MOVE" backup < /dev/null | cat > "$DIR/backup.sql"
+# the nightly backup: the data host is the source, read in one exported snapshot, its report inside, as
+# clics_backup (not a superuser), the login backup.env names
+CLICS_DATA_DB=t1 CLICS_DATA_USER=clics_backup bash "$MOVE" backup < /dev/null | cat > "$DIR/backup.sql"
+expect "backup runs as clics_backup, not a superuser" "f" "$(D postgres -c "select rolsuper from pg_roles where rolname = 'clics_backup'")"
 expect "backup carries roles.sql's grants to clics_analyst" "t" \
   "$(grep -q 'TO clics_analyst;' "$DIR/backup.sql" && echo t || echo f)"
+expect "  → and to clics_backup (the drill makes both roles)" "t" \
+  "$(grep -q 'TO clics_backup;' "$DIR/backup.sql" && echo t || echo f)"
+expect "  → and every auth row (RLS hides none from clics_backup)" "t" \
+  "$(grep -q "^-- clics-report table|auth.users|$(D t1 -c 'select count(*) from auth.users')|" "$DIR/backup.sql" && echo t || echo f)"
 expect "backup carries its report as SQL comments" "t" \
   "$(grep -q '^-- clics-report table|public.booth_plays|25|' "$DIR/backup.sql" && echo t || echo f)"
 expect "  → and the anchored chain head" "t" "$(grep -q '^-- clics-report audit_head|7|' "$DIR/backup.sql" && echo t || echo f)"
@@ -344,6 +350,23 @@ has "analyst cannot update" "permission denied" "$(A "set default_transaction_re
 has "analyst cannot call nextval" "permission denied" "$(A "select nextval('public.pseudonym_seq')")"
 has "analyst cannot call the SECURITY DEFINER function" "permission denied" "$(A "select public.next_pseudonym()")"
 expect "postgrest_exposure still lists nothing" "0" "$(D t1 -c "select count(*) from public.postgrest_exposure()")"
+expect "clics_backup: login, bypassrls, no superuser/create/replication, reads all data" "t|t|f|f|f|f|t" \
+  "$(D t1 -c "select rolcanlogin, rolbypassrls, rolsuper, rolcreatedb, rolcreaterole, rolreplication,
+                     pg_has_role(oid, 'pg_read_all_data', 'USAGE') from pg_roles where rolname = 'clics_backup'")"
+B() { D t1 -c "set role clics_backup; $1" 2>&1 | head -1; }
+expect "backup reads auth.users and the identity tables, every row" \
+  "$(D t1 -c "select (select count(*) from auth.users), (select count(*) from public.ple_pii_map)")" \
+  "$(B "select (select count(*) from auth.users), (select count(*) from public.ple_pii_map)")"
+expect "backup reads the chain head" "7" "$(B "select head_seq from public.audit_log_head()")"
+has "backup cannot insert" "permission denied" "$(B "set transaction read write; insert into public.booth_plays (case_id) values ('x')")"
+has "backup cannot update" "permission denied" "$(B "set default_transaction_read_only = off; update public.ples set score = 0")"
+has "backup cannot call the SECURITY DEFINER function" "permission denied" "$(B "select public.next_pseudonym()")"
+D t1 -c "grant insert on public.ples to clics_backup"
+has "roles.sql refuses a clics_backup that can write" "clics_backup can write to public.ples" "$(D t1 -f "$ROLES" 2>&1 || true)"
+D t1 -c "revoke insert on public.ples from clics_backup; grant service_role to clics_backup"
+has "roles.sql refuses a clics_backup holding another role" "clics_backup is a member of service_role" "$(D t1 -f "$ROLES" 2>&1 || true)"
+D t1 -c "revoke service_role from clics_backup"
+expect "  → and passes again once that is undone" "0" "$(rc D t1 -f "$ROLES")"
 D t1 -c "grant execute on function public.next_pseudonym() to public"
 has "roles.sql refuses a SECURITY DEFINER function the analyst could call" "can execute SECURITY DEFINER functions" \
   "$(D t1 -f "$ROLES" 2>&1 || true)"
@@ -385,8 +408,8 @@ OUT="$(mvp move 2>&1)" || true
 has "move into plain PostgreSQL: VERIFY: PASS" "VERIFY: PASS" "$OUT"
 has "  → anchored at the source head" "anchored at the source head seq 7" "$OUT"
 expect "  → roles.sql then passes there" "0" "$(rc P clics_mentor -f "$ROLES")"
-expect "  → PUBLIC cannot connect; the CLICS logins and the analyst can" "f|t|t" \
-  "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT')")"
+expect "  → PUBLIC cannot connect; the CLICS logins, the analyst and the backup can" "f|t|t|t" \
+  "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_backup', 'clics_mentor', 'CONNECT')")"
 P postgres -c "create database clics_evaluator"
 has "prepare-plain-pg.sql stops on a shared cluster whose roles exist" "may be another service's logins" \
   "$(P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" 2>&1 || true)"
