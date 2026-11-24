@@ -3,8 +3,8 @@
 -- The owner applies this BEFORE the backend deploy: the backend's POST /booth/feedback inserts into this table.
 -- Idempotent.
 --
--- The table has NO time column on purpose (ADR 0015): only the date (Asia/Bangkok), so an answer cannot be matched to
--- a play by the time it was sent. It also has no tag, no play id and no player reference. The id is a v4 uuid, which
+-- The table has NO time column on purpose (ADR 0015): only the date (Asia/Bangkok), so the stored data holds no time to
+-- match against a play's time (reads sort by content, never database order; see ADR 0015). It also has no tag, no play id and no player reference. The id is a v4 uuid, which
 -- carries no time.
 
 create table if not exists public.booth_feedback (

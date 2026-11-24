@@ -8,10 +8,10 @@ The survey is anonymous so that visitors answer about the product, not about the
 
 - the event code, the form version and the answers
 - the case id, when it names a case of the open event (otherwise null, so a stale link still saves the answers)
-- the date, in Asia/Bangkok: no timestamp column exists, so an answer cannot be matched to a play by the time it was sent
+- the date, in Asia/Bangkok: no timestamp column exists, so the stored data holds no time to match against a play's time
 - the comment, only as rimpl's de-identified copy
 
-There is no tag, no play id, no score and no IP or device data, and the request schema has no field for any of them. The row id is a random v4 uuid, which carries no time.
+There is no tag, no play id, no score and no IP or device data, and the request schema has no field for any of them. The row id is a random v4 uuid, which carries no time. Reads and the export sort rows within a date by content (case id, then the answers as text, then id), never in database order, so the order shown carries no insertion order.
 
 A comment is sent to rimpl `/deidentify` as one message and only the masked text is stored. When rimpl cannot be reached the request answers 503 `comment_unavailable` and stores nothing, so the page can retry or send without the comment. rimpl's filter misses some shapes (#449, #451), so every read of a comment screens it again (`flaggedForAuditor`), the same two-layer rule ADR 0010 and 0014 follow for a play's typed text. The backend never logs a comment, raw or masked.
 
@@ -19,7 +19,7 @@ Feedback is taken only while the booth is open, for the open event the backend r
 
 ## The scope of "anonymous"
 
-The owner set the scope: what CLICS stores and shows (the table, the admin page, the export) cannot be matched to a play. Server access logs (the vm1 proxy, the backend's request logs) and the rate limiter's in-memory store keep recording request times, as they do for every booth request today. Only whoever runs the server can read them, and they are never joined to the feedback data. This ADR states that limit; no log redaction is built.
+The owner set the scope: what CLICS stores and shows through its own reads and export (the table's columns, the admin page, the export) holds nothing that matches an answer to a play. Server access logs (the vm1 proxy, the backend's request logs) and the rate limiter's in-memory store keep recording request times, as they do for every booth request today. Only whoever runs the server can read them, and they are never joined to the feedback data. Likewise, someone with direct SQL access to the database can still see heap order and each row's `xmin`, which follow the order of writes and share a transaction counter with the `booth_plays` writes. That is outside the scope too. This ADR states these limits; no log redaction is built.
 
 ## The case id
 
