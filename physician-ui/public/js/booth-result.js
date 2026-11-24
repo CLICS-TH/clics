@@ -8,7 +8,6 @@ import { parseResultFragment } from './booth-result-link.js';
 import { SCALE_NOTE } from './booth-bands.js';
 import { el, bi, caseBi, phrases, setLook, tagName } from './booth-dom.js';
 import { WORKSHOP_COPY, WORKSHOP_PATH } from './booth-workshop.js';
-import { feedbackCard } from './booth-feedback-qr.js';
 
 const demoLabel = () => el('div', { class: 'demo-label result-demo', dataset: { demoLabel: '' } }, bi(DEMO_LABEL));
 
@@ -107,7 +106,7 @@ function stepList(rows) {
 }
 
 /** @param {import('./booth-result-link.js').KeptResult} r @param {StepText | null} text the case's step text, if read */
-function resultView(r, text) {
+function resultView(r, text, feedbackCard) {
   const teaser = r.teaser ?? text?.teaser ?? null;
   const explained = r.tiers && r.picks && text ? explainRows(r, text) : null;
   const [practise, , others] = domainSections(r.domains, r.tiers?.length ?? null, null, { measures: true, otherHead: false });
@@ -133,7 +132,7 @@ function resultView(r, text) {
     // the folded domain and step lists.
     workshopCard(),
     // The feedback form's card, next to it; null unless js/config.js switches the feedback on.
-    feedbackCard(r.caseId ?? null, r.look),
+    feedbackCard?.(r.caseId ?? null, r.look),
     fold('domains', COPY.otherDomains, el('div', { class: 'result-card result-domains' }, others)),
     explained ? fold('answers', COPY.answersTitle, stepList(explained)) : r.tiers ? fold('answers', COPY.stepTiers, tierList(r.tiers)) : null,
     tryClics('secondary'),
@@ -153,7 +152,10 @@ async function render() {
   setLook(r?.look ?? DEFAULT_LOOK);
   const text = r?.caseId ? await stepText(r.caseId, r.caseVersion) : null;
   if (mine !== rendering) return;
-  document.getElementById('result').replaceChildren(...(r ? resultView(r, text) : missingView()));
+  // The feedback card's module only when the switch is on, and never a reason for the result not to show.
+  const card = r && window.CLICS_BOOTH_FEEDBACK === true ? (await import('./booth-feedback-card.js').catch(() => null))?.feedbackCard : null;
+  if (mine !== rendering) return;
+  document.getElementById('result').replaceChildren(...(r ? resultView(r, text, card) : missingView()));
   document.getElementById('result').dataset.rendered = '';
 }
 

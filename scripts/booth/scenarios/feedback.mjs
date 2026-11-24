@@ -509,7 +509,7 @@ export default [
     },
   },
   {
-    name: 'feedback kiosk: Escape, the backdrop and the Close button close it, focus stays inside, and 30 s without a touch closes it',
+    name: 'feedback kiosk: Escape, the backdrop and the Close button close it and focus stays inside',
     async run(h) {
       const k = await h.kiosk();
       const { page } = k;
@@ -541,15 +541,27 @@ export default [
       h.check(await isOpen(), 'a tap on the card itself leaves it open');
       await k.tap('[data-feedback-overlay] [data-action="close-feedback"]');
       h.check(!(await isOpen()) && await focusOn() === 'feedback', 'the Close button closes it and focus returns');
-      await open();
+      await k.close();
+    },
+  },
+  {
+    name: "feedback kiosk: the pop-up stays up for the scored screen's 45 s of no touch, and that screen's reset removes it",
+    async run(h) {
+      const k = await h.kiosk();
+      const { page } = k;
+      await switchOn(page);
+      // The clock goes in before the scored screen is drawn, so its idle timer (booth-idle.js, 45 s) runs on it too.
       await page.clock.install();
-      await page.clock.fastForward(20_000);
-      await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
-      await page.clock.fastForward(20_000);
-      h.check(await isOpen(), '40 s in, with a touch at 20 s, it is still open: a touch restarts the 30 s');
-      await page.clock.fastForward(11_000);
-      h.check(!(await isOpen()), '31 s after the last touch it closes by itself');
-      h.check(await k.screenNow() === 'scored', 'the scored screen is still there under it');
+      await toResult(k);
+      await h.sleep(450);
+      await k.tap('[data-action="feedback"]');
+      await page.waitForSelector('[data-feedback-overlay] [data-feedback-qr] svg');
+      const isOpen = () => page.locator('[data-feedback-overlay]').count().then((n) => n === 1);
+      await page.clock.fastForward(44_000);
+      h.check(await isOpen() && await k.screenNow() === 'scored', '44 s after the tap, with no touch, the pop-up is still up over the scored screen');
+      await page.clock.fastForward(1_500);
+      await page.waitForFunction(() => !document.querySelector('[data-feedback-overlay]') && document.querySelector('#booth [data-screen="scored"]') === null, null, { timeout: 15_000 });
+      h.check(!(await isOpen()) && await k.screenNow() !== 'scored', "at 45 s the scored screen's reset reloads the page and the pop-up is gone with it");
       await k.close();
     },
   },
@@ -580,6 +592,9 @@ export default [
       await k.close();
       const p = await openResult(h, { on: false });
       h.check(await p.page.locator('[data-feedback]').count() === 0, 'no feedback card on the result page with the flag unset');
+      const loaded = await p.page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).pathname));
+      h.check(!loaded.some((f) => /booth-play\.js|booth-feedback-/.test(f)) && loaded.some((f) => f.endsWith('booth-result.js')),
+        `with the flag unset the result page loads no booth-play.js and no booth-feedback-*.js (${loaded.filter((f) => f.endsWith('.js')).map((f) => f.split('/').pop())})`);
       await p.close();
     },
   },
@@ -597,6 +612,8 @@ export default [
       h.check(card.tag === 'A' && card.n === 1 && card.href === `${origin}/booth-feedback.html#c=cap-adult&l=en%2Bth`, `${width}: one link card to the form with the case and the look (${card.href})`);
       h.check(card.href === await page.evaluate(async () => (await import('/js/booth-feedback-link.js')).feedbackUrl({ caseId: 'cap-adult', look: 'en+th' })), `${width}: it is exactly feedbackUrl({caseId, look})`);
       h.check(!/tag|play|42|score/i.test(card.href.slice(origin.length)), `${width}: the link names no tag, play or score (${card.href})`);
+      const loaded = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).pathname.split('/').pop()));
+      h.check(!loaded.includes('booth-play.js') && !loaded.includes('booth-api.js') && !loaded.includes('booth-board.js'), `${width}: even with the flag on, the card does not pull in the kiosk play engine (${loaded.filter((f) => f.startsWith('booth-')).join(', ')})`);
       h.check(card.text.includes('ช่วยประเมิน CLICS') && card.text.includes('1 นาที') && card.after === 'after-workshop', `${width}: the card reads "ช่วยประเมิน CLICS (1 นาที)" and sits after the workshop card (${card.text})`);
       await h.screenCheck(page, `${width} result page with the feedback card`, { phone: true, demo: false });
       await h.shot(page, `feedback-card-${width}`, { fullPage: true });
