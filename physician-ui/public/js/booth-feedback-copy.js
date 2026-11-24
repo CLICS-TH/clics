@@ -11,8 +11,8 @@ export const FEEDBACK_COPY = freezeDeep({
   optional: { th: '(ไม่บังคับ)', en: '(optional)' },
   pickAny: { th: 'เลือกได้หลายข้อ', en: 'pick any' },
   privacy: {
-    th: 'ไม่เก็บชื่อ หมายเลขผู้เล่น หรือเวลาที่เล่น เก็บเพียงวันที่ส่ง คำตอบใช้ปรับปรุง CLICS เท่านั้น อย่าพิมพ์ชื่อหรือข้อมูลคนไข้ในช่องความเห็น',
-    en: 'We keep no name, player number or time of play, only the date you send this. Answers are used only to improve CLICS. Please do not type names or patient details in the comment.',
+    th: 'ไม่เก็บชื่อ หมายเลขผู้เล่น หรือเวลาที่เล่น เก็บเพียงวันที่ส่งและเคสที่เล่น คำตอบใช้ปรับปรุง CLICS เท่านั้น อย่าพิมพ์ชื่อหรือข้อมูลคนไข้ในช่องความเห็น',
+    en: 'We keep no name, player number or time of play, only the date you send this and the case you played. Answers are used only to improve CLICS. Please do not type names or patient details in the comment.',
   },
   submit: { th: 'ส่งแบบประเมิน', en: 'Submit' },
   busy: { th: 'กำลังส่ง…', en: 'Sending…' },

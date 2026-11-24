@@ -80,7 +80,10 @@ body.booth-feedback { color: var(--ink); font-family: var(--font-sans); font-siz
 .fb-range.idle::-moz-range-progress { background: transparent; }
 .fb-range::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -10px; border-radius: 50%; background: var(--card); border: 3px solid var(--accent); box-shadow: 0 2px 6px rgba(20, 20, 19, .2); }
 .fb-range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--card); border: 3px solid var(--accent); }
-.fb-range.idle::-webkit-slider-thumb, .fb-range.idle::-moz-range-thumb { border-color: var(--edge); }
+/* One rule per engine: a selector list with a pseudo-element the browser does not know is dropped whole, so a shared
+   rule would leave the idle thumb accent-coloured in Chromium and WebKit. */
+.fb-range.idle::-webkit-slider-thumb { border-color: var(--edge); }
+.fb-range.idle::-moz-range-thumb { border-color: var(--edge); }
 .fb-range:focus-visible, .fb-chip:focus-visible, .fb-mood:focus-visible, .fb-comment:focus-visible { outline: 3px solid var(--ai-border); outline-offset: 2px; }
 .fb-range:focus-visible { border-radius: 8px; }
 .fb-ends { display: flex; justify-content: space-between; gap: 12px; color: var(--body); }

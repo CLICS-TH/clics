@@ -1,3 +1,5 @@
+import { inflateSync } from 'node:zlib';
+
 // The anonymous feedback form on a phone (physician-ui/public/booth-feedback.html, spec 2026-11-24). Each scenario opens
 // the page the way the kiosk's QR does, with the case and look in the fragment, against a stub of GET and POST
 // /booth/feedback, so no backend runs and nothing is stored.
@@ -31,6 +33,33 @@ async function answerSix(page) {
   for (const id of ['easy', 'real', 'fair']) await key(page, id);
 }
 const answerAll = async (page) => { await answerSix(page); await key(page, 'use'); };
+/** The colour a slider's thumb ring is painted in, read from a screenshot: getComputedStyle cannot see inside the
+ *  browser's own slider thumb (it answers the UA default whatever the page's CSS says). One CSS pixel in the middle of the
+ *  ring (the 3 px border sits 12 to 15 px from the thumb's centre, which is where the value puts it). */
+async function thumbBorder(page, id) {
+  const range = page.locator(`[data-q="${id}"] input[type="range"]`);
+  await range.scrollIntoViewIfNeeded();
+  const b = await range.boundingBox();
+  const r = await range.evaluate((e) => ({ min: Number(e.min), max: Number(e.max), value: Number(e.value) }));
+  const cx = b.x + 15 + ((r.value - r.min) / (r.max - r.min)) * (b.width - 30);
+  const png = await page.screenshot({ clip: { x: cx + 13, y: b.y + b.height / 2, width: 1, height: 1 }, animations: 'disabled' });
+  const px = pngPixel(png);
+  return `rgb(${px.join(', ')})`;
+}
+/** The first pixel of an 8-bit RGB or RGBA PNG (Playwright's screenshot). Whatever its row filter, a first pixel has no
+ *  neighbour to the left or above, so its bytes are the colour as they stand. */
+function pngPixel(png) {
+  let pos = 8;
+  const data = [];
+  while (pos < png.length) {
+    const len = png.readUInt32BE(pos);
+    if (png.toString('ascii', pos + 4, pos + 8) === 'IDAT') data.push(png.subarray(pos + 8, pos + 8 + len));
+    pos += 12 + len;
+  }
+  return [...inflateSync(Buffer.concat(data)).subarray(1, 4)];
+}
+const EDGE = 'rgb(138, 133, 120)';
+const ACCENT = 'rgb(169, 88, 62)';
 const visible = (page, selector) => page.locator(selector).first().isVisible();
 const submitOn = (page) => page.locator('[data-submit]').isEnabled();
 
@@ -43,12 +72,14 @@ export default [
       const { page } = p;
       await ready(page);
       h.check(!(await submitOn(page)), 'nothing answered: submit is off');
+      h.check(await thumbBorder(page, 'easy') === EDGE && await thumbBorder(page, 'use') === EDGE, `before any touch the thumbs are grey, not the accent (${await thumbBorder(page, 'easy')})`);
       const idle = await page.evaluate(() => [...document.querySelectorAll('[data-q] input[type="range"]')].map((r) => ({
         idle: r.classList.contains('idle'), text: r.getAttribute('aria-valuetext'), readout: r.closest('.fb-slider').querySelector('.fb-readout').innerText.trim(),
       })));
       h.check(idle.length === 4 && idle.every((s) => s.idle && s.text === 'ยังไม่ได้ตอบ' && s.readout.startsWith('ลากเพื่อตอบ')), `four sliders start grey and unanswered (${JSON.stringify(idle[0])})`);
       await answerSix(page);
       h.check(!(await submitOn(page)), 'six answered, the last slider untouched: submit stays off');
+      h.check(await thumbBorder(page, 'easy') === ACCENT && await thumbBorder(page, 'use') === EDGE, `an answered slider's thumb turns accent, the untouched one stays grey (${await thumbBorder(page, 'easy')}, ${await thumbBorder(page, 'use')})`);
       h.check((await page.locator('[data-progress]').innerText()).includes('ตอบแล้ว 6 จาก 7'), 'the header counts six of seven');
       await key(page, 'use');
       h.check(await submitOn(page), 'the seventh, by keyboard on its slider: submit is on');
@@ -188,6 +219,32 @@ export default [
     },
   },
   {
+    name: 'feedback: a swipe over a slider is not an answer',
+    async run(h) {
+      const p = await h.phone(PATH, { stub: stubFor(h) });
+      const { page } = p;
+      await ready(page);
+      const range = page.locator('[data-q="easy"] input[type="range"]');
+      await range.scrollIntoViewIfNeeded();
+      const b = await range.boundingBox();
+      const x = b.x + b.width / 2;
+      const y = b.y + b.height / 2;
+      const cdp = await page.context().newCDPSession(page);
+      const touch = (type, at) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y: at }] });
+      const before = await page.evaluate(() => scrollY);
+      await touch('touchStart', y);
+      for (let i = 1; i <= 8; i++) { await touch('touchMove', y - (200 * i) / 8); await h.sleep(16); }
+      await touch('touchEnd', y - 200);
+      await h.sleep(300);
+      const after = await page.evaluate(() => ({
+        scrolled: scrollY, idle: document.querySelector('[data-q="easy"] input').classList.contains('idle'),
+        text: document.querySelector('[data-q="easy"] input').getAttribute('aria-valuetext'), progress: document.querySelector('[data-progress]').innerText,
+      }));
+      h.check(after.scrolled > before, `the swipe scrolled the page (${before} -> ${after.scrolled}), so it was a real swipe`);
+      h.check(after.idle && after.text === 'ยังไม่ได้ตอบ' && after.progress.includes('ตอบแล้ว 0 จาก 7'), `the slider is still unanswered and the count is still 0 of 7 (${JSON.stringify(after)})`);
+    },
+  },
+  {
     name: 'feedback: the link and the faces keep their contract',
     async run(h) {
       const p = await h.phone(PATH, { stub: stubFor(h) });
@@ -214,7 +271,7 @@ export default [
       h.check(h.same(r.parsed, { caseId: 'cap-adult', look: 'th' }) && h.same(r.roundTrip, { caseId: 'cap-adult', look: r.defaultLook }), `the default look "${r.defaultLook}" survives the URL (${r.urlDefault})`);
       h.check(r.badCase === null && r.longCase === null && r.badLook === r.defaultLook && h.same(r.none, { caseId: null, look: r.defaultLook }), 'a case id outside /^[a-z0-9-]{1,64}$/ is null, an unknown look is the default');
       const privacy = await page.locator('.fb-privacy').innerText();
-      h.check(privacy.includes('ไม่เก็บชื่อ หมายเลขผู้เล่น หรือเวลาที่เล่น') && privacy.includes('เก็บเพียงวันที่ส่ง'), 'the privacy line says no name, player number or time of play, and that only the date sent is kept');
+      h.check(privacy.includes('ไม่เก็บชื่อ หมายเลขผู้เล่น หรือเวลาที่เล่น') && privacy.includes('เก็บเพียงวันที่ส่งและเคสที่เล่น') && /date you send this and the case/.test(await page.locator('.fb-privacy .bi-en').evaluate((e) => e.textContent)), 'the privacy line says no name, player number or time of play, and that only the date sent and the case played are kept');
       h.check(h.same(r.moods, ['stressed', 'confused', 'neutral', 'enjoyed', 'excited']), 'MOODS lists the five moods in order');
       h.check(r.every && r.distinct === 5, 'every face is a 48-unit SVG, aria-hidden, with no emoji or other non-ASCII, and the five moods differ');
       h.check(h.same(r.brows, [true, false, false, false, false]) && h.same(r.cheeks, [false, false, true, true, true]) && h.same(r.happy, [false, false, false, true, true]),
