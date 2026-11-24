@@ -329,7 +329,9 @@ case "${1:-}" in
     dc cp db-move/move.sh db:/tmp/move.sh
     dc exec -T db bash -c 'set -euo pipefail; umask 077
       printf "127.0.0.1:5432:postgres:supabase_admin:%s\n" "$POSTGRES_PASSWORD" > /tmp/pgpass
-      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 exec bash /tmp/move.sh drill'
+      # Loopback inside the throwaway db container: nothing crosses a network, so the hop may be plain.
+      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 CLICS_DATA_SSLMODE=prefer CLICS_DATA_PLAINTEXT_OK=1 \
+        exec bash /tmp/move.sh drill'
     ;;
   down)
     if [ -n "${2:-}" ]; then export_env "$2"; else export_env "$(mktemp -d)"; fi
