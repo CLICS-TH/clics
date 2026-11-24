@@ -197,12 +197,38 @@ describe('GET /admin/booth/export.json', () => {
     ] })];
     const body = JSON.parse((await as(SUPERADMIN)('/admin/booth/export.json')).text);
     const [[noBridge, tappedLeak, typedLeak], [aiReplyLeak]] = body.plays.map((p) => p.dialogue);
-    expect(noBridge).toEqual({ ...tappedStep, bridge: '' });
+    // Step 0's reply and the bridge into step 1 came from one AI call, and the auditor read joins them: both go.
+    expect(noBridge).toEqual({ ...tappedStep, reply: null, bridge: null, withheld: 'flagged' });
     expect(tappedLeak).toEqual({ ...tappedStep, reply: null, bridge: null, withheld: 'flagged' });
     expect(typedLeak).toMatchObject({ typed: null, reply: null, bridge: null, withheld: 'flagged' });
     expect(aiReplyLeak).toEqual({ ...tappedStep, reply: null, bridge: null, withheld: 'flagged' });
     expect(JSON.stringify(body)).not.toMatch(/081\.234\.5678|0812345678/);
-    expect(body.export.counts).toMatchObject({ steps: 4, typed_steps: 1, withheld_flagged: 3, withheld_no_copy: 0 });
+    expect(body.export.counts).toMatchObject({ steps: 4, typed_steps: 1, withheld_flagged: 4, withheld_no_copy: 0 });
+  });
+
+  // The auditor read screens step i's reply and the bridge into step i+1 as one turn (dialogueTurns): a number split
+  // across the two passes each field alone and must still be caught.
+  it('screens a reply joined to the next bridge, as the auditor read does, and withholds both steps', async () => {
+    const { flaggedForAuditor } = require('../src/services/booth-dialogue');
+    const tail = 'โทรกลับที่ 081 23';
+    const head = '45 678 นะครับ';
+    expect([flaggedForAuditor(tail), flaggedForAuditor(head), flaggedForAuditor(`${tail} ${head}`)]).toEqual([false, false, true]);
+    plays = [play({ tag: 1, tier_path: 'BBB', steps: [
+      { ...tappedStep, reply: { ...REPLY, safety: tail } },
+      { ...tappedStep, bridge: head },
+      tappedStep,
+    ] })];
+    const body = JSON.parse((await as(SUPERADMIN)('/admin/booth/export.json')).text);
+    const [first, second, third] = body.plays[0].dialogue;
+    expect(first).toMatchObject({ reply: null, bridge: null, withheld: 'flagged' });
+    expect(second).toMatchObject({ reply: null, bridge: null, withheld: 'flagged' });
+    expect(third).toEqual(tappedStep);
+  });
+
+  it('exports only a step record\'s known keys, so a key a later writer adds never goes out unscreened', async () => {
+    plays = [play({ tag: 1, steps: [{ ...tappedStep, note: 'เบอร์ญาติ 0812345678', reply: { ...REPLY, extra: 'x' } }, 'junk'] })];
+    const body = JSON.parse((await as(SUPERADMIN)('/admin/booth/export.json')).text);
+    expect(body.plays[0].dialogue).toEqual([tappedStep, null]);
   });
 
   it('sends nothing when the audit row cannot be written', async () => {

@@ -50,25 +50,56 @@ async function leaderboard(now = new Date()) {
   };
 }
 
+const str = (x) => (typeof x === 'string' ? x : null);
+
+/** A stored step record's known keys only (booth-dialogue stepRecords): a key some later writer adds is never exported
+ *  unscreened. */
+function knownStep(step) {
+  if (!step || typeof step !== 'object' || Array.isArray(step)) return null;
+  const reply = step.reply && typeof step.reply === 'object'
+    ? Object.fromEntries(REPLY_FIELDS.map((k) => [k, str(step.reply[k]) ?? ''])) : null;
+  return {
+    variant: str(step.variant), bridge: str(step.bridge) ?? '',
+    options: Array.isArray(step.options) ? step.options.filter((o) => typeof o === 'string') : [],
+    ...('typed' in step ? { typed: str(step.typed) } : { choice: str(step.choice) }),
+    reply, tier: str(step.tier),
+  };
+}
+
+const replyText = (s) => (s?.reply ? REPLY_FIELDS.map((k) => s.reply[k].replaceAll('**', '')).filter(Boolean).join(' ') : '');
+
 /**
- * A stored step record (booth-dialogue stepRecords) as the export carries it. Every free text in it is screened again
- * the way the auditor read screens it (studyTranscript), because rimpl's write-time filter misses some shapes (#449,
- * #451): the typed answer (rimpl's de-identified copy), the reply and the bridge. The bridge is the AI's, written from
- * the previous step's answer and stored on this step, so a tapped step carries AI text too; and before the reply bank
- * (#490), and on a play that is not five steps, a tapped answer's reply came from the AI as well. A reviewed bank
- * reply never trips the screen (none of the bank texts does), so screening every step costs a reviewed step nothing.
- * A finding withholds all three, marked 'flagged'; the ids (variant, options, choice) and the tier stay.
+ * A play's stored step records as the export carries them. Every free text is screened again the way the auditor read
+ * screens it (studyTranscript), because rimpl's write-time filter misses some shapes (#449, #451): the typed answer
+ * (rimpl's de-identified copy), the reply and the bridge, each alone and, as the auditor read joins them
+ * (dialogueTurns), step i's reply with the bridge into step i+1, so a number split across the two is caught too.
+ *
+ * The bridge is the AI's, written from the previous step's answer and stored on the step it leads into, so a tapped
+ * step carries AI text too; and before the reply bank (#490), and on a play that is not five steps, a tapped answer's
+ * reply came from the AI as well. A reviewed bank reply never trips the screen (booth-case-tree.test.js pins it), so
+ * screening every step costs a reviewed step nothing. A finding withholds the step's free text (and, for a joined
+ * turn, both steps'), marked 'flagged'; the ids (variant, options, choice) and the tier stay.
  */
-function exportStep(step) {
-  if (!step || typeof step !== 'object') return step ?? null;
-  const typed = 'typed' in step;
-  const texts = [typed ? step.typed : null, ...REPLY_FIELDS.map((k) => step.reply?.[k]), step.bridge]
-    .filter((t) => typeof t === 'string' && t !== '');
-  if (texts.some(flaggedForAuditor)) {
-    return { ...step, ...(typed ? { typed: null } : {}), reply: null, bridge: null, withheld: 'flagged' };
-  }
-  if (typed && typeof step.typed !== 'string') return { ...step, typed: null, withheld: 'no_deidentified_copy' };
-  return step;
+function exportDialogue(steps) {
+  const known = steps.map(knownStep);
+  const flagged = new Set();
+  known.forEach((s, i) => {
+    if (!s) return;
+    const own = [s.typed, ...REPLY_FIELDS.map((k) => s.reply?.[k]), s.bridge].filter((t) => typeof t === 'string' && t);
+    if (own.some(flaggedForAuditor)) flagged.add(i);
+    const turn = [replyText(s), known[i + 1]?.bridge].filter(Boolean).join(' ');
+    if (turn && flaggedForAuditor(turn)) {
+      flagged.add(i);
+      if (known[i + 1]) flagged.add(i + 1);
+    }
+  });
+  return known.map((s, i) => {
+    if (!s) return null;
+    const typed = 'typed' in s;
+    if (flagged.has(i)) return { ...s, ...(typed ? { typed: null } : {}), reply: null, bridge: null, withheld: 'flagged' };
+    if (typed && s.typed === null) return { ...s, withheld: 'no_deidentified_copy' };
+    return s;
+  });
 }
 
 function exportPlay(row) {
@@ -85,7 +116,7 @@ function exportPlay(row) {
     domains: Object.fromEntries(DOMAINS.map((d) => [d, numberOrNull(row[d])])),
     score_source: row.score_source ?? null, language_look: row.language_look ?? null,
     spend_usd: numberOrNull(row.spend_usd), created_at: row.created_at, scored_at: row.scored_at ?? null,
-    dialogue: Array.isArray(row.steps) ? row.steps.map(exportStep) : null,
+    dialogue: Array.isArray(row.steps) ? exportDialogue(row.steps) : null,
   };
 }
 
@@ -127,4 +158,4 @@ async function exportPlays(now = new Date()) {
   };
 }
 
-module.exports = { leaderboard, exportPlays, exportStep };
+module.exports = { leaderboard, exportPlays, exportDialogue };

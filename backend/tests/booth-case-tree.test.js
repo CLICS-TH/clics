@@ -409,7 +409,7 @@ describe('the reply bank', () => {
     expect(problems).toEqual(SHORT_ACRONYMS);
   });
 
-  // The internal export (ADR 0014, booth-monitor exportStep) screens every stored reply with the auditor read's screen
+  // The internal export (ADR 0014, booth-monitor exportDialogue) screens every stored reply with the auditor read's screen
   // and withholds a step that trips it. A reviewed bank reply that tripped it (a Thai digit, a six-digit run) would be
   // withheld from every play that tapped it: reword the reply, e.g. 110,000 as 110 พัน or Arabic digits.
   test('no reviewed bank reply trips the auditor screen, so the export keeps every tapped reply', () => {
