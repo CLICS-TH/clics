@@ -89,6 +89,26 @@ const checkTry = (h, label, seen, origin) => h.check(seen.count === 1 && seen.ta
   && seen.text.includes('ลองใช้ CLICS') && seen.text.includes('Try CLICS'),
 `${label}: one "Try CLICS" link to the Portal root, ${seen.href} (no /login, no play id, no query or fragment)`);
 
+/** Opens the page's folds (booth-result.js fold), which it draws closed, so what sits in them is measured too. */
+const openFolds = (page) => page.evaluate(() => { for (const d of document.querySelectorAll('details.result-fold')) d.open = true; });
+
+/** The folds as drawn: each one's key, whether it is open, its summary's box and text, whether anything in it shows, and
+ *  whether the page runs Practise next, the workshop, the two folds and "Try CLICS" in that order. */
+const readFolds = (page) => page.evaluate(() => {
+  const order = ['.practise-next', '[data-workshop]', '[data-fold="domains"]', '[data-fold="answers"]', '[data-action="try-clics"]'].map((s) => document.querySelector(s));
+  return {
+    folds: [...document.querySelectorAll('details.result-fold')].map((d) => {
+      const sum = d.querySelector(':scope > summary');
+      const r = sum.getBoundingClientRect();
+      // A closed fold's content is laid out but not drawn (content-visibility), so ask whether it would be seen.
+      return { key: d.dataset.fold, open: d.open, height: r.height, width: r.width, text: sum.innerText.replace(/\s+/g, ' ').trim(),
+        shows: [...d.children].some((c) => c !== sum && c.checkVisibility()) };
+    }),
+    inOrder: order.every(Boolean) && order.every((e, i) => i === 0 || order[i - 1].compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING),
+    screens: document.scrollingElement.scrollHeight / innerHeight,
+  };
+});
+
 const WORKSHOP_KEY = '[data-action="workshop"]';
 /** The workshop invitation as the phone page draws it: its link resolved the way a tap would follow it, and whether it
  *  sits above "Try CLICS" as the result's next step. */
@@ -103,7 +123,7 @@ const workshopLink = (page) => page.evaluate((key) => {
 }, WORKSHOP_KEY);
 const checkWorkshop = (h, label, seen, origin) => {
   // The card's own lines; scan and finish belong to the kiosk's invitation screen.
-  const words = ['title', 'line', 'when', 'open'].flatMap((key) => [WORKSHOP_COPY[key].th, WORKSHOP_COPY[key].en]);
+  const words = ['title', 'line', 'when', 'alongside', 'open'].flatMap((key) => [WORKSHOP_COPY[key].th, WORKSHOP_COPY[key].en]);
   h.check(seen.count === 1 && seen.cards === 1 && seen.tag === 'A' && seen.raw === WORKSHOP_PATH && seen.href === `${origin}${WORKSHOP_PATH}` && seen.target === null
     && words.every((w) => seen.text.replace(/\s+/g, '').includes(w.replace(/\s+/g, ''))),
   `${label}: one workshop card, Thai and English, whose link opens ${WORKSHOP_PATH} on the Portal in the same tab (${seen.href})`);
@@ -191,6 +211,7 @@ export default [
         const domains = Object.fromEntries(KEYS.map((k) => [k, 2]));
         await p.page.evaluate((f) => { location.hash = f; }, resultFragment({ score: 50, domains, tag: 7, date: '2026-11-19', tiers, look: 'th+en', caseId: tree.case_id, caseVersion: tree.version, picks }));
         await p.page.waitForFunction((n) => document.querySelectorAll('.result-steps .reveal-step').length === n, tiers.length);
+        await openFolds(p.page);
         await h.screenCheck(p.page, `explained steps, ${file}, 320px`, { demo: 'auto', phone: true });
       }
       await p.close();
@@ -217,7 +238,7 @@ export default [
       const fragment = resultFragment({ score: 72, domains, tag: 42, date: '2026-11-19', tiers, look: 'th+en', caseId: tree.case_id, caseVersion: tree.version, picks });
       const p = await h.phone(`${RESULT_PATH}#${fragment}`, { width, height });
       const { page } = p;
-      await page.waitForSelector('#result[data-rendered] .result-steps');
+      await page.waitForSelector('#result[data-rendered] .result-steps', { state: 'attached' });
       const seen = await page.evaluate(() => ({
         teaser: document.querySelector('.result-case .teaser')?.innerText,
         steps: [...document.querySelectorAll('.result-steps .reveal-step')].map((e) => ({
@@ -242,6 +263,10 @@ export default [
         `${width}: step ${i + 1} shows its question, ${want.given ? 'the tapped answer and its reason' : 'that the answer was typed'}, the ${tiers[i]} tier${missed || !want.given ? ' and the best option with its reason' : ''}`);
       });
       h.check(seen.scrollX <= 0, `${width}: no sideways scroll (${seen.scrollX} px over)`);
+      const closed = await readFolds(page);
+      h.check(closed.folds.length === 2 && closed.folds.every((f) => !f.open && !f.shows) && closed.folds[1].text.includes(h.COPY.answersTitle.th) && closed.folds[1].text.includes(h.COPY.answersTitle.en),
+        `${width}: the explained steps sit folded under "${h.COPY.answersTitle.en}", closed (${closed.screens.toFixed(1)} screens closed)`);
+      await openFolds(page);
       await h.screenCheck(page, `explained result page ${width}px`, { demo: 'auto', phone: true });
       await h.shot(page, `result-page-steps-${width}`, { fullPage: true });
       // A link from another case version: an id the text lacks falls back to the tier list, never to wrong text.
@@ -263,6 +288,39 @@ export default [
       const p = await h.phone(`${RESULT_PATH}#${fragment}`, { width, height });
       const { page } = p;
       await page.waitForSelector('.result-card');
+      await page.evaluate(() => document.fonts.ready);
+      // Other domains and the answers are folded, closed, so the visitor's own feedback and the workshop come first.
+      const folds = await readFolds(page);
+      h.check(h.same(folds.folds.map((f) => f.key), ['domains', 'answers']) && folds.folds.every((f) => !f.open && !f.shows && f.height >= 44),
+        `${width}: Other domains and the answers are folded and closed, each behind a summary at least 44 px tall (${folds.folds.map((f) => `${f.key} ${Math.round(f.width)}x${Math.round(f.height)}`).join(', ')}; ${folds.screens.toFixed(1)} screens)`);
+      h.check(folds.folds[0]?.text.includes(h.COPY.otherDomains.th) && folds.folds[0].text.includes(h.COPY.otherDomains.en)
+        && folds.folds[1]?.text.includes(h.COPY.stepTiers.th) && folds.folds[1].text.includes(h.COPY.stepTiers.en),
+      `${width}: each fold is named in Thai and English (${folds.folds.map((f) => f.text).join(' | ')})`);
+      h.check(folds.inOrder, `${width}: Practise next, then the workshop card, then the two folds, then "Try CLICS"`);
+      await h.screenCheck(page, `result page ${width}px, folds closed`, { demo: 'auto', phone: true });
+      await h.shot(page, `result-page-${width}`, { fullPage: true });
+      // Each fold's mark is a chevron pointing down while it is closed, turned over (pointing up) once it is open.
+      const turn = (open) => page.evaluate((o) => [...document.querySelectorAll('details.result-fold')].map((d) => {
+        d.open = o;
+        const mark = d.querySelector('summary .fold-mark');
+        for (const a of mark.getAnimations()) a.finish();
+        const m = new DOMMatrix(getComputedStyle(mark).transform === 'none' ? undefined : getComputedStyle(mark).transform);
+        return { svg: mark.tagName === 'svg', path: mark.querySelector('path')?.getAttribute('d'), a: Math.round(m.a), d: Math.round(m.d) };
+      }), open);
+      const shut0 = await turn(false);
+      const open0 = await turn(true);
+      await turn(false);
+      h.check([...shut0, ...open0].every((m) => m.svg && m.path === 'm6 9 6 6 6-6') && shut0.every((m) => m.a === 1 && m.d === 1) && open0.every((m) => m.a === -1 && m.d === -1),
+        `${width}: each fold's mark is a chevron, pointing down closed and turned over to point up open (${JSON.stringify([shut0[0], open0[0]])})`);
+      // The keyboard opens and closes a fold: Enter on its summary, then Space.
+      await page.focus('[data-fold="domains"] > summary');
+      await page.keyboard.press('Enter');
+      const keyed = await page.evaluate(() => { const s = document.querySelector('[data-fold="domains"] > summary'); return { open: s.parentElement.open, ring: s.matches(':focus-visible') && getComputedStyle(s).outlineStyle !== 'none' }; });
+      await page.keyboard.press(' ');
+      const shut = await page.evaluate(() => document.querySelector('[data-fold="domains"]').open);
+      h.check(keyed.open && keyed.ring && !shut, `${width}: Enter on a fold's summary opens it, with a focus ring, and Space closes it (${JSON.stringify({ ...keyed, shut })})`);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await openFolds(page);
       const seen = await page.evaluate(() => ({
         score: document.querySelector('[data-score]')?.textContent,
         tag: document.querySelector('[data-tag]')?.innerText,
@@ -270,28 +328,50 @@ export default [
         teaser: document.querySelector('.result-case .teaser')?.innerText,
         labels: document.querySelectorAll('[data-demo-label]').length,
         label: document.querySelector('[data-demo-label]')?.innerText,
-        rows: [...document.querySelectorAll('.result-card .domain')].map((e) => ({
-          key: e.dataset.key, value: e.dataset.value, bar: e.querySelector('.domain-bar > span').getBoundingClientRect().width / e.querySelector('.domain-bar').getBoundingClientRect().width,
-          th: e.querySelector('.domain-band .bi-th').textContent, en: e.querySelector('.domain-band .bi-en').textContent,
-          mth: e.querySelector('.domain-measure .bi-th')?.textContent, men: e.querySelector('.domain-measure .bi-en')?.textContent,
-        })),
-        scale: document.querySelector('.result-card .scale-note')?.innerText,
+        rows: [...document.querySelectorAll('.result-card .domain')].map((e) => {
+          const [row, name, value] = [e, e.querySelector('.domain-name'), e.querySelector('.domain-value')].map((x) => x.getBoundingClientRect());
+          return {
+            key: e.dataset.key, value: e.dataset.value, bar: e.querySelector('.domain-bar > span').getBoundingClientRect().width / e.querySelector('.domain-bar').getBoundingClientRect().width,
+            th: e.querySelector('.domain-band .bi-th').textContent, en: e.querySelector('.domain-band .bi-en').textContent,
+            mth: e.querySelector('.domain-measure .bi-th')?.textContent, men: e.querySelector('.domain-measure .bi-en')?.textContent,
+            // The name across the row's whole width, the score on a line of its own under it.
+            nameWide: name.width >= row.width - 1, valueUnder: value.top >= name.bottom - 1,
+            text: e.textContent,
+          };
+        }),
+        // The scale note's lines, each language, and whether each line that starts with a number keeps its clause on
+        // the number's line.
+        scale: Object.fromEntries(['th', 'en'].map((lang) => [lang, [...document.querySelectorAll(`.result-card .scale-note .bi-${lang} > .bi-line`)].map((l) => l.textContent)])),
+        held: [...document.querySelectorAll('.result-card .scale-note .bi-line')].filter((l) => /^\d/.test(l.textContent)).map((l) => {
+          const walk = document.createTreeWalker(l, NodeFilter.SHOW_TEXT);
+          const at = (n, i) => { const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1); return r.getBoundingClientRect().top; };
+          const first = walk.nextNode();
+          const clause = first.data.indexOf('\u00a0') + 1;
+          return clause > 0 && clause < first.data.length && Math.abs(at(first, 0) - at(first, clause)) < 2;
+        }),
         next: [...document.querySelectorAll('.practise-next .domain')].map((e) => e.dataset.key),
         scrollX: document.documentElement.scrollWidth - innerWidth,
         smallest: Math.min(...[...document.querySelectorAll('.result-page *')].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
           .map((e) => parseFloat(getComputedStyle(e).fontSize))),
       }));
-      h.check(seen.score === '64' && seen.tag === 'Booth #007' && seen.date === '2026-11-03', `${width}: score 64, Booth #007 and the date shown (${seen.score}, ${seen.tag}, ${seen.date})`);
+      h.check(seen.score === '64' && seen.tag === 'Player #007' && seen.date === '2026-11-03', `${width}: score 64, Player #007 and the date shown (${seen.score}, ${seen.tag}, ${seen.date})`);
       h.check(seen.teaser?.includes(h.TREE.teaser.th.split(' ')[0]) && seen.teaser.includes(h.TREE.teaser.en), `${width}: the case teaser in Thai and English`);
       h.check(seen.labels >= 1 && seen.label.includes(h.DEMO_LABEL.th) && seen.label.includes(h.DEMO_LABEL.en), `${width}: the demo label is on the page`);
       h.check(seen.rows.length === 7 && seen.rows.every((row) => Number(row.value) === domains[row.key]
         && Math.abs(row.bar - domains[row.key] / 5) < 0.02
-        && row.th === BAND_LINES[row.key][bandOf(domains[row.key])].th && row.en === BAND_LINES[row.key][bandOf(domains[row.key])].en),
+        && row.th === h.unbroken(BAND_LINES[row.key][bandOf(domains[row.key])].th) && row.en === BAND_LINES[row.key][bandOf(domains[row.key])].en),
       `${width}: 7 rows, each bar at its score and carrying its domain's band line in Thai and English`);
-      h.check(seen.rows.every((row) => row.mth === MEASURES[row.key].th && row.men === MEASURES[row.key].en),
+      h.check(seen.rows.every((row) => row.mth === h.unbroken(MEASURES[row.key].th) && row.men === MEASURES[row.key].en),
         `${width}: every row says what its domain looks at, in Thai and English (booth-bands.js MEASURES)`);
-      h.check(seen.scale?.includes(SCALE_NOTE.th.split(' ')[0]) && seen.scale.includes(SCALE_NOTE.en), `${width}: the 0-5 scale note sits above the domains`);
-      h.check(h.same(seen.next, ['d4', 'd1']), `${width}: Practise next lists the two weakest first (${seen.next})`);
+      h.check(seen.rows.every((row) => row.nameWide && row.valueUnder),
+        `${width}: each domain's name takes the row's width and its score a line of its own under it`);
+      const room = { th: h.unbroken(h.COPY.littleRoom.th), en: h.COPY.littleRoom.en };
+      const times = (text, part) => text.split(part).length - 1;
+      h.check(seen.rows.every((row) => ['th', 'en'].every((lang) => times(row.text, room[lang]) === (['d5', 'd6', 'd7'].includes(row.key) ? 1 : 0))),
+        `${width}: d5-d7 each say "${room.en}" once, in their tag, in Thai and English, and no other row says it`);
+      h.check(h.same(seen.scale, { th: SCALE_NOTE.th.split('\n').map(h.unbroken), en: SCALE_NOTE.en.split('\n') }) && seen.held.length === 4 && seen.held.every(Boolean),
+        `${width}: the 0-5 scale note sits above the domains in four lines a language, "0 …" and "5 …" each a line of its own with the number on its clause's line (${JSON.stringify(seen.scale.en)})`);
+      h.check(h.same(seen.next, ['d4', 'd1']), `${width}: Practise next lists the two weakest of d1-d4 first (${seen.next})`);
       h.check(seen.scrollX <= 0, `${width}: no sideways scroll (${seen.scrollX} px over)`);
       h.check(seen.smallest >= 16, `${width}: no text under 16 px (smallest ${seen.smallest} px)`);
       h.check(p.requests.every((q) => !q.url.includes('#') && !q.url.includes(fragment.slice(3, 40))), `${width}: no request URL carries the fragment`);
@@ -309,8 +389,8 @@ export default [
         await page.evaluate((to) => document.scrollingElement.scrollTo(0, to), y);
         await page.evaluate(() => window.scrollTo(0, 0));
       }
-      await h.screenCheck(page, `result page ${width}px`, { demo: 'auto', phone: true });
-      await h.shot(page, `result-page-${width}`, { fullPage: true });
+      await h.screenCheck(page, `result page ${width}px, folds open`, { demo: 'auto', phone: true });
+      await h.shot(page, `result-page-open-${width}`, { fullPage: true });
       await page.evaluate(() => document.querySelector('[data-workshop]').scrollIntoView({ block: 'center' }));
       await h.shot(page, `result-page-register-${width}`);
       await page.evaluate(() => window.scrollTo(0, 0));
@@ -319,6 +399,12 @@ export default [
       h.check(await page.locator('.tier-step').count() === 0 && await page.locator('[data-radar]').count() === 1,
         `${width}: a new fragment re-renders the page, and an old link with no tiers shows the radar and no tier list`);
       await p.close();
+      // The page's own fragment is the result, so a link into a fold is a link to its text: the browser opens the fold.
+      const inside = BAND_LINES.d5[bandOf(domains.d5)].en;
+      const q = await h.phone(`${RESULT_PATH}#${fragment}:~:text=${encodeURIComponent(inside).replace(/-/g, '%2D')}`, { width, height });
+      const opened = await q.page.waitForFunction(() => document.querySelector('[data-fold="domains"]')?.open, null, { timeout: 5000 }).then(() => true, () => false);
+      h.check(opened, `${width}: a link to a line inside the closed Other domains fold ("${inside}") opens it`);
+      await q.close();
     },
   })),
   {

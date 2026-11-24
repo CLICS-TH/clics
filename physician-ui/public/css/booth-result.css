@@ -25,10 +25,18 @@ body.booth-result { color: var(--ink); font-family: var(--font-sans); line-heigh
 .result-page .result-total { flex-direction: column; align-items: flex-start; gap: 4px; }
 .result-page .result-number { font-size: calc(120 * var(--u)); }
 .result-page .practise-next { padding: 16px; }
+/* A domain's name takes the row's whole width and its score a line of its own under it, so a long Thai name never
+   shares its line with the number (the kiosk keeps them side by side: its column is wide). */
+.result-page .domain-head { flex-direction: column; align-items: stretch; gap: 2px; }
 .result-page .end-card { margin: 40px 0; }
 .end-title .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
 .end-title .bi-sub { font-size: var(--text-label-en); line-height: 1.35; }
 .result-page .radar { align-self: center; }
+/* The chart takes the card's width, as on a kiosk column, with a box as tall as its axis names need around the largest
+   ring that width allows: the names sit outside the ring at full size, so the ring is what grows. English names run
+   wider, so their ring is width-bound sooner and the box is shorter. */
+.result-page .result-card .radar { width: 100%; aspect-ratio: 5 / 4; }
+:root:lang(en) .result-page .result-card .radar { aspect-ratio: 3 / 2; }
 .result-tiers {
   display: flex; flex-direction: column; gap: 12px; padding: 20px;
   background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
@@ -57,7 +65,26 @@ body.booth-result { color: var(--ink); font-family: var(--font-sans); line-heigh
 .workshop-line .bi-main { font-size: var(--text-small-th); line-height: 1.55; }
 .workshop-line .bi-sub, .workshop-when .bi-sub { font-size: var(--text-en); line-height: 1.4; }
 .workshop-when .bi-main { font-size: var(--text-small-th); font-weight: 600; line-height: 1.5; }
+.workshop-alongside { margin-top: -8px; }
+.workshop-alongside .bi-main { font-size: var(--text-small-th); font-weight: 600; line-height: 1.5; }
+.workshop-alongside .bi-sub { font-size: var(--text-en); font-weight: 600; line-height: 1.4; }
 .workshop-card .workshop-open { margin-top: 4px; }
+/* Other domains and the answers, folded (booth-result.js fold): closed, a bar across the page with its title and a
+   chevron, which the open section then sits under. The bar's edge is the tap targets' 3:1 outline. */
+.result-fold[open] > .fold-head { margin-bottom: 12px; }
+.fold-head {
+  box-sizing: border-box; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 20px; background: var(--card); border: var(--line) solid var(--edge); border-radius: var(--radius);
+  list-style: none; cursor: pointer;
+}
+.fold-head::-webkit-details-marker { display: none; }
+.fold-head:focus-visible { outline: 3px solid var(--ai-border); outline-offset: 3px; }
+.fold-head:active { background: var(--pressed); }
+.fold-mark { flex: none; width: 28px; height: 28px; color: var(--accent-down); transition: transform 150ms ease-out; }
+.fold-mark path { fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+/* Open, the same chevron turned over: it points up, to fold the section away again. */
+.result-fold[open] .fold-mark { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .fold-mark { transition: none; } }
 /* What each domain looks at, and how to read 0-5 (booth-bands.js MEASURES, SCALE_NOTE): the result page only. */
 .scale-note .bi-main, .domain-measure .bi-main { font-size: var(--text-small-th); line-height: 1.5; color: var(--body); }
 .scale-note .bi-sub, .domain-measure .bi-sub { font-size: var(--text-en); line-height: 1.35; color: var(--body); }

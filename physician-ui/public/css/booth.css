@@ -13,6 +13,7 @@
   --card-clear: rgba(255, 255, 255, 0);
   --band: #efe9de;
   --pressed: #f5f0e8;
+  --chosen: #f1e2dc;        /* a chosen option: the accent at 15% on the card, so the pick shows at a glance */
   --hairline: #e6dfd8;
   --edge: #8a8578;          /* a tap target's outline, >= 3:1 on canvas and card */
   --ink: #141413;
@@ -41,6 +42,8 @@
   --tap: calc(96 * var(--u));
   --gap: calc(32 * var(--u));
   --gutter: calc(64 * var(--u));
+  /* The corner row CCME's mark and the look control sit in (8u inset + 84u + 8u): no card starts above it. */
+  --corner-room: calc(100 * var(--u));
   --radius: calc(28 * var(--u));
   --radius-s: calc(16 * var(--u));
   --line: calc(3 * var(--u));
@@ -74,6 +77,14 @@ body.booth {
 /* English first: the Thai under it keeps Thai leading in every context, whatever that context gives its sub slot. */
 :root:lang(en) .bi > .bi-sub[lang="th"] { line-height: 1.5; }
 .ph { display: inline-block; max-width: 100%; }
+/* Case text (booth-dom.js caseParts): a phrase wider than its column breaks only between its parts, and a number stays
+   with its unit and the word before it, in every language. */
+.ph-part { display: inline-block; max-width: 100%; }
+.ph-keep, .reading { white-space: nowrap; }
+/* A phrase with breaks its copy places (booth-dom.js brokenPhrase): it ends a line only at a <wbr>, never in a piece.
+   A line the copy itself breaks ("\n") is a block. */
+.ph-piece { white-space: nowrap; }
+.bi-line { display: block; }
 .tag-th { display: none; line-height: 1.45; }
 :root[data-look="th"] .tag-en { display: none; }
 :root[data-look="th"] .tag-th { display: inline; }
@@ -141,20 +152,28 @@ body.booth {
 .case-card:not(.case-card--full) .case-text::after {
   content: ''; flex: none; align-self: stretch; position: sticky; bottom: calc(-32 * var(--u));
   height: calc(72 * var(--u)); margin: calc(-24 * var(--u)) 0 calc(-32 * var(--u));
-  background: linear-gradient(to bottom, var(--card-clear), var(--card)); pointer-events: none;
+  background: linear-gradient(to bottom, var(--card-clear), var(--card) 60%); pointer-events: none;
 }
-.case-card--full { flex: 1 1 auto; justify-content: center; padding: calc(48 * var(--u)); }
+/* Thai breaks only at its own spaces (booth-dom.js phrases), so the measure and the size set the rag of a vignette: at
+   39 units across a 32-unit inset a case's clauses fill their lines (lines under 60% full, over the 11 cases: 29 at 42
+   units across 48, 8 here). */
+.case-card--full { padding: calc(48 * var(--u)) calc(32 * var(--u)); }
 .case-card--full .case-text { padding-bottom: 0; }
-/* On a phone the teaser is two short lines: a card stretched to the body's height is mostly empty white, so it
-   hugs its text and sits in the middle of the body. The kiosk (1080 px and up) keeps the full-height card. */
-@media (max-width: 600px) {
-  .case-card--full:has(.teaser) { flex: none; margin-block: auto; }
-  /* The kiosk's 1080-wide scale leaves the teaser at 16 / 12 px on a phone: hold it at a phone's body sizes. */
-  .case-card--full:has(.teaser) .teaser .bi-main { font-size: max(18px, calc(42 * var(--u))); }
-  .case-card--full:has(.teaser) .teaser .bi-sub { font-size: max(15px, calc(32 * var(--u))); }
-}
-.case-card--full :is(.vignette, .teaser) .bi-main { font-size: calc(42 * var(--u)); line-height: 1.65; }
+/* Both cards hug their text, so a short text never floats in a tall white card, and both sit in the middle of the space
+   between the header and their buttons. The teaser is one sentence set as a headline; a vignette too long for that space
+   keeps its top and scrolls. A larger vignette type would fill the space, but brings back half-empty lines (lines under
+   60% full over the 11 cases, Thai and English, in the default look: 11 at 39 units, 21 at 42, 29 at 44). */
+.case-card--full:has(.teaser) { flex: none; margin-block: auto; }
+.case-card--full:has(.vignette) { margin-block: auto; }
+.case-card--full :is(.vignette, .teaser) .bi-main { font-size: calc(39 * var(--u)); line-height: 1.65; }
 .case-card--full :is(.vignette, .teaser) .bi-sub { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
+.case-card--full .teaser .bi-main { font-size: calc(60 * var(--u)); font-weight: 600; line-height: 1.5; }
+.case-card--full .teaser .bi-sub { font-size: calc(40 * var(--u)); line-height: 1.45; margin-top: calc(24 * var(--u)); }
+@media (max-width: 600px) {
+  /* The kiosk's 1080-wide scale leaves the teaser at 21 / 14 px on a phone: hold it at a phone's body sizes. */
+  .case-card--full:has(.teaser) .teaser .bi-main { font-size: max(18px, calc(42 * var(--u))); font-weight: inherit; line-height: 1.65; }
+  .case-card--full:has(.teaser) .teaser .bi-sub { font-size: max(15px, calc(32 * var(--u))); line-height: 1.5; margin-top: calc(20 * var(--u)); }
+}
 .vignette .bi-sub { margin-top: calc(12 * var(--u)); }
 .play-actions--stack { flex-direction: column; }
 
@@ -175,6 +194,9 @@ body.booth {
 .step-of .bi-main, .step-of .bi-sub { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
 .question .bi-main { font-size: var(--text-q-th); font-weight: 600; line-height: 1.45; }
 .question .bi-sub { font-size: var(--text-q-en); line-height: 1.35; }
+/* The reviewed English of a case, its questions, its options and its result lines never ends on one word alone
+   ("it?", "depth."): the browser moves a word down to keep it company. */
+:is(.question, .opt-label, .opt-line, .reveal-question, .reveal-given, .vignette, .teaser, .domain-band, .domain-measure) > [lang="en"] { text-wrap: pretty; }
 .prompt { display: flex; flex-direction: column; }
 /* Bridge and question read as one card: the AI's lead-in on top, the question beneath it on the same rail. */
 .prompt--bridged { border-left: calc(8 * var(--u)) solid var(--ai-border); border-radius: var(--radius-s); background: var(--ai-bg); overflow: hidden; }
@@ -189,14 +211,18 @@ body.booth {
 
 .options { display: flex; flex-direction: column; gap: calc(16 * var(--u)); }
 .booth-btn.option { align-items: flex-start; padding: calc(20 * var(--u)) calc(28 * var(--u)); }
-/* The chosen option: a ring inside the accent border, so the highlight moves nothing. */
-.booth-btn.option[aria-pressed="true"] { background: var(--pressed); border-color: var(--accent); box-shadow: inset 0 0 0 var(--line) var(--accent); }
+/* The chosen option: a filled tint, a ring inside the accent border and a tick for its letter, so the highlight moves
+   nothing. */
+.booth-btn.option[aria-pressed="true"] { background: var(--chosen); border-color: var(--accent); box-shadow: inset 0 0 0 var(--line) var(--accent); }
 .opt-inner { display: flex; align-items: flex-start; gap: calc(24 * var(--u)); width: 100%; }
 .opt-letter {
   flex: none; display: grid; place-items: center;
   width: calc(64 * var(--u)); height: calc(64 * var(--u)); border-radius: 50%;
   background: var(--accent); color: var(--on-accent); font-size: calc(32 * var(--u)); font-weight: 600; line-height: 1;
 }
+.opt-letter .booth-icon svg { width: calc(40 * var(--u)); height: calc(40 * var(--u)); stroke-width: 3; }
+.option:not([aria-pressed="true"]) .opt-letter .booth-icon, .option[aria-pressed="true"] .opt-mark { display: none; }
+.option[aria-pressed="true"] .opt-letter { background: var(--accent-down); }
 .opt-text { display: flex; flex-direction: column; gap: calc(8 * var(--u)); min-width: 0; }
 .opt-label { --bi-sub: var(--ink); }
 .opt-label .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.4; }
@@ -247,8 +273,10 @@ body.booth {
   border: calc(3 * var(--u)) dashed var(--edge); border-radius: var(--radius-s); color: var(--ink); --bi-sub: var(--ink);
 }
 
+/* The reply takes the body's whole width: at 92% a long Thai phrase dropped to the next line and left its opening words
+   alone on the first ("ชีพจร การหายใจ"). */
 .ai-bubble {
-  align-self: flex-start; max-width: 92%; box-sizing: border-box;
+  align-self: flex-start; max-width: 100%; box-sizing: border-box;
   display: flex; flex-direction: column; gap: calc(16 * var(--u));
   padding: calc(28 * var(--u)) calc(36 * var(--u));
   background: var(--ai-bg); color: var(--ai-text); --bi-sub: var(--ai-text);
@@ -279,7 +307,13 @@ body.booth {
   padding: calc(40 * var(--u)) calc(48 * var(--u)) calc(48 * var(--u)); background: var(--card); border: var(--line) solid var(--hairline); border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
-.result-total { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--gap); padding-bottom: calc(24 * var(--u)); border-bottom: var(--line) solid var(--hairline); }
+.result-total { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: calc(8 * var(--u)) var(--gap); padding-bottom: calc(24 * var(--u)); border-bottom: var(--line) solid var(--hairline); }
+/* A five-step play's number is a rescale (ADR 0013): the line under it says so, on a line of its own. The name gives
+   way to the number on the first line. */
+.result-total > .result-overall { flex: 1 1 0; min-width: 0; }
+.score-note { flex: 1 0 100%; color: var(--body); }
+.score-note .bi-main { font-size: var(--text-en); line-height: 1.45; }
+.score-note .bi-sub { font-size: var(--text-en); line-height: 1.35; }
 .result-overall .bi-main { font-size: var(--text-title-en); font-weight: 600; line-height: 1.45; }
 .result-overall .bi-sub { font-size: var(--text-en); }
 .result-score { display: flex; align-items: baseline; gap: calc(12 * var(--u)); }
@@ -294,8 +328,13 @@ body.booth {
 .domain-bar { height: calc(20 * var(--u)); background: var(--track); border-radius: calc(10 * var(--u)); overflow: hidden; }
 .domain-bar > span { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
 .domain-section { display: flex; flex-direction: column; gap: calc(20 * var(--u)); }
+.section-head { display: flex; flex-direction: column; gap: calc(8 * var(--u)); }
 .section-title .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
 .section-title .bi-sub { font-size: var(--text-en); line-height: 1.3; }
+/* Practise next's line on where it draws from, and the tag on a d5-d7 row (booth-domains.js). */
+.section-note .bi-main, .domain-tag .bi-main { font-size: var(--text-en); line-height: 1.45; }
+.section-note .bi-sub, .domain-tag .bi-sub { font-size: var(--text-en); line-height: 1.3; }
+.domain-tag { align-self: flex-start; padding: calc(6 * var(--u)) calc(16 * var(--u)); background: var(--band); border-radius: var(--radius-s); color: var(--ink); --bi-sub: var(--ink); }
 .practise-next { padding: calc(28 * var(--u)); background: var(--band); border-radius: var(--radius-s); --bi-sub: var(--ink); }
 .practise-next .domain-bar { background: var(--card); }
 .domain-band { margin-top: calc(2 * var(--u)); }
@@ -309,6 +348,34 @@ body.booth {
   flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   display: flex; flex-direction: column; gap: calc(24 * var(--u)); padding-bottom: calc(48 * var(--u));
 }
+/* More lies below: the case peek's fade (.case-text::after) at the scroll box's foot, both solid over their last 40% so
+   no cut-off mark of the next line shows at the edge. It ends the scroll, starting a gap under the last line, so at the
+   end it covers nothing; the ranks and the leaderboard button sit above it. */
+.result-more::after {
+  content: ''; flex: none; align-self: stretch; position: sticky; bottom: calc(-48 * var(--u));
+  height: calc(72 * var(--u)); margin: calc(-24 * var(--u)) 0 calc(-48 * var(--u));
+  background: linear-gradient(to bottom, var(--card-clear), var(--card) 60%); pointer-events: none;
+}
+.result-more > .result-board-row { position: relative; z-index: 1; }
+/* "Scroll for more" over the fade's right end, under the leaderboard button, while more lies below (booth-play.js). */
+.play-body > .result-card { position: relative; }
+.more-hint {
+  position: absolute; right: calc(48 * var(--u)); bottom: calc(6 * var(--u)); z-index: 2;
+  display: flex; align-items: center; gap: calc(8 * var(--u)); padding: 0 calc(12 * var(--u));
+  background: var(--card); border-radius: 999px; color: var(--accent-down); --bi-sub: var(--accent-down); pointer-events: none;
+}
+.more-hint[hidden] { display: none; }
+.more-hint .booth-icon svg { width: calc(32 * var(--u)); height: calc(32 * var(--u)); }
+.more-hint .bi { flex-direction: row; align-items: baseline; column-gap: calc(12 * var(--u)); }
+.more-hint .bi-main, .more-hint .bi-sub { font-size: var(--text-en); font-weight: 600; line-height: 1.4; }
+/* On the kiosk Practise next's line sits beside its title, not under it: under it, it would push the leaderboard button
+   below the fold (result.mjs). */
+.result-more .section-head { flex-direction: row; align-items: baseline; column-gap: var(--gap); }
+.result-more .section-note { flex: 1 1 0; min-width: 0; }
+/* Its title a step smaller, so the Thai line beside it holds on one line, and a domain's English name beside its Thai
+   one wherever the row holds both: the fold keeps Practise next and the leaderboard row above it (result.mjs). */
+.result-more .section-title .bi-main { font-size: calc(36 * var(--u)); }
+.result-more .domain-name { flex-flow: row wrap; align-items: baseline; column-gap: calc(16 * var(--u)); }
 /* English first: Latin set at the Thai main sizes runs longer, and the leaderboard button would wrap under the ranks and
    below the fold. These main slots take the sizes English had under the Thai, no smaller than the Thai under them. */
 :root:lang(en) :is(.domain-band, .rank-label, .domain-name) .bi-main { font-size: var(--text-en); line-height: 1.35; }
@@ -317,19 +384,19 @@ body.booth {
    sizes; the answers overlay's pattern (booth-answers.css). */
 .case-overlay {
   position: fixed; inset: 0; z-index: 9; box-sizing: border-box;
-  display: flex; padding: var(--gutter) calc(var(--side) + var(--gutter));
+  display: flex; padding: var(--corner-room) calc(var(--side) + var(--gutter)) var(--gutter);
   background: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 .case-sheet {
   box-sizing: border-box; width: 100%; max-height: 100%; margin: auto; display: flex; flex-direction: column; gap: var(--gap);
-  padding: calc(48 * var(--u)); background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-card);
+  padding: calc(48 * var(--u)) calc(32 * var(--u)); background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-card);
 }
 .case-sheet > :not(.case-read) { flex: none; }
 .case-title { margin: 0; font: inherit; }
 .case-title .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; }
 .case-title .bi-sub { font-size: var(--text-en); line-height: 1.35; }
 .case-read { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.case-read .vignette .bi-main { font-size: calc(42 * var(--u)); line-height: 1.65; }
+.case-read .vignette .bi-main { font-size: calc(39 * var(--u)); line-height: 1.65; }
 .case-read .vignette .bi-sub { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 
 @keyframes booth-pulse { 50% { opacity: .3; transform: scale(.8); } }

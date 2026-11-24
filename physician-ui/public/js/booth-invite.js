@@ -21,7 +21,8 @@ export function showInvite({ stage, bar, reset }) {
   const url = new URL(WORKSHOP_PATH, location.origin).href;
   const card = el('article', { class: 'invite-card', dataset: { invite: '' }, 'aria-label': WORKSHOP_COPY.title.en },
     enFirst(WORKSHOP_COPY.title, 'invite-title'),
-    bi(WORKSHOP_COPY.line, 'invite-line'),
+    // What it is, then why a College member would scan: it is held alongside their own specialty's audit.
+    el('div', { class: 'invite-lead' }, bi(WORKSHOP_COPY.line, 'invite-line'), bi(WORKSHOP_COPY.alongside, 'invite-alongside')),
     el('figure', { class: 'invite-qr', dataset: { inviteQr: url } }, qrSvg(url, WORKSHOP_COPY.scan.en), bi(WORKSHOP_COPY.scan, 'invite-scan')),
     bi(WORKSHOP_COPY.when, 'invite-when'));
   // The demo label stays pinned under it, as under every play screen: the line names the PIS-7 rubric.

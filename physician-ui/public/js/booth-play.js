@@ -7,7 +7,7 @@
 //   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
-import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill, isDomainScore } from './booth-copy.js';
+import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill, isDomainScore, isRescaled } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
@@ -15,7 +15,7 @@ import { revealRows, answersButton } from './booth-answers.js';
 import { openCase, closeCase } from './booth-case.js';
 import { resultUrl, boothDate, CASE_VERSION } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
-import { el, phrases, markedPhrases, bi, textLang, currentLook, onLook } from './booth-dom.js';
+import { el, phrases, markedPhrases, bi, caseBi, textLang, currentLook, onLook } from './booth-dom.js';
 
 const START_TIMEOUT_MS = 15_000;
 const REPLY_TIMEOUT_MS = 45_000;
@@ -421,6 +421,10 @@ const VIEWS = {
   scored: (s, { host, api }) => {
     const { score } = s.screen;
     const slot = el('div', { class: 'board-slot', dataset: { boothSlot: 'board' } });
+    // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
+    const more = el('div', { class: 'result-more' }, ...domainSections(score.domains, s.play.stepCount, el('div', { class: 'result-board-row' },
+      slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true }))));
+    const hint = el('div', { class: 'more-hint', dataset: { moreHint: '' }, 'aria-hidden': 'true' }, icon('arrowDown'), bi(COPY.scrollMore));
     const card = el('article', { class: 'result-card' },
       el('div', { class: 'result-top' },
         el('div', { class: 'result-summary' },
@@ -429,14 +433,28 @@ const VIEWS = {
             bi(COPY.overall, 'result-overall'),
             el('p', { class: 'result-score' },
               el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
-              el('span', { class: 'result-outof' }, '/ 100'))),
+              el('span', { class: 'result-outof' }, '/ 100')),
+            isRescaled(s.play.stepCount) ? bi(COPY.displayScale, 'score-note') : null),
           radar(score.domains)),
         el('div', { class: 'result-side' },
           keepQr(s, score),
           score.steps ? answersButton({ host, rows: revealRows(s.steps, s.answers, score.steps) }) : null)),
-      // The ranks sit beside the leaderboard button: under the score they would push Practise next below the fold.
-      el('div', { class: 'result-more' }, ...domainSections(score.domains, s.play.stepCount, el('div', { class: 'result-board-row' },
-        slot, leaderboardButton({ host, api, board: score.body.board, tag: s.play.tag, short: true })))));
+      more, hint);
+    // The hint shows while the scroll box holds more below its edge, and goes once the visitor reaches the end. A look
+    // switch resizes the sections, not always the box.
+    const below = () => { hint.hidden = more.scrollTop + more.clientHeight >= more.scrollHeight - 2; };
+    // At rest the card ends on the ranks and the leaderboard button, a clean edge: the other five start at the scroll
+    // box's foot, not with half their title peeking out under the board row. Scrolled, they rise from under the fade.
+    const board = more.querySelector('.result-board-row');
+    const others = more.querySelector('.other-domains');
+    const rest = () => {
+      const box = more.getBoundingClientRect();
+      const end = board.getBoundingClientRect().bottom - box.top + more.scrollTop;
+      others.style.marginTop = `${Math.max(0, Math.ceil(box.height - end - parseFloat(getComputedStyle(more).rowGap)))}px`;
+    };
+    more.addEventListener('scroll', below, { passive: true });
+    const sized = new ResizeObserver(() => { rest(); below(); });
+    for (const box of [more, ...more.children]) sized.observe(box);
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card]);
   },
@@ -449,7 +467,7 @@ const VIEWS = {
 // The text scrolls in a box of its own, inside the card's top padding, so a scrolled line never rises into the screen's
 // top corner, where the language control sits.
 function caseCard(pair, cls, mod = '') {
-  return el('section', { class: `case-card ${mod}`.trim() }, el('div', { class: 'case-text' }, bi(pair, cls)));
+  return el('section', { class: `case-card ${mod}`.trim() }, el('div', { class: 'case-text' }, caseBi(pair, cls)));
 }
 
 // The bridge is the AI's lead-in to this question, so it sits in the question's own block, AI-labelled.
@@ -466,9 +484,10 @@ function stepHead(s, step, { bridge = false } = {}) {
 
 const LETTERS = ['A', 'B', 'C'];
 
+// The chosen option's badge swaps its letter for a tick (booth.css): both are drawn, so the swap moves nothing.
 function optionBody(o, i) {
   return el('span', { class: 'opt-inner' },
-    el('span', { class: 'opt-letter', 'aria-hidden': 'true' }, LETTERS[i]),
+    el('span', { class: 'opt-letter', 'aria-hidden': 'true' }, el('span', { class: 'opt-mark' }, LETTERS[i]), icon('check')),
     el('span', { class: 'opt-text' }, bi(o.label, 'opt-label'), bi(o.line, 'opt-line')));
 }
 

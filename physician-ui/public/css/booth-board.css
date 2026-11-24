@@ -69,4 +69,5 @@
 .result-board-row > [data-booth-slot="board"], .result-board-row .result-ranks { display: contents; }
 .result-board-row .rank-lines { flex: none; }
 .result-board-row .landing-qr { order: 1; flex-basis: 100%; max-width: none; }
-.result-board-row > [data-action="leaderboard"] { flex: 1 1 calc(400 * var(--u)); width: auto; }
+/* The button sits at the top of the row, so "Scroll for more" (booth.css .more-hint) has the room under it. */
+.result-board-row > [data-action="leaderboard"] { flex: 1 1 calc(400 * var(--u)); width: auto; align-self: flex-start; }

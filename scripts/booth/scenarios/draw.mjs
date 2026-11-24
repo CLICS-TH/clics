@@ -95,7 +95,9 @@ const cardSlack = (page) => page.evaluate(() => {
   const cs = getComputedStyle(card);
   const inner = card.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   return { slack: Math.round(inner - card.querySelector('.teaser').getBoundingClientRect().height), card: Math.round(card.getBoundingClientRect().height),
-    body: Math.round(body.clientHeight), lineHeight: parseFloat(getComputedStyle(card.querySelector('.teaser .bi-th')).lineHeight) };
+    body: Math.round(body.clientHeight), lineHeight: parseFloat(getComputedStyle(card.querySelector('.teaser .bi-th')).lineHeight),
+    top: Math.round(card.getBoundingClientRect().top - body.getBoundingClientRect().top),
+    bottom: Math.round(body.getBoundingClientRect().bottom - card.getBoundingClientRect().bottom) };
 });
 
 export default [
@@ -157,18 +159,19 @@ export default [
       await k.close();
     },
   })),
-  {
-    name: 'teaser at 1080x1920: the kiosk keeps its full-height card',
+  ...[[1080, 1920], [1920, 1080]].map(([width, height]) => ({
+    name: `teaser at ${width}x${height}: the kiosk card hugs its text in the middle of the body`,
     async run(h) {
-      const k = await h.kiosk();
+      const k = await h.kiosk({ width, height });
       await k.shell('start');
       await k.tap('[data-action="start"]');
       await k.screen('teaser');
       const r = await cardSlack(k.page);
-      h.check(r.card >= r.body * 0.5, `1080x1920: the teaser card fills the play body (${r.card} of ${r.body} px)`);
+      h.check(Math.abs(r.top - r.bottom) <= 2 && r.slack <= r.lineHeight,
+        `${width}x${height}: the teaser card sits in the middle of the body (${r.top} px above it, ${r.bottom} px below) with ${r.slack} px of empty height (at most one line, ${r.lineHeight} px); card ${r.card} px in a ${r.body} px body`);
       await k.close();
     },
-  },
+  })),
   ...SIZES.map((size) => ({
     name: `teaser at ${label(size)}, coarse pointer: the case's teaser word for word and two buttons`,
     async run(h) {

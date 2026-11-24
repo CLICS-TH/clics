@@ -89,7 +89,7 @@ export default [
       const k = await h.kiosk({ files: FILES, label: 'loop' });
       const { page, stub } = k;
       await k.shell('start');
-      h.check(hasBoth(await barText(page), h.COPY.tapToStart), 'loop: the bar reads "แตะเพื่อเริ่ม / Tap to start"');
+      h.check(hasBoth(await barText(page), h.COPY.tapToStart), 'loop: the bar reads "แตะเพื่อลองตอบเคส / Tap to try a case"');
       const cue = await page.evaluate(() => {
         const c = document.querySelector('.shell-tap .loop-bar .tap-cue');
         const r = c?.getBoundingClientRect();

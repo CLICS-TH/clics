@@ -1,17 +1,50 @@
-/* The d1-d7 radar (js/booth-radar.js), on the kiosk's result card and the result page. Its aspect ratio is the
-   script's box (420 x 240), so the axis names land where the script places them in percent. */
-:root { --radar-fill: #c47b62; } /* 3.3:1 on the card; the accent-down outline is 6.6:1 */
+/* The d1-d7 radar (js/booth-radar.js), on the kiosk's result card and the result page. CSS sizes the box; the script
+   draws the largest chart that leaves every axis name inside it, so a bigger box is a bigger shape. */
+:root {
+  --radar-fill: #c47b62;  /* 3.3:1 on the card; the accent-down outline is 6.6:1 */
+  --radar-quiet: #6b675f; /* the names of d5-d7, which Practise next never names: 5.6:1 on the card */
+}
 .radar { position: relative; flex: none; align-self: center; box-sizing: border-box; margin: 0; width: calc(420 * var(--u)); max-width: 100%; aspect-ratio: 420 / 240; }
 .radar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.radar-grid { fill: none; stroke: var(--edge); stroke-width: 2; opacity: .5; }
+.radar-grid { fill: none; stroke: var(--edge); stroke-width: calc(2 * var(--u)); opacity: .5; }
 .radar-grid--over { stroke: var(--card); opacity: .45; }
-.radar-score { fill: var(--radar-fill); stroke: var(--accent-down); stroke-width: 4; stroke-linejoin: round; }
+.radar-score { fill: var(--radar-fill); stroke: var(--accent-down); stroke-width: calc(4 * var(--u)); stroke-linejoin: round; }
 /* An axis name in the primary language only: the slot's other language would crowd the spokes. */
 .radar-label .bi-sub { display: none; }
 .radar-label .bi-main { font-size: inherit; line-height: inherit; }
 /* English axis names run wider than the Thai ("Synthesis" reached the box's left edge): the chart takes a wider box. */
 :root:lang(en) .radar { width: calc(460 * var(--u)); }
+/* On the kiosk card the chart takes its column's whole width, as large as the fold allows (result.mjs). */
+.play-body > .result-card .result-summary .radar { width: 100%; }
+/* The card's head is a grid in every look: the score's name takes one line above its number, and the number's box
+   ends at its digits. */
+.play-body > .result-card .result-top { display: grid; grid-template-columns: minmax(0, 1fr) calc(340 * var(--u)); column-gap: var(--gap); }
+.play-body > .result-card :is(.result-summary, .result-side) { display: contents; }
+.play-body > .result-card .result-total > .result-overall { flex: 1 0 100%; flex-flow: row wrap; align-items: baseline; column-gap: calc(16 * var(--u)); }
+.play-body > .result-card .result-number { text-box: trim-both cap alphabetic; }
+/* A one-language look leaves the card room under the fold: there the chart takes a row of its own across the card, as
+   tall as that room allows with Practise next and the leaderboard row still above the fold (result.mjs). Above it, the
+   tag, the score and "See the answers" fill the column beside the keep QR. */
+:root[data-both="false"] .play-body > .result-card .result-top { grid-template-rows: auto auto 1fr auto; row-gap: calc(12 * var(--u)); }
+:root[data-both="false"] .play-body > .result-card .result-top .booth-tag { grid-area: 1 / 1; }
+:root[data-both="false"] .play-body > .result-card .result-top .result-total { grid-area: 2 / 1; }
+:root[data-both="false"] .play-body > .result-card .result-top .keep-qr { grid-area: 1 / 2 / 4 / 3; }
+:root[data-both="false"] .play-body > .result-card .result-top [data-action="see-answers"] { grid-area: 3 / 1; align-self: end; }
+:root[data-both="false"] .play-body > .result-card .result-top .radar { grid-area: 4 / 1 / 5 / 3; aspect-ratio: auto; height: calc(460 * var(--u)); }
+/* Thai alone: Practise next's line holds one line, not English's two, so the chart takes that room back. */
+:root[data-look="th"] .play-body > .result-card .result-top .radar { height: calc(506 * var(--u)); }
+/* Both languages: the tag heads the QR column, so the score's name has the left column's width for its one line, and
+   the chart fills the column under the score down to "See the answers", as tall as the QR column. */
+:root[data-both="true"] .play-body > .result-card .result-top { grid-template-rows: repeat(5, auto); row-gap: calc(8 * var(--u)); }
+:root[data-both="true"] .play-body > .result-card .result-top .booth-tag { grid-area: 1 / 2; justify-self: center; }
+:root[data-both="true"] .play-body > .result-card .result-top .result-total { grid-area: 1 / 1 / 3 / 2; align-self: start; }
+:root[data-both="true"] .play-body > .result-card .result-top .keep-qr { grid-area: 2 / 2 / 5 / 3; }
+:root[data-both="true"] .play-body > .result-card .result-top [data-action="see-answers"] { grid-area: 5 / 2; align-self: end; }
+:root[data-both="true"] .play-body > .result-card .result-top .radar { grid-area: 3 / 1 / 6 / 2; align-self: stretch; aspect-ratio: auto; height: auto; }
 .radar-label {
   position: absolute; white-space: nowrap;
-  font-size: var(--text-en); font-weight: 600; line-height: 1.45; color: var(--ink);
+  font-size: var(--text-en); font-weight: 700; line-height: 1.45; color: var(--ink);
 }
+/* The four domains Practise next draws from (booth-bands.js PRACTISE_KEYS) stay bold ink; the other three, which a booth
+   play gives little room, are quieter, so "bold on the chart" (COPY.practiseFrom) points at the four. */
+.radar-label[data-practise="false"] { font-weight: 400; color: var(--radar-quiet); }
