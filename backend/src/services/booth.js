@@ -816,5 +816,5 @@ async function updateBoothSettings(input) {
 
 module.exports = {
   BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
-  scorePlay, boothSettings, updateBoothSettings, studyCase, readBoothEvent, eventCases,
+  scorePlay, boothSettings, updateBoothSettings, studyCase, readBoothEvent, eventCases, openEvent,
 };

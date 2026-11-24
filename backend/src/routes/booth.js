@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { limit } = require('../lib/rate-limit');
 const { UUID_RE } = require('../lib/turn-idempotency');
 const booth = require('../services/booth');
+const feedback = require('../services/booth-feedback');
 
 const router = Router();
 
@@ -13,12 +14,16 @@ const PLAY_CALLS_PER_MIN = 12;
 // minute. The limit sits above that, so it stops a script and never a visitor, and draws stay out of the general
 // budget that the status poll, the replies and the score call share.
 const DRAW_CALLS_PER_MIN = 240;
+// Feedback comes from visitors' phones, which share the forum Wi-Fi's one public IP with the kiosk, so the limit is
+// generous: it only has to stop a script. It has its own budget, apart from the kiosk's general one.
+const FEEDBACK_PER_MIN = 30;
 
-/** @type {Record<import('../services/booth').Refusal, [number, string]>} */
+/** @type {Record<import('../services/booth').Refusal | 'comment_unavailable', [number, string]>} */
 const REFUSAL = {
   bad_request: [400, 'That answer could not be read.'],
   case_off: [409, 'That case is not available.'],
   closed: [403, 'The booth is closed.'],
+  comment_unavailable: [503, 'The comment could not be checked. Send again, or send without it.'],
   not_found: [404, 'No such booth play.'],
   not_started: [409, 'This booth play has already ended.'],
   replayed: [409, 'That step has already been answered.'],
@@ -40,14 +45,17 @@ const route = (fn, ok) => async (req, res) => {
 
 router.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 const general = limit(60_000, REQUESTS_PER_MIN, 'The booth is busy. Slow down.');
-router.use((req, res, next) => (req.path === '/draw' ? next() : general(req, res, next)));
+router.use((req, res, next) => (req.path === '/draw' || req.path === '/feedback' ? next() : general(req, res, next)));
 router.use('/plays', limit(60_000, PLAY_CALLS_PER_MIN, 'The booth is busy. Slow down.'));
 router.use('/draw', limit(60_000, DRAW_CALLS_PER_MIN, 'The booth is busy. Slow down.'));
+router.use('/feedback', limit(60_000, FEEDBACK_PER_MIN, 'Too many answers from this network. Try again in a minute.'));
 
 router.param('id', (_req, res, next, id) => (UUID_RE.test(id) ? next() : send(res, { refused: 'not_found' })));
 
 router.get('/status', route(() => booth.boothStatus()));
 router.get('/board', route(() => booth.boardFor()));
+router.get('/feedback', route(() => feedback.feedbackOpen()));
+router.post('/feedback', route((req) => feedback.submitFeedback(req.body), 201));
 router.post('/draw', route((req) => booth.drawCase(req.body)));
 router.post('/plays', route((req) => booth.startPlay(req.body), 201));
 router.post('/plays/:id/reply', route((req) => booth.replyToStep(req.params.id, req.body)));
