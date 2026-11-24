@@ -383,11 +383,31 @@ SQL
 )
   exts=$(echo "select coalesce(string_agg(e.extname, ' ' order by e.extname), '') from pg_catalog.pg_extension e
                  where e.extnamespace = 'public'::regnamespace;" | q_src)
+  # auth is restored data-only into GoTrue's tables, and pg_dump writes every column of every table, an
+  # empty one too: a column the hosted GoTrue has and the target's GoTrue lacks stops the load. So every
+  # source auth column must exist on the target (a target column the source lacks is fine: it takes its
+  # default). An older GoTrue on the target is the usual cause.
+  local list cols
+  list=$(printf "'%s', " "${AUTH_SESSION_TABLES[@]}"); list=${list%, }
+  cols=$(q_src <<SQL
+select coalesce(string_agg(pg_catalog.quote_literal(c.relname || '.' || a.attname), ', ' order by c.relname, a.attnum), '')
+  from pg_catalog.pg_class c
+  join pg_catalog.pg_attribute a on a.attrelid = c.oid and a.attnum > 0 and not a.attisdropped
+ where c.relnamespace = 'auth'::regnamespace and c.relkind = 'r'
+   and c.relname not in ('schema_migrations', $list)
+   and not exists (select 1 from pg_catalog.pg_depend d
+                    where d.classid = 'pg_catalog.pg_class'::regclass and d.objid = c.oid and d.deptype = 'e');
+SQL
+)
   # shellcheck disable=SC2086 # word lists
   missing=$({
     for r in $roles; do echo "select $(lit "role $r") where pg_catalog.to_regrole($(lit "\"$r\"")) is null;"; done
     for e in $exts; do echo "select 'extension $e' where not exists (select 1 from pg_catalog.pg_available_extensions where name = $(lit "$e"));"; done
     for f in 'auth.uid()' 'auth.role()'; do echo "select 'function $f' where pg_catalog.to_regprocedure($(lit "$f")) is null;"; done
+    [ -z "$cols" ] || echo "select 'auth column ' || v || ' (an older GoTrue on the target?)' from unnest(array[$cols]::text[]) v
+      where not exists (select 1 from pg_catalog.pg_attribute a join pg_catalog.pg_class c on c.oid = a.attrelid
+                         where c.relnamespace = 'auth'::regnamespace and c.relname = split_part(v, '.', 1)
+                           and a.attname = split_part(v, '.', 2) and a.attnum > 0 and not a.attisdropped);"
   } | q_dst | paste -sd ',' - | sed 's/,/, /g')
   [ -z "$missing" ] || die "the target lacks what the restore names: $missing (plain PostgreSQL: README.md, Plain PostgreSQL target)"
   (( dver / 10000 >= sver / 10000 )) || die "the target's PostgreSQL ($dver) is older than the source's ($sver)"

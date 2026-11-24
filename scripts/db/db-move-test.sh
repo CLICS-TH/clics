@@ -201,6 +201,10 @@ S src -c "grant select on public.councils to dashboard_user"
 has "a role the source grants to and the target lacks" "the target lacks what the restore names: role dashboard_user" \
   "$(mv_ t1 src preflight 2>&1 || true)"
 S src -c "revoke all on public.councils from dashboard_user"; S postgres -c "drop role dashboard_user"
+S src -c "alter table auth.users add column dedicated_scope text"
+has "a source auth column the target's GoTrue lacks (an older GoTrue)" "auth column users.dedicated_scope" \
+  "$(mv_ t1 src preflight 2>&1 || true)"
+S src -c "alter table auth.users drop column dedicated_scope"
 D t1 -c "alter function auth.uid() rename to uid_x"
 has "a target without auth.uid()" "function auth.uid()" "$(mv_ t1 src preflight 2>&1 || true)"
 D t1 -c "alter function auth.uid_x() rename to uid"

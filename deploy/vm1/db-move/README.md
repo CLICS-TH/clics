@@ -24,8 +24,9 @@ over vm1's tailnet address:
    data host answers over TLS too (`CLICS_DATA_SSLMODE`, default `require`), is a different cluster, its
    user is a superuser, its `public` schema is empty, and GoTrue has migrated its `auth` schema (an empty
    `auth.users`). It has every role Supabase's `public` schema grants to or writes a policy for, every
-   extension Supabase keeps in `public` (today `vector`), and `auth.uid()` and `auth.role()`; each missing
-   one is named. `pg_dump` is not older than Supabase. The source has `booth_plays`, `booth_sort_memos`
+   extension Supabase keeps in `public` (today `vector`), `auth.uid()` and `auth.role()`, and every column
+   of Supabase's moved `auth` tables (pg_dump writes each column even of an empty table, so one the
+   target's GoTrue lacks stops the load); each missing one is named. `pg_dump` is not older than Supabase. The source has `booth_plays`, `booth_sort_memos`
    and `booth_event_purges`, and an audit chain (see below).
 2. **One snapshot, one stream, one transaction.** `move.sh` exports one snapshot of Supabase and holds it
    open; the dump and the report both read that moment, so a write to Supabase during the move (a browser
@@ -143,15 +144,33 @@ step 2 (and before the rehearsal):
    any of these roles already exists, it stops, because changing them (or `\password authenticator`) would
    change another service's login. Ask CME for a cluster of its own; only if CME confirms no other service
    uses these role names, rerun with `PGOPTIONS='-c clics.shared_roles_ok=on'`.
-3. **GoTrue migrates it once,** wherever GoTrue runs (on vm1 as in window step 2, or on CME's host): GoTrue
-   `v2.197.0` or newer (the tag `docker-compose.auth.yml` pins), `GOTRUE_DB_DATABASE_URL` pointing at the
+3. **GoTrue migrates it once,** wherever GoTrue runs (on vm1 as in window step 2, or on CME's host): a
+   GoTrue that carries every migration the hosted project has run. Compare its newest file in
+   `/usr/local/etc/auth/migrations` with `select max(version) from auth.schema_migrations` on Supabase.
+   On 2026-11-24 the hosted project was at `20261030120000` (`saml_providers.dedicated_scope`), which
+   `v2.197.0` lacks and `v2.198.0` carries, so the target needs `v2.198.0` or newer, not the
+   `v2.197.0` that `docker-compose.auth.yml` pins today. Supabase keeps upgrading the hosted GoTrue, so
+   check again on the day. Point `GOTRUE_DB_DATABASE_URL` at the
    target database as `supabase_auth_admin` with `sslmode=require`. Start it once so its migrations make
    `auth.users` and the `auth.uid()` and `auth.role()` functions, then **stop it until window step 6**:
    nothing may write `auth` during the load. The rehearsal must run with the same GoTrue version as the
    window. `move.sh` never talks to GoTrue, only to the database.
 
-`mv_run preflight` then checks the lot: a role, extension or function the restore would name and the
-target lacks is listed, before anything is written.
+`mv_run preflight` then checks the lot: a role, extension, function or `auth` column the restore would
+name and the target lacks is listed, before anything is written.
+
+A local rehearsal of this path ran on 2026-11-24 with throwaway containers, against neither Supabase nor
+vm1. The source was PostgreSQL 17 with TLS and a real GoTrue `auth` schema. The target was plain
+PostgreSQL 18 `clics_mentor`, prepared only by `prepare-plain-pg.sql` and migrated by
+`supabase/gotrue:v2.197.0` (75 migrations, `auth.uid()` and `auth.role()` present). `move.sh` ran in
+`postgres:18`, as `mv_run` runs it. The results:
+
+- `VERIFY: PASS` on 28 tables, the chain anchored at the source head;
+- `roles.sql` ok;
+- a moved user signed in with their old password (HTTP 200; a wrong password got 400);
+- `backup.sh` encrypted to two keys, and refused a secret, subkey-only, sign-only, expired or revoked key,
+  and a file with two keys;
+- the backup's drill passed on both PostgreSQL 18 and 17.
 
 ## The rehearsal on a copy
 
