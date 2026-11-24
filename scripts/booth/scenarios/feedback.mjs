@@ -1,4 +1,6 @@
 import { inflateSync } from 'node:zlib';
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 
 // The anonymous feedback form on a phone (physician-ui/public/booth-feedback.html, spec 2026-11-24). Each scenario opens
 // the page the way the kiosk's QR does, with the case and look in the fragment, against a stub of GET and POST
@@ -62,6 +64,89 @@ const EDGE = 'rgb(138, 133, 120)';
 const ACCENT = 'rgb(169, 88, 62)';
 const visible = (page, selector) => page.locator(selector).first().isVisible();
 const submitOn = (page) => page.locator('[data-submit]').isEnabled();
+
+// The kiosk's feedback button and QR pop-up, and the result page's card (task 4, spec 2026-11-24 sections 1 and 2). The
+// switch is window.CLICS_BOOTH_FEEDBACK in js/config.js, off in the repo: a scenario turns it on for its own page only.
+const KIOSK_SIZES = [[1080, 1920], [2160, 3840]];
+const JSQR = createRequire(import.meta.url).resolve('jsqr/dist/jsQR.js');
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+const GOOD2 = { s: 72, d: [4, 3, 4, 2, 3, 5, 1], t: 42, at: '2026-11-03', c: 'cap-adult', v: '1', p: 'BWR', a: 'v1.a.,v2.c.b,v3..a' };
+
+/** Appends the switch to config.js for this page, as board.mjs does for the Landing QR, and reloads. The booth worker may
+ *  have cached config.js already, and a page it controls never reaches page.route. */
+async function switchOn(page) {
+  await page.route('**/js/config.js', async (route) => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_FEEDBACK = true;\n` });
+  });
+  await page.evaluate(async () => { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+}
+
+async function toResult(k, steps = 3) {
+  await k.shell('start');
+  await k.toVignette();
+  await k.tap('[data-action="begin"]');
+  for (let n = 1; n <= steps; n++) {
+    await k.screen('step');
+    await k.answer(1);
+    await k.screen('reply');
+    await k.tap(`[data-action="${n === steps ? 'see-score' : 'next'}"]`);
+  }
+  await k.screen('scored');
+  await k.shell('done');
+}
+
+/** Sets the look through the kiosk's own setLook and waits for the fonts and the entrance animations (result.mjs lookIn). */
+const lookIn = (page, look) => page.evaluate(async (l) => {
+  (await import('/js/booth-dom.js')).setLook(l);
+  await document.fonts.ready;
+  await new Promise((r) => requestAnimationFrame(r));
+  await Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {})));
+}, look);
+
+/** What jsQR (the decoder scripts/booth/promo/qr-check.mjs uses) reads from a screenshot of `locator`, in a blank page of
+ *  the same context: the kiosk's CSP would refuse the decoder script, and the screenshot is the QR as a camera sees it. */
+async function decodeQr(k, locator) {
+  const png = await locator.screenshot({ animations: 'disabled' });
+  const page = await k.ctx.newPage();
+  try {
+    await page.addScriptTag({ content: await readFile(JSQR, 'utf8') });
+    return await page.evaluate(async (data) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${data}`;
+      await img.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const c = canvas.getContext('2d', { willReadFrequently: true });
+      c.drawImage(img, 0, 0);
+      const px = c.getImageData(0, 0, canvas.width, canvas.height);
+      return window.jsQR(px.data, px.width, px.height)?.data ?? null;
+    }, png.toString('base64'));
+  } finally {
+    await page.close();
+  }
+}
+
+/** The phone result page on a GOOD2 (r2) link for cap-adult, its step text answered with an empty module (that case has
+ *  none, and a 404 would log an error), the switch on or off. */
+async function openResult(h, { on, width = 375, height = 812, look = 'th+en' }) {
+  const p = await h.phone('/booth-result', { width, height });
+  const { page } = p;
+  await page.route('**/booth-steps/cap-adult@1.js', (route) => route.fulfill({ status: 200, contentType: 'text/javascript', body: 'export default null;' }));
+  if (on) {
+    await page.route('**/js/config.js', async (route) => {
+      const res = await route.fetch();
+      await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_FEEDBACK = true;\n` });
+    });
+  }
+  await page.evaluate((f) => { location.hash = f; }, `r2.${b64({ ...GOOD2, l: look })}`);
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForSelector('#result[data-rendered] [data-workshop]', { state: 'attached' });
+  await page.evaluate(() => document.fonts.ready);
+  return p;
+}
 
 export default [
   {
@@ -329,4 +414,193 @@ export default [
       }
     },
   },
+  ...KIOSK_SIZES.map(([width, height]) => ({
+    name: `feedback kiosk: the button opens one QR to the form, without tag or play id (${width}x${height})`,
+    async run(h) {
+      const k = await h.kiosk({ width, height });
+      const { page } = k;
+      await switchOn(page);
+      await toResult(k);
+      const label = `${width}x${height}`;
+      h.check(await page.locator('[data-keep-qr] svg, [data-feedback-qr] svg').count() === 1 && await page.locator('[data-keep-qr] svg').count() === 1,
+        `${label}: the scored screen shows exactly one QR before the tap, the keep-your-result one`);
+      const button = page.locator('[data-action="feedback"]');
+      h.check(await button.count() === 1, `${label}: one feedback button on the scored screen`);
+      const btn = await button.evaluate((b) => ({ text: b.innerText, icon: b.querySelector('.booth-icon')?.dataset.icon, drawn: !!b.querySelector('.booth-icon svg'),
+        bar: !!b.closest('.shell-bar'), beside: b.parentElement.querySelector('[data-action="done"]') !== null, h: b.getBoundingClientRect().height, kind: b.type }));
+      h.check(btn.text.includes('ให้ความเห็น') && btn.text.includes('Give feedback') && btn.icon === 'message' && btn.drawn && btn.bar && btn.beside && btn.kind === 'button',
+        `${label}: the button reads "ให้ความเห็น / Give feedback" with the message icon, in the bar beside Done (${JSON.stringify(btn)})`);
+      await h.screenCheck(page, `${label} scored screen with the feedback button`, { demo: true });
+      await h.shot(page, `feedback-scored-${width}`);
+      const calls = k.stub.calls.length;
+      await h.sleep(500);
+      await k.tap('[data-action="feedback"]');
+      await page.waitForSelector('[data-feedback-overlay] [data-feedback-qr] svg');
+      await page.evaluate(() => document.fonts.ready);
+      await h.sleep(300);
+      const dialog = await page.locator('[data-feedback-overlay]').evaluate((o) => ({
+        role: o.getAttribute('role'), modal: o.getAttribute('aria-modal'), label: o.getAttribute('aria-label'),
+        focus: document.activeElement?.dataset.action ?? null, focusIn: o.contains(document.activeElement),
+        qrs: o.querySelectorAll('[data-feedback-qr] svg').length, text: o.innerText.replace(/\s+/g, ' '),
+        icons: [...o.querySelectorAll('.booth-icon')].map((i) => `${i.dataset.icon}:${!!i.querySelector('svg')}`),
+      }));
+      h.check(dialog.role === 'dialog' && dialog.modal === 'true' && dialog.focus === 'close-feedback' && dialog.focusIn,
+        `${label}: a modal dialog, focus moved to its Close (${dialog.role}, ${dialog.modal}, ${dialog.focus})`);
+      h.check(dialog.qrs === 1, `${label}: exactly one QR inside the overlay (${dialog.qrs})`);
+      h.check(['ช่วยเราปรับปรุง CLICS', 'Help us improve CLICS', '1 นาที', 'ไม่ระบุตัวตน', 'สแกนด้วยกล้องมือถือ', 'Scan with your phone camera'].every((t) => dialog.text.includes(t)),
+        `${label}: title, the two tags and the caption, TH and EN (${dialog.text})`);
+      h.check(dialog.icons.includes('clock:true') && dialog.icons.includes('lock:true'), `${label}: the tags carry the clock and lock icons, drawn (${dialog.icons})`);
+      h.check(k.stub.calls.length === calls, `${label}: opening it made no booth API call (${k.stub.calls.length - calls})`);
+      const qr = page.locator('[data-feedback-overlay] [data-feedback-qr] svg');
+      const url = await page.locator('[data-feedback-qr]').getAttribute('data-feedback-url');
+      const origin = new URL(page.url()).origin;
+      const look = await page.evaluate(() => document.documentElement.dataset.look);
+      const expected = `${origin}/booth-feedback.html#c=${h.TREE.case_id}&l=${encodeURIComponent(look)}`;
+      h.check(url === expected, `${label}: the link is the form with the case and the look in the fragment (${url})`);
+      const rest = url.slice(origin.length);
+      h.check(!/tag|play|player|\b42\b|6f1c2d3e/i.test(rest) && !rest.includes(h.PLAY_ID) && new URL(url).search === '',
+        `${label}: the link carries no tag, no play id and no query (${rest})`);
+      const read = await decodeQr(k, qr);
+      const box = await qr.evaluate((s) => { const r = s.getBoundingClientRect(); return { w: r.width, h: r.height, fill: getComputedStyle(s.querySelector('path')).fill }; });
+      h.check(read === expected, `${label}: a QR decoder reads the overlay's QR back as the link (${box.w}x${box.h} px, modules ${box.fill}): ${read}`);
+      h.check(box.fill === 'rgb(169, 88, 62)' && box.w === box.h, `${label}: the modules are the accent, the QR is square`);
+      await h.screenCheck(page, `${label} feedback overlay`, { demo: false });
+      await h.shot(page, `feedback-overlay-${width}`);
+      await k.tap('[data-feedback-overlay] [data-action="close-feedback"]');
+      h.check(await page.locator('[data-feedback-overlay]').count() === 0 && await k.screenNow() === 'scored', `${label}: Close returns to the scored screen`);
+      h.check(await page.evaluate(() => document.activeElement?.dataset.action) === 'feedback', `${label}: focus returns to the feedback button`);
+      await k.close();
+    },
+  })),
+  {
+    name: 'feedback kiosk: the button, beside Done, leaves the card and its leaderboard row above the fold in every look, three and five steps, both sizes',
+    async run(h) {
+      const domains = Object.fromEntries(['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'].map((d) => [d, 1]));
+      for (const [width, height] of KIOSK_SIZES) {
+        for (const steps of [3, 5]) {
+          const tree = steps === 5 ? h.TREE5 : h.TREE;
+          const stub = h.makeStub({ tree, ...(steps === 5 ? { table: h.TABLE5 } : {}), routes: { 'POST /booth/plays/:id/score': (call) => h.scoredFor(call, { domains, rank_today: 3, rank_event: 5 }, tree) } });
+          const k = await h.kiosk({ width, height, stub });
+          const { page } = k;
+          await switchOn(page);
+          await toResult(k, steps);
+          for (const look of Object.keys(h.LOOKS)) {
+            await lookIn(page, look);
+            const tag = `${width}x${height} ${steps} steps, ${look}`;
+            const fit = await page.evaluate(() => {
+              const rect = (s) => document.querySelector(s).getBoundingClientRect();
+              const fold = Math.min(innerHeight, ...['.play-body', '.result-more'].map((s) => rect(s).bottom));
+              const f = rect('[data-action="feedback"]');
+              const d = rect('[data-action="done"]');
+              const over = f.right > d.left + 0.5 || Math.abs(f.top - d.top) > 1 || Math.abs(f.height - d.height) > 1 ? 1 : 0;
+              return { fold: Math.round(fold), feedbackBottom: Math.round(f.bottom), feedbackW: Math.round(f.width), doneW: Math.round(d.width), over, screenH: innerHeight, next: Math.round(rect('.practise-next').bottom),
+                board: Math.round(rect('.result-card .result-board-row').bottom), others: Math.round(rect('.other-domains').top),
+                column: document.querySelector('#booth').getBoundingClientRect().width };
+            });
+            h.check(fit.over === 0, `${tag}: the button shares Done's row, at its height, and does not overlap it`);
+            h.check(fit.next <= fit.fold && fit.board <= fit.fold && fit.others >= fit.fold - 0.5 && fit.feedbackBottom <= fit.screenH && Math.abs(fit.feedbackW - fit.doneW) <= 1,
+              `${tag}: Practise next and the leaderboard row stay above the fold, Other domains below it, the two buttons are half the bar each (button bottom ${fit.feedbackBottom}/${fit.screenH}, next ${fit.next}, board ${fit.board}, others ${fit.others}, fold ${fit.fold}; ${Math.round((fit.fold - fit.board) * 1080 / fit.column)}u to spare; widths ${fit.feedbackW}/${fit.doneW})`);
+            await h.screenCheck(page, `result card with the feedback button ${tag}`, { demo: true });
+            if (steps === 5 && look === 'th+en') await h.shot(page, `feedback-fold-${width}`);
+          }
+          await k.close();
+        }
+      }
+    },
+  },
+  {
+    name: 'feedback kiosk: Escape, the backdrop and the Close button close it, focus stays inside, and 30 s without a touch closes it',
+    async run(h) {
+      const k = await h.kiosk();
+      const { page } = k;
+      await switchOn(page);
+      await toResult(k);
+      const open = async () => {
+        await h.sleep(450);
+        await k.tap('[data-action="feedback"]');
+        await page.waitForSelector('[data-feedback-overlay] [data-feedback-qr] svg');
+        await h.sleep(450);
+      };
+      const isOpen = () => page.locator('[data-feedback-overlay]').count().then((n) => n === 1);
+      const focusOn = () => page.evaluate(() => document.activeElement?.dataset.action ?? document.activeElement?.tagName);
+      await open();
+      await page.keyboard.press('Tab');
+      h.check(await focusOn() === 'close-feedback', `Tab stays on Close, the dialog's only control (${await focusOn()})`);
+      await page.keyboard.press('Shift+Tab');
+      h.check(await focusOn() === 'close-feedback', `Shift+Tab stays on Close (${await focusOn()})`);
+      await page.keyboard.press('Escape');
+      h.check(!(await isOpen()) && await focusOn() === 'feedback', `Escape closes it and focus returns to the button (${await focusOn()})`);
+      await open();
+      const card = await page.locator('[data-feedback-overlay] > *').first().boundingBox();
+      await page.touchscreen.tap(card.x / 2, card.y / 2);
+      await h.sleep(100);
+      h.check(!(await isOpen()) && await focusOn() === 'feedback', `a tap on the backdrop closes it and focus returns (${await focusOn()})`);
+      await open();
+      await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
+      await h.sleep(100);
+      h.check(await isOpen(), 'a tap on the card itself leaves it open');
+      await k.tap('[data-feedback-overlay] [data-action="close-feedback"]');
+      h.check(!(await isOpen()) && await focusOn() === 'feedback', 'the Close button closes it and focus returns');
+      await open();
+      await page.clock.install();
+      await page.clock.fastForward(20_000);
+      await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
+      await page.clock.fastForward(20_000);
+      h.check(await isOpen(), '40 s in, with a touch at 20 s, it is still open: a touch restarts the 30 s');
+      await page.clock.fastForward(11_000);
+      h.check(!(await isOpen()), '31 s after the last touch it closes by itself');
+      h.check(await k.screenNow() === 'scored', 'the scored screen is still there under it');
+      await k.close();
+    },
+  },
+  {
+    name: 'feedback kiosk: the QR carries the look the visitor chose',
+    async run(h) {
+      const k = await h.kiosk();
+      const { page } = k;
+      await switchOn(page);
+      await toResult(k);
+      await page.evaluate(async () => (await import('/js/booth-dom.js')).setLook('en'));
+      await h.sleep(450);
+      await k.tap('[data-action="feedback"]');
+      await page.waitForSelector('[data-feedback-overlay] [data-feedback-qr] svg');
+      const url = await page.locator('[data-feedback-qr]').getAttribute('data-feedback-url');
+      h.check(url === `${new URL(page.url()).origin}/booth-feedback.html#c=${h.TREE.case_id}&l=en`, `the look "en" is in the fragment (${url})`);
+      await k.close();
+    },
+  },
+  {
+    name: 'feedback kiosk: switched off shows nothing',
+    async run(h) {
+      const k = await h.kiosk();
+      const { page } = k;
+      await toResult(k);
+      h.check(await page.locator('[data-action="feedback"], [data-feedback-overlay], [data-feedback-qr]').count() === 0, 'no feedback button, overlay or QR on the scored screen with the flag unset');
+      h.check(await page.evaluate(() => window.CLICS_BOOTH_FEEDBACK === false), 'js/config.js ships the switch off');
+      await k.close();
+      const p = await openResult(h, { on: false });
+      h.check(await p.page.locator('[data-feedback]').count() === 0, 'no feedback card on the result page with the flag unset');
+      await p.close();
+    },
+  },
+  ...[[375, 812], [320, 640]].map(([width, height]) => ({
+    name: `feedback result page: the card links to the form for this case (${width}px)`,
+    async run(h) {
+      const p = await openResult(h, { on: true, width, height, look: 'en+th' });
+      const { page } = p;
+      const card = await page.locator('[data-feedback]').evaluate((c) => ({
+        tag: c.tagName, href: c.getAttribute('href'), text: c.innerText.replace(/\s+/g, ' '), n: document.querySelectorAll('[data-feedback]').length,
+        after: c.compareDocumentPosition(document.querySelector('[data-workshop]')) & Node.DOCUMENT_POSITION_PRECEDING ? 'after-workshop' : 'before-workshop',
+        icons: [...c.querySelectorAll('svg')].length,
+      }));
+      const origin = new URL(page.url()).origin;
+      h.check(card.tag === 'A' && card.n === 1 && card.href === `${origin}/booth-feedback.html#c=cap-adult&l=en%2Bth`, `${width}: one link card to the form with the case and the look (${card.href})`);
+      h.check(card.href === await page.evaluate(async () => (await import('/js/booth-feedback-link.js')).feedbackUrl({ caseId: 'cap-adult', look: 'en+th' })), `${width}: it is exactly feedbackUrl({caseId, look})`);
+      h.check(!/tag|play|42|score/i.test(card.href.slice(origin.length)), `${width}: the link names no tag, play or score (${card.href})`);
+      h.check(card.text.includes('ช่วยประเมิน CLICS') && card.text.includes('1 นาที') && card.after === 'after-workshop', `${width}: the card reads "ช่วยประเมิน CLICS (1 นาที)" and sits after the workshop card (${card.text})`);
+      await h.screenCheck(page, `${width} result page with the feedback card`, { phone: true, demo: false });
+      await h.shot(page, `feedback-card-${width}`, { fullPage: true });
+      await p.close();
+    },
+  })),
 ];

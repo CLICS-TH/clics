@@ -176,13 +176,22 @@ async function play() {
   root.dataset.shell = 'play';
   const outcome = runPlay({ root: stage, api, reset });
   watchIdle({ stage, host: root, reset });
-  await outcome;
+  const { kind, caseId } = await outcome;
+  // Beside Done, in the row Done already takes: the card above is as tall as the fold allows, so any row added to it would
+  // push the leaderboard row off the screen. Null unless js/config.js switches the feedback on.
+  const feedback = kind === 'scored' && feedbackModule ? (await feedbackModule)?.feedbackButton({ host: root, caseId }) ?? null : null;
   const done = el('button', { type: 'button', class: 'booth-btn primary wide', dataset: { action: 'done' } }, bi(COPY.done, 'btn-label'));
   // Done shows the workshop invitation (booth-invite.js), whose Finish or timeout starts over.
   done.addEventListener('click', () => { showInvite({ stage, bar, reset }); root.dataset.shell = 'invite'; }, { once: true });
-  bar.append(done);
+  bar.append(...[feedback, done].filter(Boolean));
+  window.hydrateIcons?.(bar);
   root.dataset.shell = 'done';
 }
+
+// The feedback button's module (booth-feedback-qr.js), loaded only when js/config.js switches the feedback on: with it off the
+// kiosk loads none of its files, and an edit to its copy or icons does not move the promo reel's source digest. A module that
+// fails to load leaves the kiosk without the button, never without Done. Started now so the offline cache keeps it.
+const feedbackModule = window.CLICS_BOOTH_FEEDBACK === true ? import('./booth-feedback-qr.js').catch(() => null) : null;
 
 pinColumn();
 setLook(DEFAULT_LOOK);

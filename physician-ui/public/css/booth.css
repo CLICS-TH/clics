@@ -399,6 +399,23 @@ body.booth {
 .case-read .vignette .bi-main { font-size: calc(39 * var(--u)); line-height: 1.65; }
 .case-read .vignette .bi-sub { font-size: calc(32 * var(--u)); line-height: 1.5; margin-top: calc(20 * var(--u)); }
 
+/* The feedback QR pop-up (js/booth-feedback-qr.js); it reuses the leaderboard overlay's backdrop and card (booth-board.css). */
+.feedback-card { align-items: center; text-align: center; gap: calc(28 * var(--u)); }
+.feedback-title { display: block; }
+.feedback-title .bi-main { font-size: var(--text-title-th); font-weight: 600; line-height: 1.4; color: var(--ink); }
+.feedback-title .bi-sub { font-size: var(--text-title-en); line-height: 1.3; color: var(--body); }
+.feedback-qr { margin: 0; }
+.feedback-qr svg { display: block; width: calc(560 * var(--u)); height: calc(560 * var(--u)); border-radius: var(--radius-s); }
+.feedback-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: calc(20 * var(--u)); }
+.feedback-tag { display: flex; align-items: center; gap: calc(16 * var(--u)); padding: calc(12 * var(--u)) calc(28 * var(--u)); background: var(--band); border-radius: calc(60 * var(--u)); color: var(--ink); }
+.feedback-tag .booth-icon svg { width: calc(40 * var(--u)); height: calc(40 * var(--u)); }
+.feedback-tag-label { text-align: left; }
+.feedback-tag-label .bi-main { font-size: var(--text-small-th); font-weight: 600; line-height: 1.4; }
+.feedback-tag-label .bi-sub { font-size: var(--text-en); line-height: 1.3; color: var(--body); }
+.feedback-scan { display: block; }
+.feedback-scan .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.45; color: var(--ink); }
+.feedback-scan .bi-sub { font-size: var(--text-label-en); line-height: 1.35; color: var(--body); }
+
 @keyframes booth-pulse { 50% { opacity: .3; transform: scale(.8); } }
 .waiting-dots { display: flex; gap: calc(20 * var(--u)); }
 .waiting-dots > i { width: calc(28 * var(--u)); height: calc(28 * var(--u)); border-radius: 50%; background: var(--ai-border); animation: booth-pulse 1.8s ease-in-out infinite; }

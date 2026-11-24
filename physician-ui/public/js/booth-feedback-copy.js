@@ -54,6 +54,19 @@ export const FEEDBACK_COPY = freezeDeep({
     textbook: { th: 'อ่านตำรา', en: 'Reading a textbook' },
     other: { th: 'อย่างอื่น', en: 'Something else' },
   },
+  /** The kiosk's feedback button and its QR pop-up (booth-feedback-qr.js); the pop-up's title is `title` above. */
+  kiosk: {
+    button: { th: 'ให้ความเห็น', en: 'Give feedback' },
+    minute: { th: '1\u00a0นาที', en: '1 minute' },
+    anonymous: { th: 'ไม่ระบุตัวตน', en: 'Anonymous' },
+    scan: { th: 'สแกนด้วยกล้องมือถือ', en: 'Scan with your phone camera' },
+    close: { th: 'ปิด', en: 'Close' },
+  },
+  /** The phone result page's card (booth-feedback-qr.js feedbackCard). */
+  card: {
+    title: { th: 'ช่วยประเมิน CLICS (1\u00a0นาที)', en: 'Rate CLICS (1\u00a0minute)' },
+    line: { th: 'ไม่ระบุตัวตน ไม่เก็บชื่อและหมายเลขผู้เล่น', en: 'Anonymous: we keep no name or player number' },
+  },
   /** The labels under a 1-5 slider, value 1 first. */
   scale: [
     { th: 'น้อยมาก', en: 'Very little' },

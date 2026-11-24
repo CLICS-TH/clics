@@ -73,6 +73,9 @@
 
 .shell-bar { flex: none; padding: 0 var(--gutter) var(--gutter); }
 .shell-bar:empty { display: none; }
+/* Feedback and Done share the bar's row (js/booth-feedback-qr.js), each half of it: the bar keeps its height. */
+.shell-bar:has([data-action="feedback"]) { display: flex; gap: var(--gap); }
+.shell-bar:has([data-action="feedback"]) > .booth-btn { flex: 1 1 0; min-width: 0; }
 
 /* "Still there?" and the Start over confirm sit inside #booth, so the shell's ghost-tap guard covers them. On "Still
    there?" the whole scrim is the tap target; on the confirm, the scrim outside the card. Like every overlay, the scrim

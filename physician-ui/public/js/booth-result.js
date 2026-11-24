@@ -8,6 +8,7 @@ import { parseResultFragment } from './booth-result-link.js';
 import { SCALE_NOTE } from './booth-bands.js';
 import { el, bi, caseBi, phrases, setLook, tagName } from './booth-dom.js';
 import { WORKSHOP_COPY, WORKSHOP_PATH } from './booth-workshop.js';
+import { feedbackCard } from './booth-feedback-qr.js';
 
 const demoLabel = () => el('div', { class: 'demo-label result-demo', dataset: { demoLabel: '' } }, bi(DEMO_LABEL));
 
@@ -131,6 +132,8 @@ function resultView(r, text) {
     // The workshop invitation right after the visitor's own feedback (owner, 2026-11-21: visitors must see it), before
     // the folded domain and step lists.
     workshopCard(),
+    // The feedback form's card, next to it; null unless js/config.js switches the feedback on.
+    feedbackCard(r.caseId ?? null, r.look),
     fold('domains', COPY.otherDomains, el('div', { class: 'result-card result-domains' }, others)),
     explained ? fold('answers', COPY.answersTitle, stepList(explained)) : r.tiers ? fold('answers', COPY.stepTiers, tierList(r.tiers)) : null,
     tryClics('secondary'),
