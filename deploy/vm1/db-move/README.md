@@ -148,9 +148,9 @@ step 2 (and before the rehearsal):
    GoTrue that carries every migration the hosted project has run. Compare its newest file in
    `/usr/local/etc/auth/migrations` with `select max(version) from auth.schema_migrations` on Supabase.
    On 2026-11-24 the hosted project was at `20261030120000` (`saml_providers.dedicated_scope`), which
-   `v2.197.0` lacks and `v2.198.0` carries, so the target needs `v2.198.0` or newer, not the
-   `v2.197.0` that `docker-compose.auth.yml` pins today. Supabase keeps upgrading the hosted GoTrue, so
-   check again on the day. Point `GOTRUE_DB_DATABASE_URL` at the
+   `v2.197.0` lacks and `v2.198.0` carries, so the target needs `v2.198.0` or newer; that is the
+   release `docker-compose.auth.yml` pins. Supabase keeps upgrading the hosted GoTrue, so check again on
+   the day. Point `GOTRUE_DB_DATABASE_URL` at the
    target database as `supabase_auth_admin` with `sslmode=require`. Start it once so its migrations make
    `auth.users` and the `auth.uid()` and `auth.role()` functions, then **stop it until window step 6**:
    nothing may write `auth` during the load. The rehearsal must run with the same GoTrue version as the
@@ -162,7 +162,8 @@ name and the target lacks is listed, before anything is written.
 A local rehearsal of this path ran on 2026-11-24 with throwaway containers, against neither Supabase nor
 vm1. The source was PostgreSQL 17 with TLS and a real GoTrue `auth` schema. The target was plain
 PostgreSQL 18 `clics_mentor`, prepared only by `prepare-plain-pg.sql` and migrated by
-`supabase/gotrue:v2.197.0` (75 migrations, `auth.uid()` and `auth.role()` present). `move.sh` ran in
+`supabase/gotrue:v2.197.0` (75 migrations, `auth.uid()` and `auth.role()` present), and again with
+`v2.198.0` (77 migrations, every production `auth` column present). `move.sh` ran in
 `postgres:18`, as `mv_run` runs it. The results:
 
 - `VERIFY: PASS` on 28 tables, the chain anchored at the source head;

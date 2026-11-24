@@ -98,7 +98,7 @@ not otherwise allow. Keep the window short.
    ```
    GoTrue migrates the empty `auth` schema first. Then `auth` (data only) and `public` (schema, data,
    grants) are restored, in that order, with triggers off. If any step fails, the whole rehearsal project is
-   taken down, so no partial copy stays in memory. A column the hosted GoTrue has and v2.197.0 lacks fails here, by name. The
+   taken down, so no partial copy stays in memory. A column the hosted GoTrue has and the pinned GoTrue lacks fails here, by name. The
    step ends by printing the restored user count and checking the container surface.
 5. **Old passwords and hosted settings (optional files in the env directory).**
    - `old-passwords.tsv`: one `email<TAB>password` line per test account (the SANDBOX accounts). A human

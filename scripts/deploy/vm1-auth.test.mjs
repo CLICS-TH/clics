@@ -76,9 +76,9 @@ test('the auth services keep no state: no volume but the gateway\'s two read-onl
   assert.ok(service('supabase-gw').includes('    volumes:'), 'the binds belong to supabase-gw');
 });
 
-test('images are pinned to exact releases: GoTrue v2.197.0, PostgREST v14.18', () => {
+test('images are pinned to exact releases: GoTrue v2.198.0, PostgREST v14.18', () => {
   const images = meaningful(AUTH).filter((l) => /^ {4}image:/.test(l)).map((l) => l.trim().slice('image: '.length));
-  assert.deepEqual(images, ['supabase/gotrue:v2.197.0', 'postgrest/postgrest:v14.18', 'nginxinc/nginx-unprivileged:1.28.0-alpine']);
+  assert.deepEqual(images, ['supabase/gotrue:v2.198.0', 'postgrest/postgrest:v14.18', 'nginxinc/nginx-unprivileged:1.28.0-alpine']);
 });
 
 test('the settings the sign-in paths rely on are pinned in compose, not left to the env file', () => {
