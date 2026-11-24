@@ -1,4 +1,4 @@
-// A stand-in for Google's OpenID provider, for the hermetic rehearsal only (#427). GoTrue v2.197.0 reaches
+// A stand-in for Google's OpenID provider, for the hermetic rehearsal only (#427). GoTrue (the pinned release) reaches
 // Google through one issuer, https://accounts.google.com: it reads that issuer's discovery document, then
 // takes the authorize, token and key endpoints from it (internal/api/provider/google.go). This server answers
 // as that issuer on the rehearsal network (a network alias plus a certificate from a throwaway CA that only

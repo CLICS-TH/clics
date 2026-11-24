@@ -57,13 +57,14 @@ x-hardened: &hardened
     - clics
 
 services:
-  # GoTrue v2.197.0 is the release Supabase's own self-hosting compose pins (supabase/supabase docker/,
-  # read 2026-11-11). Kept on purpose: it serves the `app_metadata.providers` claim isGoogleSession reads,
-  # the id_token grant with a nonce (ADR 0008), automatic same-email linking and the email/signup/recovery
+  # GoTrue v2.198.0: the hosted project's auth schema was at migration 20261030120000 on 2026-11-24
+  # (saml_providers.dedicated_scope), which v2.197.0 lacks, and the move (db-move/README.md) restores the
+  # hosted auth rows into this GoTrue's tables, so it must carry every hosted migration. It serves the
+  # `app_metadata.providers` claim isGoogleSession reads, the id_token grant with a nonce (ADR 0008), automatic same-email linking and the email/signup/recovery
   # OTP types. Change it only with a re-run of deploy/vm1/rehearsal/README.md.
   gotrue:
     <<: *hardened
-    image: supabase/gotrue:v2.197.0
+    image: supabase/gotrue:v2.198.0
     env_file:
       - ${CLICS_ENV_DIR:?set by deploy.sh to /opt/clics/env}/gotrue.env
     environment:

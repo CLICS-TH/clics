@@ -36,6 +36,8 @@ not run). Until the deletion below is recorded, no doc or CREC-facing text may s
 
 | Record | Value |
 |---|---|
+| Audit chain on production (`db/migration-audit-log-chain.sql`, decision (a)) | applied 2026-11-18 by the owner |
+| Production audit head, the anchor recorded outside Supabase (`audit_log_verify()`, read-only, 2026-11-24) | `ok`, 436 rows, head seq 436, hash `6d0b09b14d920d687755fb0402216a1a2dcb053b5c235e761bb5b8e096123daa` (unchanged since 2026-11-18) |
 | Move window run (report on #432) | not yet |
 | Supabase project deleted, with its backups | not yet |
 | Supabase's deletion confirmation (quoted, with its date) | not yet |

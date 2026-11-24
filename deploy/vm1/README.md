@@ -394,7 +394,7 @@ owner-gated rows under `rows_not_run`; the cutover still needs one full run that
 never loads that file, so a deploy starts the backend and rimpl exactly as before. The database move (#432)
 switches sign-in over. Until then the services run only in a rehearsal (`rehearsal/README.md`).
 
-- **GoTrue** `supabase/gotrue:v2.197.0` is published on `127.0.0.1:3102` only. nginx publishes it at
+- **GoTrue** `supabase/gotrue:v2.198.0` is published on `127.0.0.1:3102` only. nginx publishes it at
   `/auth/v1` and refuses `/auth/v1/admin`. Its admin API is reached only by the backend, through
   `supabase-gw`.
 - **PostgREST** `postgrest/postgrest:v14.18` has no host port and no nginx location (ADR 0007, as rimpl
