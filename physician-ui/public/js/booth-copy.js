@@ -73,10 +73,12 @@ export const TIERS = Object.freeze({
   weaker: Object.freeze({ letter: 'W', label: { th: 'ยังด้อยกว่า', en: 'Weaker' } }),
 });
 
-/** The AI reply's fields in the order the kiosk draws them, each under its reviewed heading. */
+/** The AI reply's fields in the order the kiosk draws them (reply format B). `strength` is the lead sentence, drawn with
+ *  no heading (its th/en name it for a screen reader only); `weigh` is a question drawn under "คิดต่อ / Next thought",
+ *  and `safety` under its own heading. */
 export const REPLY_FIELDS = Object.freeze([
-  { key: 'strength', th: 'จุดแข็ง', en: 'Strength' },
-  { key: 'weigh', th: 'ข้อควรคิด', en: 'Worth weighing' },
+  { key: 'strength', lead: true, th: 'ที่เข้าท่า', en: 'What fits' },
+  { key: 'weigh', th: 'คิดต่อ', en: 'Next thought' },
   { key: 'safety', th: 'ความปลอดภัย', en: 'Safety' },
 ]);
 
