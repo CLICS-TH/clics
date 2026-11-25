@@ -408,9 +408,10 @@ const VIEWS = {
   reply: (s, { button }) => {
     const reply = s.replies[s.replies.length - 1];
     const fields = REPLY_FIELDS.filter(({ key }) => reply[key].trim() !== '');
+    // Format B: the lead sentence stands alone, then each other field under its heading.
     const said = fields.length === 0 ? bi(COPY.noReply, 'reply-note') : aiBubble(...fields.map((f) => el('section',
-      { class: 'reply-field', dataset: { field: f.key }, 'aria-label': f.en },
-      bi(f, 'reply-head'), el('p', { class: 'ai-text', lang: textLang(reply[f.key]) }, ...markedPhrases(reply[f.key])))));
+      { class: f.lead ? 'reply-field reply-lead' : 'reply-field', dataset: { field: f.key }, 'aria-label': f.en },
+      ...(f.lead ? [] : [bi(f, 'reply-head')]), el('p', { class: 'ai-text', lang: textLang(reply[f.key]) }, ...markedPhrases(reply[f.key])))));
     const [copy, action] = s.answers.length === s.play.stepCount ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
     return frame([exchange(s, said)],
       [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);

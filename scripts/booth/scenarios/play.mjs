@@ -133,13 +133,14 @@ export function atCut(field, max) {
   }).join('');
 }
 
-/** The reply on screen is `reply`: a bold heading from the copy over each non-empty field, the field's text in
- *  regular weight, and its bold runs as <strong> inside the phrase spans. */
+/** The reply on screen is `reply`: the lead field alone, a bold heading from the copy over each other non-empty field,
+ *  the field's text in regular weight, and its bold runs as <strong> inside the phrase spans. */
 async function checkReply(h, page, reply, label) {
   const shown = await readReply(page);
   const want = h.REPLY_FIELDS.filter(({ key }) => reply[key] !== '');
-  h.check(h.same(shown.fields.map((f) => [f.key, f.head]), want.map((f) => [f.key, { th: f.th, en: f.en }])),
-    `${label}: a heading from the copy over each non-empty field, in strength, weigh, safety order, ${reply.safety ? 'safety included' : 'no safety heading'} (${shown.fields.map((f) => f.key).join(', ') || 'none'})`);
+  // Format B: the lead field (strength) has no heading; weigh and safety each sit under theirs.
+  h.check(h.same(shown.fields.map((f) => [f.key, f.head]), want.map((f) => [f.key, f.lead ? { th: undefined, en: undefined } : { th: f.th, en: f.en }])),
+    `${label}: the lead sentence with no heading, then a heading from the copy over each other non-empty field, in strength, weigh, safety order, ${reply.safety ? 'safety included' : 'no safety heading'} (${shown.fields.map((f) => f.key).join(', ') || 'none'})`);
   const fields = shown.fields.map((f) => ({ ...f, sent: reply[f.key] }));
   h.check(fields.every((f) => f.text === plainOf(f.sent)), `${label}: each field shows its text as sent, the ** markers removed and markup shown as typed`);
   h.check(fields.every((f) => f.headWeight >= 600 && f.textWeight === 400 && (f.bold.length === 0 || f.boldWeight >= 600)),

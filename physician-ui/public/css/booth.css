@@ -284,6 +284,8 @@ body.booth {
 }
 .ai-label { font-size: var(--text-en); font-weight: 600; line-height: 1.2; letter-spacing: .04em; }
 .reply-field { display: flex; flex-direction: column; gap: calc(4 * var(--u)); }
+/* Format B: a hairline under the lead sentence, before the next-thought and safety lines. */
+.reply-lead ~ .reply-field { padding-top: calc(16 * var(--u)); border-top: calc(2 * var(--u)) solid rgba(79, 114, 173, .25); }
 /* Thai and English share one line: the heading is the same short name twice. 600 is the boldest weight fonts.css
    serves for Noto Sans Thai and Inter; 700 would draw the same 600 instance. */
 .bi.reply-head { display: flex; flex-flow: row wrap; align-items: baseline; column-gap: calc(16 * var(--u)); }
