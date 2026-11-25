@@ -8,10 +8,10 @@ backend has no host port.
 | File | What it is |
 |---|---|
 | `run.sh` | Drives it: `hermetic`, `vm1-env`, `vm1-up`, `vm1-paths`, `vm1-mail`, `down`; also `vm1-drill`, the nightly backup's restore drill (`../db-move/README.md`, Restore drill) |
-| `docker-compose.rehearsal.yml` | Adds a throwaway `supabase/postgres` on **tmpfs**, mailpit, and takes the backend's host port away |
+| `docker-compose.rehearsal.yml` | Adds a throwaway `supabase/postgres` on **tmpfs**, mailpit, and takes the backend's host port away. The database logs as the data host does: no query error (its text quotes values) and no statement (the image's own init would log its `ALTER USER ... PASSWORD`), since Docker keeps the log on vm1's disk |
 | `docker-compose.drill.yml` | `vm1-drill` only: the database becomes the data host's PostgreSQL 18 (`../../data-host/`), still on tmpfs. `run.sh` checks, on the running container, that the data directory is a tmpfs and no volume is mounted |
 | `auth-paths.mjs` | The replay. Runs in a one-off backend container on the rehearsal network |
-| `failure-probes.mjs` | `hermetic` only, after the replay: a failed mail send and one client's wrong codes and passwords (429 expected), then `run.sh` checks no auth container log names an address |
+| `failure-probes.mjs` | `hermetic` only, after the replay: a failed mail send and one client's wrong codes and passwords (429 expected), then `run.sh` checks that no auth container's log, nor the database's, names an address or holds the database password |
 | `docker-compose.hermetic.yml` | `hermetic` only: the stand-ins for Google (`fake-google.mjs`, as `accounts.google.com`) and for Resend's relay (mailpit as `smtp.resend.com:465`, implicit TLS and SMTP AUTH), on certificates from a throwaway CA only the rehearsal's GoTrue trusts. A vm1 run never loads it |
 | `fake-google.mjs` | The Google stand-in: discovery, signing key, consent, code exchange, and a test-only endpoint that hands out id_tokens as Google Identity Services does |
 

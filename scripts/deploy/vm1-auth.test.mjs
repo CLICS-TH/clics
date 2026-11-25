@@ -150,6 +150,36 @@ test('the rehearsal never takes the live backend\'s port and keeps its database 
   assert.match(read('rehearsal', 'run.sh'), /^PROJECT=clics-rehearsal$/m, 'its own compose project, never clics');
 });
 
+// Docker keeps a database container's log on vm1's disk. Both rehearsal databases log as the data host does:
+// no query ERROR (its DETAIL, STATEMENT or COPY CONTEXT quotes values) and no statement text (an ALTER ROLE's
+// password). The data host's own settings are the reference.
+const DATA_HOST_LOG = (() => {
+  const conf = readFileSync(path.join(ROOT, 'deploy', 'data-host', 'postgresql.conf'), 'utf8');
+  return ['log_min_messages', 'log_min_error_statement', 'log_error_verbosity', 'log_statement'].map((k) => {
+    const v = new RegExp(`^${k} = '([a-z]+)'$`, 'm').exec(conf)?.[1];
+    assert.ok(v, `the data host sets ${k}`);
+    return [k, v];
+  });
+})();
+
+test('the sign-in rehearsal\'s database logs no value and no password, as the data host does', () => {
+  const db = block(read('rehearsal', 'docker-compose.rehearsal.yml'), '  db:', 2).join('\n');
+  const cmd = /^ {4}command: (\[[^\]]*\])/m.exec(db)?.[1];
+  assert.ok(cmd, 'the rehearsal db sets its command');
+  const args = JSON.parse(cmd);
+  assert.deepEqual(args.slice(0, 3), ['postgres', '-D', '/etc/postgresql'], 'the supabase/postgres image\'s own command first');
+  const set = new Map();
+  for (let i = 3; i < args.length; i += 2) {
+    assert.equal(args[i], '-c');
+    const [k, v] = args[i + 1].split('=');
+    set.set(k, v);
+  }
+  for (const [k, v] of DATA_HOST_LOG) assert.equal(set.get(k), v, `the rehearsal db sets ${k}=${v}, as the data host does`);
+  assert.equal(set.get('auto_explain.log_min_duration'), '-1', 'auto_explain, which the image preloads, logs no plan');
+  assert.match(read('rehearsal', 'run.sh'), /dc logs --no-log-prefix gotrue postgrest supabase-gw db /,
+    'the hermetic run checks the db\'s log too');
+});
+
 // The restore drill (#432): a nightly backup of the PostgreSQL 18 data host restores into that same PostgreSQL,
 // never an older one, in a database that lives in memory like the rehearsal's.
 test('the restore drill runs on the data host\'s PostgreSQL, in memory, and only in vm1-drill', () => {
@@ -163,11 +193,7 @@ test('the restore drill runs on the data host\'s PostgreSQL, in memory, and only
   assert.match(drill, /^ {6}PGDATA: \/var\/lib\/postgresql\/data$/m, 'its data in the rehearsal\'s tmpfs');
   assert.match(drill, /tmpfs:\n {6}- \/var\/lib\/postgresql:rw,/, 'the image\'s volume path is a tmpfs too');
   assert.ok(!/mem_limit|memswap_limit|volumes:/.test(meaningful(drill).join('\n')), 'the memory cap and the no-volume rule stay the rehearsal\'s');
-  // A damaged backup's ERROR quotes row values: the drill logs as the data host does, which is no ERROR at all.
-  const conf = readFileSync(path.join(ROOT, 'deploy', 'data-host', 'postgresql.conf'), 'utf8');
-  for (const k of ['log_min_messages', 'log_min_error_statement', 'log_error_verbosity']) {
-    const v = new RegExp(`^${k} = '([a-z]+)'$`, 'm').exec(conf)?.[1];
-    assert.ok(v, `the data host sets ${k}`);
+  for (const [k, v] of DATA_HOST_LOG) {
     assert.match(drill, new RegExp(`"-c", "${k}=${v}"`), `the drill sets ${k}=${v}, as the data host does`);
   }
   const run = read('rehearsal', 'run.sh');

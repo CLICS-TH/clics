@@ -127,15 +127,20 @@ paths() { # [extra docker run args...]
 }
 
 # Hermetic only, after the replay: GoTrue fails one mail send (mailpit is stopped) and refuses one client's
-# repeated wrong codes and passwords (failure-probes.mjs), then no auth container's log may name an address. Every replay account is @rehearsal.invalid, so this also covers every request the
-# replay made through supabase-gw (R5: json-file logs sit on vm1's disk).
+# repeated wrong codes and passwords (failure-probes.mjs), then no auth container's log, nor the database's,
+# may name an address or hold the database password. Every replay account is @rehearsal.invalid, so this also
+# covers every request the replay made through supabase-gw (R5: json-file logs sit on vm1's disk).
 assert_logs_clean() {
   dc stop mailpit >/dev/null 2>&1
   dc run --rm --no-deps -T -v "$PWD/rehearsal/failure-probes.mjs:/failure-probes.mjs:ro" backend node /failure-probes.mjs
-  local hits
-  hits=$(dc logs --no-log-prefix gotrue postgrest supabase-gw 2>&1 | grep -c 'rehearsal\.invalid' || true)
-  [ "$hits" = 0 ] || die "the auth containers logged $hits line(s) naming a synthetic address (R5)"
-  log "no auth container log names an address"
+  local logs hits
+  logs=$(dc logs --no-log-prefix gotrue postgrest supabase-gw db 2>&1)
+  hits=$(grep -c 'rehearsal\.invalid' <<< "$logs" || true)
+  [ "$hits" = 0 ] || die "the auth and db containers logged $hits line(s) naming a synthetic address (R5)"
+  # The pattern comes on stdin, so the password is in no argv.
+  hits=$(grep -cFf <(printf '%s\n' "$REHEARSAL_DB_PASSWORD") <<< "$logs" || true)
+  [ "$hits" = 0 ] || die "the auth and db containers logged $hits line(s) holding the database password"
+  log "no auth or db container log names an address or holds the database password"
 }
 
 # What a running rehearsal exposes (R1-R4, ADR 0007): no host port at all, GoTrue's included (its loopback

@@ -18,7 +18,7 @@ services:
     # disk, and a query ERROR quotes values (a damaged backup's COPY CONTEXT, the first 100 bytes of a row).
     # No ERROR is logged at all; the drill's operator still sees each one, through psql, on the terminal.
     command: ["postgres", "-c", "log_min_messages=log", "-c", "log_min_error_statement=panic",
-              "-c", "log_error_verbosity=terse"]
+              "-c", "log_error_verbosity=terse", "-c", "log_statement=none"]
     # The image declares /var/lib/postgresql a volume, which docker would make an anonymous one on vm1's disk.
     # A small tmpfs there instead; the data's own tmpfs (docker-compose.rehearsal.yml) sits inside it.
     tmpfs:
