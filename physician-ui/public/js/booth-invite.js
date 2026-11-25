@@ -11,12 +11,14 @@ const enFirst = (pair, cls) => el('span', { class: `en-first ${cls}` },
   el('span', { class: 'en-first-th', lang: 'th' }, ...phrases(pair.th)));
 
 /**
- * Draws the invitation into `stage` and a Finish button into `bar`; resolves nothing, calls `reset` once.
- * @param {{ stage: HTMLElement, bar: HTMLElement, reset: () => void }} ctx
+ * Draws the invitation into `stage` and a Finish button into `bar`; resolves nothing, calls `reset` once. An abort of
+ * `signal` (the shell's in-page reset) stops its timer and listener without calling `reset`.
+ * @param {{ stage: HTMLElement, bar: HTMLElement, reset: () => void, signal?: AbortSignal }} ctx
  */
-export function showInvite({ stage, bar, reset }) {
+export function showInvite({ stage, bar, reset, signal }) {
   let timer = 0;
-  const end = () => { clearTimeout(timer); document.removeEventListener('pointerdown', restart, true); reset(); };
+  const stop = () => { clearTimeout(timer); document.removeEventListener('pointerdown', restart, true); };
+  const end = () => { stop(); reset(); };
   const restart = () => { clearTimeout(timer); timer = setTimeout(end, INVITE_SECONDS * 1000); };
   const url = new URL(WORKSHOP_PATH, location.origin).href;
   const card = el('article', { class: 'invite-card', dataset: { invite: '' }, 'aria-label': WORKSHOP_COPY.title.en },
@@ -34,5 +36,6 @@ export function showInvite({ stage, bar, reset }) {
   finish.addEventListener('click', end, { once: true });
   bar.replaceChildren(finish);
   document.addEventListener('pointerdown', restart, true);
+  signal?.addEventListener('abort', stop, { once: true });
   restart();
 }

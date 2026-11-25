@@ -21,12 +21,12 @@ const SCREEN_POLICY = {
 };
 
 /**
- * Applies SCREEN_POLICY for as long as the page lives; every reset is `reset()`, a page reload.
+ * Applies SCREEN_POLICY until `signal` aborts (the shell's in-page reset); every reset is `reset()`.
  * Idle phase: off | watching (IDLE_MS timer, any touch or key restarts it) | asking ("Still there?", ASK_MS)
  * | lingering (a linger policy's timer, any touch or key restarts it, under its cap).
- * @param {{ stage: HTMLElement, host: HTMLElement, reset: () => void }} ctx host holds the overlay
+ * @param {{ stage: HTMLElement, host: HTMLElement, reset: () => void, signal?: AbortSignal }} ctx host holds the overlay
  */
-export function watchIdle({ stage, host, reset }) {
+export function watchIdle({ stage, host, reset, signal }) {
   let phase = 'off';
   let policy = HOLD;
   let timer = 0;
@@ -76,7 +76,7 @@ export function watchIdle({ stage, host, reset }) {
     else if (phase === 'lingering') linger(policy.ms);
     else if (phase === 'asking' && e.type !== 'pointerdown') watch();
   };
-  for (const type of ['pointerdown', 'keydown', 'input']) document.addEventListener(type, onActivity, true);
+  for (const type of ['pointerdown', 'keydown', 'input']) document.addEventListener(type, onActivity, { capture: true, signal });
 
   const apply = () => {
     policy = SCREEN_POLICY[stage.dataset.screen] ?? HOLD;
@@ -91,6 +91,8 @@ export function watchIdle({ stage, host, reset }) {
       }
     }
   };
-  new MutationObserver(apply).observe(stage, { attributes: true, attributeFilter: ['data-screen'] });
+  const observer = new MutationObserver(apply);
+  observer.observe(stage, { attributes: true, attributeFilter: ['data-screen'] });
+  signal?.addEventListener('abort', () => { observer.disconnect(); quiet(); }, { once: true });
   apply();
 }

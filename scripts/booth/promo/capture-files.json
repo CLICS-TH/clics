@@ -22,6 +22,7 @@
   "physician-ui/public/js/booth-feedback-icons.js",
   "physician-ui/public/js/booth-feedback-link.js",
   "physician-ui/public/js/booth-feedback-qr.js",
+  "physician-ui/public/js/booth-fullscreen.js",
   "physician-ui/public/js/booth-idle.js",
   "physician-ui/public/js/booth-invite.js",
   "physician-ui/public/js/booth-look.js",

@@ -96,10 +96,11 @@ async function startOnADealtCase(root, api) {
 
 /**
  * Run one booth play to a terminal screen.
- * @param {{ root: HTMLElement, api: ReturnType<import('./booth-api.js').createBoothApi>, reset: () => void }} ctx
+ * @param {{ root: HTMLElement, api: ReturnType<import('./booth-api.js').createBoothApi>, reset: () => void, signal?: AbortSignal }} ctx
+ *   `signal` aborts when the shell starts over in the page: a reply or score that lands after it changes nothing.
  * @returns {Promise<PlayOutcome>}
  */
-export async function runPlay({ root, api, reset }) {
+export async function runPlay({ root, api, reset, signal }) {
   let start = null;
   let offline = false;
   try {
@@ -115,6 +116,7 @@ export async function runPlay({ root, api, reset }) {
   return new Promise((resolve) => {
     let state = { play: start.play, steps: [start.next], answers: [], replies: [], sigs: [start.sig], screen: { at: 'vignette' } };
     const dispatch = (ev) => {
+      if (signal?.aborted) return;
       const next = transition(state, ev);
       if (next === state) return;
       const entered = next.screen.at !== state.screen.at;

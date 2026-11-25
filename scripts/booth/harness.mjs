@@ -315,9 +315,10 @@ const open = new Set();
  *   ETag; it is read per request, so a scenario that reassigns an entry replaces the file under the same name.
  * k.offline(on): the context goes offline and every request (page origin and booth API) aborts.
  */
-async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = makeStub(), label = `${width}x${height} ${pointer}`, files = {} } = {}) {
+async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = makeStub(), label = `${width}x${height} ${pointer}`, files = {}, screen } = {}) {
   const coarse = pointer === 'coarse';
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, ...(coarse ? { isMobile: true, hasTouch: true } : {}) });
+  // `screen` defaults to the viewport: a page that fills its screen, as under the booth launcher's --kiosk.
+  const ctx = await browser.newContext({ viewport: { width, height }, ...(screen ? { screen } : {}), deviceScaleFactor: 1, ...(coarse ? { isMobile: true, hasTouch: true } : {}) });
   const foreign = [];
   const errors = [];
   let offline = false;

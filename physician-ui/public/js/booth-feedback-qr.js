@@ -27,8 +27,8 @@ const tag = (glyph, pair) => el('li', { class: 'feedback-tag' }, glyph, bi(pair,
 /** The pop-up over `host`: the QR in the accent colour, two tags and a caption, with one Close. It is a modal dialog:
  *  focus moves to Close and stays there (it is the only control), Escape, a tap on the backdrop and Close all shut it and
  *  return focus to `opener`. It has no timer of its own: the scored screen's idle reset (booth-idle.js, 45 s after the last
- *  touch) reloads the page and takes it away, so a visitor has those 45 s to scan. */
-function openFeedback({ host, caseId, opener }) {
+ *  touch) resets the kiosk and takes it away, so a visitor has those 45 s to scan. */
+function openFeedback({ host, caseId, opener, signal }) {
   const fig = el('figure', { class: 'feedback-qr', dataset: { feedbackQr: '' } });
   const drawQr = () => {
     const url = feedbackUrl({ caseId, look: currentLook() });
@@ -58,18 +58,19 @@ function openFeedback({ host, caseId, opener }) {
   }
   overlay.addEventListener('click', (e) => { if (e.target === overlay) shut(); });
   close.addEventListener('click', shut);
-  document.addEventListener('keydown', keys, true);
+  // The shell's in-page reset aborts `signal`: the overlay goes with #booth's contents, its key trap with this listener.
+  document.addEventListener('keydown', keys, { capture: true, signal });
   host.append(overlay);
   window.hydrateIcons?.(overlay);
   close.focus({ preventScroll: true });
 }
 
 /** The button beside Done once a play is scored (booth-shell.js), which opens the pop-up over `host`. Null when the switch is off.
- *  @param {{ host: HTMLElement, caseId: string | null }} ctx @returns {HTMLButtonElement | null} */
-export function feedbackButton({ host, caseId }) {
+ *  @param {{ host: HTMLElement, caseId: string | null, signal?: AbortSignal }} ctx @returns {HTMLButtonElement | null} */
+export function feedbackButton({ host, caseId, signal }) {
   if (!on()) return null;
   const b = el('button', { type: 'button', class: 'booth-btn secondary wide', dataset: { action: 'feedback' } },
     icon('message'), bi(KIOSK.button, 'btn-label'));
-  b.addEventListener('click', () => { if (!host.querySelector('[data-feedback-overlay]')) openFeedback({ host, caseId, opener: b }); });
+  b.addEventListener('click', () => { if (!host.querySelector('[data-feedback-overlay]')) openFeedback({ host, caseId, opener: b, signal }); });
   return b;
 }
