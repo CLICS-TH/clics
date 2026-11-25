@@ -516,6 +516,17 @@ alter table public.license_verifications enable row level security;  -- DENY-ALL
 alter table public.invites               enable row level security;  -- DENY-ALL (service-role only)
 alter table public.app_settings     enable row level security;
 
+-- The caller's role, read as the function's owner. "prof: superadmin write" and "docs: superadmin write"
+-- call it. Production made it outside the repo; this is production's definition and grants (2026-11-25).
+create or replace function public.get_my_role()
+returns text
+language sql
+stable security definer
+set search_path to 'public'
+as $function$ select role from public.professionals where id = auth.uid() $function$;
+revoke all on function public.get_my_role() from public, anon, authenticated;
+grant execute on function public.get_my_role() to service_role;
+
 -- professionals policies
 create policy "prof: own read"
   on public.professionals for select using (auth.uid() = id);
@@ -529,9 +540,7 @@ create policy "prof: admin read own council"
             where p.id = auth.uid() and p.role = 'admin' and p.council_id = professionals.council_id)
   );
 create policy "prof: superadmin write"
-  on public.professionals for insert with check (
-    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
-  );
+  on public.professionals for insert with check (public.get_my_role() = 'superadmin');
 
 -- ple_folders policies
 drop policy if exists "folders: physician own" on public.ple_folders;
@@ -625,9 +634,7 @@ create policy "audit: admin own council"
 create policy "docs: authenticated read"
   on public.documents for select using (auth.role() = 'authenticated');
 create policy "docs: superadmin write"
-  on public.documents for all using (
-    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
-  );
+  on public.documents for all using (public.get_my_role() = 'superadmin');
 
 -- lpdp policies
 create policy "lpdp: physician own"
