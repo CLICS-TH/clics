@@ -63,7 +63,13 @@ body.booth {
   -webkit-user-select: none; user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-#booth { display: flex; flex-direction: column; width: var(--col); height: 100dvh; margin-inline: auto; }
+#booth { display: flex; flex-direction: column; width: var(--col); height: 100dvh; margin-inline: auto; background: var(--canvas); }
+/* The loop's ambient fill beside the column (js/booth-ambient.js): under #booth, which paints its own canvas, so it shows
+   only in the strips a screen wider than 9:16 leaves. The page's own background is the html element's, so body lets it
+   through. A small canvas scaled up: the browser's smoothing finishes the blur. Faded so the column stays the subject. */
+body.booth { background: transparent; }
+.loop-ambient { position: fixed; inset: 0; z-index: -1; display: block; width: 100%; height: 100%; opacity: .5; pointer-events: none; }
+.loop-ambient[hidden] { display: none; }
 /* The play's screens query the column, not the screen (the typing sheet below). The overlays are #booth's children,
    outside this container, so their fixed scrims still cover the whole screen. */
 .booth-stage { flex: 1 1 auto; min-height: 0; position: relative; container-type: size; }

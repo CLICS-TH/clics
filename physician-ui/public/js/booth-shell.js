@@ -6,6 +6,7 @@ import { watchIdle } from './booth-idle.js';
 import { mountLookControl, mountBrand } from './booth-look.js';
 import { showInvite } from './booth-invite.js';
 import { mountFullscreen, isFullscreen } from './booth-fullscreen.js';
+import { mountAmbient } from './booth-ambient.js';
 import { COPY, DEFAULT_LOOK } from './booth-copy.js';
 import { el, bi, setLook, currentLook, onLook } from './booth-dom.js';
 
@@ -138,6 +139,7 @@ function showLoop() {
       el('span', { class: 'shell-wordmark' }, 'CLICS'),
       bi(COPY.intro, 'shell-intro')));
   const loop = mountLoop(stage);
+  const stopAmbient = mountAmbient({ stage, column: root });
   const boardSlot = el('div', { class: 'loop-board', dataset: { boothSlot: 'loop-board' } });
   stage.append(boardSlot);
   const stopBoard = board.mountLoopBoard?.(boardSlot, { api });
@@ -163,6 +165,7 @@ function showLoop() {
     stopLookWatch();
     for (const type of ['pointerdown', 'keydown']) document.removeEventListener(type, restartLookIdle, true);
     loop.stop();
+    stopAmbient();
     if (typeof stopBoard === 'function') stopBoard();
   };
   /** Swaps only the bar: the loop keeps playing through a status change. */
