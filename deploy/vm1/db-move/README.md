@@ -49,8 +49,9 @@ Still open with CME:
 - **What the restore runs as the superuser.** The restore stream is SQL that comes from the source (Supabase
   today), and the data host's superuser runs it. A `CHECK` constraint, an expression index, a generated
   column or a materialized view that calls a function runs that function while the rows load, with the
-  superuser's rights, and a superuser can reach the data host's operating system (`COPY ... TO PROGRAM`).
-  So whoever can change the source's schema could run code on cme-dev during the window. Today the source's
+  superuser's rights, and a superuser can run programs inside the data host's container (`COPY ... TO
+  PROGRAM`). So whoever can change the source's schema could run code in that container, on cme-dev,
+  during the window. Today the source's
   schema is CLICS's own migrations, reviewed on main. Two ways to close it, CME's choice: a preflight check
   that refuses a source with any such object outside the list the migrations make, or a restore role that
   is not a superuser (the stream's `session_replication_role` then needs `GRANT SET ON PARAMETER`).
