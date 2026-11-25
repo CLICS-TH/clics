@@ -180,10 +180,11 @@ test('the sign-in rehearsal\'s database logs no value and no password, as the da
     'the hermetic run checks the db\'s log too');
 });
 
-// The restore drill (#432): a nightly backup of the PostgreSQL 18 data host restores into that same PostgreSQL,
-// never an older one, in a database that lives in memory like the rehearsal's.
-test('the restore drill runs on the data host\'s PostgreSQL, in memory, and only in vm1-drill', () => {
-  const drill = read('rehearsal', 'docker-compose.drill.yml');
+// The data host's PostgreSQL in the rehearsal (#432): a nightly backup of the PostgreSQL 18 data host restores
+// into that same PostgreSQL, never an older one, and the hermetic sign-in replay runs against it as well as
+// against the supabase/postgres image, in a database that lives in memory like the rehearsal's.
+test('the data host\'s PostgreSQL runs in memory, for vm1-drill and hermetic-data-host only', () => {
+  const drill = read('rehearsal', 'docker-compose.data-host.yml');
   const dataHost = readFileSync(path.join(ROOT, 'deploy', 'data-host', 'docker-compose.yml'), 'utf8');
   const image = /^ {4}image: (clics-data-pg:\S+)$/m.exec(dataHost)?.[1];
   assert.ok(image, 'the data host names its image');
@@ -197,15 +198,41 @@ test('the restore drill runs on the data host\'s PostgreSQL, in memory, and only
     assert.match(drill, new RegExp(`"-c", "${k}=${v}"`), `the drill sets ${k}=${v}, as the data host does`);
   }
   const run = read('rehearsal', 'run.sh');
-  assert.match(run, /^DRILL=$/m, 'a DRILL inherited from the caller is dropped');
-  assert.equal(run.match(/^\s*DRILL=1$/gm)?.length, 1, 'DRILL=1 is set in one place');
-  const start = run.indexOf('\n  vm1-drill)\n');
-  const branch = run.slice(start, run.indexOf('\n    ;;\n', start));
-  assert.match(branch, /^ {4}DRILL=1$/m, 'and that place is vm1-drill');
-  assert.match(branch, /^ {4}exec 3<&0 <\/dev\/null$/m, 'the backup stream is kept from every exec before the drill');
-  assert.match(branch, /exec bash \/tmp\/move\.sh drill' <&3$/m, 'and handed to the drill alone');
+  const branchOf = (name) => {
+    const start = run.indexOf(`\n  ${name})\n`);
+    assert.ok(start >= 0, `run.sh has a ${name} command`);
+    return run.slice(start, run.indexOf('\n    ;;\n', start));
+  };
+  assert.match(run, /^DATA_HOST=$/m, 'a DATA_HOST inherited from the caller is dropped');
+  assert.equal(run.match(/DATA_HOST=1$/gm)?.length, 2, 'DATA_HOST=1 is set in two places');
+  const drillBranch = branchOf('vm1-drill');
+  assert.match(drillBranch, /^ {4}DATA_HOST=1$/m, 'one is vm1-drill');
+  assert.match(branchOf('hermetic|hermetic-data-host'), /^ {4}\[ "\$1" = hermetic \] \|\| DATA_HOST=1$/m,
+    'the other is hermetic-data-host, never plain hermetic');
+  assert.ok(!/DATA_HOST/.test(branchOf('vm1-up')), 'vm1-up restores Supabase into the supabase/postgres image only');
+  assert.match(drillBranch, /^ {4}exec 3<&0 <\/dev\/null$/m, 'the backup stream is kept from every exec before the drill');
+  assert.match(drillBranch, /exec bash \/tmp\/move\.sh drill' <&3$/m, 'and handed to the drill alone');
   assert.match(run, /up_db\(\) \{[^}]*assert_in_memory/, 'up_db checks the data is in memory before any is loaded');
+  // schema.sql stands in for the move, which brings production's default privileges to the data host.
+  assert.match(run, /\[ -z "\$DATA_HOST" \] \|\| printf 'alter default privileges for role postgres in schema public grant all on %s to service_role;\\n'/,
+    'the data host\'s schema load gets service_role\'s default privileges, as the move brings them');
+  assert.match(readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'),
+    /run: SKIP_BUILD=1 deploy\/vm1\/rehearsal\/run\.sh hermetic-data-host$/m, 'CI replays sign-in against the data host\'s PostgreSQL');
   assert.match(read('deploy.sh'), /release_paths\+=\(deploy\/data-host\)/, 'the release carries the data host\'s Dockerfile');
+});
+
+// PostgREST loads no schema cache while a schema on its search path is missing, so every request fails: the
+// data host's plain PostgreSQL must have each one (the supabase/postgres image does), and the move checks it.
+test('every schema PostgREST searches exists on the data host and is checked before the move', () => {
+  const path_ = /^ {6}PGRST_DB_EXTRA_SEARCH_PATH: (\S+)$/m.exec(service('postgrest').join('\n'))?.[1];
+  assert.ok(path_, 'postgrest pins its search path');
+  const prepare = read('db-move', 'prepare-plain-pg.sql');
+  const move = read('db-move', 'move.sh');
+  for (const s of path_.split(',').filter((x) => x !== 'public')) {
+    assert.match(prepare, new RegExp(`^create schema if not exists ${s};$`, 'm'), `prepare-plain-pg.sql creates ${s}`);
+    assert.match(prepare, new RegExp(`^grant usage on schema ${s} to anon, authenticated, service_role;$`, 'm'), `and PostgREST's roles may use it`);
+    assert.match(move, new RegExp(`to_regnamespace\\('${s}'\\) is null`), `move.sh preflight stops on a target without ${s}`);
+  }
 });
 
 // The Google and Resend stand-ins replace the real services, so a vm1 rehearsal must never load them: there
@@ -214,7 +241,7 @@ test('the Google and SMTP stand-ins load only in the hermetic run, never on vm1'
   const run = read('rehearsal', 'run.sh');
   const overlay = read('rehearsal', 'docker-compose.hermetic.yml');
   assert.equal(run.match(/^\s*HERMETIC=1$/gm)?.length, 1, 'HERMETIC=1 is set in one place');
-  assert.match(run, /^ {2}hermetic\)\n {4}HERMETIC=1$/m, 'and that place is the hermetic command');
+  assert.match(run, /^ {2}hermetic\|hermetic-data-host\)\n {4}HERMETIC=1$/m, 'and that place is the hermetic commands');
   assert.match(run, /^HERMETIC=$/m, 'a HERMETIC inherited from the caller is dropped');
   assert.match(run, /\[ -z "\$HERMETIC" \] \|\| files\+=\(-f rehearsal\/docker-compose\.hermetic\.yml\)/, 'dc() adds the overlay only under HERMETIC');
   assert.equal(run.match(/-f rehearsal\/docker-compose\.hermetic\.yml/g)?.length, 1, 'no other line loads the overlay');

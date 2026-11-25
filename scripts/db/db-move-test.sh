@@ -175,6 +175,8 @@ create table auth.refresh_tokens (id bigserial primary key, token text, user_id 
 create table auth.schema_migrations (version text primary key);
 insert into auth.schema_migrations values ('gotrue-v2.197.0');
 grant usage on schema auth, public to anon, authenticated, service_role;
+-- the image's extensions schema, which PostgREST searches
+create schema extensions;
 -- the image's default grants to the API roles, which the restore stream revokes before it creates a table
 alter default privileges for role supabase_admin in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges for role supabase_admin in schema public grant all on sequences to anon, authenticated, service_role;
@@ -198,7 +200,7 @@ has "a plaintext data-host hop (CLICS_DATA_SSLMODE=prefer)" "lets the data host 
   "$(src_url src | CLICS_DATA_DB=t1 CLICS_DATA_SSLMODE=prefer bash "$MOVE" preflight 2>&1 || true)"
 S postgres -c "create role dashboard_user nologin"
 S src -c "grant select on public.councils to dashboard_user"
-has "a role the source grants to and the target lacks" "the target lacks what the restore names: role dashboard_user" \
+has "a role the source grants to and the target lacks" "the target lacks what the restore or PostgREST needs: role dashboard_user" \
   "$(mv_ t1 src preflight 2>&1 || true)"
 S src -c "revoke all on public.councils from dashboard_user"; S postgres -c "drop role dashboard_user"
 S src -c "alter table auth.users add column dedicated_scope text"
@@ -400,6 +402,8 @@ expect "  → the image's roles, none a superuser, supabase_admin without login"
                     where rolname in ('anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin')")"
 expect "  → auth is supabase_auth_admin's; authenticator can switch to service_role" "supabase_auth_admin|t" \
   "$(P clics_mentor -c "select nspowner::regrole, pg_has_role('authenticator', 'service_role', 'MEMBER') from pg_namespace where nspname = 'auth'")"
+expect "  → the extensions schema PostgREST searches, usable by service_role; no default privileges yet" "t|0" \
+  "$(P clics_mentor -c "select has_schema_privilege('service_role', 'extensions', 'USAGE'), (select count(*) from pg_default_acl)")"
 has "preflight before GoTrue ran" "start GoTrue against it once" "$(mvp preflight 2>&1 || true)"
 # GoTrue's first start, as supabase_auth_admin (it owns auth): its tables and functions.
 P clics_mentor <<'SQL'
@@ -415,9 +419,21 @@ create table auth.refresh_tokens (id bigserial primary key, token text, user_id 
 create table auth.schema_migrations (version text primary key);
 insert into auth.schema_migrations values ('gotrue-v2.197.0');
 SQL
+P clics_mentor -c "drop schema extensions"
+has "preflight stops on a target without the extensions schema" "schema extensions (PostgREST searches it)" \
+  "$(mvp preflight 2>&1 || true)"
+P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" >/dev/null
 OUT="$(mvp move 2>&1)" || true
 has "move into plain PostgreSQL: VERIFY: PASS" "VERIFY: PASS" "$OUT"
 has "  → anchored at the source head" "anchored at the source head seq 7" "$OUT"
+# The backend reads every table as service_role: the dump carries each table's grants, and, at its end, the
+# source's default privileges, so a table a later migration makes is service_role's too.
+expect "  → service_role holds the source's grants and default privileges" "t|t|t" \
+  "$(P clics_mentor -c "select has_table_privilege('service_role', 'public.ples', 'SELECT,INSERT,UPDATE,DELETE'),
+    has_table_privilege('service_role', 'public.audit_log', 'SELECT'),
+    exists (select 1 from pg_default_acl d, aclexplode(d.defaclacl) a
+             where d.defaclobjtype = 'r' and d.defaclnamespace = 'public'::regnamespace
+               and pg_get_userbyid(d.defaclrole) = 'postgres' and a.grantee = 'service_role'::regrole)")"
 expect "  → roles.sql then passes there" "0" "$(rc P clics_mentor -f "$ROLES")"
 expect "  → PUBLIC cannot connect; the CLICS logins, the analyst and the backup can" "f|t|t|t" \
   "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_backup', 'clics_mentor', 'CONNECT')")"

@@ -10,7 +10,7 @@ data sits on commercial cloud, and no doc or CREC-facing text may say it is in T
 |---|---|
 | `move.sh` | The move, run on vm1: preflight, the restore stream (Supabase to the data host, never on a disk), the verify report; also `backup` and `drill` for the nightly dump |
 | `roles.sql` | The data host's roles after the move: the app's logins checked not superuser; `clics_analyst`, a read-only rater/analyst role that reads numbers, times, codes and pseudonyms, never free text or an identity table; and `clics_backup`, the nightly backup's login, which reads every row and writes nothing, so no file on vm1 holds a superuser's password after the move |
-| `prepare-plain-pg.sql` | Only for a data host on plain PostgreSQL (not the `supabase/postgres` image): the roles and the `auth` schema the image would have, before GoTrue's first start |
+| `prepare-plain-pg.sql` | Only for a data host on plain PostgreSQL (not the `supabase/postgres` image): the roles, the `auth` schema and the (empty) `extensions` schema the image would have, before GoTrue's first start |
 | `backup.sh` | The nightly encrypted dump, run on vm1 from cron |
 | [`scripts/db/db-move-test.sh`](../../../scripts/db/db-move-test.sh) | The hermetic test of all three, against two throwaway PostgreSQL clusters (CI job `fast-checks`, step `db-move`) |
 
@@ -142,7 +142,11 @@ step 2 (and before the rehearsal):
    and `\password supabase_auth_admin`. It makes `anon`, `authenticated`, `service_role`, `authenticator`,
    `supabase_auth_admin` and a no-login `supabase_admin` (the dump's default privileges name it), none a
    superuser, and the `auth` schema owned by `supabase_auth_admin` (with CREATE on the database, as
-   GoTrue's own set-up asks). It revokes CONNECT on the database from PUBLIC and grants it to the CLICS
+   GoTrue's own set-up asks). It also makes an empty `extensions` schema: PostgREST searches it
+   (`PGRST_DB_EXTRA_SEARCH_PATH`) and, without it, loads no schema cache, so every backend request fails.
+   It sets no default privileges: the dump brings production's at its end, and default privileges set
+   before the restore would hand `service_role` a table production revoked it from (pg_dump writes no
+   line for a table that has only its owner's grants). It revokes CONNECT on the database from PUBLIC and grants it to the CLICS
    roles only. Roles are per cluster: if another database (e.g. `clics_evaluator`) is in the cluster and
    any of these roles already exists, it stops, because changing them (or `\password authenticator`) would
    change another service's login. Ask CME for a cluster of its own; only if CME confirms no other service
@@ -160,7 +164,11 @@ step 2 (and before the rehearsal):
    window. `move.sh` never talks to GoTrue, only to the database.
 
 `mv_run preflight` then checks the lot: a role, extension, function or `auth` column the restore would
-name and the target lacks is listed, before anything is written.
+name and the target lacks is listed, before anything is written, and so is a missing `extensions` schema.
+
+`rehearsal/run.sh hermetic-data-host` (CI runs it) replays every sign-in path against this target shape:
+the data host's image, `prepare-plain-pg.sql`, GoTrue's own migrations, `db/schema.sql` with production's
+default privileges standing in for the restore.
 
 A local rehearsal of this path ran on 2026-11-24 with throwaway containers, against neither Supabase nor
 vm1. The source was PostgreSQL 17 with TLS and a real GoTrue `auth` schema. The target was plain
@@ -312,7 +320,7 @@ Set-up, once:
 Monthly, and before the window is declared closed. On vm1, into a throwaway database that lives in memory
 (the rehearsal's tmpfs database, `../rehearsal/README.md`), never into the data host:
 
-The drill's database is the data host's own PostgreSQL (`../rehearsal/docker-compose.drill.yml`:
+The drill's database is the data host's own PostgreSQL (`../rehearsal/docker-compose.data-host.yml`:
 `clics-data-pg:18.7-pgvector0.8.7` from `../../data-host/`, with `prepare-plain-pg.sql`), so a backup is
 restored into the major version it was taken from. `move.sh drill` refuses a backup from a newer major
 than the drill database's, before its first row. The first drill on vm1 builds that image from the

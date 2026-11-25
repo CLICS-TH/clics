@@ -407,12 +407,15 @@ SQL
     for r in $roles; do echo "select $(lit "role $r") where pg_catalog.to_regrole($(lit "\"$r\"")) is null;"; done
     for e in $exts; do echo "select 'extension $e' where not exists (select 1 from pg_catalog.pg_available_extensions where name = $(lit "$e"));"; done
     for f in 'auth.uid()' 'auth.role()'; do echo "select 'function $f' where pg_catalog.to_regprocedure($(lit "$f")) is null;"; done
+    # Not named by the restore, but PostgREST's search path (../docker-compose.auth.yml) is: without it
+    # PostgREST loads no schema cache and the backend gets no database at all once it points here.
+    echo "select 'schema extensions (PostgREST searches it)' where pg_catalog.to_regnamespace('extensions') is null;"
     [ -z "$cols" ] || echo "select 'auth column ' || v || ' (an older GoTrue on the target?)' from unnest(array[$cols]::text[]) v
       where not exists (select 1 from pg_catalog.pg_attribute a join pg_catalog.pg_class c on c.oid = a.attrelid
                          where c.relnamespace = 'auth'::regnamespace and c.relname = split_part(v, '.', 1)
                            and a.attname = split_part(v, '.', 2) and a.attnum > 0 and not a.attisdropped);"
   } | q_dst | paste -sd ',' - | sed 's/,/, /g')
-  [ -z "$missing" ] || die "the target lacks what the restore names: $missing (plain PostgreSQL: README.md, Plain PostgreSQL target)"
+  [ -z "$missing" ] || die "the target lacks what the restore or PostgREST needs: $missing (plain PostgreSQL: README.md, Plain PostgreSQL target)"
   (( dver / 10000 >= sver / 10000 )) || die "the target's PostgreSQL ($dver) is older than the source's ($sver)"
   local pgd
   pgd=$("$(tool_path pg_dump)" --version | sed -n 's/.* \([0-9][0-9]*\)\..*/\1/p')

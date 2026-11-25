@@ -147,7 +147,7 @@ trap 'rm -rf "$TMP"' EXIT
 TARBALL="$TMP/release-$SHA.tgz"
 if [ "$MODE" = deploy ]; then
   release_paths=(backend rimpl physician-ui audit-dashboard deploy/vm1)
-  # The data host's Dockerfile, for the restore drill (rehearsal/docker-compose.drill.yml). A ref from before
+  # The data host's Dockerfile, for the restore drill (rehearsal/docker-compose.data-host.yml). A ref from before
   # it has none, and git archive fails on a path that matches nothing.
   ! git -C "$REPO" cat-file -e "$SHA:deploy/data-host" 2>/dev/null || release_paths+=(deploy/data-host)
   git -C "$REPO" archive --format=tar "$SHA" -- "${release_paths[@]}" | gzip -n > "$TARBALL"

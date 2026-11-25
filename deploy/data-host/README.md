@@ -13,7 +13,8 @@ decisions (who holds the LUKS passphrase among them).
 | `pg_hba.conf.template` | vm1 only, TLS only, `clics_mentor` only; the superuser only through the container's socket |
 | `setup.sh` | Every step below, each printing what it did and stopping on the first problem |
 
-The restore drill on vm1 (`../vm1/db-move/README.md`, Restore drill) runs this same image, in memory.
+The restore drill on vm1 (`../vm1/db-move/README.md`, Restore drill) runs this same image, in memory, and so
+does CI's hermetic sign-in replay (`../vm1/rehearsal/run.sh hermetic-data-host`).
 
 What it guarantees, and how each is checked:
 
@@ -71,7 +72,8 @@ Also needed: vm1's tailnet address, and the passphrase holder (CME's decision) a
    ./setup.sh init
    ```
    `init` makes the cluster (data checksums on), takes the superuser's password away, and applies
-   `prepare-plain-pg.sql` (the roles and the `auth` schema GoTrue expects). Then the two service logins get
+   `prepare-plain-pg.sql` (the roles and the `auth` schema GoTrue expects, and the `extensions` schema
+   PostgREST searches). Then the two service logins get
    their passwords, typed at psql's prompt and written only into vm1's `gotrue.env` and `postgrest.env`:
    ```
    ./setup.sh psql

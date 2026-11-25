@@ -366,6 +366,10 @@ jobs:
       # project; removed when it exits.
       - name: 'Self-hosted sign-in: hardened surface + sign-in replay (hermetic rehearsal)'
         run: SKIP_BUILD=1 deploy/vm1/rehearsal/run.sh hermetic
+      # The same replay against the database GoTrue, PostgREST and the backend use after the move (#432): the
+      # data host's PostgreSQL 18 with pgvector (deploy/data-host, built here), prepared as the data host is.
+      - name: 'Self-hosted sign-in: the same replay on the data host''s PostgreSQL 18'
+        run: SKIP_BUILD=1 deploy/vm1/rehearsal/run.sh hermetic-data-host
       - name: Container logs
         if: failure()
         run: |

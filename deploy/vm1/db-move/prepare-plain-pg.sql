@@ -86,4 +86,14 @@ end $$;
 -- public: PostgREST's roles may use the schema; the restore brings every table grant (ADR 0007).
 grant usage on schema public to anon, authenticated, service_role;
 
+-- PostgREST searches `public, extensions` (PGRST_DB_EXTRA_SEARCH_PATH, ../docker-compose.auth.yml), as on
+-- Supabase, and loads no schema cache at all while a schema on that path is missing: every request fails.
+-- Here it stays empty; the move creates the extensions the source keeps in public.
+create schema if not exists extensions;
+grant usage on schema extensions to anon, authenticated, service_role;
+
+-- No default privileges here. The move's dump brings production's at its end (service_role gets what postgres
+-- creates in public). Set before the restore, they would also hand service_role every table production
+-- revoked it from: pg_dump writes no GRANT or REVOKE for a table that has only its owner's grants.
+
 commit;

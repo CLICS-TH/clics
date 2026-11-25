@@ -3,6 +3,8 @@
 #
 #   rehearsal/run.sh hermetic            synthetic data, stand-ins for Google and Resend's SMTP relay
 #                                        (docker-compose.hermetic.yml): CI and a laptop with docker
+#   rehearsal/run.sh hermetic-data-host  the same, against the data host's PostgreSQL 18 instead of the
+#                                        supabase/postgres image (docker-compose.data-host.yml)
 #   rehearsal/run.sh vm1-env ENV_DIR     vm1: fresh secrets for the rehearsal stack into a root-only ENV_DIR
 #   rehearsal/run.sh vm1-up ENV_DIR      vm1: database, roles, restore from Supabase (URL on stdin), then the stack
 #   rehearsal/run.sh vm1-paths ENV_DIR   vm1: replay the sign-in paths against it
@@ -26,18 +28,19 @@ PKI_VOLUME=clics-rehearsal-pki
 # HERMETIC=1 adds the stand-ins for Google and Resend. Only the hermetic command sets it; one inherited from
 # the caller's shell is dropped here.
 HERMETIC=
-# DRILL=1 makes the database the data host's own PostgreSQL 18 (docker-compose.drill.yml) instead of the
-# supabase/postgres image. Only the vm1-drill command sets it; one inherited from the caller's shell is dropped.
-DRILL=
+# DATA_HOST=1 makes the database the data host's own PostgreSQL 18 (docker-compose.data-host.yml) instead of
+# the supabase/postgres image. Only vm1-drill and hermetic-data-host set it; one inherited from the caller's
+# shell is dropped.
+DATA_HOST=
 dc() {
   local files=(-f docker-compose.yml -f docker-compose.auth.yml -f rehearsal/docker-compose.rehearsal.yml)
   [ -z "$HERMETIC" ] || files+=(-f rehearsal/docker-compose.hermetic.yml)
-  [ -z "$DRILL" ] || files+=(-f rehearsal/docker-compose.drill.yml)
+  [ -z "$DATA_HOST" ] || files+=(-f rehearsal/docker-compose.data-host.yml)
   docker compose -p "$PROJECT" "${files[@]}" "$@"
 }
 # The database's superuser, reached through the container's socket: supabase_admin in the supabase/postgres
 # image, postgres in the data host's.
-db_su() { if [ -n "$DRILL" ]; then echo postgres; else echo supabase_admin; fi; }
+db_su() { if [ -n "$DATA_HOST" ]; then echo postgres; else echo supabase_admin; fi; }
 
 # supabase/postgres creates the API and auth roles without a usable password; the stack logs in as two of
 # them. The password goes in on stdin, never on a command line.
@@ -78,7 +81,7 @@ up_db() {
   assert_in_memory
   # The data host's PostgreSQL is plain: it gets the roles and the auth schema the supabase/postgres image has,
   # as the data host itself did (../data-host/setup.sh init).
-  [ -z "$DRILL" ] || dc exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -X -q < db-move/prepare-plain-pg.sql
+  [ -z "$DATA_HOST" ] || dc exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -X -q < db-move/prepare-plain-pg.sql
   set_role_passwords
 }
 
@@ -90,10 +93,16 @@ up_stack() {
   dc up -d --no-deps --wait --wait-timeout 180 backend
 }
 
-# Hermetic only: the repo's schema over GoTrue's auth tables, then PostgREST re-reads it.
+# Hermetic only: the repo's schema over GoTrue's auth tables, then PostgREST re-reads it. On the data host's
+# PostgreSQL, schema.sql stands in for the move, which also brings production's default privileges (the dump
+# carries them, at its end): what postgres creates in public is service_role's, the backend's role. The
+# supabase/postgres image has them already.
 load_schema() {
   log "loading db/schema.sql"
-  dc exec -T db psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q < ../../db/schema.sql
+  { [ -z "$DATA_HOST" ] || printf 'alter default privileges for role postgres in schema public grant all on %s to service_role;\n' \
+      tables sequences functions
+    cat ../../db/schema.sql
+  } | dc exec -T db psql -U "$(db_su)" -d postgres -v ON_ERROR_STOP=1 -X -q
 }
 
 # Hermetic only: a throwaway CA, a certificate for each stand-in (accounts.google.com, smtp.resend.com) and the
@@ -233,8 +242,10 @@ export_env() { # <env dir>: what the compose files interpolate
 }
 
 case "${1:-}" in
-  hermetic)
+  hermetic|hermetic-data-host)
     HERMETIC=1
+    # The database GoTrue, PostgREST and the backend use after the move: the data host's PostgreSQL 18.
+    [ "$1" = hermetic ] || DATA_HOST=1
     ENV_DIR=$(mktemp -d)
     # KEEP=1 leaves the stack up for a look (`run.sh down` removes it); otherwise it goes when this exits.
     if [ -z "${KEEP:-}" ]; then
@@ -249,6 +260,8 @@ case "${1:-}" in
     REHEARSAL_GOOGLE_SECRET=$(sed -n 's/^GOTRUE_EXTERNAL_GOOGLE_SECRET=//p' "$ENV_DIR/gotrue.env")
     export REHEARSAL_GOOGLE_CLIENT_ID REHEARSAL_GOOGLE_SECRET
     [ -n "${SKIP_BUILD:-}" ] || dc build backend
+    # SKIP_BUILD skips the backend only: CI builds it in an earlier step, never the data host's image.
+    [ -z "$DATA_HOST" ] || dc build db
     make_pki "$ENV_DIR"
     dc --profile mail up -d mailpit
     up_db
@@ -350,7 +363,7 @@ case "${1:-}" in
     ;;
   vm1-drill)
     # The restore drill (db-move/README.md, Restore drill): a decrypted nightly backup on stdin goes into an
-    # in-memory copy of the data host's PostgreSQL (docker-compose.drill.yml), after GoTrue has migrated its
+    # in-memory copy of the data host's PostgreSQL (docker-compose.data-host.yml), after GoTrue has migrated its
     # auth schema, and move.sh checks it against the report the backup carries. The stream goes straight into
     # the db container; nothing reaches a disk.
     [ -n "${2:-}" ] || die "usage: gpg --decrypt BACKUP | run.sh vm1-drill ENV_DIR"
@@ -358,7 +371,7 @@ case "${1:-}" in
     # Every `docker compose exec` forwards its stdin and would eat the head of the stream (its report): the
     # stream waits on fd 3 for the drill itself, and everything before it reads /dev/null.
     exec 3<&0 </dev/null
-    DRILL=1
+    DATA_HOST=1
     export_env "$2"
     up_db
     dc up -d --wait --wait-timeout 180 gotrue
@@ -375,5 +388,5 @@ case "${1:-}" in
     dc --profile mail down -v --remove-orphans
     docker volume rm -f "$PKI_VOLUME" >/dev/null 2>&1 || true
     ;;
-  *) die "usage: run.sh hermetic | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | vm1-drill ENV_DIR | down [ENV_DIR]" ;;
+  *) die "usage: run.sh hermetic | hermetic-data-host | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | vm1-drill ENV_DIR | down [ENV_DIR]" ;;
 esac
