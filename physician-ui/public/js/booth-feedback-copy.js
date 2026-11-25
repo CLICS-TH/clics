@@ -65,7 +65,7 @@ export const FEEDBACK_COPY = freezeDeep({
   /** The phone result page's card (booth-feedback-card.js feedbackCard). */
   card: {
     title: { th: 'ช่วยประเมิน CLICS (1\u00a0นาที)', en: 'Rate CLICS (1\u00a0minute)' },
-    line: { th: 'ไม่ระบุตัวตน ไม่เก็บชื่อและหมายเลขผู้เล่น', en: 'Anonymous: we keep no name or player number' },
+    line: { th: 'ไม่ระบุตัวตน ไม่ถามชื่อ · อย่าพิมพ์ชื่อในความเห็น', en: 'Anonymous, no name asked · Please type no names in comments' },
   },
   /** The labels under a 1-5 slider, value 1 first. */
   scale: [
