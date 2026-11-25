@@ -4,11 +4,11 @@ const { DISPLAY_SCALE, displayScore } = require('../src/booth-cases/display-scor
 const { isAdmitted, tableScore } = require('../src/booth-cases/tree-schema');
 
 describe('booth display score (ADR 0013)', () => {
-  test('a five-step raw composite maps 26 → 0, 65 → 100, linear between, whole and clamped', () => {
+  test('a five-step raw composite maps 26 → 0, 61 → 100, linear between, whole and clamped', () => {
     expect(displayScore(26, 5)).toBe(0);
-    expect(displayScore(65, 5)).toBe(100);
-    expect(displayScore(45.5, 5)).toBe(50);
-    expect(displayScore(46, 5)).toBe(51);
+    expect(displayScore(61, 5)).toBe(100);
+    expect(displayScore(43.5, 5)).toBe(50);
+    expect(displayScore(44, 5)).toBe(51);
     expect(displayScore(10, 5)).toBe(0);
     expect(displayScore(90, 5)).toBe(100);
     for (let r = 0; r <= 100; r += 1) expect(Number.isInteger(displayScore(r, 5))).toBe(true);
@@ -25,7 +25,7 @@ describe('booth display score (ADR 0013)', () => {
     expect(displayScore(72.4, 3)).toBe(72.4);
   });
 
-  test('display-v1 anchors are the admitted NFCME-2026 five-step range: every path lands in 0–100 and both ends are reached', () => {
+  test('display-v2 anchors are the admitted NFCME-2026 five-step range: every path lands in 0–100 and both ends are reached', () => {
     const dir = path.join(__dirname, '../src/booth-cases/NFCME-2026');
     const raws = fs.readdirSync(dir).filter((f) => f.endsWith('.json'))
       .map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')))
