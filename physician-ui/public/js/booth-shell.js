@@ -5,6 +5,7 @@ import { mountLoop, loadLoopItems } from './booth-loop.js';
 import { watchIdle } from './booth-idle.js';
 import { mountLookControl, mountBrand } from './booth-look.js';
 import { showInvite } from './booth-invite.js';
+import { mountFullscreen, isFullscreen } from './booth-fullscreen.js';
 import { COPY, DEFAULT_LOOK } from './booth-copy.js';
 import { el, bi, setLook, currentLook, onLook } from './booth-dom.js';
 
@@ -25,7 +26,22 @@ const BAR = {
 
 const root = document.getElementById('booth');
 const api = keepingCase(createBoothApi(window.CLICS_API_URL));
-const reset = () => location.reload();
+/** The running play's controller: an in-page reset aborts it, which stops its idle watch, invitation and pop-ups. */
+let current = null;
+
+/** Starts over. A reload drops full screen, so a full-screen kiosk starts over in the page: it clears #booth, the look and
+ *  focus, and draws the loop again, which is all a reload would have left. A windowed kiosk reloads, and so picks up a
+ *  new deploy on the next visitor; a full-screen one picks it up only when staff exit full screen and reload. */
+function startOver() {
+  if (!isFullscreen()) { location.reload(); return; }
+  current?.abort();
+  current = null;
+  root.replaceChildren();
+  setLook(DEFAULT_LOOK);
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  scrollTo(0, 0);
+  showLoop();
+}
 
 /** @returns {Promise<ShellStatus>} */
 async function eventStatus() {
@@ -174,15 +190,22 @@ async function play() {
   const bar = el('div', { class: 'shell-bar' });
   root.replaceChildren(stage, bar);
   root.dataset.shell = 'play';
-  const outcome = runPlay({ root: stage, api, reset });
-  watchIdle({ stage, host: root, reset });
+  const controller = new AbortController();
+  current = controller;
+  const { signal } = controller;
+  // A timer or tap left over from this play does nothing once the kiosk has started over.
+  const reset = () => { if (!signal.aborted) startOver(); };
+  const outcome = runPlay({ root: stage, api, reset, signal });
+  watchIdle({ stage, host: root, reset, signal });
   const { kind, caseId } = await outcome;
+  if (signal.aborted) return;
   // Beside Done, in the row Done already takes: the card above is as tall as the fold allows, so any row added to it would
   // push the leaderboard row off the screen. Null unless js/config.js switches the feedback on.
-  const feedback = kind === 'scored' && feedbackModule ? (await feedbackModule)?.feedbackButton({ host: root, caseId }) ?? null : null;
+  const feedback = kind === 'scored' && feedbackModule ? (await feedbackModule)?.feedbackButton({ host: root, caseId, signal }) ?? null : null;
+  if (signal.aborted) return;
   const done = el('button', { type: 'button', class: 'booth-btn primary wide', dataset: { action: 'done' } }, bi(COPY.done, 'btn-label'));
   // Done shows the workshop invitation (booth-invite.js), whose Finish or timeout starts over.
-  done.addEventListener('click', () => { showInvite({ stage, bar, reset }); root.dataset.shell = 'invite'; }, { once: true });
+  done.addEventListener('click', () => { showInvite({ stage, bar, reset, signal }); root.dataset.shell = 'invite'; }, { once: true });
   bar.append(...[feedback, done].filter(Boolean));
   window.hydrateIcons?.(bar);
   root.dataset.shell = 'done';
@@ -195,8 +218,9 @@ const feedbackModule = window.CLICS_BOOTH_FEEDBACK === true ? import('./booth-fe
 
 pinColumn();
 setLook(DEFAULT_LOOK);
-mountLookControl(document.body);
-mountBrand(document.body);
+const look = mountLookControl(document.body);
+const brand = mountBrand(document.body);
+mountFullscreen({ host: document.body, brand, look });
 guardGhostTaps();
 sidesStartPlay();
 showLoop();
