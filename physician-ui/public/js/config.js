@@ -8,9 +8,8 @@
   // Booth Mode Landing QR (#212). Switch on only once the Landing page (#191) is live at the Portal root.
   window.CLICS_BOOTH_LANDING_QR = false;
   // Booth feedback (spec 2026-11-24): the kiosk's "Give feedback" button with its QR pop-up, and the phone result page's
-  // card. Switch on only once the backend's POST /booth/feedback and the booth_feedback table are live in prod (rollout
-  // order: migration, backend deploy, Portal deploy, then this flag), or the form it opens has nowhere to send.
-  window.CLICS_BOOTH_FEEDBACK = false;
+  // card. On since 2026-11-25, after the booth_feedback table, the backend and the Portal went live in prod (#527).
+  window.CLICS_BOOTH_FEEDBACK = true;
   window.CLICS_DASHBOARD_URL = '/audit';
   // Supabase browser client (public anon key) — for Google sign-in + password reset.
   // These are PUBLIC values (anon key is shipped to browsers by design). Fill from the Supabase project.
