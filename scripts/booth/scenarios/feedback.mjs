@@ -66,7 +66,7 @@ const visible = (page, selector) => page.locator(selector).first().isVisible();
 const submitOn = (page) => page.locator('[data-submit]').isEnabled();
 
 // The kiosk's feedback button and QR pop-up, and the result page's card (task 4, spec 2026-11-24 sections 1 and 2). The
-// switch is window.CLICS_BOOTH_FEEDBACK in js/config.js, off in the repo: a scenario turns it on for its own page only.
+// switch is window.CLICS_BOOTH_FEEDBACK in js/config.js, on in the repo since 2026-11-25: a scenario sets it for its own page.
 const KIOSK_SIZES = [[1080, 1920], [2160, 3840]];
 const JSQR = createRequire(import.meta.url).resolve('jsqr/dist/jsQR.js');
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
@@ -74,10 +74,10 @@ const GOOD2 = { s: 72, d: [4, 3, 4, 2, 3, 5, 1], t: 42, at: '2026-11-03', c: 'ca
 
 /** Appends the switch to config.js for this page, as board.mjs does for the Landing QR, and reloads. The booth worker may
  *  have cached config.js already, and a page it controls never reaches page.route. */
-async function switchOn(page) {
+async function switchOn(page, on = true) {
   await page.route('**/js/config.js', async (route) => {
     const res = await route.fetch();
-    await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_FEEDBACK = true;\n` });
+    await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_FEEDBACK = ${on};\n` });
   });
   await page.evaluate(async () => { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); });
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -135,12 +135,10 @@ async function openResult(h, { on, width = 375, height = 812, look = 'th+en' }) 
   const p = await h.phone('/booth-result', { width, height });
   const { page } = p;
   await page.route('**/booth-steps/cap-adult@1.js', (route) => route.fulfill({ status: 200, contentType: 'text/javascript', body: 'export default null;' }));
-  if (on) {
-    await page.route('**/js/config.js', async (route) => {
-      const res = await route.fetch();
-      await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_FEEDBACK = true;\n` });
-    });
-  }
+  await page.route('**/js/config.js', async (route) => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: `${await res.text()}\nwindow.CLICS_BOOTH_FEEDBACK = ${on};\n` });
+  });
   await page.evaluate((f) => { location.hash = f; }, `r2.${b64({ ...GOOD2, l: look })}`);
   await page.reload({ waitUntil: 'load' });
   await page.waitForSelector('#result[data-rendered] [data-workshop]', { state: 'attached' });
@@ -582,19 +580,21 @@ export default [
     },
   },
   {
-    name: 'feedback kiosk: switched off shows nothing',
+    name: 'feedback kiosk: switched off shows nothing (the repo ships it on)',
     async run(h) {
       const k = await h.kiosk();
       const { page } = k;
+      await switchOn(page, false);
       await toResult(k);
-      h.check(await page.locator('[data-action="feedback"], [data-feedback-overlay], [data-feedback-qr]').count() === 0, 'no feedback button, overlay or QR on the scored screen with the flag unset');
-      h.check(await page.evaluate(() => window.CLICS_BOOTH_FEEDBACK === false), 'js/config.js ships the switch off');
+      h.check(await page.locator('[data-action="feedback"], [data-feedback-overlay], [data-feedback-qr]').count() === 0, 'no feedback button, overlay or QR on the scored screen with the flag off');
+      const config = await readFile(new URL('../../../physician-ui/public/js/config.js', import.meta.url), 'utf8');
+      h.check(/window\.CLICS_BOOTH_FEEDBACK = true;/.test(config), 'js/config.js ships the switch on (live since 2026-11-25)');
       await k.close();
       const p = await openResult(h, { on: false });
-      h.check(await p.page.locator('[data-feedback]').count() === 0, 'no feedback card on the result page with the flag unset');
+      h.check(await p.page.locator('[data-feedback]').count() === 0, 'no feedback card on the result page with the flag off');
       const loaded = await p.page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).pathname));
       h.check(!loaded.some((f) => /booth-play\.js|booth-feedback-/.test(f)) && loaded.some((f) => f.endsWith('booth-result.js')),
-        `with the flag unset the result page loads no booth-play.js and no booth-feedback-*.js (${loaded.filter((f) => f.endsWith('.js')).map((f) => f.split('/').pop())})`);
+        `with the flag off the result page loads no booth-play.js and no booth-feedback-*.js (${loaded.filter((f) => f.endsWith('.js')).map((f) => f.split('/').pop())})`);
       await p.close();
     },
   },
