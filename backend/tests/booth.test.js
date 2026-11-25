@@ -2745,9 +2745,9 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
       expect(fiveScore.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
       const board = (await get('/booth/board')).body.board;
       expect(board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
-      // ADR 0013: the loop board shows the display rescale too; raw 50 shows as 62.
+      // ADR 0013: the loop board shows the display rescale too; raw 50 shows as 69 on display-v2 (26–61).
       expect(board.event[1].score).toBe(displayScore(50, 5));
-      expect(board.event[1].score).toBe(62);
+      expect(board.event[1].score).toBe(69);
       expect(standingsReads()).toHaveLength(2);
       for (const read of standingsReads()) expect(read.likes).toEqual([['tier_path', '_____']]);
     });

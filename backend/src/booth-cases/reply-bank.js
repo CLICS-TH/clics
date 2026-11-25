@@ -90,6 +90,10 @@ function replyContentProblems(kase, replies) {
       const shownAlways = numbers(LANGS.flatMap((l) => [kase.vignette[l], option.label[l], option.line[l]]).join(' '));
       const partial = new Set(variantNumbers.flatMap((set) => [...set])
         .filter((n) => !shownAlways.has(n) && !variantNumbers.every((set) => set.has(n))));
+      // weigh is the kiosk's "คิดต่อ / Next thought" line (format B): an option with nothing more to think about leaves it
+      // empty in every alternative of both languages, so the two languages and the three alternatives say the same.
+      const blankWeigh = LANGS.flatMap((l) => entry[l] ?? []).map((r) => r.weigh === '');
+      if (blankWeigh.some(Boolean) && !blankWeigh.every(Boolean)) problems.push(`${at}: leaves weigh empty in some alternatives only (all or none)`);
       for (const lang of LANGS) {
         const alts = entry[lang];
         if (alts.length !== ALTERNATIVES) problems.push(`${at}.${lang}: has ${alts.length} alternatives (needs ${ALTERNATIVES})`);
@@ -99,7 +103,7 @@ function replyContentProblems(kase, replies) {
             const text = reply[field];
             const where = `${at}.${lang}[${i}].${field}`;
             if (text === '') {
-              if (field !== 'safety') problems.push(`${where}: is empty`);
+              if (field === 'strength') problems.push(`${where}: is empty`);
               continue;
             }
             if (checkedField(text, quotes) !== text) {

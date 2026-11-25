@@ -371,6 +371,8 @@ describe('the reply bank', () => {
     ['a Thai field with no Thai script', (r) => { r.step1.a.th[2].weigh = 'Worth weighing.'; }, 'replies.step1.a.th[2].weigh: has no Thai script'],
     // step4.B shows SpO2 97% in v1 only: a visitor dealt v2 never saw it.
     ['a number only some variants show', (r) => { r['step4.B'].a.en[0].weigh = 'An SpO2 of 97 is reassuring.'; }, 'replies.step4.B.a.en[0].weigh: cites 97, which only some question variants'],
+    ['an empty strength', (r) => { r.step1.a.th[0].strength = ''; }, 'replies.step1.a.th[0].strength: is empty'],
+    ['weigh left empty in some alternatives only', (r) => { r.step1.a.th[0].weigh = ''; }, 'replies.step1.a: leaves weigh empty in some alternatives only'],
   ])('%s is a problem', (_name, change, problem) => {
     expect(after(change)).toEqual(expect.arrayContaining([expect.stringContaining(problem)]));
   });
@@ -379,6 +381,10 @@ describe('the reply bank', () => {
     // step5.B option d is "Book a CT scan of the chest"; the vignette shows SpO2; "cbc" is not written as an acronym.
     expect(after((r) => { r['step5.B'].d.en[0].weigh = 'A CT is rarely needed, and SpO2 was fine.'; })).toEqual([]);
     expect(after((r) => { r['step2.B'].a.en[0].weigh = 'No need for a cbc-style panel.'; })).toEqual([]);
+  });
+
+  test('an option may leave weigh (คิดต่อ) empty in every alternative of both languages', () => {
+    expect(after((r) => { for (const l of ['th', 'en']) for (const x of r.step1.a[l]) x.weigh = ''; })).toEqual([]);
   });
 
   test('a number every variant shows, or none does, may be cited', () => {

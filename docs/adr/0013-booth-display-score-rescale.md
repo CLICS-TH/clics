@@ -1,6 +1,6 @@
 # A booth visitor sees a fixed 0–100 rescale of the stored demo score
 
-The kiosk result and the board show a five-step play's demo score through one fixed, strictly increasing map, `display-v1`: raw composite 26 shows as 0, 65 as 100, linear in between, rounded to a whole number and clamped at both ends. `booth_plays` still stores the raw composite and d1–d7 that the path score table gives (ADR 0009), and the auditor reveal, the open dataset, the purge summary and research read only those. The per-domain values and their low/mid/high bands stay on the raw rubric scale. We chose this because the ten admitted NFCME-2026 tables give raw composites of 26–65 only (median 46, p5–p95 35–55, over all 2,430 paths), so on a "/ 100" card most visitors land in the 40s and most of the range is never reached. The owner wants the card to use the whole 0–100 and the raw score kept apart for research, including digital-twin work.
+The kiosk result and the board show a five-step play's demo score through one fixed, strictly increasing map, `display-v2`: raw composite 26 shows as 0, 61 as 100, linear in between, rounded to a whole number and clamped at both ends. `booth_plays` still stores the raw composite and d1–d7 that the path score table gives (ADR 0009), and the auditor reveal, the open dataset, the purge summary and research read only those. The per-domain values and their low/mid/high bands stay on the raw rubric scale. We chose this because the ten admitted NFCME-2026 tables give raw composites of 26–65 only (median 46, p5–p95 35–55, over all 2,430 paths), so on a "/ 100" card most visitors land in the 40s and most of the range is never reached. The owner wants the card to use the whole 0–100 and the raw score kept apart for research, including digital-twin work.
 
 ## Considered options
 
@@ -13,6 +13,7 @@ The kiosk result and the board show a five-step play's demo score through one fi
 
 - The board order is unchanged: it ranks on the raw composite, and the map never reorders two scores. Two raw scores can show the same number only when both clamp at 0 or at 100.
 - The number on the card is not a PIS-7 composite. The card already labels it a demo score, not CME credit, and the auditor reveal shows the raw composite.
-- A display number is converted back to raw with raw = 26 + display × 39 / 100, to within rounding. The scale's name and anchors live in `backend/src/booth-cases/display-score.js`.
-- Changing an anchor makes a new scale version and needs a PR and a deploy. A case admitted later whose paths fall outside 26–65 clamps until the scale is re-anchored.
+- A display number is converted back to raw with raw = 26 + display × 35 / 100, to within rounding. The scale's name and anchors live in `backend/src/booth-cases/display-score.js`.
+- Changing an anchor makes a new scale version and needs a PR and a deploy. A case admitted later whose paths fall outside 26–61 clamps until the scale is re-anchored.
+- `display-v1` (26 → 0, 65 → 100) shipped on 2026-11-18. On 2026-11-25 the reply format B rebuild of seven tables lowered the admitted top from 65 to 61, so the owner re-anchored to `display-v2` (26–61) and a perfect path still shows 100. Stored raw scores did not change, and neither did the board order. A play shown before the change shows a few points higher after it.
 - Three-step events show the raw score unchanged.

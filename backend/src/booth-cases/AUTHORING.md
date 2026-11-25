@@ -155,11 +155,20 @@ The bank sits beside its case at `<EVENT_CODE>/replies/<case_id>.json`, or `stag
 
 A bank key names a bank as the server does: `step1`, then `step2.B` through `step5.W`. A Reply is `{ "strength", "weigh", "safety" }`, the three fields the kiosk shows. Every question variant of a bank shares its option's three alternatives, so a reply comments on the chosen option's own words and never on the question's wording.
 
+The kiosk draws a reply in format B (2026-11-25):
+
+- `strength` is the lead sentence, with no heading: why the chosen answer fits, or what it gets right.
+- `weigh` sits under "คิดต่อ / Next thought". It is a short question about the visitor's own answer: what would sharpen, test or extend it. It never names another option of the bank and never points at a later step. English ends with "?"; Thai is a natural spoken question without one.
+- An option with nothing real to add, a best-tier option only, leaves `weigh` as `""` in all three alternatives of both languages.
+- `safety` keeps its own heading.
+
+A live reply to a typed answer still follows rimpl's booth rules, so its `weigh` is a statement under the same heading.
+
 The checker (`backend/src/booth-cases/reply-bank.js`) reports each of these as a problem:
 
 - A bank key or option of the case that has no entry, or an entry the case does not have.
 - An entry without exactly three distinct alternatives in each language.
-- An empty `strength` or `weigh`. Only `safety` may be `""`.
+- An empty `strength`, or a `weigh` left empty in some alternatives of an option and not all of them, in both languages. `safety` may be `""`.
 - A field the server would change before showing it: over 115 characters, extra spacing, more than two `**bold**` runs, or a bold run that quotes anything but the chosen option's own label and line (the server would also keep a run from the vignette or the question, but the bank holds itself to the option).
 - A Thai field with no Thai script, or an English field with some.
 - A field that names another option of the bank, by its whole label or by a word from its label that the case does not already show: a Latin word of five letters or more, or an acronym of two to four capitals (CPAP, NIV, ICU) as written.

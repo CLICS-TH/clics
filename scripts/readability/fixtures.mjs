@@ -76,10 +76,10 @@ const ICC_DATA = {
   },
 };
 
-// The booth leaderboard. `score` is the display score of `raw` on the 5-step booth's 26-65 display scale, as
+// The booth leaderboard. `score` is the display score of `raw` on the 5-step booth's 26-61 display scale, as
 // backend/src/booth-cases/display-score.js computes it; scored_at counts back from 16:00 Bangkok on the event day.
 const boothPlay = (rank, tag, raw, caseId, minutesAgo) => ({
-  rank, tag, raw, score: +Math.max(0, Math.min(100, ((raw - 26) / 39) * 100)).toFixed(1),
+  rank, tag, raw, score: +Math.max(0, Math.min(100, ((raw - 26) / 35) * 100)).toFixed(1),
   case_id: caseId, case_version: caseId === 'bc-01' ? 'v3' : caseId ? 'v1' : null,
   scored_at: new Date(Date.UTC(2026, 10, 2, 9, 0) - minutesAgo * 60_000).toISOString(),
 });

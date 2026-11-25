@@ -6,34 +6,34 @@
         "th": [
           {
             "strength": "เชื่อม**รูม่านตาเล็ก** น้ำลายไหล และกล้ามเนื้อกระตุกเข้ากับการพ่นยา ได้เรื่องที่กระชับ",
-            "weigh": "หากยังไม่เห็นขวดยา กลุ่มของสารพิษยังเป็นเพียงข้อสันนิษฐาน",
+            "weigh": "อะไรในประวัติจะยืนยันว่าเป็นสารกลุ่มนี้ ไม่ใช่กลุ่มอื่น",
             "safety": ""
           },
           {
             "strength": "มองเสมหะ ชีพจรช้า และกล้ามเนื้อกระตุก เป็นภาพพิษเดียวกันทั้งหมด",
-            "weigh": "การสัมผัสทางผิวหนังโดยไม่ได้กินก็รุนแรงได้ ดังที่ SpO2 91% ของเขาแสดง",
+            "weigh": "ถ้าสัมผัสแค่ทางผิวหนัง ทำไมยังรุนแรงได้ถึงขั้นนี้",
             "safety": ""
           },
           {
             "strength": "ได้การวินิจฉัยที่ชัดจากประวัติและอาการแสดงร่วมกัน",
-            "weigh": "อาการซึมและ SpO2 91% บอกว่านี่คือพิษรุนแรง ไม่ใช่แค่การสัมผัสเล็กน้อย",
+            "weigh": "อาการซึมกับ SpO2 91% บอกว่ารุนแรงระดับไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You tie **pinpoint pupils**, drooling and twitching to the spraying, a tight exposure story.",
-            "weigh": "Without the bottle, the exact class of pesticide is still an assumption.",
+            "weigh": "What in his history would confirm this class and not another?",
             "safety": ""
           },
           {
             "strength": "Reading secretions, a slow pulse and muscle twitching as one toxic picture keeps the reasoning unified.",
-            "weigh": "Exposure through the skin, not by mouth, can still be severe, as his SpO2 of 91% shows.",
+            "weigh": "If he only got it on his skin, how can it be this severe?",
             "safety": ""
           },
           {
             "strength": "History and signs together give you a clear working diagnosis.",
-            "weigh": "Drowsiness and SpO2 91% mark this as severe, beyond a minor exposure.",
+            "weigh": "What do his drowsiness and SpO2 of 91% say about how severe this is?",
             "safety": ""
           }
         ]
@@ -42,34 +42,34 @@
         "th": [
           {
             "strength": "ผูกอาการทั้งหมดเข้ากับยาฆ่าแมลงที่**เพิ่งพ่นวันนี้** ได้ข้อสรุปที่ตรงกับประวัติ",
-            "weigh": "ชนิดของยาฆ่าแมลงยังต้องยืนยันจากขวดยาหรือฉลาก",
+            "weigh": "จะถามอะไรเพิ่ม เพื่อให้รู้ว่าเขาพ่นยาตัวไหน",
             "safety": ""
           },
           {
             "strength": "ใช้ประวัติพ่นยาเป็นจุดตั้งต้น ทำให้ชีพจรช้า น้ำลายไหล และกล้ามเนื้อกระตุกเข้ากันได้",
-            "weigh": "SpO2 91% และอาการซึม บอกว่าภาวะนี้เริ่มกระทบการหายใจแล้ว",
+            "weigh": "SpO2 91% กับอาการซึม บอกอะไรเรื่องการหายใจของเขา",
             "safety": ""
           },
           {
             "strength": "มองภาพรวมจากงานในนา ได้คำตอบที่อธิบายอาการได้หลายระบบพร้อมกัน",
-            "weigh": "การถามว่าพ่นยาอะไร นานเท่าใด ช่วยให้คาดความรุนแรงได้ดีขึ้น",
+            "weigh": "รู้ว่าพ่นยาอะไร นานแค่ไหน จะช่วยคาดความรุนแรงได้อย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Tying every sign to the insecticide he **sprayed today** gives an answer that matches the history.",
-            "weigh": "Which insecticide it was still needs the bottle or its label.",
+            "weigh": "What would you ask to learn exactly which product he sprayed?",
             "safety": ""
           },
           {
             "strength": "Starting from the spraying history makes the slow pulse, drooling and twitching fit together.",
-            "weigh": "SpO2 91% and drowsiness show the crisis already reaches his breathing.",
+            "weigh": "What do SpO2 91% and his drowsiness tell you about his breathing?",
             "safety": ""
           },
           {
             "strength": "Reading the whole picture from the farm work explains signs in several systems at once.",
-            "weigh": "Asking what he sprayed and for how long helps judge how severe this may get.",
+            "weigh": "How would knowing what he sprayed, and for how long, help you judge severity?",
             "safety": ""
           }
         ]
@@ -78,34 +78,34 @@
         "th": [
           {
             "strength": "นึกถึง**สารคาร์บาเมต**ที่ให้อาการแบบเดียวกัน ทำให้คำถามเรื่องกลุ่มสารยังเปิดอยู่",
-            "weigh": "คาร์บาเมตมักหมดฤทธิ์เร็วกว่า แต่อาการช่วงแรกข้างเตียงแยกกันไม่ได้",
+            "weigh": "ข้างเตียงตอนนี้ จะแยกคาร์บาเมตออกจากสารอีกกลุ่มได้จริงไหม",
             "safety": ""
           },
           {
             "strength": "รู้ว่ายาฆ่าแมลงมากกว่าหนึ่งกลุ่มทำให้เกิดภาพนี้ได้",
-            "weigh": "หากไม่เห็นขวด กลุ่มสารยังเป็นการคาดเดา และความรุนแรงคือสิ่งที่กำหนดชั่วโมงแรก",
+            "weigh": "ถ้ายังไม่รู้กลุ่มสาร อะไรควรเป็นตัวกำหนดการดูแลในชั่วโมงแรก",
             "safety": ""
           },
           {
             "strength": "คิดถึงยาฆ่าแมลงอีกกลุ่ม แสดงว่าไม่ยึดติดกับชื่อเดียว",
-            "weigh": "กล้ามเนื้อกระตุกและ SpO2 91% บอกว่ารุนแรง ไม่ว่าจะเป็นสารกลุ่มใด",
+            "weigh": "กล้ามเนื้อกระตุกกับ SpO2 91% บอกความรุนแรงอย่างไร ไม่ว่าจะเป็นสารกลุ่มใด",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Remembering **carbamate** as a cause of the same signs keeps the class question open.",
-            "weigh": "Carbamates usually wear off sooner, yet the early bedside picture cannot tell the two apart.",
+            "weigh": "At the bedside right now, could you really tell carbamate from the other class?",
             "safety": ""
           },
           {
             "strength": "You recognise that more than one insecticide class can produce this picture.",
-            "weigh": "Without the bottle the class is a guess, and his severity is what drives the first hour.",
+            "weigh": "If the class is still unknown, what should drive the first hour of care?",
             "safety": ""
           },
           {
             "strength": "Keeping a second insecticide class in mind shows you are not anchoring on one label.",
-            "weigh": "Twitching muscles and SpO2 91% make this severe whichever class is involved.",
+            "weigh": "Whatever the class, what do the twitching and SpO2 of 91% say about severity?",
             "safety": ""
           }
         ]
@@ -114,34 +114,34 @@
         "th": [
           {
             "strength": "ให้ความสำคัญกับ**อาเจียนและถ่ายเหลว** ว่าเป็นการเสียน้ำที่เกิดเร็วจริง",
-            "weigh": "รูม่านตาเล็ก ชีพจร 52 และกล้ามเนื้อกระตุก อธิบายด้วยการติดเชื้อในลำไส้ไม่ได้",
+            "weigh": "การติดเชื้อในลำไส้อธิบายรูม่านตาเล็ก ชีพจร 52 และกล้ามเนื้อกระตุกได้ไหม",
             "safety": ""
           },
           {
             "strength": "จับอาการทางเดินอาหารที่เกิดฉับพลัน ซึ่งเป็นอาการที่เขารู้สึกอยู่ตอนนี้",
-            "weigh": "อาการเกิด 2 ชั่วโมงหลังพ่นยาโดยไม่สวมถุงมือ เวลาแบบนี้ชี้ไปไกลกว่าลำไส้",
+            "weigh": "อาการเริ่ม 2 ชั่วโมงหลังพ่นยาโดยไม่สวมถุงมือ เวลาแบบนี้ชี้ไปทางไหน",
             "safety": ""
           },
           {
             "strength": "สังเกตว่าอาการเริ่มเร็ว ซึ่งเป็นเบาะแสที่มีค่าในตัวเอง",
-            "weigh": "น้ำลายไหล เสียงวี้ด และรูม่านตาเล็ก อยู่นอกการวินิจฉัยนี้และต้องมีคำอธิบาย",
+            "weigh": "น้ำลายไหล เสียงวี้ด และรูม่านตาเล็ก จะอธิบายด้วยอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You take the vomiting and **diarrhoea** seriously as a fast, real fluid loss.",
-            "weigh": "Pinpoint pupils, a pulse of 52 and twitching muscles are not explained by a gut infection.",
+            "weigh": "Would a gut infection explain pinpoint pupils, a pulse of 52 and twitching muscles?",
             "safety": ""
           },
           {
             "strength": "Focusing on the sudden gut symptoms reflects the symptoms he feels right now.",
-            "weigh": "Coming 2 hours after spraying without gloves or a mask, the timing points beyond the gut.",
+            "weigh": "Starting 2 hours after spraying without gloves, where does that timing point?",
             "safety": ""
           },
           {
             "strength": "Noting how fast the symptoms began is a useful clue in itself.",
-            "weigh": "Drooling, wheeze and pinpoint pupils sit outside this diagnosis and need their own explanation.",
+            "weigh": "What explains the drooling, wheeze and pinpoint pupils?",
             "safety": ""
           }
         ]
@@ -150,34 +150,34 @@
         "th": [
           {
             "strength": "เชื่อม**เหงื่อออกมาก**กับการทำงานกลางแจ้ง สะท้อนชีวิตจริงของเกษตรกร",
-            "weigh": "ภาวะจากความร้อนมักทำให้ชีพจรเร็ว ต่างจากชีพจร 52 ของเขา และไม่ทำให้รูม่านตาเล็ก",
+            "weigh": "ความร้อนทำให้ชีพจรช้าถึง 52 และรูม่านตาเล็กได้ไหม",
             "safety": ""
           },
           {
             "strength": "คำนึงถึงสภาพแวดล้อมกลางทุ่งที่ร้อน ว่าเป็นสาเหตุได้ในตัวเอง",
-            "weigh": "น้ำลายไหล เสียงวี้ด และกล้ามเนื้อกระตุก ไม่ใช่ส่วนหนึ่งของภาพจากความร้อน",
+            "weigh": "น้ำลายไหล เสียงวี้ด และกล้ามเนื้อกระตุก เข้ากับภาวะจากความร้อนตรงไหน",
             "safety": ""
           },
           {
             "strength": "คิดถึงสภาพการทำงาน แสดงว่าใส่ใจประวัติอาชีพ",
-            "weigh": "เหงื่อออกที่มาพร้อมรูม่านตาเล็กและชีพจรช้า เป็นภาพที่ความร้อนไม่ทำให้เกิด",
+            "weigh": "เหงื่อออกที่มาพร้อมรูม่านตาเล็กและชีพจรช้า ชี้ไปที่อะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Linking **heavy sweating** to a day of outdoor work reflects real farm life.",
-            "weigh": "Heat illness usually brings a fast pulse, unlike his pulse of 52, and does not shrink the pupils.",
+            "weigh": "Would heat give a pulse as slow as 52 and pinpoint pupils?",
             "safety": ""
           },
           {
             "strength": "You consider the setting, a hot field, as a cause on its own.",
-            "weigh": "Drooling, wheeze and twitching muscles are not part of a heat picture.",
+            "weigh": "Where do drooling, wheeze and twitching fit in a heat illness?",
             "safety": ""
           },
           {
             "strength": "Thinking of the working environment shows attention to the occupational history.",
-            "weigh": "Sweating here comes with pinpoint pupils and a slow pulse, a combination heat does not produce.",
+            "weigh": "Sweating with pinpoint pupils and a slow pulse: what does that point to?",
             "safety": ""
           }
         ]
@@ -188,34 +188,34 @@
         "th": [
           {
             "strength": "**ECG และ SpO2** ข้างเตียง ติดตามสองค่าที่น่าจะเปลี่ยนเมื่อเริ่มรักษา",
-            "weigh": "ECG ยังช่วยดู QT และจังหวะการเต้น ซึ่งควรเฝ้าระหว่างรักษาพิษนี้",
+            "weigh": "นอกจากอัตราชีพจร จะดูอะไรอีกบน ECG ระหว่างรักษาพิษนี้",
             "safety": ""
           },
           {
             "strength": "เลือกการติดตามที่ได้ผลทันทีข้างเตียง",
-            "weigh": "ค่าเหล่านี้บอกสภาพ แต่ไม่บอกสาเหตุหรือการเสียน้ำเบื้องหลัง",
+            "weigh": "ค่าเหล่านี้บอกสภาพตอนนี้ แล้วอะไรจะบอกการเสียน้ำเบื้องหลัง",
             "safety": ""
           },
           {
             "strength": "การวัดต่อเนื่องทำให้เห็นชีพจรและออกซิเจนเปลี่ยนไปตามการรักษา",
-            "weigh": "ค่า SpO2 อาจเปลี่ยนช้ากว่าเสมหะที่สะสม การฟังปอดจึงยังสำคัญ",
+            "weigh": "SpO2 อาจเปลี่ยนช้ากว่าเสมหะที่สะสม จะฟังปอดบ่อยแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside ECG** and SpO2 track the two numbers most likely to change as treatment starts.",
-            "weigh": "The ECG also shows the QT and rhythm, which are worth watching through this poisoning.",
+            "weigh": "Beyond the rate, what else would you watch on the ECG through this poisoning?",
             "safety": ""
           },
           {
             "strength": "You choose monitoring that gives results at once, at the bedside.",
-            "weigh": "These show his state but not the cause or the fluid loss behind it.",
+            "weigh": "These show his state now; what would show the fluid loss behind it?",
             "safety": ""
           },
           {
             "strength": "Continuous readings let you see the pulse and oxygen respond as he is treated.",
-            "weigh": "SpO2 can lag behind building secretions, so his lung sounds stay central.",
+            "weigh": "SpO2 can lag behind building secretions; how often will you listen to his lungs?",
             "safety": ""
           }
         ]
@@ -224,34 +224,34 @@
         "th": [
           {
             "strength": "**ก๊าซในเลือด**บอกระดับการหายใจล้มเหลว ส่วนเกลือแร่ติดตามการเสียน้ำ",
-            "weigh": "ผลใช้เวลา จึงช่วยกำหนดชั่วโมงถัดไปมากกว่านาทีแรก",
+            "weigh": "ผลต้องรอ ระหว่างนี้อะไรจะนำการรักษาในนาทีแรก ๆ",
             "safety": ""
           },
           {
             "strength": "ครอบคลุมสองภัยหลัก คือการหายใจและการเสียน้ำจากอาเจียนและถ่ายเหลว",
-            "weigh": "ครีเอตินีนสะท้อนผลของการเสียน้ำต่อไต ซึ่งอาจตามหลังอาการทางคลินิก",
+            "weigh": "ครีเอตินีนอาจตามหลังอาการ อะไรจะบอกผลของการเสียน้ำต่อไตได้เร็วกว่า",
             "safety": ""
           },
           {
             "strength": "ประเมิน**การหายใจล้มเหลว**เป็นตัวเลข ช่วยบอกความรุนแรงได้ชัด",
-            "weigh": "SpO2 91% บอกภาพอยู่แล้ว คุณค่าของก๊าซในเลือดอยู่ที่ค่า CO2 และความเป็นกรด",
+            "weigh": "SpO2 บอกออกซิเจนแล้ว ก๊าซในเลือดจะเพิ่มอะไรที่ SpO2 บอกไม่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **blood gas** puts a number on breathing failure while electrolytes track the fluid loss.",
-            "weigh": "Results take time, so they guide the next hour rather than the first minutes.",
+            "weigh": "Results take time; what guides you in the minutes before they come?",
             "safety": ""
           },
           {
             "strength": "You cover both main threats, his breathing and the losses from vomiting and diarrhoea.",
-            "weigh": "Creatinine shows the kidneys’ response to fluid loss, which may lag behind his clinical state.",
+            "weigh": "Creatinine may lag; what shows the fluid loss reaching his kidneys sooner?",
             "safety": ""
           },
           {
             "strength": "Gauging **breathing failure** objectively makes his severity clear.",
-            "weigh": "SpO2 91% already shows the picture; the gas adds most through the CO2 and acid balance.",
+            "weigh": "SpO2 already shows oxygen; what does the gas add that SpO2 cannot?",
             "safety": ""
           }
         ]
@@ -260,34 +260,34 @@
         "th": [
           {
             "strength": "ระดับ**โคลีนเอสเทอเรส**ที่ต่ำ ให้หลักฐานทางห้องปฏิบัติการว่าได้รับสารพิษ",
-            "weigh": "หลายแห่งต้องส่งตรวจนอก ผลจึงมักมาไม่ทันเปลี่ยนการรักษาช่วงแรก",
+            "weigh": "ถ้าต้องส่งตรวจนอก ผลจะมาทันเปลี่ยนการรักษาช่วงแรกไหม",
             "safety": ""
           },
           {
             "strength": "ต้องการหลักฐานที่เป็นรูปธรรม มีประโยชน์ต่อบันทึกและการดูแลต่อ",
-            "weigh": "ระดับเอนไซม์สัมพันธ์กับความรุนแรงไม่ดี อาการข้างเตียงจึงยังเป็นตัวนำการรักษา",
+            "weigh": "ระดับเอนไซม์บอกความรุนแรงได้ดีแค่ไหน เทียบกับอาการที่เห็นตรงหน้า",
             "safety": ""
           },
           {
             "strength": "ยืนยันการสัมผัสด้วยการวัดเอนไซม์ ทำให้การวินิจฉัยหนักแน่นขึ้น",
-            "weigh": "ระดับในพลาสมาเป็นคนละเอนไซม์กับที่ปลายประสาท จึงยืนยันได้แต่บอกความรุนแรงไม่ได้",
+            "weigh": "เอนไซม์ในพลาสมาเป็นตัวเดียวกับที่ทำงานที่ปลายประสาทไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A low **cholinesterase level** gives laboratory support to the exposure.",
-            "weigh": "Many hospitals send this away, so results rarely arrive in time to change the first steps.",
+            "weigh": "If it is sent away, will the result come in time to change the first steps?",
             "safety": ""
           },
           {
             "strength": "You seek objective confirmation, useful for the record and for later care.",
-            "weigh": "Levels match severity poorly, so his clinical signs still guide treatment.",
+            "weigh": "How well does the level grade severity, next to the signs in front of you?",
             "safety": ""
           },
           {
             "strength": "Confirming exposure by enzyme activity strengthens the working diagnosis.",
-            "weigh": "The plasma enzyme differs from the one at the nerve endings, so it confirms but does not grade.",
+            "weigh": "Is the plasma enzyme the same one that acts at his nerve endings?",
             "safety": ""
           }
         ]
@@ -296,34 +296,34 @@
         "th": [
           {
             "strength": "**เพาะเชื้ออุจจาระ** ทำให้สาเหตุอื่นของถ่ายเหลวยังอยู่ในสายตา",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน และรูม่านตาเล็กกับชีพจร 52 ชี้ไปไกลกว่าลำไส้",
+            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จะเปลี่ยนการดูแลวันนี้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ความสำคัญกับถ่ายเหลว ว่าเป็นอาการที่ต้องมีคำอธิบาย",
-            "weigh": "ถ่ายเหลวที่มาพร้อมน้ำลายไหลและเหงื่อออก อธิบายด้วยการติดเชื้อไม่ได้",
+            "weigh": "ถ่ายเหลวที่มากับน้ำลายไหลและเหงื่อออก การติดเชื้ออธิบายได้ไหม",
             "safety": ""
           },
           {
             "strength": "หาการติดเชื้อ สะท้อนนิสัยที่ไม่ปล่อยอาการใดไว้โดยไม่มีคำอธิบาย",
-            "weigh": "ผลนี้ไม่เปลี่ยนการดูแลในชั่วโมงแรก ขณะที่การหายใจยังเสี่ยงอยู่",
+            "weigh": "ขณะที่การหายใจยังเสี่ยง ผลตรวจไหนจะเปลี่ยนชั่วโมงแรกได้จริง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **stool exam** keeps another cause of the diarrhoea in view.",
-            "weigh": "Culture results take days, and pinpoint pupils with a pulse of 52 point beyond the gut.",
+            "weigh": "Culture takes days; how would it change his care today?",
             "safety": ""
           },
           {
             "strength": "You take the diarrhoea seriously as a symptom needing its own explanation.",
-            "weigh": "Diarrhoea here sits alongside drooling and sweating, which an infection would not explain.",
+            "weigh": "With drooling and sweating alongside the diarrhoea, can an infection explain it?",
             "safety": ""
           },
           {
             "strength": "Looking for infection reflects a habit of not leaving a symptom unexplained.",
-            "weigh": "This result would not change care in the first hours while his breathing is at risk.",
+            "weigh": "With his breathing at risk, which result would really change the first hour?",
             "safety": ""
           }
         ]
@@ -332,34 +332,34 @@
         "th": [
           {
             "strength": "ส่ง**เอกซเรย์ปอด** หาการสำลัก ซึ่งพบบ่อยในผู้ป่วยซึมที่อาเจียนจากพิษนี้",
-            "weigh": "ภาพนี้แทบไม่เปลี่ยนการดูแลในชั่วโมงแรก ซึ่งยังอิงเสียงปอดที่ฟังข้างเตียง",
+            "weigh": "ภาพจะเปลี่ยนการดูแลชั่วโมงแรกไหม ในเมื่อเสียงปอดนำการรักษาอยู่แล้ว",
             "safety": ""
           },
           {
             "strength": "นึกถึง**การสำลักลงปอด** ซึ่งการอาเจียนกับอาการซึมในพิษนี้ทำให้เกิดได้ง่าย",
-            "weigh": "ถ่ายด้วยเครื่องเคลื่อนที่เมื่อเขาทรงตัว เลี่ยงการย้ายผู้ป่วยที่การหายใจยังเปราะบาง",
+            "weigh": "จะถ่ายเมื่อไรและที่ไหน เพื่อไม่ต้องย้ายคนที่การหายใจยังเปราะบาง",
             "safety": ""
           },
           {
             "strength": "ภาพปอดช่วยเห็นการสำลักเป็นหย่อม ซึ่งการฟังปอดอย่างเดียวแยกจากเสมหะได้ยาก",
-            "weigh": "การรักษาตอนนี้อิงเสียงปอด ชีพจร และความดัน ไม่ต้องรอผลภาพ",
+            "weigh": "ถ้าภาพเห็นหย่อมสำลัก การรักษาตอนนี้จะเปลี่ยนไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **chest X-ray** looks for aspiration, common in a drowsy man who has vomited in this poisoning.",
-            "weigh": "The film rarely changes care in the first hour, which still rests on his chest sounds.",
+            "weigh": "Would the film change the first hour of care, when his lung sounds already guide it?",
             "safety": ""
           },
           {
             "strength": "You think of **aspiration**, which vomiting and drowsiness make likely in this poisoning.",
-            "weigh": "A portable film once he is stable avoids moving a man whose breathing is fragile.",
+            "weigh": "When and where would you take it, so a man with fragile breathing is not moved?",
             "safety": ""
           },
           {
             "strength": "A film can show a patch of aspiration that listening alone struggles to tell from secretions.",
-            "weigh": "His treatment now rests on his chest sounds, pulse and pressure, not on the film.",
+            "weigh": "If the film shows a patch of aspiration, how would that change his treatment now?",
             "safety": ""
           }
         ]
@@ -370,34 +370,34 @@
         "th": [
           {
             "strength": "**ECG และ SpO2** ข้างเตียง ติดตามสองค่าที่น่าจะเปลี่ยนเมื่อเริ่มรักษา",
-            "weigh": "ECG ยังช่วยดู QT และจังหวะการเต้น ซึ่งควรเฝ้าระหว่างรักษาพิษนี้",
+            "weigh": "นอกจากอัตราชีพจร จะดูอะไรอีกบน ECG ระหว่างรักษาพิษนี้",
             "safety": ""
           },
           {
             "strength": "เลือกการติดตามที่ได้ผลทันทีข้างเตียง",
-            "weigh": "ค่าเหล่านี้บอกสภาพ แต่ไม่บอกสาเหตุหรือการเสียน้ำเบื้องหลัง",
+            "weigh": "ค่าเหล่านี้บอกสภาพตอนนี้ แล้วอะไรจะบอกการเสียน้ำเบื้องหลัง",
             "safety": ""
           },
           {
             "strength": "การวัดต่อเนื่องทำให้เห็นชีพจรและออกซิเจนเปลี่ยนไปตามการรักษา",
-            "weigh": "ค่า SpO2 อาจเปลี่ยนช้ากว่าเสมหะที่สะสม การฟังปอดจึงยังสำคัญ",
+            "weigh": "SpO2 อาจเปลี่ยนช้ากว่าเสมหะที่สะสม จะฟังปอดบ่อยแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside ECG** and SpO2 track the two numbers most likely to change as treatment starts.",
-            "weigh": "The ECG also shows the QT and rhythm, which are worth watching through this poisoning.",
+            "weigh": "Beyond the rate, what else would you watch on the ECG through this poisoning?",
             "safety": ""
           },
           {
             "strength": "You choose monitoring that gives results at once, at the bedside.",
-            "weigh": "These show his state but not the cause or the fluid loss behind it.",
+            "weigh": "These show his state now; what would show the fluid loss behind it?",
             "safety": ""
           },
           {
             "strength": "Continuous readings let you see the pulse and oxygen respond as he is treated.",
-            "weigh": "SpO2 can lag behind building secretions, so his lung sounds stay central.",
+            "weigh": "SpO2 can lag behind building secretions; how often will you listen to his lungs?",
             "safety": ""
           }
         ]
@@ -406,34 +406,34 @@
         "th": [
           {
             "strength": "**ก๊าซในเลือด**บอกระดับการหายใจล้มเหลว ส่วนเกลือแร่ติดตามการเสียน้ำ",
-            "weigh": "ผลใช้เวลา จึงช่วยกำหนดชั่วโมงถัดไปมากกว่านาทีแรก",
+            "weigh": "ผลต้องรอ ระหว่างนี้อะไรจะนำการรักษาในนาทีแรก ๆ",
             "safety": ""
           },
           {
             "strength": "ครอบคลุมสองภัยหลัก คือการหายใจและการเสียน้ำจากอาเจียนและถ่ายเหลว",
-            "weigh": "ครีเอตินีนสะท้อนผลของการเสียน้ำต่อไต ซึ่งอาจตามหลังอาการทางคลินิก",
+            "weigh": "ครีเอตินีนอาจตามหลังอาการ อะไรจะบอกผลของการเสียน้ำต่อไตได้เร็วกว่า",
             "safety": ""
           },
           {
             "strength": "ประเมิน**การหายใจล้มเหลว**เป็นตัวเลข ช่วยบอกความรุนแรงได้ชัด",
-            "weigh": "SpO2 91% บอกภาพอยู่แล้ว คุณค่าของก๊าซในเลือดอยู่ที่ค่า CO2 และความเป็นกรด",
+            "weigh": "SpO2 บอกออกซิเจนแล้ว ก๊าซในเลือดจะเพิ่มอะไรที่ SpO2 บอกไม่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **blood gas** puts a number on breathing failure while electrolytes track the fluid loss.",
-            "weigh": "Results take time, so they guide the next hour rather than the first minutes.",
+            "weigh": "Results take time; what guides you in the minutes before they come?",
             "safety": ""
           },
           {
             "strength": "You cover both main threats, his breathing and the losses from vomiting and diarrhoea.",
-            "weigh": "Creatinine shows the kidneys’ response to fluid loss, which may lag behind his clinical state.",
+            "weigh": "Creatinine may lag; what shows the fluid loss reaching his kidneys sooner?",
             "safety": ""
           },
           {
             "strength": "Gauging **breathing failure** objectively makes his severity clear.",
-            "weigh": "SpO2 91% already shows the picture; the gas adds most through the CO2 and acid balance.",
+            "weigh": "SpO2 already shows oxygen; what does the gas add that SpO2 cannot?",
             "safety": ""
           }
         ]
@@ -442,34 +442,34 @@
         "th": [
           {
             "strength": "ระดับ**โคลีนเอสเทอเรส**ที่ต่ำ ให้หลักฐานทางห้องปฏิบัติการว่าได้รับสารพิษ",
-            "weigh": "หลายแห่งต้องส่งตรวจนอก ผลจึงมักมาไม่ทันเปลี่ยนการรักษาช่วงแรก",
+            "weigh": "ถ้าต้องส่งตรวจนอก ผลจะมาทันเปลี่ยนการรักษาช่วงแรกไหม",
             "safety": ""
           },
           {
             "strength": "ต้องการหลักฐานที่เป็นรูปธรรม มีประโยชน์ต่อบันทึกและการดูแลต่อ",
-            "weigh": "ระดับเอนไซม์สัมพันธ์กับความรุนแรงไม่ดี อาการข้างเตียงจึงยังเป็นตัวนำการรักษา",
+            "weigh": "ระดับเอนไซม์บอกความรุนแรงได้ดีแค่ไหน เทียบกับอาการที่เห็นตรงหน้า",
             "safety": ""
           },
           {
             "strength": "ยืนยันการสัมผัสด้วยการวัดเอนไซม์ ทำให้การวินิจฉัยหนักแน่นขึ้น",
-            "weigh": "ระดับในพลาสมาเป็นคนละเอนไซม์กับที่ปลายประสาท จึงยืนยันได้แต่บอกความรุนแรงไม่ได้",
+            "weigh": "เอนไซม์ในพลาสมาเป็นตัวเดียวกับที่ทำงานที่ปลายประสาทไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A low **cholinesterase level** gives laboratory support to the exposure.",
-            "weigh": "Many hospitals send this away, so results rarely arrive in time to change the first steps.",
+            "weigh": "If it is sent away, will the result come in time to change the first steps?",
             "safety": ""
           },
           {
             "strength": "You seek objective confirmation, useful for the record and for later care.",
-            "weigh": "Levels match severity poorly, so his clinical signs still guide treatment.",
+            "weigh": "How well does the level grade severity, next to the signs in front of you?",
             "safety": ""
           },
           {
             "strength": "Confirming exposure by enzyme activity strengthens the working diagnosis.",
-            "weigh": "The plasma enzyme differs from the one at the nerve endings, so it confirms but does not grade.",
+            "weigh": "Is the plasma enzyme the same one that acts at his nerve endings?",
             "safety": ""
           }
         ]
@@ -478,34 +478,34 @@
         "th": [
           {
             "strength": "**เพาะเชื้ออุจจาระ** ทำให้สาเหตุอื่นของถ่ายเหลวยังอยู่ในสายตา",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน และรูม่านตาเล็กกับชีพจร 52 ชี้ไปไกลกว่าลำไส้",
+            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จะเปลี่ยนการดูแลวันนี้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ความสำคัญกับถ่ายเหลว ว่าเป็นอาการที่ต้องมีคำอธิบาย",
-            "weigh": "ถ่ายเหลวที่มาพร้อมน้ำลายไหลและเหงื่อออก อธิบายด้วยการติดเชื้อไม่ได้",
+            "weigh": "ถ่ายเหลวที่มากับน้ำลายไหลและเหงื่อออก การติดเชื้ออธิบายได้ไหม",
             "safety": ""
           },
           {
             "strength": "หาการติดเชื้อ สะท้อนนิสัยที่ไม่ปล่อยอาการใดไว้โดยไม่มีคำอธิบาย",
-            "weigh": "ผลนี้ไม่เปลี่ยนการดูแลในชั่วโมงแรก ขณะที่การหายใจยังเสี่ยงอยู่",
+            "weigh": "ขณะที่การหายใจยังเสี่ยง ผลตรวจไหนจะเปลี่ยนชั่วโมงแรกได้จริง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **stool exam** keeps another cause of the diarrhoea in view.",
-            "weigh": "Culture results take days, and pinpoint pupils with a pulse of 52 point beyond the gut.",
+            "weigh": "Culture takes days; how would it change his care today?",
             "safety": ""
           },
           {
             "strength": "You take the diarrhoea seriously as a symptom needing its own explanation.",
-            "weigh": "Diarrhoea here sits alongside drooling and sweating, which an infection would not explain.",
+            "weigh": "With drooling and sweating alongside the diarrhoea, can an infection explain it?",
             "safety": ""
           },
           {
             "strength": "Looking for infection reflects a habit of not leaving a symptom unexplained.",
-            "weigh": "This result would not change care in the first hours while his breathing is at risk.",
+            "weigh": "With his breathing at risk, which result would really change the first hour?",
             "safety": ""
           }
         ]
@@ -514,34 +514,34 @@
         "th": [
           {
             "strength": "ส่ง**เอกซเรย์ปอด** หาการสำลัก ซึ่งพบบ่อยในผู้ป่วยซึมที่อาเจียนจากพิษนี้",
-            "weigh": "ภาพนี้แทบไม่เปลี่ยนการดูแลในชั่วโมงแรก ซึ่งยังอิงเสียงปอดที่ฟังข้างเตียง",
+            "weigh": "ภาพจะเปลี่ยนการดูแลชั่วโมงแรกไหม ในเมื่อเสียงปอดนำการรักษาอยู่แล้ว",
             "safety": ""
           },
           {
             "strength": "นึกถึง**การสำลักลงปอด** ซึ่งการอาเจียนกับอาการซึมในพิษนี้ทำให้เกิดได้ง่าย",
-            "weigh": "ถ่ายด้วยเครื่องเคลื่อนที่เมื่อเขาทรงตัว เลี่ยงการย้ายผู้ป่วยที่การหายใจยังเปราะบาง",
+            "weigh": "จะถ่ายเมื่อไรและที่ไหน เพื่อไม่ต้องย้ายคนที่การหายใจยังเปราะบาง",
             "safety": ""
           },
           {
             "strength": "ภาพปอดช่วยเห็นการสำลักเป็นหย่อม ซึ่งการฟังปอดอย่างเดียวแยกจากเสมหะได้ยาก",
-            "weigh": "การรักษาตอนนี้อิงเสียงปอด ชีพจร และความดัน ไม่ต้องรอผลภาพ",
+            "weigh": "ถ้าภาพเห็นหย่อมสำลัก การรักษาตอนนี้จะเปลี่ยนไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **chest X-ray** looks for aspiration, common in a drowsy man who has vomited in this poisoning.",
-            "weigh": "The film rarely changes care in the first hour, which still rests on his chest sounds.",
+            "weigh": "Would the film change the first hour of care, when his lung sounds already guide it?",
             "safety": ""
           },
           {
             "strength": "You think of **aspiration**, which vomiting and drowsiness make likely in this poisoning.",
-            "weigh": "A portable film once he is stable avoids moving a man whose breathing is fragile.",
+            "weigh": "When and where would you take it, so a man with fragile breathing is not moved?",
             "safety": ""
           },
           {
             "strength": "A film can show a patch of aspiration that listening alone struggles to tell from secretions.",
-            "weigh": "His treatment now rests on his chest sounds, pulse and pressure, not on the film.",
+            "weigh": "If the film shows a patch of aspiration, how would that change his treatment now?",
             "safety": ""
           }
         ]
@@ -552,34 +552,34 @@
         "th": [
           {
             "strength": "**ECG และ SpO2** ข้างเตียง ติดตามสองค่าที่น่าจะเปลี่ยนเมื่อเริ่มรักษา",
-            "weigh": "ECG ยังช่วยดู QT และจังหวะการเต้น ซึ่งควรเฝ้าระหว่างรักษาพิษนี้",
+            "weigh": "นอกจากอัตราชีพจร จะดูอะไรอีกบน ECG ระหว่างรักษาพิษนี้",
             "safety": ""
           },
           {
             "strength": "เลือกการติดตามที่ได้ผลทันทีข้างเตียง",
-            "weigh": "ค่าเหล่านี้บอกสภาพ แต่ไม่บอกสาเหตุหรือการเสียน้ำเบื้องหลัง",
+            "weigh": "ค่าเหล่านี้บอกสภาพตอนนี้ แล้วอะไรจะบอกการเสียน้ำเบื้องหลัง",
             "safety": ""
           },
           {
             "strength": "การวัดต่อเนื่องทำให้เห็นชีพจรและออกซิเจนเปลี่ยนไปตามการรักษา",
-            "weigh": "ค่า SpO2 อาจเปลี่ยนช้ากว่าเสมหะที่สะสม การฟังปอดจึงยังสำคัญ",
+            "weigh": "SpO2 อาจเปลี่ยนช้ากว่าเสมหะที่สะสม จะฟังปอดบ่อยแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside ECG** and SpO2 track the two numbers most likely to change as treatment starts.",
-            "weigh": "The ECG also shows the QT and rhythm, which are worth watching through this poisoning.",
+            "weigh": "Beyond the rate, what else would you watch on the ECG through this poisoning?",
             "safety": ""
           },
           {
             "strength": "You choose monitoring that gives results at once, at the bedside.",
-            "weigh": "These show his state but not the cause or the fluid loss behind it.",
+            "weigh": "These show his state now; what would show the fluid loss behind it?",
             "safety": ""
           },
           {
             "strength": "Continuous readings let you see the pulse and oxygen respond as he is treated.",
-            "weigh": "SpO2 can lag behind building secretions, so his lung sounds stay central.",
+            "weigh": "SpO2 can lag behind building secretions; how often will you listen to his lungs?",
             "safety": ""
           }
         ]
@@ -588,34 +588,34 @@
         "th": [
           {
             "strength": "**ก๊าซในเลือด**บอกระดับการหายใจล้มเหลว ส่วนเกลือแร่ติดตามการเสียน้ำ",
-            "weigh": "ผลใช้เวลา จึงช่วยกำหนดชั่วโมงถัดไปมากกว่านาทีแรก",
+            "weigh": "ผลต้องรอ ระหว่างนี้อะไรจะนำการรักษาในนาทีแรก ๆ",
             "safety": ""
           },
           {
             "strength": "ครอบคลุมสองภัยหลัก คือการหายใจและการเสียน้ำจากอาเจียนและถ่ายเหลว",
-            "weigh": "ครีเอตินีนสะท้อนผลของการเสียน้ำต่อไต ซึ่งอาจตามหลังอาการทางคลินิก",
+            "weigh": "ครีเอตินีนอาจตามหลังอาการ อะไรจะบอกผลของการเสียน้ำต่อไตได้เร็วกว่า",
             "safety": ""
           },
           {
             "strength": "ประเมิน**การหายใจล้มเหลว**เป็นตัวเลข ช่วยบอกความรุนแรงได้ชัด",
-            "weigh": "SpO2 91% บอกภาพอยู่แล้ว คุณค่าของก๊าซในเลือดอยู่ที่ค่า CO2 และความเป็นกรด",
+            "weigh": "SpO2 บอกออกซิเจนแล้ว ก๊าซในเลือดจะเพิ่มอะไรที่ SpO2 บอกไม่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **blood gas** puts a number on breathing failure while electrolytes track the fluid loss.",
-            "weigh": "Results take time, so they guide the next hour rather than the first minutes.",
+            "weigh": "Results take time; what guides you in the minutes before they come?",
             "safety": ""
           },
           {
             "strength": "You cover both main threats, his breathing and the losses from vomiting and diarrhoea.",
-            "weigh": "Creatinine shows the kidneys’ response to fluid loss, which may lag behind his clinical state.",
+            "weigh": "Creatinine may lag; what shows the fluid loss reaching his kidneys sooner?",
             "safety": ""
           },
           {
             "strength": "Gauging **breathing failure** objectively makes his severity clear.",
-            "weigh": "SpO2 91% already shows the picture; the gas adds most through the CO2 and acid balance.",
+            "weigh": "SpO2 already shows oxygen; what does the gas add that SpO2 cannot?",
             "safety": ""
           }
         ]
@@ -624,34 +624,34 @@
         "th": [
           {
             "strength": "ระดับ**โคลีนเอสเทอเรส**ที่ต่ำ ให้หลักฐานทางห้องปฏิบัติการว่าได้รับสารพิษ",
-            "weigh": "หลายแห่งต้องส่งตรวจนอก ผลจึงมักมาไม่ทันเปลี่ยนการรักษาช่วงแรก",
+            "weigh": "ถ้าต้องส่งตรวจนอก ผลจะมาทันเปลี่ยนการรักษาช่วงแรกไหม",
             "safety": ""
           },
           {
             "strength": "ต้องการหลักฐานที่เป็นรูปธรรม มีประโยชน์ต่อบันทึกและการดูแลต่อ",
-            "weigh": "ระดับเอนไซม์สัมพันธ์กับความรุนแรงไม่ดี อาการข้างเตียงจึงยังเป็นตัวนำการรักษา",
+            "weigh": "ระดับเอนไซม์บอกความรุนแรงได้ดีแค่ไหน เทียบกับอาการที่เห็นตรงหน้า",
             "safety": ""
           },
           {
             "strength": "ยืนยันการสัมผัสด้วยการวัดเอนไซม์ ทำให้การวินิจฉัยหนักแน่นขึ้น",
-            "weigh": "ระดับในพลาสมาเป็นคนละเอนไซม์กับที่ปลายประสาท จึงยืนยันได้แต่บอกความรุนแรงไม่ได้",
+            "weigh": "เอนไซม์ในพลาสมาเป็นตัวเดียวกับที่ทำงานที่ปลายประสาทไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A low **cholinesterase level** gives laboratory support to the exposure.",
-            "weigh": "Many hospitals send this away, so results rarely arrive in time to change the first steps.",
+            "weigh": "If it is sent away, will the result come in time to change the first steps?",
             "safety": ""
           },
           {
             "strength": "You seek objective confirmation, useful for the record and for later care.",
-            "weigh": "Levels match severity poorly, so his clinical signs still guide treatment.",
+            "weigh": "How well does the level grade severity, next to the signs in front of you?",
             "safety": ""
           },
           {
             "strength": "Confirming exposure by enzyme activity strengthens the working diagnosis.",
-            "weigh": "The plasma enzyme differs from the one at the nerve endings, so it confirms but does not grade.",
+            "weigh": "Is the plasma enzyme the same one that acts at his nerve endings?",
             "safety": ""
           }
         ]
@@ -660,34 +660,34 @@
         "th": [
           {
             "strength": "เจาะ**น้ำตาลปลายนิ้ว**ได้เร็ว และจับสาเหตุของซึมกับเหงื่อออกที่แก้ไขได้",
-            "weigh": "ค่าปกติตัดสาเหตุหนึ่งออก แต่ยังเหลือรูม่านตาเล็กและชีพจรช้าที่ต้องอธิบาย",
+            "weigh": "ถ้าน้ำตาลปกติ อะไรยังเหลือให้ต้องอธิบาย",
             "safety": ""
           },
           {
             "strength": "ตรวจค่าที่แก้ไขได้ซึ่งผู้ป่วยซึมทุกคนควรได้รับ",
-            "weigh": "เหงื่อออกและซึมที่นี่มาพร้อมน้ำลายไหลและกล้ามเนื้อกระตุก ซึ่งน้ำตาลอธิบายไม่ได้",
+            "weigh": "น้ำตาลอธิบายน้ำลายไหลและกล้ามเนื้อกระตุกได้ไหม",
             "safety": ""
           },
           {
             "strength": "ตัดน้ำตาลต่ำออกได้ในไม่ถึงนาที และปกป้องสมองหากมีภาวะนี้",
-            "weigh": "นี่ตอบคำถามรอง การหายใจและเสมหะยังเป็นภัยหลัก",
+            "weigh": "ตรวจเสร็จในนาทีเดียว แล้วภัยหลักที่ยังรออยู่คืออะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A fingerprick test is fast and catches **low sugar**, a treatable cause of drowsiness and sweating.",
-            "weigh": "A normal value removes one cause but leaves his pinpoint pupils and slow pulse to explain.",
+            "weigh": "If the sugar is normal, what is still left to explain?",
             "safety": ""
           },
           {
             "strength": "You test the one reversible number every drowsy patient deserves.",
-            "weigh": "Sweating and drowsiness here come with drooling and twitching, which sugar alone cannot explain.",
+            "weigh": "Can sugar explain the drooling and twitching?",
             "safety": ""
           },
           {
             "strength": "Ruling out **low sugar** takes a minute and protects the brain if it is there.",
-            "weigh": "This answers a side question; his breathing and secretions remain the main threat.",
+            "weigh": "It takes a minute; what main threat is still waiting after it?",
             "safety": ""
           }
         ]
@@ -696,34 +696,34 @@
         "th": [
           {
             "strength": "**เพาะเชื้ออุจจาระ** ทำให้สาเหตุอื่นของถ่ายเหลวยังอยู่ในสายตา",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน และรูม่านตาเล็กกับชีพจร 52 ชี้ไปไกลกว่าลำไส้",
+            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จะเปลี่ยนการดูแลวันนี้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ความสำคัญกับถ่ายเหลว ว่าเป็นอาการที่ต้องมีคำอธิบาย",
-            "weigh": "ถ่ายเหลวที่มาพร้อมน้ำลายไหลและเหงื่อออก อธิบายด้วยการติดเชื้อไม่ได้",
+            "weigh": "ถ่ายเหลวที่มากับน้ำลายไหลและเหงื่อออก การติดเชื้ออธิบายได้ไหม",
             "safety": ""
           },
           {
             "strength": "หาการติดเชื้อ สะท้อนนิสัยที่ไม่ปล่อยอาการใดไว้โดยไม่มีคำอธิบาย",
-            "weigh": "ผลนี้ไม่เปลี่ยนการดูแลในชั่วโมงแรก ขณะที่การหายใจยังเสี่ยงอยู่",
+            "weigh": "ขณะที่การหายใจยังเสี่ยง ผลตรวจไหนจะเปลี่ยนชั่วโมงแรกได้จริง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **stool exam** keeps another cause of the diarrhoea in view.",
-            "weigh": "Culture results take days, and pinpoint pupils with a pulse of 52 point beyond the gut.",
+            "weigh": "Culture takes days; how would it change his care today?",
             "safety": ""
           },
           {
             "strength": "You take the diarrhoea seriously as a symptom needing its own explanation.",
-            "weigh": "Diarrhoea here sits alongside drooling and sweating, which an infection would not explain.",
+            "weigh": "With drooling and sweating alongside the diarrhoea, can an infection explain it?",
             "safety": ""
           },
           {
             "strength": "Looking for infection reflects a habit of not leaving a symptom unexplained.",
-            "weigh": "This result would not change care in the first hours while his breathing is at risk.",
+            "weigh": "With his breathing at risk, which result would really change the first hour?",
             "safety": ""
           }
         ]
@@ -732,34 +732,34 @@
         "th": [
           {
             "strength": "วัด**อุณหภูมิแกนกาย** ดูว่าความร้อนมีส่วนต่อเหงื่อออกหลังทำนาหรือไม่",
-            "weigh": "ภาวะจากความร้อนแทบไม่ทำให้ชีพจร 52 และรูม่านตาเล็ก ค่าปกติจึงเพิ่มข้อมูลน้อย",
+            "weigh": "ภาวะจากความร้อนทำให้ชีพจร 52 และรูม่านตาเล็กได้ไหม",
             "safety": ""
           },
           {
             "strength": "คำนึงถึงการทำงานกลางแดดทั้งวันว่าอาจมีส่วนร่วม เป็นความคิดที่อิงอาชีพ",
-            "weigh": "เหงื่อออกมาพร้อมน้ำลายไหลและกล้ามเนื้อกระตุก ซึ่งชี้ไปไกลกว่าความร้อน",
+            "weigh": "เหงื่อออกที่มาพร้อมน้ำลายไหลและกล้ามเนื้อกระตุก ชี้ไปที่อะไร",
             "safety": ""
           },
           {
             "strength": "วัดอุณหภูมิจริง แทนการเดาเรื่องความร้อนจากประวัติอย่างเดียว",
-            "weigh": "ผลนี้ไม่น่าเปลี่ยนการดูแลการหายใจในชั่วโมงถัดไป",
+            "weigh": "ผลนี้จะเปลี่ยนการดูแลการหายใจในชั่วโมงถัดไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Measuring **core temperature** tests whether heat adds to his sweating after field work.",
-            "weigh": "Heat illness rarely gives a pulse of 52 and pinpoint pupils, so a normal value adds little.",
+            "weigh": "Does heat illness give a pulse of 52 and pinpoint pupils?",
             "safety": ""
           },
           {
             "strength": "You consider the hot working day as a contributor, a thought grounded in his work.",
-            "weigh": "His sweating comes with drooling and twitching, which point beyond heat.",
+            "weigh": "Sweating with drooling and twitching: what does that point to?",
             "safety": ""
           },
           {
             "strength": "An objective temperature avoids guessing about heat from the history alone.",
-            "weigh": "This result is unlikely to change the next hour of care for his breathing.",
+            "weigh": "How would this result change the next hour of care for his breathing?",
             "safety": ""
           }
         ]
@@ -770,34 +770,34 @@
         "th": [
           {
             "strength": "แผนนี้ให้ O2 และอะโทรปีนจนปอดแห้งเป็นหลัก",
-            "weigh": "ขนาดอะโทรปีนต้องประเมินบ่อย",
+            "weigh": "นอกจากปอดแห้ง อะไรอีกที่บอกว่าอะโทรปีนพอแล้ว",
             "safety": ""
           },
           {
             "strength": "ใช้ขวดยาเป็นเหตุผลในการเพิ่มออกซีม",
-            "weigh": "ออกซีมช่วยผู้ป่วยบางรายได้มากกว่าบางราย",
+            "weigh": "ออกซีมช่วยผู้ป่วยแบบไหนได้มาก แบบไหนได้น้อย",
             "safety": ""
           },
           {
             "strength": "แผนนี้ตรงกับสารพิษบนขวด",
-            "weigh": "ปอดที่แห้งเป็นอาการที่ใช้ติดตาม",
+            "weigh": "จะเพิ่มขนาดอะโทรปีนเร็วแค่ไหนจนปอดแห้ง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Oxygen and atropine to a dry chest come first in this plan.",
-            "weigh": "The atropine dose is checked often.",
+            "weigh": "Besides a dry chest, what tells you the atropine is enough?",
             "safety": ""
           },
           {
             "strength": "You use the bottle to add the oxime.",
-            "weigh": "The oxime helps some patients more than others.",
+            "weigh": "Which patients does the oxime help most, and which least?",
             "safety": ""
           },
           {
             "strength": "The plan matches the poison on the bottle.",
-            "weigh": "A dry chest is the sign to follow.",
+            "weigh": "How fast will you step up the atropine to reach a dry chest?",
             "safety": ""
           }
         ]
@@ -806,34 +806,34 @@
         "th": [
           {
             "strength": "แผนนี้ยังให้ O2 และอะโทรปีนจนปอดแห้งเป็นหลัก",
-            "weigh": "การล้างตัวทำควบคู่กันไป ไม่ทำก่อน",
+            "weigh": "การล้างตัวต้องรอให้การหายใจนิ่งก่อน หรือทำไปพร้อมกัน",
             "safety": ""
           },
           {
             "strength": "เชื่อมการล้างตัวกับวิธีที่เขาสัมผัสสารพิษ",
-            "weigh": "ทีมต้องใส่ถุงมือ เพราะเสื้อผ้าของเขาทำให้เจ้าหน้าที่สัมผัสพิษได้",
+            "weigh": "ใครในทีมยังเสี่ยงสัมผัสพิษจากเสื้อผ้าของเขา",
             "safety": ""
           },
           {
             "strength": "แผนนี้รักษาผู้ป่วยและกำจัดต้นเหตุไปพร้อมกัน",
-            "weigh": "เสื้อผ้าที่ถอดออกควรใส่ถุงปิดและเก็บให้ห่างจากผู้อื่น",
+            "weigh": "เสื้อผ้าที่ถอดออกแล้ว จะเก็บอย่างไรไม่ให้ใครสัมผัสต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Oxygen and atropine to a dry chest stay first in this plan.",
-            "weigh": "Washing runs alongside them, never ahead.",
+            "weigh": "Does the wash wait for his breathing, or run alongside it?",
             "safety": ""
           },
           {
             "strength": "You link the wash to how he was exposed.",
-            "weigh": "Staff wear gloves, since his clothes can expose them too.",
+            "weigh": "Who on the team is still at risk from his clothes?",
             "safety": ""
           },
           {
             "strength": "The plan treats him and removes the source together.",
-            "weigh": "Removed clothing is bagged and kept away from others.",
+            "weigh": "Once his clothes come off, how will you keep anyone else from touching them?",
             "safety": ""
           }
         ]
@@ -842,34 +842,34 @@
         "th": [
           {
             "strength": "เพิ่มยาเท่าตัว**ทุก 5 นาที** ถึงขนาดที่ได้ผลเร็วโดยไม่ต้องเดาขนาดตายตัว",
-            "weigh": "นอกจากปอดแห้ง ชีพจรเกิน 80 และความดันตัวบนเกิน 80 ช่วยบอกว่าเมื่อใดหยุดเพิ่มยา",
+            "weigh": "นอกจากปอดแห้ง ชีพจรและความดันแบบไหนที่บอกให้หยุดเพิ่มยาเท่าตัว",
             "safety": ""
           },
           {
             "strength": "ปรับยาตามเป้าทางคลินิก ซึ่งเป็นแกนของการใช้อะโทรปีนในพิษนี้",
-            "weigh": "SpO2 91% และเสมหะมาก ทำให้ยาขนาดแรก ๆ ต้องให้โดยไม่ล่าช้า",
+            "weigh": "SpO2 ยังต่ำอยู่ ระหว่างไล่ยา เขาต้องการอะไรอีก",
             "safety": ""
           },
           {
             "strength": "**ปอดแห้ง**เป็นเป้าข้างเตียงที่พยาบาลตรวจได้ ทำให้การปรับยาปลอดภัย",
-            "weigh": "พิษรุนแรงมักใช้อะโทรปีนปริมาณรวมสูง ควรเช็กยาสำรองในโรงพยาบาลแต่เนิ่น ๆ",
+            "weigh": "พิษรุนแรงอาจใช้อะโทรปีนรวมมาก ยาสำรองในโรงพยาบาลพอไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Doubling **every 5 minutes** reaches an effective dose fast without guessing a fixed amount.",
-            "weigh": "A dry chest pairs with a pulse above 80 and systolic above 80 as signs to stop doubling.",
+            "weigh": "Besides a dry chest, what pulse and pressure tell you to stop doubling?",
             "safety": ""
           },
           {
             "strength": "You titrate to a clinical end point, the core of atropine use in this poisoning.",
-            "weigh": "SpO2 of 91% and heavy secretions mean the first doses need to go in without delay.",
+            "weigh": "His SpO2 is still low; what else does he need while you titrate?",
             "safety": ""
           },
           {
             "strength": "A **dry chest** is a bedside target any nurse can check, which keeps the dosing safe.",
-            "weigh": "Severe cases often need large total doses, so the hospital stock deserves an early look.",
+            "weigh": "Severe cases can use large total doses; is there enough atropine in stock?",
             "safety": ""
           }
         ]
@@ -878,34 +878,34 @@
         "th": [
           {
             "strength": "ให้ **O2 ทางหน้ากาก**ร่วมกับอะโทรปีน แก้ทั้ง SpO2 ต่ำและต้นเหตุไปพร้อมกัน",
-            "weigh": "การให้อะโทรปีนต้องมีเป้าชัด เช่น ปอดแห้ง ชีพจรเกิน 80 และความดันคงที่",
+            "weigh": "จะให้อะโทรปีนถึงเป้าไหน และรู้ได้อย่างไรว่าพอ",
             "safety": ""
           },
           {
             "strength": "จัดการสามภัย ทั้งชีพจรช้า เสมหะ และออกซิเจนต่ำ ในคราวเดียว",
-            "weigh": "หน้ากากได้ผลเมื่อเสมหะถูกคุมได้ จึงต้องฟังปอดบ่อย ๆ",
+            "weigh": "ถ้าเสมหะสะสมขึ้นอีก หน้ากากยังช่วยได้ไหม",
             "safety": ""
           },
           {
             "strength": "จับคู่ O2 กับอะโทรปีน สะท้อนว่าการหายใจมาก่อนในพิษนี้",
-            "weigh": "ขนาดอะโทรปีนสำคัญพอ ๆ กับการให้ ขนาดเล็กคงที่มักไม่พอในรายรุนแรง",
+            "weigh": "ขนาดเล็กคงที่จะพอไหม ในพิษที่รุนแรงขนาดนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Giving **oxygen by mask** with atropine treats the low SpO2 and its cause together.",
-            "weigh": "Atropine dosing needs a clear end point, such as dry lungs, a pulse above 80 and a steady pressure.",
+            "weigh": "What end point will you dose the atropine to, and how will you know it is enough?",
             "safety": ""
           },
           {
             "strength": "You address the three threats, slow pulse, secretions and low oxygen, in one move.",
-            "weigh": "A mask helps only while secretions are controlled, so his lungs need frequent listening.",
+            "weigh": "Will the mask still help if his secretions build up again?",
             "safety": ""
           },
           {
             "strength": "Pairing oxygen with atropine reflects the priority of breathing in this poisoning.",
-            "weigh": "The atropine dose matters as much as giving it; small fixed doses often fall short in severe cases.",
+            "weigh": "Will a small fixed dose be enough in poisoning this severe?",
             "safety": ""
           }
         ]
@@ -914,34 +914,34 @@
         "th": [
           {
             "strength": "สังเกต**เสียงวี้ด** และพยายามขยายหลอดลมขณะให้อะโทรปีน",
-            "weigh": "เสียงวี้ดในพิษนี้มาจากเสมหะและหลอดลมหดเกร็ง ซึ่งอะโทรปีนรักษาได้เองเป็นหลัก",
+            "weigh": "เสียงวี้ดในพิษนี้มาจากอะไร และยาตัวไหนแก้ต้นเหตุนั้น",
             "safety": ""
           },
           {
             "strength": "ใส่ใจผลตรวจปอด ไม่ได้มองแค่ชีพจร",
-            "weigh": "ปอดที่ชื้นจากเสมหะตอบสนองต่อยาพ่นได้น้อย ขนาดอะโทรปีนจึงเป็นตัวหลัก",
+            "weigh": "ปอดที่ชื้นด้วยเสมหะ จะตอบสนองต่อยาพ่นได้แค่ไหน",
             "safety": ""
           },
           {
             "strength": "ใช้ยาสองตัวที่ช่วยคลายหลอดลม สะท้อนการดูการหายใจอย่างละเอียด",
-            "weigh": "ขนาดอะโทรปีนมากกว่ายาพ่น เป็นสิ่งที่กำหนดว่าเสมหะจะลดเร็วแค่ไหน",
+            "weigh": "อะไรเป็นตัวกำหนดว่าเสมหะจะลดลงเร็วแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You notice the **wheeze** and aim to open the airways while atropine runs.",
-            "weigh": "In this poisoning the wheeze comes mainly from secretions and spasm that atropine itself treats.",
+            "weigh": "What causes the wheeze in this poisoning, and which drug treats that cause?",
             "safety": ""
           },
           {
             "strength": "Treating airway narrowing shows attention to the lung findings, not just the pulse.",
-            "weigh": "Lungs wet with secretions respond little to a nebuliser, so the atropine dose carries the load.",
+            "weigh": "How much will lungs wet with secretions respond to a nebuliser?",
             "safety": ""
           },
           {
             "strength": "Combining two drugs that relax the airways reflects a careful look at his breathing.",
-            "weigh": "The atropine dose, more than the nebuliser, decides how fast the secretions clear.",
+            "weigh": "What decides how fast his secretions clear?",
             "safety": ""
           }
         ]
@@ -950,34 +950,34 @@
         "th": [
           {
             "strength": "ชดเชย**น้ำที่เสียไป**จากอาเจียนและถ่ายเหลว ช่วยประคองความดันและไต",
-            "weigh": "SpO2 91% และปอดชื้น ทำให้การหายใจกำหนดจังหวะ สารน้ำจึงให้ควบคู่ ไม่ใช่มาก่อน",
+            "weigh": "ปอดชื้นและ SpO2 ต่ำ สารน้ำควรมาก่อน หรือให้ควบคู่ไป",
             "safety": ""
           },
           {
             "strength": "เห็นการเสียน้ำจริงจากอาเจียน ถ่ายเหลว และเหงื่อออก",
-            "weigh": "สารน้ำแก้การเสียน้ำ ส่วนน้ำลายไหล เสียงวี้ด และ SpO2 91% ต้องการเป้าการให้อะโทรปีนที่ชัด",
+            "weigh": "สารน้ำแก้การเสียน้ำ แล้วอะโทรปีนจะตั้งเป้าไว้ที่อะไร",
             "safety": ""
           },
           {
             "strength": "การให้สารน้ำช่วยปกป้องไตในพิษที่อาจยืดเยื้อ",
-            "weigh": "สารน้ำช่วยระบบไหลเวียน แต่ SpO2 ที่ต่ำเป็นภัยที่เร่งด่วนกว่า",
+            "weigh": "ระหว่างการไหลเวียนกับการหายใจ อะไรเร่งด่วนกว่าตอนนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Replacing the **fluid lost** to vomiting and diarrhoea supports his pressure and kidneys.",
-            "weigh": "With SpO2 91% and wet lungs, his breathing sets the pace, so fluids run alongside, not first.",
+            "weigh": "With wet lungs and a low SpO2, should fluids lead or run alongside?",
             "safety": ""
           },
           {
             "strength": "You recognise the real losses from vomiting, diarrhoea and sweating.",
-            "weigh": "Fluids treat the losses, while drooling, wheeze and SpO2 91% call for a clear atropine end point.",
+            "weigh": "Fluids treat the losses; what end point will your atropine aim for?",
             "safety": ""
           },
           {
             "strength": "Fluid replacement protects the kidneys through what may be a long course.",
-            "weigh": "Fluids help the circulation, but his low SpO2 is the more immediate threat.",
+            "weigh": "Between circulation and breathing, which is more urgent right now?",
             "safety": ""
           }
         ]
@@ -988,34 +988,34 @@
         "th": [
           {
             "strength": "แผนนี้ให้ O2 และอะโทรปีนจนปอดแห้งเป็นหลัก",
-            "weigh": "ขนาดอะโทรปีนต้องประเมินบ่อย",
+            "weigh": "นอกจากปอดแห้ง อะไรอีกที่บอกว่าอะโทรปีนพอแล้ว",
             "safety": ""
           },
           {
             "strength": "ใช้ขวดยาเป็นเหตุผลในการเพิ่มออกซีม",
-            "weigh": "ออกซีมช่วยผู้ป่วยบางรายได้มากกว่าบางราย",
+            "weigh": "ออกซีมช่วยผู้ป่วยแบบไหนได้มาก แบบไหนได้น้อย",
             "safety": ""
           },
           {
             "strength": "แผนนี้ตรงกับสารพิษบนขวด",
-            "weigh": "ปอดที่แห้งเป็นอาการที่ใช้ติดตาม",
+            "weigh": "จะเพิ่มขนาดอะโทรปีนเร็วแค่ไหนจนปอดแห้ง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Oxygen and atropine to a dry chest come first in this plan.",
-            "weigh": "The atropine dose is checked often.",
+            "weigh": "Besides a dry chest, what tells you the atropine is enough?",
             "safety": ""
           },
           {
             "strength": "You use the bottle to add the oxime.",
-            "weigh": "The oxime helps some patients more than others.",
+            "weigh": "Which patients does the oxime help most, and which least?",
             "safety": ""
           },
           {
             "strength": "The plan matches the poison on the bottle.",
-            "weigh": "A dry chest is the sign to follow.",
+            "weigh": "How fast will you step up the atropine to reach a dry chest?",
             "safety": ""
           }
         ]
@@ -1024,34 +1024,34 @@
         "th": [
           {
             "strength": "แผนนี้ยังให้ O2 และอะโทรปีนจนปอดแห้งเป็นหลัก",
-            "weigh": "การล้างตัวทำควบคู่กันไป ไม่ทำก่อน",
+            "weigh": "การล้างตัวต้องรอให้การหายใจนิ่งก่อน หรือทำไปพร้อมกัน",
             "safety": ""
           },
           {
             "strength": "เชื่อมการล้างตัวกับวิธีที่เขาสัมผัสสารพิษ",
-            "weigh": "ทีมต้องใส่ถุงมือ เพราะเสื้อผ้าของเขาทำให้เจ้าหน้าที่สัมผัสพิษได้",
+            "weigh": "ใครในทีมยังเสี่ยงสัมผัสพิษจากเสื้อผ้าของเขา",
             "safety": ""
           },
           {
             "strength": "แผนนี้รักษาผู้ป่วยและกำจัดต้นเหตุไปพร้อมกัน",
-            "weigh": "เสื้อผ้าที่ถอดออกควรใส่ถุงปิดและเก็บให้ห่างจากผู้อื่น",
+            "weigh": "เสื้อผ้าที่ถอดออกแล้ว จะเก็บอย่างไรไม่ให้ใครสัมผัสต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Oxygen and atropine to a dry chest stay first in this plan.",
-            "weigh": "Washing runs alongside them, never ahead.",
+            "weigh": "Does the wash wait for his breathing, or run alongside it?",
             "safety": ""
           },
           {
             "strength": "You link the wash to how he was exposed.",
-            "weigh": "Staff wear gloves, since his clothes can expose them too.",
+            "weigh": "Who on the team is still at risk from his clothes?",
             "safety": ""
           },
           {
             "strength": "The plan treats him and removes the source together.",
-            "weigh": "Removed clothing is bagged and kept away from others.",
+            "weigh": "Once his clothes come off, how will you keep anyone else from touching them?",
             "safety": ""
           }
         ]
@@ -1060,34 +1060,34 @@
         "th": [
           {
             "strength": "เพิ่มยาเท่าตัว**ทุก 5 นาที** ถึงขนาดที่ได้ผลเร็วโดยไม่ต้องเดาขนาดตายตัว",
-            "weigh": "นอกจากปอดแห้ง ชีพจรเกิน 80 และความดันตัวบนเกิน 80 ช่วยบอกว่าเมื่อใดหยุดเพิ่มยา",
+            "weigh": "นอกจากปอดแห้ง ชีพจรและความดันแบบไหนที่บอกให้หยุดเพิ่มยาเท่าตัว",
             "safety": ""
           },
           {
             "strength": "ปรับยาตามเป้าทางคลินิก ซึ่งเป็นแกนของการใช้อะโทรปีนในพิษนี้",
-            "weigh": "SpO2 91% และเสมหะมาก ทำให้ยาขนาดแรก ๆ ต้องให้โดยไม่ล่าช้า",
+            "weigh": "SpO2 ยังต่ำอยู่ ระหว่างไล่ยา เขาต้องการอะไรอีก",
             "safety": ""
           },
           {
             "strength": "**ปอดแห้ง**เป็นเป้าข้างเตียงที่พยาบาลตรวจได้ ทำให้การปรับยาปลอดภัย",
-            "weigh": "พิษรุนแรงมักใช้อะโทรปีนปริมาณรวมสูง ควรเช็กยาสำรองในโรงพยาบาลแต่เนิ่น ๆ",
+            "weigh": "พิษรุนแรงอาจใช้อะโทรปีนรวมมาก ยาสำรองในโรงพยาบาลพอไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Doubling **every 5 minutes** reaches an effective dose fast without guessing a fixed amount.",
-            "weigh": "A dry chest pairs with a pulse above 80 and systolic above 80 as signs to stop doubling.",
+            "weigh": "Besides a dry chest, what pulse and pressure tell you to stop doubling?",
             "safety": ""
           },
           {
             "strength": "You titrate to a clinical end point, the core of atropine use in this poisoning.",
-            "weigh": "SpO2 of 91% and heavy secretions mean the first doses need to go in without delay.",
+            "weigh": "His SpO2 is still low; what else does he need while you titrate?",
             "safety": ""
           },
           {
             "strength": "A **dry chest** is a bedside target any nurse can check, which keeps the dosing safe.",
-            "weigh": "Severe cases often need large total doses, so the hospital stock deserves an early look.",
+            "weigh": "Severe cases can use large total doses; is there enough atropine in stock?",
             "safety": ""
           }
         ]
@@ -1096,34 +1096,34 @@
         "th": [
           {
             "strength": "ให้ **O2 ทางหน้ากาก**ร่วมกับอะโทรปีน แก้ทั้ง SpO2 ต่ำและต้นเหตุไปพร้อมกัน",
-            "weigh": "การให้อะโทรปีนต้องมีเป้าชัด เช่น ปอดแห้ง ชีพจรเกิน 80 และความดันคงที่",
+            "weigh": "จะให้อะโทรปีนถึงเป้าไหน และรู้ได้อย่างไรว่าพอ",
             "safety": ""
           },
           {
             "strength": "จัดการสามภัย ทั้งชีพจรช้า เสมหะ และออกซิเจนต่ำ ในคราวเดียว",
-            "weigh": "หน้ากากได้ผลเมื่อเสมหะถูกคุมได้ จึงต้องฟังปอดบ่อย ๆ",
+            "weigh": "ถ้าเสมหะสะสมขึ้นอีก หน้ากากยังช่วยได้ไหม",
             "safety": ""
           },
           {
             "strength": "จับคู่ O2 กับอะโทรปีน สะท้อนว่าการหายใจมาก่อนในพิษนี้",
-            "weigh": "ขนาดอะโทรปีนสำคัญพอ ๆ กับการให้ ขนาดเล็กคงที่มักไม่พอในรายรุนแรง",
+            "weigh": "ขนาดเล็กคงที่จะพอไหม ในพิษที่รุนแรงขนาดนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Giving **oxygen by mask** with atropine treats the low SpO2 and its cause together.",
-            "weigh": "Atropine dosing needs a clear end point, such as dry lungs, a pulse above 80 and a steady pressure.",
+            "weigh": "What end point will you dose the atropine to, and how will you know it is enough?",
             "safety": ""
           },
           {
             "strength": "You address the three threats, slow pulse, secretions and low oxygen, in one move.",
-            "weigh": "A mask helps only while secretions are controlled, so his lungs need frequent listening.",
+            "weigh": "Will the mask still help if his secretions build up again?",
             "safety": ""
           },
           {
             "strength": "Pairing oxygen with atropine reflects the priority of breathing in this poisoning.",
-            "weigh": "The atropine dose matters as much as giving it; small fixed doses often fall short in severe cases.",
+            "weigh": "Will a small fixed dose be enough in poisoning this severe?",
             "safety": ""
           }
         ]
@@ -1132,34 +1132,34 @@
         "th": [
           {
             "strength": "สังเกต**เสียงวี้ด** และพยายามขยายหลอดลมขณะให้อะโทรปีน",
-            "weigh": "เสียงวี้ดในพิษนี้มาจากเสมหะและหลอดลมหดเกร็ง ซึ่งอะโทรปีนรักษาได้เองเป็นหลัก",
+            "weigh": "เสียงวี้ดในพิษนี้มาจากอะไร และยาตัวไหนแก้ต้นเหตุนั้น",
             "safety": ""
           },
           {
             "strength": "ใส่ใจผลตรวจปอด ไม่ได้มองแค่ชีพจร",
-            "weigh": "ปอดที่ชื้นจากเสมหะตอบสนองต่อยาพ่นได้น้อย ขนาดอะโทรปีนจึงเป็นตัวหลัก",
+            "weigh": "ปอดที่ชื้นด้วยเสมหะ จะตอบสนองต่อยาพ่นได้แค่ไหน",
             "safety": ""
           },
           {
             "strength": "ใช้ยาสองตัวที่ช่วยคลายหลอดลม สะท้อนการดูการหายใจอย่างละเอียด",
-            "weigh": "ขนาดอะโทรปีนมากกว่ายาพ่น เป็นสิ่งที่กำหนดว่าเสมหะจะลดเร็วแค่ไหน",
+            "weigh": "อะไรเป็นตัวกำหนดว่าเสมหะจะลดลงเร็วแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You notice the **wheeze** and aim to open the airways while atropine runs.",
-            "weigh": "In this poisoning the wheeze comes mainly from secretions and spasm that atropine itself treats.",
+            "weigh": "What causes the wheeze in this poisoning, and which drug treats that cause?",
             "safety": ""
           },
           {
             "strength": "Treating airway narrowing shows attention to the lung findings, not just the pulse.",
-            "weigh": "Lungs wet with secretions respond little to a nebuliser, so the atropine dose carries the load.",
+            "weigh": "How much will lungs wet with secretions respond to a nebuliser?",
             "safety": ""
           },
           {
             "strength": "Combining two drugs that relax the airways reflects a careful look at his breathing.",
-            "weigh": "The atropine dose, more than the nebuliser, decides how fast the secretions clear.",
+            "weigh": "What decides how fast his secretions clear?",
             "safety": ""
           }
         ]
@@ -1168,34 +1168,34 @@
         "th": [
           {
             "strength": "ชดเชย**น้ำที่เสียไป**จากอาเจียนและถ่ายเหลว ช่วยประคองความดันและไต",
-            "weigh": "SpO2 91% และปอดชื้น ทำให้การหายใจกำหนดจังหวะ สารน้ำจึงให้ควบคู่ ไม่ใช่มาก่อน",
+            "weigh": "ปอดชื้นและ SpO2 ต่ำ สารน้ำควรมาก่อน หรือให้ควบคู่ไป",
             "safety": ""
           },
           {
             "strength": "เห็นการเสียน้ำจริงจากอาเจียน ถ่ายเหลว และเหงื่อออก",
-            "weigh": "สารน้ำแก้การเสียน้ำ ส่วนน้ำลายไหล เสียงวี้ด และ SpO2 91% ต้องการเป้าการให้อะโทรปีนที่ชัด",
+            "weigh": "สารน้ำแก้การเสียน้ำ แล้วอะโทรปีนจะตั้งเป้าไว้ที่อะไร",
             "safety": ""
           },
           {
             "strength": "การให้สารน้ำช่วยปกป้องไตในพิษที่อาจยืดเยื้อ",
-            "weigh": "สารน้ำช่วยระบบไหลเวียน แต่ SpO2 ที่ต่ำเป็นภัยที่เร่งด่วนกว่า",
+            "weigh": "ระหว่างการไหลเวียนกับการหายใจ อะไรเร่งด่วนกว่าตอนนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Replacing the **fluid lost** to vomiting and diarrhoea supports his pressure and kidneys.",
-            "weigh": "With SpO2 91% and wet lungs, his breathing sets the pace, so fluids run alongside, not first.",
+            "weigh": "With wet lungs and a low SpO2, should fluids lead or run alongside?",
             "safety": ""
           },
           {
             "strength": "You recognise the real losses from vomiting, diarrhoea and sweating.",
-            "weigh": "Fluids treat the losses, while drooling, wheeze and SpO2 91% call for a clear atropine end point.",
+            "weigh": "Fluids treat the losses; what end point will your atropine aim for?",
             "safety": ""
           },
           {
             "strength": "Fluid replacement protects the kidneys through what may be a long course.",
-            "weigh": "Fluids help the circulation, but his low SpO2 is the more immediate threat.",
+            "weigh": "Between circulation and breathing, which is more urgent right now?",
             "safety": ""
           }
         ]
@@ -1206,34 +1206,34 @@
         "th": [
           {
             "strength": "คุมทางเดินหายใจที่**เสมหะท่วม**ก่อนหมดแรง ป้องกันการหยุดหายใจกะทันหัน",
-            "weigh": "ต้องให้อะโทรปีนต่อทั้งระหว่างและหลังใส่ท่อ เพราะท่อไม่ได้หยุดเสมหะ",
+            "weigh": "ใส่ท่อแล้ว ยังต้องให้อะโทรปีนต่อไหม เพราะอะไร",
             "safety": ""
           },
           {
             "strength": "อ่านอาการซึมลงกับเสมหะที่มากขึ้นว่าทางเดินหายใจกำลังล้มเหลว แล้วลงมือก่อนทรุด",
-            "weigh": "การส่งต่อผู้ป่วยใส่ท่อต้องมีทีมและอุปกรณ์พร้อมตลอดเส้นทาง",
+            "weigh": "ยาที่ใช้ตอนใส่ท่อ ตัวไหนออกฤทธิ์ต่างไปในพิษนี้",
             "safety": ""
           },
           {
             "strength": "ครอบคลุมทั้งทางเดินหายใจ ยาแก้พิษ และระดับการดูแลที่เขาต้องการใน **ICU**",
-            "weigh": "ยาที่ใช้ระหว่างใส่ท่ออาจออกฤทธิ์ต่างไปในพิษนี้ จึงต้องเลือกอย่างระมัดระวัง",
+            "weigh": "ใส่ท่อแล้ว อะไรจะบอกว่าอะโทรปีนพอแล้ว",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Securing the **flooding airway** before he tires protects him from a sudden respiratory arrest.",
-            "weigh": "Atropine must keep going through and after intubation, as the tube does not stop secretions.",
+            "weigh": "Once the tube is in, does the atropine still need to continue, and why?",
             "safety": ""
           },
           {
             "strength": "You read his drowsiness and rising secretions as a failing airway and act ahead of collapse.",
-            "weigh": "Moving an intubated patient needs a team and equipment for the whole trip.",
+            "weigh": "Which intubation drugs act differently in this poisoning?",
             "safety": ""
           },
           {
             "strength": "Your plan covers the airway, the antidote and the level of care, with a move to **refer to ICU**.",
-            "weigh": "Drugs used for intubation can act differently in this poisoning, so the choice deserves care.",
+            "weigh": "With the tube in, what will tell you the atropine is now enough?",
             "safety": ""
           }
         ]
@@ -1242,34 +1242,34 @@
         "th": [
           {
             "strength": "**ดูดเสมหะ** เพิ่มอะโทรปีนเท่าตัวจนปอดแห้งร่วมออกซีม มุ่งทั้งเสมหะและเอนไซม์",
-            "weigh": "เขาซึมลงขณะเสมหะท่วมปอด การหายใจอาจล้มเหลวก่อนยาจะออกฤทธิ์ทัน",
+            "weigh": "อาการแย่ลงขณะเสมหะท่วมปอด การหายใจจะรอให้ยาออกฤทธิ์ทันไหม",
             "safety": ""
           },
           {
             "strength": "คงแผนแก้พิษให้ครบแม้อยู่ใต้แรงกดดัน ทั้งดูดเสมหะ O2 อะโทรปีน และออกซีม",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ ไม่ถึงปอดที่ท่วม และผู้ป่วยที่ซึมอาจปกป้องทางเดินหายใจเองไม่ได้",
+            "weigh": "ดูดเสมหะได้แค่ลำคอ แล้วคนที่ซึมอยู่จะปกป้องทางเดินหายใจเองได้ไหม",
             "safety": ""
           },
           {
             "strength": "เร่ง**เพิ่มอะโทรปีนเท่าตัว** รับมือเสมหะที่เพิ่มขึ้นโดยตรง",
-            "weigh": "หลักฐานของออกซีมยังไม่ชัด และอาการซึมที่มากขึ้นทำให้ต้องคิดเรื่องปกป้องการหายใจ",
+            "weigh": "หลักฐานของออกซีมยังไม่ชัด ตอนนี้อะไรสำคัญกว่าสำหรับการหายใจของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction with atropine doubled to a **dry chest** and an oxime goes after both the secretions and the enzyme.",
-            "weigh": "He is drowsier as his chest floods, and his breathing may fail before the drugs take hold.",
+            "weigh": "He is getting worse as his chest floods; can his breathing wait for the drugs to work?",
             "safety": ""
           },
           {
             "strength": "You keep the antidote plan complete under pressure: suction, O2, atropine and an oxime.",
-            "weigh": "Suction reaches the throat, not the flooded lungs, and a drowsy man may not guard his own airway.",
+            "weigh": "Suction reaches only his throat; can a drowsy man guard his own airway?",
             "safety": ""
           },
           {
             "strength": "Escalating with **atropine doubled** to a dry chest meets the surge in secretions head on.",
-            "weigh": "Oxime evidence is mixed, and his falling alertness puts protecting his breathing in play.",
+            "weigh": "With oxime evidence mixed, what matters more for his breathing right now?",
             "safety": ""
           }
         ]
@@ -1278,34 +1278,34 @@
         "th": [
           {
             "strength": "ดูดเสมหะร่วมกับเพิ่มยาเท่าตัว**ทุก 5 นาที** รับมือเสมหะที่พุ่งขึ้นได้เร็วและวัดผลได้",
-            "weigh": "เสมหะเพิ่มขึ้นและเขาซึมลง การหายใจอาจล้มเหลวก่อนปอดจะแห้ง",
+            "weigh": "เสมหะเพิ่มและอาการแย่ลง การหายใจจะทนได้จนปอดแห้งไหม",
             "safety": ""
           },
           {
             "strength": "ดูดเสมหะให้คอโล่ง และยึดเป้าที่ชัดแม้อาการทรุดลง",
-            "weigh": "รอบละ 5 นาทีคือเวลาที่ผู้ป่วยซึมซึ่งเสมหะท่วมปอดอาจไม่มี",
+            "weigh": "รอบละ 5 นาที คนที่เสมหะท่วมปอดมีเวลาพอไหม",
             "safety": ""
           },
           {
             "strength": "ปรับยาจน**ปอดแห้ง** ผูกขนาดยากับสิ่งที่ปอดแสดงออกมา",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ อาการซึมจึงยังทำให้ทางเดินหายใจเสี่ยงขณะเพิ่มยาอยู่",
+            "weigh": "ขณะเพิ่มยา อะไรจะปกป้องทางเดินหายใจในส่วนที่การดูดเสมหะเข้าไม่ถึง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction plus doubling **every 5 minutes** answers the surge in secretions with a fast, measurable ramp.",
-            "weigh": "With secretions rising and him drowsier, his breathing may fail before the chest dries.",
+            "weigh": "With secretions rising and him worse, will his breathing last until the chest is dry?",
             "safety": ""
           },
           {
             "strength": "You clear his throat and hold to a clear end point even as he deteriorates.",
-            "weigh": "Each 5-minute cycle is time a drowsy man with a flooding chest may not have.",
+            "weigh": "Does a man with flooding lungs have 5 minutes per cycle to spare?",
             "safety": ""
           },
           {
             "strength": "Titrating to a **dry chest** keeps the dose tied to what his lungs show.",
-            "weigh": "Suction reaches only the throat, so his drowsiness still puts the airway at risk as the dose climbs.",
+            "weigh": "As the dose climbs, what protects the airway that suction cannot reach?",
             "safety": ""
           }
         ]
@@ -1314,34 +1314,34 @@
         "th": [
           {
             "strength": "ล้าง**สารพิษบนผิว**ออก หยุดการดูดซึมเพิ่มผ่านทางที่เขาได้รับพิษ",
-            "weigh": "การล้างตัวใช้คนและเวลา ขณะที่อาการซึมและเสมหะกำลังคุกคามการหายใจ",
+            "weigh": "ระหว่างล้างตัว ใครเฝ้าดูการหายใจที่กำลังแย่ลง",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูดเสมหะร่วมกับอะโทรปีน**ต้านอะเซทิลโคลีน** รักษาผลของพิษ ขณะที่การล้างตัวกำจัดต้นตอ",
-            "weigh": "การล้างตัวป้องกันการดูดซึมเพิ่ม แต่ไม่ช่วยเสมหะที่ท่วมปอดอยู่แล้ว",
+            "weigh": "การล้างตัวช่วยเสมหะที่ท่วมปอดอยู่แล้วได้ไหม",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ระลึกว่าสารที่ยังติดผิวหนังทำให้พิษเข้าสู่ร่างกายต่อได้",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ ไม่ถึงปอด และผู้ป่วยที่ซึมอาจปกป้องทางเดินหายใจเองไม่ได้",
+            "weigh": "ดูดเสมหะได้แค่ลำคอ คนที่ซึมจะปกป้องทางเดินหายใจเองได้ไหม",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
         "en": [
           {
             "strength": "Washing poison **off his skin** stops further absorption by a main route of his exposure.",
-            "weigh": "Washing takes hands and minutes while drowsiness and secretions threaten his breathing.",
+            "weigh": "While the team washes him, who is watching his worsening breathing?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Suction, and atropine that **blocks acetylcholine**, treat the flood while washing removes its source.",
-            "weigh": "Washing prevents more absorption but does nothing for the secretions already flooding him.",
+            "weigh": "Does washing help the secretions already flooding him?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "You remember that poison left on the skin can keep feeding the illness.",
-            "weigh": "Suction clears his throat, not his lungs, and a drowsy man may not guard his own airway.",
+            "weigh": "Suction clears his throat only; can a drowsy man guard his own airway?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -1350,34 +1350,34 @@
         "th": [
           {
             "strength": "สังเกต**เสียงวี้ด** และเพิ่มยาเพื่อขยายหลอดลม",
-            "weigh": "ปอดที่ท่วมส่วนใหญ่เป็นเสมหะ ซึ่งยาพ่นช่วยขจัดได้น้อย",
+            "weigh": "ปอดที่ท่วมส่วนใหญ่เป็นอะไร และยาพ่นช่วยส่วนนั้นได้แค่ไหน",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูดเสมหะ และใส่ใจ**หลอดลมที่ตีบ** แสดงว่าฟังปอดของเขาอย่างตั้งใจ",
-            "weigh": "อาการซึมกับเสมหะที่เพิ่มขึ้นเป็นภัยหลักตรงนี้ มากกว่าหลอดลมตีบ",
+            "weigh": "ตอนนี้ภัยหลักคืออาการซึมกับเสมหะ หรือหลอดลมตีบ",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ใช้การดูดเสมหะและอะโทรปีนร่วมกับยาขยายหลอดลม เพื่อลดแรงที่เขาต้องใช้หายใจ",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ และเวลาที่ใช้กับยาพ่นคือเวลาที่อาการซึมยังรุกต่อ",
+            "weigh": "ระหว่างที่เวลาหมดไปกับยาพ่น การหายใจของเขาเป็นอย่างไร",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
         "en": [
           {
             "strength": "You notice the **wheeze** and add a drug to open the airways.",
-            "weigh": "His flooding chest is mostly secretions, which a nebuliser does little to clear.",
+            "weigh": "What are his flooding lungs mostly full of, and how much can a nebuliser clear it?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Suction with attention to **the narrowed airways** shows you are listening to his lungs.",
-            "weigh": "Drowsiness with surging secretions is the threat here, more than the narrowing.",
+            "weigh": "Is the main threat here the drowsiness and secretions, or the narrowing?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Combining suction and atropine with a bronchodilator aims to ease his work of breathing.",
-            "weigh": "Suction reaches the throat only, and time on the nebuliser is time his drowsiness keeps advancing.",
+            "weigh": "What does his breathing do while time goes on the nebuliser?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -1388,34 +1388,34 @@
         "th": [
           {
             "strength": "ยาหยดช่วยคุมปอดให้แห้งต่อเนื่องทุกชั่วโมง",
-            "weigh": "การประเมินแต่ละครั้งดูเสียงปอดและชีพจร",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "ประเมินทุกชั่วโมง ทำให้ปรับอัตรายาตามอาการได้",
-            "weigh": "เสมหะอาจกลับมาได้ในช่วงแรกของยาหยด",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "วางแผนต่อหลังปอดแห้ง ไม่จบแค่ช่วงแรก",
-            "weigh": "บันทึกผลการประเมินแต่ละครั้งให้ชัด ช่วยทีมเวรดึก",
+            "weigh": "",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "An infusion keeps his chest dry from hour to hour.",
-            "weigh": "Each review looks at his chest and pulse.",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "Hourly review lets the rate change with him.",
-            "weigh": "Secretions can return early on the drip.",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "You plan past the first dry chest.",
-            "weigh": "A clear chart of each check helps the night team.",
+            "weigh": "",
             "safety": ""
           }
         ]
@@ -1424,34 +1424,34 @@
         "th": [
           {
             "strength": "คำนึงถึงผลข้างเคียงของยาต้านพิษเองด้วย",
-            "weigh": "อะโทรปีนน้อยเกินก็สำคัญ จึงต้องฟังปอดควบคู่",
+            "weigh": "อะโทรปีนน้อยเกินก็อันตราย จะรู้ได้อย่างไรว่ายาไม่พอ",
             "safety": ""
           },
           {
             "strength": "คอยดูอาการได้อะโทรปีนมากเกิน ช่วยให้ยาหยดปลอดภัย",
-            "weigh": "อาการสับสนอาจมาจากสารพิษเองได้ด้วย",
+            "weigh": "ถ้าเขาสับสน จะแยกอย่างไรว่ามาจากยาหรือจากสารพิษ",
             "safety": ""
           },
           {
             "strength": "ให้ยาหยดต่อพร้อมการเฝ้าดู ทำให้การรักษาต่อเนื่อง",
-            "weigh": "การเฝ้าดูได้ผลดีเมื่อทำตามเวลาที่กำหนด",
+            "weigh": "จะดูอาการยาเกินจากอะไรบ้าง และดูบ่อยแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You keep the antidote's own side effects in view.",
-            "weigh": "Too little atropine matters too, so the chest is checked as well.",
+            "weigh": "Too little atropine matters too; how will you tell the dose is falling short?",
             "safety": ""
           },
           {
             "strength": "Checking for too much atropine keeps the drip safe.",
-            "weigh": "Confusion can also come from the poison itself.",
+            "weigh": "If he becomes confused, how will you tell the drug from the poison?",
             "safety": ""
           },
           {
             "strength": "Continuing the infusion with checks keeps treatment steady.",
-            "weigh": "The checks work best at set times.",
+            "weigh": "Which signs of excess will you check, and how often?",
             "safety": ""
           }
         ]
@@ -1460,34 +1460,34 @@
         "th": [
           {
             "strength": "ยาหยด**อัตราคงที่**ทำได้ง่ายในหอผู้ป่วยที่งานยุ่ง ลดโอกาสให้ยาคลาด",
-            "weigh": "ความต้องการยาจะเปลี่ยนเมื่อพิษลดหรือกลับมา อัตราเดียวตามไม่ทัน",
+            "weigh": "เมื่อพิษลดลงหรือกลับมา อัตราเดียวจะตามทันไหม",
             "safety": ""
           },
           {
             "strength": "ทำแผนให้เรียบง่าย ลดการให้ยาคลาดเคลื่อนในเวรดึก",
-            "weigh": "อัตราที่ตั้งไว้โดยไม่ทบทวน อาจกลายเป็นอะโทรปีนมากหรือน้อยเกินไป",
+            "weigh": "อัตราที่ไม่ทบทวนเลย จะกลายเป็นยามากหรือน้อยเกินได้ไหม",
             "safety": ""
           },
           {
             "strength": "ใช้ยาหยดต่อเนื่อง คงปอดให้แห้งโดยไม่มีช่วงยาขึ้นลง",
-            "weigh": "อัตรายังต้องอิงขนาดที่ทำให้ปอดแห้ง และมีเวลาที่จะกลับมาประเมินใหม่",
+            "weigh": "อัตรานี้อิงขนาดที่ทำให้ปอดแห้งหรือเปล่า และจะกลับมาดูอีกเมื่อไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **fixed-rate** infusion is easy for a busy ward to run without slips.",
-            "weigh": "His needs will change as the poison clears or returns, and a single rate cannot follow that.",
+            "weigh": "As the poison clears or returns, can one set rate keep up?",
             "safety": ""
           },
           {
             "strength": "You keep the plan simple, which reduces dosing slips overnight.",
-            "weigh": "A rate set without regular reassessment can drift into too much or too little atropine.",
+            "weigh": "Left unchecked, could a set rate drift into too much or too little?",
             "safety": ""
           },
           {
             "strength": "Choosing a continuous infusion keeps the chest dry without peaks and troughs.",
-            "weigh": "The rate still needs a link to his drying dose and a set time to look again.",
+            "weigh": "Is the rate tied to his drying dose, and when will you look again?",
             "safety": ""
           }
         ]
@@ -1496,34 +1496,34 @@
         "th": [
           {
             "strength": "ให้ยาทันทีที่**เสมหะกลับมา** ป้องกันปอดท่วมซ้ำ",
-            "weigh": "การรอให้ปอดชื้นทำให้เขาแกว่งระหว่างแห้งกับท่วม และเสี่ยงทุกครั้งที่ยาลดลง",
+            "weigh": "ถ้ารอให้ปอดชื้นก่อน เขาจะแกว่งระหว่างแห้งกับท่วมไหม",
             "safety": ""
           },
           {
             "strength": "ผูกการให้อะโทรปีนไว้กับอาการทางคลินิกที่ชัด",
-            "weigh": "ระหว่างการฉีดแต่ละครั้ง ระดับยาลดลงและเสมหะสะสมเงียบ ๆ โดยเฉพาะตอนกลางคืน",
+            "weigh": "ระหว่างการฉีดแต่ละครั้ง โดยเฉพาะกลางคืน ระดับยาและเสมหะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ยาเฉพาะเมื่อจำเป็น เลี่ยงการได้อะโทรปีนเกินความต้องการ",
-            "weigh": "การรอให้ปอดชื้นทำให้ยาแต่ละครั้งมาหลังปัญหา ไม่ใช่ก่อน",
+            "weigh": "ยาแต่ละครั้งมาก่อนปัญหา หรือมาหลังปัญหา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Responding as soon as **secretions return** keeps the chest from flooding again.",
-            "weigh": "Waiting for the chest to get wet lets him swing between dry and flooded, with risk at each low point.",
+            "weigh": "If you wait for a wet chest, will he swing between dry and flooded?",
             "safety": ""
           },
           {
             "strength": "You keep atropine tied to a clear clinical sign.",
-            "weigh": "Between boluses, levels fall and secretions can build quietly, especially overnight.",
+            "weigh": "Between boluses, especially overnight, what happens to his drug level and secretions?",
             "safety": ""
           },
           {
             "strength": "Giving more only when needed avoids loading him with atropine he does not need.",
-            "weigh": "Relying on the chest getting wet means each dose comes after the problem, not before it.",
+            "weigh": "Does each dose come before the problem, or after it?",
             "safety": ""
           }
         ]
@@ -1534,34 +1534,34 @@
         "th": [
           {
             "strength": "รักษาอาการกลับซ้ำด้วยการทำให้ปอดแห้งอีกครั้ง",
-            "weigh": "อัตราหยดใหม่ควรอิงขนาดยาที่เพิ่งต้องใช้",
+            "weigh": "อัตราหยดใหม่จะตั้งจากขนาดยาเท่าไร",
             "safety": ""
           },
           {
             "strength": "ตั้งอัตราหยดจากขนาดใหม่ ทำให้ยาตรงกับความต้องการ",
-            "weigh": "อาการกลับซ้ำใน 2 ชม. ต้องประเมินถี่ขึ้น",
+            "weigh": "กลับมาซ้ำใน 2 ชั่วโมง จะประเมินถี่ขึ้นแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ใช้เป้าหมายเดิมทำให้แผนสม่ำเสมอ",
-            "weigh": "อัตราเดิมไม่พอ อัตราใหม่จึงต้องทบทวนบ่อย",
+            "weigh": "อัตราเดิมไม่พอ จะรู้ได้อย่างไรว่าอัตราใหม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You treat the relapse by drying his chest again.",
-            "weigh": "The new drip rate follows the larger dose he just needed.",
+            "weigh": "What dose will you base the new drip rate on?",
             "safety": ""
           },
           {
             "strength": "Setting the drip from the new dose links it to his need.",
-            "weigh": "A relapse at 2 hours calls for closer review.",
+            "weigh": "After a relapse at 2 hours, how much closer will your checks be?",
             "safety": ""
           },
           {
             "strength": "The same end point as before keeps the plan consistent.",
-            "weigh": "The earlier rate fell short, so the new one is reviewed often.",
+            "weigh": "The old rate fell short; how will you know the new one is enough?",
             "safety": ""
           }
         ]
@@ -1570,34 +1570,34 @@
         "th": [
           {
             "strength": "ตอบอาการกลับซ้ำด้วยยาต้านพิษทั้งสองตัว",
-            "weigh": "อะโทรปีนยังเป็นยาหลัก",
+            "weigh": "ในยาสองตัวนี้ ตัวไหนยังเป็นหลักในการทำให้ปอดแห้ง",
             "safety": ""
           },
           {
             "strength": "แผนนี้ให้ความสำคัญกับการทำให้ปอดแห้งก่อน",
-            "weigh": "พราลิดอกซีมให้ต่อเนื่องหลายชั่วโมง จึงต้องกำหนดระยะเวลา",
+            "weigh": "พราลิดอกซีมจะให้ต่อนานแค่ไหน และหยุดเมื่อไร",
             "safety": ""
           },
           {
             "strength": "แผนนี้รับมือเสมหะที่กลับมาโดยตรง",
-            "weigh": "การคุมขนาดยาหลังจากนี้ตัดสินว่าเสมหะจะกลับมาอีกหรือไม่",
+            "weigh": "หลังจากนี้จะคุมขนาดยาอย่างไร ไม่ให้เสมหะกลับมาอีก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You answer the relapse with both antidotes.",
-            "weigh": "Re-atropinising still carries the main load.",
+            "weigh": "Of the two antidotes, which still does the main work of drying his chest?",
             "safety": ""
           },
           {
             "strength": "Drying the chest again comes first in the plan.",
-            "weigh": "Pralidoxime runs over hours, so the plan needs a duration.",
+            "weigh": "How long will the pralidoxime run, and when will it stop?",
             "safety": ""
           },
           {
             "strength": "The plan meets returning secretions head on.",
-            "weigh": "How the dose is held after this decides whether they return.",
+            "weigh": "After this, how will you hold the dose so the secretions stay away?",
             "safety": ""
           }
         ]
@@ -1606,34 +1606,34 @@
         "th": [
           {
             "strength": "ฉีดยาให้ปอดแห้ง แล้วใช้**อัตราเดียว**คุมต่อ เป็นแผนสองขั้นที่ชัด",
-            "weigh": "อัตราที่ไม่อิงขนาดที่เขาต้องใช้อาจต่ำไป และเสมหะค่อย ๆ กลับมาได้",
+            "weigh": "อัตราคงที่ที่ไม่อิงขนาดที่เขาเพิ่งต้องใช้ จะต่ำไปไหม",
             "safety": ""
           },
           {
             "strength": "ตอบสนองต่ออาการกลับมาได้เร็ว และทำให้หอผู้ป่วยดูแลง่าย",
-            "weigh": "การฉีดครั้งเดียวอาจไม่พอ ต้องให้จนถึงเป้าที่ชัดจึงรู้ว่าเขาต้องการยาเท่าใด",
+            "weigh": "ฉีดครั้งเดียวพอไหม หรือต้องให้จนถึงเป้าก่อน",
             "safety": ""
           },
           {
             "strength": "ตามด้วยยาหยดหลังฉีด เลี่ยงการขึ้นลงของระดับยาจากการฉีดซ้ำ ๆ",
-            "weigh": "อัตราคงที่ต้องทบทวนสม่ำเสมอ เพราะความต้องการยาจะเปลี่ยนในวันถัดไป",
+            "weigh": "ความต้องการยาจะเปลี่ยนในวันถัดไป อัตราคงที่จะตามทันไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A bolus then a **steady rate** gives a clear two-part plan for the relapse.",
-            "weigh": "A rate not linked to the dose he needed may be too low, and secretions can creep back.",
+            "weigh": "Is a rate not linked to the dose he just needed likely to run low?",
             "safety": ""
           },
           {
             "strength": "You respond to the relapse quickly and keep it simple for the ward.",
-            "weigh": "One bolus may not be enough; dosing to a clear end point shows how much he needs.",
+            "weigh": "Will one bolus be enough, or must you dose to a clear end point first?",
             "safety": ""
           },
           {
             "strength": "Following the bolus with a drip avoids the swings of repeated single doses.",
-            "weigh": "A fixed rate needs regular review, as his needs will shift over the next day.",
+            "weigh": "His needs will shift over the next day; can a fixed rate keep up?",
             "safety": ""
           }
         ]
@@ -1642,34 +1642,34 @@
         "th": [
           {
             "strength": "มุ่งขยาย**หลอดลมที่ตีบ**ไปพร้อมกับให้อะโทรปีน",
-            "weigh": "เสมหะที่กลับมาตอบสนองต่อขนาดอะโทรปีนมากกว่ายาพ่น",
+            "weigh": "เสมหะที่กลับมาตอบสนองต่ออะไรมากกว่า ขนาดอะโทรปีนหรือยาพ่น",
             "safety": ""
           },
           {
             "strength": "ใส่ใจหลอดลม แสดงว่าติดตามการหายใจอย่างใกล้ชิด",
-            "weigh": "อาการกลับมาช่วงนี้มักสะท้อนอะโทรปีนที่ไม่พอ มากกว่าหลอดลมตีบ",
+            "weigh": "อาการที่กลับมาช่วงนี้ สะท้อนหลอดลมตีบ หรืออะโทรปีนที่ไม่พอ",
             "safety": ""
           },
           {
             "strength": "เพิ่มยาขยายหลอดลม เพื่อลดแรงที่ต้องใช้หายใจเมื่อเสมหะกลับมา",
-            "weigh": "ยาพ่นช่วยหลอดลมตีบ แต่ไม่ได้แก้ต้นเหตุของอาการที่กลับมา",
+            "weigh": "ยาพ่นแก้ต้นเหตุของอาการที่กลับมาหรือเปล่า",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You target the **narrowed airways** behind the wheeze while giving atropine.",
-            "weigh": "Returning secretions respond to the atropine dose more than to a nebuliser.",
+            "weigh": "Do returning secretions respond more to the atropine dose or to a nebuliser?",
             "safety": ""
           },
           {
             "strength": "Attention to his airways shows you are tracking his breathing closely.",
-            "weigh": "A relapse at this point usually reflects too little atropine rather than tight airways.",
+            "weigh": "Does a relapse now reflect tight airways, or too little atropine?",
             "safety": ""
           },
           {
             "strength": "Adding a bronchodilator aims to ease the work of breathing as secretions return.",
-            "weigh": "The nebuliser eases narrowing but leaves the cause of the relapse untouched.",
+            "weigh": "Does the nebuliser touch the cause of the relapse?",
             "safety": ""
           }
         ]
@@ -1678,34 +1678,34 @@
         "th": [
           {
             "strength": "ชดเชย**น้ำที่เสียไป**ทางเหงื่อและถ่ายเหลว ช่วยประคองระบบไหลเวียน",
-            "weigh": "เสมหะที่กลับมาเป็นเรื่องขนาดยาก่อน สารน้ำจึงให้ควบคู่ ไม่ได้ทดแทนกัน",
+            "weigh": "เสมหะที่กลับมาเป็นปัญหาเรื่องน้ำ หรือเรื่องขนาดยา",
             "safety": ""
           },
           {
             "strength": "เห็นการเสียน้ำต่อเนื่องที่มากับพิษนี้",
-            "weigh": "เสมหะที่กลับมา บอกว่าฤทธิ์อะโทรปีนลดลง ซึ่งสารน้ำแก้ไม่ได้",
+            "weigh": "เสมหะที่กลับมาบอกอะไรเรื่องฤทธิ์ของอะโทรปีน",
             "safety": ""
           },
           {
             "strength": "ให้สารน้ำเพียงพอ ช่วยปกป้องไตในพิษที่ยืดเยื้อ",
-            "weigh": "สารน้ำแก้การเสียน้ำ แต่อาการกลับมาต้องทบทวนขนาดอะโทรปีน",
+            "weigh": "สารน้ำแก้การเสียน้ำ แล้วอาการที่กลับมาต้องทบทวนอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Replacing **fluid lost** to sweating and diarrhoea keeps his circulation supported.",
-            "weigh": "Returning secretions are a dosing problem first, so fluids sit alongside, not in place of it.",
+            "weigh": "Are returning secretions a fluid problem, or a dosing problem?",
             "safety": ""
           },
           {
             "strength": "You recognise the ongoing losses that come with this poisoning.",
-            "weigh": "Secretions coming back show the atropine effect is fading, which fluids will not restore.",
+            "weigh": "What do returning secretions tell you about the atropine effect?",
             "safety": ""
           },
           {
             "strength": "Keeping him hydrated protects the kidneys during a long course.",
-            "weigh": "Fluids treat the losses, but the relapse itself needs the atropine dose revisited.",
+            "weigh": "Fluids treat the losses; what does the relapse itself ask you to revisit?",
             "safety": ""
           }
         ]
@@ -1716,34 +1716,34 @@
         "th": [
           {
             "strength": "คุมทางเดินหายใจที่**เสมหะท่วม**ก่อนหมดแรง ป้องกันการหยุดหายใจกะทันหัน",
-            "weigh": "ต้องให้อะโทรปีนต่อทั้งระหว่างและหลังใส่ท่อ เพราะท่อไม่ได้หยุดเสมหะ",
+            "weigh": "ใส่ท่อแล้ว ยังต้องให้อะโทรปีนต่อไหม เพราะอะไร",
             "safety": ""
           },
           {
             "strength": "อ่านอาการทรุดลงกับเสมหะที่มากขึ้นว่าทางเดินหายใจกำลังล้มเหลว แล้วลงมือก่อนจะหยุดหายใจ",
-            "weigh": "การส่งต่อผู้ป่วยใส่ท่อต้องมีทีมและอุปกรณ์พร้อมตลอดเส้นทาง",
+            "weigh": "ยาที่ใช้ตอนใส่ท่อ ตัวไหนออกฤทธิ์ต่างไปในพิษนี้",
             "safety": ""
           },
           {
             "strength": "ครอบคลุมทั้งทางเดินหายใจ ยาแก้พิษ และระดับการดูแลที่เขาต้องการใน **ICU**",
-            "weigh": "ยาที่ใช้ระหว่างใส่ท่ออาจออกฤทธิ์ต่างไปในพิษนี้ จึงต้องเลือกอย่างระมัดระวัง",
+            "weigh": "ใส่ท่อแล้ว อะไรจะบอกว่าอะโทรปีนพอแล้ว",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Securing the **flooding airway** before he tires protects him from a sudden respiratory arrest.",
-            "weigh": "Atropine must keep going through and after intubation, as the tube does not stop secretions.",
+            "weigh": "Once the tube is in, does the atropine still need to continue, and why?",
             "safety": ""
           },
           {
             "strength": "You read his worsening and rising secretions as a failing airway and act ahead of collapse.",
-            "weigh": "Moving an intubated patient needs a team and equipment for the whole trip.",
+            "weigh": "Which intubation drugs act differently in this poisoning?",
             "safety": ""
           },
           {
             "strength": "Your plan covers the airway, the antidote and the level of care, with a move to **refer to ICU**.",
-            "weigh": "Drugs used for intubation can act differently in this poisoning, so the choice deserves care.",
+            "weigh": "With the tube in, what will tell you the atropine is now enough?",
             "safety": ""
           }
         ]
@@ -1752,34 +1752,34 @@
         "th": [
           {
             "strength": "**ดูดเสมหะ** เพิ่มอะโทรปีนเท่าตัวจนปอดแห้งร่วมออกซีม มุ่งทั้งเสมหะและเอนไซม์",
-            "weigh": "เขาทรุดลงขณะเสมหะท่วมปอด การหายใจอาจล้มเหลวก่อนยาจะออกฤทธิ์ทัน",
+            "weigh": "อาการแย่ลงขณะเสมหะท่วมปอด การหายใจจะรอให้ยาออกฤทธิ์ทันไหม",
             "safety": ""
           },
           {
             "strength": "คงแผนแก้พิษให้ครบแม้อยู่ใต้แรงกดดัน ทั้งดูดเสมหะ O2 อะโทรปีน และออกซีม",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ ไม่ถึงปอดที่ท่วม และผู้ป่วยที่ซึมอาจปกป้องทางเดินหายใจเองไม่ได้",
+            "weigh": "ดูดเสมหะได้แค่ลำคอ แล้วคนที่ซึมอยู่จะปกป้องทางเดินหายใจเองได้ไหม",
             "safety": ""
           },
           {
             "strength": "เร่ง**เพิ่มอะโทรปีนเท่าตัว** รับมือเสมหะที่เพิ่มขึ้นโดยตรง",
-            "weigh": "หลักฐานของออกซีมยังไม่ชัด และอาการที่ทรุดลงทำให้ต้องคิดเรื่องปกป้องการหายใจ",
+            "weigh": "หลักฐานของออกซีมยังไม่ชัด ตอนนี้อะไรสำคัญกว่าสำหรับการหายใจของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction with atropine doubled to a **dry chest** and an oxime goes after both the secretions and the enzyme.",
-            "weigh": "He is getting worse as his chest floods, and his breathing may fail before the drugs take hold.",
+            "weigh": "He is getting worse as his chest floods; can his breathing wait for the drugs to work?",
             "safety": ""
           },
           {
             "strength": "You keep the antidote plan complete under pressure: suction, O2, atropine and an oxime.",
-            "weigh": "Suction reaches the throat, not the flooded lungs, and a drowsy man may not guard his own airway.",
+            "weigh": "Suction reaches only his throat; can a drowsy man guard his own airway?",
             "safety": ""
           },
           {
             "strength": "Escalating with **atropine doubled** to a dry chest meets the surge in secretions head on.",
-            "weigh": "Oxime evidence is mixed, and his decline puts protecting his breathing in play.",
+            "weigh": "With oxime evidence mixed, what matters more for his breathing right now?",
             "safety": ""
           }
         ]
@@ -1788,34 +1788,34 @@
         "th": [
           {
             "strength": "ดูดเสมหะร่วมกับเพิ่มยาเท่าตัว**ทุก 5 นาที** รับมือเสมหะที่พุ่งขึ้นได้เร็วและวัดผลได้",
-            "weigh": "เสมหะเพิ่มขึ้นและเขาทรุดลง การหายใจอาจล้มเหลวก่อนปอดจะแห้ง",
+            "weigh": "เสมหะเพิ่มและอาการแย่ลง การหายใจจะทนได้จนปอดแห้งไหม",
             "safety": ""
           },
           {
             "strength": "ดูดเสมหะให้คอโล่ง และยึดเป้าที่ชัดแม้อาการทรุดลง",
-            "weigh": "รอบละ 5 นาทีคือเวลาที่ผู้ป่วยซึมซึ่งเสมหะท่วมปอดอาจไม่มี",
+            "weigh": "รอบละ 5 นาที คนที่เสมหะท่วมปอดมีเวลาพอไหม",
             "safety": ""
           },
           {
             "strength": "ปรับยาจน**ปอดแห้ง** ผูกขนาดยากับสิ่งที่ปอดแสดงออกมา",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ อาการซึมจึงยังทำให้ทางเดินหายใจเสี่ยงขณะเพิ่มยาอยู่",
+            "weigh": "ขณะเพิ่มยา อะไรจะปกป้องทางเดินหายใจในส่วนที่การดูดเสมหะเข้าไม่ถึง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction plus doubling **every 5 minutes** answers the surge in secretions with a fast, measurable ramp.",
-            "weigh": "With secretions rising and him worsening, his breathing may fail before the chest dries.",
+            "weigh": "With secretions rising and him worse, will his breathing last until the chest is dry?",
             "safety": ""
           },
           {
             "strength": "You clear his throat and hold to a clear end point even as he deteriorates.",
-            "weigh": "Each 5-minute cycle is time a drowsy man with a flooding chest may not have.",
+            "weigh": "Does a man with flooding lungs have 5 minutes per cycle to spare?",
             "safety": ""
           },
           {
             "strength": "Titrating to a **dry chest** keeps the dose tied to what his lungs show.",
-            "weigh": "Suction reaches only the throat, so his drowsiness still puts the airway at risk as the dose climbs.",
+            "weigh": "As the dose climbs, what protects the airway that suction cannot reach?",
             "safety": ""
           }
         ]
@@ -1824,34 +1824,34 @@
         "th": [
           {
             "strength": "ดูดเสมหะบ่อย ๆ ร่วมกับ O2 เปิดปากและคอให้โล่ง ซื้อเวลาขณะอะโทรปีนออกฤทธิ์",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ ไม่ถึงเสมหะที่ท่วมในปอด ขณะที่เขาทรุดลง",
+            "weigh": "ดูดเสมหะได้แค่ลำคอ แล้วเสมหะที่ท่วมอยู่ในปอดล่ะ",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูแลทางเดินหายใจข้างเตียง ตรงจุดที่เสมหะคั่งคุกคามก่อน",
-            "weigh": "O2 ช่วยให้ตัวเลขดีขึ้นชั่วคราว แต่ไม่หยุดเสมหะที่ท่วมปอด",
+            "weigh": "O2 ทำให้ตัวเลขดีขึ้นชั่วคราว แต่หยุดเสมหะที่ท่วมปอดได้ไหม",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูด**เสมหะที่คั่ง**ออก ลดความเสี่ยงที่เขาจะสำลักเข้าปอด",
-            "weigh": "การดูดเสมหะซ้ำ ๆ อาจกระตุ้นให้ชีพจรช้าลงได้",
+            "weigh": "ดูดเสมหะซ้ำ ๆ อาจทำให้ชีพจรช้าลง จะเฝ้าดูอย่างไร",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
         "en": [
           {
             "strength": "Frequent **suction** with oxygen clears his mouth and throat, buying time while atropine works.",
-            "weigh": "Suction reaches the throat, not the secretions flooding his lungs, and he is getting worse.",
+            "weigh": "Suction reaches his throat; what about the secretions flooding his lungs?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "You attend to the airway at the bedside, where pooled secretions threaten it first.",
-            "weigh": "Oxygen lifts the numbers for a while, but it does not stop his chest flooding.",
+            "weigh": "Oxygen lifts the numbers for a while, but does it stop the flooding?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Clearing **pooled secretions** reduces the risk of him inhaling them.",
-            "weigh": "Repeated suction can slow his pulse through vagal stimulation.",
+            "weigh": "Repeated suction can slow his pulse; how will you watch for that?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -1860,34 +1860,34 @@
         "th": [
           {
             "strength": "สังเกต**เสียงวี้ด** และเพิ่มยาเพื่อขยายหลอดลม",
-            "weigh": "ปอดที่ท่วมส่วนใหญ่เป็นเสมหะ ซึ่งยาพ่นช่วยขจัดได้น้อย",
+            "weigh": "ปอดที่ท่วมส่วนใหญ่เป็นอะไร และยาพ่นช่วยส่วนนั้นได้แค่ไหน",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูดเสมหะ และใส่ใจ**หลอดลมที่ตีบ** แสดงว่าฟังปอดของเขาอย่างตั้งใจ",
-            "weigh": "อาการซึมกับเสมหะที่เพิ่มขึ้นเป็นภัยหลักตรงนี้ มากกว่าหลอดลมตีบ",
+            "weigh": "ตอนนี้ภัยหลักคืออาการซึมกับเสมหะ หรือหลอดลมตีบ",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ใช้การดูดเสมหะและอะโทรปีนร่วมกับยาขยายหลอดลม เพื่อลดแรงที่เขาต้องใช้หายใจ",
-            "weigh": "การดูดเสมหะถึงแค่ลำคอ และเวลาที่ใช้กับยาพ่นคือเวลาที่อาการของเขายังทรุดต่อ",
+            "weigh": "ระหว่างที่เวลาหมดไปกับยาพ่น การหายใจของเขาเป็นอย่างไร",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
         "en": [
           {
             "strength": "You notice the **wheeze** and add a drug to open the airways.",
-            "weigh": "His flooding chest is mostly secretions, which a nebuliser does little to clear.",
+            "weigh": "What are his flooding lungs mostly full of, and how much can a nebuliser clear it?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Suction with attention to **the narrowed airways** shows you are listening to his lungs.",
-            "weigh": "Drowsiness with surging secretions is the threat here, more than the narrowing.",
+            "weigh": "Is the main threat here the drowsiness and secretions, or the narrowing?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Combining suction and atropine with a bronchodilator aims to ease his work of breathing.",
-            "weigh": "Suction reaches the throat only, and time on the nebuliser is time his condition keeps worsening.",
+            "weigh": "What does his breathing do while time goes on the nebuliser?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -1898,34 +1898,34 @@
         "th": [
           {
             "strength": "ให้เขาอยู่ใกล้ความช่วยเหลือในวันถัดไป",
-            "weigh": "นอนโรงพยาบาลอีกหลายวันเป็นภาระของครอบครัวชาวนา",
+            "weigh": "ช่วงวันเหล่านี้ จะมองหาอาการอ่อนแรงแบบใหม่ที่ตรงไหน",
             "safety": ""
           },
           {
             "strength": "อยู่ใกล้ ICU ทำให้ระดับการดูแลเหมาะกับความรุนแรง",
-            "weigh": "ครอบครัวควรได้รับคำอธิบายเหตุผลของการนอนต่อ",
+            "weigh": "จะอธิบายครอบครัวชาวนาอย่างไร ว่าทำไมต้องนอนต่ออีกหลายวัน",
             "safety": ""
           },
           {
             "strength": "มองความสงบวันนี้เป็นส่วนหนึ่งของการฟื้นตัว ยังไม่จบ",
-            "weigh": "การตรวจตามเวลาทุกวันทำให้การนอนต่อมีประโยชน์",
+            "weigh": "แต่ละวันจะตรวจอะไรบ้าง ให้การนอนต่อมีประโยชน์จริง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You keep him where help is close for the next days.",
-            "weigh": "Several more days in hospital weigh on a farming family.",
+            "weigh": "Where would you look for new weakness in these days?",
             "safety": ""
           },
           {
             "strength": "Staying near an ICU matches care to his severity.",
-            "weigh": "The family needs the reason for the stay explained.",
+            "weigh": "How will you explain to a farming family why he must stay several more days?",
             "safety": ""
           },
           {
             "strength": "You treat today's calm as part of recovery, not the end.",
-            "weigh": "A set daily review makes the stay useful.",
+            "weigh": "What will each day’s review look at, so the extra days are worth it?",
             "safety": ""
           }
         ]
@@ -1934,34 +1934,34 @@
         "th": [
           {
             "strength": "ลดยาทีละขั้นช่วยให้ทีมเห็นว่าเขารับได้แค่ไหน",
-            "weigh": "แต่ละขั้นต้องมีอาการที่กำหนดไว้ให้ตรวจ",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "ลดยาในที่ที่มี ICU ทำให้ความช่วยเหลืออยู่ใกล้",
-            "weigh": "วางขั้นการลดยาช่วงกลางวันเหมาะกับกำลังคน",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "ลดยาช้า ๆ ช่วยเห็นเสมหะที่กลับมาได้เร็ว",
-            "weigh": "ลดเร็วหรือช้าเกินมีความเสี่ยงทั้งคู่ จึงต้องกำหนดจังหวะ",
+            "weigh": "",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A step-by-step wean lets the team see how he copes.",
-            "weigh": "Each step needs set signs to check.",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "Weaning where an ICU is close keeps help near.",
-            "weigh": "Steps planned by day suit the staffing best.",
+            "weigh": "",
             "safety": ""
           },
           {
             "strength": "A gradual wean picks up returning secretions early.",
-            "weigh": "Too fast or too slow both carry risk, so the pace is set.",
+            "weigh": "",
             "safety": ""
           }
         ]
@@ -1970,34 +1970,34 @@
         "th": [
           {
             "strength": "รอให้**อาการสงบสองวัน**หลังหยุดยา แสดงความคงที่ก่อนกลับบ้าน",
-            "weigh": "ช่วง 48 ชั่วโมงนี้ควรเลยช่วงวันแรก ๆ ที่อาการอ่อนแรงใหม่อาจเกิดได้",
+            "weigh": "48 ชั่วโมงนี้เลยช่วงที่อาการอ่อนแรงแบบใหม่อาจเกิดแล้วหรือยัง",
             "safety": ""
           },
           {
             "strength": "ตั้งเกณฑ์กลับบ้านที่ชัดและวัดได้",
-            "weigh": "หากบ้านอยู่ไกลโรงพยาบาล อาการที่กลับมาจะเข้าถึงการรักษาได้ยาก",
+            "weigh": "ถ้าบ้านอยู่ไกล อาการที่กลับมาจะถึงมือหมอทันไหม",
             "safety": ""
           },
           {
             "strength": "หยุดยาสองวันโดยไม่มีอาการ ลดโอกาสอาการกลับซ้ำที่บ้าน",
-            "weigh": "อาการกลับหลังหยุดยาไม่บ่อยแต่รุนแรง จึงต้องให้คำแนะนำการกลับมาโรงพยาบาลที่ชัด",
+            "weigh": "ถ้าอาการกลับมาที่บ้าน เขาควรรู้อะไรบ้างก่อนออกจากโรงพยาบาล",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Requiring **two settled days** off the drug shows stability before he goes home.",
-            "weigh": "The 48 hours should also fall beyond the early days when new weakness can appear.",
+            "weigh": "Do those 48 hours reach past the days when new weakness can appear?",
             "safety": ""
           },
           {
             "strength": "You set a clear, objective rule for going home.",
-            "weigh": "If home is far from hospital, any relapse would be harder to reach in time.",
+            "weigh": "If home is far away, could a relapse reach care in time?",
             "safety": ""
           },
           {
             "strength": "Two days off the drug lowers the chance of relapse at home.",
-            "weigh": "Relapse after stopping is uncommon but serious, so clear return advice goes with him.",
+            "weigh": "What should he know before leaving, in case it comes back at home?",
             "safety": ""
           }
         ]
@@ -2006,34 +2006,34 @@
         "th": [
           {
             "strength": "สอนใช้**ถุงมือ หน้ากาก**และอาบน้ำหลังพ่น เปลี่ยนการนอน รพ. ครั้งนี้เป็นการป้องกัน",
-            "weigh": "การสอนต้องไปคู่กับแผนดูแลช่วงที่ยังเสี่ยง ไม่ได้ทดแทนกัน",
+            "weigh": "การสอนนี้ไปคู่กับแผนดูแลช่วงที่ยังเสี่ยงอย่างไร",
             "safety": ""
           },
           {
             "strength": "แก้ที่ต้นเหตุคือการพ่นยาโดยไม่ป้องกัน เพื่อไม่ให้เกิดซ้ำ",
-            "weigh": "คำแนะนำได้ผลมากขึ้นเมื่อญาติอยู่ด้วยและใช้ภาษาที่ชาวนาใช้",
+            "weigh": "ใครควรอยู่ฟังด้วย และจะใช้คำแบบไหนให้เขาทำได้จริง",
             "safety": ""
           },
           {
             "strength": "เชื่อมการเจ็บป่วยกับ**อาบน้ำหลังพ่น** ให้นิสัยที่จับต้องได้",
-            "weigh": "การป้องกันสำคัญ แต่ความปลอดภัยของเขาในวันข้างหน้ายังต้องมีแผน",
+            "weigh": "ป้องกันครั้งหน้าได้แล้ว ความปลอดภัยของเขาในวันข้างหน้ามีแผนหรือยัง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Teaching **gloves, a mask** and washing turns this admission into prevention.",
-            "weigh": "Teaching works alongside his recovery plan, not in place of the days still at risk.",
+            "weigh": "How does the teaching sit alongside his care for the days still at risk?",
             "safety": ""
           },
           {
             "strength": "You address the cause, unprotected spraying, so this does not happen again.",
-            "weigh": "Advice lands better with the family present and in the words farmers use.",
+            "weigh": "Who should hear it with him, and in what words will it stick?",
             "safety": ""
           },
           {
             "strength": "Linking his illness to **washing after work** gives him a concrete habit to change.",
-            "weigh": "Prevention matters, but his own safety over the coming days still needs a plan.",
+            "weigh": "Next time is covered; what is the plan for his safety in the coming days?",
             "safety": ""
           }
         ]
@@ -2042,34 +2042,34 @@
         "th": [
           {
             "strength": "**ตรวจโคลีนเอสเทอเรส**ทุกวัน ได้บันทึกการฟื้นตัวที่เป็นรูปธรรม",
-            "weigh": "ระดับในพลาสมาฟื้นตามเวลาของมันเอง และสัมพันธ์กับความเสี่ยงทางคลินิกไม่ดี",
+            "weigh": "ระดับในพลาสมาบอกความเสี่ยงทางคลินิกได้ดีแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ให้อยู่โรงพยาบาลต่อพร้อมตัวชี้วัดที่วัดได้ เป็นการดูแลที่รอบคอบ",
-            "weigh": "หลายแห่งต้องส่งตรวจนอก ผลอาจช้ากว่าอาการข้างเตียงหลายวัน",
+            "weigh": "ถ้าต้องส่งตรวจนอก ผลจะช้ากว่าอาการข้างเตียงไปกี่วัน",
             "safety": ""
           },
           {
             "strength": "ติดตามเอนไซม์ สะท้อนความสนใจว่าพิษคลี่คลายอย่างไร",
-            "weigh": "ระดับเอนไซม์ไม่บอกอาการอ่อนแรงของกล้ามเนื้อที่ยังเกิดได้ในช่วงนี้",
+            "weigh": "อาการอ่อนแรงของกล้ามเนื้อที่ยังเกิดได้ช่วงนี้ ระดับเอนไซม์จะบอกได้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Daily **cholinesterase** tests give an objective record of recovery.",
-            "weigh": "Plasma levels recover on their own timeline and track clinical risk poorly.",
+            "weigh": "How well does the plasma level track his clinical risk?",
             "safety": ""
           },
           {
             "strength": "You keep him in hospital and add a measurable marker, a cautious combination.",
-            "weigh": "Many hospitals send this test away, so results may lag days behind his bedside state.",
+            "weigh": "If the test is sent away, how far behind his bedside state will results run?",
             "safety": ""
           },
           {
             "strength": "Following the enzyme reflects interest in how the poisoning resolves.",
-            "weigh": "The level will not show the muscle weakness that can still appear in these days.",
+            "weigh": "Will the enzyme level show the muscle weakness that can still come these days?",
             "safety": ""
           }
         ]
@@ -2080,34 +2080,34 @@
         "th": [
           {
             "strength": "ย้ายไปที่มี **ICU** ก่อนทรุด ทำให้เครื่องช่วยหายใจพร้อมหากจำเป็น",
-            "weigh": "เสมหะกลับมาทุกครั้งที่ลดยา การเดินทางจึงต้องวางแผนเรื่องยาและการติดตามอาการ",
+            "weigh": "เขายังต้องใช้อะโทรปีน ระหว่างทางจะเตรียมยาและการเฝ้าดูอย่างไร",
             "safety": ""
           },
           {
             "strength": "อ่านความต้องการอะโทรปีนที่ยาวนานว่าเป็นพิษรุนแรง และวางแผนล่วงหน้า",
-            "weigh": "เวลาส่งต่อสำคัญ ย้ายขณะคงที่ปลอดภัยกว่าย้ายหลังหมดแรง",
+            "weigh": "ย้ายตอนนี้ขณะยังคงที่ กับรอจนเขาเริ่มล้า ต่างกันอย่างไร",
             "safety": ""
           },
           {
             "strength": "เห็นว่า**อาการที่ยืดเยื้อ**เพิ่มโอกาสต้องใช้เครื่องช่วยหายใจ จึงกำหนดระดับการดูแลได้",
-            "weigh": "ทีมปลายทางต้องรู้ปริมาณอะโทรปีนรวม และการตอบสนองเมื่อลดยา",
+            "weigh": "ทีมปลายทางต้องรู้อะไรเรื่องอะโทรปีนที่เขาใช้มา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Moving him to an **ICU** before he fails puts a ventilator within reach if needed.",
-            "weigh": "Secretions return with each dose cut, so the journey needs atropine and monitoring planned.",
+            "weigh": "He still needs atropine; how will the drug and his monitoring be planned for the trip?",
             "safety": ""
           },
           {
             "strength": "You read a long atropine need as a sign of severe poisoning and plan ahead.",
-            "weigh": "Timing matters: moving him while stable is safer than after he tires.",
+            "weigh": "How does moving him while stable compare with moving him once he tires?",
             "safety": ""
           },
           {
             "strength": "Recognising that a **long course** raises ventilator risk sets the level of care.",
-            "weigh": "The receiving team needs his total atropine use and how he responds to dose cuts.",
+            "weigh": "What does the receiving team need to know about his atropine so far?",
             "safety": ""
           }
         ]
@@ -2116,34 +2116,34 @@
         "th": [
           {
             "strength": "ส่ง**ยาหยด**และพยาบาลไปด้วย ทำให้การรักษาไม่ขาดช่วงระหว่างทาง",
-            "weigh": "ผู้นำส่งต้องมีเกณฑ์ปรับยาที่ชัด และอะโทรปีนพอสำหรับความล่าช้าระหว่างทาง",
+            "weigh": "ผู้นำส่งต้องมีเกณฑ์ปรับยาแบบไหน และมียาพอสำหรับความล่าช้าไหม",
             "safety": ""
           },
           {
             "strength": "มองการเดินทางเป็นส่วนหนึ่งของการดูแล เพราะเสมหะกลับมาระหว่างทางได้",
-            "weigh": "ตกลงล่วงหน้าว่าใครปรับยาหยดระหว่างทาง ช่วยไม่ให้ลังเลเมื่อเสมหะกลับมา",
+            "weigh": "ถ้าเสมหะกลับมาระหว่างทาง ใครเป็นคนปรับยาหยด",
             "safety": ""
           },
           {
             "strength": "จับคู่ ICU กับผู้นำส่งที่มีทักษะ ครอบคลุมทั้งปลายทางและระหว่างทาง",
-            "weigh": "การเดินทางไกลขณะใช้อะโทรปีนต้องตรวจชีพจรและฟังปอดเป็นรอบ",
+            "weigh": "ระหว่างทางจะตรวจชีพจรและฟังปอดถี่แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sending the **drip** and a nurse with him keeps treatment unbroken on the road.",
-            "weigh": "The escort needs clear dosing rules and enough atropine for delays on the way.",
+            "weigh": "What dosing rules does the escort need, and is there atropine for delays?",
             "safety": ""
           },
           {
             "strength": "You treat the journey as part of care, since secretions can return en route.",
-            "weigh": "Agreeing who adjusts the drip during the trip avoids hesitation if secretions return.",
+            "weigh": "Who adjusts the drip on the road if secretions return?",
             "safety": ""
           },
           {
             "strength": "Matching ICU care with a skilled escort covers both destination and journey.",
-            "weigh": "A long trip on atropine needs his pulse and chest assessed at set times.",
+            "weigh": "How often will his pulse and chest be checked on the way?",
             "safety": ""
           }
         ]
@@ -2152,34 +2152,34 @@
         "th": [
           {
             "strength": "ส่งไปหอที่มีแพทย์ประจำ**ตลอดวัน** ทำให้มีคนดูแลทั้งกลางวันและกลางคืน",
-            "weigh": "หอผู้ป่วยเฝ้าดูได้ แต่การใช้อะโทรปีนนานเพิ่มโอกาสต้องการมากกว่าที่หอมีให้",
+            "weigh": "หอผู้ป่วยเฝ้าดูได้ แต่ถ้าเขาต้องการมากกว่าที่หอมีให้ล่ะ",
             "safety": ""
           },
           {
             "strength": "รู้ว่าเขาต้องการการดูแลมากกว่าที่โรงพยาบาลชุมชนให้ได้ในยามค่ำคืน",
-            "weigh": "หอปลายทางต้องรู้ปริมาณอะโทรปีนรวม และความเร็วที่เสมหะกลับมา",
+            "weigh": "หอปลายทางต้องรู้อะไรบ้างเรื่องอะโทรปีนที่เขาใช้มา",
             "safety": ""
           },
           {
             "strength": "โรงพยาบาลใหญ่ที่มี**แพทย์ประจำ**ตลอด ช่วยให้ตอบสนองเร็วหากอาการกลับ",
-            "weigh": "ระหว่างเดินทาง ยังต้องมีผู้ที่ให้อะโทรปีนได้หากเสมหะกลับมา",
+            "weigh": "ระหว่างทาง ใครให้อะโทรปีนได้ถ้าเสมหะกลับมา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A ward with doctors on site **day and night** means someone is always there to respond.",
-            "weigh": "A ward can watch him, but a long atropine need raises the chance he needs more than a ward offers.",
+            "weigh": "A ward can watch him, but what if he comes to need more than a ward offers?",
             "safety": ""
           },
           {
             "strength": "You recognise he needs more than a community hospital can give overnight.",
-            "weigh": "The receiving ward should know his total atropine and how quickly secretions return.",
+            "weigh": "What must the receiving ward know about the atropine he has needed?",
             "safety": ""
           },
           {
             "strength": "A larger hospital with **doctors on site** shortens response time if he relapses.",
-            "weigh": "Secretions on the road still need someone able to give atropine during the trip.",
+            "weigh": "On the road, who can give atropine if secretions return?",
             "safety": ""
           }
         ]
@@ -2188,34 +2188,34 @@
         "th": [
           {
             "strength": "**ตรวจโคลีนเอสเทอเรส**ทุกวัน เพิ่มบันทึกที่เป็นรูปธรรมระหว่างนอน รพ.",
-            "weigh": "ระดับเอนไซม์ไม่บอกว่าเสมหะจะกลับมาเมื่อใด ซึ่งปอดของเขาแสดงก่อน",
+            "weigh": "ระดับเอนไซม์จะบอกได้ไหมว่าเสมหะจะกลับมาเมื่อไร",
             "safety": "ภาวะหายใจล้มเหลวระยะหลังยังเกิดได้ระหว่างที่เขายังต้องใช้อะโทรปีน"
           },
           {
             "strength": "ระมัดระวังและติดตามพิษด้วยตัวชี้วัดที่วัดได้",
-            "weigh": "การที่อาการกลับทุกครั้งที่ลดยา บอกความรุนแรงได้มากกว่าระดับเอนไซม์",
+            "weigh": "อะไรบอกความรุนแรงได้มากกว่า ระดับเอนไซม์ หรือการที่เขายังต้องใช้อะโทรปีน",
             "safety": "ภาวะหายใจล้มเหลวระยะหลังยังเกิดได้ระหว่างที่เขายังต้องใช้อะโทรปีน"
           },
           {
             "strength": "ติดตามเอนไซม์ ได้แนวโน้มการฟื้นตัวไว้วางคู่กับอาการข้างเตียง",
-            "weigh": "การนอนที่นี่ต่อ ทำให้เขาอยู่ในที่ซึ่งการช่วยเมื่อหายใจล้มเหลวอาจมีจำกัด",
+            "weigh": "ถ้าการหายใจล้มเหลว ที่นี่ช่วยเขาได้แค่ไหน",
             "safety": "ภาวะหายใจล้มเหลวระยะหลังยังเกิดได้ระหว่างที่เขายังต้องใช้อะโทรปีน"
           }
         ],
         "en": [
           {
             "strength": "Daily **cholinesterase** tests add an objective record while he stays.",
-            "weigh": "Enzyme levels will not show when secretions return, which his chest shows first.",
+            "weigh": "Will the enzyme level tell you when secretions will return?",
             "safety": "Late breathing failure can still come while he needs atropine."
           },
           {
             "strength": "You stay cautious and track the poisoning with a measurable marker.",
-            "weigh": "His relapse with every dose cut says more about severity than any enzyme level.",
+            "weigh": "Which says more about severity: an enzyme level, or his ongoing need for atropine?",
             "safety": "Late breathing failure can still come while he needs atropine."
           },
           {
             "strength": "Following the enzyme gives a recovery trend to set beside his bedside signs.",
-            "weigh": "Staying here keeps him where support for failing breathing may be limited.",
+            "weigh": "If his breathing fails, how much support can this place give him?",
             "safety": "Late breathing failure can still come while he needs atropine."
           }
         ]
@@ -2226,34 +2226,34 @@
         "th": [
           {
             "strength": "ย้ายไปที่มี **ICU** ทำให้การช่วยหายใจเต็มรูปแบบพร้อมหากจำเป็น",
-            "weigh": "ต้องให้อะโทรปีนขนาดสูงต่อระหว่างทาง การเดินทางจึงต้องมียาและผู้ดูแลที่ชำนาญ",
+            "weigh": "ระหว่างทางยังต้องให้อะโทรปีนขนาดสูง จะเตรียมยาและคนดูแลอย่างไร",
             "safety": ""
           },
           {
             "strength": "อ่านความต้องการอะโทรปีนสูงและนานว่าเป็นพิษรุนแรง แล้วลงมือตามนั้น",
-            "weigh": "ย้ายก่อนเขาหมดแรง ปลอดภัยกว่าย้ายเมื่อหายใจล้มเหลวแล้ว",
+            "weigh": "ย้ายก่อนเขาหมดแรง กับย้ายตอนที่หายใจล้มเหลวแล้ว ต่างกันอย่างไร",
             "safety": ""
           },
           {
             "strength": "เห็นว่า**พิษรุนแรงและยืดเยื้อ**อาจต้องใช้เครื่องช่วยหายใจ จึงกำหนดระดับการดูแลได้",
-            "weigh": "ทีมปลายทางต้องรู้ปริมาณอะโทรปีนรวม และการตอบสนองเมื่อลดยา",
+            "weigh": "ทีมปลายทางต้องรู้อะไรเรื่องอะโทรปีนที่เขาใช้มา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Moving him to an **ICU** puts full ventilator support within reach.",
-            "weigh": "High-dose atropine must continue on the way, so the trip needs drugs and skilled hands.",
+            "weigh": "High-dose atropine must continue on the way; what drugs and hands go with him?",
             "safety": ""
           },
           {
             "strength": "You read a high, prolonged atropine need as severe poisoning and act on it.",
-            "weigh": "Moving him before he tires is safer than moving a man in respiratory failure.",
+            "weigh": "How does moving him before he tires differ from moving a man in respiratory failure?",
             "safety": ""
           },
           {
             "strength": "Recognising that **prolonged poisoning** may need a ventilator sets the level of care.",
-            "weigh": "The receiving team needs his atropine totals and how he responds to dose cuts.",
+            "weigh": "What does the receiving team need to know about the atropine he has needed?",
             "safety": ""
           }
         ]
@@ -2262,34 +2262,34 @@
         "th": [
           {
             "strength": "ล้างสารพิษที่ค้างบนตัวและวางแผนส่ง ICU",
-            "weigh": "ล้างให้เร็ว เพื่อให้การส่ง ICU ทันเวลา",
+            "weigh": "จะล้างตัวอย่างไรไม่ให้การส่งต่อช้าลง",
             "safety": ""
           },
           {
             "strength": "ล้างตัวก่อนเดินทาง ปกป้องทั้งผู้ป่วยและทีมนำส่ง",
-            "weigh": "เจ้าหน้าที่ต้องใส่ถุงมือขณะล้าง",
+            "weigh": "ทีมที่ล้างตัวให้เขาต้องป้องกันตัวเองอย่างไร",
             "safety": ""
           },
           {
             "strength": "จับคู่การล้างตัวกับการส่ง ICU ครอบคลุมสองความต้องการ",
-            "weigh": "การต้องใช้อะโทรปีนนานอาจมาจากได้รับสารปริมาณมาก",
+            "weigh": "นอกจากสารที่ค้างบนตัว อะไรอีกที่ทำให้เขายังต้องใช้อะโทรปีนนานขนาดนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "You remove any spray left on him and plan ICU care.",
-            "weigh": "The wash is quick, so the move to ICU stays prompt.",
+            "weigh": "How will you keep the wash from delaying the move?",
             "safety": ""
           },
           {
             "strength": "Washing before the trip protects him and his escort.",
-            "weigh": "Staff need gloves for the wash.",
+            "weigh": "How does the team doing the wash protect itself?",
             "safety": ""
           },
           {
             "strength": "Pairing a wash with an ICU referral covers two needs.",
-            "weigh": "A long atropine need can also come from a heavy dose.",
+            "weigh": "Besides spray left on him, what else could keep his atropine need this long?",
             "safety": ""
           }
         ]
@@ -2298,34 +2298,34 @@
         "th": [
           {
             "strength": "ส่งไปหอที่มีแพทย์ประจำ**ตลอดวัน** ทำให้มีคนดูแลทั้งกลางวันและกลางคืน",
-            "weigh": "หอผู้ป่วยเฝ้าดูได้ แต่การใช้อะโทรปีนนานเพิ่มโอกาสต้องการมากกว่าที่หอมีให้",
+            "weigh": "หอผู้ป่วยเฝ้าดูได้ แต่ถ้าเขาต้องการมากกว่าที่หอมีให้ล่ะ",
             "safety": ""
           },
           {
             "strength": "รู้ว่าเขาต้องการการดูแลมากกว่าที่โรงพยาบาลชุมชนให้ได้ในยามค่ำคืน",
-            "weigh": "หอปลายทางต้องรู้ปริมาณอะโทรปีนรวม และความเร็วที่เสมหะกลับมา",
+            "weigh": "หอปลายทางต้องรู้อะไรบ้างเรื่องอะโทรปีนที่เขาใช้มา",
             "safety": ""
           },
           {
             "strength": "โรงพยาบาลใหญ่ที่มี**แพทย์ประจำ**ตลอด ช่วยให้ตอบสนองเร็วหากอาการกลับ",
-            "weigh": "ระหว่างเดินทาง ยังต้องมีผู้ที่ให้อะโทรปีนได้หากเสมหะกลับมา",
+            "weigh": "ระหว่างทาง ใครให้อะโทรปีนได้ถ้าเสมหะกลับมา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A ward with doctors on site **day and night** means someone is always there to respond.",
-            "weigh": "A ward can watch him, but a long atropine need raises the chance he needs more than a ward offers.",
+            "weigh": "A ward can watch him, but what if he comes to need more than a ward offers?",
             "safety": ""
           },
           {
             "strength": "You recognise he needs more than a community hospital can give overnight.",
-            "weigh": "The receiving ward should know his total atropine and how quickly secretions return.",
+            "weigh": "What must the receiving ward know about the atropine he has needed?",
             "safety": ""
           },
           {
             "strength": "A larger hospital with **doctors on site** shortens response time if he relapses.",
-            "weigh": "Secretions on the road still need someone able to give atropine during the trip.",
+            "weigh": "On the road, who can give atropine if secretions return?",
             "safety": ""
           }
         ]
@@ -2334,34 +2334,34 @@
         "th": [
           {
             "strength": "โทร**ศูนย์พิษ 1367** ได้คำแนะนำจากผู้เชี่ยวชาญทั้งเรื่องขนาดยาและที่ดูแลต่อ",
-            "weigh": "คำแนะนำมีประโยชน์เมื่อนำไปทำทันที เพราะการต้องใช้ยาขนาดสูงก็เป็นความเสี่ยงในตัว",
+            "weigh": "คำแนะนำจะช่วยได้ไหมถ้าไม่ลงมือทันที ในเมื่อการใช้ยาขนาดสูงก็เสี่ยงอยู่แล้ว",
             "safety": "ผู้ป่วยที่ยังต้องใช้อะโทรปีนขนาดสูงอาจหมดแรงและหยุดหายใจได้ ต้องอยู่ใกล้เครื่องช่วยหายใจ"
           },
           {
             "strength": "ขอความเห็นผู้เชี่ยวชาญเมื่อการดำเนินโรคยืดเยื้อเกินคาด",
-            "weigh": "การโทรช่วยวางแผน แต่ที่ดูแลต่อยังขึ้นกับสิ่งที่เขาอาจต้องใช้ต่อไป",
+            "weigh": "โทรแล้ว เขาควรอยู่ที่ไหน สำหรับสิ่งที่อาจต้องใช้ต่อไป",
             "safety": "ผู้ป่วยที่ยังต้องใช้อะโทรปีนขนาดสูงอาจหมดแรงและหยุดหายใจได้ ต้องอยู่ใกล้เครื่องช่วยหายใจ"
           },
           {
             "strength": "ผู้เชี่ยวชาญช่วยแนะนำ**ขนาดยา**และที่ดูแลต่อ ลดการคาดเดา",
-            "weigh": "เตรียมขนาดยา เวลา และการตอบสนองไว้ก่อนโทร ทำให้การปรึกษาเร็วและได้ประโยชน์",
+            "weigh": "ก่อนโทร ได้เตรียมขนาดยา เวลา และการตอบสนองของเขาไว้หรือยัง",
             "safety": "ผู้ป่วยที่ยังต้องใช้อะโทรปีนขนาดสูงอาจหมดแรงและหยุดหายใจได้ ต้องอยู่ใกล้เครื่องช่วยหายใจ"
           }
         ],
         "en": [
           {
             "strength": "Calling the **1367 poison centre** brings specialist advice on dose and destination.",
-            "weigh": "Advice helps most when acted on promptly, as his high-dose need is a risk in itself.",
+            "weigh": "Will advice help unless acted on at once, when his high-dose need is a risk in itself?",
             "safety": "A man still on high-dose atropine can tire and stop breathing; he needs a ventilator within reach."
           },
           {
             "strength": "You seek expert input for an unusually prolonged course, a humble instinct.",
-            "weigh": "The call guides the plan, but where he is cared for still depends on what he may need next.",
+            "weigh": "After the call, where should he be for what he may need next?",
             "safety": "A man still on high-dose atropine can tire and stop breathing; he needs a ventilator within reach."
           },
           {
             "strength": "Specialists can advise on **the dose** and where he should go, saving guesswork.",
-            "weigh": "Having his doses, timings and response ready makes the call quick and useful.",
+            "weigh": "Before you call, are his doses, timings and response ready?",
             "safety": "A man still on high-dose atropine can tire and stop breathing; he needs a ventilator within reach."
           }
         ]
@@ -2370,9 +2370,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-15",
-    "findings": "All three alternatives, Thai and English, for every option of all 13 banks were read against every question variant and every path into each bank. The replies changed since the first pass are those of step3.B and step3.R a and b: they now say oxygen and atropine to a dry chest come first, that the oxime helps some patients more than others, that a dry chest is the sign to follow, and that washing runs alongside, never ahead; all correct, matching the new lines, the same in Thai and English, and natural Thai. The step4.B b replies still fit its new line (\"confusion can also come from the poison itself\" is correct). The step4.B, step4.R, step5.B and step5.W b replies read in the first pass still hold and state no fact that only some variants or paths give. No reply ranks or grades the choice, previews a later step or names another option. Safety lines are empty for best and reasonable options and present on step3.W d and e, step4.W d and e, step5.R d and step5.W d. reply-bank.mjs check: content ok, review pending; the clinical-rules tests pass 4 of 4; the tree test's only problem is the stale path table, to be rebuilt. Neither file changed during the review. Tree sha256 cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634. Replies sha256 d2ba56f2299e0daf8822f0f2c4b9c1efa83005c489fcfb5f2151b93f8ccba85b.",
+    "date": "2026-11-25",
+    "findings": "A fresh non-author reviewer, claude-opus-5-5, read every weigh line in all 13 banks on 2026-11-25 after the reply format B rewrite (weigh as a คิดต่อ / Next thought question), all three alternatives in Thai and English, against every question variant and every path into each bank. A script comparing the file to HEAD confirmed that strength and safety, keys and order are byte-identical to the bank reviewed on 2026-11-15; only weigh changed. Blanked options: step4.B.a and step5.B.b, both best tier, blank in all alternatives of both languages; their old lines (each review looks at chest and pulse, a clear chart for the night team, steps planned by day) were filler, so the blanks stand. No must-fix was applied. The step3.B and step3.R c and d lines now ask for the pulse and pressure end points instead of citing pulse and systolic above 80, which no variant shows; correct. The step3.W and step4.W reasonable and weaker lines that ask whether a drowsy man can guard his own airway steer toward the missed best answer of the same bank and repeat what the reviewed safety line on step3.W and step4.W d and e already says, so they give nothing away; the old escort line on step3.W.a and step4.W.a, which pointed at the transfer, is gone, and its replacement on intubation drugs acting differently in this poisoning is correct. step5.B.a now asks where to look for new weakness, a correct intermediate-syndrome prompt at the last step. step1.a asking what in his history would confirm the class names no later option or key action. No line names another option of its bank, cites a number outside the vignette, the chosen option or every variant, or nudges away from a needed action; Thai reads as spoken ward-round questions and matches the English. Tree sha256 cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634. Replies sha256 b28da3d787d8dfc3ee34d2708b407842d3f5f894125666de3bb71ec4a854e768.",
     "tree_sha256": "cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634",
-    "replies_sha256": "d2ba56f2299e0daf8822f0f2c4b9c1efa83005c489fcfb5f2151b93f8ccba85b"
+    "replies_sha256": "b28da3d787d8dfc3ee34d2708b407842d3f5f894125666de3bb71ec4a854e768"
   }
 }
