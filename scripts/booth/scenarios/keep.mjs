@@ -191,7 +191,9 @@ export default [
     async run(h) {
       const admitted = new Set((await readdir(STEPS)).filter((f) => f.endsWith('.js')).map((f) => f.replace(/\.js$/, '')));
       const trees = (await h.caseTrees()).filter(([f, t]) => !f.includes('versions/') && admitted.has(`${t.case_id}@${t.version}`));
-      h.check(trees.length === admitted.size, `${trees.length} admitted cases have step text (${[...admitted].join(', ')})`);
+      // Step text of an earlier version stays for the result links already handed out, so count cases, not files.
+      const cases = new Set([...admitted].map((k) => k.split('@')[0]));
+      h.check(trees.length === cases.size, `${trees.length} of ${cases.size} cases with step text have it for their current version (${[...admitted].join(', ')})`);
       // A Thai line breaks only between phrases, so rank by each text's longest phrase: that is what must fit a line.
       const len = (b) => Math.max(...b.th.split(/ +/).map((ph) => ph.length));
       const p = await h.phone(RESULT_PATH, { width: 320, height: 640 });

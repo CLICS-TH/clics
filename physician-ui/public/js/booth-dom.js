@@ -28,9 +28,33 @@ export function markedPhrases(text) {
  *  ("°C", "มก./ดล.", "ครั้ง/นาที") or a Thai unit word; its label before it ("อุณหภูมิ", "SpO2") is one short word.
  *  The three stay one phrase, so a line never ends between a label and its value. */
 const READING = /^\d/;
-const UNIT = /^(?:[%°]|\S*[/.]\S*$|(?:ปี|วัน|เดือน|สัปดาห์|ชั่วโมง|นาที|วินาที|ครั้ง|ครั้งต่อนาที|ลิตร|กิโลกรัม|องศาเซลเซียส|ด้าน|ขั้น)$)/;
+const TH_UNITS = ['ปี', 'วัน', 'เดือน', 'สัปดาห์', 'ชั่วโมง', 'นาที', 'วินาที', 'ครั้ง', 'ครั้งต่อนาที', 'ลิตร', 'กิโลกรัม', 'องศาเซลเซียส', 'ด้าน', 'ขั้น'];
+const UNIT = new RegExp(`^(?:[%°]|\\S*[/.]\\S*$|(?:${TH_UNITS.join('|')})$)`);
 const LABEL_MAX = 16;
 const isLabel = (w, max = LABEL_MAX) => w !== undefined && !/\s/.test(w) && !READING.test(w) && w.replaceAll(BREAK, '').length <= max;
+
+/** Words that finish a unit rather than start the next clause: "2 ปีก่อน", "3 วันนี้", "10 ปีแล้ว". */
+const UNIT_TAIL = new Set(['นี้', 'ก่อน', 'แล้ว']);
+
+/** The Thai unit that opens `part` when more Thai follows it with no space ("สัปดาห์ช่วยจับอาการ…"), so the reading
+ *  keeps it and a line may end after it. The unit is the longest one that ends where the word segmenter ends a word
+ *  ("วันทนา" is not "วัน"), with the word that finishes it: "ปีก่อน", "ลิตรต่อวัน", "ขั้นต่อไป", "ปีที่แล้ว".
+ *  '' when there is none. */
+function unitPrefix(part) {
+  if (!part || UNIT.test(part)) return '';
+  const words = [...WORDS.segment(part)].map((s) => s.segment);
+  let at = 0;
+  let n = 0;
+  for (let k = 0, len = 0; k < words.length && len < 16; k++) {
+    len += words[k].length;
+    if (TH_UNITS.includes(part.slice(0, len))) { at = len; n = k + 1; }
+  }
+  if (!at) return '';
+  const [a, b] = words.slice(n);
+  if (UNIT_TAIL.has(a)) at += a.length;
+  else if ((a === 'ต่อ' && (b === 'ไป' || TH_UNITS.includes(b))) || (a === 'ที่' && b === 'แล้ว')) at += a.length + b.length;
+  return part.slice(0, at);
+}
 
 /** The phrases of `text`, each one <span class="ph"> a line never breaks unless it is wider than its column. In case
  *  text (`asCase`) the run before a reading is its label however long, and its words are drawn as caseParts. */
@@ -41,7 +65,10 @@ function phraseNodes(text, bold, asCase = false) {
     if (!READING.test(parts[i])) { out.push(parts[i]); continue; }
     let reading = parts[i];
     if (out.length >= 2 && isLabel(out[out.length - 2], asCase ? Infinity : LABEL_MAX)) reading = out.splice(-2).join('') + reading;
+    const unit = parts[i + 1]?.trim() === '' ? unitPrefix(parts[i + 2]) : '';
     if (parts[i + 2] && UNIT.test(parts[i + 2])) { reading += parts[i + 1] + parts[i + 2]; i += 2; }
+    else if (unit === parts[i + 2]) { reading += parts[i + 1] + unit; i += 2; }
+    else if (unit) { reading += parts[i + 1] + unit; parts[i + 2] = parts[i + 2].slice(unit.length); i += 1; }
     out.push(reading);
   }
   let at = 0;
