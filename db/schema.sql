@@ -1085,6 +1085,153 @@ create policy evaluator_model_lock_no_access on public.evaluator_model_lock for 
 -- db/migration-shadow-evaluations.sql, and its nullable `decoding` column is added by
 -- db/migration-evaluator-lock-manifest.sql.
 
+-- ===== Seven tables production made through migrations, as production's catalog has them (2026-11-25) =====
+-- Four of the migrations named below (reflection, audit assignments, audit discussions, integrity flags)
+-- made their table with cle_id against public.cles, the integrity flags table as cle_integrity_flags;
+-- db/migration-ple-rename.sql renamed those to the ple_ names used here. The reasoning for each table is
+-- in its migration.
+
+-- Post-PLE reflection, scored evidence for D6 (db/migration-crec-reflection.sql). Deny-all to client roles.
+create table public.ple_reflections (
+  id            uuid primary key default gen_random_uuid(),
+  ple_id        uuid not null unique references public.ples(id) on delete cascade,
+  physician_id  uuid not null references public.professionals(id) on delete cascade,
+  learned       text,   -- เรียนรู้อะไร / what did you learn
+  uncertainty   text,   -- ความไม่แน่นอนอะไร / what remains uncertain
+  application   text,   -- จะตรวจสอบ/นำไปใช้อย่างไร / how will you verify or apply it
+  skipped       boolean not null default false,
+  submitted_at  timestamptz not null default now(),
+  created_at    timestamptz default now()
+);
+create index ple_reflections_phys_idx on public.ple_reflections (physician_id);
+alter table public.ple_reflections enable row level security;
+create policy ple_reflections_no_access on public.ple_reflections for all using (false);
+
+-- End-of-study acceptability questionnaire, one per physician (db/migration-crec-reflection.sql). Deny-all.
+create table public.acceptability_responses (
+  id            uuid primary key default gen_random_uuid(),
+  physician_id  uuid not null unique references public.professionals(id) on delete cascade,
+  answers       jsonb not null default '{}'::jsonb,
+  comments      text,
+  skipped       boolean not null default false,
+  submitted_at  timestamptz not null default now(),
+  created_at    timestamptz default now()
+);
+alter table public.acceptability_responses enable row level security;
+create policy acceptability_no_access on public.acceptability_responses for all using (false);
+
+-- Several auditors per PLE for peer calibration (db/migration-audit-assignments.sql); ples.auditor_id
+-- stays the primary pointer.
+create table public.audit_assignments (
+  id           uuid primary key default gen_random_uuid(),
+  ple_id       uuid not null references public.ples(id) on delete cascade,
+  auditor_id   uuid not null references public.professionals(id) on delete cascade,
+  assigned_by  uuid references public.professionals(id),
+  assigned_at  timestamptz not null default now(),
+  unique (ple_id, auditor_id)   -- one assignment per (session, auditor)
+);
+create index audit_assignments_auditor_idx on public.audit_assignments (auditor_id);
+create index audit_assignments_ple_idx     on public.audit_assignments (ple_id);
+alter table public.audit_assignments enable row level security;
+create policy "audit_assignments: own read"
+  on public.audit_assignments for select using (auditor_id = auth.uid());
+
+-- The auditor's AI discussion after scoring (db/migration-audit-discussions.sql); provider, model and
+-- prompt_version are the per-turn provenance db/migration-message-provenance.sql added.
+create table public.audit_discussions (
+  id             uuid primary key default gen_random_uuid(),
+  ple_id         uuid not null references public.ples(id) on delete cascade,
+  auditor_id     uuid not null references public.professionals(id) on delete cascade,
+  role           text not null check (role in ('auditor', 'assistant')),
+  content        text not null,
+  input_tokens   bigint not null default 0,
+  output_tokens  bigint not null default 0,
+  created_at     timestamptz not null default now(),
+  provider       text,
+  model          text,
+  prompt_version text
+);
+create index audit_discussions_ple_auditor_idx on public.audit_discussions (ple_id, auditor_id, created_at);
+comment on column public.audit_discussions.provider is 'AI provider that produced this assistant turn; NULL for auditor turns and for rows written before 2026-10.';
+alter table public.audit_discussions enable row level security;
+create policy "audit_discussions: own read"
+  on public.audit_discussions for select using (auditor_id = auth.uid());
+
+-- Professional identity verification (db/migration-crec-identity.sql). The national ID is held only
+-- encrypted (*_encrypted), as a keyed HMAC (*_index) and as its last four digits. Deny-all.
+create table public.identity_verifications (
+  id                         uuid primary key default gen_random_uuid(),
+  professional_id            uuid not null references public.professionals(id) on delete cascade,
+  method                     text not null check (method in ('national_id_license', 'thaid')),
+  status                     text not null default 'pending' check (status in ('pending', 'verified', 'rejected')),
+  national_id_encrypted      text,
+  national_id_index          text,
+  national_id_last4          text,
+  license_number             text,
+  license_check_status       text,   -- 'verified' | 'not_found' | 'name_mismatch' | 'unavailable'
+  license_check_source       text,   -- 'stub' | 'tmc_scrape' | 'none'
+  license_evidence_encrypted text,
+  submitted_at               timestamptz not null default now(),
+  decided_by                 uuid references public.professionals(id),
+  decided_at                 timestamptz,
+  reject_reason              text,
+  created_at                 timestamptz default now()
+);
+-- One national ID, one physician; a rejected submission does not block a corrected one.
+create unique index identity_verifications_nid_uniq
+  on public.identity_verifications (national_id_index)
+  where national_id_index is not null and status in ('pending', 'verified');
+create index identity_verifications_prof_idx
+  on public.identity_verifications (professional_id, status);
+create index identity_verifications_pending_idx
+  on public.identity_verifications (submitted_at) where status = 'pending';
+alter table public.identity_verifications enable row level security;
+create policy identity_verifications_no_access on public.identity_verifications for all using (false);
+
+-- Deterministic integrity flags: route a PLE to human review, never a penalty
+-- (db/migration-audit-sampling-credit-integrity.sql). Staff read; only the service role writes.
+create table public.ple_integrity_flags (
+  id          uuid primary key default gen_random_uuid(),
+  ple_id      uuid not null references public.ples(id) on delete cascade,
+  signal      text not null,
+  severity    text not null check (severity in ('low','medium','high')),
+  evidence    jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now(),
+  unique (ple_id, signal)   -- a re-run replaces a finding rather than adding a row
+);
+create index ple_integrity_flags_ple_idx      on public.ple_integrity_flags(ple_id);
+create index ple_integrity_flags_severity_idx on public.ple_integrity_flags(severity);
+-- "per CLE" is production's text, kept so this file matches production; do not rename it here alone.
+comment on table public.ple_integrity_flags is
+  'Deterministic gaming/delegation signals per CLE. Routes a session to human review; never a '
+  'penalty, never shown to the physician. Written only by the backend service role.';
+alter table public.ple_integrity_flags enable row level security;
+create policy "integrity_flags: staff read"
+  on public.ple_integrity_flags for select using (
+    exists (
+      select 1 from public.professionals p
+       where p.id = auth.uid()
+         and p.role in ('admin','superadmin','auditor','analyst','ethics')
+    )
+  );
+
+-- The monthly security review, one row per month (db/migration-crec-retention-security.sql). Deny-all.
+create table public.security_reviews (
+  id              uuid primary key default gen_random_uuid(),
+  period_month    date not null unique,   -- the month's first day
+  reviewed_by     uuid not null references public.professionals(id),
+  reviewed_at     timestamptz not null default now(),
+  access_review   text,
+  audit_review    text,
+  incident_review text,
+  incidents_found boolean not null default false,
+  notes           text,
+  created_at      timestamptz default now()
+);
+create index security_reviews_period_idx on public.security_reviews (period_month desc);
+alter table public.security_reviews enable row level security;
+create policy security_reviews_no_access on public.security_reviews for all using (false);
+
 -- ===== PostgREST data surface closed (see db/migration-postgrest-closed.sql, #281, ADR 0007) =====
 -- The backend and RIMPL use the service-role key for all data; anon and authenticated hold no privilege on
 -- anything in public. RLS policies above stay as they are. The messages column grant below is the state
