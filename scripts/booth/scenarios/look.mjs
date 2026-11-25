@@ -50,7 +50,7 @@ const readSlots = (page) => page.evaluate(() => {
     const subShown = shown(sub);
     const size = (e) => parseFloat(getComputedStyle(e).fontSize);
     return {
-      text: b.innerText.replace(/\s+/g, ' ').slice(0, 40), one: !!b.closest('.radar-label, [data-look-control], .fs-btn'), html: document.documentElement.lang,
+      text: b.innerText.replace(/\s+/g, ' ').slice(0, 40), one: !!b.closest('.radar-label, [data-look-control]'), html: document.documentElement.lang,
       main: main.lang, sub: sub.lang, subShown, first: !subShown || s.top >= m.bottom - 1 || (s.top < m.bottom && s.left >= m.right - 1),
       larger: !subShown || size(main) >= size(sub),
     };
@@ -58,8 +58,8 @@ const readSlots = (page) => page.evaluate(() => {
 });
 
 /** The slots read as `look` says: its primary in every main slot and on <html>, the sub slot shown exactly when the look
- *  shows both (never under a radar axis, in the control's "show both" label or on the staff full-screen pills, which name
- *  one thing in the primary language), and the main slot first and no smaller. */
+ *  shows both (never under a radar axis or in the control's "show both" label, which name one thing in the primary
+ *  language), and the main slot first and no smaller. */
 async function checkSlots(h, page, label, look) {
   const { primary, both } = h.LOOKS[look];
   const pairs = await readSlots(page);

@@ -59,16 +59,19 @@ async function eventStatus() {
 function pinColumn() {
   let width = -1;
   let height = -1;
+  let settleUntil = 0;
   // An on-screen keyboard only shortens the page, so the column re-pins on a new width or a taller page (a window still
-  // settling at boot), never on a shorter one.
+  // settling at boot), never on a shorter one, except for a second after full screen starts or ends: leaving it gives the
+  // browser's toolbar back, and a column pinned to the full screen would run past the shorter page.
   const pin = () => {
-    if (innerWidth === width && innerHeight <= height) return;
+    if (performance.now() > settleUntil && innerWidth === width && innerHeight <= height) return;
     width = innerWidth;
     height = innerHeight;
     document.documentElement.style.setProperty('--col', `${Math.min(innerWidth, innerHeight * 9 / 16)}px`);
   };
   pin();
   addEventListener('resize', pin);
+  document.addEventListener('fullscreenchange', () => { settleUntil = performance.now() + 1000; pin(); });
 }
 
 /** A tap on a control drawn under 350 ms ago is the tail of the tap that drew it: swallow it. */
@@ -218,9 +221,8 @@ const feedbackModule = window.CLICS_BOOTH_FEEDBACK === true ? import('./booth-fe
 
 pinColumn();
 setLook(DEFAULT_LOOK);
-const look = mountLookControl(document.body);
-const brand = mountBrand(document.body);
-mountFullscreen({ host: document.body, brand, look });
+mountLookControl(document.body);
+mountFullscreen({ brand: mountBrand(document.body) });
 guardGhostTaps();
 sidesStartPlay();
 showLoop();

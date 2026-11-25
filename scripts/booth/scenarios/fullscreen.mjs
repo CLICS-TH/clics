@@ -1,5 +1,5 @@
-// Full screen (owner, 2026-11-25): staff start it from the loop's pill; a full-screen kiosk starts over in the page, so
-// full screen holds from one visitor to the next; Exit shows only after a tap on the mark and then on the look control.
+// Full screen (owner, 2026-11-25): CCME's mark is the switch, a tap to go full screen and a tap to leave it. A full-screen
+// kiosk starts over in the page, so full screen holds from one visitor to the next.
 const STATUS = 'GET /booth/status';
 const WAIT = { timeout: 10_000 };
 
@@ -9,15 +9,16 @@ const lookNow = (page) => page.evaluate(() => document.documentElement.dataset.l
 /** A mark on the window that only a reload clears. */
 const mark = (page) => page.evaluate(() => { window.fsSameDocument = true; });
 const sameDocument = (page) => page.evaluate(() => window.fsSameDocument === true);
-const box = (page, selector) => page.locator(selector).boundingBox();
-const apart = (a, b) => a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
+
+const brandLabel = (page) => page.locator('[data-booth-brand]').getAttribute('aria-label');
 
 async function goFull(h, k, label) {
   await k.shell('start');
-  await k.tap('.fs-enter');
+  h.check((await brandLabel(k.page))?.includes('Full screen'), `${label}: the mark is named as the Full screen switch`);
+  await k.tap('[data-booth-brand]');
   await k.page.waitForFunction(() => Boolean(document.fullscreenElement), null, WAIT).catch(() => {});
-  h.check(await full(k.page), `${label}: Full screen on the loop puts the page in full screen`);
-  h.check(!(await visible(k.page, '.fs-enter')), `${label}: in full screen the Full screen pill is gone`);
+  h.check(await full(k.page) && await k.page.locator('#booth[data-shell="start"]').count() === 1,
+    `${label}: a tap on the mark puts the page in full screen and starts no play`);
 }
 
 async function toScored(k) {
@@ -37,17 +38,17 @@ async function toScored(k) {
 
 export default [
   {
-    name: 'full screen: under the booth launcher (Chrome --kiosk, the page fills its screen) the loop shows no Full screen pill',
+    name: 'full screen: under the booth launcher (Chrome --kiosk, the page fills its screen) the mark is no switch',
     async run(h) {
-      const k = await h.kiosk({ label: 'full screen under --kiosk' });
+      const label = 'full screen under --kiosk';
+      const k = await h.kiosk({ label });
       await k.shell('start');
-      h.check(await k.page.locator('.fs-enter').count() === 1 && !(await visible(k.page, '.fs-enter')),
-        'a page that fills its screen has the pill mounted but hidden');
+      h.check(await k.page.locator('[data-booth-brand]').isDisabled(), 'a page that fills its screen leaves the mark disabled');
       await k.close();
     },
   },
   {
-    name: 'full screen: the loop offers Full screen beside the mark; a play\'s Finish and an idle reset start over in the page and stay full screen',
+    name: 'full screen: a tap on the mark goes full screen; Finish and an idle reset start over in the page and stay full screen; a tap on the mark leaves',
     async run(h) {
       for (const [width, height] of [[1080, 1920], [2160, 3840]]) {
         const label = `full screen ${width}x${height}`;
@@ -57,15 +58,10 @@ export default [
         await page.clock.install();
         await page.reload({ waitUntil: 'domcontentloaded' });
         await k.shell('start');
-        const [enter, brand, look] = await Promise.all(['.fs-enter', '[data-booth-brand]', '[data-look-control]'].map((s) => box(page, s)));
-        const text = await page.locator('.fs-enter').innerText();
-        h.check(Boolean(enter) && apart(enter, brand) && apart(enter, look) && enter.y < brand.y + brand.height,
-          `${label}: the Full screen pill sits in the corner row between the mark and the look control (${JSON.stringify({ enter, brand, look })})`);
-        h.check(text.includes('เต็มจอ'), `${label}: the pill reads เต็มจอ (${text})`);
-        await h.screenCheck(page, `${label} loop with Full screen`);
-        await h.shot(page, `fullscreen-enter-${width}`);
+        await h.screenCheck(page, `${label} loop`);
         await mark(page);
         await goFull(h, k, label);
+        h.check((await brandLabel(page))?.includes('Exit full screen'), `${label}: in full screen the mark is named as Exit full screen`);
 
         await toScored(k);
         await k.shell('done');
@@ -86,6 +82,7 @@ export default [
         await k.screen('teaser');
         await k.tap('[data-action="start-case"]');
         await k.screen('vignette');
+        h.check(!(await visible(page, '[data-booth-brand]')), `${label}: during a play the mark is hidden: no tap mid-play leaves full screen`);
         await page.clock.fastForward(91_000);
         await page.waitForSelector('.still-there', WAIT);
         await page.clock.fastForward(16_000);
@@ -97,51 +94,21 @@ export default [
         h.check(await page.locator('.still-there').count() === 0 && await page.locator('#booth[data-shell="start"]').count() === 1,
           `${label}: 200 s later the loop is still up, with no "Still there?" from the last play`);
         await h.shot(page, `fullscreen-loop-${width}`);
+
+        await k.tap('[data-booth-brand]');
+        await page.waitForFunction(() => !document.fullscreenElement, null, WAIT).catch(() => {});
+        h.check(!(await full(page)) && await page.locator('#booth[data-shell="start"]').count() === 1,
+          `${label}: a second tap on the mark leaves full screen and starts no play`);
+        h.check(await page.locator('[data-booth-brand]').isEnabled() && (await brandLabel(page))?.includes('Full screen'),
+          `${label}: out of full screen the mark is the Full screen switch again`);
+        // The browser's toolbar comes back: the column follows the shorter page instead of keeping the full screen's.
+        await page.setViewportSize({ width, height: height - 120 });
+        await h.sleep(300);
+        const col = await page.evaluate(() => parseFloat(document.documentElement.style.getPropertyValue('--col')));
+        h.check(Math.abs(col - Math.min(width, (height - 120) * 9 / 16)) < 1,
+          `${label}: after leaving full screen the column re-fits the shorter page (${col}px)`);
         await k.close();
       }
-    },
-  },
-  {
-    name: 'full screen: Exit shows only after a tap on the mark then on the look control within 3 s, for 6 s',
-    async run(h) {
-      const label = 'full screen exit';
-      const k = await h.kiosk({ label, screen: { width: 1080, height: 2040 } });
-      const { page } = k;
-      await page.clock.install();
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await goFull(h, k, label);
-
-      const before = await lookNow(page);
-      await k.tap('[data-look-control] [data-look-both]');
-      h.check(await lookNow(page) !== before && !(await visible(page, '.fs-exit')), 'the look control alone changes the look and shows no Exit');
-      await k.tap('[data-look-control] [data-look-both]');
-
-      await k.tap('[data-booth-brand]');
-      h.check(await page.locator('#booth[data-shell="start"]').count() === 1, 'a tap on the mark starts no play');
-      const armed = await lookNow(page);
-      await k.tap('[data-look-control] [data-look-primary="en"]');
-      h.check(await visible(page, '.fs-exit') && await lookNow(page) === armed, 'the mark, then the look control: Exit shows and the look is unchanged');
-      const exitBox = await box(page, '.fs-exit');
-      const lookBox = await box(page, '[data-look-control]');
-      h.check(apart(exitBox, lookBox), `Exit sits clear of the look control (${JSON.stringify(exitBox)})`);
-      await h.screenCheck(page, 'full screen with Exit');
-      await h.shot(page, 'fullscreen-exit');
-      await page.clock.fastForward(6_100);
-      await h.sleep(100);
-      h.check(!(await visible(page, '.fs-exit')), 'Exit hides again after 6 s');
-
-      await k.tap('[data-booth-brand]');
-      await page.clock.fastForward(3_500);
-      await k.tap('[data-look-control] [data-look-primary="en"]');
-      h.check(!(await visible(page, '.fs-exit')) && await lookNow(page) !== armed, 'more than 3 s after the mark, the look control only changes the look');
-
-      await k.tap('[data-booth-brand]');
-      await k.tap('[data-look-control] [data-look-primary="th"]');
-      await k.tap('.fs-exit');
-      await page.waitForFunction(() => !document.fullscreenElement, null, WAIT).catch(() => {});
-      h.check(!(await full(page)) && await visible(page, '.fs-enter') && !(await visible(page, '.fs-exit')),
-        'Exit leaves full screen and the Full screen pill is back');
-      await k.close();
     },
   },
 ];

@@ -136,45 +136,24 @@
 .look-both .bi-sub { display: none; }
 .look-btn .bi-main { font-size: inherit; line-height: inherit; }
 
-/* CCME's mark (js/booth-shell.js mountBrand): the look control's twin in the column's other top corner, the same inset,
-   height and plate, so the two read as one row on every screen. Not a button: taps pass through to what is under it. */
+/* CCME's mark (js/booth-look.js mountBrand): the look control's twin in the column's other top corner, the same inset,
+   height and plate, so the two read as one row on every screen. It is also the full-screen switch (js/booth-fullscreen.js):
+   a tap goes full screen, and in full screen a tap leaves it. Where the page cannot (or, under the launcher's --kiosk,
+   need not) go full screen it is disabled and taps pass through to what is under it. */
 .booth-brand {
   position: fixed; top: calc(8 * var(--u)); left: calc(var(--side) + 8 * var(--u)); z-index: 11;
   box-sizing: border-box; display: flex; align-items: center; height: calc(84 * var(--u)); padding: 0 calc(24 * var(--u));
+  margin: 0; appearance: none; font: inherit; color: inherit;
   background: var(--card); border: var(--line) solid var(--edge); border-radius: 999px; box-shadow: var(--shadow-card);
-  pointer-events: none;
+  pointer-events: none; transition: background-color 120ms ease-out;
 }
+.booth-brand:enabled { pointer-events: auto; cursor: pointer; }
+.booth-brand:enabled:active { background: var(--pressed); }
+.booth-brand:focus-visible { outline: calc(6 * var(--u)) solid var(--ai-border); outline-offset: calc(4 * var(--u)); }
 .booth-brand img { display: block; height: calc(52 * var(--u)); width: auto; }
 /* During a play the corner holds the step counter, and the play's overlays dim the screen under it: the mark shows on
    the loop, the result and the invitation only. */
 #booth[data-shell="play"] ~ .booth-brand { display: none; }
-/* Full screen (js/booth-fullscreen.js). The mark is the first half of the exit gesture, so it takes taps while full
-   screen; a tap on it reaches nothing under it. */
-:root:fullscreen .booth-brand { pointer-events: auto; }
-/* Enter sits beside the mark, on the loop's bar states only and only while not full screen: staff start full screen
-   there, and a visitor mid-play never meets it. Exit shows under the mark only after the corner gesture. Both wear the
-   look control's plate. */
-.fs-btn {
-  position: fixed; z-index: 11; box-sizing: border-box; margin: 0; appearance: none;
-  display: flex; align-items: center; gap: calc(12 * var(--u));
-  min-height: calc(84 * var(--u)); padding: calc(8 * var(--u)) calc(24 * var(--u));
-  font: inherit; font-size: var(--text-small-th); font-weight: 600; line-height: 1.45; white-space: nowrap;
-  color: var(--ink); background: var(--card); border: var(--line) solid var(--edge); border-radius: 999px;
-  box-shadow: var(--shadow-card); cursor: pointer; transition: background-color 120ms ease-out;
-}
-.fs-btn:active { background: var(--pressed); }
-.fs-btn:focus-visible { outline: calc(6 * var(--u)) solid var(--ai-border); outline-offset: calc(4 * var(--u)); }
-.fs-btn .booth-icon svg { width: calc(32 * var(--u)); height: calc(32 * var(--u)); }
-.fs-btn .bi-main { font-size: inherit; line-height: inherit; }
-.fs-btn .bi-sub { display: none; }
-.fs-enter { display: none; top: calc(8 * var(--u)); left: calc(var(--side) + 233 * var(--u)); }
-#booth:is([data-shell="start"], [data-shell="checking"], [data-shell="closed"], [data-shell="offline"]) ~ .fs-enter { display: flex; }
-:root:fullscreen #booth ~ .fs-enter { display: none; }
-/* After the rule above, at its weight: `hidden` (booth-fullscreen.js) wins over the loop's display. */
-#booth ~ .fs-btn[hidden] { display: none; }
-.fs-exit { top: calc(108 * var(--u)); left: calc(var(--side) + 8 * var(--u)); }
-/* A play that starts while Exit shows: the corner is the step counter's. */
-#booth[data-shell="play"] ~ .fs-exit { display: none; }
 /* Every screen whose card starts at the top starts it under the corner row (--corner-room), so neither pill sits on
    the card's edge (owner, 2026-11-22). The step screen pays with a closer gap above its sheet: the tallest step under a
    long bridge is the booth's tightest fit (play.mjs). The result card gives back what this, a five-step play's score
