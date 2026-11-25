@@ -6,34 +6,34 @@
         "th": [
           {
             "strength": "รวม**หอบเมื่อนอนราบ** ขาบวม และหลอดเลือดดำที่คอโป่ง เป็นภาพน้ำเกินที่ชัดเจน",
-            "weigh": "ตัวกระตุ้นครั้งนี้ เช่น ขาดยา 2 สัปดาห์และความดันสูง ยังควรระบุให้ชัด",
+            "weigh": "อะไรทำให้กำเริบครั้งนี้ ขาดยา 2 สัปดาห์ ความดัน 168/96 หรือทั้งสองอย่าง",
             "safety": ""
           },
           {
             "strength": "ใช้อาการแสดงข้างเตียงสามอย่างที่ชี้ไปทางเดียวกัน ทำให้การวินิจฉัยมีน้ำหนัก",
-            "weigh": "การขาดยามา 2 สัปดาห์น่าจะเป็นตัวกระตุ้นสำคัญ ซึ่งมีผลต่อการวางแผนดูแลต่อ",
+            "weigh": "ขาดยามา 2 สัปดาห์ แล้วหอบหนักขึ้นใน 5 วัน ลำดับเวลาแบบนี้เข้ากับการขาดยาเป็นตัวกระตุ้นไหม",
             "safety": ""
           },
           {
             "strength": "เชื่อมอาการนอนราบไม่ได้กับขาบวมสองข้าง ซึ่งบอกว่ามีน้ำคั่งทั้งในปอดและร่างกาย",
-            "weigh": "ชีพจร 108 ร่วมกับความดัน 168/96 บอกว่าหัวใจกำลังทำงานหนักในตอนนี้",
+            "weigh": "ชีพจร 108 กับความดัน 168/96 บอกอะไรเรื่องภาระของหัวใจตอนนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Linking breathless lying flat, **leg swelling** and raised neck veins builds a clear picture of fluid overload.",
-            "weigh": "What tipped him over matters too: two weeks without tablets and a BP of 168/96.",
+            "weigh": "What tipped him over: two weeks without tablets, a BP of 168/96, or both?",
             "safety": ""
           },
           {
             "strength": "Three bedside signs pointing the same way give this diagnosis real weight.",
-            "weigh": "Missing his tablets for two weeks is a likely trigger, and naming it guides the rest of his care.",
+            "weigh": "Off his tablets 2 weeks, then 5 days of worsening breath: does that timing fit missed tablets as the trigger?",
             "safety": ""
           },
           {
             "strength": "Reads orthopnoea and leg swelling together as congestion in both lungs and body.",
-            "weigh": "A pulse of 108 with BP 168/96 shows how hard the heart is working at this moment.",
+            "weigh": "What do a pulse of 108 and a BP of 168/96 tell you about the load on his heart?",
             "safety": ""
           }
         ]
@@ -42,34 +42,34 @@
         "th": [
           {
             "strength": "เชื่อมเสียงกรอบแกรบที่ฐานปอดกับประวัติโรคหัวใจ จึงอธิบาย**ออกซิเจนต่ำ**ได้ชัด",
-            "weigh": "หลอดเลือดดำที่คอโป่งและขาบวมบอกว่ามีน้ำเกินทั้งร่างกาย ไม่ได้อยู่แค่ในปอด",
+            "weigh": "คอโป่งกับขาบวมบอกไหมว่าน้ำเกินไม่ได้อยู่แค่ในปอด",
             "safety": ""
           },
           {
             "strength": "ใช้ SpO2 89% ร่วมกับประวัติกล้ามเนื้อหัวใจตาย มาอธิบายอาการหอบได้อย่างมีเหตุผล",
-            "weigh": "การขาดยามา 2 สัปดาห์น่าจะเป็นตัวกระตุ้น ซึ่งควรระบุไว้ตั้งแต่แรก",
+            "weigh": "ขาดยามา 2 สัปดาห์มีส่วนทำให้กำเริบครั้งนี้แค่ไหน",
             "safety": ""
           },
           {
             "strength": "มองว่าหอบครั้งนี้มาจากหัวใจ ไม่ใช่จากตัวปอดเอง โดยอาศัยประวัติโรคหัวใจเดิม",
-            "weigh": "ขาบวมกดบุ๋มสองข้างบอกว่าน้ำคั่งไปถึงส่วนอื่นของร่างกายด้วย ควรนำมาคิดร่วม",
+            "weigh": "ขาบวมกดบุ๋มสองข้างบอกอะไรเพิ่มจากเสียงที่ฟังได้ในปอด",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Ties the basal crackles to his heart history, which explains the **low oxygen**.",
-            "weigh": "Raised neck veins and leg oedema suggest fluid overload through the whole body, not only the lungs.",
+            "weigh": "Do raised neck veins and leg oedema say the fluid is in more than the lungs?",
             "safety": ""
           },
           {
             "strength": "Reads SpO2 89% alongside a past heart attack, placing the problem in the heart.",
-            "weigh": "Two weeks without tablets is a likely trigger worth naming from the start.",
+            "weigh": "How much did two weeks without his tablets add to this episode?",
             "safety": ""
           },
           {
             "strength": "Places the cause in the heart rather than the lung itself, guided by his history.",
-            "weigh": "Pitting oedema in both legs shows the fluid reaches well beyond the lungs.",
+            "weigh": "What does pitting oedema in both legs add to what you hear in the lungs?",
             "safety": ""
           }
         ]
@@ -78,34 +78,34 @@
         "th": [
           {
             "strength": "คิดถึงการติดเชื้อในปอดซึ่งพบบ่อยและรักษาได้ จากอาการหอบและ**ออกซิเจนต่ำ**",
-            "weigh": "ไม่มีไข้ และคอโป่งกับขาบวมสองข้างเป็นสิ่งที่การติดเชื้อในปอดอธิบายได้ยาก",
+            "weigh": "ไม่มีไข้ แต่คอโป่งและขาบวมสองข้าง ปอดติดเชื้ออธิบายได้ไหม",
             "safety": ""
           },
           {
             "strength": "ใช้ออกซิเจนต่ำและเสียงในปอดเป็นหลักฐานจริง ไม่ได้อาศัยอาการเดียว",
-            "weigh": "เสียงกรอบแกรบที่ฐานปอดทั้งสองข้าง พบในการติดเชื้อในปอดได้ไม่บ่อยนัก ซึ่งมักเป็นเฉพาะจุด",
+            "weigh": "เสียงกรอบแกรบที่ฐานปอดทั้งสองข้าง เข้ากับปอดติดเชื้อที่มักเป็นเฉพาะจุดไหม",
             "safety": ""
           },
           {
             "strength": "การนึกถึงการติดเชื้อในผู้ป่วยหอบและออกซิเจนต่ำ ช่วยไม่ให้พลาดสาเหตุที่รักษาได้",
-            "weigh": "การขาดยามา 2 สัปดาห์และต้องลุกนั่งหายใจตอนกลางคืน เป็นข้อมูลที่ควรคิดร่วมด้วย",
+            "weigh": "ขาดยา 2 สัปดาห์กับการต้องลุกนั่งหายใจตอนกลางคืน จะอธิบายอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps a common, treatable infection in view, based on **low oxygen** and breathlessness.",
-            "weigh": "No fever, raised neck veins and swelling in both legs are hard to explain by a lung infection.",
+            "weigh": "No fever, yet raised neck veins and both legs swollen: does a lung infection explain that?",
             "safety": ""
           },
           {
             "strength": "Grounds the diagnosis in real findings, low oxygen and crackles, not a single symptom.",
-            "weigh": "Crackles at both lung bases are less typical of a lung infection, which tends to be patchy.",
+            "weigh": "Do crackles at both bases fit a lung infection, which tends to be patchy?",
             "safety": ""
           },
           {
             "strength": "Considering infection in a breathless, hypoxic man guards against missing a treatable cause.",
-            "weigh": "Two weeks off his tablets and sitting up at night to breathe also deserve a place in the reasoning.",
+            "weigh": "Where do two weeks off tablets and sitting up at night to breathe fit in?",
             "safety": ""
           }
         ]
@@ -114,34 +114,34 @@
         "th": [
           {
             "strength": "จับเบาะแสอาการหอบที่เป็นมาก**ตอนกลางคืน** ซึ่งพบได้จริงในโรคหอบหืด",
-            "weigh": "อายุ 68 ปี มีขาบวมสองข้างและคอโป่ง ซึ่งหอบหืดอธิบายไม่ได้",
+            "weigh": "อายุ 68 ขาบวมสองข้างและคอโป่ง หอบหืดอธิบายได้ไหม",
             "safety": ""
           },
           {
             "strength": "นึกถึงโรคทางเดินหายใจที่พบบ่อยและรักษาได้เร็ว เมื่อผู้ป่วยหอบตอนกลางคืน",
-            "weigh": "การต้องลุกนั่งหายใจร่วมกับเสียงกรอบแกรบที่ฐานปอด เป็นภาพที่ต่างจากหลอดลมตีบ",
+            "weigh": "ลุกนั่งหายใจตอนกลางคืนร่วมกับเสียงกรอบแกรบที่ฐานปอด เหมือนหลอดลมตีบไหม",
             "safety": ""
           },
           {
             "strength": "ใช้ช่วงเวลาที่มีอาการมาช่วยคิด ซึ่งเป็นวิธีซักประวัติที่มีประโยชน์",
-            "weigh": "ประวัติกล้ามเนื้อหัวใจตายและขาดยา 2 สัปดาห์ เป็นข้อมูลที่หอบหืดไม่ได้อธิบาย",
+            "weigh": "ประวัติกล้ามเนื้อหัวใจตายกับการขาดยา 2 สัปดาห์ เข้ากับหอบหืดตรงไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Picks up a real clue: breathlessness **at night** does occur in asthma.",
-            "weigh": "At 68, swollen legs and raised neck veins are findings asthma does not explain.",
+            "weigh": "At 68, with swollen legs and raised neck veins, does asthma explain these findings?",
             "safety": ""
           },
           {
             "strength": "Considers a common airway problem that can be treated quickly.",
-            "weigh": "Sitting up at night to breathe, with crackles at both bases, differs from narrowed airways.",
+            "weigh": "Does sitting up at night with crackles at both bases sound like narrowed airways?",
             "safety": ""
           },
           {
             "strength": "Using the timing of symptoms is a useful habit in taking a history.",
-            "weigh": "His past heart attack and two weeks off tablets are facts this label leaves unexplained.",
+            "weigh": "Where do a past heart attack and two weeks off tablets fit with asthma?",
             "safety": ""
           }
         ]
@@ -150,34 +150,34 @@
         "th": [
           {
             "strength": "ให้น้ำหนักกับประวัติ**เคยสูบบุหรี่** ซึ่งเป็นปัจจัยเสี่ยงที่มีอยู่จริง",
-            "weigh": "ขาบวม คอโป่ง และเสียงกรอบแกรบที่ฐานปอด เป็นสิ่งที่การวินิจฉัยนี้อธิบายไม่ครบ",
+            "weigh": "ขาบวม คอโป่ง และเสียงกรอบแกรบที่ฐานปอด ปอดอุดกั้นเรื้อรังอธิบายได้ครบไหม",
             "safety": ""
           },
           {
             "strength": "เห็นรูปแบบอาการที่แย่ลง**ทีละน้อย** ซึ่งเข้าได้กับโรคเรื้อรังที่กำเริบ",
-            "weigh": "เลิกบุหรี่มา 10 ปีแล้ว และการต้องลุกนั่งหายใจกับขาบวมสองข้างทำให้ภาพกว้างขึ้น",
+            "weigh": "เลิกบุหรี่มา 10 ปีแล้ว แต่ลุกนั่งหายใจตอนกลางคืนและขาบวมสองข้าง ชี้ไปทางไหน",
             "safety": ""
           },
           {
             "strength": "นำประวัติสูบบุหรี่ในอดีตมาใช้ ไม่ได้มองแค่อาการในวันนี้",
-            "weigh": "ขาดยา 2 สัปดาห์กับประวัติกล้ามเนื้อหัวใจตาย เป็นข้อมูลที่ควรนำมาชั่งน้ำหนัก",
+            "weigh": "ขาดยา 2 สัปดาห์ในคนที่เคยมีกล้ามเนื้อหัวใจตาย บอกอะไรเรา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Gives weight to his history as a **former smoker**, a real risk factor.",
-            "weigh": "Leg swelling, raised neck veins and crackles at both bases are not well explained by this label.",
+            "weigh": "Does COPD account for leg swelling, raised neck veins and crackles at both bases?",
             "safety": ""
           },
           {
             "strength": "Notices breathing that **slowly got worse**, a pattern that fits a chronic illness flaring.",
-            "weigh": "He stopped smoking 10 years ago, and sitting up at night with swollen legs widens the picture.",
+            "weigh": "He quit smoking 10 years ago; where do sitting up at night and two swollen legs point?",
             "safety": ""
           },
           {
             "strength": "Draws on his smoking past rather than today's symptoms alone.",
-            "weigh": "Two weeks off tablets after a heart attack is a fact worth weighing here.",
+            "weigh": "What do two weeks off tablets after a heart attack tell you here?",
             "safety": ""
           }
         ]
@@ -188,34 +188,34 @@
         "th": [
           {
             "strength": "มองหา**ตัวกระตุ้น**ของอาการครั้งนี้ ในผู้ป่วยที่เคยมีกล้ามเนื้อหัวใจตายมาก่อน",
-            "weigh": "โทรโปนินอาจสูงเล็กน้อยจากหัวใจที่ทำงานหนัก จึงควรแปลผลคู่กับคลื่นไฟฟ้าหัวใจ",
+            "weigh": "ถ้าโทรโปนินสูงเล็กน้อย คลื่นไฟฟ้าหัวใจช่วยแปลผลได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "การหากล้ามเนื้อหัวใจขาดเลือดตั้งแต่ต้น ช่วยไม่ให้พลาดสาเหตุที่ต้องรักษาเร่งด่วน",
-            "weigh": "คลื่นไฟฟ้าหัวใจได้ผลเร็ว ส่วนการรอโทรโปนินไม่ควรทำให้การดูแลอาการหอบช้าลง",
+            "weigh": "ระหว่างรอผลโทรโปนิน จะดูแลอาการหอบไปพร้อมกันอย่างไร",
             "safety": ""
           },
           {
             "strength": "เชื่อมประวัติโรคหัวใจเดิมเข้ากับการหาสาเหตุที่ทำให้อาการกำเริบ",
-            "weigh": "โทรโปนินครั้งเดียวที่สูงเล็กน้อยแปลผลยากในคนที่หัวใจทำงานหนัก ควรดูภาพรวมประกอบ",
+            "weigh": "ภาพรวมแบบไหนที่ทำให้โทรโปนินที่สูงเล็กน้อยมีความหมายจริง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Hunts for what may have **set this off** in a man with a previous heart attack.",
-            "weigh": "Troponin can rise a little from strain on the heart alone, so read it alongside the ECG.",
+            "weigh": "If troponin is only slightly raised, what on the ECG helps you read it?",
             "safety": ""
           },
           {
             "strength": "Looking for ischaemia early avoids missing a cause that needs urgent treatment.",
-            "weigh": "The ECG is quick, while troponin may take time; waiting for it should not delay relief of his breathing.",
+            "weigh": "While troponin is pending, how do you keep his breathing care moving?",
             "safety": ""
           },
           {
             "strength": "Connects his heart history to the search for the trigger.",
-            "weigh": "A single mildly raised troponin is hard to read when the heart is under strain, so context matters.",
+            "weigh": "What else in the picture would make a mildly raised troponin truly matter?",
             "safety": ""
           }
         ]
@@ -224,34 +224,34 @@
         "th": [
           {
             "strength": "เลือกการตรวจที่ทำได้เร็ว และ**ดูน้ำในปอด**กับหัวใจได้พร้อมกัน",
-            "weigh": "ภาพเอกซเรย์ช่วงแรกอาจยังเห็นน้ำในปอดไม่ชัด อาการแสดงข้างเตียงจึงยังสำคัญ",
+            "weigh": "ภาพเอกซเรย์ช่วงแรกอาจดูดีกว่าความจริง อาการแสดงข้างเตียงข้อไหนช่วยยืนยัน",
             "safety": ""
           },
           {
             "strength": "ได้ข้อมูลทั้งปอดและหัวใจในคราวเดียว ช่วยให้ตัดสินใจได้เร็วในโรงพยาบาลชุมชน",
-            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวไม่ได้เห็นปัญหาของหัวใจทุกอย่าง จึงควรแปลผลร่วมกับอาการ",
+            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวมองไม่เห็นอะไรบ้าง และจะแปลผลคู่กับอาการอย่างไร",
             "safety": ""
           },
           {
             "strength": "สองการตรวจนี้หาได้ทุกที่ ราคาไม่แพง และตอบคำถามสำคัญได้ทันที",
-            "weigh": "ควรเทียบคลื่นไฟฟ้าหัวใจกับของเดิมถ้ามี เพราะเคยมีกล้ามเนื้อหัวใจตายมาก่อน",
+            "weigh": "มีคลื่นไฟฟ้าหัวใจเก่าให้เทียบไหม เมื่อเคยมีกล้ามเนื้อหัวใจตายมาก่อน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Picks fast tests that look for **lung fluid** and check the heart together.",
-            "weigh": "An early film can look clearer than the lungs really are, so bedside signs still count.",
+            "weigh": "An early film can look better than the lungs are; which bedside signs back it up?",
             "safety": ""
           },
           {
             "strength": "Answers two questions in one go, which helps quick decisions in a community hospital.",
-            "weigh": "A single ECG does not show every heart problem, so read it alongside his symptoms.",
+            "weigh": "What can a single ECG miss, and how do you read it alongside his symptoms?",
             "safety": ""
           },
           {
             "strength": "Both tests are cheap, widely available and give answers at once.",
-            "weigh": "With a past heart attack, comparing the ECG with an older tracing helps if one exists.",
+            "weigh": "With a past heart attack, is there an older ECG to compare against?",
             "safety": ""
           }
         ]
@@ -260,34 +260,34 @@
         "th": [
           {
             "strength": "คิดล่วงหน้าถึงการให้**ยาขับปัสสาวะ**อย่างปลอดภัย โดยมีค่าไตและเกลือแร่เป็นฐาน",
-            "weigh": "ผลเหล่านี้ช่วยเรื่องขนาดยา แต่ยังไม่ได้บอกว่าอาการหอบครั้งนี้มาจากอะไร",
+            "weigh": "ผลเหล่านี้ช่วยเรื่องขนาดยา แต่บอกไหมว่าอาการหอบครั้งนี้มาจากอะไร",
             "safety": ""
           },
           {
             "strength": "ค่าไตและโพแทสเซียมตั้งต้น ทำให้ติดตามผลข้างเคียงของยาได้ชัด",
-            "weigh": "ผลเลือดอาจใช้เวลา การรอผลไม่ควรทำให้การดูแลอาการหอบล่าช้า",
+            "weigh": "ระหว่างรอผลเลือด จะไม่ให้การดูแลอาการหอบล่าช้าได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ตรวจน้ำตาลไว้ด้วย ช่วยให้เห็นปัจจัยที่อาจทำให้การดูแลซับซ้อนขึ้น",
-            "weigh": "ค่าตั้งต้นจะมีความหมายมากขึ้นเมื่อเทียบกับผลที่ตรวจซ้ำหลังให้ยา",
+            "weigh": "ค่าน้ำตาลหรือค่าไตแบบไหนที่จะเปลี่ยนการดูแลผู้ป่วยรายนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks ahead to **safe diuretic dosing**, with kidney and salt levels as a baseline.",
-            "weigh": "These results guide dosing but do not explain what caused his breathlessness.",
+            "weigh": "These guide dosing, but do they tell you what caused his breathlessness?",
             "safety": ""
           },
           {
             "strength": "A baseline creatinine and potassium make later side effects easy to spot.",
-            "weigh": "Results take time, and waiting for them need not hold up care of his breathing.",
+            "weigh": "While the results are pending, how do you keep care of his breathing on time?",
             "safety": ""
           },
           {
             "strength": "Adding glucose picks up a factor that can complicate his care.",
-            "weigh": "Baseline values mean most when compared with repeat results after treatment begins.",
+            "weigh": "What glucose or kidney values would change how you care for him?",
             "safety": ""
           }
         ]
@@ -296,34 +296,34 @@
         "th": [
           {
             "strength": "ใช้ตัวเลขช่วยยืนยันว่า**อาการหอบมาจากหัวใจ** เมื่อภาพทางคลินิกยังไม่ชัด",
-            "weigh": "ค่า NT-proBNP สูงขึ้นตามอายุและเมื่อไตเสื่อม จึงควรแปลผลตามบริบท",
+            "weigh": "อายุ 68 ปีกับไตที่อาจเสื่อม จะแปลค่า NT-proBNP อย่างไร",
             "safety": ""
           },
           {
             "strength": "ค่าที่ต่ำช่วยลดโอกาสสาเหตุจากหัวใจได้มาก การตรวจนี้จึงช่วยได้ทั้งสองทาง",
-            "weigh": "โรงพยาบาลชุมชนบางแห่งอาจไม่มีการตรวจนี้ และอาการแสดงข้างเตียงก็บอกได้มากอยู่แล้ว",
+            "weigh": "ถ้าโรงพยาบาลไม่มีการตรวจนี้ อาการแสดงข้างเตียงบอกได้แค่ไหนแล้ว",
             "safety": ""
           },
           {
             "strength": "เพิ่มหลักฐานเชิงตัวเลขให้การวินิจฉัย ซึ่งช่วยให้สื่อสารกับทีมที่ดูแลได้ชัดขึ้น",
-            "weigh": "ค่าที่สูงบอกว่ามาจากหัวใจ แต่ไม่ได้บอกว่าอะไรทำให้กำเริบครั้งนี้",
+            "weigh": "ค่าที่สูงบอกว่ามาจากหัวใจ แล้วอะไรทำให้กำเริบครั้งนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Adds a number to support a **heart cause** when the picture is unclear.",
-            "weigh": "NT-proBNP rises with age and with kidney impairment, so it needs reading in context.",
+            "weigh": "At 68, with kidneys that may be impaired, how will you read the NT-proBNP?",
             "safety": ""
           },
           {
             "strength": "A low level makes a heart cause unlikely, so the test helps in both directions.",
-            "weigh": "Some community hospitals lack this test, and the bedside signs here already say a lot.",
+            "weigh": "If this test is not available here, how much do the bedside signs already tell you?",
             "safety": ""
           },
           {
             "strength": "Gives the diagnosis a number that is easy to share with the team caring for him.",
-            "weigh": "A high level points to the heart but does not show what triggered this episode.",
+            "weigh": "A high level points to the heart, but what triggered this episode?",
             "safety": ""
           }
         ]
@@ -332,34 +332,34 @@
         "th": [
           {
             "strength": "ไม่ลืมนึกถึง**ลิ่มเลือด**อุดกั้นในปอด ในผู้ป่วยที่หอบและออกซิเจนต่ำ",
-            "weigh": "ดีไดเมอร์ช่วยได้เมื่อโอกาสเป็นต่ำ แต่ในผู้สูงอายุที่ป่วยเฉียบพลันมักสูงอยู่แล้ว",
+            "weigh": "ผู้ป่วยอายุ 68 ที่ป่วยเฉียบพลัน ดีไดเมอร์มักสูงอยู่แล้ว ผลจะช่วยตัดสินใจได้จริงไหม",
             "safety": ""
           },
           {
             "strength": "การคิดถึงโรคอันตรายที่พลาดไม่ได้ เป็นนิสัยที่ช่วยไม่ให้มองข้ามสิ่งสำคัญ",
-            "weigh": "ค่าที่สูงไม่ได้ยืนยันลิ่มเลือด และอาการแสดงที่พบก็อธิบายอาการหอบได้อยู่แล้ว",
+            "weigh": "อาการแสดงที่พบอธิบายอาการหอบได้แล้ว ยังมีอะไรชี้ไปทางลิ่มเลือดอีกไหม",
             "safety": ""
           },
           {
             "strength": "ค่าดีไดเมอร์ที่ปกติช่วยตัดลิ่มเลือดออกได้ในผู้ป่วยที่โอกาสเป็นต่ำ",
-            "weigh": "อายุ 68 ปีร่วมกับป่วยเฉียบพลัน ทำให้ค่าสูงได้บ่อยโดยไม่มีลิ่มเลือด",
+            "weigh": "โอกาสเป็นลิ่มเลือดของผู้ป่วยรายนี้ต่ำพอที่ดีไดเมอร์จะช่วยตัดออกได้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps a **clot in the lungs** in mind for a breathless, hypoxic man.",
-            "weigh": "D-dimer helps most when the chance is low; in an acutely ill 68-year-old it is often raised anyway.",
+            "weigh": "In an acutely ill 68-year-old, D-dimer is often raised anyway; will it really help?",
             "safety": ""
           },
           {
             "strength": "Thinking of a must-not-miss cause is a habit that protects patients.",
-            "weigh": "A raised value does not confirm a clot, and the findings here already account for his breathlessness.",
+            "weigh": "The findings already explain his breathlessness; does anything point to a clot?",
             "safety": ""
           },
           {
             "strength": "A normal D-dimer can rule out a clot when the chance is low.",
-            "weigh": "At 68 and acutely unwell, a raised result is common without any clot.",
+            "weigh": "Is his chance of a clot low enough for a D-dimer to rule it out?",
             "safety": ""
           }
         ]
@@ -370,34 +370,34 @@
         "th": [
           {
             "strength": "เลือกการตรวจที่ทำได้เร็ว และ**ดูน้ำในปอด**กับหัวใจได้พร้อมกัน",
-            "weigh": "ภาพเอกซเรย์ช่วงแรกอาจยังเห็นน้ำในปอดไม่ชัด อาการแสดงข้างเตียงจึงยังสำคัญ",
+            "weigh": "ภาพเอกซเรย์ช่วงแรกอาจดูดีกว่าความจริง อาการแสดงข้างเตียงข้อไหนช่วยยืนยัน",
             "safety": ""
           },
           {
             "strength": "ได้ข้อมูลทั้งปอดและหัวใจในคราวเดียว ช่วยให้ตัดสินใจได้เร็วในโรงพยาบาลชุมชน",
-            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวไม่ได้เห็นปัญหาของหัวใจทุกอย่าง จึงควรแปลผลร่วมกับอาการ",
+            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวมองไม่เห็นอะไรบ้าง และจะแปลผลคู่กับอาการอย่างไร",
             "safety": ""
           },
           {
             "strength": "สองการตรวจนี้หาได้ทุกที่ ราคาไม่แพง และตอบคำถามสำคัญได้ทันที",
-            "weigh": "ควรเทียบคลื่นไฟฟ้าหัวใจกับของเดิมถ้ามี เพราะเคยมีกล้ามเนื้อหัวใจตายมาก่อน",
+            "weigh": "มีคลื่นไฟฟ้าหัวใจเก่าให้เทียบไหม เมื่อเคยมีกล้ามเนื้อหัวใจตายมาก่อน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Picks fast tests that look for **lung fluid** and check the heart together.",
-            "weigh": "An early film can look clearer than the lungs really are, so bedside signs still count.",
+            "weigh": "An early film can look better than the lungs are; which bedside signs back it up?",
             "safety": ""
           },
           {
             "strength": "Answers two questions in one go, which helps quick decisions in a community hospital.",
-            "weigh": "A single ECG does not show every heart problem, so read it alongside his symptoms.",
+            "weigh": "What can a single ECG miss, and how do you read it alongside his symptoms?",
             "safety": ""
           },
           {
             "strength": "Both tests are cheap, widely available and give answers at once.",
-            "weigh": "With a past heart attack, comparing the ECG with an older tracing helps if one exists.",
+            "weigh": "With a past heart attack, is there an older ECG to compare against?",
             "safety": ""
           }
         ]
@@ -406,34 +406,34 @@
         "th": [
           {
             "strength": "มองหา**ตัวกระตุ้น**ของอาการครั้งนี้ ในผู้ป่วยที่เคยมีกล้ามเนื้อหัวใจตายมาก่อน",
-            "weigh": "โทรโปนินอาจสูงเล็กน้อยจากหัวใจที่ทำงานหนัก จึงควรแปลผลคู่กับคลื่นไฟฟ้าหัวใจ",
+            "weigh": "ถ้าโทรโปนินสูงเล็กน้อย คลื่นไฟฟ้าหัวใจช่วยแปลผลได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "การหากล้ามเนื้อหัวใจขาดเลือดตั้งแต่ต้น ช่วยไม่ให้พลาดสาเหตุที่ต้องรักษาเร่งด่วน",
-            "weigh": "คลื่นไฟฟ้าหัวใจได้ผลเร็ว ส่วนการรอโทรโปนินไม่ควรทำให้การดูแลอาการหอบช้าลง",
+            "weigh": "ระหว่างรอผลโทรโปนิน จะดูแลอาการหอบไปพร้อมกันอย่างไร",
             "safety": ""
           },
           {
             "strength": "เชื่อมประวัติโรคหัวใจเดิมเข้ากับการหาสาเหตุที่ทำให้อาการกำเริบ",
-            "weigh": "โทรโปนินครั้งเดียวที่สูงเล็กน้อยแปลผลยากในคนที่หัวใจทำงานหนัก ควรดูภาพรวมประกอบ",
+            "weigh": "ภาพรวมแบบไหนที่ทำให้โทรโปนินที่สูงเล็กน้อยมีความหมายจริง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Hunts for what may have **set this off** in a man with a previous heart attack.",
-            "weigh": "Troponin can rise a little from strain on the heart alone, so read it alongside the ECG.",
+            "weigh": "If troponin is only slightly raised, what on the ECG helps you read it?",
             "safety": ""
           },
           {
             "strength": "Looking for ischaemia early avoids missing a cause that needs urgent treatment.",
-            "weigh": "The ECG is quick, while troponin may take time; waiting for it should not delay relief of his breathing.",
+            "weigh": "While troponin is pending, how do you keep his breathing care moving?",
             "safety": ""
           },
           {
             "strength": "Connects his heart history to the search for the trigger.",
-            "weigh": "A single mildly raised troponin is hard to read when the heart is under strain, so context matters.",
+            "weigh": "What else in the picture would make a mildly raised troponin truly matter?",
             "safety": ""
           }
         ]
@@ -442,34 +442,34 @@
         "th": [
           {
             "strength": "ใช้ตัวเลขช่วยยืนยันว่า**อาการหอบมาจากหัวใจ** เมื่อภาพทางคลินิกยังไม่ชัด",
-            "weigh": "ค่า NT-proBNP สูงขึ้นตามอายุและเมื่อไตเสื่อม จึงควรแปลผลตามบริบท",
+            "weigh": "อายุ 68 ปีกับไตที่อาจเสื่อม จะแปลค่า NT-proBNP อย่างไร",
             "safety": ""
           },
           {
             "strength": "ค่าที่ต่ำช่วยลดโอกาสสาเหตุจากหัวใจได้มาก การตรวจนี้จึงช่วยได้ทั้งสองทาง",
-            "weigh": "โรงพยาบาลชุมชนบางแห่งอาจไม่มีการตรวจนี้ และอาการแสดงข้างเตียงก็บอกได้มากอยู่แล้ว",
+            "weigh": "ถ้าโรงพยาบาลไม่มีการตรวจนี้ อาการแสดงข้างเตียงบอกได้แค่ไหนแล้ว",
             "safety": ""
           },
           {
             "strength": "เพิ่มหลักฐานเชิงตัวเลขให้การวินิจฉัย ซึ่งช่วยให้สื่อสารกับทีมที่ดูแลได้ชัดขึ้น",
-            "weigh": "ค่าที่สูงบอกว่ามาจากหัวใจ แต่ไม่ได้บอกว่าอะไรทำให้กำเริบครั้งนี้",
+            "weigh": "ค่าที่สูงบอกว่ามาจากหัวใจ แล้วอะไรทำให้กำเริบครั้งนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Adds a number to support a **heart cause** when the picture is unclear.",
-            "weigh": "NT-proBNP rises with age and with kidney impairment, so it needs reading in context.",
+            "weigh": "At 68, with kidneys that may be impaired, how will you read the NT-proBNP?",
             "safety": ""
           },
           {
             "strength": "A low level makes a heart cause unlikely, so the test helps in both directions.",
-            "weigh": "Some community hospitals lack this test, and the bedside signs here already say a lot.",
+            "weigh": "If this test is not available here, how much do the bedside signs already tell you?",
             "safety": ""
           },
           {
             "strength": "Gives the diagnosis a number that is easy to share with the team caring for him.",
-            "weigh": "A high level points to the heart but does not show what triggered this episode.",
+            "weigh": "A high level points to the heart, but what triggered this episode?",
             "safety": ""
           }
         ]
@@ -478,34 +478,34 @@
         "th": [
           {
             "strength": "คิดล่วงหน้าถึงการให้**ยาขับปัสสาวะ**อย่างปลอดภัย โดยมีค่าไตและเกลือแร่เป็นฐาน",
-            "weigh": "ผลเหล่านี้ช่วยเรื่องขนาดยา แต่ยังไม่ได้บอกว่าอาการหอบครั้งนี้มาจากอะไร",
+            "weigh": "ผลเหล่านี้ช่วยเรื่องขนาดยา แต่บอกไหมว่าอาการหอบครั้งนี้มาจากอะไร",
             "safety": ""
           },
           {
             "strength": "ค่าไตและโพแทสเซียมตั้งต้น ทำให้ติดตามผลข้างเคียงของยาได้ชัด",
-            "weigh": "ผลเลือดอาจใช้เวลา การรอผลไม่ควรทำให้การดูแลอาการหอบล่าช้า",
+            "weigh": "ระหว่างรอผลเลือด จะไม่ให้การดูแลอาการหอบล่าช้าได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ตรวจน้ำตาลไว้ด้วย ช่วยให้เห็นปัจจัยที่อาจทำให้การดูแลซับซ้อนขึ้น",
-            "weigh": "ค่าตั้งต้นจะมีความหมายมากขึ้นเมื่อเทียบกับผลที่ตรวจซ้ำหลังให้ยา",
+            "weigh": "ค่าน้ำตาลหรือค่าไตแบบไหนที่จะเปลี่ยนการดูแลผู้ป่วยรายนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks ahead to **safe diuretic dosing**, with kidney and salt levels as a baseline.",
-            "weigh": "These results guide dosing but do not explain what caused his breathlessness.",
+            "weigh": "These guide dosing, but do they tell you what caused his breathlessness?",
             "safety": ""
           },
           {
             "strength": "A baseline creatinine and potassium make later side effects easy to spot.",
-            "weigh": "Results take time, and waiting for them need not hold up care of his breathing.",
+            "weigh": "While the results are pending, how do you keep care of his breathing on time?",
             "safety": ""
           },
           {
             "strength": "Adding glucose picks up a factor that can complicate his care.",
-            "weigh": "Baseline values mean most when compared with repeat results after treatment begins.",
+            "weigh": "What glucose or kidney values would change how you care for him?",
             "safety": ""
           }
         ]
@@ -514,34 +514,34 @@
         "th": [
           {
             "strength": "คิดถึงการ**หาเชื้อก่อโรค** เพื่อให้เลือกยาได้ตรงเชื้อหากมีการติดเชื้อจริง",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงไม่ช่วยตอบว่าอาการหอบตอนนี้มาจากอะไร",
+            "weigh": "ผลเพาะเชื้อต้องรอหลายวัน จะช่วยตอบว่าตอนนี้หอบจากอะไรได้ไหม",
             "safety": ""
           },
           {
             "strength": "ไม่มองข้ามการติดเชื้อในปอด ซึ่งอาจเป็นตัวกระตุ้นให้อาการแย่ลง",
-            "weigh": "ไม่มีไข้ และเสียงกรอบแกรบอยู่ที่ฐานปอดทั้งสองข้าง ทำให้น้ำหนักของการติดเชื้อลดลง",
+            "weigh": "ไม่มีไข้ และเสียงกรอบแกรบอยู่ที่ฐานปอดทั้งสองข้าง ชี้ไปทางติดเชื้อจริงไหม",
             "safety": ""
           },
           {
             "strength": "การย้อมแกรมให้ข้อมูลเบื้องต้นได้ภายในวันเดียว",
-            "weigh": "เสมหะที่เก็บได้ไม่ดีมักปนเปื้อน ทำให้แปลผลยากในทางปฏิบัติ",
+            "weigh": "ถ้าเก็บเสมหะได้ไม่ดี ผลที่ได้จะเชื่อได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks about **the organism** so treatment could be targeted if infection is present.",
-            "weigh": "Culture takes days, so it cannot explain his breathlessness today.",
+            "weigh": "Culture takes days; can it tell you why he is breathless today?",
             "safety": ""
           },
           {
             "strength": "Keeps a lung infection in view as a possible trigger of the decline.",
-            "weigh": "No fever and crackles at both bases make infection less likely here.",
+            "weigh": "With no fever and crackles at both bases, does this really point to infection?",
             "safety": ""
           },
           {
             "strength": "A Gram stain can give early information within a day.",
-            "weigh": "Poorly collected sputum is often contaminated, which makes results hard to read.",
+            "weigh": "If the sputum sample is poor, how far can you trust the result?",
             "safety": ""
           }
         ]
@@ -552,34 +552,34 @@
         "th": [
           {
             "strength": "เลือกการตรวจที่ทำได้เร็ว และ**ดูน้ำในปอด**กับหัวใจได้พร้อมกัน",
-            "weigh": "ภาพเอกซเรย์ช่วงแรกอาจยังเห็นน้ำในปอดไม่ชัด อาการแสดงข้างเตียงจึงยังสำคัญ",
+            "weigh": "ภาพเอกซเรย์ช่วงแรกอาจดูดีกว่าความจริง อาการแสดงข้างเตียงข้อไหนช่วยยืนยัน",
             "safety": ""
           },
           {
             "strength": "ได้ข้อมูลทั้งปอดและหัวใจในคราวเดียว ช่วยให้ตัดสินใจได้เร็วในโรงพยาบาลชุมชน",
-            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวไม่ได้เห็นปัญหาของหัวใจทุกอย่าง จึงควรแปลผลร่วมกับอาการ",
+            "weigh": "คลื่นไฟฟ้าหัวใจครั้งเดียวมองไม่เห็นอะไรบ้าง และจะแปลผลคู่กับอาการอย่างไร",
             "safety": ""
           },
           {
             "strength": "สองการตรวจนี้หาได้ทุกที่ ราคาไม่แพง และตอบคำถามสำคัญได้ทันที",
-            "weigh": "ควรเทียบคลื่นไฟฟ้าหัวใจกับของเดิมถ้ามี เพราะเคยมีกล้ามเนื้อหัวใจตายมาก่อน",
+            "weigh": "มีคลื่นไฟฟ้าหัวใจเก่าให้เทียบไหม เมื่อเคยมีกล้ามเนื้อหัวใจตายมาก่อน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Picks fast tests that look for **lung fluid** and check the heart together.",
-            "weigh": "An early film can look clearer than the lungs really are, so bedside signs still count.",
+            "weigh": "An early film can look better than the lungs are; which bedside signs back it up?",
             "safety": ""
           },
           {
             "strength": "Answers two questions in one go, which helps quick decisions in a community hospital.",
-            "weigh": "A single ECG does not show every heart problem, so read it alongside his symptoms.",
+            "weigh": "What can a single ECG miss, and how do you read it alongside his symptoms?",
             "safety": ""
           },
           {
             "strength": "Both tests are cheap, widely available and give answers at once.",
-            "weigh": "With a past heart attack, comparing the ECG with an older tracing helps if one exists.",
+            "weigh": "With a past heart attack, is there an older ECG to compare against?",
             "safety": ""
           }
         ]
@@ -588,34 +588,34 @@
         "th": [
           {
             "strength": "คิดล่วงหน้าถึงการให้**ยาขับปัสสาวะ**อย่างปลอดภัย โดยมีค่าไตและเกลือแร่เป็นฐาน",
-            "weigh": "ผลเหล่านี้ช่วยเรื่องขนาดยา แต่ยังไม่ได้บอกว่าอาการหอบครั้งนี้มาจากอะไร",
+            "weigh": "ผลเหล่านี้ช่วยเรื่องขนาดยา แต่บอกไหมว่าอาการหอบครั้งนี้มาจากอะไร",
             "safety": ""
           },
           {
             "strength": "ค่าไตและโพแทสเซียมตั้งต้น ทำให้ติดตามผลข้างเคียงของยาได้ชัด",
-            "weigh": "ผลเลือดอาจใช้เวลา การรอผลไม่ควรทำให้การดูแลอาการหอบล่าช้า",
+            "weigh": "ระหว่างรอผลเลือด จะไม่ให้การดูแลอาการหอบล่าช้าได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ตรวจน้ำตาลไว้ด้วย ช่วยให้เห็นปัจจัยที่อาจทำให้การดูแลซับซ้อนขึ้น",
-            "weigh": "ค่าตั้งต้นจะมีความหมายมากขึ้นเมื่อเทียบกับผลที่ตรวจซ้ำหลังให้ยา",
+            "weigh": "ค่าน้ำตาลหรือค่าไตแบบไหนที่จะเปลี่ยนการดูแลผู้ป่วยรายนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks ahead to **safe diuretic dosing**, with kidney and salt levels as a baseline.",
-            "weigh": "These results guide dosing but do not explain what caused his breathlessness.",
+            "weigh": "These guide dosing, but do they tell you what caused his breathlessness?",
             "safety": ""
           },
           {
             "strength": "A baseline creatinine and potassium make later side effects easy to spot.",
-            "weigh": "Results take time, and waiting for them need not hold up care of his breathing.",
+            "weigh": "While the results are pending, how do you keep care of his breathing on time?",
             "safety": ""
           },
           {
             "strength": "Adding glucose picks up a factor that can complicate his care.",
-            "weigh": "Baseline values mean most when compared with repeat results after treatment begins.",
+            "weigh": "What glucose or kidney values would change how you care for him?",
             "safety": ""
           }
         ]
@@ -624,34 +624,34 @@
         "th": [
           {
             "strength": "ไม่ลืมนึกถึง**ลิ่มเลือด**อุดกั้นในปอด ในผู้ป่วยที่หอบและออกซิเจนต่ำ",
-            "weigh": "ดีไดเมอร์ช่วยได้เมื่อโอกาสเป็นต่ำ แต่ในผู้สูงอายุที่ป่วยเฉียบพลันมักสูงอยู่แล้ว",
+            "weigh": "ผู้ป่วยอายุ 68 ที่ป่วยเฉียบพลัน ดีไดเมอร์มักสูงอยู่แล้ว ผลจะช่วยตัดสินใจได้จริงไหม",
             "safety": ""
           },
           {
             "strength": "การคิดถึงโรคอันตรายที่พลาดไม่ได้ เป็นนิสัยที่ช่วยไม่ให้มองข้ามสิ่งสำคัญ",
-            "weigh": "ค่าที่สูงไม่ได้ยืนยันลิ่มเลือด และอาการแสดงที่พบก็อธิบายอาการหอบได้อยู่แล้ว",
+            "weigh": "อาการแสดงที่พบอธิบายอาการหอบได้แล้ว ยังมีอะไรชี้ไปทางลิ่มเลือดอีกไหม",
             "safety": ""
           },
           {
             "strength": "ค่าดีไดเมอร์ที่ปกติช่วยตัดลิ่มเลือดออกได้ในผู้ป่วยที่โอกาสเป็นต่ำ",
-            "weigh": "อายุ 68 ปีร่วมกับป่วยเฉียบพลัน ทำให้ค่าสูงได้บ่อยโดยไม่มีลิ่มเลือด",
+            "weigh": "โอกาสเป็นลิ่มเลือดของผู้ป่วยรายนี้ต่ำพอที่ดีไดเมอร์จะช่วยตัดออกได้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps a **clot in the lungs** in mind for a breathless, hypoxic man.",
-            "weigh": "D-dimer helps most when the chance is low; in an acutely ill 68-year-old it is often raised anyway.",
+            "weigh": "In an acutely ill 68-year-old, D-dimer is often raised anyway; will it really help?",
             "safety": ""
           },
           {
             "strength": "Thinking of a must-not-miss cause is a habit that protects patients.",
-            "weigh": "A raised value does not confirm a clot, and the findings here already account for his breathlessness.",
+            "weigh": "The findings already explain his breathlessness; does anything point to a clot?",
             "safety": ""
           },
           {
             "strength": "A normal D-dimer can rule out a clot when the chance is low.",
-            "weigh": "At 68 and acutely unwell, a raised result is common without any clot.",
+            "weigh": "Is his chance of a clot low enough for a D-dimer to rule it out?",
             "safety": ""
           }
         ]
@@ -660,34 +660,34 @@
         "th": [
           {
             "strength": "คิดถึงการ**หาเชื้อก่อโรค** เพื่อให้เลือกยาได้ตรงเชื้อหากมีการติดเชื้อจริง",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน จึงไม่ช่วยตอบว่าอาการหอบตอนนี้มาจากอะไร",
+            "weigh": "ผลเพาะเชื้อต้องรอหลายวัน จะช่วยตอบว่าตอนนี้หอบจากอะไรได้ไหม",
             "safety": ""
           },
           {
             "strength": "ไม่มองข้ามการติดเชื้อในปอด ซึ่งอาจเป็นตัวกระตุ้นให้อาการแย่ลง",
-            "weigh": "ไม่มีไข้ และเสียงกรอบแกรบอยู่ที่ฐานปอดทั้งสองข้าง ทำให้น้ำหนักของการติดเชื้อลดลง",
+            "weigh": "ไม่มีไข้ และเสียงกรอบแกรบอยู่ที่ฐานปอดทั้งสองข้าง ชี้ไปทางติดเชื้อจริงไหม",
             "safety": ""
           },
           {
             "strength": "การย้อมแกรมให้ข้อมูลเบื้องต้นได้ภายในวันเดียว",
-            "weigh": "เสมหะที่เก็บได้ไม่ดีมักปนเปื้อน ทำให้แปลผลยากในทางปฏิบัติ",
+            "weigh": "ถ้าเก็บเสมหะได้ไม่ดี ผลที่ได้จะเชื่อได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks about **the organism** so treatment could be targeted if infection is present.",
-            "weigh": "Culture takes days, so it cannot explain his breathlessness today.",
+            "weigh": "Culture takes days; can it tell you why he is breathless today?",
             "safety": ""
           },
           {
             "strength": "Keeps a lung infection in view as a possible trigger of the decline.",
-            "weigh": "No fever and crackles at both bases make infection less likely here.",
+            "weigh": "With no fever and crackles at both bases, does this really point to infection?",
             "safety": ""
           },
           {
             "strength": "A Gram stain can give early information within a day.",
-            "weigh": "Poorly collected sputum is often contaminated, which makes results hard to read.",
+            "weigh": "If the sputum sample is poor, how far can you trust the result?",
             "safety": ""
           }
         ]
@@ -698,34 +698,34 @@
         "th": [
           {
             "strength": "ใช้**ความดันสูง**เป็นเหตุผลในการเพิ่มไนเตรต เพื่อลดภาระหัวใจได้เร็ว",
-            "weigh": "ควรวัดความดันซ้ำหลังอมยาแต่ละครั้ง และงดไนเตรตถ้าความดันตัวบนต่ำกว่า 110",
+            "weigh": "ถ้าความดันลดลงหลังอมยา จะหยุดไนเตรตเมื่อความดันตัวบนต่ำแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ดูแลสามด้านพร้อมกัน ทั้งออกซิเจนต่ำ น้ำเกิน และความดันที่สูง",
-            "weigh": "ไนเตรตอมใต้ลิ้นออกฤทธิ์สั้น อาจต้องให้ซ้ำโดยดูความดันและอาการหอบทุกครั้ง",
+            "weigh": "ไนเตรตอมใต้ลิ้นหมดฤทธิ์เร็ว ก่อนให้ซ้ำแต่ละครั้งต้องดูอะไรบ้าง",
             "safety": ""
           },
           {
             "strength": "เลือกยาตามสรีรวิทยาของผู้ป่วย คือความดัน 168/96 ที่เพิ่มภาระให้หัวใจ",
-            "weigh": "ให้ออกซิเจนตาม SpO2 ไม่ต้องให้สูงเกิน และติดตามปัสสาวะหลังให้ฟูโรซีไมด์",
+            "weigh": "จะปรับออกซิเจนตาม SpO2 อย่างไร โดยไม่ให้สูงเกินจำเป็น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses the high BP to justify a **sublingual nitrate**, unloading the heart quickly.",
-            "weigh": "Recheck BP after each dose and hold the nitrate if the systolic falls below 110.",
+            "weigh": "If his BP falls after a dose, at what systolic will you hold the nitrate?",
             "safety": ""
           },
           {
             "strength": "Treats three problems at once: low oxygen, fluid overload and a high BP.",
-            "weigh": "A sublingual nitrate wears off quickly, so repeat doses need BP and breathing reviewed each time.",
+            "weigh": "A sublingual nitrate wears off fast; what do you check before each further dose?",
             "safety": ""
           },
           {
             "strength": "Matches the drug to his physiology: a BP of 168/96 adds load to a struggling heart.",
-            "weigh": "Titrate oxygen to SpO2 rather than maximum flow, and track urine output after the furosemide.",
+            "weigh": "How will you titrate oxygen to his SpO2 rather than giving maximum flow?",
             "safety": ""
           }
         ]
@@ -734,34 +734,34 @@
         "th": [
           {
             "strength": "ใช้**หายใจเร็ว**และ SpO2 ที่ต่ำเป็นเกณฑ์ชัดเจนในการเริ่ม CPAP",
-            "weigh": "CPAP ต้องการผู้ป่วยที่รู้สึกตัวดี ให้ความร่วมมือ และพยาบาลที่ดูแลหน้ากากใกล้ชิด",
+            "weigh": "ผู้ป่วยรู้สึกตัวดีและร่วมมือพอจะใส่หน้ากากไหม ใครจะคอยเฝ้าหน้ากาก",
             "safety": ""
           },
           {
             "strength": "CPAP ลดงานการหายใจและดันน้ำออกจากถุงลมได้เร็ว ควบคู่กับการขับน้ำด้วยยา",
-            "weigh": "แรงดันบวกอาจทำให้ความดันลดลง จึงควรวัดความดันบ่อยในชั่วโมงแรก",
+            "weigh": "แรงดันบวกอาจทำให้ความดันลดลง ชั่วโมงแรกจะวัดความดันถี่แค่ไหน",
             "safety": ""
           },
           {
             "strength": "ประเมินความรุนแรงจากตัวเลขจริง ทั้งหายใจ 28 ครั้งต่อนาทีและ SpO2 89%",
-            "weigh": "ควรประเมินซ้ำภายในชั่วโมงแรกว่าหายใจช้าลงและ SpO2 ดีขึ้นตามที่คาด",
+            "weigh": "ภายในชั่วโมงแรก อะไรจะบอกว่า CPAP ได้ผล",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses **fast breathing** and low SpO2 as clear criteria to start CPAP.",
-            "weigh": "CPAP needs an alert, cooperative patient and staff who can watch the mask closely.",
+            "weigh": "Is he alert and cooperative enough for the mask, and who will watch it?",
             "safety": ""
           },
           {
             "strength": "CPAP cuts the work of breathing and pushes fluid out of the air sacs, alongside the furosemide.",
-            "weigh": "Positive pressure can lower BP, so measure it often in the first hour.",
+            "weigh": "Positive pressure can lower BP; how often will you measure it in the first hour?",
             "safety": ""
           },
           {
             "strength": "Grades severity from real numbers: a rate of 28 and SpO2 of 89%.",
-            "weigh": "Reassess within the first hour to see whether breathing slows and SpO2 rises.",
+            "weigh": "Within the first hour, what will tell you CPAP is working?",
             "safety": ""
           }
         ]
@@ -770,34 +770,34 @@
         "th": [
           {
             "strength": "แก้ปัญหาหลักสองอย่างตรงจุด คือ**ออกซิเจนต่ำ**และน้ำในปอด",
-            "weigh": "ปริมาณปัสสาวะในชั่วโมงแรก ๆ บอกได้ว่าขนาดฟูโรซีไมด์เพียงพอหรือยัง",
+            "weigh": "ในชั่วโมงแรก ๆ อะไรจะบอกว่าฟูโรซีไมด์ได้ผล",
             "safety": ""
           },
           {
             "strength": "ฟูโรซีไมด์ทางหลอดเลือดดำออกฤทธิ์เร็ว ช่วยลดน้ำในปอดได้ภายในไม่กี่ชั่วโมง",
-            "weigh": "ให้ออกซิเจนตามระดับ SpO2 โดยไม่จำเป็นต้องให้สูงเกินไป",
+            "weigh": "จะให้ออกซิเจนโดยตั้งเป้า SpO2 ไว้เท่าไร แทนการให้สูงที่สุด",
             "safety": ""
           },
           {
             "strength": "แผนเรียบง่ายที่เริ่มได้ทันทีในโรงพยาบาลชุมชน และตรงกับปัญหาที่เห็น",
-            "weigh": "ความดัน 168/96 เป็นข้อมูลที่ควรนำมาคิดต่อในการดูแลชั่วโมงถัดไป",
+            "weigh": "ความดัน 168/96 บอกอะไรเพิ่มสำหรับการรักษาในชั่วโมงถัดไป",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Targets the two core problems directly: **low oxygen** and fluid in the lungs.",
-            "weigh": "Urine output over the first hours shows whether the furosemide dose is enough.",
+            "weigh": "Over the first hours, what will tell you the furosemide is working?",
             "safety": ""
           },
           {
             "strength": "IV furosemide acts fast and can clear lung fluid within hours.",
-            "weigh": "Titrate oxygen to SpO2 rather than giving as much as possible.",
+            "weigh": "What SpO2 will you aim for, rather than giving as much oxygen as possible?",
             "safety": ""
           },
           {
             "strength": "A simple plan that can begin at once in a community hospital and fits what is seen.",
-            "weigh": "His BP of 168/96 is worth keeping in view over the next hours.",
+            "weigh": "What does his BP of 168/96 add to your treatment over the next hours?",
             "safety": ""
           }
         ]
@@ -806,34 +806,34 @@
         "th": [
           {
             "strength": "มองเห็นข้อจำกัดของโรงพยาบาลชุมชน และวางแผนให้ถึง**หอผู้ป่วยหนัก**ได้ทัน",
-            "weigh": "ผู้ป่วยที่ออกซิเจนต่ำอาจทรุดระหว่างทาง ควรมีพยาบาลและเครื่องติดตามไปด้วย",
+            "weigh": "ถ้าออกซิเจนต่ำแล้วทรุดระหว่างทาง ใครและอุปกรณ์อะไรต้องไปด้วย",
             "safety": ""
           },
           {
             "strength": "เริ่มรักษาก่อนแล้วจึงส่งต่อ ผู้ป่วยจึงไม่เสียเวลาระหว่างรอรถ",
-            "weigh": "ควรประเมินว่าอาการคงที่พอจะเดินทางได้ และแจ้งโรงพยาบาลปลายทางล่วงหน้า",
+            "weigh": "อาการคงที่พอจะเดินทางแล้วหรือยัง และแจ้งโรงพยาบาลปลายทางไว้หรือยัง",
             "safety": ""
           },
           {
             "strength": "ดึงทรัพยากรของเครือข่ายมาช่วย ทั้งหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-            "weigh": "การส่งต่อใช้เวลา จึงควรวางแผนว่าจะดูแลอะไรต่อระหว่างนำส่ง",
+            "weigh": "การเดินทางใช้เวลา ระหว่างรอรถและนำส่งจะรักษาอะไรต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Recognises the community hospital's limits and plans access to **intensive care** in time.",
-            "weigh": "A hypoxic patient can worsen on the road, so send a nurse and monitoring with him.",
+            "weigh": "If he worsens on the road, who and what must travel with him?",
             "safety": ""
           },
           {
             "strength": "Starting treatment before transfer means no time is lost waiting for the ambulance.",
-            "weigh": "Judge whether he is stable enough to travel, and call the receiving hospital ahead.",
+            "weigh": "Is he stable enough to travel, and has the receiving hospital been called?",
             "safety": ""
           },
           {
             "strength": "Draws on the network: intensive care and a cardiologist at the provincial hospital.",
-            "weigh": "Transfer takes time, so the plan for care on the way needs to be clear.",
+            "weigh": "The journey takes time; what treatment carries on while he waits and travels?",
             "safety": ""
           }
         ]
@@ -842,34 +842,34 @@
         "th": [
           {
             "strength": "มองหา**ตัวกระตุ้น** เพราะการติดเชื้อในปอดทำให้หัวใจทรุดลงได้บ่อย",
-            "weigh": "ไม่มีไข้ และตัวกระตุ้นที่ชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อจึงอาจไม่ได้ประโยชน์",
+            "weigh": "ไม่มีไข้ และมีตัวกระตุ้นชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อจะรักษาอะไร",
             "safety": ""
           },
           {
             "strength": "ไม่ลืมว่าผู้ป่วยหนึ่งคนอาจมีปัญหาซ้อนกันมากกว่าหนึ่งอย่าง",
-            "weigh": "ยาฆ่าเชื้อที่ไม่จำเป็นเพิ่มผลข้างเคียงและเชื้อดื้อยา ควรมีหลักฐานการติดเชื้อก่อน",
+            "weigh": "ก่อนเพิ่มยาฆ่าเชื้อ อยากเห็นหลักฐานการติดเชื้ออะไรบ้าง",
             "safety": ""
           },
           {
             "strength": "ยังคงให้ออกซิเจนและฟูโรซีไมด์ จึงยังดูแลน้ำในปอดไปพร้อมกัน",
-            "weigh": "หลักฐานการติดเชื้อที่ชัด เช่น ไข้ ยังไม่พบในผู้ป่วยรายนี้",
+            "weigh": "ผู้ป่วยรายนี้มีสัญญาณการติดเชื้อชัด ๆ อย่างไข้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a trigger, since chest infections often tip a weak heart over.",
-            "weigh": "No fever, and the clear trigger is two weeks off tablets, so the antibiotic may add little.",
+            "weigh": "No fever, and a clear trigger in two weeks off tablets: what is the antibiotic treating?",
             "safety": ""
           },
           {
             "strength": "Remembers that one patient can have more than one problem at a time.",
-            "weigh": "An unneeded antibiotic adds side effects and resistance, so evidence of infection should come first.",
+            "weigh": "Before adding an antibiotic, what evidence of infection would you want to see?",
             "safety": ""
           },
           {
             "strength": "Keeps IV furosemide and oxygen in place, so the lung fluid is still treated.",
-            "weigh": "Clear signs of infection, such as fever, are not present in this man.",
+            "weigh": "Does he show any clear sign of infection, such as fever?",
             "safety": ""
           }
         ]
@@ -878,34 +878,34 @@
         "th": [
           {
             "strength": "ต้องการ**วัดปริมาณปัสสาวะ**อย่างแม่นยำ เพื่อดูว่ายาขับปัสสาวะได้ผล",
-            "weigh": "สายสวนเพิ่มความเสี่ยงติดเชื้อ ผู้ป่วยที่รู้สึกตัวดีมักวัดปัสสาวะได้โดยไม่ต้องสวน",
+            "weigh": "ผู้ป่วยรู้สึกตัวดี วัดปัสสาวะโดยไม่ต้องสวนได้ไหม",
             "safety": ""
           },
           {
             "strength": "ใช้ปริมาณปัสสาวะเป็นตัวชี้วัดการตอบสนองต่อยา ซึ่งเป็นข้อมูลสำคัญ",
-            "weigh": "การสวนปัสสาวะทุกรายไม่ได้ช่วยให้ผลการรักษาดีขึ้น ควรมีเหตุผลเฉพาะราย",
+            "weigh": "มีเหตุผลเฉพาะของผู้ป่วยรายนี้ไหมที่ต้องใส่สายสวน",
             "safety": ""
           },
           {
             "strength": "ยังคงให้ออกซิเจนและฟูโรซีไมด์ตามปัญหาหลักของผู้ป่วย",
-            "weigh": "ผู้ป่วยรู้สึกตัวดี จึงอาจเก็บปัสสาวะใส่ภาชนะวัดได้ ลดความเสี่ยงจากสายสวน",
+            "weigh": "สายสวนเพิ่มความเสี่ยงติดเชื้อแค่ไหน เทียบกับการใช้ภาชนะรองปัสสาวะ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wants to measure **urine output** precisely to see whether the diuretic is working.",
-            "weigh": "A catheter brings infection risk, and an alert man can often be measured without one.",
+            "weigh": "He is alert; could you measure his urine without a catheter?",
             "safety": ""
           },
           {
             "strength": "Uses urine output as a marker of response to treatment, which is useful information.",
-            "weigh": "Routine catheters do not improve outcomes, so each one needs its own reason.",
+            "weigh": "What reason specific to him calls for a catheter?",
             "safety": ""
           },
           {
             "strength": "Keeps IV furosemide and oxygen in place for the main problem.",
-            "weigh": "He is alert, so a urine bottle may do the job with less risk.",
+            "weigh": "How much infection risk does a catheter add, compared with a urine bottle?",
             "safety": ""
           }
         ]
@@ -916,34 +916,34 @@
         "th": [
           {
             "strength": "ใช้**ความดันสูง**เป็นเหตุผลในการเพิ่มไนเตรต เพื่อลดภาระหัวใจได้เร็ว",
-            "weigh": "ควรวัดความดันซ้ำหลังอมยาแต่ละครั้ง และงดไนเตรตถ้าความดันตัวบนต่ำกว่า 110",
+            "weigh": "ถ้าความดันลดลงหลังอมยา จะหยุดไนเตรตเมื่อความดันตัวบนต่ำแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ดูแลสามด้านพร้อมกัน ทั้งออกซิเจนต่ำ น้ำเกิน และความดันที่สูง",
-            "weigh": "ไนเตรตอมใต้ลิ้นออกฤทธิ์สั้น อาจต้องให้ซ้ำโดยดูความดันและอาการหอบทุกครั้ง",
+            "weigh": "ไนเตรตอมใต้ลิ้นหมดฤทธิ์เร็ว ก่อนให้ซ้ำแต่ละครั้งต้องดูอะไรบ้าง",
             "safety": ""
           },
           {
             "strength": "เลือกยาตามสรีรวิทยาของผู้ป่วย คือความดัน 168/96 ที่เพิ่มภาระให้หัวใจ",
-            "weigh": "ให้ออกซิเจนตาม SpO2 ไม่ต้องให้สูงเกิน และติดตามปัสสาวะหลังให้ฟูโรซีไมด์",
+            "weigh": "จะปรับออกซิเจนตาม SpO2 อย่างไร โดยไม่ให้สูงเกินจำเป็น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses the high BP to justify a **sublingual nitrate**, unloading the heart quickly.",
-            "weigh": "Recheck BP after each dose and hold the nitrate if the systolic falls below 110.",
+            "weigh": "If his BP falls after a dose, at what systolic will you hold the nitrate?",
             "safety": ""
           },
           {
             "strength": "Treats three problems at once: low oxygen, fluid overload and a high BP.",
-            "weigh": "A sublingual nitrate wears off quickly, so repeat doses need BP and breathing reviewed each time.",
+            "weigh": "A sublingual nitrate wears off fast; what do you check before each further dose?",
             "safety": ""
           },
           {
             "strength": "Matches the drug to his physiology: a BP of 168/96 adds load to a struggling heart.",
-            "weigh": "Titrate oxygen to SpO2 rather than maximum flow, and track urine output after the furosemide.",
+            "weigh": "How will you titrate oxygen to his SpO2 rather than giving maximum flow?",
             "safety": ""
           }
         ]
@@ -952,34 +952,34 @@
         "th": [
           {
             "strength": "ใช้**หายใจเร็ว**และ SpO2 ที่ต่ำเป็นเกณฑ์ชัดเจนในการเริ่ม CPAP",
-            "weigh": "CPAP ต้องการผู้ป่วยที่รู้สึกตัวดี ให้ความร่วมมือ และพยาบาลที่ดูแลหน้ากากใกล้ชิด",
+            "weigh": "ผู้ป่วยรู้สึกตัวดีและร่วมมือพอจะใส่หน้ากากไหม ใครจะคอยเฝ้าหน้ากาก",
             "safety": ""
           },
           {
             "strength": "CPAP ลดงานการหายใจและดันน้ำออกจากถุงลมได้เร็ว ควบคู่กับการขับน้ำด้วยยา",
-            "weigh": "แรงดันบวกอาจทำให้ความดันลดลง จึงควรวัดความดันบ่อยในชั่วโมงแรก",
+            "weigh": "แรงดันบวกอาจทำให้ความดันลดลง ชั่วโมงแรกจะวัดความดันถี่แค่ไหน",
             "safety": ""
           },
           {
             "strength": "ประเมินความรุนแรงจากตัวเลขจริง ทั้งหายใจ 28 ครั้งต่อนาทีและ SpO2 89%",
-            "weigh": "ควรประเมินซ้ำภายในชั่วโมงแรกว่าหายใจช้าลงและ SpO2 ดีขึ้นตามที่คาด",
+            "weigh": "ภายในชั่วโมงแรก อะไรจะบอกว่า CPAP ได้ผล",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses **fast breathing** and low SpO2 as clear criteria to start CPAP.",
-            "weigh": "CPAP needs an alert, cooperative patient and staff who can watch the mask closely.",
+            "weigh": "Is he alert and cooperative enough for the mask, and who will watch it?",
             "safety": ""
           },
           {
             "strength": "CPAP cuts the work of breathing and pushes fluid out of the air sacs, alongside the furosemide.",
-            "weigh": "Positive pressure can lower BP, so measure it often in the first hour.",
+            "weigh": "Positive pressure can lower BP; how often will you measure it in the first hour?",
             "safety": ""
           },
           {
             "strength": "Grades severity from real numbers: a rate of 28 and SpO2 of 89%.",
-            "weigh": "Reassess within the first hour to see whether breathing slows and SpO2 rises.",
+            "weigh": "Within the first hour, what will tell you CPAP is working?",
             "safety": ""
           }
         ]
@@ -988,34 +988,34 @@
         "th": [
           {
             "strength": "แก้ปัญหาหลักสองอย่างตรงจุด คือ**ออกซิเจนต่ำ**และน้ำในปอด",
-            "weigh": "ปริมาณปัสสาวะในชั่วโมงแรก ๆ บอกได้ว่าขนาดฟูโรซีไมด์เพียงพอหรือยัง",
+            "weigh": "ในชั่วโมงแรก ๆ อะไรจะบอกว่าฟูโรซีไมด์ได้ผล",
             "safety": ""
           },
           {
             "strength": "ฟูโรซีไมด์ทางหลอดเลือดดำออกฤทธิ์เร็ว ช่วยลดน้ำในปอดได้ภายในไม่กี่ชั่วโมง",
-            "weigh": "ให้ออกซิเจนตามระดับ SpO2 โดยไม่จำเป็นต้องให้สูงเกินไป",
+            "weigh": "จะให้ออกซิเจนโดยตั้งเป้า SpO2 ไว้เท่าไร แทนการให้สูงที่สุด",
             "safety": ""
           },
           {
             "strength": "แผนเรียบง่ายที่เริ่มได้ทันทีในโรงพยาบาลชุมชน และตรงกับปัญหาที่เห็น",
-            "weigh": "ความดัน 168/96 เป็นข้อมูลที่ควรนำมาคิดต่อในการดูแลชั่วโมงถัดไป",
+            "weigh": "ความดัน 168/96 บอกอะไรเพิ่มสำหรับการรักษาในชั่วโมงถัดไป",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Targets the two core problems directly: **low oxygen** and fluid in the lungs.",
-            "weigh": "Urine output over the first hours shows whether the furosemide dose is enough.",
+            "weigh": "Over the first hours, what will tell you the furosemide is working?",
             "safety": ""
           },
           {
             "strength": "IV furosemide acts fast and can clear lung fluid within hours.",
-            "weigh": "Titrate oxygen to SpO2 rather than giving as much as possible.",
+            "weigh": "What SpO2 will you aim for, rather than giving as much oxygen as possible?",
             "safety": ""
           },
           {
             "strength": "A simple plan that can begin at once in a community hospital and fits what is seen.",
-            "weigh": "His BP of 168/96 is worth keeping in view over the next hours.",
+            "weigh": "What does his BP of 168/96 add to your treatment over the next hours?",
             "safety": ""
           }
         ]
@@ -1024,34 +1024,34 @@
         "th": [
           {
             "strength": "มองเห็นข้อจำกัดของโรงพยาบาลชุมชน และวางแผนให้ถึง**หอผู้ป่วยหนัก**ได้ทัน",
-            "weigh": "ผู้ป่วยที่ออกซิเจนต่ำอาจทรุดระหว่างทาง ควรมีพยาบาลและเครื่องติดตามไปด้วย",
+            "weigh": "ถ้าออกซิเจนต่ำแล้วทรุดระหว่างทาง ใครและอุปกรณ์อะไรต้องไปด้วย",
             "safety": ""
           },
           {
             "strength": "เริ่มรักษาก่อนแล้วจึงส่งต่อ ผู้ป่วยจึงไม่เสียเวลาระหว่างรอรถ",
-            "weigh": "ควรประเมินว่าอาการคงที่พอจะเดินทางได้ และแจ้งโรงพยาบาลปลายทางล่วงหน้า",
+            "weigh": "อาการคงที่พอจะเดินทางแล้วหรือยัง และแจ้งโรงพยาบาลปลายทางไว้หรือยัง",
             "safety": ""
           },
           {
             "strength": "ดึงทรัพยากรของเครือข่ายมาช่วย ทั้งหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-            "weigh": "การส่งต่อใช้เวลา จึงควรวางแผนว่าจะดูแลอะไรต่อระหว่างนำส่ง",
+            "weigh": "การเดินทางใช้เวลา ระหว่างรอรถและนำส่งจะรักษาอะไรต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Recognises the community hospital's limits and plans access to **intensive care** in time.",
-            "weigh": "A hypoxic patient can worsen on the road, so send a nurse and monitoring with him.",
+            "weigh": "If he worsens on the road, who and what must travel with him?",
             "safety": ""
           },
           {
             "strength": "Starting treatment before transfer means no time is lost waiting for the ambulance.",
-            "weigh": "Judge whether he is stable enough to travel, and call the receiving hospital ahead.",
+            "weigh": "Is he stable enough to travel, and has the receiving hospital been called?",
             "safety": ""
           },
           {
             "strength": "Draws on the network: intensive care and a cardiologist at the provincial hospital.",
-            "weigh": "Transfer takes time, so the plan for care on the way needs to be clear.",
+            "weigh": "The journey takes time; what treatment carries on while he waits and travels?",
             "safety": ""
           }
         ]
@@ -1060,34 +1060,34 @@
         "th": [
           {
             "strength": "มองหา**ตัวกระตุ้น** เพราะการติดเชื้อในปอดทำให้หัวใจทรุดลงได้บ่อย",
-            "weigh": "ไม่มีไข้ และตัวกระตุ้นที่ชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อจึงอาจไม่ได้ประโยชน์",
+            "weigh": "ไม่มีไข้ และมีตัวกระตุ้นชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อจะรักษาอะไร",
             "safety": ""
           },
           {
             "strength": "ไม่ลืมว่าผู้ป่วยหนึ่งคนอาจมีปัญหาซ้อนกันมากกว่าหนึ่งอย่าง",
-            "weigh": "ยาฆ่าเชื้อที่ไม่จำเป็นเพิ่มผลข้างเคียงและเชื้อดื้อยา ควรมีหลักฐานการติดเชื้อก่อน",
+            "weigh": "ก่อนเพิ่มยาฆ่าเชื้อ อยากเห็นหลักฐานการติดเชื้ออะไรบ้าง",
             "safety": ""
           },
           {
             "strength": "ยังคงให้ออกซิเจนและฟูโรซีไมด์ จึงยังดูแลน้ำในปอดไปพร้อมกัน",
-            "weigh": "หลักฐานการติดเชื้อที่ชัด เช่น ไข้ ยังไม่พบในผู้ป่วยรายนี้",
+            "weigh": "ผู้ป่วยรายนี้มีสัญญาณการติดเชื้อชัด ๆ อย่างไข้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a trigger, since chest infections often tip a weak heart over.",
-            "weigh": "No fever, and the clear trigger is two weeks off tablets, so the antibiotic may add little.",
+            "weigh": "No fever, and a clear trigger in two weeks off tablets: what is the antibiotic treating?",
             "safety": ""
           },
           {
             "strength": "Remembers that one patient can have more than one problem at a time.",
-            "weigh": "An unneeded antibiotic adds side effects and resistance, so evidence of infection should come first.",
+            "weigh": "Before adding an antibiotic, what evidence of infection would you want to see?",
             "safety": ""
           },
           {
             "strength": "Keeps IV furosemide and oxygen in place, so the lung fluid is still treated.",
-            "weigh": "Clear signs of infection, such as fever, are not present in this man.",
+            "weigh": "Does he show any clear sign of infection, such as fever?",
             "safety": ""
           }
         ]
@@ -1096,34 +1096,34 @@
         "th": [
           {
             "strength": "คิดถึงการติดเชื้อในปอดเป็นตัวกระตุ้น และต้องการ**ครอบคลุมเชื้อ**ให้กว้าง",
-            "weigh": "ไม่มีไข้ ยาฆ่าเชื้อสองตัวจึงเพิ่มผลข้างเคียงและเชื้อดื้อยาโดยยังไม่มีหลักฐาน",
+            "weigh": "ไม่มีไข้ หลักฐานอะไรที่จะคุ้มกับยาฆ่าเชื้อสองตัว",
             "safety": ""
           },
           {
             "strength": "ยังให้ออกซิเจนและฟูโรซีไมด์ จึงยังดูแลน้ำในปอดไปพร้อมกัน",
-            "weigh": "ตัวกระตุ้นที่เห็นชัดคือขาดยา 2 สัปดาห์ ซึ่งยาฆ่าเชื้อไม่ได้แก้",
+            "weigh": "ตัวกระตุ้นที่ชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อแก้ตรงนั้นได้ไหม",
             "safety": ""
           },
           {
             "strength": "ต้องการครอบคลุมเชื้อหลายกลุ่ม หากมีปอดอักเสบซ่อนอยู่จริง",
-            "weigh": "ยาฆ่าเชื้อที่กว้างขึ้นควรใช้เมื่อมีหลักฐานการติดเชื้อชัด ซึ่งรายนี้ยังไม่มี",
+            "weigh": "ยาฆ่าเชื้อที่ครอบคลุมกว้างควรใช้เมื่อไร และรายนี้ถึงจุดนั้นหรือยัง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Treats a chest infection as a possible trigger and wants **wider cover**.",
-            "weigh": "With no fever, two antibiotics add side effects and resistance without proof of infection.",
+            "weigh": "With no fever, what proof of infection would justify two antibiotics?",
             "safety": ""
           },
           {
             "strength": "Keeps IV furosemide and oxygen going, so the lung fluid is still treated.",
-            "weigh": "The clear trigger is two weeks off tablets, which antibiotics do not fix.",
+            "weigh": "The clear trigger is two weeks off tablets; do antibiotics fix that?",
             "safety": ""
           },
           {
             "strength": "Aims to cover several organisms in case an infection is hiding.",
-            "weigh": "Broader cover earns its place when infection is clear, and here it is not yet.",
+            "weigh": "When does broader cover earn its place, and has he reached that point?",
             "safety": ""
           }
         ]
@@ -1134,34 +1134,34 @@
         "th": [
           {
             "strength": "ใช้**หายใจเร็ว**และ SpO2 ที่ต่ำเป็นเกณฑ์ชัดเจนในการเริ่ม CPAP",
-            "weigh": "CPAP ต้องการผู้ป่วยที่รู้สึกตัวดี ให้ความร่วมมือ และพยาบาลที่ดูแลหน้ากากใกล้ชิด",
+            "weigh": "ผู้ป่วยรู้สึกตัวดีและร่วมมือพอจะใส่หน้ากากไหม ใครจะคอยเฝ้าหน้ากาก",
             "safety": ""
           },
           {
             "strength": "CPAP ลดงานการหายใจและดันน้ำออกจากถุงลมได้เร็ว ควบคู่กับการขับน้ำด้วยยา",
-            "weigh": "แรงดันบวกอาจทำให้ความดันลดลง จึงควรวัดความดันบ่อยในชั่วโมงแรก",
+            "weigh": "แรงดันบวกอาจทำให้ความดันลดลง ชั่วโมงแรกจะวัดความดันถี่แค่ไหน",
             "safety": ""
           },
           {
             "strength": "ประเมินความรุนแรงจากตัวเลขจริง ทั้งหายใจ 28 ครั้งต่อนาทีและ SpO2 89%",
-            "weigh": "ควรประเมินซ้ำภายในชั่วโมงแรกว่าหายใจช้าลงและ SpO2 ดีขึ้นตามที่คาด",
+            "weigh": "ภายในชั่วโมงแรก อะไรจะบอกว่า CPAP ได้ผล",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses **fast breathing** and low SpO2 as clear criteria to start CPAP.",
-            "weigh": "CPAP needs an alert, cooperative patient and staff who can watch the mask closely.",
+            "weigh": "Is he alert and cooperative enough for the mask, and who will watch it?",
             "safety": ""
           },
           {
             "strength": "CPAP cuts the work of breathing and pushes fluid out of the air sacs, alongside the furosemide.",
-            "weigh": "Positive pressure can lower BP, so measure it often in the first hour.",
+            "weigh": "Positive pressure can lower BP; how often will you measure it in the first hour?",
             "safety": ""
           },
           {
             "strength": "Grades severity from real numbers: a rate of 28 and SpO2 of 89%.",
-            "weigh": "Reassess within the first hour to see whether breathing slows and SpO2 rises.",
+            "weigh": "Within the first hour, what will tell you CPAP is working?",
             "safety": ""
           }
         ]
@@ -1170,34 +1170,34 @@
         "th": [
           {
             "strength": "ใช้**ความดันสูง**เป็นเหตุผลในการเพิ่มไนเตรต เพื่อลดภาระหัวใจได้เร็ว",
-            "weigh": "ควรวัดความดันซ้ำหลังอมยาแต่ละครั้ง และงดไนเตรตถ้าความดันตัวบนต่ำกว่า 110",
+            "weigh": "ถ้าความดันลดลงหลังอมยา จะหยุดไนเตรตเมื่อความดันตัวบนต่ำแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ดูแลสามด้านพร้อมกัน ทั้งออกซิเจนต่ำ น้ำเกิน และความดันที่สูง",
-            "weigh": "ไนเตรตอมใต้ลิ้นออกฤทธิ์สั้น อาจต้องให้ซ้ำโดยดูความดันและอาการหอบทุกครั้ง",
+            "weigh": "ไนเตรตอมใต้ลิ้นหมดฤทธิ์เร็ว ก่อนให้ซ้ำแต่ละครั้งต้องดูอะไรบ้าง",
             "safety": ""
           },
           {
             "strength": "เลือกยาตามสรีรวิทยาของผู้ป่วย คือความดัน 168/96 ที่เพิ่มภาระให้หัวใจ",
-            "weigh": "ให้ออกซิเจนตาม SpO2 ไม่ต้องให้สูงเกิน และติดตามปัสสาวะหลังให้ฟูโรซีไมด์",
+            "weigh": "จะปรับออกซิเจนตาม SpO2 อย่างไร โดยไม่ให้สูงเกินจำเป็น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses the high BP to justify a **sublingual nitrate**, unloading the heart quickly.",
-            "weigh": "Recheck BP after each dose and hold the nitrate if the systolic falls below 110.",
+            "weigh": "If his BP falls after a dose, at what systolic will you hold the nitrate?",
             "safety": ""
           },
           {
             "strength": "Treats three problems at once: low oxygen, fluid overload and a high BP.",
-            "weigh": "A sublingual nitrate wears off quickly, so repeat doses need BP and breathing reviewed each time.",
+            "weigh": "A sublingual nitrate wears off fast; what do you check before each further dose?",
             "safety": ""
           },
           {
             "strength": "Matches the drug to his physiology: a BP of 168/96 adds load to a struggling heart.",
-            "weigh": "Titrate oxygen to SpO2 rather than maximum flow, and track urine output after the furosemide.",
+            "weigh": "How will you titrate oxygen to his SpO2 rather than giving maximum flow?",
             "safety": ""
           }
         ]
@@ -1206,34 +1206,34 @@
         "th": [
           {
             "strength": "แก้ปัญหาหลักสองอย่างตรงจุด คือ**ออกซิเจนต่ำ**และน้ำในปอด",
-            "weigh": "ปริมาณปัสสาวะในชั่วโมงแรก ๆ บอกได้ว่าขนาดฟูโรซีไมด์เพียงพอหรือยัง",
+            "weigh": "ในชั่วโมงแรก ๆ อะไรจะบอกว่าฟูโรซีไมด์ได้ผล",
             "safety": ""
           },
           {
             "strength": "ฟูโรซีไมด์ทางหลอดเลือดดำออกฤทธิ์เร็ว ช่วยลดน้ำในปอดได้ภายในไม่กี่ชั่วโมง",
-            "weigh": "ให้ออกซิเจนตามระดับ SpO2 โดยไม่จำเป็นต้องให้สูงเกินไป",
+            "weigh": "จะให้ออกซิเจนโดยตั้งเป้า SpO2 ไว้เท่าไร แทนการให้สูงที่สุด",
             "safety": ""
           },
           {
             "strength": "แผนเรียบง่ายที่เริ่มได้ทันทีในโรงพยาบาลชุมชน และตรงกับปัญหาที่เห็น",
-            "weigh": "ความดัน 168/96 เป็นข้อมูลที่ควรนำมาคิดต่อในการดูแลชั่วโมงถัดไป",
+            "weigh": "ความดัน 168/96 บอกอะไรเพิ่มสำหรับการรักษาในชั่วโมงถัดไป",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Targets the two core problems directly: **low oxygen** and fluid in the lungs.",
-            "weigh": "Urine output over the first hours shows whether the furosemide dose is enough.",
+            "weigh": "Over the first hours, what will tell you the furosemide is working?",
             "safety": ""
           },
           {
             "strength": "IV furosemide acts fast and can clear lung fluid within hours.",
-            "weigh": "Titrate oxygen to SpO2 rather than giving as much as possible.",
+            "weigh": "What SpO2 will you aim for, rather than giving as much oxygen as possible?",
             "safety": ""
           },
           {
             "strength": "A simple plan that can begin at once in a community hospital and fits what is seen.",
-            "weigh": "His BP of 168/96 is worth keeping in view over the next hours.",
+            "weigh": "What does his BP of 168/96 add to your treatment over the next hours?",
             "safety": ""
           }
         ]
@@ -1242,34 +1242,34 @@
         "th": [
           {
             "strength": "มองเห็นข้อจำกัดของโรงพยาบาลชุมชน และวางแผนให้ถึง**หอผู้ป่วยหนัก**ได้ทัน",
-            "weigh": "ผู้ป่วยที่ออกซิเจนต่ำอาจทรุดระหว่างทาง ควรมีพยาบาลและเครื่องติดตามไปด้วย",
+            "weigh": "ถ้าออกซิเจนต่ำแล้วทรุดระหว่างทาง ใครและอุปกรณ์อะไรต้องไปด้วย",
             "safety": ""
           },
           {
             "strength": "เริ่มรักษาก่อนแล้วจึงส่งต่อ ผู้ป่วยจึงไม่เสียเวลาระหว่างรอรถ",
-            "weigh": "ควรประเมินว่าอาการคงที่พอจะเดินทางได้ และแจ้งโรงพยาบาลปลายทางล่วงหน้า",
+            "weigh": "อาการคงที่พอจะเดินทางแล้วหรือยัง และแจ้งโรงพยาบาลปลายทางไว้หรือยัง",
             "safety": ""
           },
           {
             "strength": "ดึงทรัพยากรของเครือข่ายมาช่วย ทั้งหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
-            "weigh": "การส่งต่อใช้เวลา จึงควรวางแผนว่าจะดูแลอะไรต่อระหว่างนำส่ง",
+            "weigh": "การเดินทางใช้เวลา ระหว่างรอรถและนำส่งจะรักษาอะไรต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Recognises the community hospital's limits and plans access to **intensive care** in time.",
-            "weigh": "A hypoxic patient can worsen on the road, so send a nurse and monitoring with him.",
+            "weigh": "If he worsens on the road, who and what must travel with him?",
             "safety": ""
           },
           {
             "strength": "Starting treatment before transfer means no time is lost waiting for the ambulance.",
-            "weigh": "Judge whether he is stable enough to travel, and call the receiving hospital ahead.",
+            "weigh": "Is he stable enough to travel, and has the receiving hospital been called?",
             "safety": ""
           },
           {
             "strength": "Draws on the network: intensive care and a cardiologist at the provincial hospital.",
-            "weigh": "Transfer takes time, so the plan for care on the way needs to be clear.",
+            "weigh": "The journey takes time; what treatment carries on while he waits and travels?",
             "safety": ""
           }
         ]
@@ -1278,34 +1278,34 @@
         "th": [
           {
             "strength": "คิดถึง**โรคปอดร่วม**ในผู้ที่เคยสูบบุหรี่ ซึ่งเป็นไปได้จริง",
-            "weigh": "เสียงกรอบแกรบที่ฐานปอดสองข้างกับคอโป่ง เป็นภาพที่ยาขยายหลอดลมช่วยได้น้อย",
+            "weigh": "เสียงกรอบแกรบที่ฐานปอดสองข้างกับคอโป่ง เป็นภาพที่ยาขยายหลอดลมช่วยได้ไหม",
             "safety": ""
           },
           {
             "strength": "ยังให้ออกซิเจนและฟูโรซีไมด์ จึงยังดูแลน้ำในปอดไปพร้อมกัน",
-            "weigh": "ยังไม่มีข้อมูลว่ามีหลอดลมตีบ จึงไม่ชัดว่ายาพ่นจะช่วยอะไรเพิ่ม",
+            "weigh": "มีอะไรในผู้ป่วยรายนี้ที่บอกว่าหลอดลมตีบ",
             "safety": ""
           },
           {
             "strength": "มองผู้ป่วยทั้งคน ไม่ตัดโรคร่วมที่อาจทำให้หอบมากขึ้น",
-            "weigh": "ไอพราโทรเปียมไม่ได้ช่วยลดน้ำในปอดที่อยู่เบื้องหลังเสียงกรอบแกรบ",
+            "weigh": "ไอพราโทรเปียมช่วยลดน้ำในปอดที่อยู่เบื้องหลังเสียงกรอบแกรบได้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Considers **lung disease** alongside the heart in a former smoker, which is plausible.",
-            "weigh": "Crackles at both bases with raised neck veins are a picture airway openers do little for.",
+            "weigh": "Are crackles at both bases with raised neck veins something an airway opener helps?",
             "safety": ""
           },
           {
             "strength": "Keeps IV furosemide and oxygen going, so the lung fluid is still treated.",
-            "weigh": "Nothing in the case shows narrowed airways, so the added benefit is unclear.",
+            "weigh": "What in this case shows narrowed airways?",
             "safety": ""
           },
           {
             "strength": "Looks at the whole patient and does not dismiss a second illness.",
-            "weigh": "Ipratropium does not remove the fluid behind the crackles at his lung bases.",
+            "weigh": "Does ipratropium remove the fluid behind the crackles at his lung bases?",
             "safety": ""
           }
         ]
@@ -1314,34 +1314,34 @@
         "th": [
           {
             "strength": "มองหา**ตัวกระตุ้น** เพราะการติดเชื้อในปอดทำให้หัวใจทรุดลงได้บ่อย",
-            "weigh": "ไม่มีไข้ และตัวกระตุ้นที่ชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อจึงอาจไม่ได้ประโยชน์",
+            "weigh": "ไม่มีไข้ และมีตัวกระตุ้นชัดคือขาดยา 2 สัปดาห์ ยาฆ่าเชื้อจะรักษาอะไร",
             "safety": ""
           },
           {
             "strength": "ไม่ลืมว่าผู้ป่วยหนึ่งคนอาจมีปัญหาซ้อนกันมากกว่าหนึ่งอย่าง",
-            "weigh": "ยาฆ่าเชื้อที่ไม่จำเป็นเพิ่มผลข้างเคียงและเชื้อดื้อยา ควรมีหลักฐานการติดเชื้อก่อน",
+            "weigh": "ก่อนเพิ่มยาฆ่าเชื้อ อยากเห็นหลักฐานการติดเชื้ออะไรบ้าง",
             "safety": ""
           },
           {
             "strength": "ยังคงให้ออกซิเจนและฟูโรซีไมด์ จึงยังดูแลน้ำในปอดไปพร้อมกัน",
-            "weigh": "หลักฐานการติดเชื้อที่ชัด เช่น ไข้ ยังไม่พบในผู้ป่วยรายนี้",
+            "weigh": "ผู้ป่วยรายนี้มีสัญญาณการติดเชื้อชัด ๆ อย่างไข้ไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a trigger, since chest infections often tip a weak heart over.",
-            "weigh": "No fever, and the clear trigger is two weeks off tablets, so the antibiotic may add little.",
+            "weigh": "No fever, and a clear trigger in two weeks off tablets: what is the antibiotic treating?",
             "safety": ""
           },
           {
             "strength": "Remembers that one patient can have more than one problem at a time.",
-            "weigh": "An unneeded antibiotic adds side effects and resistance, so evidence of infection should come first.",
+            "weigh": "Before adding an antibiotic, what evidence of infection would you want to see?",
             "safety": ""
           },
           {
             "strength": "Keeps IV furosemide and oxygen in place, so the lung fluid is still treated.",
-            "weigh": "Clear signs of infection, such as fever, are not present in this man.",
+            "weigh": "Does he show any clear sign of infection, such as fever?",
             "safety": ""
           }
         ]
@@ -1352,34 +1352,34 @@
         "th": [
           {
             "strength": "ขับน้ำต่อขณะที่ได้ผล พร้อมติดตามค่าไตและ**โพแทสเซียม**ไปด้วย",
-            "weigh": "ค่าไตที่สูงขึ้นเล็กน้อยระหว่างขับน้ำพบได้บ่อย และไม่จำเป็นต้องหยุดยาเสมอไป",
+            "weigh": "ถ้าค่าไตขึ้นเล็กน้อยระหว่างขับน้ำ ต้องหยุดยาเลยไหม",
             "safety": ""
           },
           {
             "strength": "ใช้การที่ปัสสาวะออกดีเป็นเหตุผลให้ขับน้ำต่อจนน้ำเกินหมด",
-            "weigh": "ควรติดตามความดันและน้ำหนักตัวทุกวัน เพื่อไม่ให้ขับน้ำมากเกินไป",
+            "weigh": "อะไรจะบอกว่าขับน้ำออกเร็วเกินจนผู้ป่วยเริ่มแห้ง",
             "safety": ""
           },
           {
             "strength": "ไม่หยุดการรักษาเร็วเกินไป เพราะหายใจสบายขึ้นไม่ได้แปลว่าน้ำเกินหมดแล้ว",
-            "weigh": "โพแทสเซียมอาจลดลงเร็วเมื่อปัสสาวะออกมาก จึงควรมีแผนเสริมเมื่อจำเป็น",
+            "weigh": "ปัสสาวะออกดีแบบนี้ โพแทสเซียมอาจลดเร็ว จะเสริมเมื่อไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps clearing fluid while it works, with kidney function and **potassium** watched.",
-            "weigh": "A small creatinine rise during fluid removal is common and need not stop the diuretic.",
+            "weigh": "If his creatinine creeps up a little during fluid removal, must the diuretic stop?",
             "safety": ""
           },
           {
             "strength": "Reads the brisk urine response as a reason to keep going until the congestion clears.",
-            "weigh": "Daily weight and BP help make sure fluid comes off without overshooting.",
+            "weigh": "What would tell you the fluid is coming off too fast and he is getting dry?",
             "safety": ""
           },
           {
             "strength": "Does not stop early, since easier breathing does not mean all the fluid is gone.",
-            "weigh": "Potassium can drop quickly with a brisk diuresis, so plan replacement if needed.",
+            "weigh": "With urine flowing this well, potassium can drop fast; when will you replace it?",
             "safety": ""
           }
         ]
@@ -1388,34 +1388,34 @@
         "th": [
           {
             "strength": "ไม่หยุดที่อาการดีขึ้น แต่ยังหา**ตัวกระตุ้น**ในผู้ที่เคยมีกล้ามเนื้อหัวใจตาย",
-            "weigh": "โทรโปนินที่สูงเล็กน้อยและคงที่พบได้ในหัวใจทำงานหนัก แนวโน้มบอกได้มากกว่าค่าเดียว",
+            "weigh": "โทรโปนินที่สูงเล็กน้อยและคงที่ บอกหัวใจขาดเลือดใหม่ หรือแค่หัวใจทำงานหนัก",
             "safety": ""
           },
           {
             "strength": "การตรวจซ้ำช่วยจับหัวใจขาดเลือดที่ยังไม่เห็นในครั้งแรก",
-            "weigh": "ผลที่ได้ควรนำไปสู่แผนที่ชัด ไม่ใช่ตรวจเพียงเพื่อเก็บข้อมูล",
+            "weigh": "ถ้าผลออกมาผิดปกติ แผนการรักษาจะเปลี่ยนไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "เชื่อมประวัติกล้ามเนื้อหัวใจตายกับความเสี่ยงที่หัวใจจะขาดเลือดซ้ำ",
-            "weigh": "คลื่นหัวใจที่เปลี่ยนไปเมื่อเทียบกับครั้งก่อน บอกได้มากกว่าค่าโทรโปนินอย่างเดียว",
+            "weigh": "คลื่นหัวใจเปลี่ยนไปจากครั้งก่อนหรือเปล่า",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks past the early recovery to find what may have **set this off**, given his old heart attack.",
-            "weigh": "A small, stable troponin rise is common under strain; the trend says more than one value.",
+            "weigh": "Does a small, stable troponin rise mean fresh ischaemia, or only strain?",
             "safety": ""
           },
           {
             "strength": "Serial tests can catch ischaemia that the first set missed.",
-            "weigh": "Results should lead to a clear plan, not just add data.",
+            "weigh": "If the results come back abnormal, how will your plan change?",
             "safety": ""
           },
           {
             "strength": "Links his old heart attack to the risk of fresh ischaemia.",
-            "weigh": "A change in the ECG against the earlier tracing says more than troponin alone.",
+            "weigh": "Has the ECG changed against the earlier tracing?",
             "safety": ""
           }
         ]
@@ -1424,34 +1424,34 @@
         "th": [
           {
             "strength": "คิดถึงสมดุลน้ำทั้งขาเข้าและขาออก ไม่ใช่แค่การขับน้ำ",
-            "weigh": "หลักฐานว่าการจำกัดน้ำช่วยให้หายเร็วขึ้นมีไม่มาก และผู้ป่วยมักกระหายน้ำจนทำตามยาก",
+            "weigh": "การจำกัดน้ำช่วยให้หายเร็วขึ้นจริงไหม และผู้ป่วยที่กระหายน้ำจะทำได้หรือเปล่า",
             "safety": ""
           },
           {
             "strength": "**น้ำเข้าน้อยลง**ช่วยให้สมดุลน้ำเป็นลบได้ง่ายขึ้น",
-            "weigh": "ปริมาณ 1.5 ลิตรต่อวันพอทำได้จริง แต่ผู้ป่วยต้องเข้าใจเหตุผลจึงจะทำได้ต่อเนื่อง",
+            "weigh": "ผู้ป่วยเข้าใจไหมว่าทำไมต้องดื่มไม่เกิน 1.5 ลิตรต่อวัน",
             "safety": ""
           },
           {
             "strength": "วางแผนที่ผู้ป่วยมีส่วนร่วมได้เอง และนำไปใช้ต่อที่บ้านได้",
-            "weigh": "หลักฐานว่าการจำกัดน้ำช่วยได้ยังมีน้อย มักใช้ในรายที่รุนแรงหรือโซเดียมในเลือดต่ำ",
+            "weigh": "รายนี้ต้องจำกัดน้ำจริงไหม เมื่อมักใช้ในรายที่รุนแรงหรือโซเดียมต่ำ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks about fluid balance on both sides, intake as well as output.",
-            "weigh": "Evidence that restriction speeds recovery is modest, and thirst makes it hard to keep.",
+            "weigh": "Does limiting fluids really speed recovery, and can a thirsty man keep to it?",
             "safety": ""
           },
           {
             "strength": "**Less fluid going in** makes a negative balance easier to reach.",
-            "weigh": "1.5 L a day is workable, but he needs to understand the reason to stick with it.",
+            "weigh": "Does he understand why 1.5 L a day, so that he sticks with it?",
             "safety": ""
           },
           {
             "strength": "A plan he can take part in himself and carry on at home.",
-            "weigh": "Evidence that restriction helps is weak, and it is mostly kept for severe cases or low sodium.",
+            "weigh": "Does he need a fluid limit at all, when it is mostly kept for severe cases or low sodium?",
             "safety": ""
           }
         ]
@@ -1460,34 +1460,34 @@
         "th": [
           {
             "strength": "คิดล่วงหน้าถึงการกลับบ้าน และต้องการให้การรักษา**ใช้ง่ายขึ้น**",
-            "weigh": "ช่วงแรกที่เพิ่งดีขึ้น น้ำเกินมักยังไม่หมด การเปลี่ยนเร็วอาจทำให้อาการกลับมา",
+            "weigh": "เพิ่งดีขึ้นไม่นาน น้ำเกินหมดแล้วจริงไหม",
             "safety": ""
           },
           {
             "strength": "ใช้อาการที่ดีขึ้นจริงเป็นสัญญาณในการวางแผนขั้นต่อไป",
-            "weigh": "ถ้ายังมีน้ำเกิน ลำไส้อาจดูดซึมยากินได้น้อยกว่าที่คาด",
+            "weigh": "ถ้ายังมีน้ำเกิน ลำไส้จะดูดซึมยากินได้ดีพอไหม",
             "safety": ""
           },
           {
             "strength": "ยาเม็ดลดการใช้สายน้ำเกลือและทำให้ผู้ป่วยเคลื่อนไหวได้สะดวก",
-            "weigh": "ขาบวมและเสียงกรอบแกรบบอกได้ว่าน้ำเกินหมดหรือยัง ควรประเมินก่อนเปลี่ยน",
+            "weigh": "ขาบวมและเสียงกรอบแกรบตอนนี้บอกอะไรว่าน้ำเกินหมดหรือยัง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks ahead to home and wants treatment that is **simpler**.",
-            "weigh": "Soon after improvement the overload is rarely gone, and switching early can let symptoms return.",
+            "weigh": "So soon after improving, is the fluid overload really gone?",
             "safety": ""
           },
           {
             "strength": "Reads real improvement as a cue to plan the next phase.",
-            "weigh": "If fluid overload remains, the gut may absorb tablets less than expected.",
+            "weigh": "If he is still overloaded, will his gut absorb tablets well enough?",
             "safety": ""
           },
           {
             "strength": "Tablets spare a drip and let him move about more freely.",
-            "weigh": "Leg swelling and crackles show whether the overload is gone, and are worth reviewing first.",
+            "weigh": "What do his legs and lung bases show about whether the overload has gone?",
             "safety": ""
           }
         ]
@@ -1496,34 +1496,34 @@
         "th": [
           {
             "strength": "ต้องการหลักฐานที่จับต้องได้ว่า**น้ำในปอด**ลดลงเพียงใด",
-            "weigh": "ภาพเอกซเรย์เปลี่ยนช้ากว่าอาการ ปัสสาวะ SpO2 และการหายใจบอกได้เร็วกว่า",
+            "weigh": "ภาพเอกซเรย์เปลี่ยนช้ากว่าอาการ อะไรข้างเตียงบอกความคืบหน้าได้เร็วกว่า",
             "safety": ""
           },
           {
             "strength": "การมีภาพเปรียบเทียบช่วยสื่อสารความคืบหน้ากับทีมได้ชัดขึ้น",
-            "weigh": "ผลที่ได้ตอนนี้มักไม่เปลี่ยนแผนการรักษา และต้องย้ายผู้ป่วยไปถ่ายภาพ",
+            "weigh": "ผลภาพตอนนี้จะเปลี่ยนการรักษาไหม เมื่อต้องย้ายผู้ป่วยไปถ่าย",
             "safety": ""
           },
           {
             "strength": "ใช้ภาพปอดเป็นตัววัดผลการรักษาที่เป็นรูปธรรม",
-            "weigh": "การหายใจ SpO2 และปริมาณปัสสาวะ ติดตามได้ข้างเตียงโดยไม่ต้องรอภาพ",
+            "weigh": "การหายใจ SpO2 และปริมาณปัสสาวะ บอกอะไรได้โดยไม่ต้องรอภาพ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wants hard evidence of how much of the **lung fluid** has cleared.",
-            "weigh": "Films lag behind the clinical change; urine output, SpO2 and breathing show progress sooner.",
+            "weigh": "Films lag behind his recovery; what at the bedside shows progress sooner?",
             "safety": ""
           },
           {
             "strength": "A comparison film helps communicate progress to the team.",
-            "weigh": "The result rarely changes treatment now, and he has to be moved for it.",
+            "weigh": "Would the film change treatment now, given he must be moved for it?",
             "safety": ""
           },
           {
             "strength": "Uses the lung image as a concrete measure of treatment effect.",
-            "weigh": "Breathing, SpO2 and urine output can be followed at the bedside without waiting for a film.",
+            "weigh": "What can breathing, SpO2 and urine output tell you without waiting for a film?",
             "safety": ""
           }
         ]
@@ -1534,34 +1534,34 @@
         "th": [
           {
             "strength": "อ่าน**ปัสสาวะออกน้อย**หลังยาครั้งแรกเป็นสัญญาณให้เพิ่มขนาดยาทันที",
-            "weigh": "เมื่อเพิ่มขนาดยา ควรติดตามค่าไต โพแทสเซียม และปริมาณปัสสาวะในชั่วโมงถัดไป",
+            "weigh": "เมื่อเพิ่มขนาดยา ชั่วโมงถัดไปจะติดตามค่าไต โพแทสเซียม และปัสสาวะอย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้ปริมาณปัสสาวะเป็นตัววัดการตอบสนองต่อยาอย่างเป็นรูปธรรม",
-            "weigh": "ยาขนาดสูงที่ฉีดเร็วเกินไปอาจมีผลต่อการได้ยิน จึงควรฉีดช้า ๆ",
+            "weigh": "ยาขนาดสูงที่ฉีดเร็วเกินไปอาจกระทบการได้ยิน จะฉีดช้าแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ปรับยาตามผลที่เห็นตั้งแต่เนิ่น ๆ ไม่รอให้อาการแย่ลงก่อน",
-            "weigh": "ควรตั้งเป้าปริมาณปัสสาวะไว้ เพื่อรู้ว่าเมื่อใดต้องปรับต่อ",
+            "weigh": "จะตั้งเป้าปัสสาวะไว้เท่าไร เพื่อรู้ว่าเมื่อไรต้องปรับต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reads **little urine** after the first dose as a signal to escalate.",
-            "weigh": "As the dose rises, follow kidney function, potassium and urine output over the next hours.",
+            "weigh": "With a doubled dose, how will you follow kidney function, potassium and urine over the next hours?",
             "safety": ""
           },
           {
             "strength": "Uses urine output as a concrete measure of response.",
-            "weigh": "Large doses pushed too fast can affect hearing, so give them slowly.",
+            "weigh": "Large doses pushed fast can affect hearing; how slowly will you give it?",
             "safety": ""
           },
           {
             "strength": "Adjusts early on what is seen instead of waiting for him to worsen.",
-            "weigh": "Setting a target urine output makes it clear when a further change is needed.",
+            "weigh": "What urine target will tell you when a further change is needed?",
             "safety": ""
           }
         ]
@@ -1570,34 +1570,34 @@
         "th": [
           {
             "strength": "ใช้**ความดันยังสูง**เป็นเหตุผลชัดในการลดภาระหัวใจด้วยไนเตรต",
-            "weigh": "ควรวัดความดันบ่อยและหยุดยาถ้าความดันตัวบนต่ำกว่า 110",
+            "weigh": "ความดันลดลงถึงระดับไหนจึงจะหยุดไนเตรต",
             "safety": ""
           },
           {
             "strength": "มองว่าความดันที่สูงเป็นส่วนหนึ่งของปัญหา ไม่ใช่แค่น้ำเกิน",
-            "weigh": "ไนเตรตลดภาระหัวใจได้ แต่ไม่ได้เพิ่มปริมาณปัสสาวะโดยตรง",
+            "weigh": "ไนเตรตลดภาระหัวใจได้ แต่จะช่วยให้ปัสสาวะออกมากขึ้นไหม",
             "safety": ""
           },
           {
             "strength": "ไนเตรตออกฤทธิ์เร็ว ช่วยให้หายใจสบายขึ้นได้ในเวลาไม่นาน",
-            "weigh": "อาการปวดศีรษะจากไนเตรตพบบ่อย และควรเตือนผู้ป่วยไว้ก่อน",
+            "weigh": "บอกผู้ป่วยไว้ก่อนหรือยังว่าอาจปวดศีรษะจากไนเตรต",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses a BP that **is still high** as a clear reason to unload the heart.",
-            "weigh": "Measure BP often and stop the nitrate if the systolic drops below 110.",
+            "weigh": "How far may his BP fall before you stop the nitrate?",
             "safety": ""
           },
           {
             "strength": "Sees the raised BP as part of the problem, not only the fluid.",
-            "weigh": "A nitrate eases the heart's load but does not by itself raise urine output.",
+            "weigh": "A nitrate eases the heart's load, but will it get more urine out of him?",
             "safety": ""
           },
           {
             "strength": "A nitrate acts quickly and can ease his breathing within a short time.",
-            "weigh": "Headache from nitrates is common, and warning him ahead helps.",
+            "weigh": "Have you warned him that a nitrate headache is common?",
             "safety": ""
           }
         ]
@@ -1606,34 +1606,34 @@
         "th": [
           {
             "strength": "ใช้ตัวเลขที่วัดได้ยืนยันว่ายาขับปัสสาวะ**ได้ผลน้อย**ตั้งแต่เนิ่น ๆ",
-            "weigh": "โรงพยาบาลชุมชนอาจรอผลนาน และปริมาณปัสสาวะก็บอกการตอบสนองได้แล้ว",
+            "weigh": "ระหว่างรอผล ปริมาณปัสสาวะก็บอกการตอบสนองได้แล้วไม่ใช่หรือ",
             "safety": ""
           },
           {
             "strength": "โซเดียมในปัสสาวะช่วยแยกว่าปัสสาวะน้อยเพราะยาได้ผลน้อยจริง",
-            "weigh": "ผลตรวจควรนำไปสู่การปรับยา ไม่ควรรอผลจนการรักษาล่าช้า",
+            "weigh": "ผลนี้จะเปลี่ยนการรักษาอย่างไร และการรอผลจะทำให้ช้าไหม",
             "safety": ""
           },
           {
             "strength": "วัดผลการรักษาเป็นรูปธรรม ไม่ใช้แค่ความรู้สึก",
-            "weigh": "ค่าโซเดียมต่ำบอกปัญหาได้ แต่ยังต้องตัดสินใจต่อว่าจะแก้อย่างไร",
+            "weigh": "ถ้าโซเดียมในปัสสาวะต่ำจริง ขั้นต่อไปจะทำอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Seeks a number that confirms a **weak diuretic** response early.",
-            "weigh": "Results may take time here, and urine output already shows how he is responding.",
+            "weigh": "While you wait for the result, doesn't urine output already show his response?",
             "safety": ""
           },
           {
             "strength": "Urine sodium helps tell whether low output truly reflects a weak diuretic effect.",
-            "weigh": "The result should lead to a change in treatment, not hold it up.",
+            "weigh": "How will the result change treatment, and will waiting for it slow things down?",
             "safety": ""
           },
           {
             "strength": "Measures the treatment's effect objectively rather than by impression.",
-            "weigh": "A low value names the problem but still leaves the next decision to make.",
+            "weigh": "If the urine sodium is low, what is your next move?",
             "safety": ""
           }
         ]
@@ -1642,34 +1642,34 @@
         "th": [
           {
             "strength": "ใช้ยาขับปัสสาวะ**อีกกลุ่ม**เสริมฤทธิ์กัน เมื่อการตอบสนองยังน้อย",
-            "weigh": "ยาสองกลุ่มร่วมกันทำให้เกลือแร่และค่าไตเปลี่ยนเร็ว ควรตรวจเลือดใกล้ชิด",
+            "weigh": "ใช้ยาขับปัสสาวะสองกลุ่ม โพแทสเซียมและค่าไตเปลี่ยนเร็ว จะเจาะเลือดถี่แค่ไหน",
             "safety": ""
           },
           {
             "strength": "เข้าใจกลไกการดื้อยาขับปัสสาวะ และแก้ที่อีกตำแหน่งหนึ่งของไต",
-            "weigh": "ปริมาณน้ำที่ขับออกอาจมากเกินคาด จึงควรติดตามน้ำหนักและความดันใกล้ชิด",
+            "weigh": "ถ้าขับน้ำออกมากเกินคาด อะไรจะเตือนก่อน",
             "safety": ""
           },
           {
             "strength": "ใช้ยาหลายกลุ่มเพื่อเอาชนะไตที่ดูดเกลือกลับมาก",
-            "weigh": "ผู้สูงอายุที่ได้ยาสองกลุ่มเสี่ยงไตทำงานลดลง จึงควรดูค่าไตทุกวัน",
+            "weigh": "ผู้สูงอายุที่ได้ยาขับปัสสาวะสองกลุ่ม จะดูแลไตอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Adds a second **diuretic class** to boost the effect when response is weak.",
-            "weigh": "Two classes together can shift potassium and kidney function fast, so bloods need watching closely.",
+            "weigh": "With two diuretic classes, potassium and kidney function shift fast; how often will you test?",
             "safety": ""
           },
           {
             "strength": "Understands diuretic resistance and tackles it at another part of the kidney.",
-            "weigh": "The fluid loss can exceed what is expected, so follow weight and BP closely.",
+            "weigh": "If he loses more fluid than expected, what will warn you first?",
             "safety": ""
           },
           {
             "strength": "Uses more than one drug class to overcome a kidney holding on to salt.",
-            "weigh": "An older man on two diuretic classes risks a fall in kidney function, so look at it every day.",
+            "weigh": "How will you protect an older man's kidneys on two diuretic classes?",
             "safety": ""
           }
         ]
@@ -1678,34 +1678,34 @@
         "th": [
           {
             "strength": "เห็นว่ายังต้องขับน้ำต่อ และไม่หยุดการรักษาเมื่อผลยังไม่พอ",
-            "weigh": "ขนาดที่ให้ปัสสาวะออกน้อยในครั้งแรก มักให้ผลไม่ต่างกันเมื่อให้ซ้ำ",
+            "weigh": "ขนาดเดิมให้ปัสสาวะออกน้อยในครั้งแรก ทำไมครั้งที่สองจะต่างไป",
             "safety": ""
           },
           {
             "strength": "**ยาอีกครั้ง**ช่วยให้ไตได้รับยาต่อเนื่อง",
-            "weigh": "ควรกำหนดเป้าหมายปัสสาวะไว้ชัด เพื่อรู้ว่าเมื่อใดต้องเปลี่ยนแผน",
+            "weigh": "จะตั้งเป้าปัสสาวะไว้อย่างไร เพื่อรู้ว่าเมื่อไรต้องเปลี่ยนแผน",
             "safety": ""
           },
           {
             "strength": "ยังคงใช้ยาขับปัสสาวะทางหลอดเลือดดำ ซึ่งตรงกับปัญหาน้ำเกิน",
-            "weigh": "ยาขับปัสสาวะต้องถึงระดับหนึ่งไตจึงตอบสนอง ขนาดเดิมอาจยังไม่ถึงระดับนั้น",
+            "weigh": "ยาขับปัสสาวะต้องถึงระดับหนึ่งไตจึงตอบสนอง ขนาดเดิมถึงระดับนั้นไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sees that more fluid must come off and does not stop when the effect falls short.",
-            "weigh": "A dose that produced little urine the first time usually does little the second time.",
+            "weigh": "This dose gave little urine the first time; why would a second one do more?",
             "safety": ""
           },
           {
             "strength": "A **second equal dose** keeps the drug reaching the kidney.",
-            "weigh": "A clear urine target makes it plain when the plan needs to change.",
+            "weigh": "What urine target will tell you when the plan must change?",
             "safety": ""
           },
           {
             "strength": "Stays with an IV diuretic, which fits the problem of fluid overload.",
-            "weigh": "Loop diuretics work above a threshold, and the same dose may not reach it.",
+            "weigh": "Loop diuretics work above a threshold; does the same dose reach it?",
             "safety": ""
           }
         ]
@@ -1714,34 +1714,34 @@
         "th": [
           {
             "strength": "ต้องการหลักฐานที่จับต้องได้ว่า**น้ำในปอด**ลดลงเพียงใด",
-            "weigh": "ภาพเอกซเรย์เปลี่ยนช้ากว่าอาการ ปัสสาวะ SpO2 และการหายใจบอกได้เร็วกว่า",
+            "weigh": "ภาพเอกซเรย์เปลี่ยนช้ากว่าอาการ อะไรข้างเตียงบอกความคืบหน้าได้เร็วกว่า",
             "safety": ""
           },
           {
             "strength": "การมีภาพเปรียบเทียบช่วยสื่อสารความคืบหน้ากับทีมได้ชัดขึ้น",
-            "weigh": "ผลที่ได้ตอนนี้มักไม่เปลี่ยนแผนการรักษา และต้องย้ายผู้ป่วยไปถ่ายภาพ",
+            "weigh": "ผลภาพตอนนี้จะเปลี่ยนการรักษาไหม เมื่อต้องย้ายผู้ป่วยไปถ่าย",
             "safety": ""
           },
           {
             "strength": "ใช้ภาพปอดเป็นตัววัดผลการรักษาที่เป็นรูปธรรม",
-            "weigh": "การหายใจ SpO2 และปริมาณปัสสาวะ ติดตามได้ข้างเตียงโดยไม่ต้องรอภาพ",
+            "weigh": "การหายใจ SpO2 และปริมาณปัสสาวะ บอกอะไรได้โดยไม่ต้องรอภาพ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wants hard evidence of how much of the **lung fluid** has cleared.",
-            "weigh": "Films lag behind the clinical change; urine output, SpO2 and breathing show progress sooner.",
+            "weigh": "Films lag behind his recovery; what at the bedside shows progress sooner?",
             "safety": ""
           },
           {
             "strength": "A comparison film helps communicate progress to the team.",
-            "weigh": "The result rarely changes treatment now, and he has to be moved for it.",
+            "weigh": "Would the film change treatment now, given he must be moved for it?",
             "safety": ""
           },
           {
             "strength": "Uses the lung image as a concrete measure of treatment effect.",
-            "weigh": "Breathing, SpO2 and urine output can be followed at the bedside without waiting for a film.",
+            "weigh": "What can breathing, SpO2 and urine output tell you without waiting for a film?",
             "safety": ""
           }
         ]
@@ -1752,34 +1752,34 @@
         "th": [
           {
             "strength": "ยกระดับการช่วยหายใจทันทีเมื่อ**หายใจเร็ว**และ SpO2 ต่ำทั้งที่ได้ออกซิเจน",
-            "weigh": "ควรประเมินซ้ำภายในชั่วโมงแรก ทั้ง SpO2 การหายใจ และระดับความรู้สึกตัว",
+            "weigh": "ภายในชั่วโมงแรก SpO2 การหายใจ และความรู้สึกตัวแบบไหนจะบอกว่าได้ผล",
             "safety": ""
           },
           {
             "strength": "CPAP ลดงานการหายใจและช่วยดันน้ำออกจากถุงลมได้เร็ว",
-            "weigh": "ผู้ป่วยกำลังเหนื่อยมาก ต้องมีคนอยู่ข้างเตียงช่วยปรับหน้ากากให้แนบ",
+            "weigh": "ผู้ป่วยกำลังเหนื่อยมาก ใครจะอยู่ข้างเตียงคอยปรับหน้ากากให้แนบ",
             "safety": ""
           },
           {
             "strength": "ไม่รอให้ผู้ป่วยหมดแรง แต่ตัดสินใจจากตัวเลขที่แย่ลงตรงหน้า",
-            "weigh": "ถ้าผู้ป่วยซึมลงหรือทนหน้ากากไม่ได้ ต้องมีแผนรองรับไว้ล่วงหน้า",
+            "weigh": "ถ้าซึมลงหรือทนหน้ากากไม่ได้ แผนรองรับคืออะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Escalates breathing support at once for **fast breathing** and low SpO2 on oxygen.",
-            "weigh": "Reassess SpO2, breathing rate and alertness within the first hour.",
+            "weigh": "Within the first hour, what SpO2, breathing rate and alertness would say it is working?",
             "safety": ""
           },
           {
             "strength": "CPAP lowers the work of breathing and pushes fluid out of the air sacs fast.",
-            "weigh": "He is tiring, so someone needs to stay at the bedside to keep the mask sealed.",
+            "weigh": "He is tiring; who will stay at the bedside to keep the mask sealed?",
             "safety": ""
           },
           {
             "strength": "Acts on the worsening numbers before he exhausts himself.",
-            "weigh": "If he grows drowsy or cannot tolerate the mask, a back-up plan needs to be ready.",
+            "weigh": "If he grows drowsy or cannot bear the mask, what is your back-up plan?",
             "safety": ""
           }
         ]
@@ -1788,34 +1788,34 @@
         "th": [
           {
             "strength": "จับคู่**ความดันสูง**ร่วมกับน้ำในปอด กับยาที่ลดภาระหัวใจได้รวดเร็ว",
-            "weigh": "ช่วงแรกควรปรับอัตราหยดตามความดันทุกไม่กี่นาที และลดลงเมื่อความดันตัวบนใกล้ 110",
+            "weigh": "ช่วงแรกจะปรับอัตราหยดตามความดันถี่แค่ไหน",
             "safety": ""
           },
           {
             "strength": "ไนเตรตหยดปรับขนาดได้ละเอียดและหยุดได้ทันทีถ้าความดันลดมากไป",
-            "weigh": "การหยดยาต้องมีเครื่องควบคุมและพยาบาลวัดความดันบ่อย ซึ่งควรเตรียมให้พร้อม",
+            "weigh": "มีเครื่องควบคุมการหยดและพยาบาลที่วัดความดันได้บ่อยพร้อมไหม",
             "safety": ""
           },
           {
             "strength": "มองว่าความดันที่สูงขึ้นเป็นตัวเร่งให้น้ำในปอดแย่ลง",
-            "weigh": "อาการปวดศีรษะพบได้บ่อย และอาจต้องลดอัตราหยดถ้าทนไม่ไหว",
+            "weigh": "ถ้าปวดศีรษะจนทนไม่ไหว จะลดอัตราหยดไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Matches **high BP with fluid** in the lungs to a drug that unloads the heart fast.",
-            "weigh": "Titrate the rate against BP every few minutes early on, easing back if the systolic nears 110.",
+            "weigh": "How often will you adjust the rate against his BP in the early minutes?",
             "safety": ""
           },
           {
             "strength": "An infusion can be fine-tuned and stopped at once if BP falls too far.",
-            "weigh": "An infusion needs a pump and frequent BP readings, so staff must be ready.",
+            "weigh": "Is there a pump, and a nurse free to measure his BP often?",
             "safety": ""
           },
           {
             "strength": "Sees the rising BP as part of what is flooding the lungs.",
-            "weigh": "Headache is common and may mean slowing the rate.",
+            "weigh": "If a headache becomes hard to bear, will you slow the rate?",
             "safety": ""
           }
         ]
@@ -1824,34 +1824,34 @@
         "th": [
           {
             "strength": "คาดการณ์ล่วงหน้าว่าอาจต้องใช้**เครื่องช่วยหายใจ** และวางแผนไปยังที่ที่พร้อม",
-            "weigh": "ผู้ป่วยที่ SpO2 ต่ำและเหนื่อยมากอาจทรุดระหว่างทาง ควรให้คงที่ก่อนออกเดินทาง",
+            "weigh": "SpO2 ต่ำและเหนื่อยมากแบบนี้ ปลอดภัยพอจะออกเดินทางแล้วหรือยัง",
             "safety": ""
           },
           {
             "strength": "รู้ข้อจำกัดของโรงพยาบาลชุมชน และใช้ ICU จังหวัดเป็นที่พึ่ง",
-            "weigh": "ระหว่างรอรถและเดินทาง ต้องมีแพทย์หรือพยาบาลที่ช่วยหายใจได้ไปด้วย",
+            "weigh": "ระหว่างทาง ใครที่ช่วยหายใจได้จะไปกับผู้ป่วย",
             "safety": ""
           },
           {
             "strength": "ตัดสินใจส่งต่อเร็ว ไม่รอจนผู้ป่วยหมดแรง",
-            "weigh": "การส่งต่อใช้เวลา จึงควรคิดว่าจะดูแลอะไรต่อในช่วงนั้น",
+            "weigh": "การส่งต่อใช้เวลา ระหว่างรอและเดินทางจะได้รับการดูแลอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Anticipates he may need **a ventilator** and plans to reach a unit that has one.",
-            "weigh": "A hypoxic, tiring patient can crash on the road, so stabilise him before he leaves.",
+            "weigh": "Hypoxic and tiring as he is, is he safe to set off yet?",
             "safety": ""
           },
           {
             "strength": "Knows the community hospital's limits and leans on the provincial ICU.",
-            "weigh": "Someone able to support his breathing needs to travel with him.",
+            "weigh": "On the road, who able to support his breathing will go with him?",
             "safety": ""
           },
           {
             "strength": "Moves early instead of waiting until he is exhausted.",
-            "weigh": "Transfer takes time, so care during the wait and the journey needs a plan.",
+            "weigh": "Transfer takes time; what care does he get during the wait and the journey?",
             "safety": ""
           }
         ]
@@ -1860,34 +1860,34 @@
         "th": [
           {
             "strength": "มุ่งแก้ที่ต้นเหตุโดย**ขับน้ำออกจากปอด**ให้ได้มากขึ้น",
-            "weigh": "การขับน้ำออกให้มากพอจนหายใจดีขึ้นต้องใช้เวลา ขณะที่การหายใจกำลังแย่ลงตอนนี้",
+            "weigh": "การขับน้ำให้มากพอต้องใช้เวลา ระหว่างนี้อะไรจะช่วยการหายใจที่แย่ลงตอนนี้",
             "safety": ""
           },
           {
             "strength": "เห็นว่าน้ำเกินยังเป็นปัญหาหลัก และเพิ่มขนาดยาตามนั้น",
-            "weigh": "เมื่อเพิ่มขนาด ควรติดตามค่าไต โพแทสเซียม และปัสสาวะต่อเนื่อง",
+            "weigh": "เมื่อเพิ่มขนาดยา จะติดตามค่าไต โพแทสเซียม และปัสสาวะอย่างไร",
             "safety": ""
           },
           {
             "strength": "ไม่ยึดขนาดยาเดิม แต่ปรับตามอาการที่เปลี่ยนไป",
-            "weigh": "SpO2 ที่ต่ำลงระหว่างให้การรักษา บอกว่าสถานการณ์เร่งด่วนขึ้น",
+            "weigh": "SpO2 ลดลงทั้งที่รักษาอยู่ บอกอะไรเรื่องความเร่งด่วน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Aims at the cause: a bigger dose **clears more fluid** from the lungs.",
-            "weigh": "Clearing enough fluid to ease his breathing takes time, while it is worsening now.",
+            "weigh": "Clearing enough fluid takes time; what helps his breathing, which is worsening now?",
             "safety": ""
           },
           {
             "strength": "Sees fluid overload as the core problem and scales the dose to match.",
-            "weigh": "With a higher dose, follow kidney function, potassium and urine output closely.",
+            "weigh": "With a higher dose, how will you follow kidney function, potassium and urine?",
             "safety": ""
           },
           {
             "strength": "Does not stick to the old dose but adjusts to the change in his state.",
-            "weigh": "SpO2 falling despite treatment shows how fast this is moving.",
+            "weigh": "SpO2 falling despite treatment: what does that say about the urgency?",
             "safety": ""
           }
         ]
@@ -1896,34 +1896,34 @@
         "th": [
           {
             "strength": "เพิ่มออกซิเจนทันทีและตาม**แพทย์อาวุโส**มาที่ข้างเตียง",
-            "weigh": "การตามคนช่วยถูกต้อง แต่การหายใจที่กำลังล้มเหลวต้องได้การช่วยหายใจ ไม่ใช่แค่ความเห็นเพิ่ม",
+            "weigh": "ตามคนช่วยถูกแล้ว แต่ใครจะเริ่มช่วยการหายใจที่กำลังล้มเหลวตอนนี้",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
             "strength": "ขอความช่วยเหลือเร็ว เหมาะเมื่อผู้ป่วยที่ได้ออกซิเจนแล้วยังแย่ลง",
-            "weigh": "ออกซิเจนที่มากขึ้นอาจทำให้ SpO2 ดูดีขึ้น และบังว่าผู้ป่วยยังหายใจหนักอยู่",
+            "weigh": "ออกซิเจนที่มากขึ้นทำให้ SpO2 ดูดี แต่บังไหมว่าผู้ป่วยยังหายใจหนักอยู่",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
             "strength": "ใช้หน้ากากที่มีทุกหอผู้ป่วย และเรียกคนช่วยได้ทันที",
-            "weigh": "น้ำยังท่วมปอดอยู่ และแผนนี้ไม่ได้เพิ่มการรักษาใหม่เพื่อขับน้ำออก",
+            "weigh": "น้ำยังท่วมปอดอยู่ แผนนี้เพิ่มอะไรที่ช่วยขับน้ำออก",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           }
         ],
         "en": [
           {
             "strength": "Gives more oxygen at once and brings a **senior doctor** to the bedside.",
-            "weigh": "Calling for help is right, yet breathing that is failing now needs support begun, not only a second opinion.",
+            "weigh": "Calling for help is right, but who begins support for breathing that is failing now?",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
             "strength": "Escalates early, which is right when a patient on oxygen gets worse.",
-            "weigh": "More oxygen can lift the SpO2 and hide how hard he is still working to breathe.",
+            "weigh": "Could more oxygen lift his SpO2 and hide how hard he is still working to breathe?",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
             "strength": "Uses a mask every ward has and gets help moving straight away.",
-            "weigh": "Fluid still floods his lungs, and this plan adds nothing new to clear it.",
+            "weigh": "Fluid still floods his lungs; what in this plan helps clear it?",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           }
         ]
@@ -1934,34 +1934,34 @@
         "th": [
           {
             "strength": "ใช้**ค่า EF**เป็นตัวกำหนดยาที่จะเริ่ม ซึ่งสำคัญหลังกล้ามเนื้อหัวใจตาย",
-            "weigh": "ควรเริ่มขนาดต่ำแล้วค่อยปรับ โดยดูความดัน โพแทสเซียม และค่าไต",
+            "weigh": "จะเริ่มยาขนาดต่ำแค่ไหน และระหว่างปรับขึ้นจะดูความดัน โพแทสเซียม ค่าไตอย่างไร",
             "safety": ""
           },
           {
             "strength": "มองไกลกว่าการหายจากอาการหอบ ไปถึงการลดความเสี่ยงระยะยาว",
-            "weigh": "ผู้ป่วยเคยขาดยามาก่อน จึงควรคุยเรื่องการกินยาต่อเนื่องให้ชัด",
+            "weigh": "เคยขาดยามาแล้ว จะทำอย่างไรให้กินยาใหม่ได้ต่อเนื่อง",
             "safety": ""
           },
           {
             "strength": "เริ่มยาก่อนกลับบ้าน ช่วยให้ผู้ป่วยได้ยาที่จำเป็นโดยไม่หลุดหาย",
-            "weigh": "เอคโค่อาจต้องรอคิวหรือส่งต่อ จึงควรวางแผนช่วงรอให้ชัด",
+            "weigh": "ถ้าต้องรอคิวเอคโค่ ช่วงรอจะให้ยาอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Lets the **ejection fraction** decide which drugs to start, which matters after a heart attack.",
-            "weigh": "Start low and build up, watching BP, potassium and kidney function.",
+            "weigh": "How low will you start, and how will you watch BP, potassium and kidneys as you build up?",
             "safety": ""
           },
           {
             "strength": "Looks beyond easing the breathlessness to lowering his long-term risk.",
-            "weigh": "He ran out of tablets before, so talk through how he will keep taking them.",
+            "weigh": "He ran out of tablets before; how will he keep taking the new ones?",
             "safety": ""
           },
           {
             "strength": "Starting before he goes home makes it less likely that key drugs fall through the gaps.",
-            "weigh": "An echo may mean a queue or a trip elsewhere, so plan for the wait.",
+            "weigh": "If the echo means a wait, what does he take in the meantime?",
             "safety": ""
           }
         ]
@@ -1970,34 +1970,34 @@
         "th": [
           {
             "strength": "ใช้เครื่องมือง่าย ๆ สามอย่าง คือ**ลดเค็ม** ชั่งน้ำหนัก และนัดเร็ว เพื่อลดการนอนซ้ำ",
-            "weigh": "ควรบอกให้ชัดว่าน้ำหนักขึ้นเท่าใดต้องกลับมา เช่น 2 กก. ใน 3 วัน",
+            "weigh": "น้ำหนักขึ้นเท่าไรที่ผู้ป่วยต้องรีบกลับมาก่อนนัด",
             "safety": ""
           },
           {
             "strength": "นัดเร็วใน 1-2 สัปดาห์ช่วยจับอาการกำเริบได้ก่อนต้องนอนโรงพยาบาลอีก",
-            "weigh": "เคยขาดยามาก่อน จึงควรหาสาเหตุว่าขาดเพราะอะไร เช่น ค่าใช้จ่าย การเดินทาง หรือผลข้างเคียงของยา",
+            "weigh": "ทำไมถึงขาดยา ค่าใช้จ่าย การเดินทาง หรือผลข้างเคียงของยา",
             "safety": ""
           },
           {
             "strength": "ให้ผู้ป่วยมีส่วนร่วมดูแลตัวเองด้วยการ**ชั่งน้ำหนักทุกเช้า**",
-            "weigh": "คำแนะนำได้ผลขึ้นเมื่อสอนผู้ดูแลที่บ้านไปพร้อมกัน",
+            "weigh": "ใครที่บ้านจะเรียนเรื่องลดเค็มและชั่งน้ำหนักไปพร้อมผู้ป่วย",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses three simple tools, **salt advice**, a morning weight and an early visit, to prevent readmission.",
-            "weigh": "Spell out how much weight gain means coming back, such as 2 kg in 3 days.",
+            "weigh": "How much weight gain should bring him back before the visit?",
             "safety": ""
           },
           {
             "strength": "An early visit can catch a relapse before he needs another admission.",
-            "weigh": "He ran out of tablets before, so find out why: cost, travel or side effects.",
+            "weigh": "Why did he run out of tablets: cost, travel or side effects?",
             "safety": ""
           },
           {
             "strength": "Involves him in his own care through a **morning weight**.",
-            "weigh": "Advice sticks better when a family member at home learns it too.",
+            "weigh": "Who at home will learn the salt and weight advice with him?",
             "safety": ""
           }
         ]
@@ -2006,34 +2006,34 @@
         "th": [
           {
             "strength": "แก้ตัวกระตุ้นของครั้งนี้โดยตรง คือการขาดยา 2 สัปดาห์",
-            "weigh": "สาเหตุที่ขาดยา เช่น ค่ายา การเดินทาง หรือผลข้างเคียง บอกว่าแผนนี้จะยั่งยืนแค่ไหน",
+            "weigh": "ขาดยาเพราะอะไร และจะเกิดซ้ำอีกไหม",
             "safety": ""
           },
           {
             "strength": "ใช้ยาที่ผู้ป่วยคุ้นเคย ทำให้กินต่อได้ง่ายกว่ายาใหม่ทั้งหมด",
-            "weigh": "ควรทบทวนรายการยาเดิมว่ายังตรงกับโรคหัวใจของผู้ป่วยในตอนนี้",
+            "weigh": "ยาเดิมยังตรงกับโรคหัวใจของผู้ป่วยในตอนนี้ไหม",
             "safety": ""
           },
           {
             "strength": "เพิ่ม**ยาขับน้ำ**ไว้ ช่วยกันไม่ให้น้ำเกินกลับมาเร็ว",
-            "weigh": "ขนาดยาขับน้ำที่บ้านควรปรับตามน้ำหนักและอาการบวม",
+            "weigh": "ขนาดยาขับน้ำที่บ้านจะปรับตามน้ำหนักและอาการบวมอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Tackles this episode's trigger directly: two weeks without his tablets.",
-            "weigh": "Why he ran out, whether cost, travel or side effects, decides how long this plan will hold.",
+            "weigh": "Why did he run out, and will the same thing happen again?",
             "safety": ""
           },
           {
             "strength": "Familiar drugs are easier for him to keep taking than a whole new list.",
-            "weigh": "His old list is worth comparing against what his heart disease needs now.",
+            "weigh": "Do his old tablets still match what his heart disease needs now?",
             "safety": ""
           },
           {
             "strength": "Adding **a diuretic** helps stop the fluid from building up again.",
-            "weigh": "The home diuretic dose should follow his weight and any swelling.",
+            "weigh": "How will the home diuretic dose follow his weight and any swelling?",
             "safety": ""
           }
         ]
@@ -2042,34 +2042,34 @@
         "th": [
           {
             "strength": "ขอความเห็นผู้เชี่ยวชาญมา**ช่วยปรับยา** ในผู้ที่เคยมีกล้ามเนื้อหัวใจตาย",
-            "weigh": "คิวคลินิกหัวใจอาจนาน จึงควรวางแผนว่าใครดูแลยาในช่วงรอ",
+            "weigh": "ระหว่างรอคิวคลินิกหัวใจ ใครเป็นคนดูแลเรื่องยา",
             "safety": ""
           },
           {
             "strength": "เห็นว่าผู้ป่วยรายนี้เสี่ยงสูงและควรได้การดูแลต่อเนื่องจากแพทย์เฉพาะทาง",
-            "weigh": "การส่งต่ออย่างเดียวยังไม่ได้แก้เหตุที่ขาดยา ซึ่งควรคุยก่อนกลับบ้าน",
+            "weigh": "การส่งต่ออย่างเดียวแก้เหตุที่ขาดยาได้ไหม",
             "safety": ""
           },
           {
             "strength": "เชื่อมประวัติกล้ามเนื้อหัวใจตายกับความจำเป็นในการปรับยาระยะยาว",
-            "weigh": "ควรส่งข้อมูลการนอนครั้งนี้ไปด้วย เพื่อให้แพทย์หัวใจปรับยาได้ทันที",
+            "weigh": "ข้อมูลอะไรจากการนอนครั้งนี้ที่ควรส่งไปด้วย",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Brings in a specialist to **tailor his drugs** after a heart attack.",
-            "weigh": "Cardiology waits can be long, so be clear who manages his drugs in the meantime.",
+            "weigh": "While he waits for the clinic, who manages his drugs?",
             "safety": ""
           },
           {
             "strength": "Sees him as high risk and in need of ongoing specialist care.",
-            "weigh": "A referral alone does not fix why he ran out of tablets, which is worth raising before he leaves.",
+            "weigh": "Does a referral alone fix why he ran out of tablets?",
             "safety": ""
           },
           {
             "strength": "Links his old heart attack to the need for long-term adjustment of his drugs.",
-            "weigh": "Send a summary of this admission so his drugs can be adjusted without delay.",
+            "weigh": "What from this admission should go with the referral?",
             "safety": ""
           }
         ]
@@ -2078,34 +2078,34 @@
         "th": [
           {
             "strength": "ต้องการหลักฐานที่เห็นได้ว่า**น้ำในปอดหายแล้ว**ก่อนให้กลับบ้าน",
-            "weigh": "ขาหายบวมและหายใจสบายแล้ว ภาพเอกซเรย์มักไม่เปลี่ยนการตัดสินใจ",
+            "weigh": "ขาหายบวมและหายใจสบายแล้ว ภาพเอกซเรย์จะเปลี่ยนการตัดสินใจไหม",
             "safety": ""
           },
           {
             "strength": "ระมัดระวังก่อนจำหน่าย ไม่อยากให้ผู้ป่วยกลับมาเร็ว",
-            "weigh": "ภาพเอกซเรย์เปลี่ยนช้ากว่าอาการ อาจยังเห็นเงาน้ำทั้งที่ผู้ป่วยดีขึ้นแล้ว",
+            "weigh": "ถ้าภาพยังเห็นเงาน้ำทั้งที่ผู้ป่วยดีขึ้นแล้ว จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้ภาพเป็นข้อมูลอีกอย่างประกอบการประเมินการฟื้นตัว",
-            "weigh": "น้ำหนักตัว ขาบวม และการหายใจ บอกความพร้อมกลับบ้านได้อยู่แล้ว",
+            "weigh": "น้ำหนักตัว ขาบวม และการหายใจ บอกความพร้อมกลับบ้านได้แล้วไม่ใช่หรือ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wants visible proof that the **lung fluid** has gone before he leaves.",
-            "weigh": "With his legs no longer swollen and easy breathing, a film rarely changes the decision.",
+            "weigh": "His legs are no longer swollen and he breathes easily; would a film change your decision?",
             "safety": ""
           },
           {
             "strength": "Takes care before discharge so he does not bounce back soon.",
-            "weigh": "Films lag behind recovery and can still show fluid after he has improved.",
+            "weigh": "If the film still shows fluid after he has improved, what will you do?",
             "safety": ""
           },
           {
             "strength": "Uses the film as one more check of his recovery.",
-            "weigh": "Weight, leg swelling and breathing already show whether he is ready to go.",
+            "weigh": "Don't weight, leg swelling and breathing already show whether he is ready to go?",
             "safety": ""
           }
         ]
@@ -2116,34 +2116,34 @@
         "th": [
           {
             "strength": "ไม่รีบให้กลับบ้านขณะยังบวม แต่**ขับน้ำที่เหลือ**ให้หมดก่อน",
-            "weigh": "ระหว่างขับน้ำต่อ ควรชั่งน้ำหนักทุกวันและดูค่าไตกับโพแทสเซียม",
+            "weigh": "ระหว่างขับน้ำต่อ จะติดตามน้ำหนัก ค่าไต และโพแทสเซียมอย่างไร",
             "safety": ""
           },
           {
             "strength": "รู้ว่าน้ำที่ค้างตอนกลับบ้านเป็นเหตุสำคัญของการกลับมานอนซ้ำ",
-            "weigh": "ควรตั้งเป้าน้ำหนักหรือภาวะไม่บวมไว้ เพื่อรู้ว่าเมื่อใดพร้อมกลับบ้าน",
+            "weigh": "น้ำหนักเป้าหมายหรือภาวะไม่บวมแบบไหน ที่บอกว่าพร้อมกลับบ้าน",
             "safety": ""
           },
           {
             "strength": "ปรับตามอาการจริงที่ยังมีขาบวม ไม่ยึดตามจำนวนวันนอน",
-            "weigh": "ให้ยาทางหลอดเลือดดำนานขึ้น ต้องดูแลตำแหน่งน้ำเกลือและผลข้างเคียงของยาด้วย",
+            "weigh": "ให้ยาทางหลอดเลือดดำนานขึ้น จะดูแลตำแหน่งน้ำเกลือและผลข้างเคียงอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Holds off discharge while swelling remains and clears **the remaining fluid** first.",
-            "weigh": "While diuresis goes on, weigh him each day and follow kidney function and potassium.",
+            "weigh": "While diuresis goes on, how will you follow his weight, kidneys and potassium?",
             "safety": ""
           },
           {
             "strength": "Knows that fluid left at discharge is a major reason for readmission.",
-            "weigh": "Set a target weight or swelling-free state so it is clear when he is ready.",
+            "weigh": "What target weight or swelling-free state will tell you he is ready to go home?",
             "safety": ""
           },
           {
             "strength": "Follows his actual swelling, not the number of days in bed.",
-            "weigh": "Longer IV treatment means caring for the drip site and watching for drug side effects.",
+            "weigh": "With longer IV treatment, how will you care for the drip site and watch for side effects?",
             "safety": ""
           }
         ]
@@ -2152,34 +2152,34 @@
         "th": [
           {
             "strength": "ใช้การ**ตอบสนองช้า**เป็นสัญญาณให้ดูการทำงานของหัวใจให้ละเอียด",
-            "weigh": "เอคโค่อาจต้องรอคิวหรือส่งต่อ จึงควรมีแผนดูแลในช่วงรอให้ชัด",
+            "weigh": "ระหว่างรอเอคโค่ ขาที่ยังบวมอยู่จะรักษาต่ออย่างไร",
             "safety": ""
           },
           {
             "strength": "ไม่ปล่อยให้อาการค่อย ๆ ดีขึ้นเองโดยไม่หาเหตุ",
-            "weigh": "ผลเอคโค่ช่วยวางแผนระยะยาว แต่ขาบวมที่ยังมีอยู่ต้องได้รับการดูแลไปพร้อมกัน",
+            "weigh": "ถ้าต้องรอคิวเอคโค่หรือต้องส่งตัวไปตรวจ ระหว่างรอจะดูแลผู้ป่วยอย่างไร",
             "safety": ""
           },
           {
             "strength": "ขอความเห็นแพทย์หัวใจในผู้ที่มีประวัติกล้ามเนื้อหัวใจตาย",
-            "weigh": "ควรส่งข้อมูลการรักษาที่ผ่านมาให้แพทย์หัวใจ เพื่อให้ตัดสินใจได้เร็ว",
+            "weigh": "ข้อมูลการรักษาที่ผ่านมาอะไรบ้างที่ควรส่งไปพร้อมคำขอปรึกษา เพื่อให้ตัดสินใจได้เร็ว",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reads a **slow response** as a reason to study heart function closely.",
-            "weigh": "An echo may mean a queue or a transfer, so plan his care during the wait.",
+            "weigh": "While the echo is arranged, how will you keep treating the swelling that is still there?",
             "safety": ""
           },
           {
             "strength": "Does not let a slow recovery drift without looking for a reason.",
-            "weigh": "The echo shapes long-term plans, but the swelling still present needs care alongside it.",
+            "weigh": "If the echo means a queue or a transfer, what care does he get during the wait?",
             "safety": ""
           },
           {
             "strength": "Seeks a heart specialist's view for a man with a past heart attack.",
-            "weigh": "Send the treatment so far with the request so decisions can be made quickly.",
+            "weigh": "What from his treatment so far should go with the request, so decisions come quickly?",
             "safety": ""
           }
         ]
@@ -2188,34 +2188,34 @@
         "th": [
           {
             "strength": "คิดถึงน้ำขาเข้า เพื่อให้**ขาบวมยุบ**เร็วขึ้น",
-            "weigh": "การจำกัดน้ำเข้มงวดถึง 1 ลิตรมีหลักฐานน้อย ทำตามยาก และทำให้กระหายน้ำมาก",
+            "weigh": "จำกัดน้ำเข้มงวดถึง 1 ลิตรคุ้มกับความกระหายน้ำไหม เมื่อหลักฐานมีน้อย",
             "safety": ""
           },
           {
             "strength": "ยังให้นอนโรงพยาบาลต่อ จึงเฝ้าดูอาการได้ใกล้ชิด",
-            "weigh": "ขาบวมยุบได้จากการขับน้ำออกทางไตเป็นหลัก การดื่มน้อยลงช่วยได้เพียงบางส่วน",
+            "weigh": "ขาบวมยุบได้เพราะดื่มน้อยลง หรือเพราะไตขับน้ำออก",
             "safety": ""
           },
           {
             "strength": "ให้ผู้ป่วยมีส่วนร่วมในการดูแลน้ำของตัวเอง",
-            "weigh": "การดื่มน้อยมากในผู้สูงอายุอาจทำให้ค่าไตแย่ลงได้",
+            "weigh": "ดื่มน้ำน้อยมากในผู้สูงอายุ จะกระทบค่าไตไหม",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks about fluid intake to help the **leg swelling settle**.",
-            "weigh": "A strict 1 L limit has little evidence, is hard to keep and leaves him thirsty.",
+            "weigh": "With little evidence behind it, is a strict 1 L limit worth his thirst?",
             "safety": ""
           },
           {
             "strength": "Keeps him in hospital, so he stays under close watch.",
-            "weigh": "Swelling settles mainly through what the kidneys pass, and drinking less helps only in part.",
+            "weigh": "Does the swelling settle through what he drinks, or what his kidneys pass?",
             "safety": ""
           },
           {
             "strength": "Gives him a role in managing his own fluid.",
-            "weigh": "Very low intake in an older man can strain kidney function.",
+            "weigh": "Could drinking very little strain an older man's kidneys?",
             "safety": ""
           }
         ]
@@ -2224,34 +2224,34 @@
         "th": [
           {
             "strength": "ทดลองยาที่จะใช้ที่บ้าน ขณะยัง**ดูน้ำหนักและขาบวม**ในโรงพยาบาล",
-            "weigh": "ขายังบวมอยู่ ยากินอาจยังไม่พอขับน้ำที่เหลือ ควรชั่งน้ำหนักทุกเช้า",
+            "weigh": "ขายังบวมอยู่ ยากินจะพอขับส่วนที่เหลือไหม",
             "safety": ""
           },
           {
             "strength": "เตรียมความพร้อมกลับบ้านโดยไม่ทิ้งการเฝ้าดูใกล้ชิด",
-            "weigh": "ถ้ายังมีน้ำเกิน ยากินอาจดูดซึมได้น้อย จึงควรดูการตอบสนองให้แน่ใจ",
+            "weigh": "ถ้ายังมีน้ำเกิน ยากินจะดูดซึมได้ดีพอไหม",
             "safety": ""
           },
           {
             "strength": "ใช้น้ำหนักและขาบวมเป็นตัวชี้วัด ซึ่งวัดได้ง่ายทุกวัน",
-            "weigh": "ถ้าน้ำหนักไม่ลดใน 1-2 วัน ควรทบทวนแผนอีกครั้ง",
+            "weigh": "ถ้าน้ำหนักไม่ลดภายในวันสองวัน จะทำอย่างไรต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Tests the home regimen while weight and **leg swelling** are still watched in hospital.",
-            "weigh": "His legs are still swollen, so tablets may not yet clear what is left; weigh him each morning.",
+            "weigh": "With his legs still swollen, will tablets clear what is left?",
             "safety": ""
           },
           {
             "strength": "Prepares for home without giving up close watching.",
-            "weigh": "If overload remains, tablets may be absorbed less, so confirm he responds.",
+            "weigh": "If he is still overloaded, will the tablets be absorbed well enough?",
             "safety": ""
           },
           {
             "strength": "Uses weight and swelling as markers that are easy to measure each day.",
-            "weigh": "If his weight does not fall within a day or two, the plan needs another look.",
+            "weigh": "If his weight does not fall within a day or two, what will you do?",
             "safety": ""
           }
         ]
@@ -2260,34 +2260,34 @@
         "th": [
           {
             "strength": "ต้องการติดตาม**น้ำในปอด**อย่างเป็นรูปธรรม",
-            "weigh": "ภาพเอกซเรย์ทุกวันแทบไม่เปลี่ยนการรักษา และเพิ่มรังสีกับภาระงาน",
+            "weigh": "ภาพเอกซเรย์ทุกวันเปลี่ยนการรักษาได้คุ้มกับรังสีและภาระงานไหม",
             "safety": ""
           },
           {
             "strength": "ใช้ภาพเป็นหลักฐานเทียบความเปลี่ยนแปลงในแต่ละวัน",
-            "weigh": "ภาพปอดเปลี่ยนช้ากว่าอาการ น้ำหนักและการตรวจร่างกายบอกได้เร็วกว่า",
+            "weigh": "น้ำหนักและการตรวจร่างกายบอกความคืบหน้าได้เร็วกว่าภาพไม่ใช่หรือ",
             "safety": ""
           },
           {
             "strength": "ใส่ใจการตอบสนองต่อการรักษา ไม่ปล่อยให้ผ่านไปโดยไม่ประเมิน",
-            "weigh": "ขาบวมที่ยังมีอยู่ไม่ได้แสดงในภาพปอด จึงต้องใช้การตรวจร่างกายประกอบ",
+            "weigh": "ขาบวมที่ยังมีอยู่ไม่ปรากฏในภาพปอด แล้วจะติดตามอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wants to track **the lung fluid** in concrete terms.",
-            "weigh": "Daily films rarely change treatment and add radiation and workload.",
+            "weigh": "Would a film every day change treatment enough to justify the radiation and work?",
             "safety": ""
           },
           {
             "strength": "Uses the film as evidence to compare change from day to day.",
-            "weigh": "Films lag behind symptoms; weight and examination show progress sooner.",
+            "weigh": "Don't weight and examination show progress sooner than a film?",
             "safety": ""
           },
           {
             "strength": "Pays attention to the response instead of letting days pass unassessed.",
-            "weigh": "The leg swelling still present does not show on a chest film, so examination still counts.",
+            "weigh": "The leg swelling still present won't show on a chest film; how will you follow it?",
             "safety": ""
           }
         ]
@@ -2298,34 +2298,34 @@
         "th": [
           {
             "strength": "อ่านอาการ**หอบขณะพัก**ทั้งที่รักษาแล้วเป็นสัญญาณว่าต้องการการดูแลระดับสูงขึ้น",
-            "weigh": "ควรส่งพร้อมออกซิเจน เครื่องติดตาม และสรุปการรักษาที่ให้ไปแล้ว",
+            "weigh": "อะไรบ้างที่ต้องไปกับผู้ป่วย ออกซิเจน เครื่องติดตาม หรือสรุปการรักษา",
             "safety": ""
           },
           {
             "strength": "รู้ขีดจำกัดของหอผู้ป่วยทั่วไป เมื่อรักษาแล้วยังไม่ดีขึ้น",
-            "weigh": "ผู้ป่วยอาจทรุดระหว่างทาง จึงควรมีพยาบาลที่ดูแลการหายใจได้ไปด้วย",
+            "weigh": "ถ้าทรุดระหว่างทาง ใครที่ดูแลการหายใจได้จะไปด้วย",
             "safety": ""
           },
           {
             "strength": "ตัดสินใจเร็วจากอาการที่ไม่ตอบสนอง ไม่รอให้ทรุดลงอีก",
-            "weigh": "ควรประสานโรงพยาบาลปลายทางก่อน เพื่อให้มีเตียงพร้อมรับ",
+            "weigh": "โทรประสานโรงพยาบาลปลายทางให้มีเตียงรอแล้วหรือยัง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reads being **breathless at rest** on treatment as a call for more intensive care.",
-            "weigh": "Send him with oxygen, monitoring and a summary of the treatment given.",
+            "weigh": "What must go with him: oxygen, monitoring, a summary of treatment so far?",
             "safety": ""
           },
           {
             "strength": "Recognises the limits of a general ward once treatment has not worked.",
-            "weigh": "He may worsen on the way, so a nurse able to support breathing should go with him.",
+            "weigh": "If he worsens on the way, who able to support breathing goes with him?",
             "safety": ""
           },
           {
             "strength": "Acts promptly on a lack of response instead of waiting for further decline.",
-            "weigh": "Call the receiving hospital ahead so a bed is ready for him.",
+            "weigh": "Has the receiving hospital been called so a bed is ready for him?",
             "safety": ""
           }
         ]
@@ -2334,34 +2334,34 @@
         "th": [
           {
             "strength": "ไม่หยุดรักษาระหว่างรอ แต่**ขับน้ำต่อ**ระหว่างนำส่งไปหน่วยดูแลหัวใจ",
-            "weigh": "ระหว่างเดินทางควรดูความดันและปัสสาวะ เพราะยาจะออกฤทธิ์ขณะอยู่บนรถ",
+            "weigh": "ยาจะออกฤทธิ์ขณะอยู่บนรถ ใครจะดูความดันและปัสสาวะระหว่างทาง",
             "safety": ""
           },
           {
             "strength": "รักษาไปพร้อมกับยกระดับการดูแล ไม่เสียเวลาช่วงรอส่งต่อ",
-            "weigh": "ยาขนาดสูงก่อนเดินทางทำให้ต้องปัสสาวะบ่อยบนรถ ควรเตรียมภาชนะและคนดูแล",
+            "weigh": "ให้ยาขนาดสูงก่อนเดินทาง จะเตรียมรับปัสสาวะที่ออกบ่อยบนรถอย่างไร",
             "safety": ""
           },
           {
             "strength": "เห็นว่าการไม่ตอบสนองต้องการทั้งยาที่มากขึ้นและที่ดูแลที่พร้อมกว่า",
-            "weigh": "ควรส่งข้อมูลยาและปริมาณปัสสาวะที่ผ่านมา เพื่อให้ทีมปลายทางปรับต่อได้ทันที",
+            "weigh": "ข้อมูลยาและปริมาณปัสสาวะที่ผ่านมา ส่งไปให้ทีมปลายทางด้วยหรือยัง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Does not pause treatment for the move but **keeps clearing fluid** on the way.",
-            "weigh": "On the road, watch BP and urine output, since the dose will act during the journey.",
+            "weigh": "The dose will act on the road; who watches his BP and urine on the way?",
             "safety": ""
           },
           {
             "strength": "Treats and escalates care at the same time, losing nothing while waiting.",
-            "weigh": "A bigger dose before travel means frequent urine on board, so prepare for it.",
+            "weigh": "With a big dose before travel, how will you handle frequent urine on board?",
             "safety": ""
           },
           {
             "strength": "Sees that no response so far calls for both more drug and a better-equipped unit.",
-            "weigh": "Send the doses and urine output so far, so the receiving team can adjust at once.",
+            "weigh": "Are the doses and urine output so far going with him to the receiving team?",
             "safety": ""
           }
         ]
@@ -2370,34 +2370,34 @@
         "th": [
           {
             "strength": "เห็นว่ายังมี**น้ำที่ค้างในปอด** และเพิ่มขนาดยาตามนั้น",
-            "weigh": "หอบขณะพักหลังรักษาทั้งคืนบอกว่าป่วยมาก หอผู้ป่วยจึงต้องเฝ้าดูได้ใกล้ชิดพอ",
+            "weigh": "หอบขณะพักหลังรักษาทั้งคืน หอผู้ป่วยเฝ้าดูได้ใกล้ชิดพอไหม",
             "safety": ""
           },
           {
             "strength": "ไม่ยึดขนาดยาเดิม แต่ปรับตามการตอบสนองที่ยังไม่พอ",
-            "weigh": "ควรตั้งเป้าปัสสาวะและเวลาประเมินซ้ำให้ชัด ถ้าไม่ดีขึ้นจะได้ตัดสินใจเร็ว",
+            "weigh": "จะตั้งเป้าปัสสาวะและเวลาประเมินซ้ำไว้อย่างไร ถ้าไม่ดีขึ้นจะได้ตัดสินใจเร็ว",
             "safety": ""
           },
           {
             "strength": "ยังคงรักษาที่ต้นเหตุคือน้ำเกิน ด้วยยาที่มีอยู่ในโรงพยาบาล",
-            "weigh": "การหายใจที่ยังหอบขณะพักต้องเฝ้าดูอย่างใกล้ชิดระหว่างปรับยา",
+            "weigh": "ระหว่างปรับยา ใครจะเฝ้าดูการหายใจที่ยังหอบขณะพักอย่างใกล้ชิด",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sees fluid **still in his lungs** and raises the dose to match.",
-            "weigh": "Breathless at rest after a night's treatment, he is very sick, so how closely the ward can watch matters.",
+            "weigh": "Breathless at rest after a night of treatment: can the ward watch him closely enough?",
             "safety": ""
           },
           {
             "strength": "Does not stick to the old dose but adjusts to a response that falls short.",
-            "weigh": "Set a urine target and a time to reassess, so a lack of progress is acted on quickly.",
+            "weigh": "What urine target and time to reassess will make a lack of progress clear quickly?",
             "safety": ""
           },
           {
             "strength": "Keeps treating the cause, fluid overload, with what the unit has.",
-            "weigh": "Breathing that stays laboured at rest needs close watching while the dose is adjusted.",
+            "weigh": "Who watches his laboured breathing at rest closely while the dose is adjusted?",
             "safety": ""
           }
         ]
@@ -2406,34 +2406,34 @@
         "th": [
           {
             "strength": "มองหาเหตุที่ทำให้**หายช้า** และคิดถึงการติดเชื้อที่อาจซ่อนอยู่",
-            "weigh": "ตอนมาไม่มีไข้ และหอบขณะพักทั้งที่รักษามาทั้งคืนก็เป็นสัญญาณเตือนในตัวเอง",
+            "weigh": "ตอนมาไม่มีไข้ การติดเชื้ออธิบายได้ไหมว่าทำไมยังหอบขณะพัก",
             "safety": "หอบขณะพักหลังรักษามาทั้งคืน แปลว่ายังอยู่ในภาวะอันตราย และอาจทรุดลงได้เร็ว"
           },
           {
             "strength": "ไม่ยอมรับการตอบสนองที่ช้าโดยไม่หาเหตุ",
-            "weigh": "ยาฆ่าเชื้อที่ไม่มีหลักฐานการติดเชื้อชัด เพิ่มผลข้างเคียงและเชื้อดื้อยา",
+            "weigh": "มีสัญญาณการติดเชื้อชัดอะไรบ้างที่คุ้มกับการให้ยาฆ่าเชื้อ",
             "safety": "หอบขณะพักหลังรักษามาทั้งคืน แปลว่ายังอยู่ในภาวะอันตราย และอาจทรุดลงได้เร็ว"
           },
           {
             "strength": "รู้ว่าปอดอักเสบเป็นตัวกระตุ้นที่พบบ่อยของการทรุดลงในผู้ป่วยโรคหัวใจ",
-            "weigh": "หอบขณะพักหลังรักษามาทั้งคืนบอกว่าอาการรุนแรง ซึ่งยาฆ่าเชื้ออย่างเดียวไม่ได้ตอบ",
+            "weigh": "หอบขณะพักหลังรักษาทั้งคืน บอกความรุนแรงที่ยาฆ่าเชื้ออย่างเดียวตอบได้ไหม",
             "safety": "หอบขณะพักหลังรักษามาทั้งคืน แปลว่ายังอยู่ในภาวะอันตราย และอาจทรุดลงได้เร็ว"
           }
         ],
         "en": [
           {
             "strength": "Looks for what may be slowing **his recovery** and considers a hidden infection.",
-            "weigh": "He had no fever on arrival, and breathlessness at rest after a night of treatment is a warning in itself.",
+            "weigh": "With no fever on arrival, does infection explain why he is still breathless at rest?",
             "safety": "Breathless at rest after a night of treatment means he is still in danger and can deteriorate quickly."
           },
           {
             "strength": "Refuses to accept a slow response without looking for a reason.",
-            "weigh": "Antibiotics without clear signs of infection add side effects and resistance.",
+            "weigh": "What clear sign of infection would justify antibiotics here?",
             "safety": "Breathless at rest after a night of treatment means he is still in danger and can deteriorate quickly."
           },
           {
             "strength": "Knows pneumonia often tips a heart patient into decline.",
-            "weigh": "Breathless at rest after a night of treatment signals severity that antibiotics alone do not answer.",
+            "weigh": "Breathless at rest after a night of treatment: can antibiotics alone answer that severity?",
             "safety": "Breathless at rest after a night of treatment means he is still in danger and can deteriorate quickly."
           }
         ]
@@ -2442,9 +2442,9 @@
   },
   "safety_review": {
     "model": "claude-opus-5-5",
-    "date": "2026-11-14",
-    "findings": "Fresh review by a non-author (claude-opus-5-5), 2026-11-14, of every reply in all 13 banks of adhf version 6, all three alternatives, Thai and English, read against every question variant. Checked against the ESC 2021 acute HF recommendations (via Wikidoc), Mauro 2023, BJ Cardiology and FRESH-UP, plus leaks, fit and Thai-English match. The six step4.W.reservoir replies are correct, name no other option, and each says he needs ventilatory support now; step4.B.fluid_limit[2] weigh (weak evidence, mostly kept for severe cases or low sodium) is right. No must-fix. Optional: a safety line on step4.W.double_dose, whose [1] weigh speaks only of bloods and urine. Tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94, replies sha256 2508bfb81d771c09041e5fd9c9f7b8d670e16a38d0137d0a34d5320265ca3454. Gate sweep on #506 (jjstack doublej, spec #493): replies that asserted a fact only some question variants or paths state were reworded, text only, with the tree unchanged; a non-author read-only review then checked every edited alternative, Thai and English, against every question variant and every path into its bank, and confirmed them. Where the review above quotes a string that was reworded, the reworded text supersedes it.",
+    "date": "2026-11-25",
+    "findings": "A fresh non-author reviewer, claude-opus-5-5, read every weigh line in all 13 banks on 2026-11-25 after the reply format B rewrite (weigh as a คิดต่อ / Next thought question), all three alternatives, Thai and English, against every question variant and every path into each bank. Strength and safety are byte-identical to the bank reviewed on 2026-11-14, with keys and order unchanged (checked by script against HEAD). No option is left blank: the writer had blanked step5.R.refer_echo (best tier), but its old weigh carried a real point, that the leg swelling still present needs treating while the echo is arranged, and its strength and safety lines do not say so, so the blank was reverted. Must-fixes applied: step5.R.refer_echo [0] \"\" → \"While the echo is arranged, how will you keep treating the swelling that is still there?\"; [1] \"\" → \"If the echo means a queue or a transfer, what care does he get during the wait?\"; [2] \"\" → \"What from his treatment so far should go with the request, so decisions come quickly?\"; step1.a [1] \"Do two weeks off tablets, then 5 days of worsening breath, fit as the trigger?\" → \"Off his tablets 2 weeks, then 5 days of worsening breath: does that timing fit missed tablets as the trigger?\" (the Thai read awkwardly). The dropped 110 systolic limit (step3 nitrate, step4.R.nitrate_add, step4.W.iv_nitrate) and the dropped 2 kg in 3 days rule (step5.B.early_review) now ask the visitor for the limit, which is clinically sound and cites no number the case does not show; the step2 labs and ecg_trop and step4.B.continue_iv rewordings give away no later option; the how-to-tell-it-is-working questions at step3.o2_iv, step3.cpap and step4.W.cpap_now name no step 4 or 5 option or action and were kept; step4.W.double_dose now asks what helps his worsening breathing meanwhile, which steers rightly toward support without naming an option. No line nudges toward harm. Tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94. Replies sha256 b7b3b45fa9fcb7c49af1792f3a370e36c976051c0238c6126cbaa5bec5fae89c.",
     "tree_sha256": "9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94",
-    "replies_sha256": "2508bfb81d771c09041e5fd9c9f7b8d670e16a38d0137d0a34d5320265ca3454"
+    "replies_sha256": "b7b3b45fa9fcb7c49af1792f3a370e36c976051c0238c6126cbaa5bec5fae89c"
   }
 }
