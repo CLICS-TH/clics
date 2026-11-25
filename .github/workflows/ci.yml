@@ -298,8 +298,9 @@ jobs:
           node --check deploy/vm1/rehearsal/fake-google.mjs
           bash -n deploy/vm1/rehearsal/run.sh
           shellcheck deploy/vm1/rehearsal/run.sh
-          bash -n deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh
-          shellcheck deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh
+          # One file per `bash -n`: it reads only its first argument, the rest become the script's arguments.
+          for f in deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh deploy/vm1/db-move/run-move.sh; do bash -n "$f"; done
+          shellcheck deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh deploy/vm1/db-move/run-move.sh
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
       - name: Guard tests (loopback-only ports, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
         run: node --test scripts/deploy/*.test.mjs scripts/dev/*.test.mjs

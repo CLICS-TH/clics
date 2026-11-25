@@ -78,7 +78,9 @@ final="$OUT/clics-$stamp.sql.gpg"
 trap 'rm -f "$part"' EXIT
 log "dumping the data host into $final"
 # --network host: the data host is reached over vm1's tailnet address, the one its pg_hba admits.
-docker run --rm -i --network host --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
+# --log-driver none: Docker copies an attached container's stdout into its log on vm1's plain disk as well as
+# down the pipe, and this stdout is the whole dump in clear. `none` keeps no log and no cache; the pipe is unchanged.
+docker run --rm -i --log-driver none --network host --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
     --memory 1g --pids-limit 256 \
     -v "$HERE/move.sh:/db-move/move.sh:ro" -v "$CONF/pgpass:/run/pgpass:ro" -e PGPASSFILE=/run/pgpass \
     "${envs[@]}" ${ca[@]+"${ca[@]}"} --entrypoint bash "$IMAGE" /db-move/move.sh backup < /dev/null |

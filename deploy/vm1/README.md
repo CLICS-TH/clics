@@ -39,6 +39,58 @@ to this origin (cutover step 4).
 
 Rimpl is built from `rimpl/Dockerfile` unchanged.
 
+## Under CME's rules (25 Nov 2026)
+
+CME's reply on #432 changes who may do what on vm1. Where a section below says "as root on vm1", this
+section wins.
+
+- **The CLICS operator's account** has no root, is not in the `docker` group (that group is root by another
+  name), and may not run `bash`, `sudo -s`, `docker run`, `docker exec` or `find -exec` through sudo. sudo
+  runs only the commands CME lists, each with its path and arguments fixed.
+- **Certificates** come from CME's own locked script: it proves the domain over port 443 (TLS-ALPN-01), keeps
+  the key in `/etc/letsencrypt` (root only) and reloads only the clics block. Port 80 stays closed, so
+  section 2's one-off port-80 server and `certbot --webroot` are not used. **Open with CME:** nginx holds
+  443 for every site on vm1, so how does the script's client answer the TLS-ALPN-01 challenge there (an
+  `ssl_preread` route for the `acme-tls/1` protocol, or a short stop of nginx)?
+- **DNS** is CME's request to GDCC; users reach vm1 through the WAF (section 2's open question 3 then needs
+  the WAF's ranges for `real_ip`).
+- **CME installs the vhost** (`nginx/clics.ccme.or.th.conf`) from the reviewed main. `nginx -t` is on the
+  operator's sudo list.
+
+**The integrity condition.** Anything sudo runs as root must be a file the operator cannot change: owned
+by root, writable by root only, in directories only root can write, installed by CME from the reviewed
+main. That includes the files a root `docker compose` reads: a compose file the operator could edit can
+mount `/` into a container, which makes the operator root. `/opt/clics/releases/` and `current` are written
+by `deploy.sh` today, so under these rules they must be written by root only, through a deploy CME controls.
+
+**The sudo entries the kit needs** (a proposal for CME; OPERATOR is the CLICS operator's account):
+
+| Entry | For | When |
+|---|---|---|
+| `/usr/local/lib/clics-db-move/run-move.sh preflight`, `... move`, `... verify`, tagged `NOLOG_INPUT` and `NOLOG_OUTPUT` | the database move (`db-move/README.md`, *Before the window*, 3) | the window only; CME removes it after |
+| `/usr/sbin/nginx -t` | checking the vhost | always |
+| `/usr/bin/docker compose -p clics ... ps` and `... logs` for the `clics` project | reading the services' state and logs | always |
+| the deploy entry (below) | shipping a release | always |
+
+`/usr/local/lib/clics-db-move/backup.sh` runs from root's cron, so it needs no sudo entry. The two tags
+keep the move out of sudo's own I/O log (`log_input`, `log_output`): without `NOLOG_INPUT` it would keep the
+typed password, and without `NOLOG_OUTPUT` the move's output, where a psql error can quote a row. They
+govern sudo's log only. A session recorder outside sudo (one that records the operator's whole terminal)
+still sees the keystrokes; the password is then limited by what it opens: the data host's superuser, for
+the window only, taken away by `setup.sh lock` when the window closes.
+
+**Deploying under these rules.** `deploy.sh` cannot run as written: it logs in as root over Tailscale SSH,
+unpacks the release and starts `remote/activate.sh` with `systemd-run`. The steps it runs on vm1
+(`remote/*.sh`) need no change; what changes is who starts them. Two ways, CME's choice:
+
+1. **A deploy entry CME installs**, root-owned like `run-move.sh`: given a commit that is on the reviewed
+   main, it fetches that commit, unpacks it as root under `/opt/clics/releases/`, and runs the same
+   preflight and activate. The operator runs it through sudo with the commit as its one argument, which the
+   entry checks is a full sha on main.
+2. **CME runs each deploy** from a ref the CLICS team names, with `deploy.sh` as it is.
+
+Until CME chooses, nothing is deployed to vm1 from this side.
+
 ## Layout on vm1
 
 ```
@@ -94,6 +146,9 @@ names in `backend.env.example` and `rimpl.env.example`:
   values.
 
 ## 2. The site: access from CME, then our steps
+
+Under CME's rules (above), CME installs the site and issues the certificate with its own script, over port
+443; port 80 and step 1 below are not used. The rest stays as the record of what the site needs.
 
 We do the work; CME gives the access and the go-ahead. From CME:
 
@@ -166,6 +221,9 @@ Then, at the agreed time, as root on vm1:
     bridge? (ADR 0002, risk 5.)
 
 ## 3. Deploying
+
+Under CME's rules (above), this does not run as written: it logs in as root. What follows is what the
+deploy does on vm1, whoever starts it.
 
 From the Mac, in a checkout of this repo. Replace `VM1_TAILNET_NAME` with vm1's tailnet host name (the
 Tailscale node ADR 0002 names), without brackets or quotes. The name is not a secret; it is passed in
@@ -443,11 +501,13 @@ switches sign-in over. Until then the services run only in a rehearsal (`rehears
 ```bash
 openssl rand -base64 48    # once: GOTRUE_JWT_SECRET in gotrue.env AND PGRST_JWT_SECRET in postgrest.env, unquoted
 cd /opt/clics/current/deploy/vm1
-docker run --rm -i --network none node:22-slim node -e "$(cat auth-role-keys.cjs)" < /opt/clics/env/gotrue.env
+docker run --rm -i --log-driver none --network none node:22-slim node -e "$(cat auth-role-keys.cjs)" < /opt/clics/env/gotrue.env
 ```
 
 The second command runs the key tool in the backend's base image (vm1's host has no node of its own) and
-prints `SUPABASE_ANON_KEY=` and `SUPABASE_SERVICE_ROLE_KEY=` lines. They go into
+prints `SUPABASE_ANON_KEY=` and `SUPABASE_SERVICE_ROLE_KEY=` lines. `--log-driver none` matters: without it,
+Docker also writes what a container prints into its log on vm1's disk, and the service-role key is a
+credential. They go into
 `backend.env` and `rimpl.env` **at the move (#432)**, not before: today those files still hold the hosted
 project's keys. The preflight (and activate again) refuses:
 

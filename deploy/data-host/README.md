@@ -2,8 +2,13 @@
 
 **Status: prepared and tested locally (2026-11-24), not yet run on cme-dev.** The layout is the hybrid one:
 the app, GoTrue, PostgREST and nginx on vm1; the database here, on cme-dev, in a PostgreSQL cluster of its
-own that holds only `clics_mentor`. We set it up and run it; CME gives the access, the disk and the
-decisions (who holds the LUKS passphrase among them).
+own that holds only `clics_mentor`.
+
+**Who runs it (CME's rules, 25 Nov 2026).** The CLICS team has no account on cme-dev. These files reach
+CME on a branch CME reviews and merges; CME builds the image and runs every step below as root, holds the
+LUKS passphrase (its own decision who), and sends back the evidence listed in *Evidence for the CLICS
+team*. SQL that changes the schema reaches CME the same way, as files, and runs only after CME's RLS
+refusal tests (D6) pass.
 
 | File | What it is |
 |---|---|
@@ -13,7 +18,7 @@ decisions (who holds the LUKS passphrase among them).
 | `pg_hba.conf.template` | vm1 only, TLS only, `clics_mentor` only; the superuser only through the container's socket |
 | `setup.sh` | Every step below, each printing what it did and stopping on the first problem |
 
-The restore drill on vm1 (`../vm1/db-move/README.md`, Restore drill) runs this same image, in memory, and so
+The restore drill (`../vm1/db-move/README.md`, Restore drill) runs this same image, in memory, and so
 does CI's hermetic sign-in replay (`../vm1/rehearsal/run.sh hermetic-data-host`).
 
 What it guarantees, and how each is checked:
@@ -64,7 +69,8 @@ Also needed: vm1's tailnet address, and the passphrase holder (CME's decision) a
    ```
 4. **The certificate.** `./setup.sh tls NAME ADDRESS` (cme-dev's tailnet name and address). It prints the
    certificate's fingerprint. Copy `/srv/clics-data/conf/server.crt` (never the key) to vm1, as
-   `/opt/clics/db-move/data-ca.crt` and `/opt/clics/backup/data-ca.crt`.
+   `/etc/clics/data-ca.crt` (the move) and `/opt/clics/backup/data-ca.crt` (the nightly backup), both
+   root's.
 5. **Who may connect.** `./setup.sh hba VM1_ADDRESS` (later changes: then `./setup.sh reload`).
 6. **Build and start.**
    ```bash
@@ -83,7 +89,7 @@ Also needed: vm1's tailnet address, and the passphrase holder (CME's decision) a
 7. **Post-checks.**
    - `./setup.sh check`: every line `ok`, exit 0.
    - From vm1: `psql "host=CME_DEV_ADDRESS dbname=clics_mentor user=authenticator sslmode=verify-full
-     sslrootcert=/opt/clics/db-move/data-ca.crt" -c 'select 1'` answers; the same with
+     sslrootcert=/etc/clics/data-ca.crt" -c 'select 1'` answers; the same with
      `sslmode=disable` is rejected.
    - From another tailnet node: rejected. From the internet: nothing answers.
    - `./setup.sh logs | grep 'connection received'` shows vm1's
@@ -108,16 +114,38 @@ design).
 
 The steps are `../vm1/db-move/README.md`, *The window*. What happens here:
 
-- Before: the superuser gets a password for the window only: `./setup.sh psql`, `\password postgres`. The
-  same password goes into vm1's `/opt/clics/db-move/pgpass` (`CLICS_DATA_DB=clics_mentor`,
+- Before: the superuser gets a password for the window only: `./setup.sh psql`, `\password postgres`. Its
+  holder types it again at `run-move.sh`'s second prompt on vm1, for each of `preflight`, `move` and
+  `verify`; it is never written into a file (`db-move.conf` has `CLICS_DATA_DB=clics_mentor`,
   `CLICS_DATA_USER=postgres`). The move's PostgreSQL image is this one's base:
   `postgres:18.7@sha256:f5cbc081c25690710f3fc6f4c61a7565382bae01ca0d0f2028a53d7926b85a20`.
 - Step 5 (roles): `docker compose -p clics-data --env-file /opt/clics-data/env/data.env exec -T -u postgres
   clics-mentor-postgres psql -X -v ON_ERROR_STOP=1 -d clics_mentor < ../vm1/db-move/roles.sql` (from this
   directory), then
   `./setup.sh psql`: `\password clics_analyst`, `\password clics_backup`.
-- Step 8: vm1 deletes its move secrets, and here `./setup.sh lock`. `./setup.sh check` prints
+- Step 8: CME removes the move's sudo entry on vm1, and here `./setup.sh lock`. `./setup.sh check` prints
   `ok    superuser has no password`.
+
+## Evidence for the CLICS team
+
+What CME sends back after the set-up (and the parts that change, after each window), so the CLICS team can
+accept the data host without logging in. None of it is a secret: no password, no key, no row.
+
+1. **The commit** the files came from (CME's merge of the branch), and `git diff --stat` against it on
+   cme-dev's checkout: empty.
+2. **The image:** `docker image inspect clics-data-pg:18.7-pgvector0.8.7 --format '{{.Id}}'`, its
+   `postgres --version`, and pgvector's version as the server sees it
+   (`select default_version from pg_available_extensions where name = 'vector'`: `0.8.7`).
+3. **`./setup.sh check`**, all of it: every line `ok`, exit 0. It covers the LUKS2 mount, port 5432 on the
+   tailnet address only, PostgreSQL 18.7, TLS on, pgvector 0.8.7, the superuser without a password, the
+   databases, `pg_hba.conf` (parses, every accepting network line `hostssl`) and the server's uid.
+4. **The certificate:** its SHA-256 fingerprint and end date, as `setup.sh tls` printed them. vm1 trusts
+   exactly this certificate.
+5. **The connection tests** of step 7, each with its output: from vm1, `verify-full` as `authenticator`
+   answers and `sslmode=disable` is rejected; from another tailnet node, rejected; from the internet,
+   nothing answers; `./setup.sh logs | grep 'connection received'` shows vm1's tailnet address.
+6. **`pg_hba.conf` as installed** (`/srv/clics-data/conf/pg_hba.conf`): it names addresses and roles, no
+   password.
 
 ## Emptying it (after an evaluation with real data, or to start over)
 

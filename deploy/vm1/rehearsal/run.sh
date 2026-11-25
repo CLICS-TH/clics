@@ -182,8 +182,9 @@ assert_surface() {
 }
 
 # auth-role-keys.cjs in the backend's own base image, with no network: vm1's host has no node of its own.
+# No log: Docker would copy the keys it prints into the container's log on disk.
 mint_role_keys() {
-  docker run --rm -i --network none "$(sed -n 's/^FROM \([^ ]*\).*/\1/p' backend.Dockerfile | head -n 1)" \
+  docker run --rm -i --log-driver none --network none "$(sed -n 's/^FROM \([^ ]*\).*/\1/p' backend.Dockerfile | head -n 1)" \
     node -e "$(cat auth-role-keys.cjs)" < "$1"
 }
 

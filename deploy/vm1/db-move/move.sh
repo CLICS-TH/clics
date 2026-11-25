@@ -20,7 +20,8 @@
 # CLICS_DATA_PORT (5432), CLICS_DATA_DB (postgres), CLICS_DATA_USER (supabase_admin, a superuser:
 # session_replication_role needs one), CLICS_DATA_SSLMODE (require; verify-ca or verify-full are
 # stronger; the participant data crosses the tailnet to another host, so the hop is TLS too), and the
-# password from a pgpass file (PGPASSFILE). A plaintext hop (CLICS_DATA_SSLMODE=disable, allow or prefer)
+# password: from a pgpass file (PGPASSFILE), or, with CLICS_DATA_PASSWORD=stdin, as the stdin line after the
+# source URL (run-move.sh, so on vm1 no file ever holds it). A plaintext hop (CLICS_DATA_SSLMODE=disable, allow or prefer)
 # is refused unless CLICS_DATA_PLAINTEXT_OK=1 is also set, for a throwaway target only.
 # AUDIT_CHAIN=required (the default) fails the report when the source has no audit_log chain;
 # AUDIT_CHAIN=checksum accepts audit_log's row checksum in its place (README.md, "Audit chain").
@@ -32,19 +33,22 @@
 set -euo pipefail
 export LC_ALL=C LANG=C
 # Only what this script sets reaches libpq: a PGHOST or PGPASSWORD inherited from the caller's shell
-# would otherwise point one end somewhere else. PGPASSFILE is kept: it is how the target's password comes in.
+# would otherwise point one end somewhere else. PGPASSFILE is kept: it is one way the target's password comes in.
 unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE PGSERVICE PGSERVICEFILE PGOPTIONS PGTARGETSESSIONATTRS \
   PGSSLROOTCERT
 REQUIRED_TABLES=(public.booth_plays public.booth_sort_memos public.booth_event_purges)
 AUDIT_CHAIN=${AUDIT_CHAIN:-required}
 SRC_FROM=${SRC_FROM:-stdin}
 SNAPSHOT=${SNAPSHOT:-}
+CLICS_DATA_PASSWORD=${CLICS_DATA_PASSWORD:-}
+DPW=''
 
 log() { echo "[db-move] $*" >&2; }
 die() { echo "[db-move] ERROR: $*" >&2; exit 1; }
 
 case "$AUDIT_CHAIN" in required|checksum) ;; *) die "AUDIT_CHAIN must be required or checksum, not '$AUDIT_CHAIN'" ;; esac
 case "$SRC_FROM" in stdin|data-host) ;; *) die "SRC_FROM must be stdin or data-host, not '$SRC_FROM'" ;; esac
+case "$CLICS_DATA_PASSWORD" in ''|stdin) ;; *) die "CLICS_DATA_PASSWORD must be stdin or unset (it names where the password comes from, never the password)" ;; esac
 [[ -z "$SNAPSHOT" || "$SNAPSHOT" =~ ^[0-9A-Fa-f-]+$ ]] || die "SNAPSHOT is not a snapshot id"
 
 # ---- connections ----------------------------------------------------------------------------------------
@@ -52,6 +56,7 @@ dst() {
   [ -n "${CLICS_DATA_HOST:-}" ] || die "CLICS_DATA_HOST is not set (the data host's tailnet name or address)"
   # A subshell, so the data host's root certificate (verify-full) never reaches a source command.
   ( [ -z "${CLICS_DATA_SSLROOTCERT:-}" ] || export PGSSLROOTCERT=$CLICS_DATA_SSLROOTCERT
+    [ -z "$DPW" ] || export PGPASSWORD=$DPW
     PGHOST=$CLICS_DATA_HOST PGPORT=${CLICS_DATA_PORT:-5432} PGDATABASE=${CLICS_DATA_DB:-postgres} \
       PGUSER=${CLICS_DATA_USER:-supabase_admin} PGSSLMODE=${CLICS_DATA_SSLMODE:-require} PGAPPNAME=clics-db-move "$@" )
 }
@@ -78,6 +83,10 @@ read_source() {
   # Supabase is reached over the internet: the dump of participant data must be encrypted in transit.
   case "$SSL" in require|verify-ca|verify-full) ;;
     *) die "the source URL must carry sslmode=require, verify-ca or verify-full (it has '${SSL:-none}')" ;; esac
+  if [ "$CLICS_DATA_PASSWORD" = stdin ]; then
+    IFS= read -r DPW || true
+    [ -n "$DPW" ] || die "no data host password on the stdin line after the URL (CLICS_DATA_PASSWORD=stdin)"
+  fi
 }
 src() {
   if [ "$SRC_FROM" = data-host ]; then dst "$@"; return; fi
@@ -498,6 +507,14 @@ verify() {
 }
 
 cmd=${1:-}
+# The password line follows the URL, so only a command that reads the URL can take it from stdin.
+if [ "$CLICS_DATA_PASSWORD" = stdin ]; then
+  [ "$SRC_FROM" = stdin ] || die "CLICS_DATA_PASSWORD=stdin needs the URL on stdin (SRC_FROM=stdin)"
+  case "$cmd ${2:-}" in
+    'preflight '*|'move '*|'verify '*|'report source'|'dump '*) ;;
+    *) die "CLICS_DATA_PASSWORD=stdin works with preflight, move, verify, report source and dump only" ;;
+  esac
+fi
 case "$cmd" in
   preflight) read_source; preflight ;;
   move)

@@ -19,7 +19,14 @@
 # session_replication_role passes; the report fails on a source row written after the move, a target
 # sequence set lower, a missing table; dump refuses a file; report + check round-trip (the backup drill);
 # roles.sql leaves no app role a superuser, gives clics_analyst reads but no writes, no identity table or
-# column, no auth, no SECURITY DEFINER call, and postgrest_exposure() still lists nothing.
+# column, no auth, no SECURITY DEFINER call, and postgrest_exposure() still lists nothing. The data host's
+# password on stdin (CLICS_DATA_PASSWORD=stdin) passes when right, is refused when wrong or absent, and never
+# opens the source; run-move.sh, driven at a real terminal (python3's pty) with a stand-in docker, runs
+# preflight and verify, echoes neither secret, puts neither in docker's argv, runs the container without a
+# log, checks the data host against the CA certificate it mounts read-only (and refuses a server that CA did
+# not sign), and refuses a pipe, another command, a file or directory others could change (db-move.conf,
+# move.sh, the kit's directory, docker's directory, the CA's directory), a symlinked move.sh, and a
+# db-move.conf line it does not know.
 set -euo pipefail
 export LC_ALL=C LANG=C
 export PGOPTIONS="-c client_min_messages=warning"
@@ -423,9 +430,179 @@ P clics_mentor -c "drop schema extensions"
 has "preflight stops on a target without the extensions schema" "schema extensions (PostgREST searches it)" \
   "$(mvp preflight 2>&1 || true)"
 P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" >/dev/null
+
+# The data host's password on stdin, the line after the URL (CLICS_DATA_PASSWORD=stdin): how run-move.sh hands
+# it over, so no file on vm1 holds it. A superuser that must give its password; the clusters trust the rest.
+P postgres -c "create role mover superuser login password 'mover-test-pw'"
+{ echo 'hostssl all mover 127.0.0.1/32 scram-sha-256'; cat "$DIR/plain/pg_hba.conf"; } > "$DIR/hba"
+mv "$DIR/hba" "$DIR/plain/pg_hba.conf"
+P postgres -c "select pg_reload_conf()" >/dev/null
+mvs() { # mvs <the line after the URL, or -none> <args...>
+  local pw=$1; shift
+  { src_url src; [ "$pw" = -none ] || echo "$pw"; } |
+    CLICS_DATA_PORT=$PPORT CLICS_DATA_DB=clics_mentor CLICS_DATA_USER=mover CLICS_DATA_PASSWORD=stdin bash "$MOVE" "$@"
+}
+has "password on stdin: the right one passes the preflight" "preflight ok" "$(mvs mover-test-pw preflight 2>&1 || true)"
+has "  → a wrong one is refused by the data host" 'password authentication failed for user "mover"' \
+  "$(mvs wrong-pw preflight 2>&1 || true)"
+has "  → none after the URL stops before any connection" "no data host password on the stdin line" \
+  "$(mvs -none preflight 2>&1 || true)"
+# The source's own login, with the data host's password: the URL's (wrong) password must be the one tried.
+S postgres -c "create role srcmover login password 'mover-test-pw'"
+{ echo 'hostssl all srcmover 127.0.0.1/32 scram-sha-256'; cat "$DIR/src/pg_hba.conf"; } > "$DIR/hba"
+mv "$DIR/hba" "$DIR/src/pg_hba.conf"
+S postgres -c "select pg_reload_conf()" >/dev/null
+has "  → the data host's password never opens the source" 'password authentication failed for user "srcmover"' \
+  "$(printf 'postgresql://srcmover:wrong-pw@127.0.0.1:%s/src?sslmode=require\nmover-test-pw\n' "$SPORT" |
+     CLICS_DATA_PORT=$PPORT CLICS_DATA_DB=clics_mentor CLICS_DATA_USER=mover CLICS_DATA_PASSWORD=stdin \
+     bash "$MOVE" preflight 2>&1 || true)"
+has "  → a command that reads no URL refuses it" "works with preflight, move, verify" \
+  "$(CLICS_DATA_PASSWORD=stdin bash "$MOVE" report target 2>&1 < /dev/null || true)"
+OUT="$(CLICS_DATA_PASSWORD=pw-canary-77 bash "$MOVE" preflight 2>&1 < /dev/null || true)"
+has "  → a value other than 'stdin' is refused" "names where the password comes from" "$OUT"
+expect "  → and not printed" "0" "$(grep -c pw-canary-77 <<< "$OUT" || true)"
+
+echo "run-move.sh: the move under CME's rules (sudo runs it; both secrets typed at a terminal, never a file)"
+KIT="$DIR/kit"
+mkdir -m 755 "$KIT" "$DIR/bin"
+cp "$ROOT/deploy/vm1/db-move/run-move.sh" "$MOVE" "$KIT/"
+chmod 755 "$KIT/run-move.sh" "$KIT/move.sh"
+cat > "$KIT/db-move.conf" <<EOF
+# CME writes this file; no secret in it
+CLICS_PG_IMAGE=stand-in/postgres:test
+CLICS_DATA_HOST=127.0.0.1
+CLICS_DATA_PORT=$PPORT
+CLICS_DATA_DB=clics_mentor
+CLICS_DATA_USER=mover
+CLICS_DATA_SSLMODE=require
+EOF
+chmod 644 "$KIT/db-move.conf"
+# A stand-in for `docker run`: records its argv, then runs the mounted move.sh here with only the environment
+# the container would get. An unknown flag fails, so a change to the wrapper's docker line shows here.
+cat > "$DIR/bin/docker" <<'STUB'
+#!/bin/bash
+set -euo pipefail
+printf '%s\n' "$@" > "$STUB_ARGV"
+[ "${1:-}" = run ] || { echo "stand-in docker: run only" >&2; exit 2; }
+shift
+envs=() script='' ca=''
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --rm|-i|--read-only) shift ;;
+    --log-driver|--network|--tmpfs|--cap-drop|--security-opt|--pids-limit|--entrypoint) shift 2 ;;
+    -e) envs+=("$2"); shift 2 ;;
+    -v) case "$2" in
+          *:/db-move/move.sh:ro) script=${2%%:*} ;;
+          *:/run/data-ca.crt:ro) ca=${2%%:*} ;;
+          *) echo "stand-in docker: unexpected mount $2" >&2; exit 2 ;;
+        esac; shift 2 ;;
+    -*) echo "stand-in docker: unknown flag $1" >&2; exit 2 ;;
+    *) break ;;
+  esac
+done
+shift   # the image
+[ "${1:-}" = /db-move/move.sh ] || { echo "stand-in docker: unexpected command ${1:-}" >&2; exit 2; }
+shift
+# The container would see the CA at /run/data-ca.crt; here that is the host file the mount names.
+for i in "${!envs[@]}"; do
+  [ "${envs[$i]}" != CLICS_DATA_SSLROOTCERT=/run/data-ca.crt ] || envs[i]="CLICS_DATA_SSLROOTCERT=$ca"
+done
+exec env -i PATH="$PATH" PG_BIN="$PG_BIN" TMPDIR="${TMPDIR:-/tmp}" "${envs[@]}" bash "$script" "$@"
+STUB
+chmod 755 "$DIR/bin/docker"
+# A terminal: answers each "not shown): " prompt in turn, as a person would, then prints what the screen showed.
+cat > "$DIR/pty.py" <<'PY'
+import os, pty, select, sys, time
+args = sys.argv[1:]
+cut = args.index('--')
+answers, cmd = args[:cut], args[cut + 1:]
+pid, fd = pty.fork()
+if pid == 0:
+    os.execvp(cmd[0], cmd)
+out, sent, deadline = b'', 0, time.time() + 90
+while time.time() < deadline:
+    if not select.select([fd], [], [], 1)[0]:
+        continue
+    try:
+        chunk = os.read(fd, 4096)
+    except OSError:
+        break
+    if not chunk:
+        break
+    out += chunk
+    while sent < len(answers) and out.count(b'not shown): ') > sent:
+        time.sleep(0.5)  # a person types after the prompt, once read -s has turned echo off
+        os.write(fd, answers[sent].encode() + b'\n')
+        sent += 1
+else:
+    os.kill(pid, 9)
+_, status = os.waitpid(pid, 0)
+sys.stdout.write(out.decode(errors='replace').replace('\r\n', '\n'))
+sys.exit(os.waitstatus_to_exitcode(status))
+PY
+export STUB_ARGV="$DIR/docker-argv"
+URL=$(src_url src)
+wrap() { PATH="$DIR/bin:$PATH" python3 -I "$DIR/pty.py" "$@"; }   # wrap <answers...> -- <command...>
+runm() { PATH="$DIR/bin:$PATH" bash "$KIT/run-move.sh" "$@" 2>&1 < /dev/null || true; }
+# The terminal needs python3. The data-host image has none, so a run inside it skips these; CI must not.
+PTY=1
+if ! command -v python3 >/dev/null; then
+  PTY=''
+  if [ -n "${CI:-}" ]; then echo "  FAIL python3 is missing: CI runs the terminal checks"; FAIL=1
+  else echo "  SKIP the terminal checks (no python3 here)"; fi
+fi
+if [ -n "$PTY" ]; then
+  OUT="$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" preflight 2>&1)" || true
+  has "run-move.sh preflight, the URL and the password typed at a terminal" "preflight ok" "$OUT"
+  has "  → it names the kit and image it ran" "[run-move] kit: run-move.sh " "$OUT"
+  expect "  → neither secret is echoed" "0" "$(grep -cF -e mover-test-pw -e "$URL" <<< "$OUT" || true)"
+  expect "  → nor in docker's argv" "0" "$(grep -cF -e mover-test-pw -e "$URL" -e unused "$STUB_ARGV" || true)"
+  expect "  → the container keeps no log" "none" "$(grep -A1 -x -- --log-driver "$STUB_ARGV" | tail -1)"
+fi
+has "  → refuses secrets on a pipe" "stdin must be a terminal" \
+  "$(printf '%s\nmover-test-pw\n' "$URL" | PATH="$DIR/bin:$PATH" bash "$KIT/run-move.sh" preflight 2>&1 || true)"
+expect "  → refuses any other command" "64" "$(rc env PATH="$DIR/bin:$PATH" bash "$KIT/run-move.sh" dump)"
+chmod 664 "$KIT/db-move.conf"
+has "  → refuses a db-move.conf its group could change" "db-move.conf can be changed by its group" "$(runm preflight)"
+chmod 644 "$KIT/db-move.conf"; chmod 757 "$KIT/move.sh"
+has "  → and a move.sh anyone could change" "move.sh can be changed by its group" "$(runm preflight)"
+chmod 755 "$KIT/move.sh"; chmod 777 "$KIT"
+has "  → and a directory above them anyone could write" "/kit can be changed by its group" "$(runm preflight)"
+chmod 755 "$KIT"; cp "$KIT/db-move.conf" "$DIR/conf.keep"; echo 'PGPASSWORD=conf-canary-5' >> "$KIT/db-move.conf"
+OUT="$(runm preflight)"
+has "  → refuses a db-move.conf line it does not know" "db-move.conf line 8: not one of the names" "$OUT"
+expect "  → without printing it" "0" "$(grep -c conf-canary-5 <<< "$OUT" || true)"
+mv "$DIR/conf.keep" "$KIT/db-move.conf"
+mv "$KIT/move.sh" "$DIR/move-real.sh"; ln -s "$DIR/move-real.sh" "$KIT/move.sh"
+has "  → refuses a move.sh that is a symlink" "move.sh is a symlink" "$(runm preflight)"
+rm "$KIT/move.sh"; mv "$DIR/move-real.sh" "$KIT/move.sh"; chmod 777 "$DIR/bin"
+has "  → refuses a docker in a directory anyone could write" "/bin can be changed by its group" "$(runm preflight)"
+chmod 755 "$DIR/bin"
+# The data host's CA (verify-ca here: the test certificate names localhost, the clusters listen on
+# 127.0.0.1; verify-full adds only libpq's host-name check to the same file).
+mkdir -m 755 "$DIR/ca"; cp "$DIR/server.crt" "$DIR/ca/data-ca.crt"; chmod 644 "$DIR/ca/data-ca.crt"
+cp "$KIT/db-move.conf" "$DIR/conf.keep"
+{ grep -v '^CLICS_DATA_SSLMODE=' "$DIR/conf.keep"
+  echo CLICS_DATA_SSLMODE=verify-ca; echo "CLICS_DATA_SSLROOTCERT=$DIR/ca/data-ca.crt"; } > "$KIT/db-move.conf"
+chmod 777 "$DIR/ca"
+has "  → refuses a CA certificate in a directory anyone could write" "/ca can be changed by its group" "$(runm preflight)"
+chmod 755 "$DIR/ca"
+if [ -n "$PTY" ]; then
+  has "  → verify-ca against the CA certificate CME installs" "preflight ok" \
+    "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" preflight 2>&1 || true)"
+  has "  → which goes into the container read-only" ":/run/data-ca.crt:ro" "$(cat "$STUB_ARGV")"
+  openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=localhost" \
+    -keyout "$DIR/other.key" -out "$DIR/ca/data-ca.crt" >/dev/null 2>&1
+  has "  → and a server the CA did not sign is refused" "certificate verify failed" \
+    "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" preflight 2>&1 || true)"
+fi
+mv "$DIR/conf.keep" "$KIT/db-move.conf"
+
 OUT="$(mvp move 2>&1)" || true
 has "move into plain PostgreSQL: VERIFY: PASS" "VERIFY: PASS" "$OUT"
 has "  → anchored at the source head" "anchored at the source head seq 7" "$OUT"
+[ -z "$PTY" ] || has "  → run-move.sh verify, through the terminal, agrees" "VERIFY: PASS" \
+  "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" verify 2>&1 || true)"
 # The backend reads every table as service_role: the dump carries each table's grants, and, at its end, the
 # source's default privileges, so a table a later migration makes is service_role's too.
 expect "  → service_role holds the source's grants and default privileges" "t|t|t" \

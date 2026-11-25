@@ -123,7 +123,7 @@ cmd_tls() {
   chown root:"$PG_UID" "$crt"; chmod 644 "$crt"
   say "certificate for $name / $addr, valid 825 days. vm1 trusts exactly this certificate:"
   openssl x509 -in "$crt" -noout -fingerprint -sha256 -enddate
-  echo "Copy $crt (not the key) to vm1 as /opt/clics/db-move/data-ca.crt and /opt/clics/backup/data-ca.crt:"
+  echo "Copy $crt (not the key) to vm1 as /etc/clics/data-ca.crt and /opt/clics/backup/data-ca.crt:"
   echo "the move and the nightly backup check the server against it (sslmode=verify-full)."
 }
 
