@@ -101,3 +101,19 @@ body.booth-result { color: var(--ink); font-family: var(--font-sans); line-heigh
 .reveal-line .bi-main { font-size: var(--text-small-th); line-height: 1.5; }
 .reveal-line .bi-sub { font-size: var(--text-en); line-height: 1.35; }
 .result-steps .tier-chip { align-self: flex-start; }
+
+/* The feedback card (js/booth-feedback-card.js feedbackCard): a whole-card link to the form, a quieter neighbour of the
+   workshop card (white with an edge, not the band's tint with an accent rule), so the two never read as one. */
+.feedback-link {
+  display: flex; align-items: center; gap: 16px; padding: 20px; min-height: 44px; box-sizing: border-box;
+  background: var(--card); border: var(--line) solid var(--edge); border-radius: var(--radius); color: var(--ink); text-decoration: none;
+}
+.feedback-link:active { background: var(--pressed); border-color: var(--accent); }
+.feedback-link:focus-visible { outline: 3px solid var(--ai-border); outline-offset: 3px; }
+.feedback-link > .booth-icon { color: var(--accent); }
+.feedback-link > .booth-icon svg { width: 36px; height: 36px; }
+.feedback-link-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.feedback-link-title .bi-main { font-size: var(--text-th); font-weight: 600; line-height: 1.4; }
+.feedback-link-title .bi-sub { font-size: var(--text-en); font-weight: 500; line-height: 1.4; }
+.feedback-link-line .bi-main { font-size: var(--text-small-th); line-height: 1.55; color: var(--body); }
+.feedback-link-line .bi-sub { font-size: var(--text-en); line-height: 1.4; color: var(--body); }

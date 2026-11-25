@@ -410,33 +410,53 @@ async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = m
 
 /**
  * A phone on a Portal page (#251's result page): `path` may carry a fragment. Every request is recorded in k.requests.
- * close() fails the run on any page error or CSP refusal, any request off the page's origin, and any request
- * that is not a plain file load (fetch, XHR, beacon, socket).
+ * With a `stub` (makeStub), the phone reaches the booth API the way kiosk() does: requests to the API's /booth/ routes
+ * are answered by the stub (and recorded in stub.calls), and they are the one kind of request, besides file loads, the
+ * page may make.
+ * close() fails the run on any page error or CSP refusal, any request off the page's origin (the stub's API apart), and
+ * any request that is not a plain file load (fetch, XHR, beacon, socket; the stub's API apart).
  */
-async function phone(path, { width = 375, height = 812 } = {}) {
+async function phone(path, { width = 375, height = 812, stub = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const requests = [];
   const errors = [];
+  const toStub = (url) => stub !== null && url.startsWith(API + '/booth/');
   await ctx.route('**/*', (route) => {
     const req = route.request();
     requests.push({ url: req.url(), type: req.resourceType(), method: req.method() });
+    if (toStub(req.url())) return stub.handle(route);
     return req.url().startsWith(base + '/') ? route.continue() : route.abort();
   });
   const page = await ctx.newPage();
+  // The browser logs a console error for every non-2xx reply, the stub's own refusals included (a scenario that answers
+  // 403 or 503 on purpose). Those are set aside, one for one with the stub's replies of that status; any other failed
+  // load, such as a missing file, still fails the run.
+  const refusals = [];
+  const logged = [];
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+  page.on('console', (m) => {
+    const status = m.type() === 'error' ? /^Failed to load resource: the server responded with a status of (\d{3})\b/.exec(m.text())?.[1] : null;
+    if (m.type() !== 'error') return;
+    if (status) logged.push({ status: Number(status), text: m.text() }); else errors.push(`console: ${m.text()}`);
+  });
+  page.on('response', (r) => { if (toStub(r.url()) && r.status() >= 400) refusals.push(r.status()); });
   await page.goto(base + path, { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   const label = `phone ${width}x${height}`;
   const k = {
-    page, requests, errors,
+    page, requests, errors, stub,
     async close() {
       if (!open.has(k)) return;
       open.delete(k);
-      const off = requests.filter((r) => !r.url.startsWith(base + '/'));
-      const calls = requests.filter((r) => r.method !== 'GET' || !['document', 'stylesheet', 'script', 'font', 'image'].includes(r.type));
+      for (const { status, text } of logged) {
+        const at = refusals.indexOf(status);
+        if (at === -1) errors.push(`console: ${text}`); else refusals.splice(at, 1);
+      }
+      const own = requests.filter((r) => !toStub(r.url));
+      const off = own.filter((r) => !r.url.startsWith(base + '/'));
+      const calls = own.filter((r) => r.method !== 'GET' || !['document', 'stylesheet', 'script', 'font', 'image'].includes(r.type));
       check(off.length === 0, `${label}: no request left the Portal${off.length ? ` (${off.slice(0, 3).map((r) => r.url).join(', ')})` : ''}`);
-      check(calls.length === 0, `${label}: file loads only, no fetch, XHR or beacon${calls.length ? ` (${calls.slice(0, 3).map((r) => `${r.type} ${r.url}`).join(', ')})` : ''}`);
+      check(calls.length === 0, `${label}: file loads only${stub ? ' and the booth API' : ', no fetch, XHR or beacon'}${calls.length ? ` (${calls.slice(0, 3).map((r) => `${r.type} ${r.url}`).join(', ')})` : ''}`);
       check(errors.length === 0, `${label}: no page error or CSP refusal${errors.length ? ` (${errors.slice(0, 2).join(' | ')})` : ''}`);
       await ctx.close();
     },

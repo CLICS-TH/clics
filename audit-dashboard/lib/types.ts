@@ -442,6 +442,34 @@ export interface BoothStandings {
   cases: BoothStandingsCase[];
 }
 
+// GET /admin/booth/feedback (superadmin): the anonymous post-play feedback of the booth's event. Mirrors
+// readFeedback() in backend/src/services/booth-feedback.js. A row carries no id, time or tag, and the server sends
+// them in content order (ADR 0015): nothing here may number or re-order them.
+export type BoothFeedbackMood = 'stressed' | 'confused' | 'neutral' | 'enjoyed' | 'excited';
+export type BoothFeedbackRole = 'physician' | 'resident' | 'student' | 'other';
+export type BoothFeltLike = 'exam' | 'real_patient' | 'ward_round' | 'game' | 'textbook' | 'other';
+export interface BoothFeedbackRow {
+  date: string;                 // the Bangkok date it was sent, YYYY-MM-DD
+  case_id: string | null;
+  answers: {
+    role: BoothFeedbackRole;
+    mood: BoothFeedbackMood;
+    felt_like: BoothFeltLike[];
+    easy: number;               // 1-5
+    real: number;               // 1-5
+    fair: number;               // 1-5
+    use: number;                // 0-10
+  };
+  comment: string | null;
+  withheld?: 'flagged';         // the comment was screened out: its text never reaches the page
+}
+export interface BoothFeedback {
+  event_code: string | null;   // null: the booth settings name no event yet
+  form: string;
+  rows: BoothFeedbackRow[];
+  counts: { answers: number; comments: number; comments_withheld: number };
+}
+
 // GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the Settings page, the overview's
 // budget card, the users page and the Local AI capacity card, so a setting cannot be typed four different ways. The $ budget
 // keys were always here; the token / transcript / evaluation-drain keys arrived with

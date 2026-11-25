@@ -41,3 +41,8 @@ export function boothExportFilename(eventCode: string | null | undefined, now = 
   const day = new Date(now.getTime() + 7 * 3_600_000).toISOString().slice(0, 10);
   return `clics-booth-${(eventCode ?? 'none').replace(/[^A-Za-z0-9-]/g, '_')}-${day}.json`;
 }
+
+/** The feedback export's file name, as the backend's Content-Disposition names it (booth-feedback.js exportFeedback). */
+export function boothFeedbackFilename(eventCode: string): string {
+  return `booth-feedback-${eventCode.replace(/[^A-Za-z0-9-]/g, '_')}.json`;
+}

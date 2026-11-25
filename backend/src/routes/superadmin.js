@@ -16,6 +16,7 @@ const retention = require('../services/retention');
 const booth = require('../services/booth');
 const boothAudits = require('../services/booth-audits');
 const boothMonitor = require('../services/booth-monitor');
+const boothFeedback = require('../services/booth-feedback');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep, fetchRimplLocalOnly } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
@@ -592,6 +593,25 @@ router.get('/booth/export.json', async (req, res) => {
   const out = await boothMonitor.exportPlays();
   if (!out) return res.status(502).json({ error: 'Could not read the booth plays — try again' });
   const audit = await logEventStrict({ actorId: req.user.id, actorRole: 'superadmin', action: 'booth.export', targetType: 'export',
+    metadata: { event_code: out.body.export.event_code, ...out.body.export.counts } });
+  if (audit.error) return res.status(503).json({ error: 'The export could not be recorded in the audit log, so nothing was exported — try again' });
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${out.filename}"`);
+  res.send(JSON.stringify(out.body, null, 2));
+});
+
+// Anonymous post-play feedback of the event (ADR 0015), flagged comments withheld.
+router.get('/booth/feedback', async (_req, res) => {
+  const out = await boothFeedback.readFeedback();
+  if (!out) return res.status(502).json({ error: 'Could not read the booth feedback — try again' });
+  res.json(out.body);
+});
+
+// The same rows as a file. The audit row is the record of who took it, so a failed audit write sends nothing.
+router.get('/booth/feedback.json', async (req, res) => {
+  const out = await boothFeedback.exportFeedback();
+  if (!out) return res.status(502).json({ error: 'Could not read the booth feedback — try again' });
+  const audit = await logEventStrict({ actorId: req.user.id, actorRole: 'superadmin', action: 'booth.feedback_export', targetType: 'export',
     metadata: { event_code: out.body.export.event_code, ...out.body.export.counts } });
   if (audit.error) return res.status(503).json({ error: 'The export could not be recorded in the audit log, so nothing was exported — try again' });
   res.setHeader('Content-Type', 'application/json; charset=utf-8');

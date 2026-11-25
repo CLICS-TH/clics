@@ -1,0 +1,29 @@
+<!doctype html>
+<!--
+  Booth feedback form (spec 2026-11-24, ADR 0015): the kiosk's QR and the result page's card open it, with the case and the
+  language look in the URL fragment, which the browser never sends. Its own head, like booth-result.html: no js/boot.js
+  and no theme or auth snippet (nobody signs in here), and no storage but one sessionStorage flag, set after a send so a
+  reload does not invite a second answer. The page loads only same-origin files and fonts, and the CSP's connect-src names
+  the Portal's own origin (the API sits at /api there) plus localhost:3001, the dev API js/config.js picks on any other
+  local port; that origin never leaves the visitor's own device. The anonymous answers go to POST /booth/feedback.
+-->
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self'; connect-src 'self' http://localhost:3001; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>CLICS booth feedback</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/booth.css">
+  <link rel="stylesheet" href="/css/booth-feedback.css">
+  <script src="/js/config.js"></script>
+  <script src="/js/icons.js"></script>
+  <script type="module" src="/js/booth-feedback.js"></script>
+</head>
+<body class="booth-feedback">
+  <main id="feedback" class="fb-page"></main>
+</body>
+</html>

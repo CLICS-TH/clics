@@ -57,7 +57,8 @@ const GHOST_TAP_MS = 350;
  *         | { type: 'sendText', text: string } | { type: 'replied', reply: Reply, sig: string, next: Next | null, deidentified: string | null } | { type: 'next' }
  *         | { type: 'slow' } | { type: 'scored', score: Score } | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  *   sendChoice is the step's Send: it sends step.chosen.
- * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
+ * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped', caseId?: string }} PlayOutcome
+ *   caseId: the case the play was dealt, on every outcome that has a play (the shell's feedback button).
  */
 
 /** root.dataset.screen values: the Screen tags plus the three before the play exists: 'drawing' (a case is being
@@ -129,7 +130,7 @@ export async function runPlay({ root, api, reset }) {
         root.querySelector('[data-action="start-over"]')?.setAttribute('disabled', '');
         requestScore(api, state).then(dispatch);
         setTimeout(() => dispatch({ type: 'slow' }), SCORING_SHOWN_MS);
-      } else if (TERMINAL.has(at)) resolve({ kind: at });
+      } else if (TERMINAL.has(at)) resolve({ kind: at, caseId: state.play.caseId });
     };
     render(state, dispatch, ctx);
   });
@@ -543,8 +544,9 @@ function keptPicks(s, score) {
 }
 
 /** A QR for `url` as an SVG, from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js): nothing leaves the kiosk.
- *  Black on a white quiet zone of four modules, whatever the theme. */
-export function qrSvg(url, label) {
+ *  Black on a white quiet zone of four modules, whatever the theme; `ink` (a CSS colour, say 'var(--accent)') draws the
+ *  modules in another colour instead (the feedback QR's, so the two QRs on the scored screen never look alike). */
+export function qrSvg(url, label, ink = null) {
   const qr = window.qrcode(0, 'L');
   qr.addData(url);
   qr.make();
@@ -552,7 +554,7 @@ export function qrSvg(url, label) {
   let d = '';
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
   return svgEl('svg', { viewBox: `0 0 ${n + 8} ${n + 8}`, 'shape-rendering': 'crispEdges', role: 'img', 'aria-label': label },
-    svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', { fill: '#000', d }));
+    svgEl('rect', { width: String(n + 8), height: String(n + 8), fill: '#fff' }), svgEl('path', ink ? { style: `fill:${ink}`, d } : { fill: '#000', d }));
 }
 
 // The result QR is drawn here from the vendored encoder (js/vendor/qrcode-generator-1.4.4.js), so nothing leaves the kiosk.

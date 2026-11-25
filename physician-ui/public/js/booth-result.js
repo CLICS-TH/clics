@@ -106,7 +106,7 @@ function stepList(rows) {
 }
 
 /** @param {import('./booth-result-link.js').KeptResult} r @param {StepText | null} text the case's step text, if read */
-function resultView(r, text) {
+function resultView(r, text, feedbackCard) {
   const teaser = r.teaser ?? text?.teaser ?? null;
   const explained = r.tiers && r.picks && text ? explainRows(r, text) : null;
   const [practise, , others] = domainSections(r.domains, r.tiers?.length ?? null, null, { measures: true, otherHead: false });
@@ -131,6 +131,8 @@ function resultView(r, text) {
     // The workshop invitation right after the visitor's own feedback (owner, 2026-11-21: visitors must see it), before
     // the folded domain and step lists.
     workshopCard(),
+    // The feedback form's card, next to it; null unless js/config.js switches the feedback on.
+    feedbackCard?.(r.caseId ?? null, r.look),
     fold('domains', COPY.otherDomains, el('div', { class: 'result-card result-domains' }, others)),
     explained ? fold('answers', COPY.answersTitle, stepList(explained)) : r.tiers ? fold('answers', COPY.stepTiers, tierList(r.tiers)) : null,
     tryClics('secondary'),
@@ -150,7 +152,10 @@ async function render() {
   setLook(r?.look ?? DEFAULT_LOOK);
   const text = r?.caseId ? await stepText(r.caseId, r.caseVersion) : null;
   if (mine !== rendering) return;
-  document.getElementById('result').replaceChildren(...(r ? resultView(r, text) : missingView()));
+  // The feedback card's module only when the switch is on, and never a reason for the result not to show.
+  const card = r && window.CLICS_BOOTH_FEEDBACK === true ? (await import('./booth-feedback-card.js').catch(() => null))?.feedbackCard : null;
+  if (mine !== rendering) return;
+  document.getElementById('result').replaceChildren(...(r ? resultView(r, text, card) : missingView()));
   document.getElementById('result').dataset.rendered = '';
 }
 

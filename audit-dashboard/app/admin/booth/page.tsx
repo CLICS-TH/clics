@@ -9,6 +9,7 @@ import { boothExportFilename } from '@/lib/booth';
 import { PageIntro } from '@/components/PageIntro';
 import { BoothCard } from '@/components/BoothCard';
 import { BoothLeaderboard } from '@/components/BoothLeaderboard';
+import { BoothFeedback } from '@/components/BoothFeedback';
 import { toast } from '@/components/Overlays';
 
 // The server answers with the file (Content-Disposition attachment) and writes an audit-log row for it.
@@ -60,6 +61,7 @@ export default function BoothPage() {
       />
       <BoothCard />
       <BoothLeaderboard onLoad={(s) => setEventCode(s.event_code)} />
+      <BoothFeedback />
     </div>
   );
 }
