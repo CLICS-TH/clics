@@ -77,6 +77,7 @@ grant usage on schema public to clics_analyst;
 --   - and of the text columns, only the codes named in allow_text, which hold a value from a fixed set.
 -- Never json/jsonb, arrays, bytea or any other text column. A rater who needs a transcript reads it through
 -- the app, behind the privacy gate, not through this role. A new code column is added to allow_text by review.
+-- move.sh's verify keeps a copy of both lists below: change it in the same commit (db-move-test.sh compares them).
 do $$
 declare
   deny_tables text[] := array['access_requests', 'invites', 'oauth_identities', 'license_verifications',

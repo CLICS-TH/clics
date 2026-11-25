@@ -88,11 +88,22 @@ version (`CLICS_PG_IMAGE` in `db-move.conf`, so its `pg_dump` is not older than 
    row's text form in the source's column order, so GoTrue's column order does not matter). Every sequence:
    the data host's next value is not lower than Supabase's. The audit chain: `audit_log_verify` on the data
    host, anchored at Supabase's head (`audit_log_head()`), so a re-chained or re-stamped `audit_log` fails
-   even though it is internally consistent. The three booth tables by name. `postgrest_exposure()` lists
-   nothing. It ends `VERIFY: PASS` or `VERIFY: FAIL (n problems)`, and exits 1 on a FAIL.
+   even though it is internally consistent. The three booth tables by name. Who owns and who may read and
+   write what in `public`, compared one fact at a time: each object's owner, each object's grants to each
+   role (tables, columns, sequences, functions, the schema), the default privileges, each table's row level
+   security, and each policy (its command, roles and expressions). `postgres`, `supabase_admin` and any
+   superuser count as one admin owner, and their grants are left out: they hold everything anyway, and which
+   of them ran the restore owns what it made. A privilege two grantors gave counts once. The grants
+   `roles.sql` makes on the data host are counted, not failed, so `verify` still passes after window step 5
+   (Roles): `clics_analyst` reading a column its allow list names and using the schema, `clics_backup`
+   running `audit_log_head()`. Any other grant to those two fails, a free-text column or an identity table's
+   column too. `move.sh` keeps a copy of that allow list (it runs where `roles.sql` is not), and
+   `db-move-test.sh` fails if the two differ.
+   `postgrest_exposure()` lists nothing. It ends `VERIFY: PASS` or `VERIFY: FAIL (n problems)`, and exits
+   1 on a FAIL.
 
-The report holds table and column names, counts, checksums and sequence values. It never holds a row, so
-it can be pasted into #432.
+The report holds table and column names, counts, checksums, sequence values, owners, grants and an md5
+of each policy. It never holds a row, so it can be pasted into #432.
 
 ## Audit chain: a decision before the window
 

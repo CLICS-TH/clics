@@ -17,7 +17,10 @@
 # postgrest_exposure; the CONTROL: the same rows laid into a schema that already carries the chain trigger
 # with triggers ON fail audit_log_verify against the source head, and the same path with the script's
 # session_replication_role passes; the report fails on a source row written after the move, a target
-# sequence set lower, a missing table; dump refuses a file; report + check round-trip (the backup drill);
+# sequence set lower, a missing table, and an owner, grant, default privilege, row level security flag or
+# policy that differs from the source's (a privilege from two grantors counts once; roles.sql's own grants
+# are named, not failed, and only those its allow list makes, whose copy in move.sh must match roles.sql's;
+# a report without the privileges fails); dump refuses a file; report + check round-trip (the backup drill);
 # roles.sql leaves no app role a superuser, gives clics_analyst reads but no writes, no identity table or
 # column, no auth, no SECURITY DEFINER call, and postgrest_exposure() still lists nothing. The data host's
 # password on stdin (CLICS_DATA_PASSWORD=stdin) passes when right, is refused when wrong or absent, and never
@@ -157,6 +160,11 @@ SQL
     S "$1" -c "insert into public.audit_log (action, target_type) select 'after-chain', 'n' || g from generate_series(1, 4) g;"
   fi
   S "$1" -f "$ROOT/db/migration-postgrest-closed.sql" >/dev/null
+  # supabase_admin's own default privileges, as production keeps them: there the migration above may not
+  # change them (postgres is not a member of supabase_admin), so anon and authenticated stay in them.
+  S "$1" -c "alter default privileges for role supabase_admin in schema public grant all on tables to anon, authenticated, service_role;
+             alter default privileges for role supabase_admin in schema public grant all on sequences to anon, authenticated, service_role;
+             alter default privileges for role supabase_admin in schema public grant all on functions to anon, authenticated, service_role;"
   S "$1" -c "revoke all on function public.next_pseudonym() from public;"
 }
 source_db src yes
@@ -292,6 +300,65 @@ has "a table missing on the target" "public.booth_event_purges" "$(mv_ t1 src ve
 D t1 -c "alter table public.booth_event_purges_x rename to booth_event_purges"
 expect "  → undone: passes again" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
 
+echo "the report fails on a privilege difference (grants, default privileges, row level security, policies)"
+has "a passing report compares them" ", 0 differ" "$(mv_ t1 src verify 2>&1 | grep '^privileges: ')"
+drift() { # drift <label> <the report line> <sql that makes the difference on t1> <sql that undoes it>
+  D t1 -c "$3" >/dev/null
+  has "$1" "$2" "$(mv_ t1 src verify 2>&1 || true)"
+  D t1 -c "$4" >/dev/null
+}
+drift "a table grant the source lacks" "grant on table public.councils to authenticator: NOT ON THE SOURCE (SELECT on the target)" \
+  "grant select on public.councils to authenticator" "revoke select on public.councils from authenticator"
+# MAINTAIN sits between INSERT and REFERENCES from PostgreSQL 17 on, so the line is matched at its two ends.
+D t1 -c "revoke update on public.ples from service_role"
+OUT="$(mv_ t1 src verify 2>&1 | grep '^grant on table public.ples to service_role: ' || true)"
+has "a grant narrower than the source's" "UPDATE on the source, DELETE,INSERT," "$OUT"
+has "  → names what the target holds" ",TRUNCATE on the target" "$OUT"
+D t1 -c "grant update on public.ples to service_role"
+drift "a column grant the source lacks" "grant on column public.councils.name_th to authenticator: NOT ON THE SOURCE (SELECT on the target)" \
+  "grant select (name_th) on public.councils to authenticator" "revoke select (name_th) on public.councils from authenticator"
+drift "a function grant the source lacks" "grant on function public.next_pseudonym() to authenticator: NOT ON THE SOURCE (EXECUTE on the target)" \
+  "grant execute on function public.next_pseudonym() to authenticator" "revoke execute on function public.next_pseudonym() from authenticator"
+drift "a grant option the source lacks" ",SELECT*,TRIGGER," \
+  "grant select on public.councils to service_role with grant option" "revoke grant option for select on public.councils from service_role"
+drift "a default privilege the source lacks" \
+  "default privileges of postgres on tables to authenticator: NOT ON THE SOURCE (SELECT on the target)" \
+  "alter default privileges for role postgres in schema public grant select on tables to authenticator" \
+  "alter default privileges for role postgres in schema public revoke select on tables from authenticator"
+drift "row level security off" "row level security on public.ples: enabled on the source, disabled on the target" \
+  "alter table public.ples disable row level security" "alter table public.ples enable row level security"
+drift "row level security forced" "row level security on public.ples: enabled on the source, enabled and forced on the target" \
+  "alter table public.ples force row level security" "alter table public.ples no force row level security"
+drift "a policy missing" 'policy "ples: own" on public.ples: MISSING ON TARGET' \
+  'drop policy "ples: own" on public.ples' 'create policy "ples: own" on public.ples for select using (physician_id = auth.uid())'
+drift "a policy with another expression" 'policy "ples: own" on public.ples: DIFFERS (its command, roles or expressions)' \
+  'alter policy "ples: own" on public.ples using (true)' 'alter policy "ples: own" on public.ples using (physician_id = auth.uid())'
+drift "a policy for other roles" 'policy "ples: own" on public.ples: DIFFERS (its command, roles or expressions)' \
+  'alter policy "ples: own" on public.ples to authenticated' 'alter policy "ples: own" on public.ples to public'
+drift "a policy the source lacks" "policy open on public.ples: NOT ON THE SOURCE" \
+  "create policy open on public.ples for select using (true)" "drop policy open on public.ples"
+# The owner holds every privilege and bypasses RLS: a table or a function handed to an app role is a difference.
+drift "a table owned by an app role" "owner of table public.councils: admin on the source, authenticator on the target" \
+  "alter table public.councils owner to authenticator" "alter table public.councils owner to supabase_admin"
+drift "a function owned by an app role" \
+  "owner of function public.next_pseudonym(): admin on the source, service_role on the target" \
+  "alter function public.next_pseudonym() owner to service_role" \
+  "alter function public.next_pseudonym() owner to supabase_admin; grant execute on function public.next_pseudonym() to service_role"
+expect "  → undone: passes again" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
+# One privilege from two grantors counts once: the source's SELECT to authenticator comes from the owner and
+# from supabase_auth_admin (given the grant option), the target's from the owner only.
+S src -c "grant select on public.councils to supabase_auth_admin with grant option" \
+      -c "grant select on public.councils to authenticator" \
+      -c "set role supabase_auth_admin" -c "grant select on public.councils to authenticator"
+D t1 -c "grant select on public.councils to supabase_auth_admin with grant option" -c "grant select on public.councils to authenticator"
+expect "a privilege from two grantors on the source" "2" \
+  "$(S src -c "select count(*) from pg_class c, aclexplode(c.relacl) x where c.oid = 'public.councils'::regclass and x.grantee = 'authenticator'::regrole")"
+expect "  → counts once: passes" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
+for c in S D; do db=src; [ "$c" = D ] && db=t1
+  $c "$db" -c "revoke select on public.councils from authenticator" -c "revoke select on public.councils from supabase_auth_admin cascade"
+done
+expect "  → undone: passes again" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
+
 echo "AUDIT_CHAIN=checksum (option b) on an unchained source"
 OUT="$(src_url nochain | CLICS_DATA_DB=t3 AUDIT_CHAIN=checksum bash "$MOVE" move 2>&1)" || true
 has "passes, saying what replaced the chain" "replaced by public.audit_log row checksum, equal (AUDIT_CHAIN=checksum)" "$OUT"
@@ -303,6 +370,9 @@ expect "dump refuses a file" "1" "$(rc bash -c "src_url | bash '$MOVE' dump > '$
 expect "  → and wrote nothing into it" "0" "$(wc -c < "$DIR/plain.sql" | tr -d ' ')"
 src_url | CLICS_DATA_DB=t1 bash "$MOVE" report target > "$DIR/t1.report" 2>/dev/null
 expect "a report holds no row: no email, no transcript text" "0" "$(grep -cE 'example.invalid|เจ็บ|case-' "$DIR/t1.report" || true)"
+grep -v '^priv|' "$DIR/t1.report" > "$DIR/old.report"
+has "check fails a report without privileges (an older move.sh's)" "privileges: NOT IN THE REPORT" \
+  "$(CLICS_DATA_DB=t1 bash "$MOVE" check "$DIR/old.report" 2>&1 || true)"
 # A fresh data host, GoTrue migrated, as the drill starts from: in the other cluster, so it lacks the
 # clics_analyst role that roles.sql made on the data host (a real restore target lacks it too).
 TCL=S target_db drill
@@ -601,6 +671,8 @@ mv "$DIR/conf.keep" "$KIT/db-move.conf"
 OUT="$(mvp move 2>&1)" || true
 has "move into plain PostgreSQL: VERIFY: PASS" "VERIFY: PASS" "$OUT"
 has "  → anchored at the source head" "anchored at the source head seq 7" "$OUT"
+has "  → grants, default privileges, row level security and policies as on the source" ", 0 differ" \
+  "$(grep '^privileges: ' <<< "$OUT")"
 [ -z "$PTY" ] || has "  → run-move.sh verify, through the terminal, agrees" "VERIFY: PASS" \
   "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" verify 2>&1 || true)"
 # The backend reads every table as service_role: the dump carries each table's grants, and, at its end, the
@@ -612,6 +684,32 @@ expect "  → service_role holds the source's grants and default privileges" "t|
              where d.defaclobjtype = 'r' and d.defaclnamespace = 'public'::regnamespace
                and pg_get_userbyid(d.defaclrole) = 'postgres' and a.grantee = 'service_role'::regrole)")"
 expect "  → roles.sql then passes there" "0" "$(rc P clics_mentor -f "$ROLES")"
+OUT="$(mvp verify 2>&1)" || true
+has "  → verify after roles.sql passes" "VERIFY: PASS" "$OUT"
+has "  → and names roles.sql's grants, which the source lacks" "more on the target are roles.sql's (clics_analyst, clics_backup)" "$OUT"
+P clics_mentor -c "grant insert on public.booth_plays to clics_analyst"
+has "  → a write grant to clics_analyst is not roles.sql's: it fails" \
+  "grant on table public.booth_plays to clics_analyst: NOT ON THE SOURCE (INSERT on the target)" "$(mvp verify 2>&1 || true)"
+P clics_mentor -c "revoke insert on public.booth_plays from clics_analyst"
+P clics_mentor -c "grant select (chief_complaint) on public.ples to clics_analyst"
+has "  → nor is a free-text column roles.sql's list leaves out" \
+  "grant on column public.ples.chief_complaint to clics_analyst: NOT ON THE SOURCE (SELECT on the target)" "$(mvp verify 2>&1 || true)"
+P clics_mentor -c "revoke select (chief_complaint) on public.ples from clics_analyst; grant select (ple_id) on public.ple_pii_map to clics_analyst"
+has "  → nor a uuid column of an identity table" \
+  "grant on column public.ple_pii_map.ple_id to clics_analyst: NOT ON THE SOURCE (SELECT on the target)" "$(mvp verify 2>&1 || true)"
+P clics_mentor -c "revoke select (ple_id) on public.ple_pii_map from clics_analyst"
+expect "  → undone: passes again" "VERIFY: PASS" "$(mvp verify 2>&1 | tail -1)"
+# move.sh carries a copy of roles.sql's allow list (it runs where roles.sql is not): the two must not drift.
+lst() { tr '\n' ' ' < "$1" | sed -E "s/.*$2.*/\\1/" | tr -d ' '; }
+for n in deny_tables allow_text; do
+  expect "move.sh's copy of roles.sql's $n is the same list" "$(lst "$ROLES" "$n text\[\] := array\[([^]]*)\]")" \
+    "$(lst "$MOVE" "array\[([^]]*)\] $n")"
+done
+ty="typcategory in ([^)]*) or ty.oid = '[^']*'::regtype"
+expect "  → and the same column types (uuid included)" "$(grep -o "$ty" "$ROLES" || echo 'not in roles.sql')" \
+  "$(grep -o "$ty" "$MOVE" || echo 'not in move.sh')"
+expect "  → and both drop the denied tables" "1|1" \
+  "$(grep -c -E "relname <> all \(deny_tables\)" "$ROLES")|$(grep -c -E "relname <> all \(rule\.deny_tables\)" "$MOVE")"
 expect "  → PUBLIC cannot connect; the CLICS logins, the analyst and the backup can" "f|t|t|t" \
   "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_backup', 'clics_mentor', 'CONNECT')")"
 P postgres -c "create database clics_evaluator"

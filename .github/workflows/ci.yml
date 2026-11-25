@@ -153,7 +153,8 @@ jobs:
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/postgrest-surface-test.sh
       # The database move (deploy/vm1/db-move, #432, ADR 0012): two throwaway clusters, a TLS source and a
       # GoTrue-shaped target. The move passes its verify report; the control (schema first, triggers on) fails
-      # audit_log_verify; drift, a lower sequence and a missing booth table fail; backup + drill; roles.sql.
+      # audit_log_verify; drift, a lower sequence, a missing booth table and a grant or policy difference
+      # fail; backup + drill; roles.sql.
       - name: db-move — Supabase-to-data-host move, verify, backup and roles, against throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/db-move-test.sh
