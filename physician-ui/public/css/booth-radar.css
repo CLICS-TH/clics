@@ -41,6 +41,13 @@
 :root[data-both="true"] .play-body > .result-card .result-top .keep-qr { grid-area: 2 / 2 / 5 / 3; }
 :root[data-both="true"] .play-body > .result-card .result-top [data-action="see-answers"] { grid-area: 5 / 2; align-self: end; }
 :root[data-both="true"] .play-body > .result-card .result-top .radar { grid-area: 3 / 1 / 6 / 2; align-self: stretch; aspect-ratio: auto; height: auto; }
+/* The participant number names itself in full (owner, 2026-11-26), so the card's tag sets below the 44u that "Player
+   #042" had, to keep one line up to four digits (board.mjs): 40u beside the QR in one language; 32u heading the 340u QR
+   column in both, with its icon at 40u, which leaves "Participant #1234" (8.76em) 288u. The icon stays: it is the
+   visitor's own, the one on their board row. A second line would push the leaderboard row under the fold. */
+.play-body > .result-card .result-top .booth-tag { font-size: calc(40 * var(--u)); }
+:root[data-both="true"] .play-body > .result-card .result-top .booth-tag { font-size: calc(32 * var(--u)); gap: calc(12 * var(--u)); }
+:root[data-both="true"] .play-body > .result-card .result-top .booth-tag .booth-icon svg { width: calc(40 * var(--u)); height: calc(40 * var(--u)); }
 .radar-label {
   position: absolute; white-space: nowrap;
   font-size: var(--text-en); font-weight: 700; line-height: 1.45; color: var(--ink);

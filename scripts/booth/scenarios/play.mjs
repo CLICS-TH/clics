@@ -300,7 +300,7 @@ export default [
       h.check(score.length === 1 && h.same(score[0].body, {
         answers: typed, replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)], asks: [ask1, ask2, ask3], sigs: [h.SIG(0), h.SIG(1), h.SIG(2), h.SIG(3)], look: 'th+en',
       }), 'score: one request with three answers (the typed one with the de-identified text its reply gave), three replies, three asks and four sigs as the stub sent them');
-      h.check(await page.locator('.result-card .booth-tag').innerText() === 'Player #042', 'result: the booth tag "Player #042"');
+      h.check(await page.locator('.result-card .booth-tag').innerText() === 'Participant #042', 'result: the booth tag "Participant #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
       const bars = await page.$$eval('.result-card .domain', (els) => els.map((e) => ({
         key: e.dataset.key, th: e.querySelector('.domain-name .bi-th').textContent, en: e.querySelector('.domain-name .bi-en').textContent,

@@ -1,6 +1,6 @@
 // /admin/booth: BoothCard (its own suite), the leaderboard of every scored play, and the internal JSON export.
 // What has to be RIGHT on the leaderboard: the rows arrive ranked and are shown in that order (the rank on this
-// page is the rank the visitor was told); every row is shown, with the count; a player reads "Player #042" as on
+// page is the rank the visitor was told); every row is shown, with the count; a participant reads "Participant #042" as on
 // the kiosk; the By case view picks a case by its Thai teaser; a board that never loaded says so, and a refresh
 // that fails keeps the last board. The export goes to the one path that writes its audit row.
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -135,10 +135,10 @@ describe('leaderboard — overall', () => {
     expect(rows).toHaveLength(3);
     // Not re-sorted: #120 stays above #7 although both scored 71.6.
     expect(rows.map((r) => within(r).getAllByRole('cell')[1].textContent)).toEqual([
-      'ผู้เล่น #042Player #042', 'ผู้เล่น #120Player #120', 'ผู้เล่น #007Player #007',
+      'หมายเลขผู้เข้าร่วม 042 Participant #042', 'หมายเลขผู้เข้าร่วม 120 Participant #120', 'หมายเลขผู้เข้าร่วม 007 Participant #007',
     ]);
     const first = within(rows[0]).getAllByRole('cell').map((c) => c.textContent);
-    expect(first).toEqual(['1', 'ผู้เล่น #042Player #042', '87ดิบ / raw 61.2', 'cap-adult', '24 พ.ย. 14:05']);
+    expect(first).toEqual(['1', 'หมายเลขผู้เข้าร่วม 042 Participant #042', '87ดิบ / raw 61.2', 'cap-adult', '24 พ.ย. 14:05']);
     expect(screen.getByTestId('booth-updated')).toHaveTextContent('อัปเดต 14:06 น. / Updated 14:06');
   });
 
@@ -165,7 +165,7 @@ describe('leaderboard — overall', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     const items = within(list).getAllByRole('listitem');
     expect(items).toHaveLength(3);
-    expect(items[0]).toHaveTextContent('ผู้เล่น #042');
+    expect(items[0]).toHaveTextContent('หมายเลขผู้เข้าร่วม 042');
     expect(items[0]).toHaveTextContent('cap-adult 24 พ.ย. 14:05');
     expect(items[0]).toHaveTextContent('87');
   });
@@ -179,13 +179,13 @@ describe('leaderboard — tabs and the case picker', () => {
     fireEvent.click(screen.getByRole('tab', { name: /By case/ }));
   }
 
-  it('two tabs with one tab stop; Overall is selected first', async () => {
+  it('three tabs with one tab stop; Overall is selected first', async () => {
     wire(STANDINGS);
     render(<BoothLeaderboard />);
     const tabs = within(await screen.findByRole('tablist', { name: 'มุมมองกระดานคะแนน / Leaderboard view' })).getAllByRole('tab');
-    expect(tabs.map((t) => t.textContent)).toEqual(['รวมทุกเคสOverall', 'รายเคสBy case']);
-    expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(['true', 'false']);
-    expect(tabs.map((t) => t.tabIndex)).toEqual([0, -1]);
+    expect(tabs.map((t) => t.textContent)).toEqual(['รวมทุกเคสOverall', 'รายวันBy day', 'รายเคสBy case']);
+    expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(['true', 'false', 'false']);
+    expect(tabs.map((t) => t.tabIndex)).toEqual([0, -1, -1]);
     expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', tabs[0].id);
   });
 
@@ -193,8 +193,12 @@ describe('leaderboard — tabs and the case picker', () => {
     wire(STANDINGS);
     render(<BoothLeaderboard />);
     const list = await screen.findByRole('tablist');
-    const [overall, perCase] = within(list).getAllByRole('tab');
+    const [overall, perDay, perCase] = within(list).getAllByRole('tab');
     overall.focus();
+    fireEvent.keyDown(list, { key: 'ArrowRight' });
+    expect(perDay).toHaveFocus();
+    expect(perDay).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('radiogroup', { name: 'เลือกวัน / Choose a day' })).toBeInTheDocument();
     fireEvent.keyDown(list, { key: 'ArrowRight' });
     expect(perCase).toHaveFocus();
     expect(perCase).toHaveAttribute('aria-selected', 'true');
@@ -233,7 +237,7 @@ describe('leaderboard — tabs and the case picker', () => {
     fireEvent.click(radios[1]);
     expect(radios[1]).toHaveAttribute('aria-checked', 'true');
     const table = within(screen.getByRole('region', { name: /dka-teen/ })).getByRole('table');
-    expect(bodyRows(table).map((r) => within(r).getAllByRole('cell')[1].textContent)).toEqual(['ผู้เล่น #007Player #007']);
+    expect(bodyRows(table).map((r) => within(r).getAllByRole('cell')[1].textContent)).toEqual(['หมายเลขผู้เข้าร่วม 007 Participant #007']);
 
     radios[1].focus();
     fireEvent.keyDown(picker, { key: 'ArrowDown' });
@@ -322,5 +326,61 @@ describe('leaderboard — loading, errors and refresh', () => {
     await act(async () => { jest.advanceTimersByTime(REFRESH_MS * 2); });
     document.dispatchEvent(new Event('visibilitychange'));
     expect(reads()).toBe(1);
+  });
+});
+
+describe('leaderboard — by day (a prize for each day\'s top player)', () => {
+  // Bangkok days: the 24th runs to 16:59:59Z, the 25th starts at 17:00Z. The server's order, as it ranks the event.
+  const SPREAD = [
+    row(1, 42, 87.4, 61.2, 'cap-adult', '2026-11-24T07:05:00Z'),
+    row(2, 120, 71.6, 54.0, 'cap-adult', '2026-11-25T02:40:00Z'),
+    row(3, 7, 71.6, 54.0, 'dka-teen', '2026-11-25T03:52:00Z'),
+    row(4, 9, 60.2, 50.0, 'dka-teen', '2026-11-24T16:59:00Z'),
+    row(5, 11, 55.0, 48.0, 'cap-adult', '2026-11-24T17:00:00Z'),
+  ];
+  async function byDay() {
+    wire({ ...STANDINGS, generated_at: '2026-11-25T05:00:00Z', total: SPREAD.length, overall: SPREAD });
+    render(<BoothLeaderboard />);
+    await screen.findByRole('table');
+    fireEvent.click(screen.getByRole('tab', { name: /By day/ }));
+  }
+
+  it('lists the event\'s days newest first, marks today, and shows the newest day ranked from 1', async () => {
+    await byDay();
+    const radios = within(screen.getByRole('radiogroup', { name: 'เลือกวัน / Choose a day' })).getAllByRole('radio');
+    expect(radios.map((r) => r.textContent)).toEqual([
+      'พุธ 25 พ.ย. · วันนี้Wed 25 Nov · Today3 แถว / 3 rows',
+      'อังคาร 24 พ.ย.Tue 24 Nov2 แถว / 2 rows',
+    ]);
+    expect(radios.map((r) => r.getAttribute('aria-checked'))).toEqual(['true', 'false']);
+    const table = within(screen.getByRole('region', { name: 'กระดานคะแนน พุธ 25 พ.ย. / Leaderboard for Wed 25 Nov' })).getByRole('table');
+    // #011 scored at Bangkok midnight, so it is the 25th's, not the 24th's.
+    expect(bodyRows(table).map((r) => within(r).getAllByRole('cell').slice(0, 2).map((c) => c.textContent))).toEqual([
+      ['1', 'หมายเลขผู้เข้าร่วม 120 Participant #120'],
+      ['2', 'หมายเลขผู้เข้าร่วม 007 Participant #007'],
+      ['3', 'หมายเลขผู้เข้าร่วม 011 Participant #011'],
+    ]);
+  });
+
+  it('choosing another day shows that day\'s ranking, its top player first', async () => {
+    await byDay();
+    const radios = within(screen.getByRole('radiogroup', { name: 'เลือกวัน / Choose a day' })).getAllByRole('radio');
+    fireEvent.click(radios[1]);
+    expect(radios[1]).toHaveAttribute('aria-checked', 'true');
+    const table = within(screen.getByRole('region', { name: 'กระดานคะแนน อังคาร 24 พ.ย. / Leaderboard for Tue 24 Nov' })).getByRole('table');
+    expect(bodyRows(table).map((r) => within(r).getAllByRole('cell').slice(0, 2).map((c) => c.textContent))).toEqual([
+      ['1', 'หมายเลขผู้เข้าร่วม 042 Participant #042'],
+      ['2', 'หมายเลขผู้เข้าร่วม 009 Participant #009'],
+    ]);
+    expect(screen.getByTestId('booth-row-count')).toHaveTextContent('2 แถว / 2 rows');
+  });
+
+  it('an event with no scored play says so', async () => {
+    wire({ ...STANDINGS, total: 0, overall: [], cases: [] });
+    render(<BoothLeaderboard />);
+    await screen.findByText('ยังไม่มีการเล่นที่ได้คะแนน / No scored play yet.');
+    fireEvent.click(screen.getByRole('tab', { name: /By day/ }));
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+    expect(screen.getByText('ยังไม่มีการเล่นที่ได้คะแนน / No scored play yet.')).toBeInTheDocument();
   });
 });

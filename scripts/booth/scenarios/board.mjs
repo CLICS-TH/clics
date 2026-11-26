@@ -53,7 +53,7 @@ async function settledRows(page, list, want, ms = 5_000) {
 }
 
 const expectRows = (list, mine) => list.map((e, i) => ({
-  rank: String(i + 1), tag: `Player #${String(e.tag).padStart(3, '0')}`, score: String(Math.round(e.score)),
+  rank: String(i + 1), tag: `#${String(e.tag).padStart(3, '0')}`, score: String(Math.round(e.score)),
   icon: TAG_ICONS[(e.tag * 7) % TAG_ICONS.length], drawn: true, mine: e.tag === mine,
 }));
 
@@ -72,10 +72,10 @@ export default [
       await h.screenCheck(page, 'result leaderboard overlay', { demo: true });
       await h.shot(page, 'result-board');
       const tag = await page.locator('.result-card .booth-tag').evaluate((e) => ({
-        text: e.innerText, icon: e.querySelector('.booth-icon')?.dataset.icon, drawn: !!e.querySelector('.booth-icon svg'),
+        text: e.innerText, icon: e.querySelector('.booth-icon')?.dataset.icon, drawn: (e.querySelector('.booth-icon svg')?.getBoundingClientRect().width ?? 0) > 0,
       }));
-      h.check(tag.text === 'Player #042' && tag.icon === TAG_ICONS[(42 * 7) % TAG_ICONS.length] && tag.drawn,
-        `result: "Player #042" with its icon from the Portal set (${JSON.stringify(tag)})`);
+      h.check(tag.text === 'Participant #042' && tag.icon === TAG_ICONS[(42 * 7) % TAG_ICONS.length] && tag.drawn,
+        `result: "Participant #042" with its icon from the Portal set (${JSON.stringify(tag)})`);
       const ranks = await page.$$eval('.result-card .rank', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').trim()));
       h.check(ranks.length === 2 && ranks[0].includes('อันดับของคุณวันนี้') && ranks[0].includes('Your rank today') && ranks[0].endsWith('#3')
         && ranks[1].includes('Your rank for the event') && ranks[1].endsWith('#5'), `result: today's rank #3 and the event's rank #5 (${ranks.join(' | ')})`);
@@ -87,6 +87,51 @@ export default [
       h.check(await page.locator('[data-board] button, [data-board] a').count() === 0, 'board: no controls in the panel');
       h.check(await page.locator('[data-board-overlay] button').count() === 1, 'board: the overlay has one control, Close');
       h.check(await page.locator('[data-landing-qr]').count() === 0, 'QR: hidden while js/config.js leaves it off');
+      // The Thai look (owner, 2026-11-26): the card names the participant number in full, หมายเลขผู้เข้าร่วม NNN, with
+      // the number whole on its line; every board row shows its whole #NNN, none of it behind the row's ellipsis.
+      await k.tap('[data-look-primary="th"]');
+      if (await page.locator('[data-look-both]').getAttribute('aria-pressed') === 'true') await k.tap('[data-look-both]');
+      await page.waitForFunction(() => document.documentElement.dataset.look === 'th', null, { timeout: 5_000 }).catch(() => {});
+      const thai = await page.evaluate(() => ({
+        look: document.documentElement.dataset.look,
+        rows: [...document.querySelectorAll('[data-board] .board-tag')].map((e) => ({ text: e.innerText, cut: e.scrollWidth > e.clientWidth + 1 })),
+        card: (() => {
+          const t = document.querySelector('.result-card .booth-tag .tag-th');
+          const r = document.createRange();
+          r.setStart(t.firstChild, t.textContent.lastIndexOf(' ') + 1);
+          r.setEnd(t.firstChild, t.textContent.length);
+          return { text: t.innerText, lines: t.getClientRects().length, numberLines: r.getClientRects().length };
+        })(),
+      }));
+      h.check(thai.look === 'th' && thai.rows.length === 20 && thai.rows.every((r) => /^#\d{3}$/.test(r.text) && !r.cut),
+        `board, Thai look: every row shows its whole #NNN (${JSON.stringify(thai.rows.filter((r) => r.cut || !/^#\d{3}$/.test(r.text)))})`);
+      h.check(thai.card.text === 'หมายเลขผู้เข้าร่วม 042' && thai.card.lines === 1 && thai.card.numberLines === 1,
+        `result, Thai look: the card reads "หมายเลขผู้เข้าร่วม 042" on one line (${JSON.stringify(thai.card)})`);
+      // Every look holds the card's tag on one line, up to a four-digit number, with the visitor's icon still drawn (a
+      // box, not just an svg in the DOM): the tag's spans are rewritten as the kiosk would write them (booth-copy.js
+      // tagText) and measured where they show.
+      for (const look of ['th', 'en', 'th+en', 'en+th']) {
+        await page.evaluate(async (l) => (await import('/js/booth-dom.js')).setLook(l), look);
+        await h.sleep(150);
+        const fit = await page.evaluate(async () => {
+          const { tagText: text } = await import('/js/booth-copy.js');
+          const tag = document.querySelector('.result-card .booth-tag');
+          const shown = () => [...tag.querySelectorAll('.tag-en, .tag-th')].find((e) => getComputedStyle(e).display !== 'none');
+          const drawn = () => (tag.querySelector('.booth-icon svg')?.getBoundingClientRect().width ?? 0) > 0;
+          const out = [];
+          for (const n of [42, 1234]) {
+            for (const e of tag.querySelectorAll('.tag-en, .tag-th')) e.textContent = text(n, e.lang);
+            out.push({ n, lines: shown().getClientRects().length, over: tag.scrollWidth > tag.clientWidth + 1, icon: drawn() });
+          }
+          for (const e of tag.querySelectorAll('.tag-en, .tag-th')) e.textContent = text(42, e.lang);
+          return out;
+        });
+        h.check(fit.every((f) => f.lines === 1 && !f.over && f.icon), `result, ${look}: the card's tag holds one line at #042 and #1234, its icon drawn (${JSON.stringify(fit)})`);
+      }
+      await page.evaluate(async () => (await import('/js/booth-dom.js')).setLook('th'));
+      await h.sleep(150);
+      await h.screenCheck(page, 'result leaderboard overlay, Thai look', { demo: true });
+      await h.shot(page, 'result-board-th');
       await h.sleep(500);
       await k.tap('[data-board-overlay] [data-action="close-board"]');
       h.check(await page.locator('[data-board-overlay]').count() === 0 && await k.screenNow() === 'scored', 'board: Close returns to the result card');
