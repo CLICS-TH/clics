@@ -43,8 +43,7 @@ function Player({ tag }: { tag: number }) {
 
 // The shown score (ADR 0016: a five-step play's tier points) is the number the visitor sees, so it carries the row; the
 // raw composite that breaks a tie on it sits small beside it, so the operator can see why two equal scores rank as
-// they do. lining-nums: Cormorant sets old-style figures by
-// default, where a 0 reads as a lowercase o and a 9 drops below the line.
+// they do. lining-nums: Cormorant sets old-style figures by default, where a 0 reads as a lowercase o and a 9 drops below the line.
 function Score({ row, steps }: { row: BoothStanding; steps: number }) {
   return (
     <span className="inline-flex items-baseline gap-2 tabular-nums">

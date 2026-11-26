@@ -336,7 +336,11 @@ async function readStandings(event, dayOf) {
   const rows = await readAll(() => supabase.from('booth_plays').select(STANDING_COLUMNS)
     .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true).like('tier_path', '_'.repeat(event.steps))
     .order('id'), (why) => console.error(`[booth] standings read failed for ${event.code}: ${why}`));
-  return rows && standings(rows.map((r) => standingRow(r, event.steps)), dayOf);
+  if (!rows) return null;
+  // Offset paging on id can hand back one row twice when a play is scored mid-read; count each play once.
+  const seen = new Set();
+  const once = rows.filter((r) => !seen.has(r.id) && seen.add(r.id));
+  return standings(once.map((r) => standingRow(r, event.steps)), dayOf);
 }
 
 /** A rank of null means none: the standings did not load. `steps` is stepTiers of the play: no other body ever carries
