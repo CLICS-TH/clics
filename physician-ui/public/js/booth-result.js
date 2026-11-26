@@ -1,6 +1,6 @@
 // The booth result page (#251): renders the result in the URL fragment (booth-result-link.js), and for an r2 link its case's
 // step text, a script of the Portal's own (booth-steps/<case_id>.js), and nothing else.
-import { COPY, DEFAULT_LOOK, DEMO_LABEL, TIERS, scoreText, fill, isRescaled } from './booth-copy.js';
+import { COPY, DEFAULT_LOOK, DEMO_LABEL, TIERS, scoreText, fill, tierScore } from './booth-copy.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
 import { tierChip } from './booth-answers.js';
@@ -110,6 +110,9 @@ function resultView(r, text, feedbackCard) {
   const teaser = r.teaser ?? text?.teaser ?? null;
   const explained = r.tiers && r.picks && text ? explainRows(r, text) : null;
   const [practise, , others] = domainSections(r.domains, r.tiers?.length ?? null, null, { measures: true, otherHead: false });
+  // A five-step link's number is read from its tiers (ADR 0016), so a link kept before tiers-v1 shows what the board
+  // shows for that play today, not the rescale it was made with.
+  const tiered = tierScore(r.tiers);
   return [
     el('header', { class: 'result-head' },
       el('h1', {}, bi(COPY.resultTitle, 'result-title')),
@@ -123,9 +126,9 @@ function resultView(r, text, feedbackCard) {
       el('div', { class: 'result-total' },
         bi(COPY.overall, 'result-overall'),
         el('p', { class: 'result-score' },
-          el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(r.score)),
+          el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(tiered ?? r.score)),
           el('span', { class: 'result-outof' }, '/ 100')),
-        isRescaled(r.tiers?.length) ? bi(COPY.displayScale, 'score-note') : null),
+        tiered === null ? null : bi(COPY.scoreRule, 'score-note')),
       radar(r.domains)),
     el('section', { class: 'result-card result-domains' }, bi(SCALE_NOTE, 'scale-note'), practise),
     // The workshop invitation right after the visitor's own feedback (owner, 2026-11-21: visitors must see it), before

@@ -7,7 +7,7 @@
 //   - Start over's Leave calls `reset` (the shell's page reload, as Done does) and makes no request.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
 // mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
-import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill, isDomainScore, isRescaled } from './booth-copy.js';
+import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill, isDomainScore, isTierScored } from './booth-copy.js';
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
@@ -438,7 +438,7 @@ const VIEWS = {
             el('p', { class: 'result-score' },
               el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
               el('span', { class: 'result-outof' }, '/ 100')),
-            isRescaled(s.play.stepCount) ? bi(COPY.displayScale, 'score-note') : null),
+            isTierScored(s.play.stepCount) ? bi(COPY.scoreRule, 'score-note') : null),
           radar(score.domains)),
         el('div', { class: 'result-side' },
           keepQr(s, score),

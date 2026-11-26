@@ -1,5 +1,7 @@
 # A booth visitor sees a fixed 0–100 rescale of the stored demo score
 
+> **Superseded for five-step events by [ADR 0016](0016-booth-score-from-answer-tiers.md) (2026-11-26).** A five-step play now shows its tier points, and the boards rank on them. `display-v2` survives only as the fallback for a five-step row with no readable tier path, which ranks last. The raw composite and d1–d7 are still stored and read as below.
+
 The kiosk result and the board show a five-step play's demo score through one fixed, strictly increasing map, `display-v2`: raw composite 26 shows as 0, 61 as 100, linear in between, rounded to a whole number and clamped at both ends. `booth_plays` still stores the raw composite and d1–d7 that the path score table gives (ADR 0009), and the auditor reveal, the open dataset, the purge summary and research read only those. The per-domain values and their low/mid/high bands stay on the raw rubric scale. We chose this because the ten admitted NFCME-2026 tables give raw composites of 26–65 only (median 46, p5–p95 35–55, over all 2,430 paths), so on a "/ 100" card most visitors land in the 40s and most of the range is never reached. The owner wants the card to use the whole 0–100 and the raw score kept apart for research, including digital-twin work.
 
 ## Considered options

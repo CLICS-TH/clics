@@ -4,7 +4,7 @@
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { openEvent, eventCases, readBoothEvent } = require('./booth');
-const { readAll } = require('./booth-audits');
+const { readAll } = require('../lib/read-all');
 const { flaggedForAuditor } = require('./booth-dialogue');
 const { rimplDeidentify } = require('./rimpl-client');
 

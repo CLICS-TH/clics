@@ -76,17 +76,20 @@ const ICC_DATA = {
   },
 };
 
-// The booth leaderboard. `score` is the display score of `raw` on the 5-step booth's 26-61 display scale, as
-// backend/src/booth-cases/display-score.js computes it; scored_at counts back from 16:00 Bangkok on the event day.
-const boothPlay = (rank, tag, raw, caseId, minutesAgo) => ({
-  rank, tag, raw, score: +Math.max(0, Math.min(100, ((raw - 26) / 35) * 100)).toFixed(1),
+// The booth leaderboard. `score` is the tier points of `tier_path` (best 20, reasonable 10, weaker 0 a step), as
+// backend/src/booth-cases/display-score.js computes it (ADR 0016), and `raw` breaks a tie on it; scored_at counts back
+// from 16:00 Bangkok on the event day.
+const TIER_POINTS = { B: 20, R: 10, W: 0 };
+const boothPlay = (rank, tag, raw, caseId, minutesAgo, tierPath) => ({
+  rank, tag, raw, tier_path: tierPath, score: [...tierPath].reduce((sum, l) => sum + TIER_POINTS[l], 0),
   case_id: caseId, case_version: caseId === 'bc-01' ? 'v3' : caseId ? 'v1' : null,
   scored_at: new Date(Date.UTC(2026, 10, 2, 9, 0) - minutesAgo * 60_000).toISOString(),
 });
 const BOOTH_PLAYS = [
-  boothPlay(1, 1207, 63.8, 'bc-01', 4), boothPlay(2, 42, 61.7, 'bc-02', 32), boothPlay(3, 315, 58.2, 'bc-01', 61),
-  boothPlay(4, 8, 55.0, 'bc-01', 95), boothPlay(5, 990, 49.3, null, 140), boothPlay(6, 77, 41.6, 'bc-02', 188),
-  boothPlay(7, 1101, 33.1, 'bc-00', 240), boothPlay(8, 5, 26.0, 'bc-01', 302),
+  boothPlay(1, 1207, 63.8, 'bc-01', 4, 'BBBBB'), boothPlay(2, 42, 61.7, 'bc-02', 32, 'BBBBR'),
+  boothPlay(3, 315, 58.2, 'bc-01', 61, 'BBBRB'), boothPlay(4, 8, 55.0, 'bc-01', 95, 'BRBRB'),
+  boothPlay(5, 990, 49.3, null, 140, 'RRBRR'), boothPlay(6, 77, 41.6, 'bc-02', 188, 'RRRRW'),
+  boothPlay(7, 1101, 33.1, 'bc-00', 240, 'RWRWW'), boothPlay(8, 5, 26.0, 'bc-01', 302, 'WWWWW'),
 ];
 const rerank = (plays) => plays.map((p, i) => ({ ...p, rank: i + 1 }));
 const BOOTH_STANDINGS = {

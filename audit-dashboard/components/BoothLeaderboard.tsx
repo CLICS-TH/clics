@@ -12,7 +12,7 @@ import { useIsMobile } from '@/components/ViewportProvider';
 import { StateMessage } from '@/components/ui/state-message';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { radioKeys } from '@/lib/radio-keys';
-import { bangkokDayKey, bangkokDayLabel, bangkokDayTime, bangkokTime, boothDays, playerTag, playerTagTh, rawScore, shownScore } from '@/lib/booth';
+import { bangkokDayKey, bangkokDayLabel, bangkokDayTime, bangkokTime, boothDays, playerTag, playerTagTh, rawScore, rowScore, shownScore } from '@/lib/booth';
 import { type ApiResult, type BoothStanding, type BoothStandings, type BoothStandingsCase, formatApiError } from '@/lib/types';
 
 export const REFRESH_MS = 60_000;
@@ -41,19 +41,20 @@ function Player({ tag }: { tag: number }) {
   );
 }
 
-// The display score is the number the visitor saw, so it carries the row; the raw composite the ranking uses sits
-// small beside it for the operator who needs to break a tie by eye. lining-nums: Cormorant sets old-style figures by
+// The shown score (ADR 0016: a five-step play's tier points) is the number the visitor sees, so it carries the row; the
+// raw composite that breaks a tie on it sits small beside it, so the operator can see why two equal scores rank as
+// they do. lining-nums: Cormorant sets old-style figures by
 // default, where a 0 reads as a lowercase o and a 9 drops below the line.
-function Score({ row }: { row: BoothStanding }) {
+function Score({ row, steps }: { row: BoothStanding; steps: number }) {
   return (
     <span className="inline-flex items-baseline gap-2 tabular-nums">
-      <span className="font-heading text-2xl font-semibold leading-none text-foreground lining-nums tabular-nums">{shownScore(row.score)}</span>
+      <span className="font-heading text-2xl font-semibold leading-none text-foreground lining-nums tabular-nums">{shownScore(rowScore(row, steps))}</span>
       <span className="text-xs text-muted-foreground"><span className="sr-only">ดิบ / raw </span>{rawScore(row.raw)}</span>
     </span>
   );
 }
 
-function Rows({ rows, label, showCase }: { rows: BoothStanding[]; label: string; showCase: boolean }) {
+function Rows({ rows, label, showCase, steps }: { rows: BoothStanding[]; label: string; showCase: boolean; steps: number }) {
   const mobile = useIsMobile();
   // Phones get a list, not a table: five columns cannot fit 320px, and a sideways-scrolling table on a touch screen
   // is the failure scripts/responsive/mobile-audit.mjs reports.
@@ -69,7 +70,7 @@ function Rows({ rows, label, showCase }: { rows: BoothStanding[]; label: string;
                 {showCase && r.case_id ? `${r.case_id} ` : ''}{bangkokDayTime(r.scored_at)}
               </p>
             </div>
-            <Score row={r} />
+            <Score row={r} steps={steps} />
           </li>
         ))}
       </ol>
@@ -92,7 +93,7 @@ function Rows({ rows, label, showCase }: { rows: BoothStanding[]; label: string;
             <TableRow key={`${r.rank}-${r.tag}`}>
               <TableCell num className="pl-4 font-semibold text-foreground">{r.rank}</TableCell>
               <TableCell className="text-foreground"><Player tag={r.tag} /></TableCell>
-              <TableCell><Score row={r} /></TableCell>
+              <TableCell><Score row={r} steps={steps} /></TableCell>
               {showCase && <TableCell className="text-muted-foreground [overflow-wrap:anywhere]">{r.case_id ?? '—'}</TableCell>}
               <TableCell className="pr-4 text-muted-foreground tabular-nums">{bangkokDayTime(r.scored_at)}</TableCell>
             </TableRow>
@@ -103,11 +104,11 @@ function Rows({ rows, label, showCase }: { rows: BoothStanding[]; label: string;
   );
 }
 
-function Board({ rows, label, showCase, empty }: { rows: BoothStanding[]; label: string; showCase: boolean; empty: string }) {
+function Board({ rows, label, showCase, empty, steps }: { rows: BoothStanding[]; label: string; showCase: boolean; empty: string; steps: number }) {
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted-foreground tabular-nums" data-testid="booth-row-count">{rowCount(rows.length)}</p>
-      {rows.length === 0 ? <StateMessage kind="empty" title={empty} /> : <Rows rows={rows} label={label} showCase={showCase} />}
+      {rows.length === 0 ? <StateMessage kind="empty" title={empty} /> : <Rows rows={rows} label={label} showCase={showCase} steps={steps} />}
     </div>
   );
 }
@@ -278,7 +279,7 @@ export function BoothLeaderboard({ onLoad }: { onLoad?: (s: BoothStandings) => v
 
           <div role="tabpanel" id="booth-board-panel" aria-labelledby={`booth-tab-${view}`}>
             {view === 'overall' ? (
-              <Board rows={data.overall} showCase label="กระดานคะแนนรวม / Overall leaderboard"
+              <Board steps={data.steps} rows={data.overall} showCase label="กระดานคะแนนรวม / Overall leaderboard"
                 empty="ยังไม่มีการเล่นที่ได้คะแนน / No scored play yet." />
             ) : view === 'day' ? (
               !day ? (
@@ -286,7 +287,7 @@ export function BoothLeaderboard({ onLoad }: { onLoad?: (s: BoothStandings) => v
               ) : (
                 <div className="grid grid-cols-1 gap-6 @min-[1024px]:grid-cols-[18rem_minmax(0,1fr)]">
                   <DayPicker days={days} today={today} current={day.day} onPick={setPickedDay} />
-                  <Board rows={day.rows} showCase
+                  <Board steps={data.steps} rows={day.rows} showCase
                     label={`กระดานคะแนน ${bangkokDayLabel(day.day, 'th')} / Leaderboard for ${bangkokDayLabel(day.day, 'en')}`}
                     empty="วันนี้ยังไม่มีการเล่นที่ได้คะแนน / No scored play on this day yet." />
                 </div>
@@ -296,7 +297,7 @@ export function BoothLeaderboard({ onLoad }: { onLoad?: (s: BoothStandings) => v
             ) : (
               <div className="grid grid-cols-1 gap-6 @min-[1024px]:grid-cols-[18rem_minmax(0,1fr)]">
                 <CasePicker cases={data.cases} current={current.case_id} onPick={setPicked} />
-                <Board rows={current.rows} showCase={false}
+                <Board steps={data.steps} rows={current.rows} showCase={false}
                   label={`กระดานคะแนนเคส ${current.case_id} / Leaderboard for ${current.case_id}`}
                   empty="เคสนี้ยังไม่มีการเล่นที่ได้คะแนน / No scored play in this case yet." />
               </div>
