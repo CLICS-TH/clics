@@ -306,7 +306,7 @@
           },
           {
             "strength": "หาการติดเชื้อ สะท้อนนิสัยที่ไม่ปล่อยอาการใดไว้โดยไม่มีคำอธิบาย",
-            "weigh": "การหายใจของเขาจะทนไหวไหมระหว่างรอให้ยาออกฤทธิ์",
+            "weigh": "เขาหายใจลำบากอยู่แล้ว ตอนนี้ต้องทำอะไรทันที",
             "safety": ""
           }
         ],
@@ -323,7 +323,7 @@
           },
           {
             "strength": "Looking for infection reflects a habit of not leaving a symptom unexplained.",
-            "weigh": "Can his breathing hold out while the drugs take effect?",
+            "weigh": "With his breathing already strained, what must you do right now?",
             "safety": ""
           }
         ]
@@ -488,7 +488,7 @@
           },
           {
             "strength": "หาการติดเชื้อ สะท้อนนิสัยที่ไม่ปล่อยอาการใดไว้โดยไม่มีคำอธิบาย",
-            "weigh": "การหายใจของเขาจะทนไหวไหมระหว่างรอให้ยาออกฤทธิ์",
+            "weigh": "เขาหายใจลำบากอยู่แล้ว ตอนนี้ต้องทำอะไรทันที",
             "safety": ""
           }
         ],
@@ -505,7 +505,7 @@
           },
           {
             "strength": "Looking for infection reflects a habit of not leaving a symptom unexplained.",
-            "weigh": "Can his breathing hold out while the drugs take effect?",
+            "weigh": "With his breathing already strained, what must you do right now?",
             "safety": ""
           }
         ]
@@ -706,7 +706,7 @@
           },
           {
             "strength": "หาการติดเชื้อ สะท้อนนิสัยที่ไม่ปล่อยอาการใดไว้โดยไม่มีคำอธิบาย",
-            "weigh": "การหายใจของเขาจะทนไหวไหมระหว่างรอให้ยาออกฤทธิ์",
+            "weigh": "เขาหายใจลำบากอยู่แล้ว ตอนนี้ต้องทำอะไรทันที",
             "safety": ""
           }
         ],
@@ -723,7 +723,7 @@
           },
           {
             "strength": "Looking for infection reflects a habit of not leaving a symptom unexplained.",
-            "weigh": "Can his breathing hold out while the drugs take effect?",
+            "weigh": "With his breathing already strained, what must you do right now?",
             "safety": ""
           }
         ]
@@ -742,7 +742,7 @@
           },
           {
             "strength": "วัดอุณหภูมิจริง แทนการเดาเรื่องความร้อนจากประวัติอย่างเดียว",
-            "weigh": "การหายใจของเขาจะทนไหวไหมระหว่างรอให้ยาออกฤทธิ์",
+            "weigh": "เขาหายใจลำบากอยู่แล้ว ตอนนี้ต้องทำอะไรทันที",
             "safety": ""
           }
         ],
@@ -759,7 +759,7 @@
           },
           {
             "strength": "An objective temperature avoids guessing about heat from the history alone.",
-            "weigh": "Can his breathing hold out while the drugs take effect?",
+            "weigh": "With his breathing already strained, what must you do right now?",
             "safety": ""
           }
         ]
@@ -1314,34 +1314,34 @@
         "th": [
           {
             "strength": "ล้าง**สารพิษบนผิว**ออก หยุดการดูดซึมเพิ่มผ่านทางที่เขาได้รับพิษ",
-            "weigh": "ถ้าปอดท่วมเสมหะ อันตรายแรกที่ต้องกังวลคืออะไร",
+            "weigh": "เสมหะในปอดของเขามากขึ้นแล้ว อันตรายแรกที่ต้องกังวลคืออะไร",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูดเสมหะร่วมกับอะโทรปีน**ต้านอะเซทิลโคลีน** รักษาผลของพิษ ขณะที่การล้างตัวกำจัดต้นตอ",
-            "weigh": "อาการแสดงอะไรในชั่วโมงถัดไปที่บอกว่าเขากำลังทรุดลง",
+            "weigh": "ตอนนี้อาการแสดงอะไรบอกว่าเขากำลังทรุดลง",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ระลึกว่าสารที่ยังติดผิวหนังทำให้พิษเข้าสู่ร่างกายต่อได้",
-            "weigh": "ถ้าเขาหายใจเองไม่ไหว จะได้รับการดูแลที่ต้องการได้ที่ไหน",
+            "weigh": "เขาเสี่ยงต่อภาวะหายใจล้มเหลว ตอนนี้ต้องทำอะไรก่อน",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
         "en": [
           {
             "strength": "Washing poison **off his skin** stops further absorption by a main route of his exposure.",
-            "weigh": "If his lungs fill with secretions, what is the first danger?",
+            "weigh": "With more secretions in his lungs already, what is the first danger?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Suction, and atropine that **blocks acetylcholine**, treat the flood while washing removes its source.",
-            "weigh": "Which signs in the next hour would tell you he is losing ground?",
+            "weigh": "Which signs right now tell you he is losing ground?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "You remember that poison left on the skin can keep feeding the illness.",
-            "weigh": "Where can he get the support he may need if his breathing fails?",
+            "weigh": "With him at risk of respiratory failure, what must you do first?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -1350,34 +1350,34 @@
         "th": [
           {
             "strength": "สังเกต**เสียงวี้ด** และเพิ่มยาเพื่อขยายหลอดลม",
-            "weigh": "ถ้าปอดท่วมเสมหะ อันตรายแรกที่ต้องกังวลคืออะไร",
+            "weigh": "เสมหะในปอดของเขามากขึ้นแล้ว อันตรายแรกที่ต้องกังวลคืออะไร",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูดเสมหะ และใส่ใจ**หลอดลมที่ตีบ** แสดงว่าฟังปอดของเขาอย่างตั้งใจ",
-            "weigh": "อาการแสดงอะไรในชั่วโมงถัดไปที่บอกว่าเขากำลังทรุดลง",
+            "weigh": "ตอนนี้อาการแสดงอะไรบอกว่าเขากำลังทรุดลง",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ใช้การดูดเสมหะและอะโทรปีนร่วมกับยาขยายหลอดลม เพื่อลดแรงที่เขาต้องใช้หายใจ",
-            "weigh": "ถ้าเขาหายใจเองไม่ไหว จะได้รับการดูแลที่ต้องการได้ที่ไหน",
+            "weigh": "เขาเสี่ยงต่อภาวะหายใจล้มเหลว ตอนนี้ต้องทำอะไรก่อน",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
         "en": [
           {
             "strength": "You notice the **wheeze** and add a drug to open the airways.",
-            "weigh": "If his lungs fill with secretions, what is the first danger?",
+            "weigh": "With more secretions in his lungs already, what is the first danger?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Suction with attention to **the narrowed airways** shows you are listening to his lungs.",
-            "weigh": "Which signs in the next hour would tell you he is losing ground?",
+            "weigh": "Which signs right now tell you he is losing ground?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
             "strength": "Combining suction and atropine with a bronchodilator aims to ease his work of breathing.",
-            "weigh": "Where can he get the support he may need if his breathing fails?",
+            "weigh": "With him at risk of respiratory failure, what must you do first?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           }
         ]
@@ -1470,7 +1470,7 @@
           },
           {
             "strength": "ใช้ยาหยดต่อเนื่อง คงปอดให้แห้งโดยไม่มีช่วงยาขึ้นลง",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
@@ -1506,7 +1506,7 @@
           },
           {
             "strength": "ให้ยาเฉพาะเมื่อจำเป็น เลี่ยงการได้อะโทรปีนเกินความต้องการ",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
@@ -1606,7 +1606,7 @@
         "th": [
           {
             "strength": "ฉีดยาให้ปอดแห้ง แล้วใช้**อัตราเดียว**คุมต่อ เป็นแผนสองขั้นที่ชัด",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": ""
           },
           {
@@ -1616,14 +1616,14 @@
           },
           {
             "strength": "ตามด้วยยาหยดหลังฉีด เลี่ยงการขึ้นลงของระดับยาจากการฉีดซ้ำ ๆ",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A bolus then a **steady rate** gives a clear two-part plan for the relapse.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": ""
           },
           {
@@ -1647,12 +1647,12 @@
           },
           {
             "strength": "ใส่ใจหลอดลม แสดงว่าติดตามการหายใจอย่างใกล้ชิด",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": ""
           },
           {
             "strength": "เพิ่มยาขยายหลอดลม เพื่อลดแรงที่ต้องใช้หายใจเมื่อเสมหะกลับมา",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
@@ -1664,7 +1664,7 @@
           },
           {
             "strength": "Attention to his airways shows you are tracking his breathing closely.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": ""
           },
           {
@@ -1683,12 +1683,12 @@
           },
           {
             "strength": "เห็นการเสียน้ำต่อเนื่องที่มากับพิษนี้",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": ""
           },
           {
             "strength": "ให้สารน้ำเพียงพอ ช่วยปกป้องไตในพิษที่ยืดเยื้อ",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
@@ -1700,7 +1700,7 @@
           },
           {
             "strength": "You recognise the ongoing losses that come with this poisoning.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": ""
           },
           {
@@ -1752,7 +1752,7 @@
         "th": [
           {
             "strength": "**ดูดเสมหะ** เพิ่มอะโทรปีนเท่าตัวจนปอดแห้งร่วมออกซีม มุ่งทั้งเสมหะและเอนไซม์",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": ""
           },
           {
@@ -1762,14 +1762,14 @@
           },
           {
             "strength": "เร่ง**เพิ่มอะโทรปีนเท่าตัว** รับมือเสมหะที่เพิ่มขึ้นโดยตรง",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction with atropine doubled to a **dry chest** and an oxime goes after both the secretions and the enzyme.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": ""
           },
           {
@@ -1788,7 +1788,7 @@
         "th": [
           {
             "strength": "ดูดเสมหะร่วมกับเพิ่มยาเท่าตัว**ทุก 5 นาที** รับมือเสมหะที่พุ่งขึ้นได้เร็วและวัดผลได้",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": ""
           },
           {
@@ -1798,14 +1798,14 @@
           },
           {
             "strength": "ปรับยาจน**ปอดแห้ง** ผูกขนาดยากับสิ่งที่ปอดแสดงออกมา",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Suction plus doubling **every 5 minutes** answers the surge in secretions with a fast, measurable ramp.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": ""
           },
           {
@@ -1829,12 +1829,12 @@
           },
           {
             "strength": "ดูแลทางเดินหายใจข้างเตียง ตรงจุดที่เสมหะคั่งคุกคามก่อน",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ดูด**เสมหะที่คั่ง**ออก ลดความเสี่ยงที่เขาจะสำลักเข้าปอด",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
@@ -1846,7 +1846,7 @@
           },
           {
             "strength": "You attend to the airway at the bedside, where pooled secretions threaten it first.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
@@ -1865,12 +1865,12 @@
           },
           {
             "strength": "ดูดเสมหะ และใส่ใจ**หลอดลมที่ตีบ** แสดงว่าฟังปอดของเขาอย่างตั้งใจ",
-            "weigh": "ถ้าพรุ่งนี้ยังต้องใช้อะโทรปีน โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
+            "weigh": "ถ้าต้องให้อะโทรปีนต่อไป โรงพยาบาลนี้ดูแลเขาได้อย่างปลอดภัยไหม",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           },
           {
             "strength": "ใช้การดูดเสมหะและอะโทรปีนร่วมกับยาขยายหลอดลม เพื่อลดแรงที่เขาต้องใช้หายใจ",
-            "weigh": "อะไรในการตอบสนองต่อการรักษาของเขาจะเป็นตัวตัดสินว่าเขาควรได้รับการดูแลที่ไหน",
+            "weigh": "เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน",
             "safety": "ผู้ป่วยซึมที่เสมหะท่วมปอดอาจหยุดหายใจได้ทันที หาก SpO2 ไม่ขึ้น ต้องคุมทางเดินหายใจให้มั่นคงเดี๋ยวนี้"
           }
         ],
@@ -1882,7 +1882,7 @@
           },
           {
             "strength": "Suction with attention to **the narrowed airways** shows you are listening to his lungs.",
-            "weigh": "If he still needs atropine tomorrow, can this hospital care for him safely?",
+            "weigh": "If atropine must go on, can this hospital care for him safely?",
             "safety": "A drowsy man with a flooding chest can stop breathing; if SpO2 will not climb, his airway must be secured now."
           },
           {
@@ -2371,8 +2371,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"bedside checks\" and \"SpO2\" echoed the bedside ECG and SpO2 option; step1 [1] repeated that option's line; \"which would come back too late\" was a claim the case does not make; step3 [1] \"too much or too little atropine\" echoed the atropine-excess option, now asks how to decide the dose is right; step4 [2] \"what must travel with him\" echoed the ICU-transfer option, and a later wording \"over the next day\" deferred a decision on drowsy, hypoxic paths, now \"What in his response to treatment will decide where he is best cared for?\". Should-fixes taken: an off-topic \"enough atropine\" bridge on the step2 lines that lead to the flooding scenario, the end-point and antidote hints, Thai \"ยายัง\" that read as \"grandmother\", \"push\" against Thai \"เพิ่ม\", the airway line that nearly answered \"intubate\", and Thai \"pinpoint\" that was weaker than the English. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634. Replies sha256 f5ddc98f7394958685840cbc1f54e1eee30d5249f70504b864f0c27af484f9d1.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"bedside checks\" and \"SpO2\" echoed the bedside ECG and SpO2 option; step1 [1] repeated that option's line; \"which would come back too late\" was a claim the case does not make; step3 [1] \"too much or too little atropine\" echoed the atropine-excess option, now asks how to decide the dose is right; step4 [2] \"what must travel with him\" echoed the ICU-transfer option, and a later wording \"over the next day\" deferred a decision on drowsy, hypoxic paths, now \"What in his response to treatment will decide where he is best cared for?\". Should-fixes taken: an off-topic \"enough atropine\" bridge on the step2 lines that lead to the flooding scenario, the end-point and antidote hints, Thai \"ยายัง\" that read as \"grandmother\", \"push\" against Thai \"เพิ่ม\", the airway line that nearly answered \"intubate\", and Thai \"pinpoint\" that was weaker than the English. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 156 read, 17 failed: \"can his breathing hold out\" and step3.W lines that framed a future failure while SpO2 is already low, and \"if he still needs atropine tomorrow\" on the R and W paths, now \"If atropine must go on, can this hospital care for him safely?\"; confirm passes replaced \"if his breathing starts to fail\" (already strained) and \"where can he get support\" (echoed the ICU line), now \"With him at risk of respiratory failure, what must you do first?\". The Thai of the disposition line now reads \"เขาตอบสนองต่อการรักษาอย่างไร จึงจะบอกได้ว่าควรดูแลเขาที่ไหน\", which the confirm pass agreed matches the English. Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634. Replies sha256 1737ee4ee82c4cb10c009ce98c424610518f91adfae6f50b826666a998e22e8a.",
     "tree_sha256": "cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634",
-    "replies_sha256": "f5ddc98f7394958685840cbc1f54e1eee30d5249f70504b864f0c27af484f9d1"
+    "replies_sha256": "1737ee4ee82c4cb10c009ce98c424610518f91adfae6f50b826666a998e22e8a"
   }
 }

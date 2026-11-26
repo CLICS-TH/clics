@@ -78,34 +78,34 @@
         "th": [
           {
             "strength": "จับภาวะน้ำตาลสูงวิกฤตได้จากกระหายน้ำ ปัสสาวะมาก และ**ขาดน้ำชัดเจน**",
-            "weigh": "การตรวจแรกอะไรช่วยแยกภาวะนี้ออกจากภาวะที่มีคีโตนคั่ง",
+            "weigh": "จะส่งตรวจอะไรก่อนเพื่อยืนยันภาวะนี้และดูว่าเธอขาดน้ำมากแค่ไหน",
             "safety": ""
           },
           {
             "strength": "ให้ความสำคัญกับการขาดน้ำ ซึ่งเป็นการเสียน้ำปริมาณมากจากน้ำตาลที่สูงมาก",
-            "weigh": "หายใจลึกเร็วชวนนึกถึงเลือดเป็นกรด ผลตรวจอะไรจะตัดสินได้ว่าเป็นภาวะไหน",
+            "weigh": "หายใจลึกเร็วและชีพจร 120 ผลตรวจอะไรจะตัดสินได้ว่านี่คือภาวะไหน",
             "safety": ""
           },
           {
             "strength": "ประเมินระดับการขาดน้ำ ซึ่งในรายนี้มากและต้องรีบแก้",
-            "weigh": "ต้องได้ค่าตรวจอะไรบ้าง จึงจะบอกได้ว่าเป็นภาวะวิกฤตแบบไหน",
+            "weigh": "ต้องได้ผลตรวจอะไรบ้างจึงจะตัดสินได้ว่าอะไรเป็นตัวการ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "It recognises a hyperglycaemic crisis from the thirst, heavy urine output and **marked dehydration**.",
-            "weigh": "Which first tests would tell this apart from a crisis driven by ketones?",
+            "weigh": "Which first tests would you send to confirm this and see how dehydrated she is?",
             "safety": ""
           },
           {
             "strength": "Taking the dehydration seriously points toward the large fluid losses that come with very high glucose.",
-            "weigh": "Deep, fast breathing points to acid; which results would settle what this is?",
+            "weigh": "With deep, fast breathing and a pulse of 120, which results would settle what this is?",
             "safety": ""
           },
           {
             "strength": "It weighs the degree of dehydration, which here is clearly large and urgent.",
-            "weigh": "Which numbers would you need to say which sugar crisis this is?",
+            "weigh": "Which results would you need to decide exactly what is driving this?",
             "safety": ""
           }
         ]
@@ -114,7 +114,7 @@
         "th": [
           {
             "strength": "เริ่มจากสาเหตุที่โรงพยาบาลชุมชนพบบ่อยของอาเจียนและปวดท้อง",
-            "weigh": "กระหายน้ำและน้ำหนักลดมาก่อน การตรวจแรกอะไรบ้างจะเช็กว่ามีปัญหาน้ำตาลไหม",
+            "weigh": "กระหายน้ำและน้ำหนักลดมาก่อน การตรวจแรกอะไรจะอธิบายประวัตินี้ได้",
             "safety": ""
           },
           {
@@ -131,7 +131,7 @@
         "en": [
           {
             "strength": "It starts from what a community hospital sees most often with vomiting and pain.",
-            "weigh": "Thirst and weight loss came first; which first tests would check for a sugar problem?",
+            "weigh": "Thirst and weight loss came first; which first tests would explain that history?",
             "safety": ""
           },
           {
@@ -150,7 +150,7 @@
         "th": [
           {
             "strength": "ไม่ปล่อยให้สาเหตุทางศัลยกรรมของปวดท้องในคนอายุน้อยหลุดไป",
-            "weigh": "กระหายน้ำมาสองสัปดาห์ก่อนปวดท้อง การตรวจแรกอะไรบ้างจะดูว่ามีปัญหาน้ำตาลไหม",
+            "weigh": "กระหายน้ำมาสองสัปดาห์ก่อนปวดท้อง การตรวจแรกอะไรจะอธิบายเรื่องนี้ได้",
             "safety": ""
           },
           {
@@ -160,14 +160,14 @@
           },
           {
             "strength": "นึกถึงไส้ติ่งไว้ก่อน เป็นความระวังที่คุ้นเคย",
-            "weigh": "ตรวจเลือดอะไรบ้างจะเช็กว่าปวดท้องนี้มีสาเหตุจากเมแทบอลิซึมไหม",
+            "weigh": "ตรวจเลือดอะไรบ้างจะช่วยหาสาเหตุนอกช่องท้องของอาการปวดนี้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "It keeps a surgical cause of belly pain in a young adult from being missed.",
-            "weigh": "Two weeks of thirst came first; which first tests would look for a sugar problem?",
+            "weigh": "Two weeks of thirst came first; which first tests would explain that?",
             "safety": ""
           },
           {
@@ -177,7 +177,7 @@
           },
           {
             "strength": "Thinking of the appendix first is a familiar, careful default.",
-            "weigh": "Which blood tests would check for a metabolic cause of the belly pain?",
+            "weigh": "Which blood tests would look beyond the belly for a cause of this pain?",
             "safety": ""
           }
         ]
@@ -1323,7 +1323,7 @@
           },
           {
             "strength": "เป็นขั้นแรกที่คุ้นเคย และหอผู้ป่วยส่วนใหญ่ให้ได้ทันที",
-            "weigh": "อาการแสดงอะไรในอีกไม่กี่ชั่วโมงที่บอกว่าเธอแย่ลง",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอต้องการมากกว่าที่หอผู้ป่วยนี้ให้ได้",
             "safety": ""
           },
           {
@@ -1340,7 +1340,7 @@
           },
           {
             "strength": "A familiar first step that most wards can give at once.",
-            "weigh": "Which signs over the next hours would tell you she is getting worse?",
+            "weigh": "Which signs would tell you she needs more than this ward can give her?",
             "safety": ""
           },
           {
@@ -1469,7 +1469,7 @@
           },
           {
             "strength": "เป็นขั้นแรกที่คุ้นเคย และหอผู้ป่วยส่วนใหญ่ให้ได้ทันที",
-            "weigh": "อาการแสดงอะไรในอีกไม่กี่ชั่วโมงที่บอกว่าเธอแย่ลง",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอต้องการมากกว่าที่หอผู้ป่วยนี้ให้ได้",
             "safety": ""
           },
           {
@@ -1486,7 +1486,7 @@
           },
           {
             "strength": "A familiar first step that most wards can give at once.",
-            "weigh": "Which signs over the next hours would tell you she is getting worse?",
+            "weigh": "Which signs would tell you she needs more than this ward can give her?",
             "safety": ""
           },
           {
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step2.e [1] English \"what will you add\" (treatment) did not match the Thai \"what will you test\", now \"check as well\"; step2.e [2] \"How can a sugar number alone guide fluids and insulin\" presupposed it can, now \"How far can\"; step2.W.f [1] presupposed a blood count changes fluids and insulin; step1.a [0] \"before treating her\" nudged toward withholding fluids, now asks for results \"to guide her treatment\"; step1.b [0] echoed the best option's severity line, now builds on two weeks of thirst and weight loss. Should-fixes taken: \"bedside\", \"quick\" and singular \"test\" in step1 lines that steered toward the fingerstick options, the acidity cue in step1.b [2], awkward Thai on urgency and on what she takes home, and a vague step4.d [2]. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab. Replies sha256 840a2356453189e6d0495697e88c915419b7c0c8f192458ec44f147c1c4fbedd.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step2.e [1] English \"what will you add\" (treatment) did not match the Thai \"what will you test\", now \"check as well\"; step2.e [2] \"How can a sugar number alone guide fluids and insulin\" presupposed it can, now \"How far can\"; step2.W.f [1] presupposed a blood count changes fluids and insulin; step1.a [0] \"before treating her\" nudged toward withholding fluids, now asks for results \"to guide her treatment\"; step1.b [0] echoed the best option's severity line, now builds on two weeks of thirst and weight loss. Should-fixes taken: \"bedside\", \"quick\" and singular \"test\" in step1 lines that steered toward the fingerstick options, the acidity cue in step1.b [2], awkward Thai on urgency and on what she takes home, and a vague step4.d [2]. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 123 read, 8 failed: step1 lines that named the sugar crisis, and step4.R.d and W.d [1], which watched \"over the next hours\", now ask which signs show she needs more than this ward can give; the confirm pass found the replacements clean. Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab. Replies sha256 7686dce8d2f86cdcdb79aa5e13c898c0cb41e3f8675b28c5951af879300d0a3a.",
     "tree_sha256": "7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab",
-    "replies_sha256": "840a2356453189e6d0495697e88c915419b7c0c8f192458ec44f147c1c4fbedd"
+    "replies_sha256": "7686dce8d2f86cdcdb79aa5e13c898c0cb41e3f8675b28c5951af879300d0a3a"
   }
 }

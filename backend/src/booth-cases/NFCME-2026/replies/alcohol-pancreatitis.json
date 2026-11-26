@@ -100,7 +100,7 @@
           },
           {
             "strength": "Puts the dangerous cause first, so nothing urgent is missed.",
-            "weigh": "Pain through to the back with a soft abdomen: which tests would settle the cause?",
+            "weigh": "Pain through to the back with an abdomen that is not rigid: which tests would settle the cause?",
             "safety": ""
           },
           {
@@ -136,7 +136,7 @@
           },
           {
             "strength": "Considers a common cause of upper abdominal pain that must not be missed.",
-            "weigh": "Pain through to the back with a soft abdomen: which tests would settle the cause?",
+            "weigh": "Pain through to the back with an abdomen that is not rigid: which tests would settle the cause?",
             "safety": ""
           },
           {
@@ -150,7 +150,7 @@
         "th": [
           {
             "strength": "เชื่อมสุรากับการ**ระคายกระเพาะ** ซึ่งเกิดได้จริงในคนดื่มหนัก",
-            "weigh": "ถ้าให้ยาลดกรดแล้วไม่ดีขึ้น จะส่งตรวจอะไร",
+            "weigh": "ปวดรุนแรงและอาเจียนซ้ำแบบนี้ จะส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -167,7 +167,7 @@
         "en": [
           {
             "strength": "Links drinking to how alcohol **irritates** the stomach, a real effect in heavy drinkers.",
-            "weigh": "If an antacid does not ease him, which tests would you send?",
+            "weigh": "With severe pain and repeated vomiting, which tests would you send first?",
             "safety": ""
           },
           {
@@ -186,7 +186,7 @@
         "th": [
           {
             "strength": "รู้ว่า**แสบลิ้นปี่**หลังดื่มหนักพบได้บ่อยในเวชปฏิบัติ",
-            "weigh": "ถ้าให้ยาลดกรดแล้วยังปวดอยู่ จะส่งตรวจอะไร",
+            "weigh": "ปวดรุนแรงขนาดนี้ จะส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -203,7 +203,7 @@
         "en": [
           {
             "strength": "Knows **burning epigastric** pain after heavy drinking is common in practice.",
-            "weigh": "If the pain persists after an antacid, which tests would you send?",
+            "weigh": "Given how severe the pain is, which tests would you send first?",
             "safety": ""
           },
           {
@@ -373,7 +373,7 @@
           },
           {
             "strength": "CT ช่วยได้มากเมื่อการวินิจฉัยยังไม่ชัด",
-            "weigh": "ถ้าผลเลือดยืนยันโรคภายหลัง จะเริ่มดูแลเขาอย่างไร",
+            "weigh": "ตอนนี้ จะบรรเทาอาการปวดรุนแรงและคลื่นไส้อาเจียนของเขาอย่างไร",
             "safety": ""
           },
           {
@@ -390,7 +390,7 @@
           },
           {
             "strength": "CT is powerful when the diagnosis is in doubt.",
-            "weigh": "If a blood test later confirms it, how will you start his care?",
+            "weigh": "Right now, how will you ease his severe pain and settle his vomiting?",
             "safety": ""
           },
           {
@@ -409,7 +409,7 @@
           },
           {
             "strength": "เป็นการตรวจที่ทำได้เร็วและมีทุกโรงพยาบาล",
-            "weigh": "ถ้าผลเลือดยืนยันโรคภายหลัง จะเริ่มดูแลเขาอย่างไร",
+            "weigh": "ตอนนี้ จะบรรเทาอาการปวดรุนแรงและคลื่นไส้อาเจียนของเขาอย่างไร",
             "safety": ""
           },
           {
@@ -426,7 +426,7 @@
           },
           {
             "strength": "A quick test available in every hospital.",
-            "weigh": "If a blood test later confirms it, how will you start his care?",
+            "weigh": "Right now, how will you ease his severe pain and settle his vomiting?",
             "safety": ""
           },
           {
@@ -591,7 +591,7 @@
           },
           {
             "strength": "ทำได้ง่ายในผู้ป่วยที่ปวดรุนแรง",
-            "weigh": "ถ้าผลเลือดชี้ไปที่ตับอ่อนภายหลัง จะเริ่มดูแลเขาอย่างไร",
+            "weigh": "ตอนนี้ จะบรรเทาอาการปวดรุนแรงและคลื่นไส้อาเจียนของเขาอย่างไร",
             "safety": ""
           },
           {
@@ -608,7 +608,7 @@
           },
           {
             "strength": "Easy to do in a man in severe pain.",
-            "weigh": "If a blood test later points to the pancreas, how will you start his care?",
+            "weigh": "Right now, how will you ease his severe pain and settle his vomiting?",
             "safety": ""
           },
           {
@@ -627,7 +627,7 @@
           },
           {
             "strength": "หาสาเหตุที่แก้ไขได้ของอาการปวดท้องส่วนบน",
-            "weigh": "ถ้าผลเลือดชี้ไปที่ตับอ่อนภายหลัง จะเริ่มดูแลเขาอย่างไร",
+            "weigh": "ตอนนี้ จะบรรเทาอาการปวดรุนแรงและคลื่นไส้อาเจียนของเขาอย่างไร",
             "safety": ""
           },
           {
@@ -644,7 +644,7 @@
           },
           {
             "strength": "Looks for a fixable cause of his pain.",
-            "weigh": "If a blood test later points to the pancreas, how will you start his care?",
+            "weigh": "Right now, how will you ease his severe pain and settle his vomiting?",
             "safety": ""
           },
           {
@@ -809,7 +809,7 @@
           },
           {
             "strength": "เป็นการตรวจที่ทำได้เร็วและมีทุกโรงพยาบาล",
-            "weigh": "ถ้าผลเลือดยืนยันโรคภายหลัง จะเริ่มดูแลเขาอย่างไร",
+            "weigh": "ตอนนี้ จะบรรเทาอาการปวดรุนแรงและคลื่นไส้อาเจียนของเขาอย่างไร",
             "safety": ""
           },
           {
@@ -826,7 +826,7 @@
           },
           {
             "strength": "A quick test available in every hospital.",
-            "weigh": "If a blood test later confirms it, how will you start his care?",
+            "weigh": "Right now, how will you ease his severe pain and settle his vomiting?",
             "safety": ""
           },
           {
@@ -845,7 +845,7 @@
           },
           {
             "strength": "เป็นการตรวจง่ายและไม่เจ็บตัว",
-            "weigh": "ถ้าผลเลือดชี้ไปที่ตับอ่อนภายหลัง จะเริ่มดูแลเขาอย่างไร",
+            "weigh": "ตอนนี้ จะบรรเทาอาการปวดรุนแรงและคลื่นไส้อาเจียนของเขาอย่างไร",
             "safety": ""
           },
           {
@@ -862,7 +862,7 @@
           },
           {
             "strength": "A simple, painless test.",
-            "weigh": "If a blood test later points to the pancreas, how will you start his care?",
+            "weigh": "Right now, how will you ease his severe pain and settle his vomiting?",
             "safety": ""
           },
           {
@@ -960,7 +960,7 @@
           },
           {
             "strength": "คำนึงถึงความสบายของผู้ป่วยขณะที่ยังคลื่นไส้มาก",
-            "weigh": "ถ้าพรุ่งนี้เขายังไม่ดีขึ้นอย่างที่คาด จะดูอะไรก่อน",
+            "weigh": "พรุ่งนี้ อาการแสดงอะไรจะบอกว่าเขาดีขึ้นตามแผนหรือไม่",
             "safety": ""
           }
         ],
@@ -977,7 +977,7 @@
           },
           {
             "strength": "Thinks of his comfort while the nausea is at its worst.",
-            "weigh": "If he is not settling by tomorrow, what will you look at first?",
+            "weigh": "Tomorrow, which signs would tell you he is on track or not?",
             "safety": ""
           }
         ]
@@ -996,7 +996,7 @@
           },
           {
             "strength": "แผนเรียบง่ายที่ทำได้ทันทีในโรงพยาบาลทุกระดับ",
-            "weigh": "ถ้าพรุ่งนี้เขายังไม่ดีขึ้นอย่างที่คาด จะดูอะไรก่อน",
+            "weigh": "พรุ่งนี้ อาการแสดงอะไรจะบอกว่าเขาดีขึ้นตามแผนหรือไม่",
             "safety": ""
           }
         ],
@@ -1013,7 +1013,7 @@
           },
           {
             "strength": "A simple plan any hospital can begin at once.",
-            "weigh": "If he is not settling by tomorrow, what will you look at first?",
+            "weigh": "Tomorrow, which signs would tell you he is on track or not?",
             "safety": ""
           }
         ]
@@ -1178,7 +1178,7 @@
           },
           {
             "strength": "คำนึงถึงความสบายของผู้ป่วยขณะที่ยังคลื่นไส้มาก",
-            "weigh": "ถ้าพรุ่งนี้เขายังไม่ดีขึ้นอย่างที่คาด จะดูอะไรก่อน",
+            "weigh": "พรุ่งนี้ อาการแสดงอะไรจะบอกว่าเขาดีขึ้นตามแผนหรือไม่",
             "safety": ""
           }
         ],
@@ -1195,7 +1195,7 @@
           },
           {
             "strength": "Thinks of his comfort while the nausea is at its worst.",
-            "weigh": "If he is not settling by tomorrow, what will you look at first?",
+            "weigh": "Tomorrow, which signs would tell you he is on track or not?",
             "safety": ""
           }
         ]
@@ -1214,7 +1214,7 @@
           },
           {
             "strength": "รู้ว่าท้องที่ปวดรุนแรงควรมีสองสายตาช่วยกันดู",
-            "weigh": "ถ้าพรุ่งนี้เขายังไม่ดีขึ้นอย่างที่คาด จะดูอะไรก่อน",
+            "weigh": "พรุ่งนี้ อาการแสดงอะไรจะบอกว่าเขาดีขึ้นตามแผนหรือไม่",
             "safety": ""
           }
         ],
@@ -1231,7 +1231,7 @@
           },
           {
             "strength": "Knows a severe abdomen benefits from a second pair of eyes.",
-            "weigh": "If he is not settling by tomorrow, what will you look at first?",
+            "weigh": "Tomorrow, which signs would tell you he is on track or not?",
             "safety": ""
           }
         ]
@@ -1396,7 +1396,7 @@
           },
           {
             "strength": "แผนเรียบง่ายที่ทำได้ทันทีในโรงพยาบาลทุกระดับ",
-            "weigh": "ถ้าพรุ่งนี้เขายังไม่ดีขึ้นอย่างที่คาด จะดูอะไรก่อน",
+            "weigh": "พรุ่งนี้ อาการแสดงอะไรจะบอกว่าเขาดีขึ้นตามแผนหรือไม่",
             "safety": ""
           }
         ],
@@ -1413,7 +1413,7 @@
           },
           {
             "strength": "A simple plan any hospital can begin at once.",
-            "weigh": "If he is not settling by tomorrow, what will you look at first?",
+            "weigh": "Tomorrow, which signs would tell you he is on track or not?",
             "safety": ""
           }
         ]
@@ -1432,7 +1432,7 @@
           },
           {
             "strength": "รู้ว่าท้องที่ปวดรุนแรงควรมีสองสายตาช่วยกันดู",
-            "weigh": "ถ้าพรุ่งนี้เขายังไม่ดีขึ้นอย่างที่คาด จะดูอะไรก่อน",
+            "weigh": "พรุ่งนี้ อาการแสดงอะไรจะบอกว่าเขาดีขึ้นตามแผนหรือไม่",
             "safety": ""
           }
         ],
@@ -1449,7 +1449,7 @@
           },
           {
             "strength": "Knows a severe abdomen benefits from a second pair of eyes.",
-            "weigh": "If he is not settling by tomorrow, what will you look at first?",
+            "weigh": "Tomorrow, which signs would tell you he is on track or not?",
             "safety": ""
           }
         ]
@@ -2112,34 +2112,34 @@
         "th": [
           {
             "strength": "รู้ว่า**คนคุ้นเคย**ทำให้ผู้ป่วยสงบลงได้ ซึ่งเป็นประโยชน์จริง",
-            "weigh": "ถ้าต้องนอนโรงพยาบาลนานขึ้น ควรใช้ช่วงเวลานี้ทำอะไรก่อนกลับบ้าน",
+            "weigh": "เมื่อคุมอาการเหล่านี้ได้แล้ว ก่อนเขากลับบ้านต้องทำอะไรบ้าง",
             "safety": "อาการแบบนี้อาจหนักขึ้นจนเป็นอันตรายได้ในไม่กี่ชั่วโมง หากไม่ได้ประเมินใกล้ชิด"
           },
           {
             "strength": "ใช้วิธีที่ไม่ใช้ยาช่วยให้ผู้ป่วยสงบ ซึ่งเป็นส่วนหนึ่งของการดูแล",
-            "weigh": "หลังกลับบ้าน ชีวิตประจำวันของเขาต้องเปลี่ยนอะไรบ้าง",
+            "weigh": "เมื่อพ้นอันตรายแล้ว ชีวิตประจำวันของเขาที่บ้านต้องเปลี่ยนอะไรบ้าง",
             "safety": "อาการนี้อาจรุนแรงจนอันตรายถึงชีวิตได้ในเวลาไม่นาน หากไม่ได้เฝ้าดูใกล้ชิด"
           },
           {
             "strength": "ยังมีไดอะซีแพมเตรียมไว้ ไม่ได้ปล่อยอาการไว้โดยไม่มีแผน",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้เกิดซ้ำอีก",
+            "weigh": "เมื่อเขาอาการคงที่ อะไรจะช่วยไม่ให้เกิดซ้ำอีกหลังกลับบ้าน",
             "safety": "หากไม่ได้รักษาเต็มที่ อาการชุดนี้อาจลุกลามจนเป็นอันตรายได้ภายในไม่กี่ชั่วโมง"
           }
         ],
         "en": [
           {
             "strength": "Knows **a familiar face** can settle a patient, which really helps.",
-            "weigh": "If his stay runs longer, what should that time be used for before he goes?",
+            "weigh": "Once these symptoms are controlled, what must happen before he goes home?",
             "safety": "Symptoms like these can turn dangerous within hours without close, regular assessment."
           },
           {
             "strength": "Uses a non-drug way to settle him, which is a real part of care.",
-            "weigh": "Once home, what in his daily life needs to change?",
+            "weigh": "Once he is out of danger, what in his daily life will need to change at home?",
             "safety": "This picture can become life-threatening quickly if he is not watched closely."
           },
           {
             "strength": "Keeps diazepam on hand, so the symptoms are not left without a plan.",
-            "weigh": "What will help stop this happening again after he leaves?",
+            "weigh": "When he is stable, what will help stop this happening again after he leaves?",
             "safety": "Undertreated, these symptoms can progress to a dangerous state within hours."
           }
         ]
@@ -2803,8 +2803,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a and step1.b [0] copied the best option's \"confirms it and gauges severity\", now ask which results would guide treatment and planning; \"severe pain to the back\" (step1.e and step1.f [1]) was verbatim from the lipase line; the Thai of \"if a blood test later points to the pancreas\" said \"confirms\", now \"ชี้ไปที่\"; the step2 drinking-history line handed over the thiamine/withdrawal rationale, now asks how to begin care with repeated vomiting and a pulse of 110; step3 \"pain eases and he feels hungry\" copied a step4 variant, \"pulse stays fast\" paraphrased the best option's line and \"reassess\" was its verb; \"last drink was at the weekend\" was not in the case, now \"drunk daily for 10 years\"; \"who at home\" pointed at the wife-inclusive option. \"Before deciding how to treat him\" nudged toward waiting and now asks for results to guide treatment. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e. Replies sha256 d89f412031b201e21c4118d55337bdb76b4e34dc915faef7d26e3ea81a70ed23.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a and step1.b [0] copied the best option's \"confirms it and gauges severity\", now ask which results would guide treatment and planning; \"severe pain to the back\" (step1.e and step1.f [1]) was verbatim from the lipase line; the Thai of \"if a blood test later points to the pancreas\" said \"confirms\", now \"ชี้ไปที่\"; the step2 drinking-history line handed over the thiamine/withdrawal rationale, now asks how to begin care with repeated vomiting and a pulse of 110; step3 \"pain eases and he feels hungry\" copied a step4 variant, \"pulse stays fast\" paraphrased the best option's line and \"reassess\" was its verb; \"last drink was at the weekend\" was not in the case, now \"drunk daily for 10 years\"; \"who at home\" pointed at the wife-inclusive option. \"Before deciding how to treat him\" nudged toward waiting and now asks for results to guide treatment. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 177 read, 13 failed: step1 antacid-first lines that delayed tests for severe pain, \"soft abdomen\", six \"if a blood test later points to the pancreas\" lines that deferred care, now ask how to ease his pain and vomiting now, and the step4.W.relative lines; the confirm pass found the replacements clean. Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e. Replies sha256 125fe99980900b449dfa10b9ef4dc46d5ba01d40af8eab83cc76ef8425eecbf7.",
     "tree_sha256": "77cd950b0dcf191cc7b0782cf35d55ed1456c5bb8ba3498e76eabc267979b31e",
-    "replies_sha256": "d89f412031b201e21c4118d55337bdb76b4e34dc915faef7d26e3ea81a70ed23"
+    "replies_sha256": "125fe99980900b449dfa10b9ef4dc46d5ba01d40af8eab83cc76ef8425eecbf7"
   }
 }

@@ -42,7 +42,7 @@
         "th": [
           {
             "strength": "ใช้**ปวดร้าวที่ปลายไหล่**เป็นสัญญาณของเลือดใต้กะบังลม เป็นการอ่านอาการที่คม",
-            "weigh": "ผู้ป่วยที่มีเลือดออกในท้องแบบนี้ ควรส่งตรวจอะไรก่อน",
+            "weigh": "ผู้ป่วยที่ซีดและเหงื่อออกแบบนี้ ควรส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -59,7 +59,7 @@
         "en": [
           {
             "strength": "Using **shoulder-tip pain** as a sign of blood under the diaphragm is sharp clinical reading.",
-            "weigh": "Which first tests would you send for a woman bleeding inside?",
+            "weigh": "For a woman this pale and sweaty, which first tests would you send?",
             "safety": ""
           },
           {
@@ -160,7 +160,7 @@
           },
           {
             "strength": "ใช้ความเคยชินที่นึกถึง**ไส้ติ่งอักเสบ**ก่อน ทำให้เริ่มได้เร็ว",
-            "weigh": "ความดัน 88/56 ระหว่างให้สารน้ำ จะส่งตรวจอะไรเป็นอย่างแรก",
+            "weigh": "ความดัน 88/56 และปวดท้องแบบนี้ ตอนนี้จะส่งตรวจอะไรเป็นอย่างแรก",
             "safety": ""
           }
         ],
@@ -177,7 +177,7 @@
           },
           {
             "strength": "Going with the usual **first thought** gets you started quickly.",
-            "weigh": "With a BP of 88/56, which first tests would you send while fluids run?",
+            "weigh": "With a BP of 88/56 and this pain, which first tests would you send now?",
             "safety": ""
           }
         ]
@@ -229,7 +229,7 @@
           },
           {
             "strength": "ยืนยันการตั้งครรภ์และหาเลือดในท้องไปพร้อมกัน",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้แม้ให้สารน้ำแล้ว เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -246,7 +246,7 @@
           },
           {
             "strength": "Confirming pregnancy and looking for blood in the abdomen go together here.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low on fluids, what does she need from you next?",
             "safety": ""
           },
           {
@@ -260,12 +260,12 @@
         "th": [
           {
             "strength": "เตรียมเลือดไว้ล่วงหน้าสำหรับสิ่งที่น่าจะต้องใช้",
-            "weigh": "เมื่อเลือดกำลังมา อะไรจะหยุดการเสียเลือดได้จริง",
+            "weigh": "เมื่อเลือดกำลังมา ต้องทำอะไรต่อเพื่อจัดการต้นเหตุ",
             "safety": ""
           },
           {
             "strength": "**จองเลือดไว้เลย** ช่วยประหยัดเวลาเมื่อถึงคราวต้องใช้",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้แม้ให้สารน้ำแล้ว เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -277,12 +277,12 @@
         "en": [
           {
             "strength": "You prepared blood ahead for the likely next need.",
-            "weigh": "With blood on the way, what will stop the loss itself?",
+            "weigh": "With blood on the way, what must happen next to deal with the cause?",
             "safety": ""
           },
           {
             "strength": "Choosing to **match it now** saves time when the blood is needed.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low on fluids, what does she need from you next?",
             "safety": ""
           },
           {
@@ -301,7 +301,7 @@
           },
           {
             "strength": "หา**น้ำในช่องท้อง**ทันที เหมาะกับผู้ป่วยที่ไม่คงที่จนย้ายไม่ได้",
-            "weigh": "ถ้าความดันยังลดลง ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
+            "weigh": "ความดันต่ำขนาดนี้ ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
             "safety": ""
           },
           {
@@ -318,7 +318,7 @@
           },
           {
             "strength": "Looking for **free fluid** at once fits a patient too unstable to leave the ER.",
-            "weigh": "If her BP keeps falling, what must be ready for her right now?",
+            "weigh": "With her BP this low, what must be ready for her right now?",
             "safety": ""
           },
           {
@@ -332,12 +332,12 @@
         "th": [
           {
             "strength": "**เจาะซ้ำ**ทุกชั่วโมง ช่วยให้เห็นแนวโน้มของการเสียเลือด",
-            "weigh": "ถ้าเธอซีดลงก่อนผลรอบถัดไป จะทำอย่างไร",
+            "weigh": "ไม่ต้องรอผล CBC รอบถัดไป ตอนนี้จะทำอะไรให้เธอ",
             "safety": ""
           },
           {
             "strength": "เลือกการตรวจที่ทำได้ทุก รพ. และอ่านผลง่าย",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้แม้ให้สารน้ำแล้ว เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -349,12 +349,12 @@
         "en": [
           {
             "strength": "**Repeat counts** each hour show the trend of her blood loss.",
-            "weigh": "If she grows paler before the next count, what will you do?",
+            "weigh": "Without waiting for the next count, what will you do for her now?",
             "safety": ""
           },
           {
             "strength": "You chose a test every hospital can run and read easily.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low on fluids, what does she need from you next?",
             "safety": ""
           },
           {
@@ -375,7 +375,7 @@
           },
           {
             "strength": "ยืนยันการตั้งครรภ์และหาเลือดในท้องไปพร้อมกัน",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้แม้ให้สารน้ำแล้ว เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -392,7 +392,7 @@
           },
           {
             "strength": "Confirming pregnancy and looking for blood in the abdomen go together here.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low on fluids, what does she need from you next?",
             "safety": ""
           },
           {
@@ -406,12 +406,12 @@
         "th": [
           {
             "strength": "เตรียมเลือดไว้ล่วงหน้าสำหรับสิ่งที่น่าจะต้องใช้",
-            "weigh": "เมื่อเลือดกำลังมา อะไรจะหยุดการเสียเลือดได้จริง",
+            "weigh": "เมื่อเลือดกำลังมา ต้องทำอะไรต่อเพื่อจัดการต้นเหตุ",
             "safety": ""
           },
           {
             "strength": "**จองเลือดไว้เลย** ช่วยประหยัดเวลาเมื่อถึงคราวต้องใช้",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้แม้ให้สารน้ำแล้ว เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -423,12 +423,12 @@
         "en": [
           {
             "strength": "You prepared blood ahead for the likely next need.",
-            "weigh": "With blood on the way, what will stop the loss itself?",
+            "weigh": "With blood on the way, what must happen next to deal with the cause?",
             "safety": ""
           },
           {
             "strength": "Choosing to **match it now** saves time when the blood is needed.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low on fluids, what does she need from you next?",
             "safety": ""
           },
           {
@@ -447,7 +447,7 @@
           },
           {
             "strength": "หา**น้ำในช่องท้อง**ทันที เหมาะกับผู้ป่วยที่ไม่คงที่จนย้ายไม่ได้",
-            "weigh": "ถ้าความดันยังลดลง ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
+            "weigh": "ความดันต่ำขนาดนี้ ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
             "safety": ""
           },
           {
@@ -464,7 +464,7 @@
           },
           {
             "strength": "Looking for **free fluid** at once fits a patient too unstable to leave the ER.",
-            "weigh": "If her BP keeps falling, what must be ready for her right now?",
+            "weigh": "With her BP this low, what must be ready for her right now?",
             "safety": ""
           },
           {
@@ -478,12 +478,12 @@
         "th": [
           {
             "strength": "**เจาะซ้ำ**ทุกชั่วโมง ช่วยให้เห็นแนวโน้มของการเสียเลือด",
-            "weigh": "ถ้าเธอซีดลงก่อนผลรอบถัดไป จะทำอย่างไร",
+            "weigh": "ไม่ต้องรอผล CBC รอบถัดไป ตอนนี้จะทำอะไรให้เธอ",
             "safety": ""
           },
           {
             "strength": "เลือกการตรวจที่ทำได้ทุก รพ. และอ่านผลง่าย",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้แม้ให้สารน้ำแล้ว เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -495,12 +495,12 @@
         "en": [
           {
             "strength": "**Repeat counts** each hour show the trend of her blood loss.",
-            "weigh": "If she grows paler before the next count, what will you do?",
+            "weigh": "Without waiting for the next count, what will you do for her now?",
             "safety": ""
           },
           {
             "strength": "You chose a test every hospital can run and read easily.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low on fluids, what does she need from you next?",
             "safety": ""
           },
           {
@@ -521,7 +521,7 @@
           },
           {
             "strength": "ยืนยันการตั้งครรภ์และหาเลือดในท้องไปพร้อมกัน",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้ เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -538,7 +538,7 @@
           },
           {
             "strength": "Confirming pregnancy and looking for blood in the abdomen go together here.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low, what does she need from you next?",
             "safety": ""
           },
           {
@@ -552,12 +552,12 @@
         "th": [
           {
             "strength": "เตรียมเลือดไว้ล่วงหน้าสำหรับสิ่งที่น่าจะต้องใช้",
-            "weigh": "เมื่อเลือดกำลังมา อะไรจะหยุดการเสียเลือดได้จริง",
+            "weigh": "เมื่อเลือดกำลังมา ต้องทำอะไรต่อเพื่อจัดการต้นเหตุ",
             "safety": ""
           },
           {
             "strength": "**จองเลือดไว้เลย** ช่วยประหยัดเวลาเมื่อถึงคราวต้องใช้",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้ เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -569,12 +569,12 @@
         "en": [
           {
             "strength": "You prepared blood ahead for the likely next need.",
-            "weigh": "With blood on the way, what will stop the loss itself?",
+            "weigh": "With blood on the way, what must happen next to deal with the cause?",
             "safety": ""
           },
           {
             "strength": "Choosing to **match it now** saves time when the blood is needed.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low, what does she need from you next?",
             "safety": ""
           },
           {
@@ -588,12 +588,12 @@
         "th": [
           {
             "strength": "ได้**ระดับฮอร์โมน**เป็นตัวเลขไว้อ่านคู่อัลตราซาวด์ ซึ่งช่วยได้ในผู้ป่วยที่คงที่",
-            "weigh": "ถ้าผลกลับมาสูง อะไรเป็นตัวตัดสินขั้นต่อไปของเธอ",
+            "weigh": "ไม่ว่าระดับที่ได้จะเป็นอย่างไร อะไรเป็นตัวตัดสินขั้นต่อไปของเธอ",
             "safety": ""
           },
           {
             "strength": "มองหาการยืนยันที่วัดได้ ไม่พึ่งประวัติอย่างเดียว",
-            "weigh": "ถ้าความดันยังลดลง ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
+            "weigh": "ความดันต่ำขนาดนี้ ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
             "safety": ""
           },
           {
@@ -605,12 +605,12 @@
         "en": [
           {
             "strength": "A **hormone level** gives a number to pair with the scan, which helps in stable patients.",
-            "weigh": "If the result comes back raised, what decides your next move for her?",
+            "weigh": "Whatever the level shows, what decides your next move for her?",
             "safety": ""
           },
           {
             "strength": "You looked for objective confirmation rather than relying on history alone.",
-            "weigh": "If her BP keeps falling, what must be ready for her right now?",
+            "weigh": "With her BP this low, what must be ready for her right now?",
             "safety": ""
           },
           {
@@ -629,7 +629,7 @@
           },
           {
             "strength": "หา**น้ำในช่องท้อง**ทันที เหมาะกับผู้ป่วยที่ไม่คงที่จนย้ายไม่ได้",
-            "weigh": "ถ้าความดันยังลดลง ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
+            "weigh": "ความดันต่ำขนาดนี้ ต้องเตรียมอะไรไว้ให้เธอพร้อมทันที",
             "safety": ""
           },
           {
@@ -646,7 +646,7 @@
           },
           {
             "strength": "Looking for **free fluid** at once fits a patient too unstable to leave the ER.",
-            "weigh": "If her BP keeps falling, what must be ready for her right now?",
+            "weigh": "With her BP this low, what must be ready for her right now?",
             "safety": ""
           },
           {
@@ -660,12 +660,12 @@
         "th": [
           {
             "strength": "**เจาะซ้ำ**ทุกชั่วโมง ช่วยให้เห็นแนวโน้มของการเสียเลือด",
-            "weigh": "ถ้าเธอซีดลงก่อนผลรอบถัดไป จะทำอย่างไร",
+            "weigh": "ไม่ต้องรอผล CBC รอบถัดไป ตอนนี้จะทำอะไรให้เธอ",
             "safety": ""
           },
           {
             "strength": "เลือกการตรวจที่ทำได้ทุก รพ. และอ่านผลง่าย",
-            "weigh": "ถ้าให้สารน้ำแล้วความดันยังลดลง เธอต้องการอะไรจากคุณต่อ",
+            "weigh": "ความดันต่ำขนาดนี้ เธอต้องการอะไรจากคุณต่อ",
             "safety": ""
           },
           {
@@ -677,12 +677,12 @@
         "en": [
           {
             "strength": "**Repeat counts** each hour show the trend of her blood loss.",
-            "weigh": "If she grows paler before the next count, what will you do?",
+            "weigh": "Without waiting for the next count, what will you do for her now?",
             "safety": ""
           },
           {
             "strength": "You chose a test every hospital can run and read easily.",
-            "weigh": "If her BP keeps falling on fluids, what does she need from you next?",
+            "weigh": "With her BP this low, what does she need from you next?",
             "safety": ""
           },
           {
@@ -1249,7 +1249,7 @@
           },
           {
             "strength": "ปรับแผนให้เข้ากับผู้ป่วยที่คงที่แล้ว ไม่ต้องนอนติดเตียงหรือคาสายน้ำเกลือ",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1266,7 +1266,7 @@
           },
           {
             "strength": "You matched the plan to a stable patient who no longer needs drips and bed rest.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1285,7 +1285,7 @@
           },
           {
             "strength": "ต้องการหลักฐานว่าเลือดหยุดแล้ว ไม่ด่วนสรุปเอง",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1302,7 +1302,7 @@
           },
           {
             "strength": "You wanted proof the bleeding has stopped rather than assuming it.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1321,7 +1321,7 @@
           },
           {
             "strength": "คิดถึงความเสี่ยงการติดเชื้อ แสดงความใส่ใจเกินกว่าเรื่องเลือดออก",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1338,7 +1338,7 @@
           },
           {
             "strength": "Thinking about infection risk shows attention beyond the immediate bleeding.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1357,7 +1357,7 @@
           },
           {
             "strength": "นึกถึงสถานะ Rh หลังเสียครรภ์ เป็นงานประจำที่คุ้นมือ",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1374,7 +1374,7 @@
           },
           {
             "strength": "Remembering Rh status after a pregnancy loss is familiar routine work.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1395,7 +1395,7 @@
           },
           {
             "strength": "ให้ทีละยูนิต สอดคล้องกับแนวทางการให้เลือดแบบจำกัดในปัจจุบัน",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1412,7 +1412,7 @@
           },
           {
             "strength": "A single-unit approach matches modern, restrictive transfusion practice.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1431,7 +1431,7 @@
           },
           {
             "strength": "เห็นโอกาสที่ต้อง**กลับไปผ่าตัด**แต่เนิ่น ๆ ช่วยป้องกันการทรุดซ้ำ",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1448,7 +1448,7 @@
           },
           {
             "strength": "Spotting a possible **return to theatre** early protects her from a second collapse.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1467,7 +1467,7 @@
           },
           {
             "strength": "วางจุด**ประเมินซ้ำ**ไว้ ให้การตอบสนองเป็นตัวนำขั้นต่อไป",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1484,7 +1484,7 @@
           },
           {
             "strength": "You built in a reassessment, so the response guides what comes next.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1503,7 +1503,7 @@
           },
           {
             "strength": "วางการ**ตรวจซ้ำ**ไว้ ให้การตอบสนองกำหนดขั้นต่อไป",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1520,7 +1520,7 @@
           },
           {
             "strength": "You built in a **recheck**, so the response shapes the next move.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1539,7 +1539,7 @@
           },
           {
             "strength": "ให้ความสำคัญกับชีพจร 106 และ Hb ต่ำ แสดงความห่วงใยต่อความปลอดภัยของเธอ",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1556,7 +1556,7 @@
           },
           {
             "strength": "Taking her pulse of 106 and low Hb seriously shows concern for her safety.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1577,7 +1577,7 @@
           },
           {
             "strength": "ตรวจ**น่อง**ด้วย แสดงว่าไม่ลืมลิ่มเลือดเป็นสาเหตุของไข้หลังผ่าตัด",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1594,7 +1594,7 @@
           },
           {
             "strength": "Checking the **calves** shows you remember clots as a cause of fever after surgery.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1613,7 +1613,7 @@
           },
           {
             "strength": "เก็บเชื้อเพาะแต่เนิ่น ๆ ทำให้การรักษาภายหลังตรงเป้า",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1630,7 +1630,7 @@
           },
           {
             "strength": "Taking cultures early keeps later treatment targeted.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1649,7 +1649,7 @@
           },
           {
             "strength": "มองไข้ใหม่หลังผ่าตัดว่าอาจร้ายแรง ไม่ใช่เรื่องธรรมดา",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1666,7 +1666,7 @@
           },
           {
             "strength": "You treated a new fever after surgery as potentially serious, not routine.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -1685,7 +1685,7 @@
           },
           {
             "strength": "ดูแลให้เธอสบายตัว พร้อมเฝ้าดูแนวโน้มต่อเนื่อง",
-            "weigh": "หลังกลับบ้าน อะไรจะยืนยันได้ว่าการตั้งครรภ์ครั้งนี้สิ้นสุดแล้วจริง",
+            "weigh": "เมื่อกลับบ้านแล้ว การตั้งครรภ์ครั้งนี้ยังต้องติดตามอะไรอีกบ้าง",
             "safety": ""
           },
           {
@@ -1702,7 +1702,7 @@
           },
           {
             "strength": "You kept her comfortable while keeping watch on her trend.",
-            "weigh": "After she leaves, what will confirm that this pregnancy has fully ended?",
+            "weigh": "Once she is home, what follow-up does this pregnancy still call for?",
             "safety": ""
           },
           {
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"pregnancy test\", \"bedside\" and \"prepare the blood\" in step1 lines were the best options' wording, now ask which first tests she needs and why her pressure is low; \"fresh blood loss\" (step3 lap [2]) and \"support\" (step4 [2]) were the step 4 and step 5 best options' words; a later pass found \"show most quickly\" and \"at once\" echoed the scan options' lines, now \"In shock like this, which first tests would you send now?\" and \"which first tests does she need while fluids are running?\". Should-fixes taken: the dangling \"before the surgeon needs it\", \"level comes back positive\" for a quantitative test, step3 fever and blood lines that pointed at the sites or did not fit the Day 1 variant, \"future pregnancy\" (near-copy of \"next pregnancy\"), and Thai that did not match the English on discharge timing. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 060cbb1f4d6f3e263f16847d158824616aeb39f32288f3198d8c08cc6e1b6768. Replies sha256 63f3a1783333e8d32afe841c5a2d9c6762cd40b8cedc2fcc0f3fbf0f0a10e291.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"pregnancy test\", \"bedside\" and \"prepare the blood\" in step1 lines were the best options' wording, now ask which first tests she needs and why her pressure is low; \"fresh blood loss\" (step3 lap [2]) and \"support\" (step4 [2]) were the step 4 and step 5 best options' words; a later pass found \"show most quickly\" and \"at once\" echoed the scan options' lines, now \"In shock like this, which first tests would you send now?\" and \"which first tests does she need while fluids are running?\". Should-fixes taken: the dangling \"before the surgeon needs it\", \"level comes back positive\" for a quantitative test, step3 fever and blood lines that pointed at the sites or did not fit the Day 1 variant, \"future pregnancy\" (near-copy of \"next pregnancy\"), and Thai that did not match the English on discharge timing. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 141 read, 35 failed: step1 \"bleeding inside\" and \"while fluids run\", \"before the next count\", \"what will stop the loss\", \"if the result comes back raised\", \"if her BP keeps falling\" where it is already low, and the step4 [1] line on all 13 paths, now asks what follow-up the pregnancy still calls for; confirm passes then removed \"on fluids\" on the step2.W paths (only one variant shows fluids) and made the Thai say \"ผล CBC\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 060cbb1f4d6f3e263f16847d158824616aeb39f32288f3198d8c08cc6e1b6768. Replies sha256 bb1f43f3e9c75d72e6d54e8bc7f42bb9e06032ffba6eddb0e625939586dba0b7.",
     "tree_sha256": "060cbb1f4d6f3e263f16847d158824616aeb39f32288f3198d8c08cc6e1b6768",
-    "replies_sha256": "63f3a1783333e8d32afe841c5a2d9c6762cd40b8cedc2fcc0f3fbf0f0a10e291"
+    "replies_sha256": "bb1f43f3e9c75d72e6d54e8bc7f42bb9e06032ffba6eddb0e625939586dba0b7"
   }
 }

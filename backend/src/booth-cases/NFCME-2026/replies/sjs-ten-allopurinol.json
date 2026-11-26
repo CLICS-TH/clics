@@ -224,7 +224,7 @@
         "th": [
           {
             "strength": "หาหลักฐานจากชิ้นเนื้อเพื่อยืนยันโรค",
-            "weigh": "ถ้ายืนยันการวินิจฉัยได้ จะหยุดอะไร และเขาควรไปอยู่ที่ไหน",
+            "weigh": "ผิวหนังลอกมากขนาดนี้แล้ว ตอนนี้ควรทำอะไรให้เขา",
             "safety": ""
           },
           {
@@ -241,7 +241,7 @@
         "en": [
           {
             "strength": "Seeks tissue proof of the diagnosis.",
-            "weigh": "If the diagnosis is confirmed, what must stop, and where should he go?",
+            "weigh": "With the skin already peeling this much, what should be done for him right now?",
             "safety": ""
           },
           {
@@ -260,7 +260,7 @@
         "th": [
           {
             "strength": "เก็บ**เพาะเชื้อในเลือด**ไว้เป็นพื้นฐาน",
-            "weigh": "ถ้ายืนยันการวินิจฉัยได้ จะหยุดอะไร และเขาควรไปอยู่ที่ไหน",
+            "weigh": "ผิวหนังลอกมากขนาดนี้แล้ว ตอนนี้ควรทำอะไรให้เขา",
             "safety": ""
           },
           {
@@ -277,7 +277,7 @@
         "en": [
           {
             "strength": "Gets a baseline **blood culture**.",
-            "weigh": "If the diagnosis is confirmed, what must stop, and where should he go?",
+            "weigh": "With the skin already peeling this much, what should be done for him right now?",
             "safety": ""
           },
           {
@@ -442,7 +442,7 @@
         "th": [
           {
             "strength": "มองหาการลุกลามไปยังอวัยวะอื่น ซึ่งการแพ้ยาอาจพาไปด้วย",
-            "weigh": "ถ้ายืนยันการวินิจฉัยได้ จะหยุดอะไร และเขาควรไปอยู่ที่ไหน",
+            "weigh": "ผิวหนังลอกมากขนาดนี้แล้ว ตอนนี้ควรทำอะไรให้เขา",
             "safety": ""
           },
           {
@@ -459,7 +459,7 @@
         "en": [
           {
             "strength": "Looks for organ involvement, which a drug reaction can bring with it.",
-            "weigh": "If the diagnosis is confirmed, what must stop, and where should he go?",
+            "weigh": "With the skin already peeling this much, what should be done for him right now?",
             "safety": ""
           },
           {
@@ -588,7 +588,7 @@
         "th": [
           {
             "strength": "หาหลักฐานจากชิ้นเนื้อที่แยก**โรคตุ่มน้ำ**แต่ละชนิดออกจากกันได้",
-            "weigh": "ถ้ายืนยันการวินิจฉัยได้ จะหยุดอะไร และเขาควรไปอยู่ที่ไหน",
+            "weigh": "ผิวหนังลอกมากขนาดนี้แล้ว ตอนนี้ควรทำอะไรให้เขา",
             "safety": ""
           },
           {
@@ -605,7 +605,7 @@
         "en": [
           {
             "strength": "Seeks tissue proof that can tell one **blistering disease** from another.",
-            "weigh": "If the diagnosis is confirmed, what must stop, and where should he go?",
+            "weigh": "With the skin already peeling this much, what should be done for him right now?",
             "safety": ""
           },
           {
@@ -624,7 +624,7 @@
         "th": [
           {
             "strength": "เก็บ**เพาะเชื้อในเลือด**ไว้เป็นพื้นฐาน",
-            "weigh": "ถ้ายืนยันการวินิจฉัยได้ จะหยุดอะไร และเขาควรไปอยู่ที่ไหน",
+            "weigh": "ผิวหนังลอกมากขนาดนี้แล้ว ตอนนี้ควรทำอะไรให้เขา",
             "safety": ""
           },
           {
@@ -641,7 +641,7 @@
         "en": [
           {
             "strength": "Gets a baseline **blood culture**.",
-            "weigh": "If the diagnosis is confirmed, what must stop, and where should he go?",
+            "weigh": "With the skin already peeling this much, what should be done for him right now?",
             "safety": ""
           },
           {
@@ -2299,8 +2299,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step3 [1] \"raw skin keeps losing fluid\" and [2] \"skin loss can still spread\" repeated the step 4 best options' lines, and the later \"before he goes\" showed a fact only one variant has; step1.d and step1.e [0] paraphrased the only best option in step2.W, \"measure the detached skin area\"; the step1 severity lines then echoed \"grades how severe\", now ask which first tests matter most; step2 [1] \"which unit can care for skin loss of this size\" answered itself with the burn-unit line, now asks what must be decided today; step4 [0] eye follow-up line restated the eye-clinic option and \"gritty\" was not in every variant, now asks what still needs attention at discharge. Should-fixes taken: \"BP falls\" where both variants already show 94/60, and translated-sounding Thai on his raw skin. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 3078dc8c0f1aa149af7cfd9bfbb87c7eb8be039b4f03e000f1b5045961080fed. Replies sha256 99f48d590b76fa31dff0c47b2d494407c98dbe3e64a47a8cf6aa2f888a7d175b.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step3 [1] \"raw skin keeps losing fluid\" and [2] \"skin loss can still spread\" repeated the step 4 best options' lines, and the later \"before he goes\" showed a fact only one variant has; step1.d and step1.e [0] paraphrased the only best option in step2.W, \"measure the detached skin area\"; the step1 severity lines then echoed \"grades how severe\", now ask which first tests matter most; step2 [1] \"which unit can care for skin loss of this size\" answered itself with the burn-unit line, now asks what must be decided today; step4 [0] eye follow-up line restated the eye-clinic option and \"gritty\" was not in every variant, now asks what still needs attention at discharge. Should-fixes taken: \"BP falls\" where both variants already show 94/60, and translated-sounding Thai on his raw skin. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 144 read, 5 failed: \"If the diagnosis is confirmed\" deferred stopping the drug; the confirm pass found its replacement restated the burn-unit option, now \"With the skin already peeling this much, what should be done for him right now?\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 3078dc8c0f1aa149af7cfd9bfbb87c7eb8be039b4f03e000f1b5045961080fed. Replies sha256 ecc2392ce34b59b87f9b8cebdf7fd3f667f314e90cb0415e28cf91ebc3cc1b2f.",
     "tree_sha256": "3078dc8c0f1aa149af7cfd9bfbb87c7eb8be039b4f03e000f1b5045961080fed",
-    "replies_sha256": "99f48d590b76fa31dff0c47b2d494407c98dbe3e64a47a8cf6aa2f888a7d175b"
+    "replies_sha256": "ecc2392ce34b59b87f9b8cebdf7fd3f667f314e90cb0415e28cf91ebc3cc1b2f"
   }
 }

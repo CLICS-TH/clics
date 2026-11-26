@@ -1642,12 +1642,12 @@
         "th": [
           {
             "strength": "ทดแทน**น้ำที่ยังขาดอยู่**ทางหลอดเลือดได้แน่นอน",
-            "weigh": "ถ้าถึงเช้าเธอกลับมาขาดน้ำอีก ควรได้รับการดูแลที่ไหน",
+            "weigh": "หลังขั้นตอนนี้ ควรดูแลเธอต่อที่ไหนจึงจะปลอดภัยที่สุด",
             "safety": ""
           },
           {
             "strength": "ได้ปริมาณน้ำแน่นอนโดยไม่ขึ้นกับการอาเจียน",
-            "weigh": "อาการแสดงอะไรในคืนนี้ที่บอกว่าเธอเริ่มขาดน้ำอีก",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอได้รับน้ำไม่ทันกับที่เสียไป",
             "safety": ""
           },
           {
@@ -1659,12 +1659,12 @@
         "en": [
           {
             "strength": "Replaces the **remaining deficit** reliably by vein.",
-            "weigh": "If she is dry again by morning, where should she be cared for?",
+            "weigh": "After this step, where is the safest place to continue her care?",
             "safety": ""
           },
           {
             "strength": "Gives a guaranteed volume regardless of vomiting.",
-            "weigh": "Which signs overnight would tell you she is falling behind?",
+            "weigh": "Which signs would tell you she is falling behind on fluids?",
             "safety": ""
           },
           {
@@ -1678,12 +1678,12 @@
         "th": [
           {
             "strength": "ยังให้**แผน B ซ้ำ**เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรีย",
-            "weigh": "ถ้าถึงเช้าเธอกลับมาขาดน้ำอีก ควรได้รับการดูแลที่ไหน",
+            "weigh": "หลังขั้นตอนนี้ ควรดูแลเธอต่อที่ไหนจึงจะปลอดภัยที่สุด",
             "safety": ""
           },
           {
             "strength": "ให้น้ำทางปากต่อ และพิจารณาสาเหตุจากแบคทีเรีย",
-            "weigh": "อาการแสดงอะไรในคืนนี้ที่บอกว่าเธอเริ่มขาดน้ำอีก",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอได้รับน้ำไม่ทันกับที่เสียไป",
             "safety": ""
           },
           {
@@ -1695,12 +1695,12 @@
         "en": [
           {
             "strength": "Keeps **Plan B again** at the core while thinking about bacteria.",
-            "weigh": "If she is dry again by morning, where should she be cared for?",
+            "weigh": "After this step, where is the safest place to continue her care?",
             "safety": ""
           },
           {
             "strength": "Continues oral rehydration and considers a bacterial cause.",
-            "weigh": "Which signs overnight would tell you she is falling behind?",
+            "weigh": "Which signs would tell you she is falling behind on fluids?",
             "safety": ""
           },
           {
@@ -1860,12 +1860,12 @@
         "th": [
           {
             "strength": "ให้น้ำ**ทางหลอดเลือด**เมื่ออาเจียนจนดื่ม ORS ไม่ได้",
-            "weigh": "ถ้าถึงเช้าเธอกลับมาขาดน้ำอีก ควรได้รับการดูแลที่ไหน",
+            "weigh": "หลังขั้นตอนนี้ ควรดูแลเธอต่อที่ไหนจึงจะปลอดภัยที่สุด",
             "safety": ""
           },
           {
             "strength": "ให้น้ำได้แน่นอนและหาสาเหตุของอาการถ่ายเหลวไปด้วย",
-            "weigh": "อาการแสดงอะไรในคืนนี้ที่บอกว่าเธอเริ่มขาดน้ำอีก",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอได้รับน้ำไม่ทันกับที่เสียไป",
             "safety": ""
           },
           {
@@ -1877,12 +1877,12 @@
         "en": [
           {
             "strength": "Rehydrates **by vein** when vomiting stops ORS working.",
-            "weigh": "If she is dry again by morning, where should she be cared for?",
+            "weigh": "After this step, where is the safest place to continue her care?",
             "safety": ""
           },
           {
             "strength": "Secures fluids and seeks the cause of the diarrhoea.",
-            "weigh": "Which signs overnight would tell you she is falling behind?",
+            "weigh": "Which signs would tell you she is falling behind on fluids?",
             "safety": ""
           },
           {
@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1 lines paraphrased \"Weight and dehydration signs\" (\"grade how dry\", \"bedside signs\"), and \"before any fluid goes in\" could read as delaying ORS; step3 [1] \"what does her mother need to carry on at home\" echoed the teach-the-mother option; step4 \"at home\" lines presumed discharge, the very step 5 decision, and sat against the admit-best step5.R scenario, now ask how fluid losses will be replaced; \"not safe to leave\" was the danger-sign teaching line, and its replacement \"if she is well at this recheck\" misfit the paths where she is not, now \"Once the next recheck shows her improving\" on those paths; step3 [2] \"which signs will show she is rehydrated\" fit poorly where step 4 shows her still slightly dry, now asks which signs show she is not yet rehydrated. Should-fix taken: Thai missing \"ได้\". Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Replies sha256 39c8e95000cc95002caf2cb081af5aebca63043446c74577d2857060cc41f436.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1 lines paraphrased \"Weight and dehydration signs\" (\"grade how dry\", \"bedside signs\"), and \"before any fluid goes in\" could read as delaying ORS; step3 [1] \"what does her mother need to carry on at home\" echoed the teach-the-mother option; step4 \"at home\" lines presumed discharge, the very step 5 decision, and sat against the admit-best step5.R scenario, now ask how fluid losses will be replaced; \"not safe to leave\" was the danger-sign teaching line, and its replacement \"if she is well at this recheck\" misfit the paths where she is not, now \"Once the next recheck shows her improving\" on those paths; step3 [2] \"which signs will show she is rehydrated\" fit poorly where step 4 shows her still slightly dry, now asks which signs show she is not yet rehydrated. Should-fix taken: Thai missing \"ได้\". Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 156 read, 6 failed: \"by morning\" and \"overnight\" lines on step4.R.iv, R.abxb and W.ivculture; the confirm pass found \"still dry\" contradicted a next-step variant, now \"After this step, where is the safest place to continue her care?\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Replies sha256 8341aafd656573455d5313c6cfb768721bc7516987a391b0df04c110cab9cf0a.",
     "tree_sha256": "b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef",
-    "replies_sha256": "39c8e95000cc95002caf2cb081af5aebca63043446c74577d2857060cc41f436"
+    "replies_sha256": "8341aafd656573455d5313c6cfb768721bc7516987a391b0df04c110cab9cf0a"
   }
 }

@@ -150,7 +150,7 @@
         "th": [
           {
             "strength": "คำนึงถึง**ไขสันหลังบาดเจ็บ**หลังอุบัติเหตุจักรยานยนต์ ช่วยป้องกันการบาดเจ็บที่ตกหล่น",
-            "weigh": "มือเย็นซีดชี้ไปทางอื่น การตรวจแรกอะไรจะบอกตำแหน่งได้",
+            "weigh": "มือเย็นซีดและชีพจรเร็วไม่เข้ากับสาเหตุจากไขสันหลัง การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
@@ -167,7 +167,7 @@
         "en": [
           {
             "strength": "Keeping **spinal injury** in mind after a motorcycle crash protects against a missed injury.",
-            "weigh": "Cold, pale hands point elsewhere; which first test would show where?",
+            "weigh": "Cold, pale hands and a fast pulse do not fit a spinal cause: which first tests matter most?",
             "safety": ""
           },
           {
@@ -198,7 +198,7 @@
           },
           {
             "strength": "ผูกการตรวจเข้ากับจุดที่กดเจ็บ ทำให้ผลที่ได้ตอบคำถามของผู้ป่วยรายนี้ตรง ๆ",
-            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
@@ -215,7 +215,7 @@
           },
           {
             "strength": "Aiming the scan at the tender spot makes its result answer this man's question directly.",
-            "weigh": "How low a pressure will you accept while he is still bleeding?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and transfusion you give?",
             "safety": ""
           }
         ]
@@ -234,7 +234,7 @@
           },
           {
             "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
-            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
@@ -251,7 +251,7 @@
           },
           {
             "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
-            "weigh": "How low a pressure will you accept while he is still bleeding?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and blood you give?",
             "safety": ""
           }
         ]
@@ -260,7 +260,7 @@
         "th": [
           {
             "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
-            "weigh": "ถ้าภาพปกติแต่ความดันลดลง จะให้อะไรก่อน",
+            "weigh": "ไม่ว่าภาพจะเป็นอย่างไร จะให้อะไรก่อนเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -277,7 +277,7 @@
         "en": [
           {
             "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
-            "weigh": "If the films are clear and his BP falls, what do you give first?",
+            "weigh": "Whatever the films show, what do you give first for his shock?",
             "safety": ""
           },
           {
@@ -296,7 +296,7 @@
         "th": [
           {
             "strength": "นึกถึง**ไต**ด้วย แสดงว่าประเมินทั้งบริเวณสีข้าง ไม่ใช่อวัยวะเดียว",
-            "weigh": "ถ้าผลตรวจแรกปกติแต่ความดันลดลง จะทำอย่างไรต่อ",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -313,7 +313,7 @@
         "en": [
           {
             "strength": "Thinking of the **kidney** shows you are surveying the whole flank, not just one organ.",
-            "weigh": "If the first tests come back normal but his BP falls, what then?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
@@ -344,7 +344,7 @@
           },
           {
             "strength": "ผูกการตรวจเข้ากับจุดที่กดเจ็บ ทำให้ผลที่ได้ตอบคำถามของผู้ป่วยรายนี้ตรง ๆ",
-            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
@@ -361,7 +361,7 @@
           },
           {
             "strength": "Aiming the scan at the tender spot makes its result answer this man's question directly.",
-            "weigh": "How low a pressure will you accept while he is still bleeding?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and transfusion you give?",
             "safety": ""
           }
         ]
@@ -380,7 +380,7 @@
           },
           {
             "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
-            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
@@ -397,7 +397,7 @@
           },
           {
             "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
-            "weigh": "How low a pressure will you accept while he is still bleeding?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and blood you give?",
             "safety": ""
           }
         ]
@@ -406,7 +406,7 @@
         "th": [
           {
             "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
-            "weigh": "ถ้าภาพปกติแต่ความดันลดลง จะให้อะไรก่อน",
+            "weigh": "ไม่ว่าภาพจะเป็นอย่างไร จะให้อะไรก่อนเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -423,7 +423,7 @@
         "en": [
           {
             "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
-            "weigh": "If the films are clear and his BP falls, what do you give first?",
+            "weigh": "Whatever the films show, what do you give first for his shock?",
             "safety": ""
           },
           {
@@ -442,7 +442,7 @@
         "th": [
           {
             "strength": "ค่า**ฮีโมโกลบิน**ตั้งต้นให้จุดอ้างอิงสำหรับติดตามอาการตามเวลา",
-            "weigh": "ถ้าผลตรวจแรกปกติแต่ความดันลดลง จะทำอย่างไรต่อ",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -459,7 +459,7 @@
         "en": [
           {
             "strength": "A **baseline haemoglobin** gives a fixed point for tracking him over time.",
-            "weigh": "If the first tests come back normal but his BP falls, what then?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
@@ -490,7 +490,7 @@
           },
           {
             "strength": "ผู้ป่วยอยู่ในห้องตลอด แต่ยังตรวจได้ทั้งช่องอกและช่องท้องในไม่กี่นาที",
-            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
@@ -507,7 +507,7 @@
           },
           {
             "strength": "You keep him in the room and still screen the chest and abdomen in minutes.",
-            "weigh": "How low a pressure will you accept while he is still bleeding?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and transfusion you give?",
             "safety": ""
           }
         ]
@@ -526,7 +526,7 @@
           },
           {
             "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
-            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
@@ -543,7 +543,7 @@
           },
           {
             "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
-            "weigh": "How low a pressure will you accept while he is still bleeding?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and blood you give?",
             "safety": ""
           }
         ]
@@ -552,7 +552,7 @@
         "th": [
           {
             "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
-            "weigh": "ถ้าภาพปกติแต่ความดันลดลง จะให้อะไรก่อน",
+            "weigh": "ไม่ว่าภาพจะเป็นอย่างไร จะให้อะไรก่อนเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -569,7 +569,7 @@
         "en": [
           {
             "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
-            "weigh": "If the films are clear and his BP falls, what do you give first?",
+            "weigh": "Whatever the films show, what do you give first for his shock?",
             "safety": ""
           },
           {
@@ -588,7 +588,7 @@
         "th": [
           {
             "strength": "ค่า**ฮีโมโกลบิน**ตั้งต้นให้จุดอ้างอิงสำหรับติดตามอาการตามเวลา",
-            "weigh": "ถ้าผลตรวจแรกปกติแต่ความดันลดลง จะทำอย่างไรต่อ",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -605,7 +605,7 @@
         "en": [
           {
             "strength": "A **baseline haemoglobin** gives a fixed point for tracking him over time.",
-            "weigh": "If the first tests come back normal but his BP falls, what then?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
@@ -624,7 +624,7 @@
         "th": [
           {
             "strength": "นึกถึง**ไต**ด้วย แสดงว่าประเมินทั้งบริเวณสีข้าง ไม่ใช่อวัยวะเดียว",
-            "weigh": "ถ้าผลตรวจแรกปกติแต่ความดันลดลง จะทำอย่างไรต่อ",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
@@ -641,7 +641,7 @@
         "en": [
           {
             "strength": "Thinking of the **kidney** shows you are surveying the whole flank, not just one organ.",
-            "weigh": "If the first tests come back normal but his BP falls, what then?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
@@ -734,7 +734,7 @@
         "th": [
           {
             "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
-            "weigh": "ถ้าการตอบสนองครั้งแรกอยู่ได้ไม่นาน จะทำอย่างไร",
+            "weigh": "ถ้าชีพจรและความดันกลับแย่ลงอีก จะทำอะไรต่อ",
             "safety": ""
           },
           {
@@ -751,7 +751,7 @@
         "en": [
           {
             "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
-            "weigh": "If the first response does not last, what should you do?",
+            "weigh": "If his pulse and pressure turn the wrong way again, what is your next move?",
             "safety": ""
           },
           {
@@ -880,7 +880,7 @@
         "th": [
           {
             "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
-            "weigh": "ถ้าการตอบสนองครั้งแรกอยู่ได้ไม่นาน จะทำอย่างไร",
+            "weigh": "ถ้าชีพจรและความดันกลับแย่ลงอีก จะทำอะไรต่อ",
             "safety": ""
           },
           {
@@ -897,7 +897,7 @@
         "en": [
           {
             "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
-            "weigh": "If the first response does not last, what should you do?",
+            "weigh": "If his pulse and pressure turn the wrong way again, what is your next move?",
             "safety": ""
           },
           {
@@ -1026,7 +1026,7 @@
         "th": [
           {
             "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
-            "weigh": "ถ้าการตอบสนองครั้งแรกอยู่ได้ไม่นาน จะทำอย่างไร",
+            "weigh": "ถ้าชีพจรและความดันกลับแย่ลงอีก จะทำอะไรต่อ",
             "safety": ""
           },
           {
@@ -1043,7 +1043,7 @@
         "en": [
           {
             "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
-            "weigh": "If the first response does not last, what should you do?",
+            "weigh": "If his pulse and pressure turn the wrong way again, what is your next move?",
             "safety": ""
           },
           {
@@ -1110,7 +1110,7 @@
           },
           {
             "strength": "วัด**ทุก 5 นาที** จับการเลือดออกซ้ำได้ก่อนผู้ป่วยทรุดลง",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1127,7 +1127,7 @@
           },
           {
             "strength": "Close observation **every 5 minutes** catches a fresh bleed early, before he collapses.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1146,7 +1146,7 @@
           },
           {
             "strength": "เชื่อมของเหลวในท้องกับเลือดที่ไปเลี้ยงไต บอกทั้งตำแหน่งและผลของการเสียเลือด",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1163,7 +1163,7 @@
           },
           {
             "strength": "Linking abdominal fluid to kidney perfusion tells you both where and how much he is losing.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1182,7 +1182,7 @@
           },
           {
             "strength": "คลำชีพจรปลายแขนตอนนี้ ได้ค่าตั้งต้นไว้เทียบหากมีการเปลี่ยนแปลงระหว่างทาง",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1199,7 +1199,7 @@
           },
           {
             "strength": "Feeling the forearm pulse now records a baseline before any change on the road.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1218,7 +1218,7 @@
           },
           {
             "strength": "เพิ่มตัวชี้วัดจากห้องปฏิบัติการ ควบคู่กับภาพข้างเตียง",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1235,7 +1235,7 @@
           },
           {
             "strength": "Tracking a lab value adds an objective marker alongside the clinical picture.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1256,7 +1256,7 @@
           },
           {
             "strength": "เชื่อมการทรุดลงซ้ำกับเลือดที่ยังออก ทำให้เป้าหมายอยู่ที่การหยุดเลือด",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1273,7 +1273,7 @@
           },
           {
             "strength": "Linking the relapse to ongoing bleeding keeps the focus on stopping it.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1292,7 +1292,7 @@
           },
           {
             "strength": "ให้เลือดอย่างเดียวพร้อมเป้าชัด ทำให้ทุกถุงมุ่งไปที่การไหลเวียน",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1309,7 +1309,7 @@
           },
           {
             "strength": "Choosing **blood only** with a clear target makes each unit count toward perfusion.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1328,7 +1328,7 @@
           },
           {
             "strength": "ตรวจข้างเตียง ผู้ป่วยไม่ต้องออกนอกห้องขณะเก็บหลักฐานเพิ่ม",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1345,7 +1345,7 @@
           },
           {
             "strength": "Imaging at the bedside keeps him in the room while you gather evidence.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1364,7 +1364,7 @@
           },
           {
             "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1381,7 +1381,7 @@
           },
           {
             "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1402,7 +1402,7 @@
           },
           {
             "strength": "ให้เลือดและ TXA คู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1419,7 +1419,7 @@
           },
           {
             "strength": "Matching blood and TXA with a faster move addresses both his volume and the cause.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1438,7 +1438,7 @@
           },
           {
             "strength": "ตรวจข้างเตียง ผู้ป่วยไม่ต้องออกนอกห้องขณะเก็บหลักฐานเพิ่ม",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1455,7 +1455,7 @@
           },
           {
             "strength": "Imaging at the bedside keeps him in the room while you gather evidence.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1474,7 +1474,7 @@
           },
           {
             "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
-            "weigh": "ถ้าอาการแย่ลงระหว่างทาง ต้องมีอะไรพร้อมในรถพยาบาล",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
@@ -1491,7 +1491,7 @@
           },
           {
             "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
-            "weigh": "If he worsens on the road, what must be ready in the ambulance?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1939,8 +1939,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"bedside\", \"where he is bleeding\" and \"while blood goes in\" in step1 lines echoed or pointed at the FAST option or added a fact, now ask which first tests matter most while you resuscitate; \"what must the lab prepare\" described the crossmatch option; English \"his loss\" did not match Thai \"blood\"; \"an hour after the crash\" showed a fact only one variant has, and \"still on the clock\" echoed the TXA-within-3-hours lines; step2 \"who do you call\" then \"if his condition gets worse\" nudged toward waiting while he is already in shock, now \"Whatever the first test shows, what will you do first for his shock?\"; step4 \"who and what must travel\", \"what decides how fast he leaves\" and \"receiving team\" mapped onto the step 5 options, now ask what to settle before the ambulance leaves, how to send him, and what makes the journey safe. Should-fixes taken: \"bleeding has truly stopped\", \"staying stable\" on deteriorating paths, and \"first response is not holding\", which restated the next best line. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a. Replies sha256 5a0a778545964e0bde1ee4d5cd83a221ce4fd79f183dac5c79e0bafc7274342f.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"bedside\", \"where he is bleeding\" and \"while blood goes in\" in step1 lines echoed or pointed at the FAST option or added a fact, now ask which first tests matter most while you resuscitate; \"what must the lab prepare\" described the crossmatch option; English \"his loss\" did not match Thai \"blood\"; \"an hour after the crash\" showed a fact only one variant has, and \"still on the clock\" echoed the TXA-within-3-hours lines; step2 \"who do you call\" then \"if his condition gets worse\" nudged toward waiting while he is already in shock, now \"Whatever the first test shows, what will you do first for his shock?\"; step4 \"who and what must travel\", \"what decides how fast he leaves\" and \"receiving team\" mapped onto the step 5 options, now ask what to settle before the ambulance leaves, how to send him, and what makes the journey safe. Should-fixes taken: \"bleeding has truly stopped\", \"staying stable\" on deteriorating paths, and \"first response is not holding\", which restated the next best line. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 123 read, 18 failed: step2 \"if the films are clear and his BP falls\" and \"if the first tests come back normal\" lines deferred treating shock already present, now \"Whatever ... what will you do first for his shock?\", and step4 [2] \"if he worsens on the road\"; the confirm pass made the Thai \"ระหว่างเดินทางส่งต่อ\" and took the \"unstable\" wording off step4.B.d, where he is calmer. Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a. Replies sha256 a512103783ad54c906882c1b6a12d3323fa0a4055094b136b0f0a3a6381239e7.",
     "tree_sha256": "06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a",
-    "replies_sha256": "5a0a778545964e0bde1ee4d5cd83a221ce4fd79f183dac5c79e0bafc7274342f"
+    "replies_sha256": "a512103783ad54c906882c1b6a12d3323fa0a4055094b136b0f0a3a6381239e7"
   }
 }

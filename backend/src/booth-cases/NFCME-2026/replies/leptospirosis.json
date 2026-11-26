@@ -6,7 +6,7 @@
         "th": [
           {
             "strength": "การโยง**ลุยน้ำท่วม**เข้ากับปวดน่องและตาแดงในคนทำนา เป็นการใช้ประวัติสัมผัสได้ตรงจุด",
-            "weigh": "การตรวจแรกอะไรจะบอกระดับความรุนแรงของโรคในวันนี้",
+            "weigh": "มีไข้และปวดน่องหลังลุยน้ำท่วม วันนี้จะส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -23,7 +23,7 @@
         "en": [
           {
             "strength": "Linking **flood-water exposure** to calf pain and red eyes uses the exposure history well.",
-            "weigh": "Which first tests would grade how severe this is today?",
+            "weigh": "With fever and calf pain after flood water, what would you send first today?",
             "safety": ""
           },
           {
@@ -42,7 +42,7 @@
         "th": [
           {
             "strength": "การใช้**ระยะฟักตัว**เชื่อมวันลุยน้ำกับวันเริ่มไข้ ทำให้มีเหตุผลด้านเวลารองรับ",
-            "weigh": "การตรวจแรกอะไรจะประเมินความรุนแรงก่อนวางแผนการรักษา",
+            "weigh": "มีไข้และปวดน่องหลังลุยน้ำท่วม วันนี้จะส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -59,7 +59,7 @@
         "en": [
           {
             "strength": "Using the **incubation time** to link the wading and the fever gives the diagnosis a timeline.",
-            "weigh": "Which first tests would grade its severity before you plan care?",
+            "weigh": "With fever and calf pain after flood water, what would you send first today?",
             "safety": ""
           },
           {
@@ -78,12 +78,12 @@
         "th": [
           {
             "strength": "การนึกถึง**โรคสครับไทฟัส**ในคนทำงานกลางทุ่ง เป็นการคิดตามระบาดวิทยาของไข้ในชนบทไทย",
-            "weigh": "เมื่อไม่พบแผลสะเก็ดดำ การตรวจแรกอะไรจะช่วยแยกสาเหตุ",
+            "weigh": "เมื่อไม่พบแผลสะเก็ดดำ จะส่งตรวจอะไรก่อนเพื่อหาสาเหตุ",
             "safety": ""
           },
           {
             "strength": "การมองไข้และปวดศีรษะในคนทำงานกลางทุ่งเป็นโรคติดเชื้อชนบท เป็นมุมคิดที่มีเหตุผล",
-            "weigh": "การตรวจแรกอะไรจะบอกว่าเขาป่วยหนักแค่ไหน ไม่ว่าสาเหตุจะเป็นอะไร",
+            "weigh": "มีไข้และปวดน่อง ไม่ว่าสาเหตุจะเป็นอะไร จะส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -95,12 +95,12 @@
         "en": [
           {
             "strength": "Considering **scrub typhus** in a field worker reflects the epidemiology of rural fever in Thailand.",
-            "weigh": "With no eschar found, which first tests would help sort the cause?",
+            "weigh": "With no eschar found, which first tests would you send to look for the cause?",
             "safety": ""
           },
           {
             "strength": "Reading fever and headache in a field worker as a rural infection is a sound line of thought.",
-            "weigh": "Which first tests would grade how sick he is, whatever the cause?",
+            "weigh": "With fever and tender calves, what would you send first, whatever the cause?",
             "safety": ""
           },
           {
@@ -119,7 +119,7 @@
           },
           {
             "strength": "การให้ความสำคัญกับฤดูกาลและไข้สูงเฉียบพลัน เป็นการคิดตามระบาดวิทยาของไข้หน้าฝน",
-            "weigh": "การตรวจแรกอะไรจะบอกว่าเขาป่วยหนักแค่ไหน ไม่ว่าสาเหตุจะเป็นอะไร",
+            "weigh": "มีไข้และปวดน่อง ไม่ว่าสาเหตุจะเป็นอะไร จะส่งตรวจอะไรก่อน",
             "safety": ""
           },
           {
@@ -136,7 +136,7 @@
           },
           {
             "strength": "Giving weight to the season and an abrupt high fever follows the epidemiology of rainy-season fever.",
-            "weigh": "Which first tests would grade how sick he is, whatever the cause?",
+            "weigh": "With fever and tender calves, what would you send first, whatever the cause?",
             "safety": ""
           },
           {
@@ -162,7 +162,7 @@
           },
           {
             "strength": "การประเมินหลายอวัยวะพร้อมกันตั้งแต่ต้น ช่วยให้วางแผนดูแลตามความรุนแรงจริง",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -179,7 +179,7 @@
           },
           {
             "strength": "Assessing several organs at the start lets care match the real severity of the illness.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -198,7 +198,7 @@
           },
           {
             "strength": "ผลที่ได้วันนี้ช่วยให้ตัดสินใจที่โรงพยาบาลชุมชนได้ทันที โดยไม่ต้องรอผลจากที่อื่น",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -215,7 +215,7 @@
           },
           {
             "strength": "Results today let the community hospital act at once without waiting on outside labs.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -234,7 +234,7 @@
           },
           {
             "strength": "ชุดตรวจนี้กระชับ ได้ผลเร็ว และทำได้จริงในโรงพยาบาลชุมชน",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -251,7 +251,7 @@
           },
           {
             "strength": "This is a lean, fast panel that a community hospital can run today.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -344,7 +344,7 @@
           },
           {
             "strength": "การประเมินหลายอวัยวะพร้อมกันตั้งแต่ต้น ช่วยให้วางแผนดูแลตามความรุนแรงจริง",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -361,7 +361,7 @@
           },
           {
             "strength": "Assessing several organs at the start lets care match the real severity of the illness.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -380,7 +380,7 @@
           },
           {
             "strength": "ข้อมูลแยกโรคที่ได้วันนี้ ช่วยให้โรงพยาบาลชุมชนตัดสินใจได้โดยไม่ต้องรอที่อื่น",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -397,7 +397,7 @@
           },
           {
             "strength": "Getting diagnostic help today lets the community hospital decide without waiting on outside labs.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -416,7 +416,7 @@
           },
           {
             "strength": "ชุดตรวจนี้กระชับ ได้ผลเร็ว และทำได้จริงในโรงพยาบาลชุมชน",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -433,7 +433,7 @@
           },
           {
             "strength": "This is a lean, fast panel that a community hospital can run today.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -526,7 +526,7 @@
           },
           {
             "strength": "การประเมินหลายอวัยวะพร้อมกันตั้งแต่ต้น ช่วยให้วางแผนดูแลตามความรุนแรงจริง",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -543,7 +543,7 @@
           },
           {
             "strength": "Assessing several organs at the start lets care match the real severity of the illness.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -562,7 +562,7 @@
           },
           {
             "strength": "การประเมินความรุนแรงและหาสาเหตุไปพร้อมกัน ช่วยประหยัดเวลาในโรงพยาบาลชุมชน",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -579,7 +579,7 @@
           },
           {
             "strength": "Grading severity and seeking a cause together saves time at a community hospital.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -598,7 +598,7 @@
           },
           {
             "strength": "ชุดตรวจนี้กระชับ ได้ผลเร็ว และทำได้จริงในโรงพยาบาลชุมชน",
-            "weigh": "ระหว่างรอผล ยาตัวใดครอบคลุมสาเหตุที่น่าจะเป็นได้",
+            "weigh": "ไม่ว่าผลจะออกมาอย่างไร วันนี้จะเริ่มการรักษาอะไรให้เขา",
             "safety": ""
           }
         ],
@@ -615,7 +615,7 @@
           },
           {
             "strength": "This is a lean, fast panel that a community hospital can run today.",
-            "weigh": "Which drug would cover the likely causes while results come in?",
+            "weigh": "Whatever the results, which treatment would you start for him today?",
             "safety": ""
           }
         ]
@@ -1316,7 +1316,7 @@
         "th": [
           {
             "strength": "การให้ยาจน**ครบ 7 วัน**ตามแผนเดิม สอดคล้องกับอาการที่ดีขึ้นชัด",
-            "weigh": "เขาจะกลับไปลุยนาอีก ควรรู้อะไรก่อนกลับไป",
+            "weigh": "เมื่อรักษาครบแล้ว จะเตรียมอะไรให้เขาบ้าง",
             "safety": ""
           },
           {
@@ -1333,7 +1333,7 @@
         "en": [
           {
             "strength": "Keeping to the **planned course** fits a clear clinical improvement.",
-            "weigh": "He will go back to the paddy fields; what should he know before he does?",
+            "weigh": "Once his treatment is over, what will you arrange for him?",
             "safety": ""
           },
           {
@@ -1352,7 +1352,7 @@
         "th": [
           {
             "strength": "การให้ยาครบพร้อม**สอนอาการเตือน** ทำให้ผู้ป่วยรู้ว่าเมื่อใดต้องกลับมาทันที",
-            "weigh": "เขาจะกลับไปลุยนาอีก ควรรู้อะไรก่อนกลับไป",
+            "weigh": "เมื่อรักษาครบแล้ว จะเตรียมอะไรให้เขาบ้าง",
             "safety": ""
           },
           {
@@ -1369,7 +1369,7 @@
         "en": [
           {
             "strength": "Finishing the course with **return advice** tells him exactly when to come back at once.",
-            "weigh": "He will go back to the paddy fields; what should he know before he does?",
+            "weigh": "Once his treatment is over, what will you arrange for him?",
             "safety": ""
           },
           {
@@ -1393,7 +1393,7 @@
           },
           {
             "strength": "การไม่ตัดสินจากอาการอย่างเดียว แสดงความรอบคอบต่อภาวะแทรกซ้อนที่อาจไม่มีอาการ",
-            "weigh": "ต้องได้ผลตรวจอะไรก่อนจะบอกว่าเขาหายแล้ว",
+            "weigh": "หลังกินยาครบแล้ว จะนัดติดตามอาการเขาอย่างไร",
             "safety": ""
           },
           {
@@ -1410,7 +1410,7 @@
           },
           {
             "strength": "Not judging on symptoms alone shows care about complications that can be silent.",
-            "weigh": "Which results would you want before you call him recovered?",
+            "weigh": "After his last dose, what follow-up will you set up for him?",
             "safety": ""
           },
           {
@@ -1462,7 +1462,7 @@
         "th": [
           {
             "strength": "การ**ตรวจเลือดซ้ำวันนี้**เมื่อหายช้า ช่วยจับการเปลี่ยนของไต ตับ และเกล็ดเลือดได้ทัน",
-            "weigh": "เขาจะกลับไปลุยนาอีก ควรรู้อะไรก่อนกลับไป",
+            "weigh": "นอกจากการดูแลตอนนี้ หลังเขาหายดีแล้ว คุณจะวางแผนอะไรให้เขา",
             "safety": ""
           },
           {
@@ -1479,7 +1479,7 @@
         "en": [
           {
             "strength": "Choosing to **repeat bloods today** for a slow recovery catches kidney, liver or platelet change in time.",
-            "weigh": "He will go back to the paddy fields; what should he know before he does?",
+            "weigh": "Alongside his care now, what will you plan for after he recovers?",
             "safety": ""
           },
           {
@@ -1498,7 +1498,7 @@
         "th": [
           {
             "strength": "การ**ประเมินทุกวัน** ช่วยจับตาเหลืองหรือปัสสาวะน้อยได้ตั้งแต่เริ่มมีอาการ",
-            "weigh": "เขาจะกลับไปลุยนาอีก ควรรู้อะไรก่อนกลับไป",
+            "weigh": "นอกจากการดูแลตอนนี้ หลังเขาหายดีแล้ว คุณจะวางแผนอะไรให้เขา",
             "safety": ""
           },
           {
@@ -1515,7 +1515,7 @@
         "en": [
           {
             "strength": "A **daily review** catches jaundice or low urine as soon as they begin.",
-            "weigh": "He will go back to the paddy fields; what should he know before he does?",
+            "weigh": "Alongside his care now, what will you plan for after he recovers?",
             "safety": ""
           },
           {
@@ -1539,7 +1539,7 @@
           },
           {
             "strength": "การให้เวลายาออกฤทธิ์ เป็นการยอมรับว่าไข้ในโรคนี้อาจลดลงทีละน้อย",
-            "weigh": "ต้องได้ผลตรวจอะไรก่อนจะบอกว่าเขาหายแล้ว",
+            "weigh": "หลังกินยาครบแล้ว จะนัดติดตามอาการเขาอย่างไร",
             "safety": ""
           },
           {
@@ -1556,7 +1556,7 @@
           },
           {
             "strength": "Giving the drug time to work accepts that fever in this illness may ease gradually.",
-            "weigh": "Which results would you want before you call him recovered?",
+            "weigh": "After his last dose, what follow-up will you set up for him?",
             "safety": ""
           },
           {
@@ -1608,7 +1608,7 @@
         "th": [
           {
             "strength": "การให้**สารน้ำอย่างระวัง**พร้อมติดตามปัสสาวะ ช่วยชดเชยน้ำที่อาจขาดโดยไม่ให้น้ำเกิน",
-            "weigh": "เขาจะกลับไปลุยนาอีก ควรรู้อะไรก่อนกลับไป",
+            "weigh": "นอกจากการดูแลตอนนี้ หลังเขาหายดีแล้ว คุณจะวางแผนอะไรให้เขา",
             "safety": ""
           },
           {
@@ -1625,7 +1625,7 @@
         "en": [
           {
             "strength": "Giving **careful fluids** while tracking urine makes up any deficit without overloading him.",
-            "weigh": "He will go back to the paddy fields; what should he know before he does?",
+            "weigh": "Alongside his care now, what will you plan for after he recovers?",
             "safety": ""
           },
           {
@@ -1644,7 +1644,7 @@
         "th": [
           {
             "strength": "การส่งต่อตั้งแต่ปัสสาวะเริ่มลด ช่วยให้ไปถึงที่**ฟอกไต**ได้ก่อนเข้าสู่ภาวะวิกฤต",
-            "weigh": "เขาจะกลับไปลุยนาอีก ควรรู้อะไรก่อนกลับไป",
+            "weigh": "นอกจากการดูแลตอนนี้ หลังเขาหายดีแล้ว คุณจะวางแผนอะไรให้เขา",
             "safety": ""
           },
           {
@@ -1661,7 +1661,7 @@
         "en": [
           {
             "strength": "Referring as urine falls gets him to **dialysis** before a crisis forces the move.",
-            "weigh": "He will go back to the paddy fields; what should he know before he does?",
+            "weigh": "Alongside his care now, what will you plan for after he recovers?",
             "safety": ""
           },
           {
@@ -1685,7 +1685,7 @@
           },
           {
             "strength": "การใช้ครีเอตินีนครั้งถัดไปเป็นตัววัด ทำให้เห็นทิศทางของไตจากตัวเลขที่ชัดเจน",
-            "weigh": "ต้องได้ผลตรวจอะไรก่อนจะบอกว่าเขาหายแล้ว",
+            "weigh": "หลังกินยาครบแล้ว จะนัดติดตามอาการเขาอย่างไร",
             "safety": ""
           },
           {
@@ -1702,7 +1702,7 @@
           },
           {
             "strength": "Using the next creatinine as the gauge reads the kidneys from a clear number.",
-            "weigh": "Which results would you want before you call him recovered?",
+            "weigh": "After his last dose, what follow-up will you set up for him?",
             "safety": ""
           },
           {
@@ -1716,34 +1716,34 @@
         "th": [
           {
             "strength": "การมองหา**การอุดกั้น** แสดงว่าไม่ด่วนสรุปสาเหตุของปัสสาวะที่น้อยลง",
-            "weigh": "ในวันข้างหน้า การเปลี่ยนแปลงแบบไหนที่น่ากังวลที่สุด",
+            "weigh": "ปัสสาวะกำลังลดลง ในไม่กี่ชั่วโมงข้างหน้าอะไรน่ากังวลที่สุด",
             "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
           },
           {
             "strength": "อัลตราซาวด์ทำได้ข้างเตียง ไม่เจ็บ และไม่ใช้สารทึบรังสีที่อาจกระทบไต",
-            "weigh": "ผลตรวจอะไรจะบอกว่าไตของเขากำลังแย่ลง",
+            "weigh": "ปัสสาวะกำลังลดลงตอนนี้ ต้องได้ผลตรวจอะไรเดี๋ยวนี้เพื่อดูไต",
             "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
           },
           {
             "strength": "การแยกสาเหตุหลังไตออก เป็นหลักคิดพื้นฐานเมื่อปัสสาวะลดลง",
-            "weigh": "ถ้าปัสสาวะยังออกน้อยอยู่ จะทำอะไรเป็นอย่างแรก",
+            "weigh": "ปัสสาวะออกน้อยอยู่แล้ว จะทำอะไรเป็นอย่างแรก",
             "safety": "ปัสสาวะที่ลดลงในโรคติดเชื้อนี้ อาจกลายเป็นภาวะอันตรายได้ในไม่กี่ชั่วโมง"
           }
         ],
         "en": [
           {
             "strength": "Looking for a **blockage** shows a refusal to assume the cause of falling urine.",
-            "weigh": "Over the next days, which changes would worry you most?",
+            "weigh": "With his urine already falling, what worries you most in the next hours?",
             "safety": "Falling urine in this infection can turn dangerous within hours."
           },
           {
             "strength": "An ultrasound is bedside, painless and needs no contrast that could stress the kidneys.",
-            "weigh": "Which results would tell you his kidneys are getting worse?",
+            "weigh": "His urine is falling now; which results do you need right away for his kidneys?",
             "safety": "Falling urine in this infection can turn dangerous within hours."
           },
           {
             "strength": "Excluding a post-renal cause is a basic step in reading falling urine output.",
-            "weigh": "If his urine output stays low, what will you do before anything else?",
+            "weigh": "His urine is already low: what will you do before anything else?",
             "safety": "Falling urine in this infection can turn dangerous within hours."
           }
         ]
@@ -2227,8 +2227,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [1] \"kidneys and liver\" named what separates the best options from the rest, and a later rewrite still gave away the discriminator, now builds on three days of fever and calf pain; step1.b [1] \"gauge severity\" echoed the best options' lines; step3 \"urine output falls\" echoed \"Careful fluid, urine output and K\"; step4.d [0] \"kidneys keep failing ... and what cannot\" presumed kidney failure on paths that never showed it and pointed at referral, now asks which changes would worry most; step4.d [2] \"little urine comes again ... what danger\" had no earlier episode and echoed \"finds a dangerous potassium\", now asks what to do first, and on step4.W.d, where urine is already low, \"if his urine output stays low\". Should-fixes taken: the tourniquet test the vignette never ran, a dangling \"that result\", \"before the tablets run out\" (gave away finishing the course) and \"flooded fields\" (now \"paddy fields\"). Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311. Replies sha256 f90cc4803b7053f50625245eff5beebfad80c8d654aac4d151ae3bd327ed4a5c.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [1] \"kidneys and liver\" named what separates the best options from the rest, and a later rewrite still gave away the discriminator, now builds on three days of fever and calf pain; step1.b [1] \"gauge severity\" echoed the best options' lines; step3 \"urine output falls\" echoed \"Careful fluid, urine output and K\"; step4.d [0] \"kidneys keep failing ... and what cannot\" presumed kidney failure on paths that never showed it and pointed at referral, now asks which changes would worry most; step4.d [2] \"little urine comes again ... what danger\" had no earlier episode and echoed \"finds a dangerous potassium\", now asks what to do first, and on step4.W.d, where urine is already low, \"if his urine output stays low\". Should-fixes taken: the tourniquet test the vignette never ran, a dangling \"that result\", \"before the tablets run out\" (gave away finishing the course) and \"flooded fields\" (now \"paddy fields\"). Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 144 read, 24 failed: step1 severity lines, \"while results come in\" (deferred treatment), the step4 paddy-field and \"call him recovered\" lines, and step4.W.d [1], now \"His urine is falling now; which results do you need right away for his kidneys?\"; confirm passes then replaced \"how sick he is\" (still the severity echo), \"what should he be told\" (the advice option), \"before he goes back\" (contradicted a step 5 variant), and the R and W step4 [0] lines that deferred an active illness, now \"Alongside his care now, what will you plan for after he recovers?\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311. Replies sha256 94857624ec75372d92583ff21d4ea6fc0a810847d823c7fc8f916b0107cc82d6.",
     "tree_sha256": "b66403d00ea9e5c7fc623ee4a4895008f613ef31f3c87629b03377702eae5311",
-    "replies_sha256": "f90cc4803b7053f50625245eff5beebfad80c8d654aac4d151ae3bd327ed4a5c"
+    "replies_sha256": "94857624ec75372d92583ff21d4ea6fc0a810847d823c7fc8f916b0107cc82d6"
   }
 }

@@ -78,7 +78,7 @@
         "th": [
           {
             "strength": "คิดถึงการติดเชื้อในปอดซึ่งพบบ่อยและรักษาได้ จากอาการหอบและ**ออกซิเจนต่ำ**",
-            "weigh": "การตรวจแรกอะไรจะแยกการติดเชื้อในปอด ออกจากน้ำคั่งที่มาจากหัวใจ",
+            "weigh": "การตรวจแรกอะไรจะบอกได้ว่าอะไรอยู่เบื้องหลังอาการหอบและออกซิเจนต่ำของเขา",
             "safety": ""
           },
           {
@@ -95,7 +95,7 @@
         "en": [
           {
             "strength": "Keeps a common, treatable infection in view, based on **low oxygen** and breathlessness.",
-            "weigh": "Which first tests would tell a chest infection from fluid backing up from the heart?",
+            "weigh": "Which first tests would show what is behind his breathlessness and low oxygen?",
             "safety": ""
           },
           {
@@ -114,7 +114,7 @@
         "th": [
           {
             "strength": "จับเบาะแสอาการหอบที่เป็นมาก**ตอนกลางคืน** ซึ่งพบได้จริงในโรคหอบหืด",
-            "weigh": "เสียงกรอบแกรบที่ฐานปอดสองข้าง การตรวจแรกอะไรจะหาน้ำหรือการติดเชื้อในปอด",
+            "weigh": "เสียงกรอบแกรบที่ฐานปอดสองข้าง จะส่งตรวจอะไรก่อนเพื่ออธิบายเสียงนี้",
             "safety": ""
           },
           {
@@ -131,7 +131,7 @@
         "en": [
           {
             "strength": "Picks up a real clue: breathlessness **at night** does occur in asthma.",
-            "weigh": "With crackles at both bases, which first tests would look for fluid or infection?",
+            "weigh": "With crackles at both bases, which first tests would you send to explain them?",
             "safety": ""
           },
           {
@@ -150,7 +150,7 @@
         "th": [
           {
             "strength": "ให้น้ำหนักกับประวัติ**เคยสูบบุหรี่** ซึ่งเป็นปัจจัยเสี่ยงที่มีอยู่จริง",
-            "weigh": "การตรวจแรกอะไรจะบอกว่าเสียงกรอบแกรบมาจากน้ำหรือการติดเชื้อ",
+            "weigh": "การตรวจแรกอะไรจะบอกว่าเสียงกรอบแกรบที่ฐานปอดสองข้างมาจากอะไร",
             "safety": ""
           },
           {
@@ -167,7 +167,7 @@
         "en": [
           {
             "strength": "Gives weight to his history as a **former smoker**, a real risk factor.",
-            "weigh": "Which first tests would show whether the crackles come from fluid or infection?",
+            "weigh": "Which first tests would show where the crackles at both bases come from?",
             "safety": ""
           },
           {
@@ -1460,7 +1460,7 @@
         "th": [
           {
             "strength": "คิดล่วงหน้าถึงการกลับบ้าน และต้องการให้การรักษา**ใช้ง่ายขึ้น**",
-            "weigh": "ถ้าถึงเช้ายังหอบขณะพัก จะทำอะไรต่อ",
+            "weigh": "อะไรจะบอกว่าแผนรักษาตอนนี้ยังไม่พอสำหรับเขา",
             "safety": ""
           },
           {
@@ -1477,7 +1477,7 @@
         "en": [
           {
             "strength": "Thinks ahead to home and wants treatment that is **simpler**.",
-            "weigh": "If he is still breathless at rest by morning, what will you do next?",
+            "weigh": "What would tell you that his current plan is not enough for him?",
             "safety": ""
           },
           {
@@ -1496,7 +1496,7 @@
         "th": [
           {
             "strength": "ต้องการหลักฐานที่จับต้องได้ว่า**น้ำในปอด**ลดลงเพียงใด",
-            "weigh": "ถ้าเช้าพรุ่งนี้ยังหอบขณะพัก ขั้นต่อไปคืออะไร",
+            "weigh": "อะไรจะบอกว่าแผนรักษาตอนนี้ยังไม่พอสำหรับเขา",
             "safety": ""
           },
           {
@@ -1513,7 +1513,7 @@
         "en": [
           {
             "strength": "Wants hard evidence of how much of the **lung fluid** has cleared.",
-            "weigh": "If he is still breathless at rest tomorrow morning, what is your next step?",
+            "weigh": "What would tell you that his current plan is not enough for him?",
             "safety": ""
           },
           {
@@ -1678,12 +1678,12 @@
         "th": [
           {
             "strength": "เห็นว่ายังต้องขับน้ำต่อ และไม่หยุดการรักษาเมื่อผลยังไม่พอ",
-            "weigh": "ถ้าถึงเช้ายังหอบขณะพัก จะทำอะไรต่อ",
+            "weigh": "อะไรจะบอกว่าแผนรักษาตอนนี้ยังไม่พอสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "**ยาอีกครั้ง**ช่วยให้ไตได้รับยาต่อเนื่อง",
-            "weigh": "คืนนี้ อาการแสดงอะไรจะบอกว่าเขาตอบสนองต่อการรักษาอย่างไร",
+            "weigh": "อาการแสดงข้างเตียงอะไรจะบอกได้ว่าการรักษาของเขาได้ผลเพียงพอหรือยัง",
             "safety": ""
           },
           {
@@ -1695,12 +1695,12 @@
         "en": [
           {
             "strength": "Sees that more fluid must come off and does not stop when the effect falls short.",
-            "weigh": "If he is still breathless at rest by morning, what will you do next?",
+            "weigh": "What would tell you that his current plan is not enough for him?",
             "safety": ""
           },
           {
             "strength": "A **second equal dose** keeps the drug reaching the kidney.",
-            "weigh": "Overnight, which signs would tell you how he is responding?",
+            "weigh": "Which findings at his bedside would show whether his treatment is working enough?",
             "safety": ""
           },
           {
@@ -1714,12 +1714,12 @@
         "th": [
           {
             "strength": "ต้องการหลักฐานที่จับต้องได้ว่า**น้ำในปอด**ลดลงเพียงใด",
-            "weigh": "ถ้าเช้าพรุ่งนี้ยังหอบขณะพัก ขั้นต่อไปคืออะไร",
+            "weigh": "อะไรจะบอกว่าแผนรักษาตอนนี้ยังไม่พอสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "การมีภาพเปรียบเทียบช่วยสื่อสารความคืบหน้ากับทีมได้ชัดขึ้น",
-            "weigh": "คืนนี้ อาการแสดงอะไรจะบอกว่าเขาตอบสนองต่อการรักษาอย่างไร",
+            "weigh": "อาการแสดงข้างเตียงอะไรจะบอกได้ว่าการรักษาของเขาได้ผลเพียงพอหรือยัง",
             "safety": ""
           },
           {
@@ -1731,12 +1731,12 @@
         "en": [
           {
             "strength": "Wants hard evidence of how much of the **lung fluid** has cleared.",
-            "weigh": "If he is still breathless at rest tomorrow morning, what is your next step?",
+            "weigh": "What would tell you that his current plan is not enough for him?",
             "safety": ""
           },
           {
             "strength": "A comparison film helps communicate progress to the team.",
-            "weigh": "Overnight, which signs would tell you how he is responding?",
+            "weigh": "Which findings at his bedside would show whether his treatment is working enough?",
             "safety": ""
           },
           {
@@ -1824,34 +1824,34 @@
         "th": [
           {
             "strength": "คาดการณ์ล่วงหน้าว่าอาจต้องใช้**เครื่องช่วยหายใจ** และวางแผนไปยังที่ที่พร้อม",
-            "weigh": "ถ้าอีกไม่กี่วันขายังบวมอยู่ จะพิจารณาอะไรต่อ",
+            "weigh": "เมื่อพ้นขีดอันตรายแล้ว จะวางแผนจัดการขาที่บวมอย่างไร",
             "safety": ""
           },
           {
             "strength": "รู้ข้อจำกัดของโรงพยาบาลชุมชน และใช้ ICU จังหวัดเป็นที่พึ่ง",
-            "weigh": "อาการแสดงอะไรบนหอผู้ป่วยจะบอกว่าน้ำส่วนเกินออกไปหมดจริง",
+            "weigh": "เมื่อเขาอาการคงที่แล้ว อาการแสดงอะไรจะบอกว่าน้ำส่วนเกินออกไปหมดจริง",
             "safety": ""
           },
           {
             "strength": "ตัดสินใจส่งต่อเร็ว ไม่รอจนผู้ป่วยหมดแรง",
-            "weigh": "ถ้าดีขึ้นช้า จะเปลี่ยนแผนการรักษาอย่างไร",
+            "weigh": "ขณะแก้ปัญหาการหายใจของเขา แผนการดูแลต้องครอบคลุมอะไรอีก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Anticipates he may need **a ventilator** and plans to reach a unit that has one.",
-            "weigh": "If his legs are still swollen in a few days, what will you consider next?",
+            "weigh": "Once he is out of danger, what will you plan for the swollen legs?",
             "safety": ""
           },
           {
             "strength": "Knows the community hospital's limits and leans on the provincial ICU.",
-            "weigh": "Which signs on the ward will tell you he has truly lost the extra fluid?",
+            "weigh": "When he is stable again, which signs will tell you the extra fluid has truly gone?",
             "safety": ""
           },
           {
             "strength": "Moves early instead of waiting until he is exhausted.",
-            "weigh": "If he improves only slowly, what will that change in your plan?",
+            "weigh": "While you treat his breathing, what else must his plan cover?",
             "safety": ""
           }
         ]
@@ -1860,34 +1860,34 @@
         "th": [
           {
             "strength": "มุ่งแก้ที่ต้นเหตุโดย**ขับน้ำออกจากปอด**ให้ได้มากขึ้น",
-            "weigh": "ถ้าอีกไม่กี่วันขายังบวมอยู่ จะพิจารณาอะไรต่อ",
+            "weigh": "เมื่อพ้นขีดอันตรายแล้ว จะวางแผนจัดการขาที่บวมอย่างไร",
             "safety": ""
           },
           {
             "strength": "เห็นว่าน้ำเกินยังเป็นปัญหาหลัก และเพิ่มขนาดยาตามนั้น",
-            "weigh": "อาการแสดงอะไรบนหอผู้ป่วยจะบอกว่าน้ำส่วนเกินออกไปหมดจริง",
+            "weigh": "เมื่อเขาอาการคงที่แล้ว อาการแสดงอะไรจะบอกว่าน้ำส่วนเกินออกไปหมดจริง",
             "safety": ""
           },
           {
             "strength": "ไม่ยึดขนาดยาเดิม แต่ปรับตามอาการที่เปลี่ยนไป",
-            "weigh": "ถ้าดีขึ้นช้า จะเปลี่ยนแผนการรักษาอย่างไร",
+            "weigh": "ขณะแก้ปัญหาการหายใจของเขา แผนการดูแลต้องครอบคลุมอะไรอีก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Aims at the cause: a bigger dose **clears more fluid** from the lungs.",
-            "weigh": "If his legs are still swollen in a few days, what will you consider next?",
+            "weigh": "Once he is out of danger, what will you plan for the swollen legs?",
             "safety": ""
           },
           {
             "strength": "Sees fluid overload as the core problem and scales the dose to match.",
-            "weigh": "Which signs on the ward will tell you he has truly lost the extra fluid?",
+            "weigh": "When he is stable again, which signs will tell you the extra fluid has truly gone?",
             "safety": ""
           },
           {
             "strength": "Does not stick to the old dose but adjusts to the change in his state.",
-            "weigh": "If he improves only slowly, what will that change in your plan?",
+            "weigh": "While you treat his breathing, what else must his plan cover?",
             "safety": ""
           }
         ]
@@ -1896,12 +1896,12 @@
         "th": [
           {
             "strength": "เพิ่มออกซิเจนทันทีและตาม**แพทย์อาวุโส**มาที่ข้างเตียง",
-            "weigh": "ถ้าถึงเช้ายังหอบขณะพัก จะทำอะไรต่อ",
+            "weigh": "ตอนนี้ การหายใจของเขาต้องการอะไรเพิ่มเพื่อให้ปลอดภัย",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
             "strength": "ขอความช่วยเหลือเร็ว เหมาะเมื่อผู้ป่วยที่ได้ออกซิเจนแล้วยังแย่ลง",
-            "weigh": "คืนนี้ อาการแสดงอะไรจะบอกว่าเขาตอบสนองต่อการรักษาอย่างไร",
+            "weigh": "ถ้าหน้ากากและการปรึกษายังไม่พอ ขั้นต่อไปสำหรับเขาคืออะไร",
             "safety": "SpO2 ที่ลดลงและหายใจหนักขึ้นทั้งที่ได้ออกซิเจน บอกว่าการหายใจกำลังล้มเหลว ต้องได้การช่วยหายใจทันที"
           },
           {
@@ -1913,12 +1913,12 @@
         "en": [
           {
             "strength": "Gives more oxygen at once and brings a **senior doctor** to the bedside.",
-            "weigh": "If he is still breathless at rest by morning, what will you do next?",
+            "weigh": "Right now, what more does his breathing need to keep him safe?",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
             "strength": "Escalates early, which is right when a patient on oxygen gets worse.",
-            "weigh": "Overnight, which signs would tell you how he is responding?",
+            "weigh": "If the mask and a call are not enough, what is your next move for him?",
             "safety": "SpO2 falling on oxygen with harder breathing is respiratory failure; he needs ventilatory support now."
           },
           {
@@ -2443,8 +2443,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [0] \"confirm a heart cause and look for what set it off\" echoed the ECG/troponin line, now \"show whether his heart is behind this\"; step2 labs [2] assumed fluid on the lungs on the pneumonia and COPD paths, now asks how results change the first treatment for his breathlessness; the step4 \"fluid is coming back\" and \"not improving\" lines did not fit paths where he was never dry or is already worse, now \"how he is responding\"; \"can this hospital give him all he needs?\" led straight to transfer, now asks what this hospital can offer. Should-fixes taken: emergency-room lines that repeated a step2 variant, BP 168/96 and SpO2 89% cues that pointed at the nitrate and CPAP triggers, \"BP stays high\" (nitrate echo), D-dimer and sputum lines that ignored or overstated a result, and stiff Thai. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94. Replies sha256 c2eeffd98f3bc0cff53a4bfaaf4111aee0c0cec0d0417adc6979068c5cd63d75.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [0] \"confirm a heart cause and look for what set it off\" echoed the ECG/troponin line, now \"show whether his heart is behind this\"; step2 labs [2] assumed fluid on the lungs on the pneumonia and COPD paths, now asks how results change the first treatment for his breathlessness; the step4 \"fluid is coming back\" and \"not improving\" lines did not fit paths where he was never dry or is already worse, now \"how he is responding\"; \"can this hospital give him all he needs?\" led straight to transfer, now asks what this hospital can offer. Should-fixes taken: emergency-room lines that repeated a step2 variant, BP 168/96 and SpO2 89% cues that pointed at the nitrate and CPAP triggers, \"BP stays high\" (nitrate echo), D-dimer and sputum lines that ignored or overstated a result, and stiff Thai. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 159 read, 16 failed: step1 lines that named fluid or infection, step4.W lines that looked days ahead while SpO2 is 85%, \"by morning\" and \"overnight\" lines on paths where the response is weak, and the reservoir line; confirm passes then replaced \"slow recovery\" (echoed the echo line), \"in the next hour\", and \"once his breathing has settled\", now \"While you treat his breathing, what else must his plan cover?\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94. Replies sha256 5358614b2fde4653a424887f1d912b35928b0a1b3fe81eb87c92e8387883bee9.",
     "tree_sha256": "9b0e2da1ff853749a4cc1309bfc8fd59acd9314fd4428e577d34b8eb11439b94",
-    "replies_sha256": "c2eeffd98f3bc0cff53a4bfaaf4111aee0c0cec0d0417adc6979068c5cd63d75"
+    "replies_sha256": "5358614b2fde4653a424887f1d912b35928b0a1b3fe81eb87c92e8387883bee9"
   }
 }

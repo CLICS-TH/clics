@@ -88,7 +88,7 @@
           },
           {
             "strength": "การยึดผลตรวจร่างกายที่มีจริง ทำให้การวินิจฉัยตั้งอยู่บนข้อมูลที่จับต้องได้",
-            "weigh": "การตรวจอะไรจะแยกการติดเชื้อในปอดทั่วไป ออกจากโรคที่พบบ่อยในอีสาน",
+            "weigh": "การตรวจอะไรจะแยกการติดเชื้อในปอดทั่วไป ออกจากสาเหตุที่พบไม่บ่อย",
             "safety": ""
           }
         ],
@@ -105,7 +105,7 @@
           },
           {
             "strength": "Staying with the findings actually present keeps the diagnosis grounded.",
-            "weigh": "Which tests would sort a common chest infection from one typical of Isan?",
+            "weigh": "Which tests would sort a common chest infection from a less usual cause?",
             "safety": ""
           }
         ]
@@ -229,12 +229,12 @@
           },
           {
             "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -246,12 +246,12 @@
           },
           {
             "strength": "His productive cough gives a good sample, often positive when blood is negative.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -265,12 +265,12 @@
           },
           {
             "strength": "ชุดนี้ครอบคลุมทั้งการยืนยันเชื้อ ภาพปอด และการหาฝีในอวัยวะลึกในคราวเดียว",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การมองหาฝีตั้งแต่ต้น ช่วยให้รู้ขอบเขตของโรคก่อนวางแผนต่อ",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -282,12 +282,12 @@
           },
           {
             "strength": "This set confirms the organism, images the lung and seeks deep abscesses in one round.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Seeking abscesses early shows the extent of disease before planning further.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -306,7 +306,7 @@
           },
           {
             "strength": "การเพาะเชื้อเลือดอาจพบเชื้อได้",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -323,7 +323,7 @@
           },
           {
             "strength": "A blood culture can grow the organism.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -373,12 +373,12 @@
           },
           {
             "strength": "ตรวจภูมิต้านทานส่งได้ง่าย",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เป็นการเพิ่มการตรวจหนึ่งรายการ",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -390,12 +390,12 @@
           },
           {
             "strength": "Antibody tests are easy to send.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "It adds a test.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -411,7 +411,7 @@
           },
           {
             "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
@@ -428,7 +428,7 @@
           },
           {
             "strength": "His productive cough gives a good sample, often positive when blood is negative.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
@@ -519,7 +519,7 @@
           },
           {
             "strength": "ได้ส่งเสมหะตรวจ",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
@@ -536,7 +536,7 @@
           },
           {
             "strength": "Sputum is sampled.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
@@ -557,12 +557,12 @@
           },
           {
             "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -574,12 +574,12 @@
           },
           {
             "strength": "His productive cough gives a good sample, often positive when blood is negative.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -598,7 +598,7 @@
           },
           {
             "strength": "เลปโตสไปโรสิสพบบ่อยในชาวนา",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -615,7 +615,7 @@
           },
           {
             "strength": "Leptospirosis is common in rice farmers.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -665,12 +665,12 @@
           },
           {
             "strength": "ได้เพาะเชื้อเลือดไว้",
-            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
+            "weigh": "นอกจากการติดเชื้อ แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เป็นการตรวจที่ทำกันประจำหน้าฝน",
-            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรอีกเกี่ยวกับตัวเขา",
             "safety": ""
           }
         ],
@@ -682,12 +682,12 @@
           },
           {
             "strength": "The blood is cultured.",
-            "weigh": "His glucose is 342; what else must the treatment plan cover?",
+            "weigh": "Besides the infection itself, what else must his treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "It is routine in the rainy season.",
-            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
+            "weigh": "Before you set the drug doses, what else should you know about him?",
             "safety": ""
           }
         ]
@@ -1249,7 +1249,7 @@
           },
           {
             "strength": "การเห็นว่าฝีในม้ามต้องใช้ยานานกว่าปอดอักเสบ แสดงความเข้าใจการรักษาโรคนี้",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
+            "weigh": "เมื่อเขากลับบ้าน แผนดูแลที่บ้านควรเป็นอย่างไร",
             "safety": ""
           },
           {
@@ -1266,7 +1266,7 @@
           },
           {
             "strength": "Recognising that **splenic abscesses** need longer than pneumonia alone shows grasp of this disease.",
-            "weigh": "What will help stop this infection coming back after he goes home?",
+            "weigh": "When he leaves, what should his plan for home look like?",
             "safety": ""
           },
           {
@@ -1285,7 +1285,7 @@
           },
           {
             "strength": "การให้**ยาฉีด 4 สัปดาห์** สอดคล้องกับฝีในม้ามที่ต้องการระยะรักษานานขึ้น",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
+            "weigh": "เมื่อเขากลับบ้าน แผนดูแลที่บ้านควรเป็นอย่างไร",
             "safety": ""
           },
           {
@@ -1302,7 +1302,7 @@
           },
           {
             "strength": "Running IV to 4 weeks fits splenic abscesses that need a longer treatment phase.",
-            "weigh": "What will help stop this infection coming back after he goes home?",
+            "weigh": "When he leaves, what should his plan for home look like?",
             "safety": ""
           },
           {
@@ -1431,7 +1431,7 @@
           },
           {
             "strength": "การให้ยาฉีดเดิมต่อระหว่างหาจุดติดเชื้อที่ซ่อนอยู่เหมาะสม",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
+            "weigh": "เมื่อเขากลับบ้าน แผนดูแลที่บ้านควรเป็นอย่างไร",
             "safety": ""
           },
           {
@@ -1448,7 +1448,7 @@
           },
           {
             "strength": "Keeping the IV drug while looking for a hidden focus is sound.",
-            "weigh": "What will help stop this infection coming back after he goes home?",
+            "weigh": "When he leaves, what should his plan for home look like?",
             "safety": ""
           },
           {
@@ -1467,7 +1467,7 @@
           },
           {
             "strength": "การคงยาฉีดเดิมไว้เมื่อไข้ยังลงช้า สอดคล้องกับธรรมชาติของโรคนี้",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
+            "weigh": "เมื่อเขากลับบ้าน แผนดูแลที่บ้านควรเป็นอย่างไร",
             "safety": ""
           },
           {
@@ -1484,7 +1484,7 @@
           },
           {
             "strength": "Keeping the IV drug while fever settles slowly fits the nature of this disease.",
-            "weigh": "What will help stop this infection coming back after he goes home?",
+            "weigh": "When he leaves, what should his plan for home look like?",
             "safety": ""
           },
           {
@@ -1613,7 +1613,7 @@
           },
           {
             "strength": "การมองไข้ที่กลับมาระหว่างกินยาว่าชี้ไปที่**โรคกำเริบ** ช่วยให้ตอบสนองได้ทันเวลา",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
+            "weigh": "เมื่อเขากลับบ้าน แผนดูแลที่บ้านควรเป็นอย่างไร",
             "safety": ""
           },
           {
@@ -1630,7 +1630,7 @@
           },
           {
             "strength": "Reading fever back on oral therapy as **relapse** prompts a timely response.",
-            "weigh": "What will help stop this infection coming back after he goes home?",
+            "weigh": "When he leaves, what should his plan for home look like?",
             "safety": ""
           },
           {
@@ -1649,7 +1649,7 @@
           },
           {
             "strength": "การเปลี่ยนมาใช้ **TMP-SMX** ในระยะกำจัดเชื้อ ตอบโจทย์การกำเริบระหว่างกินยาตัวก่อน",
-            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
+            "weigh": "เมื่อเขากลับบ้าน แผนดูแลที่บ้านควรเป็นอย่างไร",
             "safety": ""
           },
           {
@@ -1666,7 +1666,7 @@
           },
           {
             "strength": "Switching to **TMP-SMX** for eradication answers a relapse on the previous oral drug.",
-            "weigh": "What will help stop this infection coming back after he goes home?",
+            "weigh": "When he leaves, what should his plan for home look like?",
             "safety": ""
           },
           {
@@ -2191,8 +2191,8 @@
   "safety_review": {
     "model": "claude-sonnet-5-5",
     "date": "2026-11-26",
-    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [0] Thai said blood was cultured while the English said drawn, and \"fastest\" overclaimed culture; step1.b [0] copied option a's line \"grow the organism when blood stays negative\"; step1.b [1] restated best option b's look at liver and spleen; step2 [0] \"once the cultures/lab names the organism\" implied full treatment waits for the lab, now \"Beyond the first dose\"; step3 [2] \"what might be hiding\" under the left ribs leaked the spleen-abscess line and assumed recovery on paths where fever persists, now asks what shows the plan is on track; step4 [2] \"diabetes care\" gave away \"glucose care\", now asks what must be settled for his care. Declined: changing \"drip phase\" to \"IV phase\", because the checker forbids the IV acronym of another option in the bank. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7. Replies sha256 b81ac7e7b6ac1fdfbc39bccfaf832c10e66d1f960efe0afb6b3769ff2f858d9f.",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [0] Thai said blood was cultured while the English said drawn, and \"fastest\" overclaimed culture; step1.b [0] copied option a's line \"grow the organism when blood stays negative\"; step1.b [1] restated best option b's look at liver and spleen; step2 [0] \"once the cultures/lab names the organism\" implied full treatment waits for the lab, now \"Beyond the first dose\"; step3 [2] \"what might be hiding\" under the left ribs leaked the spleen-abscess line and assumed recovery on paths where fever persists, now asks what shows the plan is on track; step4 [2] \"diabetes care\" gave away \"glucose care\", now asks what must be settled for his care. Declined: changing \"drip phase\" to \"IV phase\", because the checker forbids the IV acronym of another option in the bank. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 144 read, 21 failed: the step1.c [2] \"typical of Isan\" line, the step2 \"His glucose is 342\" and \"his kidneys before setting the drug dose\" lines, and the step4 \"stop this infection coming back\" lines; the confirm pass found the replacements clean, and the Thai \"ตัวการติดเชื้อ\" was smoothed to \"การติดเชื้อ\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7. Replies sha256 871b06feb6610550cb5f6a24f982f11b96f8ba8dcd88fe2440a9ca57935f6eaa.",
     "tree_sha256": "b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7",
-    "replies_sha256": "b81ac7e7b6ac1fdfbc39bccfaf832c10e66d1f960efe0afb6b3769ff2f858d9f"
+    "replies_sha256": "871b06feb6610550cb5f6a24f982f11b96f8ba8dcd88fe2440a9ca57935f6eaa"
   }
 }
