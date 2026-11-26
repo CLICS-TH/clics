@@ -2,7 +2,8 @@
 //   renderTag(tag)                              the result card's tag, "Participant #NNN" with its icon
 //   mountResultBoard(slot, { tag, scoreBody })  the result card's ranks and Landing QR, from the score response
 //                                               (rank_today, rank_event)
-//   mountLoopBoard(slot, { api }) -> stop()     the loop's board, fetched from GET /booth/board every minute
+//   mountLoopBoard(slot, { api }) -> stop()     the loop's board, fetched from GET /booth/board every minute: today's top 5
+//                                               only, so it fits the loop's lower half without clipping (owner, 2026-11-26)
 //   leaderboardButton({ host, api, board, tag, short })  the button on the result card and the loop (#250): opens the board
 //                                               over `host`, from `board` when the score carried one, else GET /booth/board
 // The panel has no controls: on the loop a tap anywhere, the panel included, starts a play. The overlay has one, Close.
@@ -13,6 +14,7 @@ const BOARD_TIMEOUT_MS = 8_000;
 const LOOP_REFRESH_MS = 60_000;
 const OVERLAY_IDLE_MS = 30_000;
 const LANDING_QR_SRC = '/img/booth-landing-qr.svg';
+const LOOP_ROWS = 5;
 
 // Icons from the Portal set (js/icons.js) that read as a badge, not as a button's action or a warning.
 const TAG_ICONS = Object.freeze(['flag', 'shield', 'clock', 'message', 'folder', 'clipboard', 'paperclip', 'eye', 'check',
@@ -24,6 +26,7 @@ const COPY = Object.freeze({
   board: { th: 'กระดานคะแนน', en: 'Leaderboard' },
   today: { th: '10 อันดับวันนี้', en: 'Top 10 today' },
   event: { th: '10 อันดับตลอดงาน', en: 'Top 10 of the event' },
+  loopToday: { th: '5 อันดับวันนี้', en: 'Top 5 today' },
   empty: { th: 'ยังไม่มีคะแนน', en: 'No scores yet' },
   scan: { th: 'สแกนเพื่อรู้จัก CLICS', en: 'Scan to learn about CLICS' },
   open: { th: 'ดูกระดานคะแนน', en: 'See the leaderboard' },
@@ -60,10 +63,13 @@ function boardList(title, entries, mine) {
       : bi(COPY.empty, 'board-empty'));
 }
 
-function boardPanel(board, mine = null) {
-  return el('section', { class: 'board-panel', dataset: { board: '' }, 'aria-label': COPY.board.en },
+function boardPanel(board, mine = null, loop = false) {
+  const lists = loop
+    ? [boardList(COPY.loopToday, board.today.slice(0, LOOP_ROWS), mine)]
+    : [boardList(COPY.today, board.today, mine), boardList(COPY.event, board.event, mine)];
+  return el('section', { class: 'board-panel', dataset: { board: loop ? 'loop' : '' }, 'aria-label': COPY.board.en },
     bi(COPY.board, 'board-title'),
-    el('div', { class: 'board-lists' }, boardList(COPY.today, board.today, mine), boardList(COPY.event, board.event, mine)),
+    el('div', { class: 'board-lists' }, ...lists),
     el('div', { class: 'demo-label board-label', dataset: { demoLabel: '' } }, bi(DEMO_LABEL)));
 }
 
@@ -97,7 +103,7 @@ export function mountLoopBoard(slot, { api }) {
     let board = null;
     try { board = parseBoard((await api.get('/booth/board', { timeoutMs: BOARD_TIMEOUT_MS }))?.board); } catch { board = null; }
     if (stopped) return;
-    slot.replaceChildren(...(board ? [boardPanel(board)] : []));
+    slot.replaceChildren(...(board ? [boardPanel(board, null, true)] : []));
     window.hydrateIcons?.(slot);
     timer = setTimeout(refresh, LOOP_REFRESH_MS);
   };

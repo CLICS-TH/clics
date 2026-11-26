@@ -186,9 +186,17 @@ export default [
       await page.evaluate(() => document.fonts.ready);
       await h.screenCheck(page, 'loop board', { demo: true });
       await h.shot(page, 'loop-board');
-      const [today, event] = [expectRows(BOARD.today, null), expectRows(BOARD.event, null)];
-      h.check(h.same(await settledRows(page, 1, today), today) && h.same(await settledRows(page, 2, event), event),
-        'loop board: top 10 today and for the event, no row marked');
+      const today = expectRows(BOARD.today.slice(0, 5), null);
+      h.check(h.same(await settledRows(page, 1, today), today), 'loop board: today\'s top 5 only, no row marked');
+      const loop = await page.evaluate(() => {
+        const slot = document.querySelector('[data-booth-slot="loop-board"]').getBoundingClientRect();
+        const rows = [...document.querySelectorAll('[data-board] .board-row')].map((r) => r.getBoundingClientRect());
+        return { lists: document.querySelectorAll('[data-board] .board-list').length,
+          title: document.querySelector('[data-board] .board-list-title')?.innerText.replace(/\s+/g, ' ').trim(),
+          inside: rows.length > 0 && rows.every((r) => r.top >= slot.top - 1 && r.bottom <= slot.bottom + 1) };
+      });
+      h.check(loop.lists === 1 && /5 อันดับวันนี้/.test(loop.title) && /Top 5 today/.test(loop.title) && loop.inside,
+        `loop board: one list titled 5 อันดับวันนี้ / Top 5 today, every row inside the slot, none clipped (${JSON.stringify(loop)})`);
       h.check(await page.locator('[data-board] button, [data-board] a').count() === 0, 'loop board: no controls, so a tap on it starts a play');
       h.check(stub.of(BOARD_KEY).length === 1, 'loop board: one request on mount');
 
