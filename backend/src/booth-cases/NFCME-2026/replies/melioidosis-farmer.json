@@ -6,34 +6,34 @@
         "th": [
           {
             "strength": "การรวมเบาหวานกับการทำนาหน้าฝนและปอดอักเสบ ใช้ปัจจัยเสี่ยงของพื้นที่ได้ตรงจุด",
-            "weigh": "ชีพจร 112 หายใจ 24 และ SpO2 93% บอกอะไรเรื่องความรุนแรงของเขา",
+            "weigh": "การตรวจเพิ่มเติมอะไรให้โอกาสพบเชื้อได้ดีที่สุด",
             "safety": ""
           },
           {
             "strength": "การนึกถึงโรคประจำถิ่นอีสานในชาวนาเบาหวาน แสดงความเข้าใจระบาดวิทยาของพื้นที่",
-            "weigh": "สัญญาณชีพตัวไหนของเขาที่น่าห่วงที่สุดตอนนี้",
+            "weigh": "การตรวจเพิ่มเติมอะไรจะหาการกระจายของเชื้อนอกปอด",
             "safety": ""
           },
           {
             "strength": "การเชื่อมอาการปอดเข้ากับการลงนาในโคลนทุกวัน ทำให้การวินิจฉัยมีเหตุผลรองรับชัดเจน",
-            "weigh": "ชีพจร 112 ความดัน 106/66 แบบนี้ เขาเข้าภาวะติดเชื้อในกระแสเลือดแล้วหรือยัง",
+            "weigh": "ชีพจร 112 SpO2 93% การตรวจอะไรจะบอกด้วยว่าเขาป่วยหนักแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Linking diabetes with rainy-season rice farming and pneumonia uses local risk factors well.",
-            "weigh": "What do a pulse of 112, breathing at 24 and SpO2 93% say about how sick he is?",
+            "weigh": "Which further tests give the best chance of finding the organism?",
             "safety": ""
           },
           {
             "strength": "Thinking of an endemic Isan infection in a diabetic farmer shows grasp of local epidemiology.",
-            "weigh": "Which of his vital signs worries you most right now?",
+            "weigh": "Which further tests would look for spread beyond the lung?",
             "safety": ""
           },
           {
             "strength": "Tying the chest findings to daily contact with mud gives the diagnosis a clear rationale.",
-            "weigh": "With a pulse of 112 and BP 106/66, could he already be septic?",
+            "weigh": "With a pulse of 112 and SpO2 93%, which tests would also grade how sick he is?",
             "safety": ""
           }
         ]
@@ -42,34 +42,34 @@
         "th": [
           {
             "strength": "การใช้เสียงกรอบแกรบที่ปอดขวาบนร่วมกับประวัติ ทำให้ระบุตำแหน่งของโรคได้ชัด",
-            "weigh": "ชีพจร การหายใจ และออกซิเจนของเขา บอกว่าป่วยหนักแค่ไหน",
+            "weigh": "การตรวจอะไรให้โอกาสพบเชื้อในชาวนารายนี้ได้ดีที่สุด",
             "safety": ""
           },
           {
             "strength": "การระบุว่าเป็น**เมลิออยโดสิสที่ปอด** เชื่อมผลตรวจร่างกายกับปัจจัยเสี่ยงได้ครบ",
-            "weigh": "โรคนี้กระจายไปหลายอวัยวะได้บ่อย แน่ใจแค่ไหนว่าอยู่ที่ปอดอย่างเดียว",
+            "weigh": "เจาะเลือดไปแล้ว การตรวจเพิ่มอะไรจะช่วยได้มากที่สุด",
             "safety": ""
           },
           {
             "strength": "การให้ความสำคัญกับตำแหน่งปอดกลีบบน แสดงการอ่านผลตรวจร่างกายอย่างละเอียด",
-            "weigh": "สัญญาณชีพตัวไหนของเขาที่ทำให้ห่วงที่สุดตอนนี้",
+            "weigh": "ชีพจร 112 SpO2 93% การตรวจอะไรจะบอกด้วยว่าเขาป่วยหนักแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Using the upper-lung crackles with his history pins down where the disease sits.",
-            "weigh": "What do his pulse, breathing rate and oxygen level say about how sick he is?",
+            "weigh": "Which tests give the best chance of finding the organism in this farmer?",
             "safety": ""
           },
           {
             "strength": "Naming it pulmonary **melioidosis** ties the examination to his risk factors.",
-            "weigh": "This infection often spreads to other organs; how sure are you it is only in the lung?",
+            "weigh": "With blood already drawn, which further tests would help most?",
             "safety": ""
           },
           {
             "strength": "Attention to the upper-lobe site shows careful reading of the chest findings.",
-            "weigh": "Which of his vital signs worries you most right now?",
+            "weigh": "With a pulse of 112 and SpO2 93%, which tests would also grade how sick he is?",
             "safety": ""
           }
         ]
@@ -78,34 +78,34 @@
         "th": [
           {
             "strength": "การอ่าน**ไข้ ไอมีเสมหะ**และเสียงกรอบแกรบเป็นปอดอักเสบ เป็นการรวบรวมอาการได้ตรงกลุ่ม",
-            "weigh": "เบาหวานกับการลงโคลนทุกวันช่วงหน้าฝน เปลี่ยนเชื้อที่คุณนึกถึงไหม",
+            "weigh": "เบาหวานและการลงโคลนทำให้นึกถึงเชื้ออื่น การตรวจอะไรจะช่วยแยก",
             "safety": ""
           },
           {
             "strength": "การจัดกลุ่มอาการตามระบบ ช่วยให้วางแนวทางดูแลได้เป็นขั้นตอน",
-            "weigh": "ชาวนาเบาหวานที่อุบลฯ ติดเชื้อชนิดเดียวกับผู้ป่วยปอดอักเสบในเมืองไหม",
+            "weigh": "หลังให้ยาเข็มแรก สิ่งส่งตรวจใดจะบอกชนิดของเชื้อ",
             "safety": ""
           },
           {
             "strength": "การยึดผลตรวจร่างกายที่มีจริง ทำให้การวินิจฉัยตั้งอยู่บนข้อมูลที่จับต้องได้",
-            "weigh": "น้ำหนักลดใน 10 วัน เข้ากับปอดอักเสบทั่วไปไหม",
+            "weigh": "การตรวจอะไรจะแยกการติดเชื้อในปอดทั่วไป ออกจากโรคที่พบบ่อยในอีสาน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reading fever, **productive cough** and crackles together groups the findings cleanly.",
-            "weigh": "Do his diabetes and daily rainy-season mud work change which organism you suspect?",
+            "weigh": "His diabetes and mud work raise other organisms; which tests would sort them?",
             "safety": ""
           },
           {
             "strength": "Grouping the findings by system gives a stepwise basis for care.",
-            "weigh": "Would a diabetic Ubon farmer catch the same organisms as a city patient with pneumonia?",
+            "weigh": "After the first dose, which samples would tell you the organism?",
             "safety": ""
           },
           {
             "strength": "Staying with the findings actually present keeps the diagnosis grounded.",
-            "weigh": "Does weight loss over 10 days fit a routine chest infection?",
+            "weigh": "Which tests would sort a common chest infection from one typical of Isan?",
             "safety": ""
           }
         ]
@@ -114,34 +114,34 @@
         "th": [
           {
             "strength": "การนึกถึง**วัณโรค**ในผู้ป่วยเบาหวานที่ไอและน้ำหนักลด สอดคล้องกับความเสี่ยงที่สูงขึ้น",
-            "weigh": "ไข้สูงที่เพิ่งเป็นมา 10 วัน เข้ากับวัณโรคที่มักค่อยเป็นค่อยไปไหม",
+            "weigh": "ไข้สูงมา 10 วัน การตรวจอะไรจะแยกการติดเชื้อที่มาเร็วออกจากโรคที่ค่อยเป็นค่อยไป",
             "safety": ""
           },
           {
             "strength": "การให้น้ำหนักกับน้ำหนักที่ลดลง ช่วยไม่ให้มองข้ามโรคเรื้อรังที่พบบ่อยในไทย",
-            "weigh": "การลงนาในโคลนทุกวันช่วงหน้าฝน ทำให้คุณนึกถึงเชื้ออื่นด้วยไหม",
+            "weigh": "หลังให้ยาเข็มแรก สิ่งส่งตรวจใดจะบอกชนิดของเชื้อ",
             "safety": ""
           },
           {
             "strength": "การระวังโรคที่แพร่สู่คนรอบข้างได้ แสดงการคิดถึงชุมชนนอกเหนือจากผู้ป่วย",
-            "weigh": "ชีพจรเร็ว หายใจเร็ว และออกซิเจนต่ำ เข้ากับโรคที่ดำเนินช้าแบบวัณโรคไหม",
+            "weigh": "เบาหวานและการลงโคลนทำให้นึกถึงเชื้ออื่น การตรวจอะไรจะช่วยแยก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinking of **TB** in a diabetic with cough and weight loss fits the higher risk diabetes brings.",
-            "weigh": "Does a high fever of just 10 days fit a disease that usually creeps in slowly?",
+            "weigh": "A high fever of 10 days: which tests would sort a fast infection from a slow one?",
             "safety": ""
           },
           {
             "strength": "Giving weight to the weight loss keeps a common chronic Thai infection in view.",
-            "weigh": "Does his daily rainy-season work in the mud bring any other infection to mind?",
+            "weigh": "After the first dose, which samples would tell you the organism?",
             "safety": ""
           },
           {
             "strength": "Keeping a transmissible infection in mind shows thought for the people around him.",
-            "weigh": "Do a fast pulse, fast breathing and low oxygen fit a slow disease like TB?",
+            "weigh": "His diabetes and mud work raise other organisms; which tests would sort them?",
             "safety": ""
           }
         ]
@@ -150,34 +150,34 @@
         "th": [
           {
             "strength": "เลปโตสไปโรสิสพบบ่อยในชาวนาช่วงหน้าฝน",
-            "weigh": "เลปโตอธิบายไอมีเสมหะ เสียงกรอบแกรบเฉพาะที่ และน้ำหนักลดได้ไหม",
+            "weigh": "ถ้าภาพเอกซเรย์พบปอดอักเสบ สิ่งส่งตรวจใดจะหาเชื้อได้",
             "safety": ""
           },
           {
             "strength": "การลุยโคลนเป็นส่วนหนึ่งของประวัติเขา",
-            "weigh": "ไข้ 10 วันที่เด่นที่ปอดร่วมกับน้ำหนักลด เข้ากับโรคนี้ไหม",
+            "weigh": "การตรวจอะไรจะอธิบายอาการไอมีเสมหะและเสียงกรอบแกรบที่ปอดขวาได้",
             "safety": ""
           },
           {
             "strength": "เป็นการวินิจฉัยที่คุ้นเคยในหน้าฝน",
-            "weigh": "เบาหวานที่คุมไม่ดีของเขา มีบทบาทอะไรในการวินิจฉัยนี้",
+            "weigh": "หลังให้ยาเข็มแรก สิ่งส่งตรวจใดจะบอกชนิดของเชื้อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Leptospirosis is common in rainy-season farmers.",
-            "weigh": "Does leptospirosis explain the productive cough, focal crackles and weight loss?",
+            "weigh": "If the X-ray shows a lung infection, which samples would find the organism?",
             "safety": ""
           },
           {
             "strength": "Mud exposure is part of his history.",
-            "weigh": "Do ten days of chest-led illness with weight loss fit this diagnosis?",
+            "weigh": "Which tests would explain his productive cough and right chest crackles?",
             "safety": ""
           },
           {
             "strength": "It is a familiar rainy-season diagnosis.",
-            "weigh": "What part does his poorly controlled diabetes play in this diagnosis?",
+            "weigh": "After the first dose, which samples would tell you the organism?",
             "safety": ""
           }
         ]
@@ -186,34 +186,34 @@
         "th": [
           {
             "strength": "ไข้หวัดใหญ่พบบ่อยในหน้าฝน",
-            "weigh": "ไข้ 10 วัน น้ำหนักลด และเสียงกรอบแกรบเฉพาะที่ เป็นแบบไข้หวัดใหญ่ไหม",
+            "weigh": "ถ้าภาพเอกซเรย์พบปอดอักเสบ สิ่งส่งตรวจใดจะหาเชื้อได้",
             "safety": ""
           },
           {
             "strength": "ไข้และไอเป็นอาการหลักของเขา",
-            "weigh": "เบาหวานกับการลงนาในโคลน บอกอะไรที่อาการไข้และไอบอกไม่ได้",
+            "weigh": "ไข้ 10 วันร่วมกับน้ำหนักลด การตรวจอะไรจะหาสาเหตุได้",
             "safety": ""
           },
           {
             "strength": "เป็นการวินิจฉัยที่คุ้นเคย",
-            "weigh": "ชีพจรเร็ว หายใจเร็ว และออกซิเจนต่ำ ชี้ไปที่การติดเชื้อแบบไหน",
+            "weigh": "การตรวจอะไรจะอธิบายอาการไอมีเสมหะและเสียงกรอบแกรบที่ปอดขวาได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Flu is common in the rainy season.",
-            "weigh": "Do 10 days of fever, weight loss and focal crackles look like flu?",
+            "weigh": "If the X-ray shows a lung infection, which samples would find the organism?",
             "safety": ""
           },
           {
             "strength": "Fever and cough are his main symptoms.",
-            "weigh": "What do his diabetes and mud work tell you that fever and cough alone do not?",
+            "weigh": "Ten days of fever with weight loss: which tests would find the cause?",
             "safety": ""
           },
           {
             "strength": "It is a familiar diagnosis.",
-            "weigh": "What kind of infection do a fast pulse, fast breathing and low oxygen point to?",
+            "weigh": "Which tests would explain his productive cough and right chest crackles?",
             "safety": ""
           }
         ]
@@ -224,34 +224,34 @@
         "th": [
           {
             "strength": "การเพิ่ม**ป้ายคอ**ร่วมกับเสมหะ เพิ่มโอกาสพบเชื้อแม้เพาะเชื้อเลือดให้ผลลบ",
-            "weigh": "ได้บอกห้องแล็บหรือยังว่าสงสัยเชื้ออะไร ให้เพาะเชื้อได้ถูกและปลอดภัย",
+            "weigh": "นอกจากยาเข็มแรก การรักษาทั้งหมดของเขาจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ระหว่างรอจะประเมินความรุนแรงอย่างไร",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
-            "weigh": "เสมหะกับป้ายคอ จะเก็บอย่างไรให้ได้ตัวอย่างที่ดี",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Adding a **throat** swab to sputum gives more chances to grow the organism when blood stays negative.",
-            "weigh": "Have you told the lab what you suspect, so it cultures the organism well and safely?",
+            "weigh": "Beyond the first dose, what will his whole treatment look like?",
             "safety": ""
           },
           {
             "strength": "His productive cough gives a good sample, often positive when blood is negative.",
-            "weigh": "Cultures take days; how will you judge his severity while you wait?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
-            "weigh": "How will you collect the sputum and throat swab so the samples are good?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -260,34 +260,34 @@
         "th": [
           {
             "strength": "การส่ง **U/S ช่องท้อง** เพื่อหาฝีในตับและม้าม ตรงกับการกดเจ็บใต้ชายโครงซ้ายที่ตรวจพบ",
-            "weigh": "ได้บอกห้องแล็บหรือยังว่าสงสัยเชื้ออะไร ให้เพาะเชื้อได้ถูกและปลอดภัย",
+            "weigh": "นอกจากยาเข็มแรก การรักษาทั้งหมดของเขาจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ชุดนี้ครอบคลุมทั้งการยืนยันเชื้อ ภาพปอด และการหาฝีในอวัยวะลึกในคราวเดียว",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียวพลาดได้บางราย ถ้าผลลบจะตัดโรคนี้ได้ไหม",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การมองหาฝีตั้งแต่ต้น ช่วยให้รู้ขอบเขตของโรคก่อนวางแผนต่อ",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ระหว่างรอจะติดตามความรุนแรงอย่างไร",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "An **abdominal U/S** to seek liver or spleen abscess matches the tender left upper abdomen.",
-            "weigh": "Have you told the lab what you suspect, so it handles the organism well and safely?",
+            "weigh": "Beyond the first dose, what will his whole treatment look like?",
             "safety": ""
           },
           {
             "strength": "This set confirms the organism, images the lung and seeks deep abscesses in one round.",
-            "weigh": "Blood culture alone misses some cases; would a negative result really rule this out?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Seeking abscesses early shows the extent of disease before planning further.",
-            "weigh": "Culture takes days; how will you follow his severity in the meantime?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -296,34 +296,34 @@
         "th": [
           {
             "strength": "เอกซเรย์ปอดแสดงภาพของปอด",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ถ้าผลลบจะตัดโรคนี้ได้ไหม",
+            "weigh": "ถ้าผลใช้เวลาหลายวัน จะวางสูตรยาอย่างไรตั้งแต่วันนี้",
             "safety": ""
           },
           {
             "strength": "การตรวจสองอย่างนี้ทำเป็นประจำในโรงพยาบาลส่วนใหญ่",
-            "weigh": "เขาไอมีเสมหะ มีตัวอย่างอะไรอีกที่เพาะเชื้อได้นอกจากเลือด",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อเลือดอาจพบเชื้อได้",
-            "weigh": "ถ้ามองเป็นปอดอักเสบทั่วไป จะพลาดการเก็บตัวอย่างที่โรคนี้ต้องการไหม",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A chest X-ray shows the lung.",
-            "weigh": "Blood culture alone finds the organism in only some cases; does a negative result rule it out?",
+            "weigh": "If results take days, which regimen will you plan from now?",
             "safety": ""
           },
           {
             "strength": "These two tests are routine in most hospitals.",
-            "weigh": "He has a productive cough; what else besides blood could you culture?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "A blood culture can grow the organism.",
-            "weigh": "If you treat this as any pneumonia, will you miss samples this disease needs?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -332,34 +332,34 @@
         "th": [
           {
             "strength": "CBC และค่าไตเป็นเลือดพื้นฐานตอนรับไว้",
-            "weigh": "ชุดเลือดตามปกติ ช่วยยืนยันเชื้อที่คุณสงสัยได้ไหม",
+            "weigh": "ถ้าผลใช้เวลาหลายวัน จะวางสูตรยาอย่างไรตั้งแต่วันนี้",
             "safety": ""
           },
           {
             "strength": "ค่าไตบอกการทำงานของไต",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ถ้าผลลบจะทำอย่างไรต่อ",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เลือดชุดนี้ส่งได้เร็ว",
-            "weigh": "เขาไอมีเสมหะ ตัวอย่างจากตำแหน่งไหนอีกที่น่าส่งเพาะเชื้อ",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A CBC and creatinine are routine admission bloods.",
-            "weigh": "Does a routine blood set help confirm the organism you suspect?",
+            "weigh": "If results take days, which regimen will you plan from now?",
             "safety": ""
           },
           {
             "strength": "Creatinine shows his kidney function.",
-            "weigh": "Blood culture alone finds the organism in only some cases; what if it comes back negative?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "These bloods are quick to send.",
-            "weigh": "With his productive cough, which other site is worth sending for culture?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -368,34 +368,34 @@
         "th": [
           {
             "strength": "ส่งเพาะเชื้อเลือดแล้ว",
-            "weigh": "คนอีสานจำนวนมากมี IHA บวกจากการสัมผัสเชื้อในอดีต ผลบวกจะบอกอะไรได้จริง",
+            "weigh": "ถ้าเพาะเชื้อเลือดขึ้นเชื้อ ควรให้ยาสูตรใดต่อ",
             "safety": ""
           },
           {
             "strength": "ตรวจภูมิต้านทานส่งได้ง่าย",
-            "weigh": "โรคนี้ยืนยันด้วยการเพาะเชื้อ แต่ที่นี่เพาะจากเลือดตำแหน่งเดียว พอไหม",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เป็นการเพิ่มการตรวจหนึ่งรายการ",
-            "weigh": "ไตเตอร์บวกจะเปลี่ยนการรักษาของเขาตรงไหน",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "The blood culture is sent.",
-            "weigh": "Many people in Isan carry a positive IHA from past exposure; what would a positive result really tell you?",
+            "weigh": "If the blood culture grows an organism, which regimen should follow?",
             "safety": ""
           },
           {
             "strength": "Antibody tests are easy to send.",
-            "weigh": "Only culture confirms this disease; is one site, the blood, enough?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "It adds a test.",
-            "weigh": "Where would a positive titre change his treatment?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -406,34 +406,34 @@
         "th": [
           {
             "strength": "การเพิ่ม**ป้ายคอ**ร่วมกับเสมหะ เพิ่มโอกาสพบเชื้อแม้เพาะเชื้อเลือดให้ผลลบ",
-            "weigh": "ได้บอกห้องแล็บหรือยังว่าสงสัยเชื้ออะไร ให้เพาะเชื้อได้ถูกและปลอดภัย",
+            "weigh": "นอกจากยาเข็มแรก การรักษาทั้งหมดของเขาจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ระหว่างรอจะประเมินความรุนแรงอย่างไร",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
-            "weigh": "เสมหะกับป้ายคอ จะเก็บอย่างไรให้ได้ตัวอย่างที่ดี",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Adding a **throat** swab to sputum gives more chances to grow the organism when blood stays negative.",
-            "weigh": "Have you told the lab what you suspect, so it cultures the organism well and safely?",
+            "weigh": "Beyond the first dose, what will his whole treatment look like?",
             "safety": ""
           },
           {
             "strength": "His productive cough gives a good sample, often positive when blood is negative.",
-            "weigh": "Cultures take days; how will you judge his severity while you wait?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
-            "weigh": "How will you collect the sputum and throat swab so the samples are good?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -442,34 +442,34 @@
         "th": [
           {
             "strength": "การส่งเสมหะใช้ตรวจหาวัณโรค",
-            "weigh": "ไข้สูงที่เพิ่งเป็น 10 วันกับการลงโคลนหน้าฝน ทำให้นึกถึงเชื้ออื่นนอกจากวัณโรคไหม",
+            "weigh": "ถ้าผลใช้เวลาหลายวัน จะวางสูตรยาอย่างไรตั้งแต่วันนี้",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อเลือดใช้หาเชื้อในกระแสเลือด",
-            "weigh": "เสมหะที่ส่งไปแล้ว เพาะหาเชื้ออื่นด้วยได้ไหม",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การตรวจหาวัณโรคมีในโรงพยาบาลไทยส่วนใหญ่",
-            "weigh": "ได้บอกห้องแล็บหรือยังว่าสงสัยเชื้ออะไร ให้ตรวจได้ถูกและปลอดภัย",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sputum TB tests look for tuberculosis.",
-            "weigh": "Do a high fever of just 10 days and rainy-season mud work point to an organism besides TB?",
+            "weigh": "If results take days, which regimen will you plan from now?",
             "safety": ""
           },
           {
             "strength": "The blood culture looks for bacteraemia.",
-            "weigh": "The sputum is already going; could it be cultured for other organisms too?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "TB tests are available in most Thai hospitals.",
-            "weigh": "Have you told the lab what you suspect, so it handles the samples well and safely?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -478,34 +478,34 @@
         "th": [
           {
             "strength": "เอกซเรย์ปอดแสดงภาพของปอด",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ถ้าผลลบจะตัดโรคนี้ได้ไหม",
+            "weigh": "ถ้าผลใช้เวลาหลายวัน จะวางสูตรยาอย่างไรตั้งแต่วันนี้",
             "safety": ""
           },
           {
             "strength": "การตรวจสองอย่างนี้ทำเป็นประจำในโรงพยาบาลส่วนใหญ่",
-            "weigh": "เขาไอมีเสมหะ มีตัวอย่างอะไรอีกที่เพาะเชื้อได้นอกจากเลือด",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อเลือดอาจพบเชื้อได้",
-            "weigh": "ถ้ามองเป็นปอดอักเสบทั่วไป จะพลาดการเก็บตัวอย่างที่โรคนี้ต้องการไหม",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A chest X-ray shows the lung.",
-            "weigh": "Blood culture alone finds the organism in only some cases; does a negative result rule it out?",
+            "weigh": "If results take days, which regimen will you plan from now?",
             "safety": ""
           },
           {
             "strength": "These two tests are routine in most hospitals.",
-            "weigh": "He has a productive cough; what else besides blood could you culture?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "A blood culture can grow the organism.",
-            "weigh": "If you treat this as any pneumonia, will you miss samples this disease needs?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -514,34 +514,34 @@
         "th": [
           {
             "strength": "ย้อมแกรมทำได้เร็ว",
-            "weigh": "ย้อมแกรมบอกได้แค่กลุ่มเชื้อ จะยืนยันชนิดเชื้อได้อย่างไร",
+            "weigh": "ถ้าเพาะเชื้อเลือดขึ้นเชื้อ ควรให้ยาสูตรใดต่อ",
             "safety": ""
           },
           {
             "strength": "ได้ส่งเสมหะตรวจ",
-            "weigh": "เสมหะเป็นตัวอย่างที่ดีที่สุดของเขา ทำไมจึงแค่ย้อมสีแต่ไม่เพาะเชื้อ",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "แล็บส่วนใหญ่ทำได้ภายในวัน",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียวพลาดได้บ่อย การย้อมสีช่วยปิดช่องนี้ได้ไหม",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A Gram stain is quick.",
-            "weigh": "A Gram stain shows only the class of organism; how will you confirm the species?",
+            "weigh": "If the blood culture grows an organism, which regimen should follow?",
             "safety": ""
           },
           {
             "strength": "Sputum is sampled.",
-            "weigh": "His sputum is his best sample; why only stain it and not culture it?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Most labs can run it today.",
-            "weigh": "Blood culture alone often misses this organism; can a stain close that gap?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -552,34 +552,34 @@
         "th": [
           {
             "strength": "การเพิ่ม**ป้ายคอ**ร่วมกับเสมหะ เพิ่มโอกาสพบเชื้อแม้เพาะเชื้อเลือดให้ผลลบ",
-            "weigh": "ได้บอกห้องแล็บหรือยังว่าสงสัยเชื้ออะไร ให้เพาะเชื้อได้ถูกและปลอดภัย",
+            "weigh": "นอกจากยาเข็มแรก การรักษาทั้งหมดของเขาจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ผู้ป่วยไอมีเสมหะ จึงเก็บเสมหะได้ดี และมักพบเชื้อแม้ผลเลือดเป็นลบ",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ระหว่างรอจะประเมินความรุนแรงอย่างไร",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อหลายตำแหน่งเหมาะกับโรคที่ยืนยันได้ด้วยการเพาะเชื้อเป็นหลัก",
-            "weigh": "เสมหะกับป้ายคอ จะเก็บอย่างไรให้ได้ตัวอย่างที่ดี",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Adding a **throat** swab to sputum gives more chances to grow the organism when blood stays negative.",
-            "weigh": "Have you told the lab what you suspect, so it cultures the organism well and safely?",
+            "weigh": "Beyond the first dose, what will his whole treatment look like?",
             "safety": ""
           },
           {
             "strength": "His productive cough gives a good sample, often positive when blood is negative.",
-            "weigh": "Cultures take days; how will you judge his severity while you wait?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Culturing several sites fits a disease that is confirmed mainly by growing the organism.",
-            "weigh": "How will you collect the sputum and throat swab so the samples are good?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -588,34 +588,34 @@
         "th": [
           {
             "strength": "ชุดตรวจเลปโตด่วนให้ผลได้เร็ว",
-            "weigh": "ชุดตรวจเร็วมีความไวจำกัด ผลที่ได้จะอธิบายอาการเด่นที่ปอดของเขาได้ไหม",
+            "weigh": "ถ้าผลใช้เวลาหลายวัน จะวางสูตรยาอย่างไรตั้งแต่วันนี้",
             "safety": ""
           },
           {
             "strength": "การเพาะเชื้อเลือดใช้หาเชื้อในกระแสเลือด",
-            "weigh": "เขาไอมีเสมหะ มีตัวอย่างอะไรอีกที่เพาะเชื้อได้นอกจากเลือด",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เลปโตสไปโรสิสพบบ่อยในชาวนา",
-            "weigh": "ได้บอกห้องแล็บหรือยังว่าสงสัยเชื้ออะไร ให้เพาะเชื้อได้ถูกและปลอดภัย",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A rapid lepto test gives a quick result.",
-            "weigh": "Rapid tests have limited sensitivity; would any result explain his chest-led illness?",
+            "weigh": "If results take days, which regimen will you plan from now?",
             "safety": ""
           },
           {
             "strength": "The blood culture looks for bacteraemia.",
-            "weigh": "He has a productive cough; what else besides blood could you culture?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "Leptospirosis is common in rice farmers.",
-            "weigh": "Have you told the lab what you suspect, so it handles the organism well and safely?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -624,34 +624,34 @@
         "th": [
           {
             "strength": "CBC และค่าไตเป็นเลือดพื้นฐานตอนรับไว้",
-            "weigh": "ชุดเลือดตามปกติ ช่วยยืนยันเชื้อที่คุณสงสัยได้ไหม",
+            "weigh": "ถ้าผลใช้เวลาหลายวัน จะวางสูตรยาอย่างไรตั้งแต่วันนี้",
             "safety": ""
           },
           {
             "strength": "ค่าไตบอกการทำงานของไต",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียวพบเชื้อได้เพียงบางราย ถ้าผลลบจะทำอย่างไรต่อ",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เลือดชุดนี้ส่งได้เร็ว",
-            "weigh": "เขาไอมีเสมหะ ตัวอย่างจากตำแหน่งไหนอีกที่น่าส่งเพาะเชื้อ",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A CBC and creatinine are routine admission bloods.",
-            "weigh": "Does a routine blood set help confirm the organism you suspect?",
+            "weigh": "If results take days, which regimen will you plan from now?",
             "safety": ""
           },
           {
             "strength": "Creatinine shows his kidney function.",
-            "weigh": "Blood culture alone finds the organism in only some cases; what if it comes back negative?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "These bloods are quick to send.",
-            "weigh": "With his productive cough, which other site is worth sending for culture?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -660,34 +660,34 @@
         "th": [
           {
             "strength": "ตรวจไข้หวัดใหญ่ได้ผลเร็ว",
-            "weigh": "ป่วย 10 วันร่วมกับน้ำหนักลด เข้ากับไข้หวัดใหญ่ไหม",
+            "weigh": "ถ้าเพาะเชื้อเลือดขึ้นเชื้อ ควรให้ยาสูตรใดต่อ",
             "safety": ""
           },
           {
             "strength": "ได้เพาะเชื้อเลือดไว้",
-            "weigh": "ผลไข้หวัดใหญ่จะเปลี่ยนการดูแลชาวนาเบาหวานที่มีอาการทางปอดแบบนี้ตรงไหน",
+            "weigh": "น้ำตาล 342 แผนการรักษาต้องครอบคลุมอะไรอีก",
             "safety": ""
           },
           {
             "strength": "เป็นการตรวจที่ทำกันประจำหน้าฝน",
-            "weigh": "เพาะเชื้อจากเลือดอย่างเดียว จะพลาดเชื้อแบคทีเรียไปมากแค่ไหน",
+            "weigh": "ก่อนกำหนดขนาดยา ต้องรู้อะไรเกี่ยวกับไตของเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A flu test is quick.",
-            "weigh": "Do ten days of illness with weight loss fit flu?",
+            "weigh": "If the blood culture grows an organism, which regimen should follow?",
             "safety": ""
           },
           {
             "strength": "The blood is cultured.",
-            "weigh": "What would a flu result change for a diabetic farmer with this chest picture?",
+            "weigh": "His glucose is 342; what else must the treatment plan cover?",
             "safety": ""
           },
           {
             "strength": "It is routine in the rainy season.",
-            "weigh": "With only the blood cultured, how many bacterial causes might you miss?",
+            "weigh": "What do you need to know about his kidneys before setting the drug dose?",
             "safety": ""
           }
         ]
@@ -698,34 +698,34 @@
         "th": [
           {
             "strength": "การเริ่ม**เซฟตาซิดีม IV** เหมาะกับการติดเชื้อรุนแรงแบบนี้",
-            "weigh": "ก่อนสั่งขนาดเซฟตาซิดีม รู้การทำงานของไตเขาแล้วหรือยัง",
+            "weigh": "ถ้าเขาดีขึ้นแต่ทีมพบจุดติดเชื้อที่ลึกกว่า แผนจะเปลี่ยนอย่างไร",
             "safety": ""
           },
           {
             "strength": "การต่อด้วย TMP-SMX ทำให้แผนมีระยะยากิน",
-            "weigh": "TMP-SMX ที่ต้องกินหลายเดือน จะเฝ้าผลข้างเคียงอะไรบ้าง",
+            "weigh": "ในหนึ่งถึงสองสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "ลำดับยาสองตัวนี้เป็นสูตรมาตรฐาน",
-            "weigh": "น้ำตาล 342 จะดูแลอย่างไรไปพร้อมกับยาฆ่าเชื้อ",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting **IV ceftazidime** fits a severe infection like his.",
-            "weigh": "Before you set the ceftazidime dose, do you know how his kidneys are working?",
+            "weigh": "If he improves but the team finds a deeper focus, what changes?",
             "safety": ""
           },
           {
             "strength": "Following with TMP-SMX gives the plan an oral phase.",
-            "weigh": "Over months of TMP-SMX, which side effects will you watch for?",
+            "weigh": "Over the first week or two, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "This two-drug sequence is the standard one.",
-            "weigh": "How will you handle his glucose of 342 alongside the antibiotics?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -734,34 +734,34 @@
         "th": [
           {
             "strength": "การคุม**น้ำตาล 342**ไปพร้อมกับรักษาเชื้อเหมาะสม",
-            "weigh": "หลังเริ่มอินซูลินระหว่างติดเชื้อหนัก จะเจาะน้ำตาลถี่แค่ไหน",
+            "weigh": "ถ้าเขาดีขึ้นแต่ทีมพบจุดติดเชื้อที่ลึกกว่า แผนจะเปลี่ยนอย่างไร",
             "safety": ""
           },
           {
             "strength": "วางยาฆ่าเชื้อครบสองระยะตั้งแต่วันแรก",
-            "weigh": "TMP-SMX ที่ต้องกินนาน จะเฝ้าผลข้างเคียงอะไรตั้งแต่ต้น",
+            "weigh": "ในหนึ่งถึงสองสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "การเชื่อมน้ำตาลกับการติดเชื้อเป็นการดูแลผู้ป่วยทั้งคน",
-            "weigh": "รู้การทำงานของไตเขาแล้วหรือยัง ก่อนสั่งขนาดเซฟตาซิดีม",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Treating the **glucose of 342** alongside the infection is right.",
-            "weigh": "Once insulin starts during this infection, how often will you check his glucose?",
+            "weigh": "If he improves but the team finds a deeper focus, what changes?",
             "safety": ""
           },
           {
             "strength": "Both antibiotic phases are planned from day one.",
-            "weigh": "Which TMP-SMX side effects will you plan to watch for from the start?",
+            "weigh": "Over the first week or two, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "Linking his glucose to the infection treats the whole patient.",
-            "weigh": "Do you know his kidney function before you set the ceftazidime dose?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -770,34 +770,34 @@
         "th": [
           {
             "strength": "เมโรพีเนมครอบคลุมเชื้อนี้",
-            "weigh": "เขารู้ตัวดี ความดัน 106/66 เข้าเกณฑ์ช็อกหรือไอซียูที่ยานี้เหมาะจริงไหม",
+            "weigh": "ถ้าไข้ยังไม่ลงในสัปดาห์ที่สอง จะมองหาสาเหตุที่ไหนก่อน",
             "safety": ""
           },
           {
             "strength": "มีระยะยากินกำจัดเชื้อตามมา",
-            "weigh": "ถ้าใช้ยาคาร์บาพีเนมตอนนี้ แล้วเขาทรุดลงภายหลัง จะเหลือยาอะไรสำรองไว้",
+            "weigh": "ในสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "เป็นยาฉีดที่ได้ผล",
-            "weigh": "ผู้ป่วยที่อาการคงที่ขนาดนี้ จำเป็นต้องใช้ยาที่แรงกว่ายาฉีดตัวหลักไหม",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Meropenem covers this organism.",
-            "weigh": "He is alert with BP 106/66; does he really meet the shock or ICU bar this drug suits?",
+            "weigh": "If his fever lingers into the second week, where would you look first?",
             "safety": ""
           },
           {
             "strength": "An oral eradication phase follows.",
-            "weigh": "If a carbapenem is used now and he worsens later, what is left in reserve?",
+            "weigh": "Over the first week, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "It is an effective IV choice.",
-            "weigh": "Does a patient this stable need anything stronger than the first-line IV drug?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -806,34 +806,34 @@
         "th": [
           {
             "strength": "ยังคงยาหลักครบสองระยะ",
-            "weigh": "โรคของเขาเด่นที่ปอด ยาตัวที่เพิ่มมีอะไรให้รักษาจริงไหม",
+            "weigh": "ถ้าไข้ยังไม่ลงในสัปดาห์ที่สอง จะมองหาสาเหตุที่ไหนก่อน",
             "safety": ""
           },
           {
             "strength": "เลปโตสไปโรสิสเป็นความเสี่ยงจริงในหน้าฝน",
-            "weigh": "ยาที่เพิ่มอีกตัวคุ้มกับผลข้างเคียงที่ตามมาไหม",
+            "weigh": "ในสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "ด็อกซีไซคลินราคาถูกและคุ้นเคย",
-            "weigh": "ถ้าผลตรวจไม่สนับสนุน จะหยุดยาที่เพิ่มเมื่อไร",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "The core phases stay intact.",
-            "weigh": "His illness is chest-led; does the added drug really have anything to treat?",
+            "weigh": "If his fever lingers into the second week, where would you look first?",
             "safety": ""
           },
           {
             "strength": "Leptospirosis is a real rainy-season risk.",
-            "weigh": "Is the extra drug worth the side effects it brings?",
+            "weigh": "Over the first week, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "Doxycycline is cheap and familiar.",
-            "weigh": "If the tests do not support it, when will you stop the added drug?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -842,34 +842,34 @@
         "th": [
           {
             "strength": "เริ่มด้วยเซฟตาซิดีม IV ถูกต้อง",
-            "weigh": "ยากินตัวนี้เป็นทางเลือกรอง เขามีเหตุผลอะไรที่ใช้ยาหลักไม่ได้ไหม",
+            "weigh": "ถ้าไข้กลับมาอีกหลายเดือนต่อมา จะนึกถึงอะไรก่อน",
             "safety": ""
           },
           {
             "strength": "มีแผนยากินระยะกำจัดเชื้อ",
-            "weigh": "การเลือกยากินทางเลือกรอง เพิ่มโอกาสกลับเป็นซ้ำของเขาแค่ไหน",
+            "weigh": "ในหลายเดือนข้างหน้า อะไรจะช่วยให้เขากินยาครบทุกมื้อ",
             "safety": ""
           },
           {
             "strength": "โคอะม็อกซิคลาฟหาได้ง่าย",
-            "weigh": "ยาที่ต้องกินวันละหลายครั้งนานหลายเดือน เขาจะกินได้ครบจริงไหม",
+            "weigh": "อะไรจะบอกได้ในภายหลังว่าการติดเชื้อนี้กลับมาอีก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "IV ceftazidime is the right start.",
-            "weigh": "This oral drug is second-line; is there any reason he cannot take the first-line one?",
+            "weigh": "If his fever comes back months later, what would you suspect first?",
             "safety": ""
           },
           {
             "strength": "An oral phase is planned.",
-            "weigh": "How much does a second-line oral drug raise his chance of relapse?",
+            "weigh": "Over the coming months, what will keep him taking every dose?",
             "safety": ""
           },
           {
             "strength": "Co-amoxiclav is easy to get.",
-            "weigh": "Taken several times a day for months, will he really keep up with this drug?",
+            "weigh": "What would tell you later that this infection has come back?",
             "safety": ""
           }
         ]
@@ -880,34 +880,34 @@
         "th": [
           {
             "strength": "การเริ่ม**เซฟตาซิดีม IV** เหมาะกับการติดเชื้อรุนแรงแบบนี้",
-            "weigh": "ก่อนสั่งขนาดเซฟตาซิดีม รู้การทำงานของไตเขาแล้วหรือยัง",
+            "weigh": "ถ้าเขาดีขึ้นแต่ทีมพบจุดติดเชื้อที่ลึกกว่า แผนจะเปลี่ยนอย่างไร",
             "safety": ""
           },
           {
             "strength": "การต่อด้วย TMP-SMX ทำให้แผนมีระยะยากิน",
-            "weigh": "TMP-SMX ที่ต้องกินหลายเดือน จะเฝ้าผลข้างเคียงอะไรบ้าง",
+            "weigh": "ในหนึ่งถึงสองสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "ลำดับยาสองตัวนี้เป็นสูตรมาตรฐาน",
-            "weigh": "ความดัน 106/66 กับชีพจร 112 ยังดูแลบนหอผู้ป่วยได้ไหม",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting **IV ceftazidime** fits a severe infection like his.",
-            "weigh": "Before you set the ceftazidime dose, do you know how his kidneys are working?",
+            "weigh": "If he improves but the team finds a deeper focus, what changes?",
             "safety": ""
           },
           {
             "strength": "Following with TMP-SMX gives the plan an oral phase.",
-            "weigh": "Over months of TMP-SMX, which side effects will you watch for?",
+            "weigh": "Over the first week or two, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "This two-drug sequence is the standard one.",
-            "weigh": "With BP 106/66 and a pulse of 112, is the ward still the right place for him?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -916,34 +916,34 @@
         "th": [
           {
             "strength": "การวางระยะยากิน **20 สัปดาห์** ให้ครบ ช่วยลดโอกาสกลับเป็นซ้ำ",
-            "weigh": "TMP-SMX นาน 20 สัปดาห์ จะเฝ้าผลข้างเคียงอะไรบ้าง",
+            "weigh": "ถ้าเขาดีขึ้นแต่ทีมพบจุดติดเชื้อที่ลึกกว่า แผนจะเปลี่ยนอย่างไร",
             "safety": ""
           },
           {
             "strength": "การยึดสูตร**เซฟตาซิดีม**แล้วต่อ TMP-SMX ให้การรักษาสองระยะตามมาตรฐาน",
-            "weigh": "ก่อนสั่งขนาดเซฟตาซิดีม รู้การทำงานของไตเขาแล้วหรือยัง",
+            "weigh": "ในหนึ่งถึงสองสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "การกำหนดระยะยาให้ชัดตั้งแต่ต้น ช่วยให้ผู้ป่วยรู้ว่าต้องกินยาถึงเมื่อใด",
-            "weigh": "ช่วงให้ยาฉีด อะไรจะบอกคุณว่ายาได้ผล",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Setting a full **20 weeks** of TMP-SMX guards against relapse.",
-            "weigh": "Over 20 weeks of TMP-SMX, which side effects will you watch for?",
+            "weigh": "If he improves but the team finds a deeper focus, what changes?",
             "safety": ""
           },
           {
             "strength": "Holding to **ceftazidime** then TMP-SMX gives him the standard two-phase course.",
-            "weigh": "Before you set the ceftazidime dose, do you know how his kidneys are working?",
+            "weigh": "Over the first week or two, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "A clear duration from the start lets him know how long the tablets continue.",
-            "weigh": "While he is on the injected drug, what will tell you it is working?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -952,34 +952,34 @@
         "th": [
           {
             "strength": "เมโรพีเนมครอบคลุมเชื้อนี้",
-            "weigh": "เขารู้ตัวดี ความดัน 106/66 เข้าเกณฑ์ช็อกหรือไอซียูที่ยานี้เหมาะจริงไหม",
+            "weigh": "ถ้าไข้ยังไม่ลงในสัปดาห์ที่สอง จะมองหาสาเหตุที่ไหนก่อน",
             "safety": ""
           },
           {
             "strength": "มีระยะยากินกำจัดเชื้อตามมา",
-            "weigh": "ถ้าใช้ยาคาร์บาพีเนมตอนนี้ แล้วเขาทรุดลงภายหลัง จะเหลือยาอะไรสำรองไว้",
+            "weigh": "ในสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "เป็นยาฉีดที่ได้ผล",
-            "weigh": "ผู้ป่วยที่อาการคงที่ขนาดนี้ จำเป็นต้องใช้ยาที่แรงกว่ายาฉีดตัวหลักไหม",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Meropenem covers this organism.",
-            "weigh": "He is alert with BP 106/66; does he really meet the shock or ICU bar this drug suits?",
+            "weigh": "If his fever lingers into the second week, where would you look first?",
             "safety": ""
           },
           {
             "strength": "An oral eradication phase follows.",
-            "weigh": "If a carbapenem is used now and he worsens later, what is left in reserve?",
+            "weigh": "Over the first week, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "It is an effective IV choice.",
-            "weigh": "Does a patient this stable need anything stronger than the first-line IV drug?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -988,34 +988,34 @@
         "th": [
           {
             "strength": "ยังคงยาหลักครบสองระยะ",
-            "weigh": "โรคของเขาเด่นที่ปอด ยาตัวที่เพิ่มมีอะไรให้รักษาจริงไหม",
+            "weigh": "ถ้าไข้ยังไม่ลงในสัปดาห์ที่สอง จะมองหาสาเหตุที่ไหนก่อน",
             "safety": ""
           },
           {
             "strength": "เลปโตสไปโรสิสเป็นความเสี่ยงจริงในหน้าฝน",
-            "weigh": "ยาที่เพิ่มอีกตัวคุ้มกับผลข้างเคียงที่ตามมาไหม",
+            "weigh": "ในสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "ด็อกซีไซคลินราคาถูกและคุ้นเคย",
-            "weigh": "ถ้าผลตรวจไม่สนับสนุน จะหยุดยาที่เพิ่มเมื่อไร",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "The core phases stay intact.",
-            "weigh": "His illness is chest-led; does the added drug really have anything to treat?",
+            "weigh": "If his fever lingers into the second week, where would you look first?",
             "safety": ""
           },
           {
             "strength": "Leptospirosis is a real rainy-season risk.",
-            "weigh": "Is the extra drug worth the side effects it brings?",
+            "weigh": "Over the first week, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "Doxycycline is cheap and familiar.",
-            "weigh": "If the tests do not support it, when will you stop the added drug?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -1024,34 +1024,34 @@
         "th": [
           {
             "strength": "เริ่มด้วยเซฟตาซิดีม IV ถูกต้อง",
-            "weigh": "ยากินตัวนี้เป็นทางเลือกรอง เขามีเหตุผลอะไรที่ใช้ยาหลักไม่ได้ไหม",
+            "weigh": "ถ้าไข้กลับมาอีกหลายเดือนต่อมา จะนึกถึงอะไรก่อน",
             "safety": ""
           },
           {
             "strength": "มีแผนยากินระยะกำจัดเชื้อ",
-            "weigh": "การเลือกยากินทางเลือกรอง เพิ่มโอกาสกลับเป็นซ้ำของเขาแค่ไหน",
+            "weigh": "ในหลายเดือนข้างหน้า อะไรจะช่วยให้เขากินยาครบทุกมื้อ",
             "safety": ""
           },
           {
             "strength": "โคอะม็อกซิคลาฟหาได้ง่าย",
-            "weigh": "ยาที่ต้องกินวันละหลายครั้งนานหลายเดือน เขาจะกินได้ครบจริงไหม",
+            "weigh": "อะไรจะบอกได้ในภายหลังว่าการติดเชื้อนี้กลับมาอีก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "IV ceftazidime is the right start.",
-            "weigh": "This oral drug is second-line; is there any reason he cannot take the first-line one?",
+            "weigh": "If his fever comes back months later, what would you suspect first?",
             "safety": ""
           },
           {
             "strength": "An oral phase is planned.",
-            "weigh": "How much does a second-line oral drug raise his chance of relapse?",
+            "weigh": "Over the coming months, what will keep him taking every dose?",
             "safety": ""
           },
           {
             "strength": "Co-amoxiclav is easy to get.",
-            "weigh": "Taken several times a day for months, will he really keep up with this drug?",
+            "weigh": "What would tell you later that this infection has come back?",
             "safety": ""
           }
         ]
@@ -1062,34 +1062,34 @@
         "th": [
           {
             "strength": "การเริ่ม**เซฟตาซิดีม IV** เหมาะกับการติดเชื้อรุนแรงแบบนี้",
-            "weigh": "ก่อนสั่งขนาดเซฟตาซิดีม รู้การทำงานของไตเขาแล้วหรือยัง",
+            "weigh": "ถ้าเขาดีขึ้นแต่ทีมพบจุดติดเชื้อที่ลึกกว่า แผนจะเปลี่ยนอย่างไร",
             "safety": ""
           },
           {
             "strength": "การต่อด้วย TMP-SMX ทำให้แผนมีระยะยากิน",
-            "weigh": "TMP-SMX ที่ต้องกินหลายเดือน จะเฝ้าผลข้างเคียงอะไรบ้าง",
+            "weigh": "ในหนึ่งถึงสองสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "ลำดับยาสองตัวนี้เป็นสูตรมาตรฐาน",
-            "weigh": "น้ำตาล 342 จะดูแลอย่างไรไปพร้อมกับยาฆ่าเชื้อ",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting **IV ceftazidime** fits a severe infection like his.",
-            "weigh": "Before you set the ceftazidime dose, do you know how his kidneys are working?",
+            "weigh": "If he improves but the team finds a deeper focus, what changes?",
             "safety": ""
           },
           {
             "strength": "Following with TMP-SMX gives the plan an oral phase.",
-            "weigh": "Over months of TMP-SMX, which side effects will you watch for?",
+            "weigh": "Over the first week or two, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "This two-drug sequence is the standard one.",
-            "weigh": "How will you handle his glucose of 342 alongside the antibiotics?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -1098,34 +1098,34 @@
         "th": [
           {
             "strength": "การคุม**น้ำตาล 342**ไปพร้อมกับรักษาเชื้อเหมาะสม",
-            "weigh": "หลังเริ่มอินซูลินระหว่างติดเชื้อหนัก จะเจาะน้ำตาลถี่แค่ไหน",
+            "weigh": "ถ้าเขาดีขึ้นแต่ทีมพบจุดติดเชื้อที่ลึกกว่า แผนจะเปลี่ยนอย่างไร",
             "safety": ""
           },
           {
             "strength": "วางยาฆ่าเชื้อครบสองระยะตั้งแต่วันแรก",
-            "weigh": "TMP-SMX ที่ต้องกินนาน จะเฝ้าผลข้างเคียงอะไรตั้งแต่ต้น",
+            "weigh": "ในหนึ่งถึงสองสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "การเชื่อมน้ำตาลกับการติดเชื้อเป็นการดูแลผู้ป่วยทั้งคน",
-            "weigh": "รู้การทำงานของไตเขาแล้วหรือยัง ก่อนสั่งขนาดเซฟตาซิดีม",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Treating the **glucose of 342** alongside the infection is right.",
-            "weigh": "Once insulin starts during this infection, how often will you check his glucose?",
+            "weigh": "If he improves but the team finds a deeper focus, what changes?",
             "safety": ""
           },
           {
             "strength": "Both antibiotic phases are planned from day one.",
-            "weigh": "Which TMP-SMX side effects will you plan to watch for from the start?",
+            "weigh": "Over the first week or two, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "Linking his glucose to the infection treats the whole patient.",
-            "weigh": "Do you know his kidney function before you set the ceftazidime dose?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -1134,34 +1134,34 @@
         "th": [
           {
             "strength": "เมโรพีเนมครอบคลุมเชื้อนี้",
-            "weigh": "เขารู้ตัวดี ความดัน 106/66 เข้าเกณฑ์ช็อกหรือไอซียูที่ยานี้เหมาะจริงไหม",
+            "weigh": "ถ้าไข้ยังไม่ลงในสัปดาห์ที่สอง จะมองหาสาเหตุที่ไหนก่อน",
             "safety": ""
           },
           {
             "strength": "มีระยะยากินกำจัดเชื้อตามมา",
-            "weigh": "ถ้าใช้ยาคาร์บาพีเนมตอนนี้ แล้วเขาทรุดลงภายหลัง จะเหลือยาอะไรสำรองไว้",
+            "weigh": "ในสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "เป็นยาฉีดที่ได้ผล",
-            "weigh": "ผู้ป่วยที่อาการคงที่ขนาดนี้ จำเป็นต้องใช้ยาที่แรงกว่ายาฉีดตัวหลักไหม",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Meropenem covers this organism.",
-            "weigh": "He is alert with BP 106/66; does he really meet the shock or ICU bar this drug suits?",
+            "weigh": "If his fever lingers into the second week, where would you look first?",
             "safety": ""
           },
           {
             "strength": "An oral eradication phase follows.",
-            "weigh": "If a carbapenem is used now and he worsens later, what is left in reserve?",
+            "weigh": "Over the first week, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "It is an effective IV choice.",
-            "weigh": "Does a patient this stable need anything stronger than the first-line IV drug?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -1170,34 +1170,34 @@
         "th": [
           {
             "strength": "ยังคงยาหลักครบสองระยะ",
-            "weigh": "โรคของเขาเด่นที่ปอด ยาตัวที่เพิ่มมีอะไรให้รักษาจริงไหม",
+            "weigh": "ถ้าไข้ยังไม่ลงในสัปดาห์ที่สอง จะมองหาสาเหตุที่ไหนก่อน",
             "safety": ""
           },
           {
             "strength": "เลปโตสไปโรสิสเป็นความเสี่ยงจริงในหน้าฝน",
-            "weigh": "ยาที่เพิ่มอีกตัวคุ้มกับผลข้างเคียงที่ตามมาไหม",
+            "weigh": "ในสัปดาห์แรก อาการแสดงอะไรจะบอกว่ายาได้ผล",
             "safety": ""
           },
           {
             "strength": "ด็อกซีไซคลินราคาถูกและคุ้นเคย",
-            "weigh": "ถ้าผลตรวจไม่สนับสนุน จะหยุดยาที่เพิ่มเมื่อไร",
+            "weigh": "เมื่อรักษาไปได้หลายวัน อะไรจะบอกว่าแผนการรักษายังไปถูกทาง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "The core phases stay intact.",
-            "weigh": "His illness is chest-led; does the added drug really have anything to treat?",
+            "weigh": "If his fever lingers into the second week, where would you look first?",
             "safety": ""
           },
           {
             "strength": "Leptospirosis is a real rainy-season risk.",
-            "weigh": "Is the extra drug worth the side effects it brings?",
+            "weigh": "Over the first week, which signs will show the drug is working?",
             "safety": ""
           },
           {
             "strength": "Doxycycline is cheap and familiar.",
-            "weigh": "If the tests do not support it, when will you stop the added drug?",
+            "weigh": "Days into treatment, what will tell you the plan is on track?",
             "safety": ""
           }
         ]
@@ -1206,34 +1206,34 @@
         "th": [
           {
             "strength": "เริ่มด้วยเซฟตาซิดีม IV ถูกต้อง",
-            "weigh": "ยากินตัวนี้เป็นทางเลือกรอง เขามีเหตุผลอะไรที่ใช้ยาหลักไม่ได้ไหม",
+            "weigh": "ถ้าไข้กลับมาอีกหลายเดือนต่อมา จะนึกถึงอะไรก่อน",
             "safety": ""
           },
           {
             "strength": "มีแผนยากินระยะกำจัดเชื้อ",
-            "weigh": "การเลือกยากินทางเลือกรอง เพิ่มโอกาสกลับเป็นซ้ำของเขาแค่ไหน",
+            "weigh": "ในหลายเดือนข้างหน้า อะไรจะช่วยให้เขากินยาครบทุกมื้อ",
             "safety": ""
           },
           {
             "strength": "โคอะม็อกซิคลาฟหาได้ง่าย",
-            "weigh": "ยาที่ต้องกินวันละหลายครั้งนานหลายเดือน เขาจะกินได้ครบจริงไหม",
+            "weigh": "อะไรจะบอกได้ในภายหลังว่าการติดเชื้อนี้กลับมาอีก",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "IV ceftazidime is the right start.",
-            "weigh": "This oral drug is second-line; is there any reason he cannot take the first-line one?",
+            "weigh": "If his fever comes back months later, what would you suspect first?",
             "safety": ""
           },
           {
             "strength": "An oral phase is planned.",
-            "weigh": "How much does a second-line oral drug raise his chance of relapse?",
+            "weigh": "Over the coming months, what will keep him taking every dose?",
             "safety": ""
           },
           {
             "strength": "Co-amoxiclav is easy to get.",
-            "weigh": "Taken several times a day for months, will he really keep up with this drug?",
+            "weigh": "What would tell you later that this infection has come back?",
             "safety": ""
           }
         ]
@@ -1244,34 +1244,34 @@
         "th": [
           {
             "strength": "การขยายยาฉีดให้**ครบ 4 สัปดาห์** ปรับระยะรักษาตามขอบเขตของโรคที่พบเพิ่ม",
-            "weigh": "ยาฉีดนานขึ้นหมายถึงนอนโรงพยาบาลนานขึ้น ได้คุยแผนนี้กับเขาแล้วหรือยัง",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           },
           {
             "strength": "การเห็นว่าฝีในม้ามต้องใช้ยานานกว่าปอดอักเสบ แสดงความเข้าใจการรักษาโรคนี้",
-            "weigh": "จะติดตามฝีในม้ามอย่างไร ให้รู้ว่าตอบสนองต่อยา",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การคงยาฉีดเดิมเมื่อผู้ป่วยดีขึ้นตามคาด ช่วยไม่เปลี่ยนสิ่งที่กำลังได้ผล",
-            "weigh": "สายน้ำเกลือที่คาไว้หลายสัปดาห์ จะดูแลตำแหน่งให้ยาอย่างไรไม่ให้ติดเชื้อ",
+            "weigh": "ก่อนเขากลับบ้าน ต้องจัดการเรื่องอะไรให้เรียบร้อยบ้าง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Extending IV therapy **to 4 weeks** matches treatment to the newly found extent of disease.",
-            "weigh": "A longer IV phase means a longer stay; have you planned it with him?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           },
           {
             "strength": "Recognising that **splenic abscesses** need longer than pneumonia alone shows grasp of this disease.",
-            "weigh": "How will you follow the splenic abscesses to know they are responding?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Keeping the same IV drug while he improves as expected avoids changing what is working.",
-            "weigh": "With a line in place for so long, how will you guard the site against infection?",
+            "weigh": "Before he goes home, what must you settle for his care?",
             "safety": ""
           }
         ]
@@ -1280,34 +1280,34 @@
         "th": [
           {
             "strength": "การ**เพาะเชื้อเลือดซ้ำ** ช่วยตรวจว่ามีเชื้อในเลือดหรือเปล่า ไม่ใช่ดูจากอาการอย่างเดียว",
-            "weigh": "ถ้าเพาะเชื้อซ้ำยังขึ้นเชื้อ ทั้งที่อาการดีขึ้น จะทำอย่างไรต่อ",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           },
           {
             "strength": "การให้**ยาฉีด 4 สัปดาห์** สอดคล้องกับฝีในม้ามที่ต้องการระยะรักษานานขึ้น",
-            "weigh": "ยาฉีดนานขึ้นหมายถึงนอนโรงพยาบาลนานขึ้น ได้วางแผนกับเขาและครอบครัวหรือยัง",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การตรวจหาเชื้อในเลือดควบคู่กับระยะยาที่พอ ช่วยวางแผนการรักษาด้วยข้อมูลที่ครบ",
-            "weigh": "ฝีเล็กหลายจุดในม้าม จะติดตามด้วยวิธีใดและเมื่อไร",
+            "weigh": "ก่อนเขากลับบ้าน ต้องจัดการเรื่องอะไรให้เรียบร้อยบ้าง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **repeat blood culture** checks whether the organism is in his blood, rather than relying on symptoms alone.",
-            "weigh": "If the repeat culture still grows the organism while he improves, what then?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           },
           {
             "strength": "Running IV to 4 weeks fits splenic abscesses that need a longer treatment phase.",
-            "weigh": "A longer IV phase means a longer stay; have you planned it with him and his family?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Checking his blood for the organism alongside an adequate duration grounds the plan in full information.",
-            "weigh": "How and when will you check the small splenic abscesses are shrinking?",
+            "weigh": "Before he goes home, what must you settle for his care?",
             "safety": ""
           }
         ]
@@ -1316,34 +1316,34 @@
         "th": [
           {
             "strength": "การ**ปรึกษาอายุรแพทย์** ช่วยกำหนดระยะยาฉีดสำหรับฝีในม้ามจากผู้มีประสบการณ์",
-            "weigh": "ระหว่างรอคำปรึกษา คุณเองจะตั้งระยะยาฉีดไว้นานเท่าไรก่อน",
+            "weigh": "ถ้าน้ำตาลยังสูงตอนจะกลับบ้าน จะจัดการอย่างไร",
             "safety": ""
           },
           {
             "strength": "การคงยาฉีดเดิมไว้ขณะรอความเห็น ช่วยไม่ให้การรักษาขาดตอน",
-            "weigh": "ถ้าไม่มีอายุรแพทย์ในโรงพยาบาล คำปรึกษาจะมาถึงเร็วแค่ไหน",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การยอมรับว่าฝีในม้ามเป็นประเด็นซับซ้อน แสดงการทำงานเป็นทีมอย่างรอบคอบ",
-            "weigh": "จะส่งข้อมูลอะไรให้อายุรแพทย์ เพื่อให้คำแนะนำตรงกับผู้ป่วย",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Asking **an internist** draws on experience to set the IV phase for the abscesses.",
-            "weigh": "While you wait for advice, how long would you set the IV phase yourself?",
+            "weigh": "If his glucose is still high at discharge, how will you handle it?",
             "safety": ""
           },
           {
             "strength": "Keeping the IV drug going while advice is sought means treatment does not lapse.",
-            "weigh": "Without an internist on site, how soon will the advice actually arrive?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Recognising the abscesses as a complex issue reflects careful teamwork.",
-            "weigh": "What will you send the internist so the advice fits his case?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1352,34 +1352,34 @@
         "th": [
           {
             "strength": "เมโรพีเนมใช้ได้กับเชื้อนี้",
-            "weigh": "เขาดีขึ้นตามคาดอยู่แล้ว การเปลี่ยนยาได้อะไรเพิ่มจริงไหม",
+            "weigh": "อีกไม่นานเขาจะกลับไปลงโคลน อะไรจะลดความเสี่ยงครั้งต่อไป",
             "safety": ""
           },
           {
             "strength": "เป็นยาที่แรง",
-            "weigh": "ฝีต้องการยาใหม่ หรือต้องการยาเดิมที่ให้นานขึ้น",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "ยาคาร์บาพีเนมเป็นยาที่คุ้นเคยในหอผู้ป่วย",
-            "weigh": "คุ้มไหมที่จะใช้ยาสำรองกับผู้ป่วยที่ยาเดิมยังได้ผล",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Meropenem works against this organism.",
-            "weigh": "He is improving as expected; what does changing the drug actually gain?",
+            "weigh": "He will soon be back in the mud; what will lower his risk next time?",
             "safety": ""
           },
           {
             "strength": "It is a strong drug.",
-            "weigh": "Do abscesses need a new drug, or the same drug for longer?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Carbapenems are familiar on the ward.",
-            "weigh": "Is it worth spending a reserve drug when his current one is working?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1388,34 +1388,34 @@
         "th": [
           {
             "strength": "CT ให้ภาพละเอียดกว่า",
-            "weigh": "พบฝีแล้ว ภาพที่ละเอียดขึ้นจะเปลี่ยนการรักษาตรงไหน",
+            "weigh": "อีกไม่นานเขาจะกลับไปลงโคลน อะไรจะลดความเสี่ยงครั้งต่อไป",
             "safety": ""
           },
           {
             "strength": "เป็นการตรวจที่ส่งกันประจำ",
-            "weigh": "ค่าใช้จ่าย รังสี และสารทึบรังสีในผู้ป่วยเบาหวาน คุ้มกับสิ่งที่จะได้ไหม",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "อยากเห็นรายละเอียดมากขึ้นเป็นเรื่องเข้าใจได้",
-            "weigh": "ตอนนี้เรื่องที่ต้องตัดสินคือยาฉีดจะให้นานเท่าไร ตัดสินไว้หรือยัง",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "CT gives finer images.",
-            "weigh": "The abscesses are already found; what would a sharper image change in his treatment?",
+            "weigh": "He will soon be back in the mud; what will lower his risk next time?",
             "safety": ""
           },
           {
             "strength": "It is a routine scan.",
-            "weigh": "Are the cost, radiation and contrast in a diabetic worth what the scan adds?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "More detail is easy to want.",
-            "weigh": "What matters most now is how long the injected drug runs; have you settled that?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1426,34 +1426,34 @@
         "th": [
           {
             "strength": "การอัลตราซาวนด์ท้องมาจาก**กดเจ็บใต้ชายโครงซ้าย**",
-            "weigh": "ถ้าอัลตราซาวนด์ปกติ จะตัดฝีเล็กออกได้จริงไหม",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           },
           {
             "strength": "การให้ยาฉีดเดิมต่อระหว่างหาจุดติดเชื้อที่ซ่อนอยู่เหมาะสม",
-            "weigh": "ไข้ค้างแบบนี้พบได้ในโรคนี้ อาการแบบไหนที่จะบอกว่าผิดทาง",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การโยงการกดเจ็บใต้ชายโครงซ้ายกับฝีที่อาจมีเป็นเหตุผลที่ดี",
-            "weigh": "อาการที่ดีขึ้นบางส่วน จะชั่งร่วมกับผลอัลตราซาวนด์อย่างไร",
+            "weigh": "ก่อนเขากลับบ้าน ต้องจัดการเรื่องอะไรให้เรียบร้อยบ้าง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Scanning the abdomen follows from his **tender left ribs**.",
-            "weigh": "If the ultrasound is normal, can you really rule out small abscesses?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           },
           {
             "strength": "Keeping the IV drug while looking for a hidden focus is sound.",
-            "weigh": "Lingering fever is common in this infection; what would tell you he is off course?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Linking the left-rib tenderness to a possible abscess is sound.",
-            "weigh": "How will you weigh his partial improvement against what the scan shows?",
+            "weigh": "Before he goes home, what must you settle for his care?",
             "safety": ""
           }
         ]
@@ -1462,34 +1462,34 @@
         "th": [
           {
             "strength": "การ**เพาะเชื้อเลือดซ้ำ** บอกได้ชัดว่ามีเชื้อในเลือดหรือเปล่า แทนการเดาจากไข้",
-            "weigh": "ผลเพาะเชื้อใช้เวลาหลายวัน ระหว่างรอจะเฝ้าดูอะไร",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           },
           {
             "strength": "การคงยาฉีดเดิมไว้เมื่อไข้ยังลงช้า สอดคล้องกับธรรมชาติของโรคนี้",
-            "weigh": "ถ้าเพาะเชื้อไม่ขึ้น อะไรจะอธิบายว่าทำไมไข้ยังไม่ลงสนิท",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การใช้ผลเพาะเชื้อเป็นตัววัด ทำให้การตัดสินใจเรื่องยาอิงหลักฐานที่ชัดเจน",
-            "weigh": "ไข้ลงช้าพบบ่อยในโรคนี้ สัญญาณใดจะบอกว่าโรคไม่ไปตามคาด",
+            "weigh": "ก่อนเขากลับบ้าน ต้องจัดการเรื่องอะไรให้เรียบร้อยบ้าง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Repeat **blood cultures** show clearly whether the organism is in his blood, rather than guessing from fever.",
-            "weigh": "Cultures take days; what will you watch while you wait?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           },
           {
             "strength": "Keeping the IV drug while fever settles slowly fits the nature of this disease.",
-            "weigh": "If the cultures stay negative, what would explain why the fever lingers?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Using culture results as the gauge grounds drug decisions in clear evidence.",
-            "weigh": "Slow fever is common in this infection; which signs would show it is off course?",
+            "weigh": "Before he goes home, what must you settle for his care?",
             "safety": ""
           }
         ]
@@ -1498,34 +1498,34 @@
         "th": [
           {
             "strength": "การดูแนวโน้มการอักเสบด้วยตัวเลข ช่วยแยกไข้ที่ลงช้าแต่ดีขึ้น ออกจากโรคที่แย่ลง",
-            "weigh": "ผลชุดนี้บอกแนวโน้มได้ แต่จะหาจุดติดเชื้อที่ซ่อนนอกปอดได้ไหม",
+            "weigh": "ถ้าน้ำตาลยังสูงตอนจะกลับบ้าน จะจัดการอย่างไร",
             "safety": ""
           },
           {
             "strength": "การดู**รอยโรคในปอด**ซ้ำ ช่วยยืนยันว่าปอดตอบสนองต่อการรักษา",
-            "weigh": "ภาพปอดมักดีขึ้นช้ากว่าอาการ ภาพที่ยังไม่ดีขึ้นแปลว่ายาไม่ได้ผลจริงไหม",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การตรวจเหล่านี้ทำได้เร็วในโรงพยาบาลส่วนใหญ่ และทำซ้ำได้ง่าย",
-            "weigh": "ผลชุดนี้อธิบายอาการกดเจ็บใต้ชายโครงซ้ายที่มีมาตั้งแต่แรกได้ไหม",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Tracking **the inflammation** in numbers helps tell slow improvement from real worsening.",
-            "weigh": "These show a trend, but will they find an infection hidden outside the lung?",
+            "weigh": "If his glucose is still high at discharge, how will you handle it?",
             "safety": ""
           },
           {
             "strength": "Repeating the **chest X-ray** confirms whether the lung lesion is responding.",
-            "weigh": "Chest films often lag behind symptoms; does a slow film really mean the drug is failing?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "These tests are quick in most hospitals and easy to repeat.",
-            "weigh": "Do these results explain the tenderness under his left ribs from day one?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1534,34 +1534,34 @@
         "th": [
           {
             "strength": "TMP-SMX ออกฤทธิ์ต่อเชื้อนี้",
-            "weigh": "ไข้ลงช้าในโรคนี้เป็นเพราะยาครอบคลุมไม่พอจริงไหม",
+            "weigh": "อีกไม่นานเขาจะกลับไปลงโคลน อะไรจะลดความเสี่ยงครั้งต่อไป",
             "safety": ""
           },
           {
             "strength": "ยังคงยาฉีดเดิมไว้",
-            "weigh": "การเพิ่มยาช่วยหาสาเหตุที่ไข้ยังค้างได้ไหม",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "เพิ่มยาได้ง่าย",
-            "weigh": "ผื่นและเม็ดเลือดต่ำจากยาที่เพิ่ม คุ้มไหมเมื่อยังไม่รู้ว่าไข้ค้างเพราะอะไร",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "TMP-SMX is active against this organism.",
-            "weigh": "In this infection, is slow fever really a sign of a gap in cover?",
+            "weigh": "He will soon be back in the mud; what will lower his risk next time?",
             "safety": ""
           },
           {
             "strength": "The IV drug is kept.",
-            "weigh": "Does adding a drug tell you why the fever lingers?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "It is an easy add.",
-            "weigh": "Is the risk of rash and low cell counts worth it before you know why the fever lingers?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1570,34 +1570,34 @@
         "th": [
           {
             "strength": "ผู้ป่วยจะสบายขึ้น",
-            "weigh": "การลดไข้ช่วยบอกได้ไหมว่าทำไมไข้ยังค้าง",
+            "weigh": "อีกไม่นานเขาจะกลับไปลงโคลน อะไรจะลดความเสี่ยงครั้งต่อไป",
             "safety": ""
           },
           {
             "strength": "ยังคงยาฉีดเดิมไว้",
-            "weigh": "ถ้าให้พาราเซตามอลตลอด จะยังอ่านกราฟไข้เพื่อดูผลการรักษาได้ไหม",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "พาราเซตามอลปลอดภัยในขนาดปกติ",
-            "weigh": "ไข้ค้างในโรคนี้มักมีจุดติดเชื้อซ่อนอยู่ ขั้นตอนนี้ได้มองหาหรือยัง",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "He will feel more comfortable.",
-            "weigh": "Does bringing the fever down tell you why it lingers?",
+            "weigh": "He will soon be back in the mud; what will lower his risk next time?",
             "safety": ""
           },
           {
             "strength": "The IV drug is kept.",
-            "weigh": "On round-the-clock paracetamol, can you still read the fever curve to judge treatment?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Paracetamol is safe at normal doses.",
-            "weigh": "Lingering fever here often hides a focus of infection; does this step look for one?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1608,34 +1608,34 @@
         "th": [
           {
             "strength": "การ**เพาะเชื้อ**ก่อนเริ่มยาใหม่ ช่วยยืนยันว่าติดเชื้ออีกครั้งและดูความไวของเชื้อต่อยา",
-            "weigh": "ที่ผ่านมาเขากินโคอะม็อกสม่ำเสมอแค่ไหน และเรื่องนี้เปลี่ยนแผนรอบนี้อย่างไร",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           },
           {
             "strength": "การมองไข้ที่กลับมาระหว่างกินยาว่าชี้ไปที่**โรคกำเริบ** ช่วยให้ตอบสนองได้ทันเวลา",
-            "weigh": "การกำเริบอาจมาพร้อมจุดติดเชื้อใหม่ จะค้นหาขอบเขตของโรคอีกครั้งไหม",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การกลับไปใช้ยาฉีดแล้วต่อยากิน เป็นการเริ่มรักษาใหม่ครบทั้งสองระยะ",
-            "weigh": "ก่อนให้ยาฉีดรอบใหม่ จะเก็บตัวอย่างเพาะเชื้อจากตรงไหนบ้าง",
+            "weigh": "ก่อนเขากลับบ้าน ต้องจัดการเรื่องอะไรให้เรียบร้อยบ้าง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Taking a **culture** before restarting confirms the infection is back and checks the organism's susceptibility.",
-            "weigh": "How regularly did he take the co-amoxiclav, and how does that shape this round?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           },
           {
             "strength": "Reading fever back on oral therapy as **relapse** prompts a timely response.",
-            "weigh": "Relapse can bring new sites of infection; will you look again at how far it has spread?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Returning to IV then oral treatment restarts both phases in full.",
-            "weigh": "Before the IV drug goes in again, which sites will you sample for culture?",
+            "weigh": "Before he goes home, what must you settle for his care?",
             "safety": ""
           }
         ]
@@ -1644,34 +1644,34 @@
         "th": [
           {
             "strength": "การรักษาใหม่ครบสองระยะด้วย**ยาหลัก** ช่วยลดโอกาสกำเริบซ้ำอีก",
-            "weigh": "ที่ผ่านมาเขากินยาสม่ำเสมอแค่ไหน และจะเปลี่ยนแผนรอบนี้อย่างไร",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           },
           {
             "strength": "การเปลี่ยนมาใช้ **TMP-SMX** ในระยะกำจัดเชื้อ ตอบโจทย์การกำเริบระหว่างกินยาตัวก่อน",
-            "weigh": "การกำเริบอาจมาพร้อมจุดติดเชื้อใหม่ จะมองหาขอบเขตของโรคอีกครั้งไหม",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "การเริ่มยาฉีดใหม่โดยไม่รอช้า สอดคล้องกับผู้ป่วยที่ไข้และไอกลับมา",
-            "weigh": "ก่อนรักษารอบใหม่ จะยืนยันอย่างไรว่าเป็นเชื้อเดิมกลับมา",
+            "weigh": "ก่อนเขากลับบ้าน ต้องจัดการเรื่องอะไรให้เรียบร้อยบ้าง",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Re-treating with **first-line drugs** in both phases lowers the chance of another relapse.",
-            "weigh": "How regularly did he take his tablets, and how does that change this round?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           },
           {
             "strength": "Switching to **TMP-SMX** for eradication answers a relapse on the previous oral drug.",
-            "weigh": "Relapse can come with new sites; will you look again at how far it has spread?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Restarting IV treatment without delay fits a patient whose fever and cough are back.",
-            "weigh": "Before re-treating, how will you confirm it is the same organism back?",
+            "weigh": "Before he goes home, what must you settle for his care?",
             "safety": ""
           }
         ]
@@ -1680,34 +1680,34 @@
         "th": [
           {
             "strength": "เมโรพีเนมครอบคลุมเชื้อนี้ และมียากินต่อ",
-            "weigh": "การกำเริบครั้งนี้มีเหตุผลอะไรที่ต้องใช้ยาคาร์บาพีเนมแทนยาฉีดตัวหลัก",
+            "weigh": "ถ้าน้ำตาลยังสูงตอนจะกลับบ้าน จะจัดการอย่างไร",
             "safety": ""
           },
           {
             "strength": "วางยาครบสองระยะ",
-            "weigh": "ถ้าเขาไม่ได้ช็อก ยาฉีดตัวหลักยังไม่พอตรงไหน",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "เป็นยาที่ได้ผล",
-            "weigh": "ก่อนเริ่มยา ได้ส่งตัวอย่างยืนยันการกำเริบและดูความไวของเชื้อหรือยัง",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Meropenem covers this organism, with an oral phase after.",
-            "weigh": "What about this relapse calls for a carbapenem over the first-line IV drug?",
+            "weigh": "If his glucose is still high at discharge, how will you handle it?",
             "safety": ""
           },
           {
             "strength": "Both phases are planned.",
-            "weigh": "If he is not in shock, where would the first-line IV drug fall short?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "It is an effective choice.",
-            "weigh": "Before starting, have you sent a sample to confirm relapse and test susceptibility?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -1716,34 +1716,34 @@
         "th": [
           {
             "strength": "เริ่มเซฟตาซิดีม IV ใหม่แล้ว",
-            "weigh": "ยังไม่ได้ส่งตัวอย่างตรวจ จะยืนยันการกำเริบได้อย่างไร",
+            "weigh": "อีกไม่นานเขาจะกลับไปลงโคลน อะไรจะลดความเสี่ยงครั้งต่อไป",
             "safety": "หลังครบยาฉีด ควรเปลี่ยนยากินจากโคอะม็อกซิคลาฟที่ล้มเหลวมาแล้ว"
           },
           {
             "strength": "เป็นยาฉีดที่ผู้ป่วยเคยได้",
-            "weigh": "รอบก่อนล้มเหลวที่ระยะยากิน รอบนี้จะใช้ยากินตัวไหน",
+            "weigh": "หลังกลับบ้าน อะไรจะช่วยไม่ให้การติดเชื้อนี้กลับมาอีก",
             "safety": ""
           },
           {
             "strength": "รับผู้ป่วยไว้ในโรงพยาบาลแล้ว",
-            "weigh": "เขากำเริบระหว่างกินโคอะม็อก ยังควรกลับไปใช้ยากินตัวเดิมไหม",
+            "weigh": "เมื่อครบยาฉีดแล้ว ต้องรักษาต่อที่บ้านอีกนานแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "IV ceftazidime is restarted.",
-            "weigh": "With no sample sent, how will you confirm this is relapse?",
+            "weigh": "He will soon be back in the mud; what will lower his risk next time?",
             "safety": "After the IV phase, choose a different oral drug; co-amoxiclav has already failed him."
           },
           {
             "strength": "The IV drug is familiar to him.",
-            "weigh": "The last course failed in its oral phase; which oral drug follows this time?",
+            "weigh": "What will help stop this infection coming back after he goes home?",
             "safety": ""
           },
           {
             "strength": "Admission is arranged.",
-            "weigh": "He relapsed on co-amoxiclav; should the same oral drug follow again?",
+            "weigh": "Once the drip phase ends, how long must treatment go on at home?",
             "safety": ""
           }
         ]
@@ -2189,10 +2189,10 @@
     }
   },
   "safety_review": {
-    "model": "claude-opus-5-5",
-    "date": "2026-11-25",
-    "findings": "A fresh non-author reviewer, claude-opus-5-5, read every weigh line in all 13 banks on 2026-11-25 after the reply format B rewrite (weigh as a คิดต่อ / Next thought question), in all 3 alternatives, Thai and English, against every question variant of its bank and every path into it. A script comparing the file to HEAD with weigh masked shows strength and safety are byte-identical to the bank reviewed on 2026-11-18, with keys and order unchanged. No option is blanked. One must-fix was applied: step1.a alternative 2, \"With a pulse of 112 and BP 106/66, is he already close to sepsis?\" -> \"With a pulse of 112 and BP 106/66, could he already be septic?\" (Thai: ชีพจร 112 ความดัน 106/66 แบบนี้ เขาเข้าภาวะติดเชื้อในกระแสเลือดแล้วหรือยัง), because a febrile pneumonia patient with pulse 112, RR 24 and SpO2 93% may already meet sepsis criteria and \"close to\" under-calls him. The other lines hold: blood culture misses many cases, IHA has a high background rate in Isan, ceftazidime is renally dosed, slow fever clearance through the first week is usual in melioidosis, co-amoxiclav is second-line with more relapse, doxycycline adds no relapse benefit and causes photosensitivity, and TMP-SMX can cause hypoglycaemia with some oral diabetes drugs; no line names another option of its bank, gives away a later step or cites a number outside the vignette, its own label or every variant, and the Thai reads as natural ward-round questions that match the English. Tree sha256 b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7. Replies sha256 c2cb6bce5074c603be7854f8ed5ca168eb5d33a0bb95e84a067f05252fe6308c.",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-26",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1.a [0] Thai said blood was cultured while the English said drawn, and \"fastest\" overclaimed culture; step1.b [0] copied option a's line \"grow the organism when blood stays negative\"; step1.b [1] restated best option b's look at liver and spleen; step2 [0] \"once the cultures/lab names the organism\" implied full treatment waits for the lab, now \"Beyond the first dose\"; step3 [2] \"what might be hiding\" under the left ribs leaked the spleen-abscess line and assumed recovery on paths where fever persists, now asks what shows the plan is on track; step4 [2] \"diabetes care\" gave away \"glucose care\", now asks what must be settled for his care. Declined: changing \"drip phase\" to \"IV phase\", because the checker forbids the IV acronym of another option in the bank. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Tree sha256 b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7. Replies sha256 b81ac7e7b6ac1fdfbc39bccfaf832c10e66d1f960efe0afb6b3769ff2f858d9f.",
     "tree_sha256": "b1ce089caf92188a783f6f6e001446057b684a67bb750037d821d3e94522afa7",
-    "replies_sha256": "c2cb6bce5074c603be7854f8ed5ca168eb5d33a0bb95e84a067f05252fe6308c"
+    "replies_sha256": "b81ac7e7b6ac1fdfbc39bccfaf832c10e66d1f960efe0afb6b3769ff2f858d9f"
   }
 }
