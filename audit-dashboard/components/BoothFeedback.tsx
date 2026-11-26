@@ -214,7 +214,7 @@ export function BoothFeedback() {
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            ไม่ระบุตัวตน ไม่มีเวลาหรือหมายเลขผู้เล่น / Anonymous: no time of play and no player number.
+            ไม่ระบุตัวตน ไม่มีเวลาหรือหมายเลขผู้เข้าร่วม / Anonymous: no time of play and no participant number.
           </p>
           <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
             <p className="text-sm text-muted-foreground" data-testid="fb-answers-line">

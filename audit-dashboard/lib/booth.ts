@@ -1,10 +1,14 @@
-// Formatting for the Booth Mode page. The player tag and the score mirror what the kiosk shows
-// (physician-ui/public/js/booth-copy.js tagText and scoreText), so a visitor's "Player #042, 87" reads the same
+// Formatting for the Booth Mode page. The participant number and the score mirror what the kiosk shows
+// (physician-ui/public/js/booth-copy.js tagText and scoreText), so a visitor's "Participant #042, 87" reads the same
 // on the booth screen and on the superadmin's leaderboard.
 
-/** `ผู้เล่น #042` / `Player #042` — booth-copy.js tagText. */
+const tagDigits = (tag: number) => String(tag).padStart(3, '0');
+/** The Thai name in its two line pieces, `หมายเลข` and `ผู้เข้าร่วม 042`: a line may break between them, never inside the
+ *  second, where the number would fall away from its word onto the English half's line. */
+export const playerTagTh = (tag: number): [string, string] => ['หมายเลข', `ผู้เข้าร่วม ${tagDigits(tag)}`];
+/** `หมายเลขผู้เข้าร่วม 042` / `Participant #042` — booth-copy.js tagText. */
 export const playerTag = (tag: number, lang: 'th' | 'en') =>
-  `${lang === 'th' ? 'ผู้เล่น' : 'Player'} #${String(tag).padStart(3, '0')}`;
+  (lang === 'th' ? playerTagTh(tag).join('') : `Participant #${tagDigits(tag)}`);
 
 /** The score the visitor saw: the display score, rounded as the kiosk rounds it (booth-copy.js scoreText). */
 export const shownScore = (score: number) => String(Math.round(score));
@@ -34,6 +38,44 @@ export function bangkokTime(iso: string): string {
   if (Number.isNaN(d.getTime())) return '—';
   const p = TIME.formatToParts(d);
   return `${part(p, 'hour')}:${part(p, 'minute')}`;
+}
+
+const DAY_KEY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' });
+const DAY_TH = new Intl.DateTimeFormat('th-TH', { timeZone: 'Asia/Bangkok', weekday: 'short', day: 'numeric', month: 'short' });
+const DAY_EN = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', weekday: 'short', day: 'numeric', month: 'short' });
+
+/** The Bangkok calendar day of `iso`, `2026-11-24`; null for a time that does not parse. The kiosk's "today" board
+ *  starts its day at Bangkok midnight too (backend services/booth.js bangkokDayStart). */
+export function bangkokDayKey(iso: string): string | null {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const p = DAY_KEY.formatToParts(d);
+  return `${part(p, 'year')}-${part(p, 'month')}-${part(p, 'day')}`;
+}
+
+/** `อังคาร 24 พ.ย.` / `Tue 24 Nov` for a day key from bangkokDayKey. */
+export function bangkokDayLabel(key: string, lang: 'th' | 'en'): string {
+  const d = new Date(`${key}T12:00:00+07:00`);
+  if (Number.isNaN(d.getTime())) return key;
+  const p = (lang === 'th' ? DAY_TH : DAY_EN).formatToParts(d);
+  return `${part(p, 'weekday')} ${part(p, 'day')} ${part(p, 'month')}`;
+}
+
+export interface BoothDay<R> { day: string; rows: R[] }
+
+/** The event's rows split by Bangkok day, the newest day first. Each day keeps the server's order and ranks from 1, as
+ *  the kiosk ranks its "today" board: the same rows, filtered by day, never re-sorted. A row whose time does not parse
+ *  belongs to no day. */
+export function boothDays<R extends { rank: number; scored_at: string }>(rows: R[]): BoothDay<R>[] {
+  const days = new Map<string, R[]>();
+  for (const r of rows) {
+    const day = bangkokDayKey(r.scored_at);
+    if (!day) continue;
+    const list = days.get(day) ?? [];
+    list.push({ ...r, rank: list.length + 1 });
+    days.set(day, list);
+  }
+  return [...days].sort(([a], [b]) => b.localeCompare(a)).map(([day, list]) => ({ day, rows: list }));
 }
 
 /** The export's file name, as the backend's Content-Disposition names it (booth-monitor.js exportPlays). */

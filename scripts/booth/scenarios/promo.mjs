@@ -505,7 +505,7 @@ export default [
       await ctx.close();
       const row = (list) => list.find((e) => e.tag === TAG)?.score;
       const shown = [SCORE.composite, row(BOARD.today), row(BOARD.event)].map((n) => Math.round(n));
-      h.check(shown.every((n) => n === shown[0]), `promo capture: Player #0${TAG} shows one score on the card and both boards (${shown.join(', ')})`);
+      h.check(shown.every((n) => n === shown[0]), `promo capture: Participant #0${TAG} shows one score on the card and both boards (${shown.join(', ')})`);
     },
   },
 ];

@@ -152,8 +152,11 @@ export const COPY = Object.freeze({
   tryClics: { th: 'ลองใช้ CLICS', en: 'Try CLICS' },
 });
 
-/** @param {'th' | 'en'} [lang] */
-export const tagText = (tag, lang = 'en') => `${lang === 'th' ? 'ผู้เล่น' : 'Player'} #${String(tag).padStart(3, '0')}`;
+/** The number alone, `#042`: a board row, where the full name would leave no room for the number. */
+export const tagNumber = (tag) => `#${String(tag).padStart(3, '0')}`;
+/** `หมายเลขผู้เข้าร่วม 042` / `Participant #042` (owner, 2026-11-26: the participant number, not "player").
+ *  @param {'th' | 'en'} [lang] */
+export const tagText = (tag, lang = 'en') => (lang === 'th' ? `หมายเลขผู้เข้าร่วม ${tagNumber(tag).slice(1)}` : `Participant ${tagNumber(tag)}`);
 
 export const scoreText = (composite) => String(Math.round(composite));
 

@@ -1,12 +1,12 @@
 // Booth Mode board (#212). booth-play.js and booth-shell.js call three seams and never reach inside:
-//   renderTag(tag)                              the result card's tag, "Player #NNN" with its icon
+//   renderTag(tag)                              the result card's tag, "Participant #NNN" with its icon
 //   mountResultBoard(slot, { tag, scoreBody })  the result card's ranks and Landing QR, from the score response
 //                                               (rank_today, rank_event)
 //   mountLoopBoard(slot, { api }) -> stop()     the loop's board, fetched from GET /booth/board every minute
 //   leaderboardButton({ host, api, board, tag, short })  the button on the result card and the loop (#250): opens the board
 //                                               over `host`, from `board` when the score carried one, else GET /booth/board
 // The panel has no controls: on the loop a tap anywhere, the panel included, starts a play. The overlay has one, Close.
-import { DEMO_LABEL } from './booth-copy.js';
+import { DEMO_LABEL, tagNumber } from './booth-copy.js';
 import { el, bi, tagName } from './booth-dom.js';
 
 const BOARD_TIMEOUT_MS = 8_000;
@@ -54,7 +54,9 @@ function boardList(title, entries, mine) {
       ? el('ol', { class: 'board-rows' }, ...entries.map((e, i) => el('li', {
         class: 'board-row', dataset: { tag: String(e.tag) }, ...(e.tag === mine ? { 'aria-current': 'true' } : {}),
       }, el('span', { class: 'board-rank' }, String(i + 1)), icon(tagIcon(e.tag)),
-      el('span', { class: 'board-tag' }, tagName(e.tag)), el('span', { class: 'board-score' }, String(Math.round(e.score))))))
+      // The number alone (#042): the row is too narrow for หมายเลขผู้เข้าร่วม and the number together, and the card
+      // above names it in full.
+      el('span', { class: 'board-tag' }, tagNumber(e.tag)), el('span', { class: 'board-score' }, String(Math.round(e.score))))))
       : bi(COPY.empty, 'board-empty'));
 }
 
