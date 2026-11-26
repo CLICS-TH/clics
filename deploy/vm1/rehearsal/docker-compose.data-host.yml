@@ -1,0 +1,29 @@
+# The rehearsal's database becomes the data host's own PostgreSQL (../../data-host: PostgreSQL 18.7 with
+# pgvector 0.8.7), prepared as the data host is (prepare-plain-pg.sql). Loaded by rehearsal/run.sh only, on top
+# of docker-compose.rehearsal.yml, whose tmpfs and memory cap (no swap) still hold; run.sh checks both on the
+# running container before any data is loaded. Two commands load it:
+#   vm1-drill            the restore drill (../db-move/README.md, Restore drill): a nightly backup is restored
+#                        into the major version it was taken from. PostgreSQL does not support restoring into
+#                        an older one, and move.sh drill refuses to.
+#   hermetic-data-host   the hermetic sign-in replay against the database GoTrue, PostgREST and the backend
+#                        will use after the move, which the supabase/postgres image is not.
+services:
+  db:
+    # Built from the data host's Dockerfile, which the release carries (deploy.sh), the first time a drill
+    # runs on vm1: that build needs Docker Hub and github.com. Without them, load the image cme-dev built.
+    image: clics-data-pg:18.7-pgvector0.8.7
+    build:
+      context: ../data-host
+    environment:
+      # PostgreSQL 18's image keeps its data in /var/lib/postgresql/18/docker, outside the rehearsal's tmpfs;
+      # here it goes into the tmpfs.
+      PGDATA: /var/lib/postgresql/data
+    # The data host's log settings (../../data-host/postgresql.conf): docker keeps the server's log on vm1's
+    # disk, and a query ERROR quotes values (a damaged backup's COPY CONTEXT, the first 100 bytes of a row).
+    # No ERROR is logged at all; the operator still sees each one, through psql, on the terminal.
+    command: ["postgres", "-c", "log_min_messages=log", "-c", "log_min_error_statement=panic",
+              "-c", "log_error_verbosity=terse", "-c", "log_statement=none"]
+    # The image declares /var/lib/postgresql a volume, which docker would make an anonymous one on vm1's disk.
+    # A small tmpfs there instead; the data's own tmpfs (docker-compose.rehearsal.yml) sits inside it.
+    tmpfs:
+      - /var/lib/postgresql:rw,size=16m

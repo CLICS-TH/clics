@@ -153,7 +153,8 @@ jobs:
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/postgrest-surface-test.sh
       # The database move (deploy/vm1/db-move, #432, ADR 0012): two throwaway clusters, a TLS source and a
       # GoTrue-shaped target. The move passes its verify report; the control (schema first, triggers on) fails
-      # audit_log_verify; drift, a lower sequence and a missing booth table fail; backup + drill; roles.sql.
+      # audit_log_verify; drift, a lower sequence, a missing booth table and a grant or policy difference
+      # fail; backup + drill; roles.sql.
       - name: db-move — Supabase-to-data-host move, verify, backup and roles, against throwaway PostgreSQL
         if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/db-move-test.sh
@@ -298,8 +299,9 @@ jobs:
           node --check deploy/vm1/rehearsal/fake-google.mjs
           bash -n deploy/vm1/rehearsal/run.sh
           shellcheck deploy/vm1/rehearsal/run.sh
-          bash -n deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh
-          shellcheck deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh
+          # One file per `bash -n`: it reads only its first argument, the rest become the script's arguments.
+          for f in deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh deploy/vm1/db-move/run-move.sh; do bash -n "$f"; done
+          shellcheck deploy/vm1/db-move/move.sh deploy/vm1/db-move/backup.sh deploy/vm1/db-move/run-move.sh
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
       - name: Guard tests (loopback-only ports, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
         run: node --test scripts/deploy/*.test.mjs scripts/dev/*.test.mjs
@@ -354,7 +356,7 @@ jobs:
           d="$RUNNER_TEMP/nginx"; mkdir -p "$d"
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=clics.ccme.or.th' \
             -keyout "$d/privkey.pem" -out "$d/fullchain.pem" 2>/dev/null
-          sed 's#/PLACEHOLDER/cme-cert-manager/clics.ccme.or.th/#/etc/nginx/test-cert/#' \
+          sed 's#/etc/letsencrypt/live/clics.ccme.or.th/#/etc/nginx/test-cert/#' \
             deploy/vm1/nginx/clics.ccme.or.th.conf > "$d/clics.conf"
           docker run --rm -v "$d/clics.conf:/etc/nginx/conf.d/clics.conf:ro" \
             -v "$d:/etc/nginx/test-cert:ro" nginx:1.18 nginx -t
@@ -366,6 +368,10 @@ jobs:
       # project; removed when it exits.
       - name: 'Self-hosted sign-in: hardened surface + sign-in replay (hermetic rehearsal)'
         run: SKIP_BUILD=1 deploy/vm1/rehearsal/run.sh hermetic
+      # The same replay against the database GoTrue, PostgREST and the backend use after the move (#432): the
+      # data host's PostgreSQL 18 with pgvector (deploy/data-host, built here), prepared as the data host is.
+      - name: 'Self-hosted sign-in: the same replay on the data host''s PostgreSQL 18'
+        run: SKIP_BUILD=1 deploy/vm1/rehearsal/run.sh hermetic-data-host
       - name: Container logs
         if: failure()
         run: |

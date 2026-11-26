@@ -20,7 +20,8 @@
 # CLICS_DATA_PORT (5432), CLICS_DATA_DB (postgres), CLICS_DATA_USER (supabase_admin, a superuser:
 # session_replication_role needs one), CLICS_DATA_SSLMODE (require; verify-ca or verify-full are
 # stronger; the participant data crosses the tailnet to another host, so the hop is TLS too), and the
-# password from a pgpass file (PGPASSFILE). A plaintext hop (CLICS_DATA_SSLMODE=disable, allow or prefer)
+# password: from a pgpass file (PGPASSFILE), or, with CLICS_DATA_PASSWORD=stdin, as the stdin line after the
+# source URL (run-move.sh, so on vm1 no file ever holds it). A plaintext hop (CLICS_DATA_SSLMODE=disable, allow or prefer)
 # is refused unless CLICS_DATA_PLAINTEXT_OK=1 is also set, for a throwaway target only.
 # AUDIT_CHAIN=required (the default) fails the report when the source has no audit_log chain;
 # AUDIT_CHAIN=checksum accepts audit_log's row checksum in its place (README.md, "Audit chain").
@@ -28,23 +29,26 @@
 # PG_BIN: the directory of pg_dump and psql, when they are not on PATH.
 #
 # Nothing here writes a file of data: the dump goes from pg_dump's stdout to psql's stdin. The report holds
-# table names, column names, row counts, checksums and sequence values, never a row.
+# table names, column names, row counts, checksums, sequence values, grants and policy checksums, never a row.
 set -euo pipefail
 export LC_ALL=C LANG=C
 # Only what this script sets reaches libpq: a PGHOST or PGPASSWORD inherited from the caller's shell
-# would otherwise point one end somewhere else. PGPASSFILE is kept: it is how the target's password comes in.
+# would otherwise point one end somewhere else. PGPASSFILE is kept: it is one way the target's password comes in.
 unset PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE PGSERVICE PGSERVICEFILE PGOPTIONS PGTARGETSESSIONATTRS \
   PGSSLROOTCERT
 REQUIRED_TABLES=(public.booth_plays public.booth_sort_memos public.booth_event_purges)
 AUDIT_CHAIN=${AUDIT_CHAIN:-required}
 SRC_FROM=${SRC_FROM:-stdin}
 SNAPSHOT=${SNAPSHOT:-}
+CLICS_DATA_PASSWORD=${CLICS_DATA_PASSWORD:-}
+DPW=''
 
 log() { echo "[db-move] $*" >&2; }
 die() { echo "[db-move] ERROR: $*" >&2; exit 1; }
 
 case "$AUDIT_CHAIN" in required|checksum) ;; *) die "AUDIT_CHAIN must be required or checksum, not '$AUDIT_CHAIN'" ;; esac
 case "$SRC_FROM" in stdin|data-host) ;; *) die "SRC_FROM must be stdin or data-host, not '$SRC_FROM'" ;; esac
+case "$CLICS_DATA_PASSWORD" in ''|stdin) ;; *) die "CLICS_DATA_PASSWORD must be stdin or unset (it names where the password comes from, never the password)" ;; esac
 [[ -z "$SNAPSHOT" || "$SNAPSHOT" =~ ^[0-9A-Fa-f-]+$ ]] || die "SNAPSHOT is not a snapshot id"
 
 # ---- connections ----------------------------------------------------------------------------------------
@@ -52,6 +56,7 @@ dst() {
   [ -n "${CLICS_DATA_HOST:-}" ] || die "CLICS_DATA_HOST is not set (the data host's tailnet name or address)"
   # A subshell, so the data host's root certificate (verify-full) never reaches a source command.
   ( [ -z "${CLICS_DATA_SSLROOTCERT:-}" ] || export PGSSLROOTCERT=$CLICS_DATA_SSLROOTCERT
+    [ -z "$DPW" ] || export PGPASSWORD=$DPW
     PGHOST=$CLICS_DATA_HOST PGPORT=${CLICS_DATA_PORT:-5432} PGDATABASE=${CLICS_DATA_DB:-postgres} \
       PGUSER=${CLICS_DATA_USER:-supabase_admin} PGSSLMODE=${CLICS_DATA_SSLMODE:-require} PGAPPNAME=clics-db-move "$@" )
 }
@@ -78,6 +83,10 @@ read_source() {
   # Supabase is reached over the internet: the dump of participant data must be encrypted in transit.
   case "$SSL" in require|verify-ca|verify-full) ;;
     *) die "the source URL must carry sslmode=require, verify-ca or verify-full (it has '${SSL:-none}')" ;; esac
+  if [ "$CLICS_DATA_PASSWORD" = stdin ]; then
+    IFS= read -r DPW || true
+    [ -n "$DPW" ] || die "no data host password on the stdin line after the URL (CLICS_DATA_PASSWORD=stdin)"
+  fi
 }
 src() {
   if [ "$SRC_FROM" = data-host ]; then dst "$@"; return; fi
@@ -108,6 +117,7 @@ q_side() { if [ "$1" = source ]; then q_src; else q_dst; fi; }
 #   seqname|schema.seq|"schema"."seq"                    a sequence
 #   seq|schema.seq|next                                  the value its next nextval() returns
 #   audit_head|seq|hash  or  audit_head|empty  or  audit_head|not_installed
+#   priv|...                                             grants, row level security and policies (privs_sql)
 # The tables are every ordinary table in public and auth, except auth.schema_migrations (GoTrue keeps its
 # own), GoTrue's session state (AUTH_SESSION_TABLES: not moved) and extension members (pg_dump does not dump
 # them). The checksum is md5 over the sorted md5s of each
@@ -170,12 +180,119 @@ audit_head_sql() { # audit_head_sql source|target
   fi
 }
 
+# Who owns and who may read and write what in public, one line per fact, the value last (check compares the
+# values by key):
+#   priv|scope|public                                   always there, so a report without these lines is caught
+#   priv|owner|table public.t|admin                     an object's owner; postgres, supabase_admin and any
+#                                                       superuser print as admin (they hold everything anyway,
+#                                                       and which of them ran the restore owns its objects)
+#   priv|grant|table public.t|grantee|SELECT,UPDATE*    an object's grants to one role (* = with grant option);
+#                                                       also column, sequence, view, function and schema public
+#   priv|default|postgres tables|grantee|SELECT         the default privileges in public
+#   priv|rls|public.t|enabled  (disabled, ... and forced) row level security
+#   priv|policy|"name" on public.t|md5                  a policy: command, permissive, roles, both expressions
+#   roles|column public.t.c                             a column clics_analyst holds a grant on that roles.sql's
+#                                                       allow list gives it (check accepts only these as roles.sql's)
+# Left out: the owner's own grants, grants to the admin roles above, and extension members (as in the report).
+# A privilege granted by two grantors counts once. search_path is pg_catalog only, so a function's signature
+# and a policy's expression print every name schema-qualified, the same on both sides.
+privs_sql() {
+  cat <<'SQL'
+set search_path = pg_catalog;
+select 'priv|scope|public';
+with admin as (
+  select oid from pg_roles where rolsuper or rolname in ('postgres', 'supabase_admin')
+), rule as (
+  -- roles.sql's allow list for clics_analyst, word for word (db-move-test.sh checks that the two match)
+  select array['access_requests', 'invites', 'oauth_identities', 'license_verifications',
+    'identity_verifications', 'ple_pii_map', 'cle_pii_map', 'ple_patient_refs', 'payment_info', 'payouts'] deny_tables,
+         array['councils.code', 'councils.name_th', 'councils.name_en',
+    'specialties.code', 'specialties.name_th', 'specialties.name_en',
+    'professionals.role', 'professionals.position', 'professionals.status', 'professionals.pseudonym',
+    'professionals.exp_code', 'ples.status',
+    'ai_evaluations.model_version', 'ai_evaluations.prompt_version', 'ai_evaluations.rubric_version'] allow_text
+), rel as (
+  select c.oid, c.relname, c.relkind, c.relowner, c.relacl, format('%I.%I', n.nspname, c.relname) qual
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind in ('r', 'p', 'v', 'm', 'S', 'f')
+     and not exists (select 1 from pg_depend d where d.classid = 'pg_class'::regclass and d.objid = c.oid and d.deptype = 'e')
+), obj as (
+  select case r.relkind when 'S' then 'sequence ' when 'v' then 'view ' when 'm' then 'materialized view '
+                        when 'f' then 'foreign table ' else 'table ' end || r.qual o, r.relowner own,
+         coalesce(r.relacl, acldefault(case r.relkind when 'S' then 's' else 'r' end::"char", r.relowner)) acl,
+         null::boolean analyst_ok
+    from rel r
+  union all
+  select 'column ' || r.qual || '.' || quote_ident(a.attname), r.relowner, a.attacl,
+         r.relkind <> 'S' and r.relname <> all (rule.deny_tables)
+           and (ty.typcategory in ('N', 'B', 'D', 'T', 'E') or ty.oid = 'pg_catalog.uuid'::regtype
+                or (r.relname || '.' || a.attname) = any (rule.allow_text))
+    from rel r join pg_attribute a on a.attrelid = r.oid join pg_type ty on ty.oid = a.atttypid cross join rule
+   where a.attnum > 0 and not a.attisdropped and a.attacl is not null
+  union all
+  select 'function ' || p.oid::regprocedure::text, p.proowner, coalesce(p.proacl, acldefault('f', p.proowner)), null
+    from pg_proc p
+   where p.pronamespace = 'public'::regnamespace
+     and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
+  union all
+  select 'schema public', n.nspowner, coalesce(n.nspacl, acldefault('n', n.nspowner)), null
+    from pg_namespace n where n.nspname = 'public'
+), g as (
+  select o.o, o.analyst_ok, case when x.grantee = 0 then 'PUBLIC' else pg_get_userbyid(x.grantee) end grantee,
+         x.privilege_type p, bool_or(x.is_grantable) grantable
+    from obj o cross join lateral aclexplode(o.acl) x
+   where x.grantee <> o.own and x.grantee not in (select oid from admin)
+   group by 1, 2, 3, 4
+)
+select line from (
+  select 'priv|owner|' || o.o || '|' || case when o.own in (select oid from admin) then 'admin' else pg_get_userbyid(o.own) end line
+    from obj o where o.o not like 'column %'
+  union all
+  select 'priv|grant|' || g.o || '|' || g.grantee || '|'
+         || string_agg(g.p || case when g.grantable then '*' else '' end, ',' order by g.p)
+    from g group by g.o, g.grantee
+  union all
+  select distinct 'roles|' || g.o from g where g.grantee = 'clics_analyst' and g.analyst_ok
+) l order by 1;
+select 'priv|default|' || pg_get_userbyid(g.defaclrole) || ' '
+       || case g.defaclobjtype when 'r' then 'tables' when 'S' then 'sequences' when 'f' then 'functions'
+                               when 'T' then 'types' else g.defaclobjtype::text end || '|' || g.grantee || '|'
+       || string_agg(g.p || case when g.grantable then '*' else '' end, ',' order by g.p)
+  from (select d.defaclrole, d.defaclobjtype, case when x.grantee = 0 then 'PUBLIC' else pg_get_userbyid(x.grantee) end grantee,
+               x.privilege_type p, bool_or(x.is_grantable) grantable
+          from pg_default_acl d cross join lateral aclexplode(d.defaclacl) x
+         where d.defaclnamespace = 'public'::regnamespace and x.grantee <> d.defaclrole
+           and x.grantee not in (select oid from pg_roles where rolsuper or rolname in ('postgres', 'supabase_admin'))
+         group by 1, 2, 3, 4) g
+ group by g.defaclrole, g.defaclobjtype, g.grantee order by 1;
+with rel as (
+  select c.oid, c.relrowsecurity, c.relforcerowsecurity, format('%I.%I', n.nspname, c.relname) qual
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind in ('r', 'p')
+     and not exists (select 1 from pg_depend d where d.classid = 'pg_class'::regclass and d.objid = c.oid and d.deptype = 'e')
+)
+select line from (
+  select 'priv|rls|' || r.qual || '|' || case when r.relrowsecurity then 'enabled' else 'disabled' end
+         || case when r.relforcerowsecurity then ' and forced' else '' end line
+    from rel r
+  union all
+  select 'priv|policy|' || quote_ident(p.polname) || ' on ' || r.qual || '|'
+         || md5(concat_ws(E'\n', p.polcmd::text, p.polpermissive::text,
+              (select string_agg(case when x = 0 then 'PUBLIC' else pg_get_userbyid(x) end, ','
+                                 order by case when x = 0 then 'PUBLIC' else pg_get_userbyid(x) end)
+                 from unnest(p.polroles) x),
+              coalesce(pg_get_expr(p.polqual, p.polrelid), ''), coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')))
+    from pg_policy p join rel r on r.oid = p.polrelid
+) l order by 1;
+SQL
+}
+
 report() { # report source|target
   local side=$1 cat
   cat=$(catalog_sql | q_side "$side")
   printf '%s\n' "$cat"
-  { { grep '^col|' <<< "$cat" || true; } | table_sql; { grep '^seqname|' <<< "$cat" || true; } | seq_sql; audit_head_sql "$side"; } |
-    q_side "$side"
+  { { grep '^col|' <<< "$cat" || true; } | table_sql; { grep '^seqname|' <<< "$cat" || true; } | seq_sql; audit_head_sql "$side"
+    privs_sql; } | q_side "$side"
 }
 
 # ---- check: the data host against a report --------------------------------------------------------------
@@ -191,6 +308,7 @@ check() { # check REPORT_FILE -> prints the verify report, exits 1 unless it pas
   measured=$({
     { grep '^col|' "$expected" || true; } | PRESENT=$present awk -F'|' "$keep" | table_sql
     { grep '^seqname|' "$expected" || true; } | PRESENT=$present awk -F'|' "$keep" | seq_sql
+    privs_sql
   } | q_dst)
 
   # The chain: the source's head (seq, hash) is the anchor for the target's walk, so a re-chained,
@@ -221,10 +339,35 @@ check() { # check REPORT_FILE -> prints the verify report, exits 1 unless it pas
         split(line, f, "|")
         if (f[1] == "table") { erows[f[2]] = f[3]; esum[f[2]] = f[4]; order[++nt] = f[2] }
         if (f[1] == "seq") { eseq[f[2]] = f[3]; sorder[++ns] = f[2] }
+        if (f[1] == "priv") { k = pkey(line); if (!(k in epriv)) porder[++np] = k; epriv[k] = pval(line) }
       }
+    }
+    # A priv line is its key, then "|" and its value.
+    function pkey(l) { return substr(l, 1, length(l) - length(pval(l)) - 1) }
+    function pval(l) { return substr(l, match(l, /[^|]*$/)) }
+    function pshow(k,  f, d) {
+      split(k, f, "|")
+      if (f[2] == "grant") return "grant on " f[3] " to " f[4]
+      if (f[2] == "default") { split(f[3], d, " "); return "default privileges of " d[1] " on " d[2] " to " f[4] }
+      if (f[2] == "rls") return "row level security on " f[3]
+      if (f[2] == "policy") return "policy " f[3]
+      if (f[2] == "owner") return "owner of " f[3]
+      return substr(k, 6)
+    }
+    # What roles.sql grants on the data host after the move, which no source has: clics_analyst reads the
+    # columns its allow list names (the target marks them with roles lines) and uses the schema; clics_backup
+    # runs audit_log_head(). Anything more for them is a difference.
+    function roles_sql(k, v,  f) {
+      split(k, f, "|")
+      if (f[2] != "grant") return 0
+      if (f[4] == "clics_analyst") return ((f[3] in analyst_ok) && v == "SELECT") || (f[3] == "schema public" && v == "USAGE")
+      if (f[4] == "clics_backup") return f[3] == "function public.audit_log_head()" && v == "EXECUTE"
+      return 0
     }
     $1 == "table" { arows[$2] = $3; asum[$2] = $4 }
     $1 == "seq" { aseq[$2] = $3 }
+    $1 == "priv" { k = pkey($0); if (!(k in apriv)) aorder[++na] = k; apriv[k] = pval($0) }
+    $1 == "roles" { analyst_ok[$2] = 1 }
     END {
       bad = 0
       printf "== CLICS database move: verify report ==\n"
@@ -262,6 +405,29 @@ check() { # check REPORT_FILE -> prints the verify report, exits 1 unless it pas
       } else if (c[1] == "anchor") {
         printf "audit chain: audit_log_verify FAILS on the target against the source head seq %s hash %s (%s)\n", c[2], c[3], chain; bad++
       } else { printf "audit chain: no head in the report\n"; bad++ }
+      if (!("priv|scope" in epriv)) { printf "privileges: NOT IN THE REPORT (an older move.sh made it?)\n"; bad++ }
+      else {
+        for (i = 1; i <= np; i++) {
+          k = porder[i]
+          policy = k ~ /^priv\|policy\|/
+          if (!(k in apriv)) {
+            printf "%s: MISSING ON TARGET%s\n", pshow(k), policy ? "" : " (" epriv[k] " on the source)"; pbad++
+          } else if (apriv[k] != epriv[k]) {
+            if (policy) printf "%s: DIFFERS (its command, roles or expressions)\n", pshow(k)
+            else printf "%s: %s on the source, %s on the target\n", pshow(k), epriv[k], apriv[k]
+            pbad++
+          }
+        }
+        for (i = 1; i <= na; i++) {
+          k = aorder[i]
+          if (k in epriv) continue
+          if (roles_sql(k, apriv[k])) { racc++; continue }
+          printf "%s: NOT ON THE SOURCE%s\n", pshow(k), k ~ /^priv\|policy\|/ ? "" : " (" apriv[k] " on the target)"; pbad++
+        }
+        printf "privileges: %d compared (owners, grants, default privileges, row level security, policies in public), %d differ\n", np, pbad + 0
+        if (racc) printf "privileges: %d more on the target are roles.sql'\''s (clics_analyst, clics_backup)\n", racc
+        bad += pbad
+      }
       if (exposure == "absent") { printf "postgrest_exposure: not defined on the target\n"; bad++ }
       else if (exposure != "0") { printf "postgrest_exposure: %s grants to anon/authenticated on the target (ADR 0007 wants none)\n", exposure; bad++ }
       else printf "postgrest_exposure: lists nothing on the target\n"
@@ -296,9 +462,12 @@ stream() {
   src "$(tool_path pg_dump)" ${snap[@]+"${snap[@]}"} --no-owner --no-privileges --data-only --schema=auth --exclude-table=auth.schema_migrations \
     "${auth_skip[@]}"
   # After roles.sql has run on the source (a backup of the data host), the public dump carries grants to
-  # clics_analyst; a fresh restore target lacks that role. Made here without login; roles.sql sets the rest.
-  echo "do \$\$ begin if not exists (select 1 from pg_roles where rolname = 'clics_analyst') then
-    create role clics_analyst nologin; end if; end \$\$;"
+  # clics_analyst and clics_backup; a fresh restore target lacks those roles. Made here without login;
+  # roles.sql sets the rest.
+  for r in clics_analyst clics_backup; do
+    echo "do \$\$ begin if not exists (select 1 from pg_roles where rolname = '$r') then
+    create role $r nologin; end if; end \$\$;"
+  done
   # The target already has the (empty) public schema, and its default ACLs hang off it: keep it.
   src "$(tool_path pg_dump)" ${snap[@]+"${snap[@]}"} --no-owner --schema=public | sed '/^CREATE SCHEMA public;$/d'
   # Every sequence in public and auth, set from the source, after pg_dump's own setval lines.
@@ -404,12 +573,15 @@ SQL
     for r in $roles; do echo "select $(lit "role $r") where pg_catalog.to_regrole($(lit "\"$r\"")) is null;"; done
     for e in $exts; do echo "select 'extension $e' where not exists (select 1 from pg_catalog.pg_available_extensions where name = $(lit "$e"));"; done
     for f in 'auth.uid()' 'auth.role()'; do echo "select 'function $f' where pg_catalog.to_regprocedure($(lit "$f")) is null;"; done
+    # Not named by the restore, but PostgREST's search path (../docker-compose.auth.yml) is: without it
+    # PostgREST loads no schema cache and the backend gets no database at all once it points here.
+    echo "select 'schema extensions (PostgREST searches it)' where pg_catalog.to_regnamespace('extensions') is null;"
     [ -z "$cols" ] || echo "select 'auth column ' || v || ' (an older GoTrue on the target?)' from unnest(array[$cols]::text[]) v
       where not exists (select 1 from pg_catalog.pg_attribute a join pg_catalog.pg_class c on c.oid = a.attrelid
                          where c.relnamespace = 'auth'::regnamespace and c.relname = split_part(v, '.', 1)
                            and a.attname = split_part(v, '.', 2) and a.attnum > 0 and not a.attisdropped);"
   } | q_dst | paste -sd ',' - | sed 's/,/, /g')
-  [ -z "$missing" ] || die "the target lacks what the restore names: $missing (plain PostgreSQL: README.md, Plain PostgreSQL target)"
+  [ -z "$missing" ] || die "the target lacks what the restore or PostgREST needs: $missing (plain PostgreSQL: README.md, Plain PostgreSQL target)"
   (( dver / 10000 >= sver / 10000 )) || die "the target's PostgreSQL ($dver) is older than the source's ($sver)"
   local pgd
   pgd=$("$(tool_path pg_dump)" --version | sed -n 's/.* \([0-9][0-9]*\)\..*/\1/p')
@@ -460,11 +632,24 @@ backup() {
 }
 drill() {
   [ ! -t 0 ] || die "drill reads a decrypted backup stream on stdin"
-  local rep
+  local rep tver
   rep=$(mktemp "${TMPDIR:-/tmp}/db-move-report.XXXXXX")
   # shellcheck disable=SC2064
   trap "rm -f '$rep'" RETURN
-  awk -v f="$rep" 'index($0, "-- clics-report ") == 1 { print substr($0, 17) > f } { print }' | load
+  tver=$(echo "select current_setting('server_version_num');" | q_dst) || die "cannot read the drill database"
+  # A backup restores into its own PostgreSQL major version or a newer one, never an older one (PostgreSQL does
+  # not support that). pg_dump names the source's version in a comment before the first row; an older drill
+  # database stops the stream there, and the load's transaction ends without its commit, so nothing stays.
+  awk -v f="$rep" -v tmaj="$(( tver / 10000 ))" '
+    index($0, "-- clics-report ") == 1 { print substr($0, 17) > f }
+    !seen && index($0, "-- Dumped from database version ") == 1 {
+      seen = 1; smaj = int(substr($0, 33) + 0)
+      if (smaj > tmaj) {
+        printf "[db-move] ERROR: the backup comes from PostgreSQL %d and this drill database runs %d: restore it into %d or newer\n", smaj, tmaj, smaj > "/dev/stderr"
+        exit 3
+      }
+    }
+    { print }' | load
   grep -q '^table|' "$rep" || die "the stream carries no report: is it a backup.sh stream?"
   check "$rep"
 }
@@ -479,6 +664,14 @@ verify() {
 }
 
 cmd=${1:-}
+# The password line follows the URL, so only a command that reads the URL can take it from stdin.
+if [ "$CLICS_DATA_PASSWORD" = stdin ]; then
+  [ "$SRC_FROM" = stdin ] || die "CLICS_DATA_PASSWORD=stdin needs the URL on stdin (SRC_FROM=stdin)"
+  case "$cmd ${2:-}" in
+    'preflight '*|'move '*|'verify '*|'report source'|'dump '*) ;;
+    *) die "CLICS_DATA_PASSWORD=stdin works with preflight, move, verify, report source and dump only" ;;
+  esac
+fi
 case "$cmd" in
   preflight) read_source; preflight ;;
   move)

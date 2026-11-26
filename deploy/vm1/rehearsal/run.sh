@@ -3,13 +3,16 @@
 #
 #   rehearsal/run.sh hermetic            synthetic data, stand-ins for Google and Resend's SMTP relay
 #                                        (docker-compose.hermetic.yml): CI and a laptop with docker
+#   rehearsal/run.sh hermetic-data-host  the same, against the data host's PostgreSQL 18 instead of the
+#                                        supabase/postgres image (docker-compose.data-host.yml)
 #   rehearsal/run.sh vm1-env ENV_DIR     vm1: fresh secrets for the rehearsal stack into a root-only ENV_DIR
 #   rehearsal/run.sh vm1-up ENV_DIR      vm1: database, roles, restore from Supabase (URL on stdin), then the stack
 #   rehearsal/run.sh vm1-paths ENV_DIR   vm1: replay the sign-in paths against it
 #   rehearsal/run.sh vm1-mail ENV_DIR    vm1: recreate GoTrue (after gotrue.env's SMTP lines changed) and ask it
 #                                        for one recovery mail to the address on stdin
-#   rehearsal/run.sh vm1-drill ENV_DIR   vm1: restore a decrypted nightly backup (stdin) into the in-memory db
-#                                        and check it (../db-move/README.md, Restore drill)
+#   rehearsal/run.sh vm1-drill ENV_DIR   vm1: restore a decrypted nightly backup (stdin) into an in-memory copy
+#                                        of the data host's PostgreSQL and check it (../db-move/README.md,
+#                                        Restore drill)
 #   rehearsal/run.sh down [ENV_DIR]      stop and remove the rehearsal project; the tmpfs database goes with it
 #
 # Everything runs under the compose project `clics-rehearsal`, never `clics`. The rehearsal backend has no host
@@ -25,18 +28,26 @@ PKI_VOLUME=clics-rehearsal-pki
 # HERMETIC=1 adds the stand-ins for Google and Resend. Only the hermetic command sets it; one inherited from
 # the caller's shell is dropped here.
 HERMETIC=
+# DATA_HOST=1 makes the database the data host's own PostgreSQL 18 (docker-compose.data-host.yml) instead of
+# the supabase/postgres image. Only vm1-drill and hermetic-data-host set it; one inherited from the caller's
+# shell is dropped.
+DATA_HOST=
 dc() {
   local files=(-f docker-compose.yml -f docker-compose.auth.yml -f rehearsal/docker-compose.rehearsal.yml)
   [ -z "$HERMETIC" ] || files+=(-f rehearsal/docker-compose.hermetic.yml)
+  [ -z "$DATA_HOST" ] || files+=(-f rehearsal/docker-compose.data-host.yml)
   docker compose -p "$PROJECT" "${files[@]}" "$@"
 }
+# The database's superuser, reached through the container's socket: supabase_admin in the supabase/postgres
+# image, postgres in the data host's.
+db_su() { if [ -n "$DATA_HOST" ]; then echo postgres; else echo supabase_admin; fi; }
 
 # supabase/postgres creates the API and auth roles without a usable password; the stack logs in as two of
 # them. The password goes in on stdin, never on a command line.
 set_role_passwords() {
-  dc exec -T db sh -c 'for r in authenticator supabase_auth_admin; do
+  dc exec -T -e "DB_SU=$(db_su)" db sh -c 'for r in authenticator supabase_auth_admin; do
       echo "alter role $r with login password '"'"'$POSTGRES_PASSWORD'"'"';"
-    done | psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q'
+    done | psql -U "$DB_SU" -d postgres -v ON_ERROR_STOP=1 -X -q'
 }
 
 # The db container must not swap (mem_limit = memswap_limit in docker-compose.rehearsal.yml): its tmpfs holds
@@ -49,9 +60,28 @@ assert_no_swap() {
   log "db cannot swap (memory.swap.max 0)"
 }
 
+# The data directory must be the tmpfs (docker-compose.rehearsal.yml), read from the running server: an image
+# that keeps its data elsewhere (PostgreSQL 18's /var/lib/postgresql/18/docker, an anonymous volume on vm1's
+# disk) stops the rehearsal before any data is loaded.
+assert_in_memory() {
+  local dir fs vols
+  dir=$(dc exec -T db psql -U "$(db_su)" -d postgres -AtX -c 'show data_directory') || die "cannot read the db's data directory"
+  fs=$(dc exec -T db stat -f -c %T "$dir") || die "cannot read the file system under $dir"
+  [ "$fs" = tmpfs ] || die "the db keeps its data in $dir, on $fs, not in memory: a restored copy would reach vm1's disk"
+  # A volume an image declares (PostgreSQL 18's /var/lib/postgresql) becomes an anonymous one on vm1's disk
+  # unless a tmpfs covers it.
+  vols=$(docker inspect -f '{{range .Mounts}}{{if eq .Type "volume"}}{{.Destination}} {{end}}{{end}}' "$(dc ps -q db)")
+  [ -z "$vols" ] || die "the db has a docker volume on vm1's disk at: $vols"
+  log "db data in memory ($dir on tmpfs, no volume)"
+}
+
 up_db() {
   dc up -d --wait --wait-timeout 180 db
   assert_no_swap
+  assert_in_memory
+  # The data host's PostgreSQL is plain: it gets the roles and the auth schema the supabase/postgres image has,
+  # as the data host itself did (../data-host/setup.sh init).
+  [ -z "$DATA_HOST" ] || dc exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -X -q < db-move/prepare-plain-pg.sql
   set_role_passwords
 }
 
@@ -63,10 +93,16 @@ up_stack() {
   dc up -d --no-deps --wait --wait-timeout 180 backend
 }
 
-# Hermetic only: the repo's schema over GoTrue's auth tables, then PostgREST re-reads it.
+# Hermetic only: the repo's schema over GoTrue's auth tables, then PostgREST re-reads it. On the data host's
+# PostgreSQL, schema.sql stands in for the move, which also brings production's default privileges (the dump
+# carries them, at its end): what postgres creates in public is service_role's, the backend's role. The
+# supabase/postgres image has them already.
 load_schema() {
   log "loading db/schema.sql"
-  dc exec -T db psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -X -q < ../../db/schema.sql
+  { [ -z "$DATA_HOST" ] || printf 'alter default privileges for role postgres in schema public grant all on %s to service_role;\n' \
+      tables sequences functions
+    cat ../../db/schema.sql
+  } | dc exec -T db psql -U "$(db_su)" -d postgres -v ON_ERROR_STOP=1 -X -q
 }
 
 # Hermetic only: a throwaway CA, a certificate for each stand-in (accounts.google.com, smtp.resend.com) and the
@@ -100,15 +136,20 @@ paths() { # [extra docker run args...]
 }
 
 # Hermetic only, after the replay: GoTrue fails one mail send (mailpit is stopped) and refuses one client's
-# repeated wrong codes and passwords (failure-probes.mjs), then no auth container's log may name an address. Every replay account is @rehearsal.invalid, so this also covers every request the
-# replay made through supabase-gw (R5: json-file logs sit on vm1's disk).
+# repeated wrong codes and passwords (failure-probes.mjs), then no auth container's log, nor the database's,
+# may name an address or hold the database password. Every replay account is @rehearsal.invalid, so this also
+# covers every request the replay made through supabase-gw (R5: json-file logs sit on vm1's disk).
 assert_logs_clean() {
   dc stop mailpit >/dev/null 2>&1
   dc run --rm --no-deps -T -v "$PWD/rehearsal/failure-probes.mjs:/failure-probes.mjs:ro" backend node /failure-probes.mjs
-  local hits
-  hits=$(dc logs --no-log-prefix gotrue postgrest supabase-gw 2>&1 | grep -c 'rehearsal\.invalid' || true)
-  [ "$hits" = 0 ] || die "the auth containers logged $hits line(s) naming a synthetic address (R5)"
-  log "no auth container log names an address"
+  local logs hits
+  logs=$(dc logs --no-log-prefix gotrue postgrest supabase-gw db 2>&1)
+  hits=$(grep -c 'rehearsal\.invalid' <<< "$logs" || true)
+  [ "$hits" = 0 ] || die "the auth and db containers logged $hits line(s) naming a synthetic address (R5)"
+  # The pattern comes on stdin, so the password is in no argv.
+  hits=$(grep -cFf <(printf '%s\n' "$REHEARSAL_DB_PASSWORD") <<< "$logs" || true)
+  [ "$hits" = 0 ] || die "the auth and db containers logged $hits line(s) holding the database password"
+  log "no auth or db container log names an address or holds the database password"
 }
 
 # What a running rehearsal exposes (R1-R4, ADR 0007): no host port at all, GoTrue's included (its loopback
@@ -141,8 +182,9 @@ assert_surface() {
 }
 
 # auth-role-keys.cjs in the backend's own base image, with no network: vm1's host has no node of its own.
+# No log: Docker would copy the keys it prints into the container's log on disk.
 mint_role_keys() {
-  docker run --rm -i --network none "$(sed -n 's/^FROM \([^ ]*\).*/\1/p' backend.Dockerfile | head -n 1)" \
+  docker run --rm -i --log-driver none --network none "$(sed -n 's/^FROM \([^ ]*\).*/\1/p' backend.Dockerfile | head -n 1)" \
     node -e "$(cat auth-role-keys.cjs)" < "$1"
 }
 
@@ -201,8 +243,10 @@ export_env() { # <env dir>: what the compose files interpolate
 }
 
 case "${1:-}" in
-  hermetic)
+  hermetic|hermetic-data-host)
     HERMETIC=1
+    # The database GoTrue, PostgREST and the backend use after the move: the data host's PostgreSQL 18.
+    [ "$1" = hermetic ] || DATA_HOST=1
     ENV_DIR=$(mktemp -d)
     # KEEP=1 leaves the stack up for a look (`run.sh down` removes it); otherwise it goes when this exits.
     if [ -z "${KEEP:-}" ]; then
@@ -217,6 +261,8 @@ case "${1:-}" in
     REHEARSAL_GOOGLE_SECRET=$(sed -n 's/^GOTRUE_EXTERNAL_GOOGLE_SECRET=//p' "$ENV_DIR/gotrue.env")
     export REHEARSAL_GOOGLE_CLIENT_ID REHEARSAL_GOOGLE_SECRET
     [ -n "${SKIP_BUILD:-}" ] || dc build backend
+    # SKIP_BUILD skips the backend only: CI builds it in an earlier step, never the data host's image.
+    [ -z "$DATA_HOST" ] || dc build db
     make_pki "$ENV_DIR"
     dc --profile mail up -d mailpit
     up_db
@@ -317,26 +363,31 @@ case "${1:-}" in
     unset TO
     ;;
   vm1-drill)
-    # The restore drill (db-move/README.md, Restore drill): a decrypted nightly backup on stdin goes into the
-    # rehearsal's in-memory db, after GoTrue has migrated its auth schema, and move.sh checks it against the
-    # report the backup carries. The stream goes straight into the db container; nothing reaches a disk.
+    # The restore drill (db-move/README.md, Restore drill): a decrypted nightly backup on stdin goes into an
+    # in-memory copy of the data host's PostgreSQL (docker-compose.data-host.yml), after GoTrue has migrated its
+    # auth schema, and move.sh checks it against the report the backup carries. The stream goes straight into
+    # the db container; nothing reaches a disk.
     [ -n "${2:-}" ] || die "usage: gpg --decrypt BACKUP | run.sh vm1-drill ENV_DIR"
     [ ! -t 0 ] || die "vm1-drill reads a decrypted backup stream on stdin"
+    # Every `docker compose exec` forwards its stdin and would eat the head of the stream (its report): the
+    # stream waits on fd 3 for the drill itself, and everything before it reads /dev/null.
+    exec 3<&0 </dev/null
+    DATA_HOST=1
     export_env "$2"
     up_db
     dc up -d --wait --wait-timeout 180 gotrue
     dc stop gotrue
     dc cp db-move/move.sh db:/tmp/move.sh
     dc exec -T db bash -c 'set -euo pipefail; umask 077
-      printf "127.0.0.1:5432:postgres:supabase_admin:%s\n" "$POSTGRES_PASSWORD" > /tmp/pgpass
+      printf "127.0.0.1:5432:postgres:postgres:%s\n" "$POSTGRES_PASSWORD" > /tmp/pgpass
       # Loopback inside the throwaway db container: nothing crosses a network, so the hop may be plain.
-      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 CLICS_DATA_SSLMODE=prefer CLICS_DATA_PLAINTEXT_OK=1 \
-        exec bash /tmp/move.sh drill'
+      PGPASSFILE=/tmp/pgpass CLICS_DATA_HOST=127.0.0.1 CLICS_DATA_USER=postgres CLICS_DATA_SSLMODE=prefer \
+        CLICS_DATA_PLAINTEXT_OK=1 exec bash /tmp/move.sh drill' <&3
     ;;
   down)
     if [ -n "${2:-}" ]; then export_env "$2"; else export_env "$(mktemp -d)"; fi
     dc --profile mail down -v --remove-orphans
     docker volume rm -f "$PKI_VOLUME" >/dev/null 2>&1 || true
     ;;
-  *) die "usage: run.sh hermetic | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | vm1-drill ENV_DIR | down [ENV_DIR]" ;;
+  *) die "usage: run.sh hermetic | hermetic-data-host | vm1-env ENV_DIR | vm1-up ENV_DIR | vm1-paths ENV_DIR | vm1-mail ENV_DIR | vm1-drill ENV_DIR | down [ENV_DIR]" ;;
 esac

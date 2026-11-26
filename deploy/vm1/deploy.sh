@@ -20,7 +20,8 @@
 #   TAILSCALE_BIN  Tailscale CLI (default /Applications/Tailscale.app/Contents/MacOS/Tailscale). On macOS
 #                  `tailscale ssh` needs the Standalone variant; the App Store variant does not have it.
 #
-# What it does: git archive of backend/ rimpl/ physician-ui/ audit-dashboard/ deploy/vm1/ at the ref ->
+# What it does: git archive of backend/ rimpl/ physician-ui/ audit-dashboard/ deploy/vm1/ deploy/data-host/
+# (the restore drill builds the data host's PostgreSQL from it) at the ref ->
 # Tailscale SSH -> preflight -> /opt/clics/releases/<sha> -> activate, started DETACHED on vm1 (a systemd
 # transient unit) and followed from here: docker compose -p clics build -> rimpl up -> gate 1 (rimpl
 # healthy, INTERNAL_TOKEN matches) -> backend up -> gate 2 (/health/deep says backend, rimpl up, Supabase
@@ -145,7 +146,11 @@ trap 'rm -rf "$TMP"' EXIT
 # ---- the release tarball (deploy only) ------------------------------------------------------------
 TARBALL="$TMP/release-$SHA.tgz"
 if [ "$MODE" = deploy ]; then
-  git -C "$REPO" archive --format=tar "$SHA" -- backend rimpl physician-ui audit-dashboard deploy/vm1 | gzip -n > "$TARBALL"
+  release_paths=(backend rimpl physician-ui audit-dashboard deploy/vm1)
+  # The data host's Dockerfile, for the restore drill (rehearsal/docker-compose.data-host.yml). A ref from before
+  # it has none, and git archive fails on a path that matches nothing.
+  ! git -C "$REPO" cat-file -e "$SHA:deploy/data-host" 2>/dev/null || release_paths+=(deploy/data-host)
+  git -C "$REPO" archive --format=tar "$SHA" -- "${release_paths[@]}" | gzip -n > "$TARBALL"
   # git archive ships tracked files only, and no env file is tracked. Refuse anyway if one ever is.
   # The listing goes to a file first: `tar | grep -q` under pipefail can lose a match to SIGPIPE.
   tar -tzf "$TARBALL" > "$TMP/listing"

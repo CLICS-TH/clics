@@ -7,10 +7,11 @@ backend has no host port.
 
 | File | What it is |
 |---|---|
-| `run.sh` | Drives it: `hermetic`, `vm1-env`, `vm1-up`, `vm1-paths`, `vm1-mail`, `down` |
-| `docker-compose.rehearsal.yml` | Adds a throwaway `supabase/postgres` on **tmpfs**, mailpit, and takes the backend's host port away |
+| `run.sh` | Drives it: `hermetic`, `hermetic-data-host`, `vm1-env`, `vm1-up`, `vm1-paths`, `vm1-mail`, `down`; also `vm1-drill`, the nightly backup's restore drill (`../db-move/README.md`, Restore drill) |
+| `docker-compose.rehearsal.yml` | Adds a throwaway `supabase/postgres` on **tmpfs**, mailpit, and takes the backend's host port away. The database logs as the data host does: no query error (its text quotes values) and no statement (the image's own init would log its `ALTER USER ... PASSWORD`), since Docker keeps the log on vm1's disk |
+| `docker-compose.data-host.yml` | `vm1-drill` and `hermetic-data-host` only: the database becomes the data host's PostgreSQL 18 (`../../data-host/`), still on tmpfs; `run.sh` prepares it with `../db-move/prepare-plain-pg.sql`. `run.sh` checks, on the running container, that the data directory is a tmpfs and no volume is mounted |
 | `auth-paths.mjs` | The replay. Runs in a one-off backend container on the rehearsal network |
-| `failure-probes.mjs` | `hermetic` only, after the replay: a failed mail send and one client's wrong codes and passwords (429 expected), then `run.sh` checks no auth container log names an address |
+| `failure-probes.mjs` | `hermetic` only, after the replay: a failed mail send and one client's wrong codes and passwords (429 expected), then `run.sh` checks that no auth container's log, nor the database's, names an address or holds the database password |
 | `docker-compose.hermetic.yml` | `hermetic` only: the stand-ins for Google (`fake-google.mjs`, as `accounts.google.com`) and for Resend's relay (mailpit as `smtp.resend.com:465`, implicit TLS and SMTP AUTH), on certificates from a throwaway CA only the rehearsal's GoTrue trusts. A vm1 run never loads it |
 | `fake-google.mjs` | The Google stand-in: discovery, signing key, consent, code exchange, and a test-only endpoint that hands out id_tokens as Google Identity Services does |
 
@@ -68,6 +69,12 @@ This uses fresh secrets, a database loaded from `db/schema.sql`, and the stand-i
 `supabase-gw`, the database and the backend are unpublished, and every auth container is non-root with a
 read-only root. `KEEP=1` leaves the stack up for a look, and `run.sh down` removes it.
 
+`run.sh hermetic-data-host` runs the same replay against the database GoTrue, PostgREST and the backend
+will use after the move: the data host's PostgreSQL 18 (`docker-compose.data-host.yml`, built from
+`../../data-host/`), prepared by `prepare-plain-pg.sql`, with `db/schema.sql` and production's default
+privileges standing in for the restore. CI runs both. It caught that PostgREST needs an `extensions` schema
+the plain image lacks.
+
 ## On vm1, against a copy of production
 
 Every step needs the owner's go-ahead (vm1 is the shared CME host). The dump streams from Supabase into a
@@ -75,8 +82,8 @@ database that lives **in memory only**, inside the rehearsal container. No copy 
 laptop, and step 7 deletes it. While the rehearsal runs, vm1 holds participant data in RAM, which R5 does
 not otherwise allow. Keep the window short.
 
-1. **Ship the files.** The rehearsal needs `backend/` and `deploy/vm1/` of the branch under test. From the
-   Mac:
+1. **Ship the files.** The rehearsal needs `backend/` and `deploy/vm1/` of the branch under test (the restore
+   drill, `vm1-drill`, also needs `deploy/data-host/`, and runs from the release instead). From the Mac:
    ```bash
    git archive --format=tar HEAD backend deploy/vm1 | tailscale ssh root@VM1_TAILNET_NAME \
      'install -d -m 700 /opt/clics/rehearsal /opt/clics/rehearsal/src /opt/clics/rehearsal/env && tar -x -C /opt/clics/rehearsal/src'

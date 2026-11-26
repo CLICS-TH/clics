@@ -17,9 +17,19 @@
 # postgrest_exposure; the CONTROL: the same rows laid into a schema that already carries the chain trigger
 # with triggers ON fail audit_log_verify against the source head, and the same path with the script's
 # session_replication_role passes; the report fails on a source row written after the move, a target
-# sequence set lower, a missing table; dump refuses a file; report + check round-trip (the backup drill);
+# sequence set lower, a missing table, and an owner, grant, default privilege, row level security flag or
+# policy that differs from the source's (a privilege from two grantors counts once; roles.sql's own grants
+# are named, not failed, and only those its allow list makes, whose copy in move.sh must match roles.sql's;
+# a report without the privileges fails); dump refuses a file; report + check round-trip (the backup drill);
 # roles.sql leaves no app role a superuser, gives clics_analyst reads but no writes, no identity table or
-# column, no auth, no SECURITY DEFINER call, and postgrest_exposure() still lists nothing.
+# column, no auth, no SECURITY DEFINER call, and postgrest_exposure() still lists nothing. The data host's
+# password on stdin (CLICS_DATA_PASSWORD=stdin) passes when right, is refused when wrong or absent, and never
+# opens the source; run-move.sh, driven at a real terminal (python3's pty) with a stand-in docker, runs
+# preflight and verify, echoes neither secret, puts neither in docker's argv, runs the container without a
+# log, checks the data host against the CA certificate it mounts read-only (and refuses a server that CA did
+# not sign), and refuses a pipe, another command, a file or directory others could change (db-move.conf,
+# move.sh, the kit's directory, docker's directory, the CA's directory), a symlinked move.sh, and a
+# db-move.conf line it does not know.
 set -euo pipefail
 export LC_ALL=C LANG=C
 export PGOPTIONS="-c client_min_messages=warning"
@@ -150,6 +160,11 @@ SQL
     S "$1" -c "insert into public.audit_log (action, target_type) select 'after-chain', 'n' || g from generate_series(1, 4) g;"
   fi
   S "$1" -f "$ROOT/db/migration-postgrest-closed.sql" >/dev/null
+  # supabase_admin's own default privileges, as production keeps them: there the migration above may not
+  # change them (postgres is not a member of supabase_admin), so anon and authenticated stay in them.
+  S "$1" -c "alter default privileges for role supabase_admin in schema public grant all on tables to anon, authenticated, service_role;
+             alter default privileges for role supabase_admin in schema public grant all on sequences to anon, authenticated, service_role;
+             alter default privileges for role supabase_admin in schema public grant all on functions to anon, authenticated, service_role;"
   S "$1" -c "revoke all on function public.next_pseudonym() from public;"
 }
 source_db src yes
@@ -175,6 +190,8 @@ create table auth.refresh_tokens (id bigserial primary key, token text, user_id 
 create table auth.schema_migrations (version text primary key);
 insert into auth.schema_migrations values ('gotrue-v2.197.0');
 grant usage on schema auth, public to anon, authenticated, service_role;
+-- the image's extensions schema, which PostgREST searches
+create schema extensions;
 -- the image's default grants to the API roles, which the restore stream revokes before it creates a table
 alter default privileges for role supabase_admin in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges for role supabase_admin in schema public grant all on sequences to anon, authenticated, service_role;
@@ -198,7 +215,7 @@ has "a plaintext data-host hop (CLICS_DATA_SSLMODE=prefer)" "lets the data host 
   "$(src_url src | CLICS_DATA_DB=t1 CLICS_DATA_SSLMODE=prefer bash "$MOVE" preflight 2>&1 || true)"
 S postgres -c "create role dashboard_user nologin"
 S src -c "grant select on public.councils to dashboard_user"
-has "a role the source grants to and the target lacks" "the target lacks what the restore names: role dashboard_user" \
+has "a role the source grants to and the target lacks" "the target lacks what the restore or PostgREST needs: role dashboard_user" \
   "$(mv_ t1 src preflight 2>&1 || true)"
 S src -c "revoke all on public.councils from dashboard_user"; S postgres -c "drop role dashboard_user"
 S src -c "alter table auth.users add column dedicated_scope text"
@@ -283,6 +300,65 @@ has "a table missing on the target" "public.booth_event_purges" "$(mv_ t1 src ve
 D t1 -c "alter table public.booth_event_purges_x rename to booth_event_purges"
 expect "  → undone: passes again" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
 
+echo "the report fails on a privilege difference (grants, default privileges, row level security, policies)"
+has "a passing report compares them" ", 0 differ" "$(mv_ t1 src verify 2>&1 | grep '^privileges: ')"
+drift() { # drift <label> <the report line> <sql that makes the difference on t1> <sql that undoes it>
+  D t1 -c "$3" >/dev/null
+  has "$1" "$2" "$(mv_ t1 src verify 2>&1 || true)"
+  D t1 -c "$4" >/dev/null
+}
+drift "a table grant the source lacks" "grant on table public.councils to authenticator: NOT ON THE SOURCE (SELECT on the target)" \
+  "grant select on public.councils to authenticator" "revoke select on public.councils from authenticator"
+# MAINTAIN sits between INSERT and REFERENCES from PostgreSQL 17 on, so the line is matched at its two ends.
+D t1 -c "revoke update on public.ples from service_role"
+OUT="$(mv_ t1 src verify 2>&1 | grep '^grant on table public.ples to service_role: ' || true)"
+has "a grant narrower than the source's" "UPDATE on the source, DELETE,INSERT," "$OUT"
+has "  → names what the target holds" ",TRUNCATE on the target" "$OUT"
+D t1 -c "grant update on public.ples to service_role"
+drift "a column grant the source lacks" "grant on column public.councils.name_th to authenticator: NOT ON THE SOURCE (SELECT on the target)" \
+  "grant select (name_th) on public.councils to authenticator" "revoke select (name_th) on public.councils from authenticator"
+drift "a function grant the source lacks" "grant on function public.next_pseudonym() to authenticator: NOT ON THE SOURCE (EXECUTE on the target)" \
+  "grant execute on function public.next_pseudonym() to authenticator" "revoke execute on function public.next_pseudonym() from authenticator"
+drift "a grant option the source lacks" ",SELECT*,TRIGGER," \
+  "grant select on public.councils to service_role with grant option" "revoke grant option for select on public.councils from service_role"
+drift "a default privilege the source lacks" \
+  "default privileges of postgres on tables to authenticator: NOT ON THE SOURCE (SELECT on the target)" \
+  "alter default privileges for role postgres in schema public grant select on tables to authenticator" \
+  "alter default privileges for role postgres in schema public revoke select on tables from authenticator"
+drift "row level security off" "row level security on public.ples: enabled on the source, disabled on the target" \
+  "alter table public.ples disable row level security" "alter table public.ples enable row level security"
+drift "row level security forced" "row level security on public.ples: enabled on the source, enabled and forced on the target" \
+  "alter table public.ples force row level security" "alter table public.ples no force row level security"
+drift "a policy missing" 'policy "ples: own" on public.ples: MISSING ON TARGET' \
+  'drop policy "ples: own" on public.ples' 'create policy "ples: own" on public.ples for select using (physician_id = auth.uid())'
+drift "a policy with another expression" 'policy "ples: own" on public.ples: DIFFERS (its command, roles or expressions)' \
+  'alter policy "ples: own" on public.ples using (true)' 'alter policy "ples: own" on public.ples using (physician_id = auth.uid())'
+drift "a policy for other roles" 'policy "ples: own" on public.ples: DIFFERS (its command, roles or expressions)' \
+  'alter policy "ples: own" on public.ples to authenticated' 'alter policy "ples: own" on public.ples to public'
+drift "a policy the source lacks" "policy open on public.ples: NOT ON THE SOURCE" \
+  "create policy open on public.ples for select using (true)" "drop policy open on public.ples"
+# The owner holds every privilege and bypasses RLS: a table or a function handed to an app role is a difference.
+drift "a table owned by an app role" "owner of table public.councils: admin on the source, authenticator on the target" \
+  "alter table public.councils owner to authenticator" "alter table public.councils owner to supabase_admin"
+drift "a function owned by an app role" \
+  "owner of function public.next_pseudonym(): admin on the source, service_role on the target" \
+  "alter function public.next_pseudonym() owner to service_role" \
+  "alter function public.next_pseudonym() owner to supabase_admin; grant execute on function public.next_pseudonym() to service_role"
+expect "  → undone: passes again" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
+# One privilege from two grantors counts once: the source's SELECT to authenticator comes from the owner and
+# from supabase_auth_admin (given the grant option), the target's from the owner only.
+S src -c "grant select on public.councils to supabase_auth_admin with grant option" \
+      -c "grant select on public.councils to authenticator" \
+      -c "set role supabase_auth_admin" -c "grant select on public.councils to authenticator"
+D t1 -c "grant select on public.councils to supabase_auth_admin with grant option" -c "grant select on public.councils to authenticator"
+expect "a privilege from two grantors on the source" "2" \
+  "$(S src -c "select count(*) from pg_class c, aclexplode(c.relacl) x where c.oid = 'public.councils'::regclass and x.grantee = 'authenticator'::regrole")"
+expect "  → counts once: passes" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
+for c in S D; do db=src; [ "$c" = D ] && db=t1
+  $c "$db" -c "revoke select on public.councils from authenticator" -c "revoke select on public.councils from supabase_auth_admin cascade"
+done
+expect "  → undone: passes again" "VERIFY: PASS" "$(mv_ t1 src verify 2>&1 | tail -1)"
+
 echo "AUDIT_CHAIN=checksum (option b) on an unchained source"
 OUT="$(src_url nochain | CLICS_DATA_DB=t3 AUDIT_CHAIN=checksum bash "$MOVE" move 2>&1)" || true
 has "passes, saying what replaced the chain" "replaced by public.audit_log row checksum, equal (AUDIT_CHAIN=checksum)" "$OUT"
@@ -294,20 +370,40 @@ expect "dump refuses a file" "1" "$(rc bash -c "src_url | bash '$MOVE' dump > '$
 expect "  → and wrote nothing into it" "0" "$(wc -c < "$DIR/plain.sql" | tr -d ' ')"
 src_url | CLICS_DATA_DB=t1 bash "$MOVE" report target > "$DIR/t1.report" 2>/dev/null
 expect "a report holds no row: no email, no transcript text" "0" "$(grep -cE 'example.invalid|เจ็บ|case-' "$DIR/t1.report" || true)"
+grep -v '^priv|' "$DIR/t1.report" > "$DIR/old.report"
+has "check fails a report without privileges (an older move.sh's)" "privileges: NOT IN THE REPORT" \
+  "$(CLICS_DATA_DB=t1 bash "$MOVE" check "$DIR/old.report" 2>&1 || true)"
 # A fresh data host, GoTrue migrated, as the drill starts from: in the other cluster, so it lacks the
 # clics_analyst role that roles.sql made on the data host (a real restore target lacks it too).
 TCL=S target_db drill
 expect "the drill's cluster has no clics_analyst role" "0" "$(S postgres -c "select count(*) from pg_roles where rolname = 'clics_analyst'")"
 # roles.sql has run on the data host before any nightly backup (the window's order), so the dump carries
-# grants to clics_analyst.
+# grants to clics_analyst and clics_backup.
 D t1 -f "$ROLES" >/dev/null
-# the nightly backup: the data host is the source, read in one exported snapshot, its report inside
-CLICS_DATA_DB=t1 bash "$MOVE" backup < /dev/null | cat > "$DIR/backup.sql"
+# the nightly backup: the data host is the source, read in one exported snapshot, its report inside, as
+# clics_backup (not a superuser), the login backup.env names
+CLICS_DATA_DB=t1 CLICS_DATA_USER=clics_backup bash "$MOVE" backup < /dev/null | cat > "$DIR/backup.sql"
+expect "backup runs as clics_backup, not a superuser" "f" "$(D postgres -c "select rolsuper from pg_roles where rolname = 'clics_backup'")"
 expect "backup carries roles.sql's grants to clics_analyst" "t" \
   "$(grep -q 'TO clics_analyst;' "$DIR/backup.sql" && echo t || echo f)"
+expect "  → and to clics_backup (the drill makes both roles)" "t" \
+  "$(grep -q 'TO clics_backup;' "$DIR/backup.sql" && echo t || echo f)"
+expect "  → and every auth row (RLS hides none from clics_backup)" "t" \
+  "$(grep -q "^-- clics-report table|auth.users|$(D t1 -c 'select count(*) from auth.users')|" "$DIR/backup.sql" && echo t || echo f)"
 expect "backup carries its report as SQL comments" "t" \
   "$(grep -q '^-- clics-report table|public.booth_plays|25|' "$DIR/backup.sql" && echo t || echo f)"
 expect "  → and the anchored chain head" "t" "$(grep -q '^-- clics-report audit_head|7|' "$DIR/backup.sql" && echo t || echo f)"
+expect "  → and its source's PostgreSQL version (pg_dump's header)" "t" \
+  "$(grep -q '^-- Dumped from database version [0-9]' "$DIR/backup.sql" && echo t || echo f)"
+# A backup from a newer major than the drill database's (PostgreSQL 18's data host into a 17 drill): refused
+# before its first row, and the load's transaction never commits.
+EXTS="$(S drill -c "select count(*) from pg_extension")"
+OUT="$(sed 's/^-- Dumped from database version [0-9]*/-- Dumped from database version 99/' "$DIR/backup.sql" |
+  CLICS_DATA_PORT=$SPORT CLICS_DATA_DB=drill bash "$MOVE" drill 2>&1)" && RC=0 || RC=$?
+expect "restore drill refuses a backup from a newer PostgreSQL than its own" "3" "$RC"
+has "  → says which versions" "comes from PostgreSQL 99 and this drill database runs" "$OUT"
+expect "  → and leaves the drill database as it was" "0|$EXTS|0" \
+  "$(S drill -c "select (select count(*) from pg_class where relnamespace = 'public'::regnamespace), (select count(*) from pg_extension), (select count(*) from auth.users)")"
 OUT="$(CLICS_DATA_PORT=$SPORT CLICS_DATA_DB=drill bash "$MOVE" drill < "$DIR/backup.sql" 2>&1)" || true
 has "restore drill: the backup restores and passes its own report" "VERIFY: PASS" "$OUT"
 D t1 -c "insert into public.booth_sort_memos (memo) values ('after the backup')"
@@ -344,6 +440,23 @@ has "analyst cannot update" "permission denied" "$(A "set default_transaction_re
 has "analyst cannot call nextval" "permission denied" "$(A "select nextval('public.pseudonym_seq')")"
 has "analyst cannot call the SECURITY DEFINER function" "permission denied" "$(A "select public.next_pseudonym()")"
 expect "postgrest_exposure still lists nothing" "0" "$(D t1 -c "select count(*) from public.postgrest_exposure()")"
+expect "clics_backup: login, bypassrls, no superuser/create/replication, reads all data" "t|t|f|f|f|f|t" \
+  "$(D t1 -c "select rolcanlogin, rolbypassrls, rolsuper, rolcreatedb, rolcreaterole, rolreplication,
+                     pg_has_role(oid, 'pg_read_all_data', 'USAGE') from pg_roles where rolname = 'clics_backup'")"
+B() { D t1 -c "set role clics_backup; $1" 2>&1 | head -1; }
+expect "backup reads auth.users and the identity tables, every row" \
+  "$(D t1 -c "select (select count(*) from auth.users), (select count(*) from public.ple_pii_map)")" \
+  "$(B "select (select count(*) from auth.users), (select count(*) from public.ple_pii_map)")"
+expect "backup reads the chain head" "7" "$(B "select head_seq from public.audit_log_head()")"
+has "backup cannot insert" "permission denied" "$(B "set transaction read write; insert into public.booth_plays (case_id) values ('x')")"
+has "backup cannot update" "permission denied" "$(B "set default_transaction_read_only = off; update public.ples set score = 0")"
+has "backup cannot call the SECURITY DEFINER function" "permission denied" "$(B "select public.next_pseudonym()")"
+D t1 -c "grant insert on public.ples to clics_backup"
+has "roles.sql refuses a clics_backup that can write" "clics_backup can write to public.ples" "$(D t1 -f "$ROLES" 2>&1 || true)"
+D t1 -c "revoke insert on public.ples from clics_backup; grant service_role to clics_backup"
+has "roles.sql refuses a clics_backup holding another role" "clics_backup is a member of service_role" "$(D t1 -f "$ROLES" 2>&1 || true)"
+D t1 -c "revoke service_role from clics_backup"
+expect "  → and passes again once that is undone" "0" "$(rc D t1 -f "$ROLES")"
 D t1 -c "grant execute on function public.next_pseudonym() to public"
 has "roles.sql refuses a SECURITY DEFINER function the analyst could call" "can execute SECURITY DEFINER functions" \
   "$(D t1 -f "$ROLES" 2>&1 || true)"
@@ -366,6 +479,8 @@ expect "  → the image's roles, none a superuser, supabase_admin without login"
                     where rolname in ('anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin')")"
 expect "  → auth is supabase_auth_admin's; authenticator can switch to service_role" "supabase_auth_admin|t" \
   "$(P clics_mentor -c "select nspowner::regrole, pg_has_role('authenticator', 'service_role', 'MEMBER') from pg_namespace where nspname = 'auth'")"
+expect "  → the extensions schema PostgREST searches, usable by service_role; no default privileges yet" "t|0" \
+  "$(P clics_mentor -c "select has_schema_privilege('service_role', 'extensions', 'USAGE'), (select count(*) from pg_default_acl)")"
 has "preflight before GoTrue ran" "start GoTrue against it once" "$(mvp preflight 2>&1 || true)"
 # GoTrue's first start, as supabase_auth_admin (it owns auth): its tables and functions.
 P clics_mentor <<'SQL'
@@ -381,12 +496,222 @@ create table auth.refresh_tokens (id bigserial primary key, token text, user_id 
 create table auth.schema_migrations (version text primary key);
 insert into auth.schema_migrations values ('gotrue-v2.197.0');
 SQL
+P clics_mentor -c "drop schema extensions"
+has "preflight stops on a target without the extensions schema" "schema extensions (PostgREST searches it)" \
+  "$(mvp preflight 2>&1 || true)"
+P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" >/dev/null
+
+# The data host's password on stdin, the line after the URL (CLICS_DATA_PASSWORD=stdin): how run-move.sh hands
+# it over, so no file on vm1 holds it. A superuser that must give its password; the clusters trust the rest.
+P postgres -c "create role mover superuser login password 'mover-test-pw'"
+{ echo 'hostssl all mover 127.0.0.1/32 scram-sha-256'; cat "$DIR/plain/pg_hba.conf"; } > "$DIR/hba"
+mv "$DIR/hba" "$DIR/plain/pg_hba.conf"
+P postgres -c "select pg_reload_conf()" >/dev/null
+mvs() { # mvs <the line after the URL, or -none> <args...>
+  local pw=$1; shift
+  { src_url src; [ "$pw" = -none ] || echo "$pw"; } |
+    CLICS_DATA_PORT=$PPORT CLICS_DATA_DB=clics_mentor CLICS_DATA_USER=mover CLICS_DATA_PASSWORD=stdin bash "$MOVE" "$@"
+}
+has "password on stdin: the right one passes the preflight" "preflight ok" "$(mvs mover-test-pw preflight 2>&1 || true)"
+has "  → a wrong one is refused by the data host" 'password authentication failed for user "mover"' \
+  "$(mvs wrong-pw preflight 2>&1 || true)"
+has "  → none after the URL stops before any connection" "no data host password on the stdin line" \
+  "$(mvs -none preflight 2>&1 || true)"
+# The source's own login, with the data host's password: the URL's (wrong) password must be the one tried.
+S postgres -c "create role srcmover login password 'mover-test-pw'"
+{ echo 'hostssl all srcmover 127.0.0.1/32 scram-sha-256'; cat "$DIR/src/pg_hba.conf"; } > "$DIR/hba"
+mv "$DIR/hba" "$DIR/src/pg_hba.conf"
+S postgres -c "select pg_reload_conf()" >/dev/null
+has "  → the data host's password never opens the source" 'password authentication failed for user "srcmover"' \
+  "$(printf 'postgresql://srcmover:wrong-pw@127.0.0.1:%s/src?sslmode=require\nmover-test-pw\n' "$SPORT" |
+     CLICS_DATA_PORT=$PPORT CLICS_DATA_DB=clics_mentor CLICS_DATA_USER=mover CLICS_DATA_PASSWORD=stdin \
+     bash "$MOVE" preflight 2>&1 || true)"
+has "  → a command that reads no URL refuses it" "works with preflight, move, verify" \
+  "$(CLICS_DATA_PASSWORD=stdin bash "$MOVE" report target 2>&1 < /dev/null || true)"
+OUT="$(CLICS_DATA_PASSWORD=pw-canary-77 bash "$MOVE" preflight 2>&1 < /dev/null || true)"
+has "  → a value other than 'stdin' is refused" "names where the password comes from" "$OUT"
+expect "  → and not printed" "0" "$(grep -c pw-canary-77 <<< "$OUT" || true)"
+
+echo "run-move.sh: the move under CME's rules (sudo runs it; both secrets typed at a terminal, never a file)"
+KIT="$DIR/kit"
+mkdir -m 755 "$KIT" "$DIR/bin"
+cp "$ROOT/deploy/vm1/db-move/run-move.sh" "$MOVE" "$KIT/"
+chmod 755 "$KIT/run-move.sh" "$KIT/move.sh"
+cat > "$KIT/db-move.conf" <<EOF
+# CME writes this file; no secret in it
+CLICS_PG_IMAGE=stand-in/postgres:test
+CLICS_DATA_HOST=127.0.0.1
+CLICS_DATA_PORT=$PPORT
+CLICS_DATA_DB=clics_mentor
+CLICS_DATA_USER=mover
+CLICS_DATA_SSLMODE=require
+EOF
+chmod 644 "$KIT/db-move.conf"
+# A stand-in for `docker run`: records its argv, then runs the mounted move.sh here with only the environment
+# the container would get. An unknown flag fails, so a change to the wrapper's docker line shows here.
+cat > "$DIR/bin/docker" <<'STUB'
+#!/bin/bash
+set -euo pipefail
+printf '%s\n' "$@" > "$STUB_ARGV"
+[ "${1:-}" = run ] || { echo "stand-in docker: run only" >&2; exit 2; }
+shift
+envs=() script='' ca=''
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --rm|-i|--read-only) shift ;;
+    --log-driver|--network|--tmpfs|--cap-drop|--security-opt|--pids-limit|--entrypoint) shift 2 ;;
+    -e) envs+=("$2"); shift 2 ;;
+    -v) case "$2" in
+          *:/db-move/move.sh:ro) script=${2%%:*} ;;
+          *:/run/data-ca.crt:ro) ca=${2%%:*} ;;
+          *) echo "stand-in docker: unexpected mount $2" >&2; exit 2 ;;
+        esac; shift 2 ;;
+    -*) echo "stand-in docker: unknown flag $1" >&2; exit 2 ;;
+    *) break ;;
+  esac
+done
+shift   # the image
+[ "${1:-}" = /db-move/move.sh ] || { echo "stand-in docker: unexpected command ${1:-}" >&2; exit 2; }
+shift
+# The container would see the CA at /run/data-ca.crt; here that is the host file the mount names.
+for i in "${!envs[@]}"; do
+  [ "${envs[$i]}" != CLICS_DATA_SSLROOTCERT=/run/data-ca.crt ] || envs[i]="CLICS_DATA_SSLROOTCERT=$ca"
+done
+exec env -i PATH="$PATH" PG_BIN="$PG_BIN" TMPDIR="${TMPDIR:-/tmp}" "${envs[@]}" bash "$script" "$@"
+STUB
+chmod 755 "$DIR/bin/docker"
+# A terminal: answers each "not shown): " prompt in turn, as a person would, then prints what the screen showed.
+cat > "$DIR/pty.py" <<'PY'
+import os, pty, select, sys, time
+args = sys.argv[1:]
+cut = args.index('--')
+answers, cmd = args[:cut], args[cut + 1:]
+pid, fd = pty.fork()
+if pid == 0:
+    os.execvp(cmd[0], cmd)
+out, sent, deadline = b'', 0, time.time() + 90
+while time.time() < deadline:
+    if not select.select([fd], [], [], 1)[0]:
+        continue
+    try:
+        chunk = os.read(fd, 4096)
+    except OSError:
+        break
+    if not chunk:
+        break
+    out += chunk
+    while sent < len(answers) and out.count(b'not shown): ') > sent:
+        time.sleep(0.5)  # a person types after the prompt, once read -s has turned echo off
+        os.write(fd, answers[sent].encode() + b'\n')
+        sent += 1
+else:
+    os.kill(pid, 9)
+_, status = os.waitpid(pid, 0)
+sys.stdout.write(out.decode(errors='replace').replace('\r\n', '\n'))
+sys.exit(os.waitstatus_to_exitcode(status))
+PY
+export STUB_ARGV="$DIR/docker-argv"
+URL=$(src_url src)
+wrap() { PATH="$DIR/bin:$PATH" python3 -I "$DIR/pty.py" "$@"; }   # wrap <answers...> -- <command...>
+runm() { PATH="$DIR/bin:$PATH" bash "$KIT/run-move.sh" "$@" 2>&1 < /dev/null || true; }
+# The terminal needs python3. The data-host image has none, so a run inside it skips these; CI must not.
+PTY=1
+if ! command -v python3 >/dev/null; then
+  PTY=''
+  if [ -n "${CI:-}" ]; then echo "  FAIL python3 is missing: CI runs the terminal checks"; FAIL=1
+  else echo "  SKIP the terminal checks (no python3 here)"; fi
+fi
+if [ -n "$PTY" ]; then
+  OUT="$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" preflight 2>&1)" || true
+  has "run-move.sh preflight, the URL and the password typed at a terminal" "preflight ok" "$OUT"
+  has "  → it names the kit and image it ran" "[run-move] kit: run-move.sh " "$OUT"
+  expect "  → neither secret is echoed" "0" "$(grep -cF -e mover-test-pw -e "$URL" <<< "$OUT" || true)"
+  expect "  → nor in docker's argv" "0" "$(grep -cF -e mover-test-pw -e "$URL" -e unused "$STUB_ARGV" || true)"
+  expect "  → the container keeps no log" "none" "$(grep -A1 -x -- --log-driver "$STUB_ARGV" | tail -1)"
+fi
+has "  → refuses secrets on a pipe" "stdin must be a terminal" \
+  "$(printf '%s\nmover-test-pw\n' "$URL" | PATH="$DIR/bin:$PATH" bash "$KIT/run-move.sh" preflight 2>&1 || true)"
+expect "  → refuses any other command" "64" "$(rc env PATH="$DIR/bin:$PATH" bash "$KIT/run-move.sh" dump)"
+chmod 664 "$KIT/db-move.conf"
+has "  → refuses a db-move.conf its group could change" "db-move.conf can be changed by its group" "$(runm preflight)"
+chmod 644 "$KIT/db-move.conf"; chmod 757 "$KIT/move.sh"
+has "  → and a move.sh anyone could change" "move.sh can be changed by its group" "$(runm preflight)"
+chmod 755 "$KIT/move.sh"; chmod 777 "$KIT"
+has "  → and a directory above them anyone could write" "/kit can be changed by its group" "$(runm preflight)"
+chmod 755 "$KIT"; cp "$KIT/db-move.conf" "$DIR/conf.keep"; echo 'PGPASSWORD=conf-canary-5' >> "$KIT/db-move.conf"
+OUT="$(runm preflight)"
+has "  → refuses a db-move.conf line it does not know" "db-move.conf line 8: not one of the names" "$OUT"
+expect "  → without printing it" "0" "$(grep -c conf-canary-5 <<< "$OUT" || true)"
+mv "$DIR/conf.keep" "$KIT/db-move.conf"
+mv "$KIT/move.sh" "$DIR/move-real.sh"; ln -s "$DIR/move-real.sh" "$KIT/move.sh"
+has "  → refuses a move.sh that is a symlink" "move.sh is a symlink" "$(runm preflight)"
+rm "$KIT/move.sh"; mv "$DIR/move-real.sh" "$KIT/move.sh"; chmod 777 "$DIR/bin"
+has "  → refuses a docker in a directory anyone could write" "/bin can be changed by its group" "$(runm preflight)"
+chmod 755 "$DIR/bin"
+# The data host's CA (verify-ca here: the test certificate names localhost, the clusters listen on
+# 127.0.0.1; verify-full adds only libpq's host-name check to the same file).
+mkdir -m 755 "$DIR/ca"; cp "$DIR/server.crt" "$DIR/ca/data-ca.crt"; chmod 644 "$DIR/ca/data-ca.crt"
+cp "$KIT/db-move.conf" "$DIR/conf.keep"
+{ grep -v '^CLICS_DATA_SSLMODE=' "$DIR/conf.keep"
+  echo CLICS_DATA_SSLMODE=verify-ca; echo "CLICS_DATA_SSLROOTCERT=$DIR/ca/data-ca.crt"; } > "$KIT/db-move.conf"
+chmod 777 "$DIR/ca"
+has "  → refuses a CA certificate in a directory anyone could write" "/ca can be changed by its group" "$(runm preflight)"
+chmod 755 "$DIR/ca"
+if [ -n "$PTY" ]; then
+  has "  → verify-ca against the CA certificate CME installs" "preflight ok" \
+    "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" preflight 2>&1 || true)"
+  has "  → which goes into the container read-only" ":/run/data-ca.crt:ro" "$(cat "$STUB_ARGV")"
+  openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=localhost" \
+    -keyout "$DIR/other.key" -out "$DIR/ca/data-ca.crt" >/dev/null 2>&1
+  has "  → and a server the CA did not sign is refused" "certificate verify failed" \
+    "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" preflight 2>&1 || true)"
+fi
+mv "$DIR/conf.keep" "$KIT/db-move.conf"
+
 OUT="$(mvp move 2>&1)" || true
 has "move into plain PostgreSQL: VERIFY: PASS" "VERIFY: PASS" "$OUT"
 has "  → anchored at the source head" "anchored at the source head seq 7" "$OUT"
+has "  → grants, default privileges, row level security and policies as on the source" ", 0 differ" \
+  "$(grep '^privileges: ' <<< "$OUT")"
+[ -z "$PTY" ] || has "  → run-move.sh verify, through the terminal, agrees" "VERIFY: PASS" \
+  "$(wrap "$URL" mover-test-pw -- bash "$KIT/run-move.sh" verify 2>&1 || true)"
+# The backend reads every table as service_role: the dump carries each table's grants, and, at its end, the
+# source's default privileges, so a table a later migration makes is service_role's too.
+expect "  → service_role holds the source's grants and default privileges" "t|t|t" \
+  "$(P clics_mentor -c "select has_table_privilege('service_role', 'public.ples', 'SELECT,INSERT,UPDATE,DELETE'),
+    has_table_privilege('service_role', 'public.audit_log', 'SELECT'),
+    exists (select 1 from pg_default_acl d, aclexplode(d.defaclacl) a
+             where d.defaclobjtype = 'r' and d.defaclnamespace = 'public'::regnamespace
+               and pg_get_userbyid(d.defaclrole) = 'postgres' and a.grantee = 'service_role'::regrole)")"
 expect "  → roles.sql then passes there" "0" "$(rc P clics_mentor -f "$ROLES")"
-expect "  → PUBLIC cannot connect; the CLICS logins and the analyst can" "f|t|t" \
-  "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT')")"
+OUT="$(mvp verify 2>&1)" || true
+has "  → verify after roles.sql passes" "VERIFY: PASS" "$OUT"
+has "  → and names roles.sql's grants, which the source lacks" "more on the target are roles.sql's (clics_analyst, clics_backup)" "$OUT"
+P clics_mentor -c "grant insert on public.booth_plays to clics_analyst"
+has "  → a write grant to clics_analyst is not roles.sql's: it fails" \
+  "grant on table public.booth_plays to clics_analyst: NOT ON THE SOURCE (INSERT on the target)" "$(mvp verify 2>&1 || true)"
+P clics_mentor -c "revoke insert on public.booth_plays from clics_analyst"
+P clics_mentor -c "grant select (chief_complaint) on public.ples to clics_analyst"
+has "  → nor is a free-text column roles.sql's list leaves out" \
+  "grant on column public.ples.chief_complaint to clics_analyst: NOT ON THE SOURCE (SELECT on the target)" "$(mvp verify 2>&1 || true)"
+P clics_mentor -c "revoke select (chief_complaint) on public.ples from clics_analyst; grant select (ple_id) on public.ple_pii_map to clics_analyst"
+has "  → nor a uuid column of an identity table" \
+  "grant on column public.ple_pii_map.ple_id to clics_analyst: NOT ON THE SOURCE (SELECT on the target)" "$(mvp verify 2>&1 || true)"
+P clics_mentor -c "revoke select (ple_id) on public.ple_pii_map from clics_analyst"
+expect "  → undone: passes again" "VERIFY: PASS" "$(mvp verify 2>&1 | tail -1)"
+# move.sh carries a copy of roles.sql's allow list (it runs where roles.sql is not): the two must not drift.
+lst() { tr '\n' ' ' < "$1" | sed -E "s/.*$2.*/\\1/" | tr -d ' '; }
+for n in deny_tables allow_text; do
+  expect "move.sh's copy of roles.sql's $n is the same list" "$(lst "$ROLES" "$n text\[\] := array\[([^]]*)\]")" \
+    "$(lst "$MOVE" "array\[([^]]*)\] $n")"
+done
+ty="typcategory in ([^)]*) or ty.oid = '[^']*'::regtype"
+expect "  → and the same column types (uuid included)" "$(grep -o "$ty" "$ROLES" || echo 'not in roles.sql')" \
+  "$(grep -o "$ty" "$MOVE" || echo 'not in move.sh')"
+expect "  → and both drop the denied tables" "1|1" \
+  "$(grep -c -E "relname <> all \(deny_tables\)" "$ROLES")|$(grep -c -E "relname <> all \(rule\.deny_tables\)" "$MOVE")"
+expect "  → PUBLIC cannot connect; the CLICS logins, the analyst and the backup can" "f|t|t|t" \
+  "$(P postgres -c "select has_database_privilege('anon', 'clics_mentor', 'CONNECT'), has_database_privilege('authenticator', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_analyst', 'clics_mentor', 'CONNECT'), has_database_privilege('clics_backup', 'clics_mentor', 'CONNECT')")"
 P postgres -c "create database clics_evaluator"
 has "prepare-plain-pg.sql stops on a shared cluster whose roles exist" "may be another service's logins" \
   "$(P clics_mentor -f "$ROOT/deploy/vm1/db-move/prepare-plain-pg.sql" 2>&1 || true)"

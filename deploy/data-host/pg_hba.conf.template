@@ -1,0 +1,22 @@
+# deploy/data-host/pg_hba.conf.template: who may connect to the CLICS data host (ADR 0012, #432).
+# `setup.sh hba VM1_ADDRESS` writes it to /srv/clics-data/conf/pg_hba.conf with VM1 replaced by vm1's
+# tailnet address. The first matching line wins; anything that matches no line is refused.
+#
+# TYPE   DATABASE      USER                 ADDRESS      METHOD
+
+# The superuser, only on the data host itself, through `docker exec -u postgres` (no password).
+local    all           postgres                          peer
+
+# From vm1 only, over TLS, with a password:
+#   authenticator        PostgREST's login
+#   supabase_auth_admin  GoTrue's login
+#   clics_backup         the nightly backup (read-only, not a superuser)
+#   clics_analyst        the read-only rater/analyst role (roles.sql)
+#   postgres             the superuser, only while it has a password: during the move window, when
+#                        move.sh needs one; README.md sets its password back to NULL afterwards
+hostssl  clics_mentor  authenticator,supabase_auth_admin,clics_backup,clics_analyst  VM1/32  scram-sha-256
+hostssl  clics_mentor  postgres             VM1/32       scram-sha-256
+
+# Everything else: refused, with or without TLS.
+host     all           all                  0.0.0.0/0    reject
+host     all           all                  ::/0         reject
