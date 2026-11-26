@@ -21,6 +21,9 @@
 
 .loop-board { position: absolute; left: var(--gutter); right: var(--gutter); bottom: var(--gutter); max-height: 50%; overflow: hidden; }
 .loop-board:empty, .loop-media:not([data-loop-board="on"]) ~ .loop-board { display: none; }
+/* While the board shows with no media under it (the loop's board item), the wordmark and intro keep to the half above
+   the board, which reaches up to half the stage, so the board never covers the intro (owner, 2026-11-26). */
+.loop-stage:has(> .loop-media[data-loop-kind="board"]) .loop-fallback { bottom: calc(50% + var(--gutter)); gap: calc(40 * var(--u)); }
 
 /* A compact pill at the bar's end, off the reel: above .shell-tap (z-index 1), so a tap on it opens the board and
    does not start a play. Every bar keeps its end clear of it. */
