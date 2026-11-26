@@ -11,7 +11,7 @@ import { COPY, DEMO_LABEL, DOMAINS, LOOKS, REPLY_FIELDS, TIERS, scoreText, fill,
 import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
 import { domainSections } from './booth-domains.js';
 import { radar } from './booth-radar.js';
-import { revealRows, answersButton } from './booth-answers.js';
+import { revealRows, answersButton, tierChip } from './booth-answers.js';
 import { openCase, closeCase } from './booth-case.js';
 import { resultUrl, boothDate, CASE_VERSION } from './booth-result-link.js';
 import { BoothApiError } from './booth-api.js';
@@ -44,17 +44,18 @@ const GHOST_TAP_MS = 350;
  *   `body` is the score response as received, handed to mountResultBoard so #212 can read its rank fields.
  *   `steps` is null when the response carries no tiers that fit the asks posted (a backend older than #372).
  *
- * @typedef {{ at: 'vignette' } | { at: 'step', chosen: string | null } | { at: 'typing' } | { at: 'replying' } | { at: 'reply' }
+ * @typedef {{ at: 'vignette' } | { at: 'step', chosen: string | null } | { at: 'typing' } | { at: 'replying' } | { at: 'reply', tier: string | null }
  *         | { at: 'scoring', shown: boolean } | { at: 'scored', score: Score } | { at: 'unavailable' }
  *         | { at: 'stopped', offline: boolean }} Screen
  *   step.chosen is the option the visitor tapped (an id of the step's ask), sent only by Send. scoring.shown is false
- *   for the score's first SCORING_SHOWN_MS, while the reply screen stays up.
+ *   for the score's first SCORING_SHOWN_MS, while the reply screen stays up. reply.tier is the answered step's tier (a
+ *   TIERS key) for its badge, null when the reply named none (a typed answer the AI gave no tier, or an older backend).
  * @typedef {{ play: Play, steps: Next[], answers: Answer[], replies: Reply[], sigs: string[], screen: Screen }} PlayState
  *   steps[i] is the Next the server issued for step i (start, then each reply); the asks posted back are its
  *   asks. sigs[0] comes from start and sigs[k] from the reply to answer k; each binds everything issued before it.
  *
  * @typedef {{ type: 'begin' } | { type: 'choose', choice: string } | { type: 'sendChoice' } | { type: 'openTyping' } | { type: 'closeTyping' }
- *         | { type: 'sendText', text: string } | { type: 'replied', reply: Reply, sig: string, next: Next | null, deidentified: string | null } | { type: 'next' }
+ *         | { type: 'sendText', text: string } | { type: 'replied', reply: Reply, sig: string, next: Next | null, deidentified: string | null, tier: string | null } | { type: 'next' }
  *         | { type: 'slow' } | { type: 'scored', score: Score } | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  *   sendChoice is the step's Send: it sends step.chosen.
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped', caseId?: string }} PlayOutcome
@@ -153,7 +154,7 @@ function transition(s, ev) {
       return at === 'typing' && text.length > 0 && text.length <= s.play.answerMax ? answered(s, { text }) : s;
     }
     case 'replied': return at === 'replying'
-      ? { ...s, answers: keptAnswers(s.answers, ev.deidentified), replies: [...s.replies, ev.reply], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply' } } : s;
+      ? { ...s, answers: keptAnswers(s.answers, ev.deidentified), replies: [...s.replies, ev.reply], sigs: [...s.sigs, ev.sig], steps: ev.next ? [...s.steps, ev.next] : s.steps, screen: { at: 'reply', tier: ev.tier } } : s;
     case 'next':
       if (at !== 'reply') return s;
       return { ...s, screen: s.answers.length < s.play.stepCount ? { at: 'step', chosen: null } : { at: 'scoring', shown: false } };
@@ -187,8 +188,9 @@ async function requestReply(api, s) {
     const next = last ? null : parseNext(body?.next);
     const reply = parseReply(body?.reply);
     if (body?.status === 'replied' && reply && typeof body.reply_sig === 'string' && (next || last)) {
+      // The tier is for the badge alone: it is never posted back (the server recovers every tier from the sigs).
       return { type: 'replied', reply, sig: body.reply_sig, next,
-        deidentified: typeof body.deidentified === 'string' ? body.deidentified : null };
+        deidentified: typeof body.deidentified === 'string' ? body.deidentified : null, tier: isTier(body.tier) ? body.tier : null };
     }
     return { type: 'stop', offline: false };
   } catch (e) {
@@ -415,7 +417,7 @@ const VIEWS = {
       { class: f.lead ? 'reply-field reply-lead' : 'reply-field', dataset: { field: f.key }, 'aria-label': f.en },
       ...(f.lead ? [] : [bi(f, 'reply-head')]), el('p', { class: 'ai-text', lang: textLang(reply[f.key]) }, ...markedPhrases(reply[f.key])))));
     const [copy, action] = s.answers.length === s.play.stepCount ? [COPY.seeScore, 'see-score'] : [COPY.next, 'next'];
-    return frame([exchange(s, said)],
+    return frame([exchange(s, said, s.screen.tier)],
       [button(labelled(copy, null, 'arrowRight'), 'primary wide', () => ({ type: 'next' }), { 'data-action': action })]);
   },
 
@@ -495,7 +497,8 @@ function optionBody(o, i) {
     el('span', { class: 'opt-text' }, bi(o.label, 'opt-label'), bi(o.line, 'opt-line')));
 }
 
-function exchange(s, aiPart) {
+/** `tier`, on the reply screen only: the answer's badge (owner, 2026-11-26), drawn beside "Your answer". */
+function exchange(s, aiPart, tier = null) {
   const step = stepOf(s);
   const answer = s.answers[s.answers.length - 1];
   const given = 'choice' in answer
@@ -503,7 +506,8 @@ function exchange(s, aiPart) {
     : el('p', { class: 'answer-text', lang: textLang(answer.text) }, ...plainText(answer.text));
   return el('div', { class: 'exchange' },
     stepHead(s, step),
-    el('section', { class: 'answer-card', 'aria-label': COPY.yourAnswer.en }, bi(COPY.yourAnswer, 'answer-label'), given),
+    el('section', { class: 'answer-card', 'aria-label': COPY.yourAnswer.en },
+      el('div', { class: 'answer-head' }, bi(COPY.yourAnswer, 'answer-label'), tier ? tierChip(tier) : null), given),
     aiPart);
 }
 

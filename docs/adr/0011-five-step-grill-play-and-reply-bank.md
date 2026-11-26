@@ -17,3 +17,11 @@ A booth case has five steps: diagnosis, first tests, management, reassessment (t
 - A bank cannot react to an answer two or more steps back, and a reply to a tapped answer cannot refer to earlier steps.
 - The AI no longer chooses the next question after a tapped answer. Every reply a tapper sees has been reviewed, which no live reply was.
 - The board ranks only five-step plays from the cutover on.
+
+## Amendment 2026-11-26: each step's tier shows as it is answered
+
+Owner decision, 2026-11-26, from visitor feedback at the NFCME-2026 booth: visitors want to know after each answer whether it was right. The reply now carries `tier` (best, reasonable or weaker) for the step just answered, and the kiosk draws it as a badge beside "คำตอบของคุณ / Your answer", in the reviewed tier labels the result card already uses. A tapped answer shows its option's tier from the bank. A typed answer shows the tier its path took only when that tier was given: recalled from the sort memo, or a tier name the AI (or a reused reply) gave. When the AI call fails, or the AI names no tier, the path still goes down the weaker branch as before, but the reply carries no `tier` and the kiosk draws no badge: the kiosk never shows a guess. The score is unchanged.
+
+- The tier is display only. The kiosk never posts it back (the dialogue schema refuses it), and the server still recovers every typed tier from the turn sigs, so the sigs are unchanged: each already binds the tier the badge names.
+- It reveals nothing new: "See the answers" on the result card already showed each step's tier and the best option offered. It now shows one step sooner. A visitor who replays a case can still learn its best options, as before.
+- "Weaker" stays a neutral label: a typed answer sorted unclear or unsafe also lands there, and the badge makes no safety claim.

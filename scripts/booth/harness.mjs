@@ -209,12 +209,14 @@ const START = startFor(TREE);
 /** What a draw answers: the case id and its teaser, nothing else of the case. */
 const drawOf = (tree) => ({ case_id: tree.case_id, teaser: tree.teaser });
 const DRAW = drawOf(TREE);
-/** The default reply to answer n on `tree`: reply n, its sig, DEIDENTIFIED(n) for a typed answer, and (before the
- *  case's last answer) the Next for the path walked. */
+/** The default reply to answer n on `tree`: answer n's tier (the tapped option's, or TYPED_TIER for a typed one: the
+ *  step badge, owner 2026-11-26), reply n, its sig, DEIDENTIFIED(n) for a typed answer, and (before the case's last
+ *  answer) the Next for the path walked. */
 function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(answers.length), tree = TREE } = {}) {
   const n = answers.length;
   return {
-    status: 'replied', reply, reply_sig: SIG(n), ...(n > 0 && 'text' in answers[n - 1] ? { deidentified: DEIDENTIFIED(n) } : {}),
+    status: 'replied', ...(n > 0 ? { tier: TIER_NAME[pathOf(tree, answers).at(-1)] } : {}),
+    reply, reply_sig: SIG(n), ...(n > 0 && 'text' in answers[n - 1] ? { deidentified: DEIDENTIFIED(n) } : {}),
     ...(n < stepCount(tree) ? { next: nextFor(tree, pathOf(tree, answers), bridge) } : {}),
   };
 }
@@ -246,8 +248,8 @@ const scoredFor = (call, over = {}, tree = TREE) => ({ status: 200, body: { ...S
  *   'POST /booth/draw'             drawOf(tree): { case_id, teaser }
  *   'POST /booth/plays'            startFor(tree): { play_id, tag: 42, answer_max_chars: 500, case: { vignette, version }, next, sig,
  *                                  step_count: the tree's step count }; 400 bad_request unless the body names a case_id
- *   'POST /booth/plays/:id/reply'  replyBody(answers): REPLY(n) { strength, weigh, safety }, SIG(n), DEIDENTIFIED(n) for
- *                                  a typed answer n, next for the tier path walked (n < the tree's step count)
+ *   'POST /booth/plays/:id/reply'  replyBody(answers): answer n's tier, REPLY(n) { strength, weigh, safety }, SIG(n),
+ *                                  DEIDENTIFIED(n) for a typed answer n, next for the tier path walked (n < the tree's step count)
  *   'GET /booth/board'             { board: { today: [], event: [] } }
  *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted; with a `table`
  *                                  (TABLE5), the domains of the walked path's entry and its tier points
