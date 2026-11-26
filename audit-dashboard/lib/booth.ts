@@ -75,7 +75,7 @@ export function boothDays<R extends { rank: number; scored_at: string }>(rows: R
     list.push({ ...r, rank: list.length + 1 });
     days.set(day, list);
   }
-  return [...days].sort(([a], [b]) => (a < b ? 1 : a > b ? -1 : 0)).map(([day, list]) => ({ day, rows: list }));
+  return [...days].sort(([a], [b]) => b.localeCompare(a)).map(([day, list]) => ({ day, rows: list }));
 }
 
 /** The export's file name, as the backend's Content-Disposition names it (booth-monitor.js exportPlays). */

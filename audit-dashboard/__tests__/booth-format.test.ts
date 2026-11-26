@@ -45,6 +45,7 @@ describe('booth formatting', () => {
     expect(bangkokDayKey('not a time')).toBeNull();
     expect(bangkokDayLabel('2026-11-24', 'th')).toBe('อังคาร 24 พ.ย.');
     expect(bangkokDayLabel('2026-11-24', 'en')).toBe('Tue 24 Nov');
+    expect(bangkokDayLabel('garbled', 'th')).toBe('garbled');   // never a throw from an unreadable key
   });
 
   it('splits the board by day, newest day first, each day in the server\'s order and ranked from 1', () => {
