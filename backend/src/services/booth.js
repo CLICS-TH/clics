@@ -217,9 +217,10 @@ function hmacKey(label) {
 const turnKey = () => hmacKey('booth-turn-v1');
 
 // A typed answer binds its tier too, so a client can neither claim a tier nor change the one the AI gave. The
-// canonical forms are keyed by position, not by object key order. The kiosk holds no tier before the score reveals
-// them (spec #244, #372): the server recovers it from the sigs (recoverTiers). It binds rimpl's de-identified text
-// as well, the only form of the answer stored, so the kiosk cannot alter what is kept (#375).
+// canonical forms are keyed by position, not by object key order. The kiosk never sends a tier back (spec #244, #372):
+// the server recovers it from the sigs (recoverTiers). A reply shows the visitor the tier of the step just answered
+// (answeredTier); that field is display only and never posted back, and the sig already binds the tier it names.
+// It binds rimpl's de-identified text as well, the only form of the answer stored, so the kiosk cannot alter what is kept (#375).
 const canonicalAnswer = (a) => ('choice' in a ? [a.choice] : [a.text, a.tier ?? null, a.deidentified ?? null]);
 const canonicalReply = (r) => REPLY_FIELDS.map((k) => r[k]);
 
@@ -343,7 +344,7 @@ async function readStandings(event, dayOf) {
 }
 
 /** A rank of null means none: the standings did not load, or the play is outside the top STANDINGS_MAX. `steps` is
- *  stepTiers of the play: no other body ever carries a tier. */
+ *  stepTiers of the play: no other body carries an offered option's tier, and a reply carries only its own step's. */
 async function scoredBody(playId, event, composite, domains, scoredAt, steps) {
   const s = await readStandings(event, Date.parse(scoredAt));
   const rank = (list) => {
@@ -552,6 +553,15 @@ async function keepReply(kase, d, res, issued) {
   }
 }
 
+/** The tier name of the answer a reply is to, for the kiosk's per-step badge (ADR 0011 amendment, owner 2026-11-26):
+ *  a tapped answer's option tier; a typed answer's sorted tier only when the sort memo or the AI gave one. A failed
+ *  call, or an AI reply with no tier it was given, sorts the answer weaker for the path but shows no badge: never a
+ *  guess. Display only: the kiosk sends no tier back, and the turn sig already binds the tier it stands for.
+ *  @returns {{ tier?: string }} */
+function answeredTier(tierPath, given = true) {
+  return given ? { tier: TIER_NAME[tierPath.at(-1)] } : {};
+}
+
 /** A tapped answer on a case with a reply bank (ADR 0011): a reviewed reply and a drawn next ask, with no AI call, so
  *  nothing is reserved or settled. The step is still claimed, so a re-posted reply is refused as on the AI path. */
 async function bankReplyOutcome(playId, event, kase, dialogue, replies) {
@@ -563,7 +573,7 @@ async function bankReplyOutcome(playId, event, kase, dialogue, replies) {
   const issued = bankOutcome(kase, dialogue, replies);
   const { bank, ask } = issued;
   const body = {
-    status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
+    status: 'replied', ...answeredTier(issued.tierPath), reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
     ...(ask ? { next: nextOf(bank, ask) } : {}),
   };
   return { result: { body }, provider: 'reply_bank', reason: '' };
@@ -613,8 +623,11 @@ async function replyOutcome(playId, event, kase, dialogue) {
   const issued = chatOutcome(kase, kept ? { ...asked, memo: kept } : asked, ai);
   if (entries && !answered.reused && res?.cache) await keepReply(kase, asked, res, issued);
   const { bank, ask } = issued;
+  // A typed answer's badge is the tier its path took, shown only when that tier was given: recalled from the memo, or
+  // a tier name the AI (or a reuse) gave, which kept may have swapped for the one already kept.
+  const given = !dialogue.unsorted || Boolean(recalled) || TIERS.some((t) => t.name === ai?.tier);
   const body = {
-    status: 'replied', reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
+    status: 'replied', ...answeredTier(issued.tierPath, given), reply: issued.replies[n - 1], reply_sig: turnSig(playId, n, issued),
     ...(dialogue.unsorted ? { deidentified: issued.answers[n - 1].deidentified } : {}),
     ...(ask ? { next: nextOf(bank, ask) } : {}),
   };
@@ -647,7 +660,8 @@ async function readReplyCall(playId, input, now) {
   return { event: opened.event, kase: played.kase, dialogue };
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply: Reply, reply_sig, deidentified?, next? } | { status: 'unavailable' }.
+/** @returns {Promise<Result>} body: { status: 'replied', tier?, reply: Reply, reply_sig, deidentified?, next? } | { status: 'unavailable' }.
+ *    tier: the answered step's tier name, for display only (answeredTier); absent when a typed answer was given none.
  *    An AI call that fails or gives no reply still answers 'replied', with every reply field '' and the fallback ask. A
  *    typed answer's reply carries `deidentified` (null when rimpl gave none) for the kiosk to send back with the answer. */
 async function replyToStep(playId, input, now = new Date()) {

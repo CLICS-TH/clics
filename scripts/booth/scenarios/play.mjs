@@ -26,6 +26,8 @@ const LONG_BRIDGE_EN = 'You tied the fever and productive cough to the crackles 
  *  kiosk is a 9:16 column in the middle of the screen. */
 const SIZES = [[1080, 1920], [2160, 3840], [1920, 1080], [3840, 2160]];
 const LANGS = ['th', 'en'];
+/** The step badge's tier on reply n of the fit check: weaker first, so the typed answers (always answer 1) wear it. */
+const FIT_TIERS = ['weaker', 'reasonable', 'best'];
 /** The looks whose primary language is `lang`: the language the AI replies and bridges in. */
 const looksIn = (h, lang) => Object.keys(h.LOOKS).filter((look) => h.LOOKS[look].primary === lang);
 
@@ -617,7 +619,9 @@ export default [
       await Promise.all(SIZES.flatMap(([width, height]) => LANGS.map(async (lang) => {
         const stub = h.makeStub({ routes: {
           'POST /booth/plays': () => ({ status: 201, body: { ...h.START, next: tallest } }),
-          [REPLY_KEY]: (call) => ({ status: 200, body: { status: 'replied', reply: FIT_REPLIES[h.LOOKS[call.body.look ?? h.DEFAULT_LOOK].primary],
+          // Each reply carries a step badge (owner, 2026-11-26), a different tier per step, so the fit holds with each chip.
+          [REPLY_KEY]: (call) => ({ status: 200, body: { status: 'replied', tier: FIT_TIERS[(call.body.answers.length - 1) % 3],
+            reply: FIT_REPLIES[h.LOOKS[call.body.look ?? h.DEFAULT_LOOK].primary],
             reply_sig: h.SIG(call.body.answers.length), ...(call.body.answers.length < 3 ? { next: tallest } : {}) } }),
         } });
         const k = await h.kiosk({ stub, width, height, label: `reply fit at ${width}x${height}, ${lang}` });

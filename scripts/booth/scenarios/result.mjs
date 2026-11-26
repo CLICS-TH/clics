@@ -89,12 +89,19 @@ const readHint = (page) => page.evaluate(async () => {
 
 const TYPED = 'ไข้ ไอ และหอบ ตรวจเอกซเรย์ปอดก่อน';
 
-/** Every tier label, Thai and English: none may be on any screen before the score response. */
+/** Every tier label, Thai and English: before the score response none may be on any screen, but for the reply's own
+ *  step badge (owner, 2026-11-26), which names the tier of the answer just given and no other. */
 const tierWords = (h) => Object.values(h.TIERS).flatMap((t) => [t.label.th, t.label.en]);
-const tierLeak = (page, words) => page.evaluate((w) => ({
-  marks: document.querySelectorAll('[data-tier], .tier-chip, [data-reveal-overlay], [data-action="see-answers"]').length,
-  words: w.filter((x) => document.body.innerText.includes(x)),
-}), words);
+const BADGE = '.answer-card .answer-head .tier-chip';
+const tierLeak = (page, words, badge = null) => page.evaluate(([w, sel, b]) => {
+  const own = b ? [...document.querySelectorAll(sel)].filter((e) => e.dataset.tier === b.tier) : [];
+  const text = own.reduce((t, e) => t.replace(e.innerText, ''), document.body.innerText);
+  return {
+    marks: document.querySelectorAll('[data-tier], .tier-chip, [data-reveal-overlay], [data-action="see-answers"]').length - own.length,
+    words: w.filter((x) => text.includes(x)),
+    badge: b ? own.length === 1 && b.words.every((x) => own[0].textContent.includes(x)) : true,
+  };
+}, [words, BADGE, badge]);
 
 /**
  * Plays the three steps by `plan`: a tier name taps the offered option of that tier, 'type' types TYPED. Checks for
@@ -105,7 +112,10 @@ async function playByTier(h, k, plan, release) {
   const { page } = k;
   const words = tierWords(h);
   const leaks = [];
-  const look = async (where) => { const l = await tierLeak(page, words); if (l.marks || l.words.length) leaks.push(`${where}: ${JSON.stringify(l)}`); };
+  const look = async (where, badge = null) => {
+    const l = await tierLeak(page, words, badge);
+    if (l.marks || l.words.length || !l.badge) leaks.push(`${where}: ${JSON.stringify(l)}`);
+  };
   await k.shell('start');
   await k.toVignette();
   await look('vignette');
@@ -133,14 +143,15 @@ async function playByTier(h, k, plan, release) {
       answers.push({ choice: id });
     }
     await k.screen('reply');
-    await look(`reply ${n}`);
+    const tier = { B: 'best', R: 'reasonable', W: 'weaker' }[h.pathOf(h.TREE, answers).at(-1)];
+    await look(`reply ${n}`, { tier, words: [h.TIERS[tier].label.th, h.TIERS[tier].label.en] });
     await k.tap(`[data-action="${n === 3 ? 'see-score' : 'next'}"]`);
   }
   await k.screen('scoring');
   await look('scoring');
   release();
   await k.screen('scored');
-  h.check(leaks.length === 0, `no tier label, chip or answer button on any screen before the score response${leaks.length ? ` (${leaks.slice(0, 2).join('; ')})` : ''}`);
+  h.check(leaks.length === 0, `before the score response, no tier label, chip or answer button on any screen but each reply's one badge for its own answer's tier${leaks.length ? ` (${leaks.slice(0, 2).join('; ')})` : ''}`);
   return answers;
 }
 

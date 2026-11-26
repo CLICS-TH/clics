@@ -766,7 +766,7 @@ describe('POST /booth/plays/:id/reply', () => {
 
   test('the play follows the tier path: best then best walks step2.B then step3.BB', async () => {
     const p = await begin();
-    expect((await answer(p, 'best')).body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String),
+    expect((await answer(p, 'best')).body).toEqual({ status: 'replied', tier: 'best', reply: AI_REPLY, reply_sig: expect.any(String),
       next: expect.anything() });
     expectFallback(bank('B'), p.next);
     await answer(p, 'best');
@@ -832,14 +832,16 @@ describe('POST /booth/plays/:id/reply', () => {
     expectFallback(bank('W'), p.next);
   });
 
-  test('no tier reaches the kiosk before the score: not the draw, the start, nor a reply to a typed or a tapped answer', async () => {
+  test('before the score, only a reply carries a tier, and only its own step\'s answer: no offered option\'s tier, no path, no steps', async () => {
     sorting('reasonable');
     const drawn = (await post('/booth/draw', { seen: [] })).body;
     expect(drawn.case_id).toBe(KASE.case_id);
     const p = await begin();
-    const before = [drawn, p.started, (await answer(p, { text: 'my own words' })).body, (await answer(p, 'best')).body,
+    for (const body of [drawn, p.started]) expect(JSON.stringify(body)).not.toMatch(/tier/i);
+    const replies = [(await answer(p, { text: 'my own words' })).body, (await answer(p, 'best')).body,
       (await answer(p, { text: 'second typed' })).body];
-    for (const body of before) {
+    expect(replies.map((b) => b.tier)).toEqual(['reasonable', 'best', 'reasonable']);
+    for (const { tier: _, ...body } of replies) {
       expect(JSON.stringify(body)).not.toMatch(/tier/i);
       expect(body).not.toHaveProperty('steps');
     }
@@ -848,6 +850,68 @@ describe('POST /booth/plays/:id/reply', () => {
     expect(scored.steps.map((s) => s.tier)).toEqual(['reasonable', 'best', 'reasonable']);
     expect(p.d.answers).toEqual([{ text: 'my own words' }, { choice: expect.any(String) }, { text: 'second typed' }]);
     expect(p.path).toBe('RBR');
+  });
+
+  describe('the per-step tier badge (ADR 0011 amendment, owner 2026-11-26): the reply names the tier of the answer just given', () => {
+    test.each(ONE_PER_TIER)('a tapped %s answer carries its option\'s tier from the bank', async (tier) => {
+      const p = await begin();
+      const res = await answer(p, tier);
+      expect(res.body).toMatchObject({ status: 'replied', tier });
+      expect(p.path).toBe(LETTER[tier]);
+    });
+
+    test.each(ONE_PER_TIER)('a typed answer the AI sorts %s carries that sorted tier, the one its path takes', async (tier) => {
+      sorting(tier);
+      const p = await begin();
+      const res = await answer(p, { text: 'my own words' });
+      expect(res.body).toMatchObject({ status: 'replied', tier });
+      expect(p.path).toBe(LETTER[tier]);
+    });
+
+    test('a typed answer recalled from the sort memo carries the memo\'s tier, not the one this call gave', async () => {
+      sorting('reasonable');
+      await answer(await begin(), { text: 'same words' });
+      sorting('best');
+      const p = await begin();
+      const res = await answer(p, { text: 'same words' });
+      // The test's own path helper reads the mocked call (best); the server took the memo's tier.
+      expect(res.body.tier).toBe('reasonable');
+    });
+
+    test.each([
+      ['the call fails', () => rimplChat.mockRejectedValueOnce(new Error('down'))],
+      ['the AI gives no tier', () => sorting(undefined)],
+      ['the AI gives null', () => sorting(null)],
+      ['the AI gives a word that is not a tier', () => sorting('unsafe')],
+    ])('a typed answer carries no tier when %s: its path still goes weaker, but the kiosk shows no guess', async (_name, arrange) => {
+      arrange();
+      const p = await begin();
+      const res = await answer(p, { text: 'my own words' });
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('replied');
+      expect(res.body).not.toHaveProperty('tier');
+      expect(p.path).toBe('W');
+    });
+
+    test('the tier is display only: a kiosk that sends it back with the answer is refused', async () => {
+      const p = await begin();
+      const choice = offered(p, 'best');
+      const res = await post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [{ choice, tier: 'best' }] });
+      expect(res.status).toBe(400);
+    });
+
+    test('a five-step play replied from the reply bank carries each tapped tier', async () => {
+      const TABLE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table-5.json'), 'utf8'));
+      const KASE5 = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8')), path_score_table: TABLE5 };
+      process.env.BOOTH_CASES_DIR = casesDir(KASE5);
+      settings = { rows: eventSettings({ code: KASE5.event_code }) };
+      const p = await begin(KASE5);
+      const given = ['best', 'reasonable', 'weaker', 'reasonable', 'best'];
+      const tiers = [];
+      for (const g of given) tiers.push((await answer(p, g)).body.tier);
+      expect(tiers).toEqual(given);
+      expect(rimplChat).not.toHaveBeenCalled();
+    });
   });
 
   test('a reply for a step already answered is refused, so the AI\'s tier cannot be drawn again', async () => {
@@ -877,7 +941,7 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, 'best');
     const res = await answer(p, { text: 'my own words' });
-    expect(res.body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String), deidentified: null });
+    expect(res.body).toEqual({ status: 'replied', tier: 'reasonable', reply: AI_REPLY, reply_sig: expect.any(String), deidentified: null });
     const [args] = rimplChat.mock.calls[2];
     expect(args.booth_typed).toEqual({ current: { variants: bank('BB').variants, options: bank('BB').options } });
     expect(p.path).toBe('BBR');
@@ -889,7 +953,7 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, { text: 'ตรวจ CURB-65' });
     const res = await answer(p, 'weaker');
-    expect(res.body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String) });
+    expect(res.body).toEqual({ status: 'replied', tier: 'weaker', reply: AI_REPLY, reply_sig: expect.any(String) });
     const [args] = rimplChat.mock.calls[2];
     expect(args).not.toHaveProperty('booth_bank');
     const [a1, a2, a3] = p.d.answers;

@@ -1,4 +1,5 @@
-/* "See the answers" (js/booth-answers.js) on the kiosk, and the tier chips it shares with the result page. No tier
+/* "See the answers" (js/booth-answers.js) on the kiosk, and the tier chips it shares with the result page and the
+   reply's per-step badge (booth-play.js exchange). No tier
    is drawn as a warning: best is the solid chip, the others step down. Tiers and the best option come from the vetted
    bank (ADR 0006), so none of them wears the --ai-* colours, which mark what the AI wrote. */
 .tier-chip {
