@@ -77,7 +77,7 @@ const { PATHS_BY_STEPS, rimplCalls } = require('./sandbox-play.js');
 const { CaseTreeSchema, caseTreeProblems } = require(path.join(ROOT, 'backend', 'src', 'booth-cases', 'tree-schema'));
 const { costUsd } = require(path.join(ROOT, 'backend', 'src', 'lib', 'pricing'));
 
-const CAP_USD = 140;
+const CAP_USD = 160;
 // What an evaluate call cost on average in #264's sandbox runs (sandbox-play.js TYPICAL_TOKENS).
 const TYPICAL_EVALUATE = [4000, 405];
 
