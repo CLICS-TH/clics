@@ -6,34 +6,34 @@
         "th": [
           {
             "strength": "อ่านชีพจร 128 **ความดัน 86/60** ร่วมกับท้องซ้ายบนที่กดเจ็บ เป็นเรื่องเดียวกันได้ชัด",
-            "weigh": "capillary refill 4 วินาทีกับอาการกระสับกระส่าย บอกอะไรเรื่องปริมาณเลือดที่เขาเสียไป",
+            "weigh": "ระหว่างกู้ชีพ การตรวจแรกอะไรจะช่วยเขาได้มากที่สุด",
             "safety": ""
           },
           {
             "strength": "ใช้ตัวเลขของผู้ป่วยเองยืนยันการเสียเลือด และระบุแหล่งไว้ในช่องท้อง",
-            "weigh": "คนหนุ่มประคองความดันไว้ได้จนช่วงท้าย กว่าจะลงมาถึง 86/60 เขาเสียเลือดไปแล้วเท่าไร",
+            "weigh": "ความดัน 86/60 การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "ผูกผลตรวจร่างกายเข้ากับสัญญาณชีพ ทำให้แหล่งเลือดออกเป็นเป้าหมายที่ชัด",
-            "weigh": "ผลตรวจบอกได้ว่าเลือดออกตรงไหน แล้วอะไรจะบอกว่าออกเร็วแค่ไหน",
+            "weigh": "การตรวจแรกอะไรทำได้ระหว่างกู้ชีพ โดยไม่ต้องหยุดการรักษา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reading **pulse 128, BP 86/60** with the tender left upper abdomen gives one clear story.",
-            "weigh": "What do a capillary refill of 4 s and his restlessness say about how much he has lost?",
+            "weigh": "While you resuscitate, which first tests would help him most?",
             "safety": ""
           },
           {
             "strength": "You use his own numbers to show volume loss, and place the source in the abdomen.",
-            "weigh": "A young man holds his pressure until late, so how much has he lost to reach 86/60?",
+            "weigh": "With BP 86/60, which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "Tying the exam to his vital signs turns the findings into a clear target.",
-            "weigh": "The exam shows where he is bleeding; what will tell you how fast?",
+            "weigh": "Which first test fits inside the resuscitation, not after it?",
             "safety": ""
           }
         ]
@@ -42,34 +42,34 @@
         "th": [
           {
             "strength": "ผูก**ชายโครงซ้ายฟกช้ำ**กับท้องซ้ายบนที่กดเจ็บ ทำให้ระบุอวัยวะได้แม่นยำ",
-            "weigh": "ความดัน 86/60 ชีพจร 128 บอกว่าม้ามเสียเลือดไปแล้วมากแค่ไหน",
+            "weigh": "ถ้าม้ามเลือดออก ระหว่างกู้ชีพ การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "ใช้รอยฟกช้ำบนผิวเป็นเบาะแส ชายโครงซ้ายล่างที่ช้ำมักอยู่เหนือม้ามที่บาดเจ็บ",
-            "weigh": "มือเย็นซีดแบบนี้ คิดว่าม้ามกำลังเลือดออกเร็วแค่ไหน",
+            "weigh": "ความดัน 86/60 การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "ใช้กายวิภาคนำทาง เชื่อมรอยช้ำ จุดกดเจ็บ และอวัยวะที่อยู่ข้างใต้เข้าด้วยกัน",
-            "weigh": "แรงกระแทกที่ชายโครงซ้ายล่าง ทำให้อวัยวะอื่นนอกจากม้ามบาดเจ็บด้วยได้ไหม",
+            "weigh": "การตรวจแรกอะไรทำได้ระหว่างกู้ชีพ โดยไม่ต้องหยุดการรักษา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Tying the **left rib bruising** to the tender upper abdomen localises the injury precisely.",
-            "weigh": "With BP 86/60 and a pulse of 128, how much has the spleen already bled?",
+            "weigh": "If the spleen is bleeding, which first tests matter most while you resuscitate?",
             "safety": ""
           },
           {
             "strength": "You use the surface signs well: bruised lower left ribs often overlie a damaged spleen.",
-            "weigh": "With hands this cold and pale, how fast do you think the spleen is bleeding?",
+            "weigh": "With BP 86/60, which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "Anatomy guides you here, linking the bruise, the tender spot and the organ beneath.",
-            "weigh": "Could the blow to his lower left ribs have hurt more than the spleen?",
+            "weigh": "Which first test fits inside the resuscitation, not after it?",
             "safety": ""
           }
         ]
@@ -78,34 +78,34 @@
         "th": [
           {
             "strength": "เริ่มจากความจริงพื้นฐานว่าภาวะช็อกในผู้บาดเจ็บส่วนใหญ่มาจาก**การเสียเลือด**",
-            "weigh": "ชายโครงซ้ายช้ำกับท้องซ้ายบนกดเจ็บ ช่วยบอกตำแหน่งที่เลือดออกได้แล้วหรือยัง",
+            "weigh": "ระหว่างกู้ชีพ การตรวจแรกอะไรจะช่วยเขาได้มากที่สุด",
             "safety": ""
           },
           {
             "strength": "ถือว่าความดันต่ำหลังอุบัติเหตุเป็นการเสียเลือดไว้ก่อน ช่วยไม่ให้พลาดภาวะอันตราย",
-            "weigh": "เปิดตำแหน่งไว้กว้างก็รอบคอบดี แต่ผลตรวจร่างกายชี้ไปทางไหน",
+            "weigh": "ถ้าความดันยังต่ำ การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "ไม่ยึดติดอวัยวะเดียว และวางสรีรวิทยาของการเสียเลือดไว้เป็นแกนกลาง",
-            "weigh": "ถ้าเอารอยช้ำกับจุดกดเจ็บด้านซ้ายมาคิดต่อ จะนึกถึงอวัยวะไหน",
+            "weigh": "ชายโครงซ้ายฟกช้ำและท้องซ้ายบนกดเจ็บ การตรวจอะไรดูตรงนั้นได้ก่อน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting from the base rate, that most shock after injury is **blood loss**, is sound trauma reasoning.",
-            "weigh": "Do his bruised left ribs and tender left upper abdomen already narrow the source?",
+            "weigh": "While you resuscitate, which first tests would help him most?",
             "safety": ""
           },
           {
             "strength": "Treating low pressure after a crash as blood loss until shown otherwise guards against a missed bleed.",
-            "weigh": "Leaving the site open is cautious, but where does his exam point?",
+            "weigh": "If his pressure stays low, which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "You avoid anchoring on one organ and keep the physiology of blood loss at the centre.",
-            "weigh": "If you carry the left-sided bruise and tenderness forward, which organ comes to mind?",
+            "weigh": "Bruised left ribs and a tender left upper abdomen: which test looks there first?",
             "safety": ""
           }
         ]
@@ -114,34 +114,34 @@
         "th": [
           {
             "strength": "นึกถึงภัยในช่องอกหลัง**อกถูกกระแทก** ช่วยไม่ให้ภาวะที่ฆ่าได้เร็วหลุดไป",
-            "weigh": "เสียงหายใจเท่ากันและ SpO2 96% ขณะหายใจอากาศปกติ เข้ากับภาวะมีแรงดันในช่องอกจริงไหม",
+            "weigh": "เสียงหายใจเท่ากันแต่ความดันยังต่ำ การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "คัดกรองสาเหตุในช่องอกที่แก้ไขได้ของความดันต่ำ เป็นนิสัยที่ช่วยชีวิตผู้บาดเจ็บ",
-            "weigh": "เสียงหายใจเท่ากันและออกซิเจน 96% แบบนี้ ช่องอกอธิบายความดันต่ำได้หรือ",
+            "weigh": "ผิวเย็นซีด การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "ความดันต่ำหลังชนแรง ทำให้คิดถึงช่องอกตั้งแต่เนิ่น ๆ",
-            "weigh": "ถ้าไม่ใช่ช่องอก มีอะไรในผลตรวจร่างกายที่อธิบายความดันต่ำได้",
+            "weigh": "ความดัน 86/60 การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinking of the chest after **a blow to the chest** keeps a fast killer on the list.",
-            "weigh": "Do equal breath sounds and SpO2 96% on air really fit tension physiology?",
+            "weigh": "Breath sounds are equal, yet his BP is low: which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "You screen for a reversible chest cause of low pressure, a habit that saves lives after trauma.",
-            "weigh": "With equal breath sounds and 96% on air, can the chest explain his pressure?",
+            "weigh": "His skin is cold and pale: which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "Low pressure after a hard crash prompts you to consider the chest early.",
-            "weigh": "If not the chest, what in his exam explains the low pressure?",
+            "weigh": "With BP 86/60, which first tests matter most?",
             "safety": ""
           }
         ]
@@ -150,34 +150,34 @@
         "th": [
           {
             "strength": "คำนึงถึง**ไขสันหลังบาดเจ็บ**หลังอุบัติเหตุจักรยานยนต์ ช่วยป้องกันการบาดเจ็บที่ตกหล่น",
-            "weigh": "ชีพจร 128 กับมือเย็นซีด เข้ากับช็อกจากไขสันหลังที่มักผิวอุ่นจริงไหม",
+            "weigh": "มือเย็นซีดและชีพจรเร็วไม่เข้ากับสาเหตุจากไขสันหลัง การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "พิจารณากลไกการบาดเจ็บครบ รวมถึงไขสันหลังที่บาดเจ็บได้ในอุบัติเหตุแรงสูง",
-            "weigh": "เขารู้ตัวดี กระสับกระส่าย มือเย็น ภาพแบบนี้เข้ากับช็อกจากไขสันหลังไหม",
+            "weigh": "เสียงหายใจเท่ากันแต่ความดันยังต่ำ การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           },
           {
             "strength": "นึกถึงสาเหตุที่ไม่ใช่เลือดออก แสดงว่าคิดวินิจฉัยแยกโรคได้กว้างแม้อยู่ในภาวะกดดัน",
-            "weigh": "ช็อกจากไขสันหลังมักผิวอุ่นและชีพจรช้า ตรงกับที่เห็นในรายนี้ไหม",
+            "weigh": "ความดัน 86/60 การตรวจแรกอะไรสำคัญที่สุด",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeping **spinal injury** in mind after a motorcycle crash protects against a missed injury.",
-            "weigh": "Does a pulse of 128 with cold, pale hands fit neurogenic shock, which usually brings warm skin?",
+            "weigh": "Cold, pale hands and a fast pulse do not fit a spinal cause: which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "You consider the mechanism fully, including the cord, which high-energy crashes can harm.",
-            "weigh": "He is alert and restless with cold hands; does that picture fit cord-level shock?",
+            "weigh": "Breath sounds are equal, yet his BP is low: which first tests matter most?",
             "safety": ""
           },
           {
             "strength": "Considering a cause other than bleeding shows a broad differential under pressure.",
-            "weigh": "Neurogenic shock gives warm skin and a slow pulse; is that what you see here?",
+            "weigh": "With BP 86/60, which first tests matter most?",
             "safety": ""
           }
         ]
@@ -188,34 +188,34 @@
         "th": [
           {
             "strength": "**FAST ข้างเตียง**ตอบได้เร็วว่าท้องซ้ายบนที่กดเจ็บมีเลือดออกหรือไม่ โดยไม่ต้องย้ายผู้ป่วย",
-            "weigh": "ถ้า FAST ไม่เห็นน้ำในท้อง จะเชื่อผลนั้นได้แค่ไหนในช่วงแรกแบบนี้",
+            "weigh": "ไม่ว่าผลตรวจแรกจะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "กู้ชีพไปพร้อมกับได้คำตอบข้างเตียง สอดคล้องกับความดัน 86/60 ของเขา",
-            "weigh": "เห็นน้ำในท้องก็รู้ว่าเลือดออก แต่บอกได้ไหมว่ามาจากอวัยวะไหน",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "ผูกการตรวจเข้ากับจุดที่กดเจ็บ ทำให้ผลที่ได้ตอบคำถามของผู้ป่วยรายนี้ตรง ๆ",
-            "weigh": "ใครเป็นคนตรวจ และน้ำปริมาณน้อยช่วงแรกจะหลุดสายตาได้ไหม",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside FAST** quickly answers whether his tender left upper abdomen is bleeding, without moving him.",
-            "weigh": "If the FAST shows no fluid, how far would you trust it this early?",
+            "weigh": "Whatever the first test shows, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You keep resuscitating while getting an answer at the bedside, which suits a pressure of 86/60.",
-            "weigh": "Free fluid says he is bleeding, but does it say from which organ?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Aiming the scan at the tender spot makes its result answer this man's question directly.",
-            "weigh": "Who is scanning, and could a small early collection slip past them?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and transfusion you give?",
             "safety": ""
           }
         ]
@@ -224,34 +224,34 @@
         "th": [
           {
             "strength": "ส่ง**จองเลือด**ตอนนี้ และเริ่มเลือดหมู่โอทันทีเพราะความดัน 86/60 การให้เลือดจึงไม่สะดุด",
-            "weigh": "กว่าเลือดที่จองจะได้ต้องใช้เวลา โรงพยาบาลนี้มีเลือดหมู่โอสำรองอยู่เท่าไร",
+            "weigh": "ไม่ว่าผลตรวจแรกจะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "มองการส่งตรวจนี้เป็นส่วนหนึ่งของการกู้ชีพ สอดรับกับผู้ป่วยที่กำลังเสียเลือด",
-            "weigh": "คิดว่าเขาอาจต้องใช้เลือดกี่ถุง กว่าจะคุมเลือดที่ออกได้",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
-            "weigh": "เจาะเลือดส่งจองก่อนเริ่มให้เลือดหมู่โอแล้วหรือยัง",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sending the **crossmatch** now while group O starts for a BP of 86/60 keeps transfusion moving.",
-            "weigh": "Matched units take time, so how much group O does this hospital have on hand?",
+            "weigh": "Whatever the first test shows, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You treat the test as part of the resuscitation, which suits a man losing blood now.",
-            "weigh": "How many units might he need before the bleeding is controlled?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
-            "weigh": "Was the sample drawn before any group O went in?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and blood you give?",
             "safety": ""
           }
         ]
@@ -260,34 +260,34 @@
         "th": [
           {
             "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
-            "weigh": "เสียงหายใจเท่ากัน เชิงกรานกดไม่เจ็บ ฟิล์มสองใบนี้มีโอกาสอธิบายความดันต่ำแค่ไหน",
+            "weigh": "ไม่ว่าภาพจะเป็นอย่างไร จะให้อะไรก่อนเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "มองหาอย่างเป็นระบบในช่องที่เก็บเลือดได้มากหลังการบาดเจ็บ",
-            "weigh": "ฟิล์มเหล่านี้ได้ดูท้องซ้ายบนที่เขากดเจ็บด้วยไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "ถ่ายภาพในห้องฉุกเฉิน ทำให้ผู้ป่วยอยู่ใกล้ทีมขณะค้นหาเลือดที่ซ่อนอยู่",
-            "weigh": "ผลตรวจร่างกายข้อไหนที่ชี้ไปที่ช่องอกหรือเชิงกราน",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
-            "weigh": "With equal breath sounds and a non-tender pelvis, how likely are these films to explain his pressure?",
+            "weigh": "Whatever the films show, what do you give first for his shock?",
             "safety": ""
           },
           {
             "strength": "You look systematically at the cavities that can hold a large volume after trauma.",
-            "weigh": "Do these films look at the left upper abdomen, where he is tender?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Films in the emergency room keep him close to the team while you screen for hidden bleeding.",
-            "weigh": "Which of his findings points to the chest or the pelvis?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -296,34 +296,34 @@
         "th": [
           {
             "strength": "นึกถึง**ไต**ด้วย แสดงว่าประเมินทั้งบริเวณสีข้าง ไม่ใช่อวัยวะเดียว",
-            "weigh": "ผลปัสสาวะจะเปลี่ยนสิ่งที่ทำกับความดัน 86/60 ในนาทีนี้ได้ไหม",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "ระลึกว่าแรงกระแทกด้านซ้ายทำให้ไตบาดเจ็บได้ร่วมกับอวัยวะข้างเคียง",
-            "weigh": "ขณะความดันยัง 86/60 ผลปัสสาวะจะออกทันช่วยตัดสินใจไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "หา**เลือดในปัสสาวะ** ช่วยไม่ให้พลาดการบาดเจ็บร่วม",
-            "weigh": "ถ้าพบการบาดเจ็บที่สอง ผลนี้บอกได้ไหมว่าตอนนี้เขากำลังเสียเลือดมากแค่ไหน",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinking of the **kidney** shows you are surveying the whole flank, not just one organ.",
-            "weigh": "Will a urine result change what you do for a BP of 86/60 in the next minutes?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You remember that left-sided blows can injure the kidney as well as nearby organs.",
-            "weigh": "With BP at 86/60, will the urine result arrive in time to guide you?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Looking for **blood in the urine** keeps an associated injury in view.",
-            "weigh": "Even if it shows a second injury, does it tell how much he is losing now?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -334,34 +334,34 @@
         "th": [
           {
             "strength": "**FAST ข้างเตียง**ตอบได้เร็วว่าท้องซ้ายบนที่กดเจ็บมีเลือดออกหรือไม่ โดยไม่ต้องย้ายผู้ป่วย",
-            "weigh": "ถ้า FAST ไม่เห็นน้ำในท้อง จะเชื่อผลนั้นได้แค่ไหนในช่วงแรกแบบนี้",
+            "weigh": "ไม่ว่าผลตรวจแรกจะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "กู้ชีพไปพร้อมกับได้คำตอบข้างเตียง สอดคล้องกับความดัน 86/60 ของเขา",
-            "weigh": "เห็นน้ำในท้องก็รู้ว่าเลือดออก แต่บอกได้ไหมว่ามาจากอวัยวะไหน",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "ผูกการตรวจเข้ากับจุดที่กดเจ็บ ทำให้ผลที่ได้ตอบคำถามของผู้ป่วยรายนี้ตรง ๆ",
-            "weigh": "ใครเป็นคนตรวจ และน้ำปริมาณน้อยช่วงแรกจะหลุดสายตาได้ไหม",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside FAST** quickly answers whether his tender left upper abdomen is bleeding, without moving him.",
-            "weigh": "If the FAST shows no fluid, how far would you trust it this early?",
+            "weigh": "Whatever the first test shows, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You keep resuscitating while getting an answer at the bedside, which suits a pressure of 86/60.",
-            "weigh": "Free fluid says he is bleeding, but does it say from which organ?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Aiming the scan at the tender spot makes its result answer this man's question directly.",
-            "weigh": "Who is scanning, and could a small early collection slip past them?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and transfusion you give?",
             "safety": ""
           }
         ]
@@ -370,34 +370,34 @@
         "th": [
           {
             "strength": "ส่ง**จองเลือด**ตอนนี้ และเริ่มเลือดหมู่โอทันทีเพราะความดัน 86/60 การให้เลือดจึงไม่สะดุด",
-            "weigh": "กว่าเลือดที่จองจะได้ต้องใช้เวลา โรงพยาบาลนี้มีเลือดหมู่โอสำรองอยู่เท่าไร",
+            "weigh": "ไม่ว่าผลตรวจแรกจะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "มองการส่งตรวจนี้เป็นส่วนหนึ่งของการกู้ชีพ สอดรับกับผู้ป่วยที่กำลังเสียเลือด",
-            "weigh": "คิดว่าเขาอาจต้องใช้เลือดกี่ถุง กว่าจะคุมเลือดที่ออกได้",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
-            "weigh": "เจาะเลือดส่งจองก่อนเริ่มให้เลือดหมู่โอแล้วหรือยัง",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sending the **crossmatch** now while group O starts for a BP of 86/60 keeps transfusion moving.",
-            "weigh": "Matched units take time, so how much group O does this hospital have on hand?",
+            "weigh": "Whatever the first test shows, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You treat the test as part of the resuscitation, which suits a man losing blood now.",
-            "weigh": "How many units might he need before the bleeding is controlled?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
-            "weigh": "Was the sample drawn before any group O went in?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and blood you give?",
             "safety": ""
           }
         ]
@@ -406,34 +406,34 @@
         "th": [
           {
             "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
-            "weigh": "เสียงหายใจเท่ากัน เชิงกรานกดไม่เจ็บ ฟิล์มสองใบนี้มีโอกาสอธิบายความดันต่ำแค่ไหน",
+            "weigh": "ไม่ว่าภาพจะเป็นอย่างไร จะให้อะไรก่อนเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "มองหาอย่างเป็นระบบในช่องที่เก็บเลือดได้มากหลังการบาดเจ็บ",
-            "weigh": "ฟิล์มเหล่านี้ได้ดูท้องซ้ายบนที่เขากดเจ็บด้วยไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "ถ่ายภาพในห้องฉุกเฉิน ทำให้ผู้ป่วยอยู่ใกล้ทีมขณะค้นหาเลือดที่ซ่อนอยู่",
-            "weigh": "ผลตรวจร่างกายข้อไหนที่ชี้ไปที่ช่องอกหรือเชิงกราน",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
-            "weigh": "With equal breath sounds and a non-tender pelvis, how likely are these films to explain his pressure?",
+            "weigh": "Whatever the films show, what do you give first for his shock?",
             "safety": ""
           },
           {
             "strength": "You look systematically at the cavities that can hold a large volume after trauma.",
-            "weigh": "Do these films look at the left upper abdomen, where he is tender?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Films in the emergency room keep him close to the team while you screen for hidden bleeding.",
-            "weigh": "Which of his findings points to the chest or the pelvis?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -442,34 +442,34 @@
         "th": [
           {
             "strength": "ค่า**ฮีโมโกลบิน**ตั้งต้นให้จุดอ้างอิงสำหรับติดตามอาการตามเวลา",
-            "weigh": "ฮีโมโกลบินครั้งแรกหลังเกิดเหตุไม่นาน จะต่ำลงแล้วจริงไหม",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "วางแผนเก็บข้อมูลแนวโน้ม ซึ่งมีประโยชน์เมื่อการกู้ชีพดำเนินไป",
-            "weigh": "ค่าแรกที่ดูปกติ จะทำให้วางใจเกินไปก่อนเลือดถูกเจือจางไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "มีค่าเริ่มต้นไว้ ทำให้เทียบผลครั้งต่อไปได้ชัด",
-            "weigh": "ตอนนี้อะไรบอกการเสียเลือดได้มากกว่า ค่านี้ หรือชีพจร 128 กับความดัน 86/60",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **baseline haemoglobin** gives a fixed point for tracking him over time.",
-            "weigh": "Would his first haemoglobin already be low this soon after the crash?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You plan for trend data, which helps as the resuscitation goes on.",
-            "weigh": "Could a reassuring first value lull you before dilution shows the loss?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Having a starting value lets later results be compared.",
-            "weigh": "Which says more about his loss now: this value, or a pulse of 128 and BP 86/60?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -480,34 +480,34 @@
         "th": [
           {
             "strength": "**eFAST** ตอบสองคำถามพร้อมกัน ทั้งลมในช่องอกและของเหลวในช่องท้อง โดยไม่ต้องย้ายตัว",
-            "weigh": "ใครเป็นคนตรวจ และเลือดที่ออกน้อยหรือเพิ่งเริ่มจะหลุดสายตาได้ไหม",
+            "weigh": "ไม่ว่าผลตรวจแรกจะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "ขยายการตรวจไปที่ช่องอก ครอบคลุมทั้งสองช่องในการตรวจข้างเตียงครั้งเดียว",
-            "weigh": "เสียงหายใจเท่ากันแล้ว ภาพส่วนไหนน่าจะให้ข้อมูลมากที่สุด",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "ผู้ป่วยอยู่ในห้องตลอด แต่ยังตรวจได้ทั้งช่องอกและช่องท้องในไม่กี่นาที",
-            "weigh": "ภาพที่ปกติในช่วงแรก ตัดการบาดเจ็บในท้องได้จริงไหม",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "An **eFAST** answers two questions at once, air in the chest and fluid in the abdomen, without moving him.",
-            "weigh": "Who is scanning, and could a small or early bleed slip past them?",
+            "weigh": "Whatever the first test shows, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "Extending the scan to the chest covers both cavities in a single bedside look.",
-            "weigh": "With equal breath sounds, which views are likely to add the most?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "You keep him in the room and still screen the chest and abdomen in minutes.",
-            "weigh": "Does a clear scan this early really rule out injury in the abdomen?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and transfusion you give?",
             "safety": ""
           }
         ]
@@ -516,34 +516,34 @@
         "th": [
           {
             "strength": "ส่ง**จองเลือด**ตอนนี้ และเริ่มเลือดหมู่โอทันทีเพราะความดัน 86/60 การให้เลือดจึงไม่สะดุด",
-            "weigh": "กว่าเลือดที่จองจะได้ต้องใช้เวลา โรงพยาบาลนี้มีเลือดหมู่โอสำรองอยู่เท่าไร",
+            "weigh": "ไม่ว่าผลตรวจแรกจะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "มองการส่งตรวจนี้เป็นส่วนหนึ่งของการกู้ชีพ สอดรับกับผู้ป่วยที่กำลังเสียเลือด",
-            "weigh": "คิดว่าเขาอาจต้องใช้เลือดกี่ถุง กว่าจะคุมเลือดที่ออกได้",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "คิดล่วงหน้าเรื่องเลือดสำรอง ทำให้มีเลือดพร้อมเมื่อต้องให้มากกว่าถุงแรก ๆ",
-            "weigh": "เจาะเลือดส่งจองก่อนเริ่มให้เลือดหมู่โอแล้วหรือยัง",
+            "weigh": "ระหว่างที่เลือดยังออกอยู่ อะไรจะเป็นตัวกำหนดว่าจะให้สารน้ำและเลือดแค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Sending the **crossmatch** now while group O starts for a BP of 86/60 keeps transfusion moving.",
-            "weigh": "Matched units take time, so how much group O does this hospital have on hand?",
+            "weigh": "Whatever the first test shows, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You treat the test as part of the resuscitation, which suits a man losing blood now.",
-            "weigh": "How many units might he need before the bleeding is controlled?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Thinking ahead to supply means blood is ready when he needs more than the first units.",
-            "weigh": "Was the sample drawn before any group O went in?",
+            "weigh": "While he is still bleeding, what will guide how much fluid and blood you give?",
             "safety": ""
           }
         ]
@@ -552,34 +552,34 @@
         "th": [
           {
             "strength": "ตรวจช่องอกและเชิงกราน ครอบคลุมสองตำแหน่งที่เลือดออกปริมาณมากซ่อนอยู่ได้",
-            "weigh": "เสียงหายใจเท่ากัน เชิงกรานกดไม่เจ็บ ฟิล์มสองใบนี้มีโอกาสอธิบายความดันต่ำแค่ไหน",
+            "weigh": "ไม่ว่าภาพจะเป็นอย่างไร จะให้อะไรก่อนเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "มองหาอย่างเป็นระบบในช่องที่เก็บเลือดได้มากหลังการบาดเจ็บ",
-            "weigh": "ฟิล์มเหล่านี้ได้ดูท้องซ้ายบนที่เขากดเจ็บด้วยไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "ถ่ายภาพในห้องฉุกเฉิน ทำให้ผู้ป่วยอยู่ใกล้ทีมขณะค้นหาเลือดที่ซ่อนอยู่",
-            "weigh": "ผลตรวจร่างกายข้อไหนที่ชี้ไปที่ช่องอกหรือเชิงกราน",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Checking the chest and pelvis covers two places where large bleeds can hide.",
-            "weigh": "With equal breath sounds and a non-tender pelvis, how likely are these films to explain his pressure?",
+            "weigh": "Whatever the films show, what do you give first for his shock?",
             "safety": ""
           },
           {
             "strength": "You look systematically at the cavities that can hold a large volume after trauma.",
-            "weigh": "Do these films look at the left upper abdomen, where he is tender?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Films in the emergency room keep him close to the team while you screen for hidden bleeding.",
-            "weigh": "Which of his findings points to the chest or the pelvis?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -588,34 +588,34 @@
         "th": [
           {
             "strength": "ค่า**ฮีโมโกลบิน**ตั้งต้นให้จุดอ้างอิงสำหรับติดตามอาการตามเวลา",
-            "weigh": "ฮีโมโกลบินครั้งแรกหลังเกิดเหตุไม่นาน จะต่ำลงแล้วจริงไหม",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "วางแผนเก็บข้อมูลแนวโน้ม ซึ่งมีประโยชน์เมื่อการกู้ชีพดำเนินไป",
-            "weigh": "ค่าแรกที่ดูปกติ จะทำให้วางใจเกินไปก่อนเลือดถูกเจือจางไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "มีค่าเริ่มต้นไว้ ทำให้เทียบผลครั้งต่อไปได้ชัด",
-            "weigh": "ตอนนี้อะไรบอกการเสียเลือดได้มากกว่า ค่านี้ หรือชีพจร 128 กับความดัน 86/60",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **baseline haemoglobin** gives a fixed point for tracking him over time.",
-            "weigh": "Would his first haemoglobin already be low this soon after the crash?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You plan for trend data, which helps as the resuscitation goes on.",
-            "weigh": "Could a reassuring first value lull you before dilution shows the loss?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Having a starting value lets later results be compared.",
-            "weigh": "Which says more about his loss now: this value, or a pulse of 128 and BP 86/60?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -624,34 +624,34 @@
         "th": [
           {
             "strength": "นึกถึง**ไต**ด้วย แสดงว่าประเมินทั้งบริเวณสีข้าง ไม่ใช่อวัยวะเดียว",
-            "weigh": "ผลปัสสาวะจะเปลี่ยนสิ่งที่ทำกับความดัน 86/60 ในนาทีนี้ได้ไหม",
+            "weigh": "ไม่ว่าผลตรวจแรกเหล่านี้จะเป็นอย่างไร จะทำอะไรเป็นอย่างแรกเพื่อแก้ภาวะช็อก",
             "safety": ""
           },
           {
             "strength": "ระลึกว่าแรงกระแทกด้านซ้ายทำให้ไตบาดเจ็บได้ร่วมกับอวัยวะข้างเคียง",
-            "weigh": "ขณะความดันยัง 86/60 ผลปัสสาวะจะออกทันช่วยตัดสินใจไหม",
+            "weigh": "ถ้าเขาต้องไปผ่าตัดที่อื่น ต้องทำอะไรบ้างก่อนและระหว่างส่งตัว",
             "safety": ""
           },
           {
             "strength": "หา**เลือดในปัสสาวะ** ช่วยไม่ให้พลาดการบาดเจ็บร่วม",
-            "weigh": "ถ้าพบการบาดเจ็บที่สอง ผลนี้บอกได้ไหมว่าตอนนี้เขากำลังเสียเลือดมากแค่ไหน",
+            "weigh": "ขณะที่เลือดยังออกอยู่ จะยอมให้ความดันต่ำได้แค่ไหน",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinking of the **kidney** shows you are surveying the whole flank, not just one organ.",
-            "weigh": "Will a urine result change what you do for a BP of 86/60 in the next minutes?",
+            "weigh": "Whatever these first tests show, what will you do first for his shock?",
             "safety": ""
           },
           {
             "strength": "You remember that left-sided blows can injure the kidney as well as nearby organs.",
-            "weigh": "With BP at 86/60, will the urine result arrive in time to guide you?",
+            "weigh": "If he needs surgery elsewhere, what must happen before and during the move?",
             "safety": ""
           },
           {
             "strength": "Looking for **blood in the urine** keeps an associated injury in view.",
-            "weigh": "Even if it shows a second injury, does it tell how much he is losing now?",
+            "weigh": "How low a pressure will you accept while he is still bleeding?",
             "safety": ""
           }
         ]
@@ -662,34 +662,34 @@
         "th": [
           {
             "strength": "ให้ **TXA** ขณะยังอยู่ใน **3 ชม.หลังบาดเจ็บ** ช่วงที่ยาลดการตายจากเลือดออกได้จริง",
-            "weigh": "เกิดเหตุกี่โมง และตอนนี้ยังอยู่ใน 3 ชม.จริงไหม",
+            "weigh": "ถ้าความดันขึ้นหลังให้เลือด ต้องตรวจอะไรอีกก่อนจะวางใจ",
             "safety": ""
           },
           {
             "strength": "มุ่งไปที่การแก้จริงคือการผ่าตัด โดยทดแทนเลือดไประหว่างทาง",
-            "weigh": "ถ้าการส่งต่อล่าช้า เลือดกับ TXA จะประคองเขาไว้ได้นานแค่ไหน",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "มองเลือดออกเป็นปัญหาที่ศัลยแพทย์ต้องแก้ และใช้เลือดกับ TXA เป็นสะพานระหว่างทาง",
-            "weigh": "หลัง TXA ขนาดแรก ได้เตรียมขนาดที่สองแบบหยดช้าไว้แล้วหรือยัง",
+            "weigh": "ถ้าเขาดูดีขึ้น ข้างในยังอาจเกิดอะไรอยู่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Giving TXA while he is **inside 3 hours** of injury uses the window where it cuts bleeding deaths.",
-            "weigh": "When exactly was the crash, and is he truly still inside 3 hours?",
+            "weigh": "If his BP rises after blood, what else must you check before you relax?",
             "safety": ""
           },
           {
             "strength": "You aim at the real fix, an operation, while replacing blood on the way.",
-            "weigh": "If the transfer is slow, how long can blood and TXA hold him?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Your plan treats the bleeding as a surgical problem, with blood and TXA as a bridge.",
-            "weigh": "After the first TXA dose, is the slower second dose set up?",
+            "weigh": "If he seems to settle, what could still be going on inside?",
             "safety": ""
           }
         ]
@@ -698,34 +698,34 @@
         "th": [
           {
             "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกซ้ำ และยังพอให้อวัยวะได้เลือด",
-            "weigh": "ถ้าเขาซึมลง ยังจะคุมตัวบนไว้แค่ราว 90 อยู่ไหม",
+            "weigh": "ถ้าความดันขึ้นหลังให้เลือด ต้องตรวจอะไรอีกก่อนจะวางใจ",
             "safety": ""
           },
           {
             "strength": "กู้ชีพตามเป้าแทนการดันความดันให้สูง ช่วยไม่ให้ก้อนเลือดที่เพิ่งเกิดหลุด",
-            "weigh": "ถ้ากระสับกระส่ายมากขึ้นทั้งที่ตัวบนราว 90 จะแปลว่าอะไร",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ผสานเป้าความดันกับ TXA และการส่งต่อ ครอบคลุมทั้งการกู้ชีพและการรักษาจริง",
-            "weigh": "เป้าความดันซื้อเวลาได้นานแค่ไหน ถ้าเลือดยังไม่ได้หยุดจริง",
+            "weigh": "ถ้าเขาดูดีขึ้น ข้างในยังอาจเกิดอะไรอยู่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Targeting a **systolic near 90** limits rebleeding while still feeding the organs.",
-            "weigh": "If he grows drowsy, would a systolic near 90 still be enough?",
+            "weigh": "If his BP rises after blood, what else must you check before you relax?",
             "safety": ""
           },
           {
             "strength": "You resuscitate to a goal rather than pushing pressure up, which keeps a fresh clot in place.",
-            "weigh": "If he grows more restless at a systolic near 90, what does that tell you?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Combining a pressure target with TXA and transfer covers resuscitation and definitive care.",
-            "weigh": "How long can a pressure target buy him while the bleeding itself goes on?",
+            "weigh": "If he seems to settle, what could still be going on inside?",
             "safety": ""
           }
         ]
@@ -734,34 +734,34 @@
         "th": [
           {
             "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
-            "weigh": "ระหว่างเลือดยังออก น้ำเกลือมากแค่ไหนจึงเริ่มทำให้เลือดแข็งตัวยาก",
+            "weigh": "ถ้าชีพจรและความดันกลับแย่ลงอีก จะทำอะไรต่อ",
             "safety": ""
           },
           {
             "strength": "ยังคง TXA และการส่งต่อไว้ในแผน ต้นเหตุของเลือดออกจึงยังได้รับการแก้",
-            "weigh": "น้ำเกลือเต็มลิตรก่อนได้เลือด จะทำให้เขาตัวเย็นและเลือดออกมากขึ้นได้ไหม",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้สิ่งที่มีพร้อมก่อน ทำให้การทดแทนปริมาตรไม่ขาดช่วง",
-            "weigh": "น้ำเกลือลิตรนี้ควรเป็นเพดาน หรือเป็นแค่จุดเริ่ม",
+            "weigh": "ในอีกไม่กี่นาที หลังขั้นตอนแรกนี้ จะเฝ้าดูอาการแสดงอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
-            "weigh": "While he is still bleeding, how much saline can go in before it thins his clotting?",
+            "weigh": "If his pulse and pressure turn the wrong way again, what is your next move?",
             "safety": ""
           },
           {
             "strength": "You keep TXA and transfer in the plan, so the source is still addressed.",
-            "weigh": "Could a full litre before blood leave him colder and bleeding more?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Using what is on the shelf first avoids any gap in volume replacement.",
-            "weigh": "Should this litre be a ceiling rather than a starting dose?",
+            "weigh": "In the next few minutes, which signs will you watch after this first step?",
             "safety": ""
           }
         ]
@@ -770,34 +770,34 @@
         "th": [
           {
             "strength": "**โทรศัลยแพทย์** ตั้งแต่ตอนนี้ ทำให้ทีมผ่าตัดเริ่มเตรียมขณะเขายังอยู่ที่นี่",
-            "weigh": "ระหว่างที่โทรอยู่ อะไรกำลังรักษาภาวะช็อกของเขาตอนนี้",
+            "weigh": "ระหว่างประสานส่งต่อ เขายังต้องการอะไรจากคุณอีก",
             "safety": "ระหว่างประสานส่งต่อ ต้องมีคนกู้ชีพต่อเนื่อง ความดันที่ยังต่ำแปลว่าต้องให้เลือดเร็ว"
           },
           {
             "strength": "มองว่าการผ่าตัดคือสิ่งที่หยุดเลือดได้จริง จึงตั้งเป้าไปที่ศัลยแพทย์เร็ว",
-            "weigh": "การโทรอย่างเดียวช่วยคนที่ยังช็อกอยู่ได้แค่ไหน",
+            "weigh": "ถ้าชีพจรยังสูงระหว่างประสานส่งต่อ จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "เริ่มประสานส่งต่อเร็ว ตามแนวทางที่ส่งผู้บาดเจ็บหนักไปโรงพยาบาลที่ผ่าตัดได้",
-            "weigh": "ก่อนเขาออกจากห้องนี้ มีอะไรที่เริ่มได้ทันทีบ้าง",
+            "weigh": "ตัวเลขไหนในนาทีถัดไปจะบอกว่าเขายังอยู่ในภาวะอันตราย",
             "safety": "มอบหมายคนหนึ่งโทร อีกคนกู้ชีพ เพื่อให้การให้เลือดเกิดขึ้นพร้อมกัน"
           }
         ],
         "en": [
           {
             "strength": "Calling **the surgeon** now lets theatre start preparing while he is still here.",
-            "weigh": "While you are on the phone, what is treating his shock right now?",
+            "weigh": "While the referral is arranged, what does he still need from you?",
             "safety": "Someone must keep resuscitating during the call; a pressure that stays low needs red cells fast."
           },
           {
             "strength": "You see surgery as what truly stops this bleeding and aim him at a surgeon early.",
-            "weigh": "Does the call alone do anything for a man who is still in shock?",
+            "weigh": "If his pulse stays high as the referral is arranged, what then?",
             "safety": ""
           },
           {
             "strength": "Starting the referral early follows the habit of moving major trauma to a hospital that can operate.",
-            "weigh": "What can start in this room in the minutes before he leaves?",
+            "weigh": "Which numbers in the next minutes will tell you he is still in danger?",
             "safety": "Give one person the phone and another the resuscitation, so transfusion runs at the same time."
           }
         ]
@@ -808,34 +808,34 @@
         "th": [
           {
             "strength": "ให้ **TXA** ขณะยังอยู่ใน **3 ชม.หลังบาดเจ็บ** ช่วงที่ยาลดการตายจากเลือดออกได้จริง",
-            "weigh": "เกิดเหตุกี่โมง และตอนนี้ยังอยู่ใน 3 ชม.จริงไหม",
+            "weigh": "ถ้าความดันขึ้นหลังให้เลือด ต้องตรวจอะไรอีกก่อนจะวางใจ",
             "safety": ""
           },
           {
             "strength": "มุ่งไปที่การแก้จริงคือการผ่าตัด โดยทดแทนเลือดไประหว่างทาง",
-            "weigh": "ถ้าการส่งต่อล่าช้า เลือดกับ TXA จะประคองเขาไว้ได้นานแค่ไหน",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "มองเลือดออกเป็นปัญหาที่ศัลยแพทย์ต้องแก้ และใช้เลือดกับ TXA เป็นสะพานระหว่างทาง",
-            "weigh": "หลัง TXA ขนาดแรก ได้เตรียมขนาดที่สองแบบหยดช้าไว้แล้วหรือยัง",
+            "weigh": "ถ้าเขาดูดีขึ้น ข้างในยังอาจเกิดอะไรอยู่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Giving TXA while he is **inside 3 hours** of injury uses the window where it cuts bleeding deaths.",
-            "weigh": "When exactly was the crash, and is he truly still inside 3 hours?",
+            "weigh": "If his BP rises after blood, what else must you check before you relax?",
             "safety": ""
           },
           {
             "strength": "You aim at the real fix, an operation, while replacing blood on the way.",
-            "weigh": "If the transfer is slow, how long can blood and TXA hold him?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Your plan treats the bleeding as a surgical problem, with blood and TXA as a bridge.",
-            "weigh": "After the first TXA dose, is the slower second dose set up?",
+            "weigh": "If he seems to settle, what could still be going on inside?",
             "safety": ""
           }
         ]
@@ -844,34 +844,34 @@
         "th": [
           {
             "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกซ้ำ และยังพอให้อวัยวะได้เลือด",
-            "weigh": "ถ้าเขาซึมลง ยังจะคุมตัวบนไว้แค่ราว 90 อยู่ไหม",
+            "weigh": "ถ้าความดันขึ้นหลังให้เลือด ต้องตรวจอะไรอีกก่อนจะวางใจ",
             "safety": ""
           },
           {
             "strength": "กู้ชีพตามเป้าแทนการดันความดันให้สูง ช่วยไม่ให้ก้อนเลือดที่เพิ่งเกิดหลุด",
-            "weigh": "ถ้ากระสับกระส่ายมากขึ้นทั้งที่ตัวบนราว 90 จะแปลว่าอะไร",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ผสานเป้าความดันกับ TXA และการส่งต่อ ครอบคลุมทั้งการกู้ชีพและการรักษาจริง",
-            "weigh": "เป้าความดันซื้อเวลาได้นานแค่ไหน ถ้าเลือดยังไม่ได้หยุดจริง",
+            "weigh": "ถ้าเขาดูดีขึ้น ข้างในยังอาจเกิดอะไรอยู่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Targeting a **systolic near 90** limits rebleeding while still feeding the organs.",
-            "weigh": "If he grows drowsy, would a systolic near 90 still be enough?",
+            "weigh": "If his BP rises after blood, what else must you check before you relax?",
             "safety": ""
           },
           {
             "strength": "You resuscitate to a goal rather than pushing pressure up, which keeps a fresh clot in place.",
-            "weigh": "If he grows more restless at a systolic near 90, what does that tell you?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Combining a pressure target with TXA and transfer covers resuscitation and definitive care.",
-            "weigh": "How long can a pressure target buy him while the bleeding itself goes on?",
+            "weigh": "If he seems to settle, what could still be going on inside?",
             "safety": ""
           }
         ]
@@ -880,34 +880,34 @@
         "th": [
           {
             "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
-            "weigh": "ระหว่างเลือดยังออก น้ำเกลือมากแค่ไหนจึงเริ่มทำให้เลือดแข็งตัวยาก",
+            "weigh": "ถ้าชีพจรและความดันกลับแย่ลงอีก จะทำอะไรต่อ",
             "safety": ""
           },
           {
             "strength": "ยังคง TXA และการส่งต่อไว้ในแผน ต้นเหตุของเลือดออกจึงยังได้รับการแก้",
-            "weigh": "น้ำเกลือเต็มลิตรก่อนได้เลือด จะทำให้เขาตัวเย็นและเลือดออกมากขึ้นได้ไหม",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้สิ่งที่มีพร้อมก่อน ทำให้การทดแทนปริมาตรไม่ขาดช่วง",
-            "weigh": "น้ำเกลือลิตรนี้ควรเป็นเพดาน หรือเป็นแค่จุดเริ่ม",
+            "weigh": "ในอีกไม่กี่นาที หลังขั้นตอนแรกนี้ จะเฝ้าดูอาการแสดงอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
-            "weigh": "While he is still bleeding, how much saline can go in before it thins his clotting?",
+            "weigh": "If his pulse and pressure turn the wrong way again, what is your next move?",
             "safety": ""
           },
           {
             "strength": "You keep TXA and transfer in the plan, so the source is still addressed.",
-            "weigh": "Could a full litre before blood leave him colder and bleeding more?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Using what is on the shelf first avoids any gap in volume replacement.",
-            "weigh": "Should this litre be a ceiling rather than a starting dose?",
+            "weigh": "In the next few minutes, which signs will you watch after this first step?",
             "safety": ""
           }
         ]
@@ -916,34 +916,34 @@
         "th": [
           {
             "strength": "**โทรศัลยแพทย์** ตั้งแต่ตอนนี้ ทำให้ทีมผ่าตัดเริ่มเตรียมขณะเขายังอยู่ที่นี่",
-            "weigh": "ระหว่างที่โทรอยู่ อะไรกำลังรักษาภาวะช็อกของเขาตอนนี้",
+            "weigh": "ระหว่างประสานส่งต่อ เขายังต้องการอะไรจากคุณอีก",
             "safety": "ระหว่างประสานส่งต่อ ต้องมีคนกู้ชีพต่อเนื่อง ความดันที่ยังต่ำแปลว่าต้องให้เลือดเร็ว"
           },
           {
             "strength": "มองว่าการผ่าตัดคือสิ่งที่หยุดเลือดได้จริง จึงตั้งเป้าไปที่ศัลยแพทย์เร็ว",
-            "weigh": "การโทรอย่างเดียวช่วยคนที่ยังช็อกอยู่ได้แค่ไหน",
+            "weigh": "ถ้าชีพจรยังสูงระหว่างประสานส่งต่อ จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "เริ่มประสานส่งต่อเร็ว ตามแนวทางที่ส่งผู้บาดเจ็บหนักไปโรงพยาบาลที่ผ่าตัดได้",
-            "weigh": "ก่อนเขาออกจากห้องนี้ มีอะไรที่เริ่มได้ทันทีบ้าง",
+            "weigh": "ตัวเลขไหนในนาทีถัดไปจะบอกว่าเขายังอยู่ในภาวะอันตราย",
             "safety": "มอบหมายคนหนึ่งโทร อีกคนกู้ชีพ เพื่อให้การให้เลือดเกิดขึ้นพร้อมกัน"
           }
         ],
         "en": [
           {
             "strength": "Calling **the surgeon** now lets theatre start preparing while he is still here.",
-            "weigh": "While you are on the phone, what is treating his shock right now?",
+            "weigh": "While the referral is arranged, what does he still need from you?",
             "safety": "Someone must keep resuscitating during the call; a pressure that stays low needs red cells fast."
           },
           {
             "strength": "You see surgery as what truly stops this bleeding and aim him at a surgeon early.",
-            "weigh": "Does the call alone do anything for a man who is still in shock?",
+            "weigh": "If his pulse stays high as the referral is arranged, what then?",
             "safety": ""
           },
           {
             "strength": "Starting the referral early follows the habit of moving major trauma to a hospital that can operate.",
-            "weigh": "What can start in this room in the minutes before he leaves?",
+            "weigh": "Which numbers in the next minutes will tell you he is still in danger?",
             "safety": "Give one person the phone and another the resuscitation, so transfusion runs at the same time."
           }
         ]
@@ -954,34 +954,34 @@
         "th": [
           {
             "strength": "ให้ **TXA** ขณะยังอยู่ใน **3 ชม.หลังบาดเจ็บ** ช่วงที่ยาลดการตายจากเลือดออกได้จริง",
-            "weigh": "เกิดเหตุกี่โมง และตอนนี้ยังอยู่ใน 3 ชม.จริงไหม",
+            "weigh": "ถ้าความดันขึ้นหลังให้เลือด ต้องตรวจอะไรอีกก่อนจะวางใจ",
             "safety": ""
           },
           {
             "strength": "มุ่งไปที่การแก้จริงคือการผ่าตัด โดยทดแทนเลือดไประหว่างทาง",
-            "weigh": "ถ้าการส่งต่อล่าช้า เลือดกับ TXA จะประคองเขาไว้ได้นานแค่ไหน",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "มองเลือดออกเป็นปัญหาที่ศัลยแพทย์ต้องแก้ และใช้เลือดกับ TXA เป็นสะพานระหว่างทาง",
-            "weigh": "หลัง TXA ขนาดแรก ได้เตรียมขนาดที่สองแบบหยดช้าไว้แล้วหรือยัง",
+            "weigh": "ถ้าเขาดูดีขึ้น ข้างในยังอาจเกิดอะไรอยู่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Giving TXA while he is **inside 3 hours** of injury uses the window where it cuts bleeding deaths.",
-            "weigh": "When exactly was the crash, and is he truly still inside 3 hours?",
+            "weigh": "If his BP rises after blood, what else must you check before you relax?",
             "safety": ""
           },
           {
             "strength": "You aim at the real fix, an operation, while replacing blood on the way.",
-            "weigh": "If the transfer is slow, how long can blood and TXA hold him?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Your plan treats the bleeding as a surgical problem, with blood and TXA as a bridge.",
-            "weigh": "After the first TXA dose, is the slower second dose set up?",
+            "weigh": "If he seems to settle, what could still be going on inside?",
             "safety": ""
           }
         ]
@@ -990,34 +990,34 @@
         "th": [
           {
             "strength": "ตั้งเป้า**ความดันตัวบนราว 90** จำกัดเลือดออกซ้ำ และยังพอให้อวัยวะได้เลือด",
-            "weigh": "ถ้าเขาซึมลง ยังจะคุมตัวบนไว้แค่ราว 90 อยู่ไหม",
+            "weigh": "ถ้าความดันขึ้นหลังให้เลือด ต้องตรวจอะไรอีกก่อนจะวางใจ",
             "safety": ""
           },
           {
             "strength": "กู้ชีพตามเป้าแทนการดันความดันให้สูง ช่วยไม่ให้ก้อนเลือดที่เพิ่งเกิดหลุด",
-            "weigh": "ถ้ากระสับกระส่ายมากขึ้นทั้งที่ตัวบนราว 90 จะแปลว่าอะไร",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ผสานเป้าความดันกับ TXA และการส่งต่อ ครอบคลุมทั้งการกู้ชีพและการรักษาจริง",
-            "weigh": "เป้าความดันซื้อเวลาได้นานแค่ไหน ถ้าเลือดยังไม่ได้หยุดจริง",
+            "weigh": "ถ้าเขาดูดีขึ้น ข้างในยังอาจเกิดอะไรอยู่ได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Targeting a **systolic near 90** limits rebleeding while still feeding the organs.",
-            "weigh": "If he grows drowsy, would a systolic near 90 still be enough?",
+            "weigh": "If his BP rises after blood, what else must you check before you relax?",
             "safety": ""
           },
           {
             "strength": "You resuscitate to a goal rather than pushing pressure up, which keeps a fresh clot in place.",
-            "weigh": "If he grows more restless at a systolic near 90, what does that tell you?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Combining a pressure target with TXA and transfer covers resuscitation and definitive care.",
-            "weigh": "How long can a pressure target buy him while the bleeding itself goes on?",
+            "weigh": "If he seems to settle, what could still be going on inside?",
             "safety": ""
           }
         ]
@@ -1026,34 +1026,34 @@
         "th": [
           {
             "strength": "เริ่ม**น้ำเกลือ 1 ลิตร**ระหว่างรอเลือด เพิ่มปริมาตรได้โดยไม่ต้องรอ",
-            "weigh": "ระหว่างเลือดยังออก น้ำเกลือมากแค่ไหนจึงเริ่มทำให้เลือดแข็งตัวยาก",
+            "weigh": "ถ้าชีพจรและความดันกลับแย่ลงอีก จะทำอะไรต่อ",
             "safety": ""
           },
           {
             "strength": "ยังคง TXA และการส่งต่อไว้ในแผน ต้นเหตุของเลือดออกจึงยังได้รับการแก้",
-            "weigh": "น้ำเกลือเต็มลิตรก่อนได้เลือด จะทำให้เขาตัวเย็นและเลือดออกมากขึ้นได้ไหม",
+            "weigh": "จะติดตามการตอบสนองของเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้สิ่งที่มีพร้อมก่อน ทำให้การทดแทนปริมาตรไม่ขาดช่วง",
-            "weigh": "น้ำเกลือลิตรนี้ควรเป็นเพดาน หรือเป็นแค่จุดเริ่ม",
+            "weigh": "ในอีกไม่กี่นาที หลังขั้นตอนแรกนี้ จะเฝ้าดูอาการแสดงอะไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starting **saline 1 L** while blood is prepared adds volume without waiting.",
-            "weigh": "While he is still bleeding, how much saline can go in before it thins his clotting?",
+            "weigh": "If his pulse and pressure turn the wrong way again, what is your next move?",
             "safety": ""
           },
           {
             "strength": "You keep TXA and transfer in the plan, so the source is still addressed.",
-            "weigh": "Could a full litre before blood leave him colder and bleeding more?",
+            "weigh": "How will you track how he is responding?",
             "safety": ""
           },
           {
             "strength": "Using what is on the shelf first avoids any gap in volume replacement.",
-            "weigh": "Should this litre be a ceiling rather than a starting dose?",
+            "weigh": "In the next few minutes, which signs will you watch after this first step?",
             "safety": ""
           }
         ]
@@ -1062,34 +1062,34 @@
         "th": [
           {
             "strength": "**โทรศัลยแพทย์** ตั้งแต่ตอนนี้ ทำให้ทีมผ่าตัดเริ่มเตรียมขณะเขายังอยู่ที่นี่",
-            "weigh": "ระหว่างที่โทรอยู่ อะไรกำลังรักษาภาวะช็อกของเขาตอนนี้",
+            "weigh": "ระหว่างประสานส่งต่อ เขายังต้องการอะไรจากคุณอีก",
             "safety": "ระหว่างประสานส่งต่อ ต้องมีคนกู้ชีพต่อเนื่อง ความดันที่ยังต่ำแปลว่าต้องให้เลือดเร็ว"
           },
           {
             "strength": "มองว่าการผ่าตัดคือสิ่งที่หยุดเลือดได้จริง จึงตั้งเป้าไปที่ศัลยแพทย์เร็ว",
-            "weigh": "การโทรอย่างเดียวช่วยคนที่ยังช็อกอยู่ได้แค่ไหน",
+            "weigh": "ถ้าชีพจรยังสูงระหว่างประสานส่งต่อ จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "เริ่มประสานส่งต่อเร็ว ตามแนวทางที่ส่งผู้บาดเจ็บหนักไปโรงพยาบาลที่ผ่าตัดได้",
-            "weigh": "ก่อนเขาออกจากห้องนี้ มีอะไรที่เริ่มได้ทันทีบ้าง",
+            "weigh": "ตัวเลขไหนในนาทีถัดไปจะบอกว่าเขายังอยู่ในภาวะอันตราย",
             "safety": "มอบหมายคนหนึ่งโทร อีกคนกู้ชีพ เพื่อให้การให้เลือดเกิดขึ้นพร้อมกัน"
           }
         ],
         "en": [
           {
             "strength": "Calling **the surgeon** now lets theatre start preparing while he is still here.",
-            "weigh": "While you are on the phone, what is treating his shock right now?",
+            "weigh": "While the referral is arranged, what does he still need from you?",
             "safety": "Someone must keep resuscitating during the call; a pressure that stays low needs red cells fast."
           },
           {
             "strength": "You see surgery as what truly stops this bleeding and aim him at a surgeon early.",
-            "weigh": "Does the call alone do anything for a man who is still in shock?",
+            "weigh": "If his pulse stays high as the referral is arranged, what then?",
             "safety": ""
           },
           {
             "strength": "Starting the referral early follows the habit of moving major trauma to a hospital that can operate.",
-            "weigh": "What can start in this room in the minutes before he leaves?",
+            "weigh": "Which numbers in the next minutes will tell you he is still in danger?",
             "safety": "Give one person the phone and another the resuscitation, so transfusion runs at the same time."
           }
         ]
@@ -1100,34 +1100,34 @@
         "th": [
           {
             "strength": "รู้ว่าอาจ**ตอบสนองแค่ชั่วคราว** จึงวัดถี่ ทำให้ตัวเลขที่ดีขึ้นกลายเป็นแนวโน้มที่เชื่อได้",
-            "weigh": "ความดันที่ดีขึ้นตอนนี้ แปลว่าเลือดหยุดแล้วจริงไหม",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "ถือว่าอาการที่ดีขึ้นยังไม่แน่นอน และเฝ้าดูใกล้ชิดระหว่างเตรียมส่งต่อ",
-            "weigh": "ความดันตกถึงเท่าไรจึงต้องลงมือ และใครเป็นคนลงมือ",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "วัด**ทุก 5 นาที** จับการเลือดออกซ้ำได้ก่อนผู้ป่วยทรุดลง",
-            "weigh": "ตัวเลขที่คงที่ ยังซ่อนการเสียเลือดที่ยังดำเนินอยู่ได้ไหม",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Seeing that he may be a **transient responder** turns a better number into a trend you can trust.",
-            "weigh": "Does a better pressure now mean the bleeding has really stopped?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You treat the improvement as provisional and watch closely as the transfer is arranged.",
-            "weigh": "What fall would make you act, and who is named to act on it?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Close observation **every 5 minutes** catches a fresh bleed early, before he collapses.",
-            "weigh": "Could a steady reading still hide ongoing loss?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1136,34 +1136,34 @@
         "th": [
           {
             "strength": "ใช้เกณฑ์ปัสสาวะ **0.5 มล./กก./ชม.** ขึ้นไป บอกได้ตรงว่าอวัยวะได้เลือดพอหรือไม่",
-            "weigh": "ผลภาพจะเปลี่ยนแผน หรือแค่ยืนยันสิ่งที่รักษาอยู่แล้ว",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "จับคู่การดูกายวิภาคกับตัวชี้วัดการไหลเวียน เป็นการประเมินการตอบสนองที่สมดุล",
-            "weigh": "ต้องเก็บปัสสาวะนานแค่ไหน ตัวเลขจึงเริ่มมีความหมาย",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "เชื่อมของเหลวในท้องกับเลือดที่ไปเลี้ยงไต บอกทั้งตำแหน่งและผลของการเสียเลือด",
-            "weigh": "น้ำในท้องที่เห็น บอกได้ไหมว่าเลือดออกเร็วแค่ไหน",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Using urine of **0.5 mL/kg/h** or more gives a direct read on whether his organs get enough.",
-            "weigh": "Would the scan change his plan, or only confirm a bleed you already treat?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You pair an anatomical look with a perfusion marker, a balanced way to judge his response.",
-            "weigh": "How long must you measure urine before the number means much?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Linking abdominal fluid to kidney perfusion tells you both where and how much he is losing.",
-            "weigh": "Does fluid on the scan tell you how fast he is bleeding?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1172,34 +1172,34 @@
         "th": [
           {
             "strength": "**ดามแขนซ้าย**ก่อนเดินทาง ช่วยปกป้องแขนและลดปวดระหว่างเคลื่อนย้าย",
-            "weigh": "ความดัน 94/62 ตอนนี้ อะไรกำหนดจังหวะ แขนหรือช่องท้อง",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "ไม่ลืมปลายแขนที่บาดเจ็บ ซึ่งมักถูกมองข้ามเมื่อทีมสนใจแต่เลือดออก",
-            "weigh": "ดามแขนไปพร้อมกับงานอื่นได้ไหม โดยไม่ต้องหยุดรอ",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "คลำชีพจรปลายแขนตอนนี้ ได้ค่าตั้งต้นไว้เทียบหากมีการเปลี่ยนแปลงระหว่างทาง",
-            "weigh": "ตอนนี้สิ่งที่คุกคามชีวิตเขาอยู่ตรงไหน",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Taking time to **splint the left arm** protects the limb and eases pain before the move.",
-            "weigh": "With BP 94/62, what still sets the pace: the arm or the abdomen?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You remember the injured forearm, easily missed while the bleeding takes all the attention.",
-            "weigh": "Can the splint go on while the rest of his care carries on?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Feeling the forearm pulse now records a baseline before any change on the road.",
-            "weigh": "Where does the threat to his life lie right now?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1208,34 +1208,34 @@
         "th": [
           {
             "strength": "ต้องการ**ตัวเลขไว้ติดตาม** แสดงว่าคิดถึงแนวโน้ม ไม่ใช่ภาพครั้งเดียว",
-            "weigh": "ฮีโมโกลบินที่เจาะตอนนี้ ตามทันเลือดที่เสียไปแล้วไหม",
+            "weigh": "ถ้าปลายทางรับตัวแล้วเขายังช็อกอยู่ จะส่งตัวเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "พยายามวัดการเสียเลือดให้เป็นรูปธรรม แทนการอาศัยความรู้สึกอย่างเดียว",
-            "weigh": "หลังให้เลือดแล้ว ค่านี้สะท้อนเลือดที่เสีย หรือเลือดที่เพิ่งให้",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "เพิ่มตัวชี้วัดจากห้องปฏิบัติการ ควบคู่กับภาพข้างเตียง",
-            "weigh": "ตอนนี้อะไรบอกได้มากกว่า ผลเลือดครั้งเดียว หรือชีพจรกับความดัน",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wanting a **number to track** the loss shows you are thinking about trend, not one snapshot.",
-            "weigh": "Would a haemoglobin taken now have caught up with what he has lost?",
+            "weigh": "If he is still in shock when accepted, how will you send him?",
             "safety": ""
           },
           {
             "strength": "You aim to quantify the loss objectively rather than rely on impression alone.",
-            "weigh": "After transfusion, does this value show his loss or what he was given?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Tracking a lab value adds an objective marker alongside the clinical picture.",
-            "weigh": "Which tells you more right now: one lab value, or his pulse and pressure?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1246,34 +1246,34 @@
         "th": [
           {
             "strength": "อ่านการตอบสนองต่อเลือด**แค่ชั่วคราว**ว่าเลือดยังออกอยู่ แล้วเร่งส่งต่อไปผ่าตัด",
-            "weigh": "เลือดแต่ละถุงซื้อเวลาให้เขาได้อีกกี่นาที",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "รู้ว่าเป็นการตอบสนองชั่วคราว และมุ่งไปหาศัลยแพทย์ทันที",
-            "weigh": "ดีขึ้นแป๊บเดียวแล้วทรุดลงอีก บอกอะไรเรื่องความเร็วของเลือดที่ออก",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "เชื่อมการทรุดลงซ้ำกับเลือดที่ยังออก ทำให้เป้าหมายอยู่ที่การหยุดเลือด",
-            "weigh": "มีงานไหนที่ตัดออกได้ เพื่อให้ส่งต่อได้เร็วขึ้น",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reading a **transient response** to blood as ongoing bleeding and speeding the transfer fits what he shows.",
-            "weigh": "How many more minutes does each unit really buy him?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You recognise a transient response and move toward a surgeon at once.",
-            "weigh": "What does a brief improvement and then a relapse say about how fast he bleeds?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Linking the relapse to ongoing bleeding keeps the focus on stopping it.",
-            "weigh": "Which task could you drop so the transfer goes sooner?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1282,34 +1282,34 @@
         "th": [
           {
             "strength": "ให้**แค่เลือด** หลีกเลี่ยงการเจือจางปัจจัยการแข็งตัวที่เขายังมีอยู่",
-            "weigh": "ถ้าต้องให้เลือดเพิ่มเรื่อย ๆ จึงจะคงตัวบนไว้ที่ 90 แปลว่าอะไร",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "กู้ชีพตามเป้าความดัน ลดโอกาสที่ความดันสูงจะดันลิ่มเลือดหลุดจากจุดที่เลือดออก",
-            "weigh": "เป้าความดันประคองเขาไว้ได้ แต่อะไรจะหยุดเลือดนี้ได้จริง",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "ให้เลือดอย่างเดียวพร้อมเป้าชัด ทำให้ทุกถุงมุ่งไปที่การไหลเวียน",
-            "weigh": "ถ้าเขาซึมลง ยังจะใช้เป้า 90 อยู่ไหม",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Giving **blood only** avoids diluting the clotting factors he still has.",
-            "weigh": "If he holds 90 only with more and more units, what does that tell you?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You resuscitate to a set pressure, which limits pushing clot off a bleeding vessel.",
-            "weigh": "The target holds him, but what will actually stop this bleeding?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Choosing **blood only** with a clear target makes each unit count toward perfusion.",
-            "weigh": "Would you keep a target of 90 if his alertness fell?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1318,34 +1318,34 @@
         "th": [
           {
             "strength": "ทำ**FAST ข้างเตียง**ตอนนี้ ดูว่ามีของเหลวในท้องหรือไม่ขณะอาการไม่คงที่",
-            "weigh": "ถ้าเห็นน้ำในท้อง จะได้อะไรเพิ่มจากที่สัญญาณชีพบอกอยู่แล้ว",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "ต้องการภาพในช่องท้องที่เป็นรูปธรรม ณ เวลาที่อาการยังไม่นิ่ง",
-            "weigh": "ภาพอัลตราซาวด์บอกความเร็วของเลือดที่ออกได้ไหม",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "ตรวจข้างเตียง ผู้ป่วยไม่ต้องออกนอกห้องขณะเก็บหลักฐานเพิ่ม",
-            "weigh": "เขามีเวลาพอให้ทำการตรวจนี้หรือเปล่า",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside FAST** now shows whether there is abdominal fluid while he stays unstable.",
-            "weigh": "What would fluid on the scan add to what his vital signs already show?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You seek an objective look inside the abdomen at the moment he is unsettled.",
-            "weigh": "Can the scan show how fast he is bleeding?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Imaging at the bedside keeps him in the room while you gather evidence.",
-            "weigh": "Does he have the minutes this scan will take?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1354,34 +1354,34 @@
         "th": [
           {
             "strength": "ต้องการ**ตัวเลขไว้ติดตาม**การเสียเลือด แสดงว่าให้ค่ากับข้อมูลที่เป็นรูปธรรม",
-            "weigh": "ถ้าฮีโมโกลบินออกมาใกล้ปกติ แปลว่าเลือดหยุดแล้วหรือ",
+            "weigh": "ถ้าปลายทางรับตัวแล้วเขายังช็อกอยู่ จะส่งตัวเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "พยายามบอกการเสียเลือดเป็นตัวเลข แทนการอาศัยความรู้สึก",
-            "weigh": "ผลแล็บจะออกทันก่อนที่ต้องตัดสินใจไหม",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
-            "weigh": "หลังให้เลือดแล้ว ค่าเดียวนี้แยกได้ไหมว่าส่วนไหนคือที่ได้รับ ส่วนไหนคือที่เสีย",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wanting a **number to track** the loss shows you value objective data.",
-            "weigh": "Would a near-normal haemoglobin now mean the bleeding has stopped?",
+            "weigh": "If he is still in shock when accepted, how will you send him?",
             "safety": ""
           },
           {
             "strength": "You aim to put a figure on the loss rather than rely on impression.",
-            "weigh": "Will the lab result arrive before you must decide?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
-            "weigh": "After transfusion, can one value separate what he received from what he lost?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1392,34 +1392,34 @@
         "th": [
           {
             "strength": "อ่านภาพ**ยังช็อกอยู่**ว่าเลือดยังออก จึงให้เลือด TXA และให้ศัลยแพทย์เป็นแกนของแผน",
-            "weigh": "",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "ยอมรับว่าเลือดเป็นเพียงสะพาน แล้วพาเขาไปหาศัลยแพทย์ที่หยุดเลือดได้",
-            "weigh": "",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "ให้เลือดและ TXA คู่กับการส่งต่อที่เร็วขึ้น แก้ทั้งปริมาตรและต้นเหตุ",
-            "weigh": "",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Reading **still in shock** as ongoing bleeding puts blood, TXA and a surgeon at the centre of the plan.",
-            "weigh": "",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You accept that blood is a bridge and move him toward the surgeon who can stop it.",
-            "weigh": "",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Matching blood and TXA with a faster move addresses both his volume and the cause.",
-            "weigh": "",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1428,34 +1428,34 @@
         "th": [
           {
             "strength": "ทำ**FAST ข้างเตียง**ตอนนี้ ดูว่ามีของเหลวในท้องหรือไม่ขณะอาการไม่คงที่",
-            "weigh": "ถ้าเห็นน้ำในท้อง จะได้อะไรเพิ่มจากที่สัญญาณชีพบอกอยู่แล้ว",
+            "weigh": "เมื่อปลายทางรับตัวแล้ว ต้องจัดการอะไรให้เรียบร้อยก่อนรถออก",
             "safety": ""
           },
           {
             "strength": "ให้ TXA และต้องการภาพในช่องท้องที่เป็นรูปธรรม ณ เวลาที่อาการยังไม่นิ่ง",
-            "weigh": "ภาพอัลตราซาวด์บอกความเร็วของเลือดที่ออกได้ไหม",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "ตรวจข้างเตียง ผู้ป่วยไม่ต้องออกนอกห้องขณะเก็บหลักฐานเพิ่ม",
-            "weigh": "เขามีเวลาพอให้ทำการตรวจนี้หรือเปล่า",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "A **bedside FAST** now shows whether there is abdominal fluid while he stays unstable.",
-            "weigh": "What would fluid on the scan add to what his vital signs already show?",
+            "weigh": "Once he is accepted, what must you settle before the ambulance leaves?",
             "safety": ""
           },
           {
             "strength": "You give TXA and seek an objective look inside the abdomen while he is unsettled.",
-            "weigh": "Can the scan show how fast he is bleeding?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Imaging at the bedside keeps him in the room while you gather evidence.",
-            "weigh": "Does he have the minutes this scan will take?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1464,34 +1464,34 @@
         "th": [
           {
             "strength": "ต้องการ**ตัวเลขไว้ติดตาม**การเสียเลือด แสดงว่าให้ค่ากับข้อมูลที่เป็นรูปธรรม",
-            "weigh": "ถ้าฮีโมโกลบินออกมาใกล้ปกติ แปลว่าเลือดหยุดแล้วหรือ",
+            "weigh": "ถ้าปลายทางรับตัวแล้วเขายังช็อกอยู่ จะส่งตัวเขาอย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ TXA และบอกการเสียเลือดเป็นตัวเลข แทนการอาศัยความรู้สึก",
-            "weigh": "ผลแล็บจะออกทันก่อนที่ต้องตัดสินใจไหม",
+            "weigh": "อะไรจะทำให้การเดินทางครั้งนี้ปลอดภัยสำหรับเขา",
             "safety": ""
           },
           {
             "strength": "ติดตามการเสียเลือดด้วยผลแล็บ เป็นบันทึกให้ทีมที่ดูแลต่อ",
-            "weigh": "ค่าครั้งเดียวบอกได้ไหมว่าเขากำลังเสียเลือดเร็วแค่ไหน",
+            "weigh": "ระหว่างเดินทางส่งต่อ ต้องมีอะไรพร้อมบนรถพยาบาลไปกับเขา",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Wanting a **number to track** the loss shows you value objective data.",
-            "weigh": "Would a near-normal haemoglobin now mean the bleeding has stopped?",
+            "weigh": "If he is still in shock when accepted, how will you send him?",
             "safety": ""
           },
           {
             "strength": "You give TXA and put a figure on the loss rather than rely on impression.",
-            "weigh": "Will the lab result arrive before you must decide?",
+            "weigh": "What will make the journey safe for him?",
             "safety": ""
           },
           {
             "strength": "Tracking the blood loss by a lab value adds a record for the team that follows.",
-            "weigh": "Can one value show how fast he is losing?",
+            "weigh": "For the journey itself, what must be ready in the ambulance with him?",
             "safety": ""
           }
         ]
@@ -1937,10 +1937,10 @@
     }
   },
   "safety_review": {
-    "model": "claude-opus-5-5",
-    "date": "2026-11-25",
-    "findings": "A fresh non-author reviewer, claude-opus-5-5, read every weigh line in all 13 banks on 2026-11-25 after the reply format B rewrite (weigh as a คิดต่อ / Next thought question), in all three alternatives, Thai and English, against every question variant and every path into each bank. A script comparing the file with HEAD confirmed that strength and safety, the keys and their order are byte-identical to the bank reviewed on 2026-11-17; only weigh changed. Blanked options: step4.W b only (best tier, blank in all alternatives in both languages); its strength lines already carry blood as a bridge to the surgeon, and the old weigh points left were either the TXA dose (numbers no variant or option shows) or en-route blood and monitoring, which would preview step5 a, so the blank is accepted. Must-fixes applied (Thai only; the English already said this): step2.B, step2.R and step2.W b alternative 1 Thai, \"before the bleeding stops\" → \"before the bleeding is controlled\" (ก่อนเลือดจะหยุด → กว่าจะคุมเลือดที่ออกได้), so it matches the English \"How many units might he need before the bleeding is controlled?\"; step2.B and step2.R a alternative 2 Thai, \"Who did it\" → \"Who is scanning\" (ใครเป็นคนทำ → ใครเป็นคนตรวจ), which drops an accusatory reading and matches \"Who is scanning, and could a small early collection slip past them?\". Clinical judgments: removing the TXA dose figures from step3 a (\"After the first TXA dose, is the slower second dose set up?\") and \"within 3 hours\" from step3 e (\"What can start in this room in the minutes before he leaves?\") is correct, since neither number is shown to the visitor there and step3 e must not name the blood and TXA option; the new step2 b crossmatch question on how many units he may need is a fair anticipation of transfusion demand at a community hospital, and the step2 CBC \"dilution\" and step4.R a \"which task could you drop\" questions stay on the visitor's own answer (step4.R a's own label is to hasten the transfer) and name no later option. The step3 b drowsiness question correctly flags that a permissive systolic near 90 does not fit a falling level of consciousness, and no line nudges toward delaying blood, surgery or transfer. Tree sha256 06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a. Replies sha256 2e4d27b1b0081c11f2ff8cd6aae739832b1fb92bbc914f0645a43ecbd658f9b8.",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-26",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: \"bedside\", \"where he is bleeding\" and \"while blood goes in\" in step1 lines echoed or pointed at the FAST option or added a fact, now ask which first tests matter most while you resuscitate; \"what must the lab prepare\" described the crossmatch option; English \"his loss\" did not match Thai \"blood\"; \"an hour after the crash\" showed a fact only one variant has, and \"still on the clock\" echoed the TXA-within-3-hours lines; step2 \"who do you call\" then \"if his condition gets worse\" nudged toward waiting while he is already in shock, now \"Whatever the first test shows, what will you do first for his shock?\"; step4 \"who and what must travel\", \"what decides how fast he leaves\" and \"receiving team\" mapped onto the step 5 options, now ask what to settle before the ambulance leaves, how to send him, and what makes the journey safe. Should-fixes taken: \"bleeding has truly stopped\", \"staying stable\" on deteriorating paths, and \"first response is not holding\", which restated the next best line. Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 123 read, 18 failed: step2 \"if the films are clear and his BP falls\" and \"if the first tests come back normal\" lines deferred treating shock already present, now \"Whatever ... what will you do first for his shock?\", and step4 [2] \"if he worsens on the road\"; the confirm pass made the Thai \"ระหว่างเดินทางส่งต่อ\" and took the \"unstable\" wording off step4.B.d, where he is calmer. Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a. Replies sha256 a512103783ad54c906882c1b6a12d3323fa0a4055094b136b0f0a3a6381239e7.",
     "tree_sha256": "06e8f90a9e5d8739a41d688504cefd5e1e4a9a7b750e4cfc68e174ddd26eac1a",
-    "replies_sha256": "2e4d27b1b0081c11f2ff8cd6aae739832b1fb92bbc914f0645a43ecbd658f9b8"
+    "replies_sha256": "a512103783ad54c906882c1b6a12d3323fa0a4055094b136b0f0a3a6381239e7"
   }
 }

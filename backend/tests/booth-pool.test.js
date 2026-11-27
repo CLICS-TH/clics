@@ -112,12 +112,12 @@ describe('the event pool holds one step count', () => {
   // #497: ten cases passed the re-check on a table bound to their tree and carry a sandbox pass or owner waiver bound
   // to it, so they are admitted. copd's table (run ptb-202611180804-ca37, after its fourth fix round) failed its
   // re-check, so it is not.
-  const FAILED = ['copd-exacerbation'];
+  const FAILED = ['copd-exacerbation', 'dka-young-adult', 'organophosphate'];
   test('NFCME-2026 admits the five-step cases whose table passed its re-check, and only those (#497)', () => {
     const files = readEventFiles(path.join(__dirname, '../src/booth-cases'), 'NFCME-2026');
     const pool = eventPool('NFCME-2026', files);
-    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'dka-young-adult', 'ectopic-rupture',
-      'leptospirosis', 'melioidosis-farmer', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+    expect(ids(pool).sort()).toEqual(['adhf', 'alcohol-pancreatitis', 'ectopic-rupture',
+      'leptospirosis', 'melioidosis-farmer', 'motorcycle-shock', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
     expect(pool.left.map((l) => [l.name, l.why]).sort()).toEqual(FAILED.map((id) => [`${id}.json`, 'is not admitted']));
     expect(files.filter(({ raw }) => !raw.path_score_table).map(({ raw }) => raw.case_id)).toEqual([]);
     for (const { raw } of files.filter(({ raw }) => raw.path_score_table)) {

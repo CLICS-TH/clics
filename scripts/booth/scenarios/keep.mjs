@@ -4,6 +4,13 @@ import { readRadar, checkRadar } from '../radar-check.mjs';
 
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+/** Admitted, as far as this needs: its table is checked or waived for its own run, and it has a sandbox record or waiver.
+ *  (The booth job has no backend dependencies; the backend job's step-text.mjs check holds the full rule, ADR 0005.) */
+const isAdmitted = (t) => {
+  const a = t.admission;
+  const run = t.path_score_table?.provenance?.run_id;
+  return Boolean(a && run && (a.sandbox || a.owner_waiver) && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
+};
 const STEPS = fileURLToPath(new URL('../../../physician-ui/public/booth-steps/', import.meta.url));
 const js = (name) => fileURLToPath(new URL(`../../../physician-ui/public/js/${name}`, import.meta.url));
 
@@ -190,10 +197,11 @@ export default [
     name: 'result page at 320px for every admitted case from an r2 link: each step\'s longest question and options fit',
     async run(h) {
       const admitted = new Set((await readdir(STEPS)).filter((f) => f.endsWith('.js')).map((f) => f.replace(/\.js$/, '')));
-      const trees = (await h.caseTrees()).filter(([f, t]) => !f.includes('versions/') && admitted.has(`${t.case_id}@${t.version}`));
-      // Step text of an earlier version stays for the result links already handed out, so count cases, not files.
-      const cases = new Set([...admitted].map((k) => k.split('@')[0]));
-      h.check(trees.length === cases.size, `${trees.length} of ${cases.size} cases with step text have it for their current version (${[...admitted].join(', ')})`);
+      // Step text of an earlier version, and of a retired case, stays for the result links already handed out, so the
+      // check is that every admitted case has it for its current version.
+      const live = (await h.caseTrees()).filter(([f, t]) => !f.includes('versions/') && isAdmitted(t));
+      const trees = live.filter(([, t]) => admitted.has(`${t.case_id}@${t.version}`));
+      h.check(live.length > 0 && trees.length === live.length, `${trees.length} of ${live.length} admitted cases have step text for their current version (missing: ${live.filter(([, t]) => !admitted.has(`${t.case_id}@${t.version}`)).map(([, t]) => `${t.case_id}@${t.version}`).join(', ') || 'none'})`);
       // A Thai line breaks only between phrases, so rank by each text's longest phrase: that is what must fit a line.
       const len = (b) => Math.max(...b.th.split(/ +/).map((ph) => ph.length));
       const p = await h.phone(RESULT_PATH, { width: 320, height: 640 });

@@ -6,34 +6,34 @@
         "th": [
           {
             "strength": "ระบุทั้งสาเหตุและภาวะ**ขาดน้ำ** ซึ่งเป็นสิ่งที่กำหนดการรักษา",
-            "weigh": "ถ้าไข้ 38.2 °C สูงขึ้นเรื่อย ๆ ลำไส้ติดเชื้อธรรมดายังอธิบายได้ไหม",
+            "weigh": "ต้องรู้อะไรเกี่ยวกับเธอเป็นอย่างแรก",
             "safety": ""
           },
           {
             "strength": "เชื่อมถ่ายเป็นน้ำและอาเจียนเข้ากับ**ลำไส้ติดเชื้อ** ซึ่งพบบ่อยในวัยนี้",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ข้อนี้มีผลต่อการรักษาอย่างไร",
+            "weigh": "ต้องหาอะไรเป็นอย่างแรกเพื่อวางแผนการรักษา",
             "safety": ""
           },
           {
             "strength": "อ่านตาโหลว่าเป็นสัญญาณของการเสียน้ำ ไม่ใช่แค่การติดเชื้อ",
-            "weigh": "มีอาการอะไรบ้างที่ถ้าเจอเพิ่ม จะทำให้ต้องคิดถึงโรคอื่นนอกจากลำไส้ติดเชื้อ",
+            "weigh": "ต้องรู้อะไรเกี่ยวกับเธอก่อนจึงเลือกการรักษาที่เหมาะสมได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Names both the cause and the **dehydrated** state, which drives the plan.",
-            "weigh": "If her fever of 38.2 °C kept climbing, would a simple gut infection still explain it?",
+            "weigh": "What do you need to find out about her first?",
             "safety": ""
           },
           {
             "strength": "Ties watery stools and vomiting to a **gut infection**, the common cause at this age.",
-            "weigh": "Her stools have no blood or mucus: how does that shape her treatment?",
+            "weigh": "What must you work out first to plan her treatment?",
             "safety": ""
           },
           {
             "strength": "Reads sunken eyes as a sign of fluid loss, not only infection.",
-            "weigh": "Which findings, if they appeared, would make you think beyond a gut infection?",
+            "weigh": "What must you know about her before you can choose the right treatment?",
             "safety": ""
           }
         ]
@@ -42,34 +42,34 @@
         "th": [
           {
             "strength": "จัดระดับการขาดน้ำจาก**ตาโหล กระหายน้ำ** และหนังคืนช้า ตามแนวทาง WHO",
-            "weigh": "ชีพจร 140 ในเด็กที่มีไข้ เป็นผลจากไข้เท่าไร จากการเสียน้ำเท่าไร",
+            "weigh": "ต้องรู้อะไรเกี่ยวกับเธอเป็นอย่างแรก",
             "safety": ""
           },
           {
             "strength": "บอกระดับการขาดน้ำ ซึ่งเป็นตัวกำหนดปริมาณน้ำที่ต้องให้",
-            "weigh": "เด็กยังดื่มน้ำเก่ง capillary refill 2 วินาที มีอะไรบอกว่าใกล้ขาดน้ำรุนแรงไหม",
+            "weigh": "ต้องหาอะไรเป็นอย่างแรกเพื่อวางแผนการรักษา",
             "safety": ""
           },
           {
             "strength": "ใช้อาการข้างเตียงที่พยาบาลตรวจซ้ำได้ มาจัดระดับการขาดน้ำ",
-            "weigh": "นอกจากระดับการขาดน้ำแล้ว อะไรเป็นสาเหตุของการถ่ายเป็นน้ำครั้งนี้",
+            "weigh": "ต้องรู้อะไรเกี่ยวกับเธอก่อนจึงเลือกการรักษาที่เหมาะสมได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Grades fluid loss from **sunken eyes, thirst** and a slow pinch, as WHO teaches.",
-            "weigh": "How much of her pulse of 140 comes from the fever rather than from lost fluid?",
+            "weigh": "What do you need to find out about her first?",
             "safety": ""
           },
           {
             "strength": "Puts a degree on the dehydration, which sets the volume of fluid.",
-            "weigh": "She drinks eagerly and her capillary refill is 2 seconds: does anything suggest she is nearer severe?",
+            "weigh": "What must you work out first to plan her treatment?",
             "safety": ""
           },
           {
             "strength": "Uses bedside signs a nurse can repeat to grade fluid loss.",
-            "weigh": "Beyond how dry she is, what is causing the watery stools?",
+            "weigh": "What must you know about her before you can choose the right treatment?",
             "safety": ""
           }
         ]
@@ -78,34 +78,34 @@
         "th": [
           {
             "strength": "รู้ว่า**โรตาไวรัส**และโนโรไวรัสเป็นสาเหตุหลักของท้องร่วงในวัยนี้",
-            "weigh": "ตาโหลกับกระหายน้ำ บอกอะไรที่คำว่าไวรัสยังไม่ได้บอก",
+            "weigh": "เมื่อบอกสาเหตุแล้ว จะตรวจอะไรก่อนเพื่อวางแผนให้น้ำ",
             "safety": ""
           },
           {
             "strength": "ระบุสาเหตุจากไวรัส ซึ่งเข้ากับถ่ายเป็นน้ำที่ไม่มีมูกเลือด",
-            "weigh": "วันนี้อะไรสำคัญกว่ากัน ชื่อเชื้อ หรือสภาพของเด็กตรงหน้า",
+            "weigh": "ต้องรู้อะไรเกี่ยวกับเธอก่อนจึงเลือกการรักษาที่เหมาะสมได้",
             "safety": ""
           },
           {
             "strength": "ใช้ระบาดวิทยาตามวัยมาบอกสาเหตุที่น่าจะเป็น",
-            "weigh": "ถ้าเป็นไวรัสจริง หนังหน้าท้องที่คืนกลับช้าบอกอะไรเพิ่ม",
+            "weigh": "วันนี้ต้องประเมินอะไรก่อนวางแผนการรักษาเธอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Knows that **rotavirus** and norovirus lead the causes of diarrhoea at this age.",
-            "weigh": "What do her sunken eyes and thirst say that a viral label leaves out?",
+            "weigh": "With the cause named, what would you check first to plan her fluids?",
             "safety": ""
           },
           {
             "strength": "Identifies a viral cause, which fits watery stools without blood.",
-            "weigh": "Today, which matters more: the name of the germ, or the state she is in?",
+            "weigh": "What must you know about her before you can choose the right treatment?",
             "safety": ""
           },
           {
             "strength": "Uses age-specific epidemiology to name the likely cause.",
-            "weigh": "Even if it is viral, what does her slow skin pinch add?",
+            "weigh": "What must you assess today before planning her care?",
             "safety": ""
           }
         ]
@@ -114,34 +114,34 @@
         "th": [
           {
             "strength": "นึกได้ว่าไข้และอาเจียนในเด็กเล็กอาจมาจาก**ทางเดินปัสสาวะ**",
-            "weigh": "ไข้กับอาเจียนเข้ากับทางเดินปัสสาวะได้ แต่ลำไส้ติดเชื้อก็อธิบายได้เหมือนกันไม่ใช่หรือ",
+            "weigh": "ถ้าท้องนุ่มและคลำไม่พบก้อน จะตรวจอะไรเป็นอย่างแรก",
             "safety": ""
           },
           {
             "strength": "ยังคงโรคติดเชื้อที่พบบ่อยและพลาดง่ายในเด็กเล็กไว้ในรายการ",
-            "weigh": "ไม่ว่าสาเหตุคืออะไร ตาโหลกับกระหายน้ำกำลังบอกอะไรเรา",
+            "weigh": "ตาโหลและกระหายน้ำ บอกว่าควรประเมินอะไรก่อน",
             "safety": ""
           },
           {
             "strength": "ไม่ยึดติดกับอาการถ่ายเหลวอย่างเดียวเมื่อเด็กเล็กมีไข้",
-            "weigh": "ถ่ายเป็นน้ำวันละ 8 ครั้ง ทางเดินปัสสาวะติดเชื้ออธิบายได้ไหม",
+            "weigh": "ไม่ว่าสาเหตุจะเป็นอะไร จะตรวจอะไรก่อนเพื่อวางแผนให้น้ำ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Remembers that fever and vomiting in a toddler can hide a **urinary infection**.",
-            "weigh": "Fever and vomiting fit a urinary infection, but don't they fit a gut infection as well?",
+            "weigh": "If her abdomen is soft with no mass, what would you check first?",
             "safety": ""
           },
           {
             "strength": "Keeps a common, easily missed toddler infection on the list.",
-            "weigh": "Whatever the cause, what are her sunken eyes and thirst telling you?",
+            "weigh": "Sunken eyes and thirst: what do they tell you to find out first?",
             "safety": ""
           },
           {
             "strength": "Avoids anchoring on the watery stools alone when a toddler has fever.",
-            "weigh": "Would a urinary infection explain eight watery stools a day?",
+            "weigh": "Whatever the cause, what would you check first to plan her fluids?",
             "safety": ""
           }
         ]
@@ -150,34 +150,34 @@
         "th": [
           {
             "strength": "นึกถึงภาวะฉุกเฉินทางศัลยกรรมของวัยนี้ เมื่อเด็กเล็กอาเจียน",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ร่วมกับไข้ เป็นภาพที่เจอบ่อยของลำไส้กลืนกันไหม",
+            "weigh": "ถ้าท้องนุ่มและคลำไม่พบก้อน จะตรวจอะไรเป็นอย่างแรก",
             "safety": ""
           },
           {
             "strength": "นึกถึง**ลำไส้กลืนกัน** ซึ่งเป็นโรคที่พลาดไม่ได้ในวัยนี้",
-            "weigh": "ถ่ายเป็นน้ำวันละ 8 ครั้งมา 2 วัน ทำให้โอกาสเป็นโรคนี้มากขึ้นหรือน้อยลง",
+            "weigh": "ตาโหลและกระหายน้ำ บอกว่าควรประเมินอะไรก่อน",
             "safety": ""
           },
           {
             "strength": "ให้ความสำคัญกับอาการอาเจียน ไม่ด่วนสรุปว่าเป็นเรื่องธรรมดา",
-            "weigh": "มีร้องกวนเป็นพัก ๆ ชันขา หรือถ่ายเป็นเลือดไหม ถ้าไม่มี ยังคิดถึงโรคนี้อยู่หรือเปล่า",
+            "weigh": "ไม่ว่าสาเหตุจะเป็นอะไร จะตรวจอะไรก่อนเพื่อวางแผนให้น้ำ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps a surgical emergency of this age in mind when a toddler vomits.",
-            "weigh": "Are watery stools without blood, with fever, the usual picture of intussusception?",
+            "weigh": "If her abdomen is soft with no mass, what would you check first?",
             "safety": ""
           },
           {
             "strength": "Thinks of **intussusception**, a diagnosis that must not be missed at this age.",
-            "weigh": "Do 2 days of eight watery stools a day make it more likely or less?",
+            "weigh": "Sunken eyes and thirst: what do they tell you to find out first?",
             "safety": ""
           },
           {
             "strength": "Takes vomiting seriously rather than assuming a simple cause.",
-            "weigh": "Has she had bouts of crying, drawn-up legs or bloody stools? If not, does it still fit?",
+            "weigh": "Whatever the cause, what would you check first to plan her fluids?",
             "safety": ""
           }
         ]
@@ -188,34 +188,34 @@
         "th": [
           {
             "strength": "จัดระดับการขาดน้ำข้างเตียง และใช้น้ำหนักคำนวณ**ปริมาณ ORS**",
-            "weigh": "ในเด็กผอมมากหรืออ้วน เชื่อหนังหน้าท้องอย่างเดียวได้ไหม",
+            "weigh": "เมื่อประเมินระดับแล้ว เธอต้องได้น้ำเท่าไร และให้ทางไหน",
             "safety": ""
           },
           {
             "strength": "ใช้อาการข้างเตียงที่ทำได้ทันที วางแผนได้ภายในไม่กี่นาที",
-            "weigh": "จะจดอาการข้อไหนไว้ตอนนี้ เพื่อให้การประเมินครั้งต่อไปมีตัวเทียบ",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "**ชั่งน้ำหนัก** เพื่อให้ปริมาณ ORS พอดีกับเด็ก 10 กก.",
-            "weigh": "ชั่งตอนยังใส่เสื้อผ้ากับผ้าอ้อมเปียก น้ำหนักจะคลาดไปแค่ไหน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Grades fluid loss at the bedside and turns weight into an **ORS volume**.",
-            "weigh": "In a very thin or plump child, can you trust the skin pinch on its own?",
+            "weigh": "Once she is graded, how much fluid will she need, and by which route?",
             "safety": ""
           },
           {
             "strength": "Uses free, immediate bedside signs that set the plan within minutes.",
-            "weigh": "Which signs will you write down now, so the next assessment has something to compare?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Weighs her, so the **ORS volume** fits a 10 kg child exactly.",
-            "weigh": "How far off would her weight be with clothes and a wet nappy still on?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -224,34 +224,34 @@
         "th": [
           {
             "strength": "ใช้**ปริมาณปัสสาวะ**ร่วมกับอาการข้างเตียงจัดระดับการขาดน้ำ",
-            "weigh": "ปัสสาวะในผ้าอ้อมวัดยาก จะนับผ้าอ้อมเปียกอย่างไรให้เชื่อได้",
+            "weigh": "เมื่อประเมินระดับแล้ว เธอต้องได้น้ำเท่าไร และให้ทางไหน",
             "safety": ""
           },
           {
             "strength": "วางวิธีติดตามการตอบสนองต่อ ORS ไว้ตั้งแต่แรก",
-            "weigh": "จำนวนผ้าอ้อมเปียกที่แม่เล่า ควรใช้นำการจัดระดับ หรือแค่ใช้เสริม",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้อาการที่แม่สังเกตได้เองและตรวจซ้ำง่าย",
-            "weigh": "เมื่อไรจึงคุ้มที่จะชั่งผ้าอ้อมแห้งเทียบกับผ้าอ้อมเปียก",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Combines **urine output** with bedside signs to grade fluid loss.",
-            "weigh": "Urine in nappies is hard to measure: how will you tally wet nappies so the tally holds?",
+            "weigh": "Once she is graded, how much fluid will she need, and by which route?",
             "safety": ""
           },
           {
             "strength": "Builds in a measure that can track her response once ORS starts.",
-            "weigh": "Should the mother's tally of wet nappies lead the grading, or only back it up?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Uses signs a mother can see herself and that are easy to recheck.",
-            "weigh": "When would weighing a dry nappy against a wet one be worth the effort?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -260,34 +260,34 @@
         "th": [
           {
             "strength": "มองหาปัญหาโซเดียมและไตที่การขาดน้ำอาจพามา",
-            "weigh": "แนวทางของไทยแนะนำตรวจนี้เมื่อขาดน้ำรุนแรงหรืออาการไม่ตรงแบบ เด็กคนนี้เข้าเกณฑ์ไหม",
+            "weigh": "ถ้าผลตรวจกลับมาปกติ แผนการให้น้ำของเธอจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ตรวจ**ครีเอตินีน**และโซเดียม ดูว่าไตรับมือได้แค่ไหน",
-            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำได้ยาก ผลที่ได้จะเปลี่ยนการให้น้ำตรงไหน",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "คิดไปไกลกว่าปริมาตรน้ำ ถึงเกลือแร่ที่เสียไปทางอุจจาระ",
-            "weigh": "การให้น้ำต้องรอผลนี้ไหม",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for sodium and kidney problems that fluid loss can bring.",
-            "weigh": "Thai guidance keeps these for severe fluid loss or an unusual course: does she meet that bar?",
+            "weigh": "If the results come back normal, what will her fluid plan be?",
             "safety": ""
           },
           {
             "strength": "Adds **creatinine** and sodium to see how her kidneys are coping.",
-            "weigh": "A blood draw in a thirsty toddler is hard: where would the result change her care?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Thinks beyond volume to the salts lost in watery stools.",
-            "weigh": "Does her rehydration need to wait for these results?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -296,34 +296,34 @@
         "th": [
           {
             "strength": "จับน้ำตาลต่ำได้เร็วด้วยการ**เจาะปลายนิ้ว**",
-            "weigh": "เด็กงอแงและดื่มน้ำอย่างกระหาย เข้ากับน้ำตาลต่ำไหม",
+            "weigh": "ถ้าผลตรวจกลับมาปกติ แผนการให้น้ำของเธอจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "นึกได้ว่า**เด็กที่อาเจียน**อาจมีน้ำตาลต่ำ",
-            "weigh": "ถ้าเด็กเริ่มซึมหรือไม่ยอมดื่ม ผลนี้จะสำคัญขึ้นไหม",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้การตรวจที่ทำง่าย ราคาไม่แพง รู้ผลในไม่กี่วินาที",
-            "weigh": "ถ้าน้ำตาลปกติ ยังเหลืออะไรที่ต้องประเมินก่อนวางแผน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Catches low sugar fast with a simple **fingerprick**.",
-            "weigh": "She is irritable and drinks eagerly: does that fit low sugar?",
+            "weigh": "If the results come back normal, what will her fluid plan be?",
             "safety": ""
           },
           {
             "strength": "Remembers that a **vomiting toddler** can run low on sugar.",
-            "weigh": "Would this result matter more if she became drowsy or refused to drink?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Uses a quick, cheap test with an answer in seconds.",
-            "weigh": "If her sugar is normal, what is still left to assess before you plan?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -332,34 +332,34 @@
         "th": [
           {
             "strength": "มองหาเชื้อ**แบคทีเรียหรือพยาธิ**ที่อาจเปลี่ยนการรักษา",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อจะเปลี่ยนการดูแลเด็กคนนี้ไหม",
+            "weigh": "ถ้าผลตรวจไม่ได้ช่วยมากนัก อะไรจะเป็นตัวกำหนดการให้น้ำ",
             "safety": ""
           },
           {
             "strength": "คิดถึงสาเหตุของอาการถ่ายเหลว ไม่ใช่แค่ผลที่ตามมา",
-            "weigh": "ตอนนี้อะไรอันตรายกับเด็กมากกว่ากัน ชนิดของเชื้อ หรือน้ำที่เสียไป",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ยังคงเชื้อแบคทีเรียและพยาธิที่รักษาได้ไว้ในใจ",
-            "weigh": "ผลเพาะเชื้อจะออกเมื่อไร และถึงตอนนั้นเด็กต้องได้อะไรไปแล้ว",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a bacterial or **parasitic cause** that could change treatment.",
-            "weigh": "With watery stools and no blood, would a culture change her care at all?",
+            "weigh": "If the results add little, what will guide her fluids?",
             "safety": ""
           },
           {
             "strength": "Thinks about the cause of the diarrhoea, not only its effects.",
-            "weigh": "Which is the bigger danger to her right now: the germ, or the fluid she has lost?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Keeps treatable parasites and bacteria in view.",
-            "weigh": "When would the culture come back, and what will she have needed by then?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -368,34 +368,34 @@
         "th": [
           {
             "strength": "ให้ความสำคัญกับไข้ และหาที่มาของไข้",
-            "weigh": "ในเด็กเล็กที่ถ่ายเป็นน้ำ ผล CBC และ CRP จะเปลี่ยนแผนการดูแลตรงไหน",
+            "weigh": "ถ้าผลตรวจไม่ได้ช่วยมากนัก อะไรจะเป็นตัวกำหนดการให้น้ำ",
             "safety": ""
           },
           {
             "strength": "ใช้ **CBC และ CRP** ประเมินการอักเสบ",
-            "weigh": "เจาะเลือดเด็กที่ขาดน้ำได้ยาก มีเหตุผลชัดพอหรือยังที่จะเจาะตอนนี้",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "พิจารณาว่ามีสาเหตุนอกลำไส้ที่ทำให้มีไข้หรือไม่",
-            "weigh": "ผลตรวจเหล่านี้แยกสาเหตุของไข้ออกจากกันได้จริงไหม",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Takes the fever seriously and looks for its source.",
-            "weigh": "In a toddler with watery stools, where would CRP and a blood count change her plan?",
+            "weigh": "If the results add little, what will guide her fluids?",
             "safety": ""
           },
           {
             "strength": "Uses a **complete blood count** and CRP to gauge inflammation.",
-            "weigh": "A blood draw in a dry toddler is hard: is there a clear enough reason to do it now?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Considers whether something beyond the gut is driving the fever.",
-            "weigh": "Would these results really tell one cause of fever from another?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -406,34 +406,34 @@
         "th": [
           {
             "strength": "จัดระดับการขาดน้ำข้างเตียง และใช้น้ำหนักคำนวณ**ปริมาณ ORS**",
-            "weigh": "ในเด็กผอมมากหรืออ้วน เชื่อหนังหน้าท้องอย่างเดียวได้ไหม",
+            "weigh": "เมื่อประเมินระดับแล้ว เธอต้องได้น้ำเท่าไร และให้ทางไหน",
             "safety": ""
           },
           {
             "strength": "ใช้อาการข้างเตียงที่ทำได้ทันที วางแผนได้ภายในไม่กี่นาที",
-            "weigh": "จะจดอาการข้อไหนไว้ตอนนี้ เพื่อให้การประเมินครั้งต่อไปมีตัวเทียบ",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "**ชั่งน้ำหนัก** เพื่อให้ปริมาณ ORS พอดีกับเด็ก 10 กก.",
-            "weigh": "ชั่งตอนยังใส่เสื้อผ้ากับผ้าอ้อมเปียก น้ำหนักจะคลาดไปแค่ไหน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Grades fluid loss at the bedside and turns weight into an **ORS volume**.",
-            "weigh": "In a very thin or plump child, can you trust the skin pinch on its own?",
+            "weigh": "Once she is graded, how much fluid will she need, and by which route?",
             "safety": ""
           },
           {
             "strength": "Uses free, immediate bedside signs that set the plan within minutes.",
-            "weigh": "Which signs will you write down now, so the next assessment has something to compare?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Weighs her, so the **ORS volume** fits a 10 kg child exactly.",
-            "weigh": "How far off would her weight be with clothes and a wet nappy still on?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -442,34 +442,34 @@
         "th": [
           {
             "strength": "มองหาปัญหาโซเดียมและไตที่การขาดน้ำอาจพามา",
-            "weigh": "แนวทางของไทยแนะนำตรวจนี้เมื่อขาดน้ำรุนแรงหรืออาการไม่ตรงแบบ เด็กคนนี้เข้าเกณฑ์ไหม",
+            "weigh": "ถ้าผลตรวจกลับมาปกติ แผนการให้น้ำของเธอจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ตรวจ**ครีเอตินีน**และโซเดียม ดูว่าไตรับมือได้แค่ไหน",
-            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำได้ยาก ผลที่ได้จะเปลี่ยนการให้น้ำตรงไหน",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "คิดไปไกลกว่าปริมาตรน้ำ ถึงเกลือแร่ที่เสียไปทางอุจจาระ",
-            "weigh": "การให้น้ำต้องรอผลนี้ไหม",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for sodium and kidney problems that fluid loss can bring.",
-            "weigh": "Thai guidance keeps these for severe fluid loss or an unusual course: does she meet that bar?",
+            "weigh": "If the results come back normal, what will her fluid plan be?",
             "safety": ""
           },
           {
             "strength": "Adds **creatinine** and sodium to see how her kidneys are coping.",
-            "weigh": "A blood draw in a thirsty toddler is hard: where would the result change her care?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Thinks beyond volume to the salts lost in watery stools.",
-            "weigh": "Does her rehydration need to wait for these results?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -478,34 +478,34 @@
         "th": [
           {
             "strength": "จับน้ำตาลต่ำได้เร็วด้วยการ**เจาะปลายนิ้ว**",
-            "weigh": "เด็กงอแงและดื่มน้ำอย่างกระหาย เข้ากับน้ำตาลต่ำไหม",
+            "weigh": "ถ้าผลตรวจกลับมาปกติ แผนการให้น้ำของเธอจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "นึกได้ว่า**เด็กที่อาเจียน**อาจมีน้ำตาลต่ำ",
-            "weigh": "ถ้าเด็กเริ่มซึมหรือไม่ยอมดื่ม ผลนี้จะสำคัญขึ้นไหม",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้การตรวจที่ทำง่าย ราคาไม่แพง รู้ผลในไม่กี่วินาที",
-            "weigh": "ถ้าน้ำตาลปกติ ยังเหลืออะไรที่ต้องประเมินก่อนวางแผน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Catches low sugar fast with a simple **fingerprick**.",
-            "weigh": "She is irritable and drinks eagerly: does that fit low sugar?",
+            "weigh": "If the results come back normal, what will her fluid plan be?",
             "safety": ""
           },
           {
             "strength": "Remembers that a **vomiting toddler** can run low on sugar.",
-            "weigh": "Would this result matter more if she became drowsy or refused to drink?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Uses a quick, cheap test with an answer in seconds.",
-            "weigh": "If her sugar is normal, what is still left to assess before you plan?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -514,34 +514,34 @@
         "th": [
           {
             "strength": "มองหาเชื้อ**แบคทีเรียหรือพยาธิ**ที่อาจเปลี่ยนการรักษา",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อจะเปลี่ยนการดูแลเด็กคนนี้ไหม",
+            "weigh": "ถ้าผลตรวจไม่ได้ช่วยมากนัก อะไรจะเป็นตัวกำหนดการให้น้ำ",
             "safety": ""
           },
           {
             "strength": "คิดถึงสาเหตุของอาการถ่ายเหลว ไม่ใช่แค่ผลที่ตามมา",
-            "weigh": "ตอนนี้อะไรอันตรายกับเด็กมากกว่ากัน ชนิดของเชื้อ หรือน้ำที่เสียไป",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ยังคงเชื้อแบคทีเรียและพยาธิที่รักษาได้ไว้ในใจ",
-            "weigh": "ผลเพาะเชื้อจะออกเมื่อไร และถึงตอนนั้นเด็กต้องได้อะไรไปแล้ว",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a bacterial or **parasitic cause** that could change treatment.",
-            "weigh": "With watery stools and no blood, would a culture change her care at all?",
+            "weigh": "If the results add little, what will guide her fluids?",
             "safety": ""
           },
           {
             "strength": "Thinks about the cause of the diarrhoea, not only its effects.",
-            "weigh": "Which is the bigger danger to her right now: the germ, or the fluid she has lost?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Keeps treatable parasites and bacteria in view.",
-            "weigh": "When would the culture come back, and what will she have needed by then?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -550,34 +550,34 @@
         "th": [
           {
             "strength": "ให้ความสำคัญกับไข้ และหาที่มาของไข้",
-            "weigh": "ในเด็กเล็กที่ถ่ายเป็นน้ำ ผล CBC และ CRP จะเปลี่ยนแผนการดูแลตรงไหน",
+            "weigh": "ถ้าผลตรวจไม่ได้ช่วยมากนัก อะไรจะเป็นตัวกำหนดการให้น้ำ",
             "safety": ""
           },
           {
             "strength": "ใช้ **CBC และ CRP** ประเมินการอักเสบ",
-            "weigh": "เจาะเลือดเด็กที่ขาดน้ำได้ยาก มีเหตุผลชัดพอหรือยังที่จะเจาะตอนนี้",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "พิจารณาว่ามีสาเหตุนอกลำไส้ที่ทำให้มีไข้หรือไม่",
-            "weigh": "ผลตรวจเหล่านี้แยกสาเหตุของไข้ออกจากกันได้จริงไหม",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Takes the fever seriously and looks for its source.",
-            "weigh": "In a toddler with watery stools, where would CRP and a blood count change her plan?",
+            "weigh": "If the results add little, what will guide her fluids?",
             "safety": ""
           },
           {
             "strength": "Uses a **complete blood count** and CRP to gauge inflammation.",
-            "weigh": "A blood draw in a dry toddler is hard: is there a clear enough reason to do it now?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Considers whether something beyond the gut is driving the fever.",
-            "weigh": "Would these results really tell one cause of fever from another?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -588,34 +588,34 @@
         "th": [
           {
             "strength": "จัดระดับการขาดน้ำข้างเตียง และใช้น้ำหนักคำนวณ**ปริมาณ ORS**",
-            "weigh": "ในเด็กผอมมากหรืออ้วน เชื่อหนังหน้าท้องอย่างเดียวได้ไหม",
+            "weigh": "เมื่อประเมินระดับแล้ว เธอต้องได้น้ำเท่าไร และให้ทางไหน",
             "safety": ""
           },
           {
             "strength": "ใช้อาการข้างเตียงที่ทำได้ทันที วางแผนได้ภายในไม่กี่นาที",
-            "weigh": "จะจดอาการข้อไหนไว้ตอนนี้ เพื่อให้การประเมินครั้งต่อไปมีตัวเทียบ",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "**ชั่งน้ำหนัก** เพื่อให้ปริมาณ ORS พอดีกับเด็ก 10 กก.",
-            "weigh": "ชั่งตอนยังใส่เสื้อผ้ากับผ้าอ้อมเปียก น้ำหนักจะคลาดไปแค่ไหน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Grades fluid loss at the bedside and turns weight into an **ORS volume**.",
-            "weigh": "In a very thin or plump child, can you trust the skin pinch on its own?",
+            "weigh": "Once she is graded, how much fluid will she need, and by which route?",
             "safety": ""
           },
           {
             "strength": "Uses free, immediate bedside signs that set the plan within minutes.",
-            "weigh": "Which signs will you write down now, so the next assessment has something to compare?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Weighs her, so the **ORS volume** fits a 10 kg child exactly.",
-            "weigh": "How far off would her weight be with clothes and a wet nappy still on?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -624,34 +624,34 @@
         "th": [
           {
             "strength": "ใช้**ปริมาณปัสสาวะ**ร่วมกับอาการข้างเตียงจัดระดับการขาดน้ำ",
-            "weigh": "ปัสสาวะในผ้าอ้อมวัดยาก จะนับผ้าอ้อมเปียกอย่างไรให้เชื่อได้",
+            "weigh": "เมื่อประเมินระดับแล้ว เธอต้องได้น้ำเท่าไร และให้ทางไหน",
             "safety": ""
           },
           {
             "strength": "วางวิธีติดตามการตอบสนองต่อ ORS ไว้ตั้งแต่แรก",
-            "weigh": "จำนวนผ้าอ้อมเปียกที่แม่เล่า ควรใช้นำการจัดระดับ หรือแค่ใช้เสริม",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้อาการที่แม่สังเกตได้เองและตรวจซ้ำง่าย",
-            "weigh": "เมื่อไรจึงคุ้มที่จะชั่งผ้าอ้อมแห้งเทียบกับผ้าอ้อมเปียก",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Combines **urine output** with bedside signs to grade fluid loss.",
-            "weigh": "Urine in nappies is hard to measure: how will you tally wet nappies so the tally holds?",
+            "weigh": "Once she is graded, how much fluid will she need, and by which route?",
             "safety": ""
           },
           {
             "strength": "Builds in a measure that can track her response once ORS starts.",
-            "weigh": "Should the mother's tally of wet nappies lead the grading, or only back it up?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Uses signs a mother can see herself and that are easy to recheck.",
-            "weigh": "When would weighing a dry nappy against a wet one be worth the effort?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -660,34 +660,34 @@
         "th": [
           {
             "strength": "**ตรวจปัสสาวะ** หาการติดเชื้อที่อาจซ่อนอยู่หลังไข้ในเด็กเล็ก",
-            "weigh": "เด็กยังใส่ผ้าอ้อม จะเก็บปัสสาวะที่สะอาดได้อย่างไร",
+            "weigh": "ถ้าผลตรวจกลับมาปกติ แผนการให้น้ำของเธอจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้การตรวจง่ายราคาไม่แพง หาที่มาของไข้ที่พบบ่อยและซ่อนอยู่",
-            "weigh": "ถ่ายเป็นน้ำวันละ 8 ครั้ง อธิบายไข้ได้อยู่แล้วหรือเปล่า",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ไม่ยึดติดกับลำไส้อย่างเดียวเมื่อเด็กเล็กมีไข้",
-            "weigh": "ปัสสาวะจากถุงเก็บ ถ้าผลบวกจะเชื่อได้แค่ไหน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a **urinary infection** behind the fever, which toddlers can hide.",
-            "weigh": "How will you get a clean sample from a toddler in nappies?",
+            "weigh": "If the results come back normal, what will her fluid plan be?",
             "safety": ""
           },
           {
             "strength": "Uses a simple, cheap test to check a common hidden source of fever.",
-            "weigh": "Do eight watery stools a day already explain her fever?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Avoids anchoring on the gut when a toddler has fever.",
-            "weigh": "How far can you trust a positive result from a bag sample?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -696,34 +696,34 @@
         "th": [
           {
             "strength": "มองหาปัญหาโซเดียมและไตที่การขาดน้ำอาจพามา",
-            "weigh": "แนวทางของไทยแนะนำตรวจนี้เมื่อขาดน้ำรุนแรงหรืออาการไม่ตรงแบบ เด็กคนนี้เข้าเกณฑ์ไหม",
+            "weigh": "ถ้าผลตรวจกลับมาปกติ แผนการให้น้ำของเธอจะเป็นอย่างไร",
             "safety": ""
           },
           {
             "strength": "ตรวจ**ครีเอตินีน**และโซเดียม ดูว่าไตรับมือได้แค่ไหน",
-            "weigh": "เจาะเลือดเด็กเล็กที่ขาดน้ำได้ยาก ผลที่ได้จะเปลี่ยนการให้น้ำตรงไหน",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "คิดไปไกลกว่าปริมาตรน้ำ ถึงเกลือแร่ที่เสียไปทางอุจจาระ",
-            "weigh": "การให้น้ำต้องรอผลนี้ไหม",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for sodium and kidney problems that fluid loss can bring.",
-            "weigh": "Thai guidance keeps these for severe fluid loss or an unusual course: does she meet that bar?",
+            "weigh": "If the results come back normal, what will her fluid plan be?",
             "safety": ""
           },
           {
             "strength": "Adds **creatinine** and sodium to see how her kidneys are coping.",
-            "weigh": "A blood draw in a thirsty toddler is hard: where would the result change her care?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Thinks beyond volume to the salts lost in watery stools.",
-            "weigh": "Does her rehydration need to wait for these results?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -732,34 +732,34 @@
         "th": [
           {
             "strength": "ใช้การตรวจที่ปลอดภัยไม่มีรังสี มองหาลำไส้กลืนกัน",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือดร่วมกับไข้ เข้ากับลำไส้กลืนกันแค่ไหน",
+            "weigh": "ถ้าผลตรวจไม่ได้ช่วยมากนัก อะไรจะเป็นตัวกำหนดการให้น้ำ",
             "safety": ""
           },
           {
             "strength": "ใช้**อัลตราซาวด์ช่องท้อง**มองหาสาเหตุอาเจียนที่พลาดไม่ได้",
-            "weigh": "สแกนจะตอบได้ไหมว่าเด็กขาดน้ำมากแค่ไหน",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ความสำคัญกับอาการอาเจียนในเด็กเล็ก ว่าอาจเป็นสัญญาณทางศัลยกรรม",
-            "weigh": "ถ้าไม่มีปวดท้องเป็นพัก ๆ หรือถ่ายเป็นเลือด โอกาสสแกนเจอมีมากแค่ไหน",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Uses a safe, radiation-free scan to look for intussusception.",
-            "weigh": "How well do watery stools without blood, with fever, fit intussusception?",
+            "weigh": "If the results add little, what will guide her fluids?",
             "safety": ""
           },
           {
             "strength": "Keeps a must-not-miss cause of vomiting in view with an **abdominal ultrasound**.",
-            "weigh": "Can a scan tell you how dry she is?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Takes vomiting in a toddler seriously as a possible surgical sign.",
-            "weigh": "Without colicky pain or bloody stools, how likely is the scan to find it?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -768,34 +768,34 @@
         "th": [
           {
             "strength": "มองหาเชื้อ**แบคทีเรียหรือพยาธิ**ที่อาจเปลี่ยนการรักษา",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อจะเปลี่ยนการดูแลเด็กคนนี้ไหม",
+            "weigh": "ถ้าผลตรวจไม่ได้ช่วยมากนัก อะไรจะเป็นตัวกำหนดการให้น้ำ",
             "safety": ""
           },
           {
             "strength": "คิดถึงสาเหตุของอาการถ่ายเหลว ไม่ใช่แค่ผลที่ตามมา",
-            "weigh": "ตอนนี้อะไรอันตรายกับเด็กมากกว่ากัน ชนิดของเชื้อ หรือน้ำที่เสียไป",
+            "weigh": "ถ้าเธออาเจียนเป็นระยะ จะให้น้ำเข้าไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ยังคงเชื้อแบคทีเรียและพยาธิที่รักษาได้ไว้ในใจ",
-            "weigh": "ผลเพาะเชื้อจะออกเมื่อไร และถึงตอนนั้นเด็กต้องได้อะไรไปแล้ว",
+            "weigh": "นอกจากน้ำแล้ว อะไรช่วยให้เด็กที่ถ่ายเป็นน้ำฟื้นตัวได้",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Looks for a bacterial or **parasitic cause** that could change treatment.",
-            "weigh": "With watery stools and no blood, would a culture change her care at all?",
+            "weigh": "If the results add little, what will guide her fluids?",
             "safety": ""
           },
           {
             "strength": "Thinks about the cause of the diarrhoea, not only its effects.",
-            "weigh": "Which is the bigger danger to her right now: the germ, or the fluid she has lost?",
+            "weigh": "If she vomits now and then, how will you still get fluid into her?",
             "safety": ""
           },
           {
             "strength": "Keeps treatable parasites and bacteria in view.",
-            "weigh": "When would the culture come back, and what will she have needed by then?",
+            "weigh": "What besides fluid helps a child with watery stools recover?",
             "safety": ""
           }
         ]
@@ -806,34 +806,34 @@
         "th": [
           {
             "strength": "ใช้**แผน B WHO** ซึ่งให้ 750 มล. ตามน้ำหนัก 10 กก. ของเด็ก",
-            "weigh": "ถ้าระหว่างนี้เด็กอาเจียน WHO ให้ทำอย่างไรก่อนป้อนต่อ",
+            "weigh": "เมื่อประเมินซ้ำที่ 4 ชั่วโมง อาการแสดงอะไรจะบอกว่าเธอได้น้ำพอแล้ว",
             "safety": ""
           },
           {
             "strength": "เสริม**ซิงค์** ซึ่งช่วยให้หายเร็วขึ้นและลดการเป็นซ้ำ",
-            "weigh": "ถ้าเด็กยังอยากดื่มเมื่อครบ 750 มล. จะให้ต่อไหม",
+            "weigh": "เมื่อเธอได้น้ำพอแล้ว การดูแลขั้นต่อไปคืออะไร",
             "safety": ""
           },
           {
             "strength": "วางจุดประเมินซ้ำที่ 4 ชม. ให้แผนปรับตามการตอบสนองของเด็ก",
-            "weigh": "ครบ 4 ชม. จะดูอาการอะไรเพื่อบอกว่าแผนนี้ได้ผล",
+            "weigh": "ถ้าประเมินซ้ำแล้วเธอดีขึ้น แผนการดูแลจะเปลี่ยนอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Follows **WHO Plan B**, matching 750 mL to her weight of 10 kg.",
-            "weigh": "If she vomits partway through, what does WHO advise before you carry on?",
+            "weigh": "At the 4-hour check, which signs will show she is rehydrated?",
             "safety": ""
           },
           {
             "strength": "Adds **zinc**, which shortens the illness and lowers the chance of another episode.",
-            "weigh": "If she still wants to drink after 750 mL, would you give more?",
+            "weigh": "Once she is rehydrated, what comes next in her care?",
             "safety": ""
           },
           {
             "strength": "Plans a fixed recheck at 4 hours, so the plan adapts to her response.",
-            "weigh": "At the 4 h recheck, which signs will tell you the plan has worked?",
+            "weigh": "If she is well at the recheck, what changes in her plan?",
             "safety": ""
           }
         ]
@@ -842,34 +842,34 @@
         "th": [
           {
             "strength": "ป้อน ORS **ทีละน้อย** ซึ่งเด็กที่อาเจียนมักเก็บไว้ได้",
-            "weigh": "ป้อน 750 มล. ใน 4 ชม. ต้องป้อนถี่แค่ไหน และใครจะช่วยแม่",
+            "weigh": "เมื่อประเมินซ้ำที่ 4 ชั่วโมง อาการแสดงอะไรจะบอกว่าเธอได้น้ำพอแล้ว",
             "safety": ""
           },
           {
             "strength": "ให้ปริมาณครบตามที่ขาด ร่วมกับ**ซิงค์**และนัดประเมินซ้ำ",
-            "weigh": "ถ้าเด็กยังกระหายน้ำแม้ได้ครบ 750 มล. แล้ว จะหยุดหรือให้ต่อ",
+            "weigh": "เมื่อเธอได้น้ำพอแล้ว การดูแลขั้นต่อไปคืออะไร",
             "safety": ""
           },
           {
             "strength": "ทดแทนน้ำที่เสียไปทันที ด้วยการให้**เสริมหลังถ่าย**",
-            "weigh": "ถ้าป้อนแล้วอาเจียน จะรอนานแค่ไหนก่อนเริ่มป้อนใหม่",
+            "weigh": "ถ้าประเมินซ้ำแล้วเธอดีขึ้น แผนการดูแลจะเปลี่ยนอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Feeds ORS in **small sips**, which a vomiting toddler usually keeps down.",
-            "weigh": "To get 750 mL in over 4 h, how often must the sips come, and who will help her mother?",
+            "weigh": "At the 4-hour check, which signs will show she is rehydrated?",
             "safety": ""
           },
           {
             "strength": "Pairs the full deficit volume with **zinc** and a set recheck.",
-            "weigh": "If she is still thirsty once 750 mL is in, do you stop or keep going?",
+            "weigh": "Once she is rehydrated, what comes next in her care?",
             "safety": ""
           },
           {
             "strength": "Replaces stool losses as they happen, with more **after each stool**.",
-            "weigh": "If a sip comes back up, how long will you wait before starting again?",
+            "weigh": "If she is well at the recheck, what changes in her plan?",
             "safety": ""
           }
         ]
@@ -878,34 +878,34 @@
         "th": [
           {
             "strength": "มองว่าอาเจียนคือสิ่งที่ขวางการดื่ม ORS และแก้ที่จุดนั้น",
-            "weigh": "ยาครั้งเดียวมักปลอดภัย แต่ถ้าทำให้ถ่ายเหลวมากขึ้นอีกหน่อย คุ้มไหม",
+            "weigh": "ถ้าประเมินซ้ำแล้วยังขาดน้ำเล็กน้อย จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้**ออนแดนซีตรอน**กิน 1 ครั้ง เพื่อให้ ORS อยู่ในท้องได้",
-            "weigh": "หลังให้ยาแล้ว แผนป้อน ORS ชัดพอให้แม่ทำตามได้หรือยัง",
+            "weigh": "ถ้าเธออาเจียนบางจิบ จะให้น้ำต่อไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้หลักฐานว่ายาครั้งเดียวช่วยให้เด็กดื่มน้ำทางปากได้ครบมากขึ้น",
-            "weigh": "WHO ไม่ได้ใส่ยานี้ไว้ในแผนรักษาอุจจาระร่วง โรงพยาบาลของคุณใช้เมื่อไร",
+            "weigh": "อาการแสดงอะไรที่การประเมินซ้ำ 4 ชั่วโมงบอกว่าเธอยังได้น้ำไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Treats vomiting as the barrier to ORS and removes it.",
-            "weigh": "One dose is usually safe; is a slight rise in loose stools a price worth paying?",
+            "weigh": "If she is still a little dry at the recheck, what will you do?",
             "safety": ""
           },
           {
             "strength": "Uses a single **oral ondansetron** dose to help ORS stay down.",
-            "weigh": "After the dose, is the ORS plan around it clear enough for her mother to follow?",
+            "weigh": "If she brings up some sips, how will you keep fluid going in?",
             "safety": ""
           },
           {
             "strength": "Draws on evidence that one dose helps more children finish rehydrating by mouth.",
-            "weigh": "Ondansetron is not in the WHO diarrhoea plan: when does your hospital use it?",
+            "weigh": "Which signs at the 4-hour check would show she is not yet rehydrated?",
             "safety": ""
           }
         ]
@@ -914,34 +914,34 @@
         "th": [
           {
             "strength": "เตรียม IV ไว้เป็นทางสำรอง ใช้เมื่อ ORS ไม่ได้ผลเท่านั้น",
-            "weigh": "อาเจียนแค่ 3 ครั้ง ได้ลอง ORS อย่างเต็มที่แล้วหรือยัง",
+            "weigh": "ถ้าประเมินซ้ำแล้วยังขาดน้ำเล็กน้อย จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "มีขั้นยกระดับการรักษาที่ชัด เมื่อลอง ORS แล้ว**อาเจียนออกซ้ำ ๆ**",
-            "weigh": "แทงเส้นเด็กเล็กที่ขาดน้ำได้ยาก ถ้าต้องใช้จริง จะเตรียมอะไรไว้",
+            "weigh": "ถ้าเธออาเจียนบางจิบ จะให้น้ำต่อไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
-            "weigh": "อาเจียนแค่ไหนจึงจะถือว่า ORS ไม่ได้ผล จะตกลงเกณฑ์นี้ไว้ก่อนไหม",
+            "weigh": "อาการแสดงอะไรที่การประเมินซ้ำ 4 ชั่วโมงบอกว่าเธอยังได้น้ำไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps IV as a backup, used only **if ORS fails**.",
-            "weigh": "With only 3 vomits, has ORS had a fair trial yet?",
+            "weigh": "If she is still a little dry at the recheck, what will you do?",
             "safety": ""
           },
           {
             "strength": "Has a clear escalation step ready when ORS keeps coming back up.",
-            "weigh": "Cannulating a dry toddler is hard: if it comes to that, what will you have ready?",
+            "weigh": "If she brings up some sips, how will you keep fluid going in?",
             "safety": ""
           },
           {
             "strength": "Chooses **Ringer's lactate**, a fluid suited to replacing stool losses.",
-            "weigh": "How much vomiting counts as ORS failing, and will you set that bar before you start?",
+            "weigh": "Which signs at the 4-hour check would show she is not yet rehydrated?",
             "safety": ""
           }
         ]
@@ -950,34 +950,34 @@
         "th": [
           {
             "strength": "ยังให้ **ORS** เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรียไปด้วย",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO ต้องใช้ยาปฏิชีวนะไหม",
+            "weigh": "ถ้าเธออาเจียนเกือบหมดทุกครั้งที่ดื่ม จะให้น้ำทางไหนต่อ",
             "safety": ""
           },
           {
             "strength": "พิจารณาว่าแบคทีเรียอาจเป็นต้นเหตุของไข้และถ่ายเหลว",
-            "weigh": "ยาปฏิชีวนะจะช่วยให้หายเร็วขึ้นจริงไหม หรือแค่เพิ่มถ่ายเหลวกับผลข้างเคียง",
+            "weigh": "อาการแสดงอะไรตอนประเมินซ้ำที่บอกว่าเธอขาดน้ำมากขึ้น",
             "safety": ""
           },
           {
             "strength": "ให้น้ำทดแทนและครอบคลุมสาเหตุจากแบคทีเรียไว้ด้วย",
-            "weigh": "ถ้าให้ยาปฏิชีวนะทุกรายที่ถ่ายเหลว เชื้อดื้อยาจะตามมาแค่ไหน",
+            "weigh": "ถ้ายังอาเจียนต่อ อะไรในการรักษาอาจทำให้อาเจียนมากขึ้น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps **ORS** at the centre while thinking about a bacterial cause.",
-            "weigh": "For watery stools without blood, does WHO guidance call for an antibiotic?",
+            "weigh": "If she vomits most of what she drinks, what is your next route?",
             "safety": ""
           },
           {
             "strength": "Considers whether bacteria could be driving her fever and diarrhoea.",
-            "weigh": "Will an antibiotic speed her recovery, or just add loose stools and side effects?",
+            "weigh": "Which signs at the recheck would show she is getting drier?",
             "safety": ""
           },
           {
             "strength": "Rehydrates her while covering a possible bacterial cause.",
-            "weigh": "If every child with loose stools got an antibiotic, what would that cost in resistance?",
+            "weigh": "If the vomiting goes on, what in her treatment could be adding to it?",
             "safety": ""
           }
         ]
@@ -988,34 +988,34 @@
         "th": [
           {
             "strength": "ใช้**แผน B WHO** ซึ่งให้ 750 มล. ตามน้ำหนัก 10 กก. ของเด็ก",
-            "weigh": "ถ้าระหว่างนี้เด็กอาเจียน WHO ให้ทำอย่างไรก่อนป้อนต่อ",
+            "weigh": "เมื่อประเมินซ้ำที่ 4 ชั่วโมง อาการแสดงอะไรจะบอกว่าเธอได้น้ำพอแล้ว",
             "safety": ""
           },
           {
             "strength": "เสริม**ซิงค์** ซึ่งช่วยให้หายเร็วขึ้นและลดการเป็นซ้ำ",
-            "weigh": "ถ้าเด็กยังอยากดื่มเมื่อครบ 750 มล. จะให้ต่อไหม",
+            "weigh": "เมื่อเธอได้น้ำพอแล้ว การดูแลขั้นต่อไปคืออะไร",
             "safety": ""
           },
           {
             "strength": "วางจุดประเมินซ้ำที่ 4 ชม. ให้แผนปรับตามการตอบสนองของเด็ก",
-            "weigh": "ครบ 4 ชม. จะดูอาการอะไรเพื่อบอกว่าแผนนี้ได้ผล",
+            "weigh": "ถ้าประเมินซ้ำแล้วเธอดีขึ้น แผนการดูแลจะเปลี่ยนอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Follows **WHO Plan B**, matching 750 mL to her weight of 10 kg.",
-            "weigh": "If she vomits partway through, what does WHO advise before you carry on?",
+            "weigh": "At the 4-hour check, which signs will show she is rehydrated?",
             "safety": ""
           },
           {
             "strength": "Adds **zinc**, which shortens the illness and lowers the chance of another episode.",
-            "weigh": "If she still wants to drink after 750 mL, would you give more?",
+            "weigh": "Once she is rehydrated, what comes next in her care?",
             "safety": ""
           },
           {
             "strength": "Plans a fixed recheck at 4 hours, so the plan adapts to her response.",
-            "weigh": "At the 4 h recheck, which signs will tell you the plan has worked?",
+            "weigh": "If she is well at the recheck, what changes in her plan?",
             "safety": ""
           }
         ]
@@ -1024,34 +1024,34 @@
         "th": [
           {
             "strength": "ป้อน ORS **ทีละน้อย** ซึ่งเด็กที่อาเจียนมักเก็บไว้ได้",
-            "weigh": "ป้อน 750 มล. ใน 4 ชม. ต้องป้อนถี่แค่ไหน และใครจะช่วยแม่",
+            "weigh": "เมื่อประเมินซ้ำที่ 4 ชั่วโมง อาการแสดงอะไรจะบอกว่าเธอได้น้ำพอแล้ว",
             "safety": ""
           },
           {
             "strength": "ให้ปริมาณครบตามที่ขาด ร่วมกับ**ซิงค์**และนัดประเมินซ้ำ",
-            "weigh": "ถ้าเด็กยังกระหายน้ำแม้ได้ครบ 750 มล. แล้ว จะหยุดหรือให้ต่อ",
+            "weigh": "เมื่อเธอได้น้ำพอแล้ว การดูแลขั้นต่อไปคืออะไร",
             "safety": ""
           },
           {
             "strength": "ทดแทนน้ำที่เสียไปทันที ด้วยการให้**เสริมหลังถ่าย**",
-            "weigh": "ถ้าป้อนแล้วอาเจียน จะรอนานแค่ไหนก่อนเริ่มป้อนใหม่",
+            "weigh": "ถ้าประเมินซ้ำแล้วเธอดีขึ้น แผนการดูแลจะเปลี่ยนอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Feeds ORS in **small sips**, which a vomiting toddler usually keeps down.",
-            "weigh": "To get 750 mL in over 4 h, how often must the sips come, and who will help her mother?",
+            "weigh": "At the 4-hour check, which signs will show she is rehydrated?",
             "safety": ""
           },
           {
             "strength": "Pairs the full deficit volume with **zinc** and a set recheck.",
-            "weigh": "If she is still thirsty once 750 mL is in, do you stop or keep going?",
+            "weigh": "Once she is rehydrated, what comes next in her care?",
             "safety": ""
           },
           {
             "strength": "Replaces stool losses as they happen, with more **after each stool**.",
-            "weigh": "If a sip comes back up, how long will you wait before starting again?",
+            "weigh": "If she is well at the recheck, what changes in her plan?",
             "safety": ""
           }
         ]
@@ -1060,34 +1060,34 @@
         "th": [
           {
             "strength": "มองว่าอาเจียนคือสิ่งที่ขวางการดื่ม ORS และแก้ที่จุดนั้น",
-            "weigh": "ยาครั้งเดียวมักปลอดภัย แต่ถ้าทำให้ถ่ายเหลวมากขึ้นอีกหน่อย คุ้มไหม",
+            "weigh": "ถ้าประเมินซ้ำแล้วยังขาดน้ำเล็กน้อย จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้**ออนแดนซีตรอน**กิน 1 ครั้ง เพื่อให้ ORS อยู่ในท้องได้",
-            "weigh": "หลังให้ยาแล้ว แผนป้อน ORS ชัดพอให้แม่ทำตามได้หรือยัง",
+            "weigh": "ถ้าเธออาเจียนบางจิบ จะให้น้ำต่อไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้หลักฐานว่ายาครั้งเดียวช่วยให้เด็กดื่มน้ำทางปากได้ครบมากขึ้น",
-            "weigh": "WHO ไม่ได้ใส่ยานี้ไว้ในแผนรักษาอุจจาระร่วง โรงพยาบาลของคุณใช้เมื่อไร",
+            "weigh": "อาการแสดงอะไรที่การประเมินซ้ำ 4 ชั่วโมงบอกว่าเธอยังได้น้ำไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Treats vomiting as the barrier to ORS and removes it.",
-            "weigh": "One dose is usually safe; is a slight rise in loose stools a price worth paying?",
+            "weigh": "If she is still a little dry at the recheck, what will you do?",
             "safety": ""
           },
           {
             "strength": "Uses a single **oral ondansetron** dose to help ORS stay down.",
-            "weigh": "After the dose, is the ORS plan around it clear enough for her mother to follow?",
+            "weigh": "If she brings up some sips, how will you keep fluid going in?",
             "safety": ""
           },
           {
             "strength": "Draws on evidence that one dose helps more children finish rehydrating by mouth.",
-            "weigh": "Ondansetron is not in the WHO diarrhoea plan: when does your hospital use it?",
+            "weigh": "Which signs at the 4-hour check would show she is not yet rehydrated?",
             "safety": ""
           }
         ]
@@ -1096,34 +1096,34 @@
         "th": [
           {
             "strength": "ทดแทนน้ำที่ขาด**ทางปากภายใน 4 ชม.**",
-            "weigh": "ระหว่าง 4 ชม. เด็กยังถ่ายอยู่ น้ำที่เสียเพิ่มนี้จะทดแทนอย่างไร",
+            "weigh": "ถ้าประเมินซ้ำแล้วยังขาดน้ำเล็กน้อย จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "คิดปริมาณ 750 มล. จากน้ำหนัก 10 กก. ตามที่ WHO แนะนำ",
-            "weigh": "ครบ 4 ชม. จะรู้ได้อย่างไรว่าน้ำที่ขาดได้คืนครบจริง",
+            "weigh": "ถ้าเธออาเจียนบางจิบ จะให้น้ำต่อไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้ ORS อย่างเดียว เป็นแผนง่ายที่แม่ทำตามได้",
-            "weigh": "ORS อย่างเดียวพอไหม หรือยังขาดอะไรที่ช่วยให้หายเร็วขึ้น",
+            "weigh": "อาการแสดงอะไรที่การประเมินซ้ำ 4 ชั่วโมงบอกว่าเธอยังได้น้ำไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Replaces the deficit **by mouth** over 4 hours.",
-            "weigh": "She keeps passing stools during the 4 hours: how will you replace those extra losses?",
+            "weigh": "If she is still a little dry at the recheck, what will you do?",
             "safety": ""
           },
           {
             "strength": "Sets the 750 mL volume from her weight of 10 kg, as WHO advises.",
-            "weigh": "At the end of 4 hours, how will you know the deficit is truly replaced?",
+            "weigh": "If she brings up some sips, how will you keep fluid going in?",
             "safety": ""
           },
           {
             "strength": "Uses ORS alone, a simple plan a mother can follow.",
-            "weigh": "Is ORS alone the whole plan, or is something missing that shortens the illness?",
+            "weigh": "Which signs at the 4-hour check would show she is not yet rehydrated?",
             "safety": ""
           }
         ]
@@ -1132,34 +1132,34 @@
         "th": [
           {
             "strength": "ยังให้ **ORS** เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรียไปด้วย",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO ต้องใช้ยาปฏิชีวนะไหม",
+            "weigh": "ถ้าเธออาเจียนเกือบหมดทุกครั้งที่ดื่ม จะให้น้ำทางไหนต่อ",
             "safety": ""
           },
           {
             "strength": "พิจารณาว่าแบคทีเรียอาจเป็นต้นเหตุของไข้และถ่ายเหลว",
-            "weigh": "ยาปฏิชีวนะจะช่วยให้หายเร็วขึ้นจริงไหม หรือแค่เพิ่มถ่ายเหลวกับผลข้างเคียง",
+            "weigh": "อาการแสดงอะไรตอนประเมินซ้ำที่บอกว่าเธอขาดน้ำมากขึ้น",
             "safety": ""
           },
           {
             "strength": "ให้น้ำทดแทนและครอบคลุมสาเหตุจากแบคทีเรียไว้ด้วย",
-            "weigh": "ถ้าให้ยาปฏิชีวนะทุกรายที่ถ่ายเหลว เชื้อดื้อยาจะตามมาแค่ไหน",
+            "weigh": "ถ้ายังอาเจียนต่อ อะไรในการรักษาอาจทำให้อาเจียนมากขึ้น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps **ORS** at the centre while thinking about a bacterial cause.",
-            "weigh": "For watery stools without blood, does WHO guidance call for an antibiotic?",
+            "weigh": "If she vomits most of what she drinks, what is your next route?",
             "safety": ""
           },
           {
             "strength": "Considers whether bacteria could be driving her fever and diarrhoea.",
-            "weigh": "Will an antibiotic speed her recovery, or just add loose stools and side effects?",
+            "weigh": "Which signs at the recheck would show she is getting drier?",
             "safety": ""
           },
           {
             "strength": "Rehydrates her while covering a possible bacterial cause.",
-            "weigh": "If every child with loose stools got an antibiotic, what would that cost in resistance?",
+            "weigh": "If the vomiting goes on, what in her treatment could be adding to it?",
             "safety": ""
           }
         ]
@@ -1170,34 +1170,34 @@
         "th": [
           {
             "strength": "ป้อน ORS **ทีละน้อย** ซึ่งเด็กที่อาเจียนมักเก็บไว้ได้",
-            "weigh": "ป้อน 750 มล. ใน 4 ชม. ต้องป้อนถี่แค่ไหน และใครจะช่วยแม่",
+            "weigh": "เมื่อประเมินซ้ำที่ 4 ชั่วโมง อาการแสดงอะไรจะบอกว่าเธอได้น้ำพอแล้ว",
             "safety": ""
           },
           {
             "strength": "ให้ปริมาณครบตามที่ขาด ร่วมกับ**ซิงค์**และนัดประเมินซ้ำ",
-            "weigh": "ถ้าเด็กยังกระหายน้ำแม้ได้ครบ 750 มล. แล้ว จะหยุดหรือให้ต่อ",
+            "weigh": "เมื่อเธอได้น้ำพอแล้ว การดูแลขั้นต่อไปคืออะไร",
             "safety": ""
           },
           {
             "strength": "ทดแทนน้ำที่เสียไปทันที ด้วยการให้**เสริมหลังถ่าย**",
-            "weigh": "ถ้าป้อนแล้วอาเจียน จะรอนานแค่ไหนก่อนเริ่มป้อนใหม่",
+            "weigh": "ถ้าประเมินซ้ำแล้วเธอดีขึ้น แผนการดูแลจะเปลี่ยนอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Feeds ORS in **small sips**, which a vomiting toddler usually keeps down.",
-            "weigh": "To get 750 mL in over 4 h, how often must the sips come, and who will help her mother?",
+            "weigh": "At the 4-hour check, which signs will show she is rehydrated?",
             "safety": ""
           },
           {
             "strength": "Pairs the full deficit volume with **zinc** and a set recheck.",
-            "weigh": "If she is still thirsty once 750 mL is in, do you stop or keep going?",
+            "weigh": "Once she is rehydrated, what comes next in her care?",
             "safety": ""
           },
           {
             "strength": "Replaces stool losses as they happen, with more **after each stool**.",
-            "weigh": "If a sip comes back up, how long will you wait before starting again?",
+            "weigh": "If she is well at the recheck, what changes in her plan?",
             "safety": ""
           }
         ]
@@ -1206,34 +1206,34 @@
         "th": [
           {
             "strength": "ใช้**แผน B WHO** ซึ่งให้ 750 มล. ตามน้ำหนัก 10 กก. ของเด็ก",
-            "weigh": "ถ้าระหว่างนี้เด็กอาเจียน WHO ให้ทำอย่างไรก่อนป้อนต่อ",
+            "weigh": "เมื่อประเมินซ้ำที่ 4 ชั่วโมง อาการแสดงอะไรจะบอกว่าเธอได้น้ำพอแล้ว",
             "safety": ""
           },
           {
             "strength": "เสริม**ซิงค์** ซึ่งช่วยให้หายเร็วขึ้นและลดการเป็นซ้ำ",
-            "weigh": "ถ้าเด็กยังอยากดื่มเมื่อครบ 750 มล. จะให้ต่อไหม",
+            "weigh": "เมื่อเธอได้น้ำพอแล้ว การดูแลขั้นต่อไปคืออะไร",
             "safety": ""
           },
           {
             "strength": "วางจุดประเมินซ้ำที่ 4 ชม. ให้แผนปรับตามการตอบสนองของเด็ก",
-            "weigh": "ครบ 4 ชม. จะดูอาการอะไรเพื่อบอกว่าแผนนี้ได้ผล",
+            "weigh": "ถ้าประเมินซ้ำแล้วเธอดีขึ้น แผนการดูแลจะเปลี่ยนอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Follows **WHO Plan B**, matching 750 mL to her weight of 10 kg.",
-            "weigh": "If she vomits partway through, what does WHO advise before you carry on?",
+            "weigh": "At the 4-hour check, which signs will show she is rehydrated?",
             "safety": ""
           },
           {
             "strength": "Adds **zinc**, which shortens the illness and lowers the chance of another episode.",
-            "weigh": "If she still wants to drink after 750 mL, would you give more?",
+            "weigh": "Once she is rehydrated, what comes next in her care?",
             "safety": ""
           },
           {
             "strength": "Plans a fixed recheck at 4 hours, so the plan adapts to her response.",
-            "weigh": "At the 4 h recheck, which signs will tell you the plan has worked?",
+            "weigh": "If she is well at the recheck, what changes in her plan?",
             "safety": ""
           }
         ]
@@ -1242,34 +1242,34 @@
         "th": [
           {
             "strength": "เตรียม IV ไว้เป็นทางสำรอง ใช้เมื่อ ORS ไม่ได้ผลเท่านั้น",
-            "weigh": "อาเจียนแค่ 3 ครั้ง ได้ลอง ORS อย่างเต็มที่แล้วหรือยัง",
+            "weigh": "ถ้าประเมินซ้ำแล้วยังขาดน้ำเล็กน้อย จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "มีขั้นยกระดับการรักษาที่ชัด เมื่อลอง ORS แล้ว**อาเจียนออกซ้ำ ๆ**",
-            "weigh": "แทงเส้นเด็กเล็กที่ขาดน้ำได้ยาก ถ้าต้องใช้จริง จะเตรียมอะไรไว้",
+            "weigh": "ถ้าเธออาเจียนบางจิบ จะให้น้ำต่อไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
-            "weigh": "อาเจียนแค่ไหนจึงจะถือว่า ORS ไม่ได้ผล จะตกลงเกณฑ์นี้ไว้ก่อนไหม",
+            "weigh": "อาการแสดงอะไรที่การประเมินซ้ำ 4 ชั่วโมงบอกว่าเธอยังได้น้ำไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps IV as a backup, used only **if ORS fails**.",
-            "weigh": "With only 3 vomits, has ORS had a fair trial yet?",
+            "weigh": "If she is still a little dry at the recheck, what will you do?",
             "safety": ""
           },
           {
             "strength": "Has a clear escalation step ready when ORS keeps coming back up.",
-            "weigh": "Cannulating a dry toddler is hard: if it comes to that, what will you have ready?",
+            "weigh": "If she brings up some sips, how will you keep fluid going in?",
             "safety": ""
           },
           {
             "strength": "Chooses **Ringer's lactate**, a fluid suited to replacing stool losses.",
-            "weigh": "How much vomiting counts as ORS failing, and will you set that bar before you start?",
+            "weigh": "Which signs at the 4-hour check would show she is not yet rehydrated?",
             "safety": ""
           }
         ]
@@ -1278,34 +1278,34 @@
         "th": [
           {
             "strength": "ทดแทนน้ำที่ขาด**ทางปากภายใน 4 ชม.**",
-            "weigh": "ระหว่าง 4 ชม. เด็กยังถ่ายอยู่ น้ำที่เสียเพิ่มนี้จะทดแทนอย่างไร",
+            "weigh": "ถ้าประเมินซ้ำแล้วยังขาดน้ำเล็กน้อย จะทำอย่างไร",
             "safety": ""
           },
           {
             "strength": "คิดปริมาณ 750 มล. จากน้ำหนัก 10 กก. ตามที่ WHO แนะนำ",
-            "weigh": "ครบ 4 ชม. จะรู้ได้อย่างไรว่าน้ำที่ขาดได้คืนครบจริง",
+            "weigh": "ถ้าเธออาเจียนบางจิบ จะให้น้ำต่อไปได้อย่างไร",
             "safety": ""
           },
           {
             "strength": "ใช้ ORS อย่างเดียว เป็นแผนง่ายที่แม่ทำตามได้",
-            "weigh": "ORS อย่างเดียวพอไหม หรือยังขาดอะไรที่ช่วยให้หายเร็วขึ้น",
+            "weigh": "อาการแสดงอะไรที่การประเมินซ้ำ 4 ชั่วโมงบอกว่าเธอยังได้น้ำไม่พอ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Replaces the deficit **by mouth** over 4 hours.",
-            "weigh": "She keeps passing stools during the 4 hours: how will you replace those extra losses?",
+            "weigh": "If she is still a little dry at the recheck, what will you do?",
             "safety": ""
           },
           {
             "strength": "Sets the 750 mL volume from her weight of 10 kg, as WHO advises.",
-            "weigh": "At the end of 4 hours, how will you know the deficit is truly replaced?",
+            "weigh": "If she brings up some sips, how will you keep fluid going in?",
             "safety": ""
           },
           {
             "strength": "Uses ORS alone, a simple plan a mother can follow.",
-            "weigh": "Is ORS alone the whole plan, or is something missing that shortens the illness?",
+            "weigh": "Which signs at the 4-hour check would show she is not yet rehydrated?",
             "safety": ""
           }
         ]
@@ -1314,34 +1314,34 @@
         "th": [
           {
             "strength": "ยังให้ **ORS** เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรียไปด้วย",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ตามแนวทาง WHO ต้องใช้ยาปฏิชีวนะไหม",
+            "weigh": "ถ้าเธออาเจียนเกือบหมดทุกครั้งที่ดื่ม จะให้น้ำทางไหนต่อ",
             "safety": ""
           },
           {
             "strength": "พิจารณาว่าแบคทีเรียอาจเป็นต้นเหตุของไข้และถ่ายเหลว",
-            "weigh": "ยาปฏิชีวนะจะช่วยให้หายเร็วขึ้นจริงไหม หรือแค่เพิ่มถ่ายเหลวกับผลข้างเคียง",
+            "weigh": "อาการแสดงอะไรตอนประเมินซ้ำที่บอกว่าเธอขาดน้ำมากขึ้น",
             "safety": ""
           },
           {
             "strength": "ให้น้ำทดแทนและครอบคลุมสาเหตุจากแบคทีเรียไว้ด้วย",
-            "weigh": "ถ้าให้ยาปฏิชีวนะทุกรายที่ถ่ายเหลว เชื้อดื้อยาจะตามมาแค่ไหน",
+            "weigh": "ถ้ายังอาเจียนต่อ อะไรในการรักษาอาจทำให้อาเจียนมากขึ้น",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps **ORS** at the centre while thinking about a bacterial cause.",
-            "weigh": "For watery stools without blood, does WHO guidance call for an antibiotic?",
+            "weigh": "If she vomits most of what she drinks, what is your next route?",
             "safety": ""
           },
           {
             "strength": "Considers whether bacteria could be driving her fever and diarrhoea.",
-            "weigh": "Will an antibiotic speed her recovery, or just add loose stools and side effects?",
+            "weigh": "Which signs at the recheck would show she is getting drier?",
             "safety": ""
           },
           {
             "strength": "Rehydrates her while covering a possible bacterial cause.",
-            "weigh": "If every child with loose stools got an antibiotic, what would that cost in resistance?",
+            "weigh": "If the vomiting goes on, what in her treatment could be adding to it?",
             "safety": ""
           }
         ]
@@ -1352,34 +1352,34 @@
         "th": [
           {
             "strength": "เปลี่ยนเป็น**แผน A** เมื่อหายขาดน้ำแล้ว ตามแนวทาง WHO",
-            "weigh": "",
+            "weigh": "ถ้าประเมินซ้ำครั้งนี้แล้วเธอดี ขั้นต่อไปของเธอคืออะไร",
             "safety": ""
           },
           {
             "strength": "เริ่ม**อาหารปกติ**อีกครั้ง ซึ่งช่วยให้ลำไส้ฟื้นตัว",
-            "weigh": "",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้ ORS ตามน้ำที่เสียต่อเนื่อง **50-100 มล.** หลังถ่ายแต่ละครั้ง",
-            "weigh": "",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Moves to **Plan A** once dehydration has cleared, as WHO advises.",
-            "weigh": "",
+            "weigh": "If she is well at this recheck, what comes next for her?",
             "safety": ""
           },
           {
             "strength": "Restarts **her usual food**, which helps the gut recover.",
-            "weigh": "",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           },
           {
             "strength": "Matches ORS to ongoing losses at **50-100 mL** per loose stool.",
-            "weigh": "",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1388,34 +1388,34 @@
         "th": [
           {
             "strength": "ให้แม่**ผสมและป้อน ORS** ให้ดูก่อนกลับบ้าน",
-            "weigh": "แม่รู้ไหมว่าซองหนึ่งต้องผสมน้ำเท่าไร และถ้าผสมเข้มเกินจะเกิดอะไร",
+            "weigh": "ถ้าประเมินซ้ำครั้งนี้แล้วเธอดี ขั้นต่อไปของเธอคืออะไร",
             "safety": ""
           },
           {
             "strength": "เปลี่ยนคำแนะนำให้เป็นทักษะที่แม่ทำให้เจ้าหน้าที่เห็นแล้ว",
-            "weigh": "พอออกจากโรงพยาบาลแล้ว แม่จะจำขั้นตอนได้จากอะไร",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "เข้าใจว่าการดูแลที่บ้านขึ้นอยู่กับความมั่นใจของแม่",
-            "weigh": "แม่มีน้ำสะอาดและภาชนะตวงที่จะใช้ผสมไหม",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Checks the mother can **mix and give ORS** before she leaves.",
-            "weigh": "Does she know how much water one packet takes, and what an overly strong mix can do?",
+            "weigh": "If she is well at this recheck, what comes next for her?",
             "safety": ""
           },
           {
             "strength": "Turns instructions into a skill the mother has shown in front of staff.",
-            "weigh": "After she leaves, what will remind her of the steps?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           },
           {
             "strength": "Recognises that home care depends on the mother's confidence.",
-            "weigh": "Does she have clean water and a measuring cup to mix it with?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1424,34 +1424,34 @@
         "th": [
           {
             "strength": "ให้แน่ใจว่าเด็ก**เก็บน้ำไว้ได้**ก่อนตัดสินใจขั้นต่อไป",
-            "weigh": "เด็กดูไม่ขาดน้ำแล้ว อีกชั่วโมงนี้จะบอกอะไรที่ยังไม่รู้",
+            "weigh": "ถ้ายังถ่ายเป็นน้ำบ่อยมาก การดูแลที่บ้านจะตามทันไหม",
             "safety": ""
           },
           {
             "strength": "เพิ่มช่วงสังเกตอาการสั้น ๆ เป็นการระวังอีกขั้น",
-            "weigh": "อีกชั่วโมงที่ห้องตรวจ คุ้มกับเวลาที่ครอบครัวต้องเสียไปไหม",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           },
           {
             "strength": "ใช้อีก 1 ชม. ยืนยันว่าอาการดีขึ้นจริงและคงอยู่",
-            "weigh": "ถ้าอาเจียนหยุดไปแล้ว ยังมีเหตุผลอะไรให้รอดูต่อ",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Makes sure she **keeps fluids down** before deciding the next move.",
-            "weigh": "She already looks well hydrated: what will one more hour tell you that you don't know?",
+            "weigh": "If watery stools keep coming very often, can home care keep up?",
             "safety": ""
           },
           {
             "strength": "Builds in a short observation period, a cautious step.",
-            "weigh": "Is one more hour in clinic worth the time it costs the family?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           },
           {
             "strength": "Uses an extra hour to confirm that improvement holds.",
-            "weigh": "If the vomiting has settled, what reason is left to keep watching?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           }
         ]
@@ -1460,34 +1460,34 @@
         "th": [
           {
             "strength": "ต้องการให้แน่ใจว่าทดแทนน้ำที่ขาดได้ครบ",
-            "weigh": "อาการขาดน้ำหายแล้ว WHO ยังถือว่าเด็กขาดน้ำอยู่ไหม",
+            "weigh": "ถ้าถึงเช้าเธอกลับมาขาดน้ำอีก ควรได้รับการดูแลที่ไหน",
             "safety": ""
           },
           {
             "strength": "เลือกความระมัดระวัง โดยคำนึงถึงน้ำที่ยังเสียต่อเนื่อง",
-            "weigh": "ให้ ORS ทดแทนอีกรอบในเด็กที่ได้น้ำครบแล้ว เด็กได้อะไรเพิ่ม",
+            "weigh": "อาการแสดงอะไรในคืนนี้ที่บอกว่าเธอเริ่มขาดน้ำอีก",
             "safety": ""
           },
           {
             "strength": "ให้เด็กอยู่ในแผนที่มีโครงสร้างและมีจุดสิ้นสุดชัด",
-            "weigh": "อีก 4 ชม. ที่ห้องตรวจ ครอบครัวต้องเสียอะไรไปบ้าง ขณะที่เด็กดีขึ้นแล้ว",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Aims to make certain the deficit is **fully replaced**.",
-            "weigh": "Her signs of dehydration have cleared: does WHO still count her as having a deficit?",
+            "weigh": "If she is dry again by morning, where should she be cared for?",
             "safety": ""
           },
           {
             "strength": "Errs on the side of caution with ongoing losses in mind.",
-            "weigh": "What does a second deficit round add for a child whose fluid is already back?",
+            "weigh": "Which signs overnight would tell you she is falling behind?",
             "safety": ""
           },
           {
             "strength": "Keeps her on a structured plan with a clear end point.",
-            "weigh": "What do four more hours here cost the family while she is already improving?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1496,34 +1496,34 @@
         "th": [
           {
             "strength": "คิดถึง**โซเดียม**ที่อาจเปลี่ยนไปหลังเสียน้ำมาสองวัน",
-            "weigh": "เด็กฟื้นดีด้วยการให้น้ำทางปาก โอกาสมีปัญหาโซเดียมรุนแรงยังเหลือแค่ไหน",
+            "weigh": "ถ้าถึงเช้าเธอกลับมาขาดน้ำอีก ควรได้รับการดูแลที่ไหน",
             "safety": ""
           },
           {
             "strength": "ระวังปัญหาเกลือแร่ที่อุจจาระร่วงทำให้เกิดได้",
-            "weigh": "เจาะเลือดเด็กที่กำลังดีขึ้น ผลที่ได้จะเปลี่ยนการดูแลตรงไหน",
+            "weigh": "อาการแสดงอะไรในคืนนี้ที่บอกว่าเธอเริ่มขาดน้ำอีก",
             "safety": ""
           },
           {
             "strength": "ต้องการตัวเลขที่วัดได้ก่อนตัดสินใจต่อ",
-            "weigh": "แนวทางของไทยแนะนำตรวจนี้เมื่อขาดน้ำรุนแรงหรืออาการไม่ตรงแบบ ตอนนี้เด็กเข้าเกณฑ์ไหม",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Thinks about shifts in **her sodium** after two days of losses.",
-            "weigh": "She recovered well on oral rehydration: how likely is a serious sodium problem now?",
+            "weigh": "If she is dry again by morning, where should she be cared for?",
             "safety": ""
           },
           {
             "strength": "Stays alert to salt problems that diarrhoea can cause.",
-            "weigh": "A needle in a toddler who is improving: what would the result change?",
+            "weigh": "Which signs overnight would tell you she is falling behind?",
             "safety": ""
           },
           {
             "strength": "Wants objective numbers before moving on.",
-            "weigh": "Thai guidance keeps this for severe fluid loss or unusual signs: does she meet that bar now?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1534,34 +1534,34 @@
         "th": [
           {
             "strength": "ทำตาม WHO เมื่อยังขาดน้ำอยู่ที่การประเมิน 4 ชม.",
-            "weigh": "4 ชม. แรกเด็กดื่ม ORS ได้จริงเท่าไร ได้ทวนกับแม่หรือยัง",
+            "weigh": "เมื่อประเมินซ้ำรอบหน้าแล้วเธอดีขึ้น ขั้นต่อไปของเธอคืออะไร",
             "safety": ""
           },
           {
             "strength": "ไม่ลืม**เริ่มอาหาร** ซึ่ง WHO แนะนำระหว่างให้น้ำ",
-            "weigh": "รอบแรกยังไม่พอเพราะอะไร และรอบนี้จะแก้ตรงไหน",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "ให้น้ำทางปากต่อ เพราะเด็กตื่นดีและยังดื่มได้",
-            "weigh": "ทำไม WHO ให้เริ่มอาหารระหว่างรอบนี้ ไม่รอจนหายขาดน้ำ",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Follows **WHO advice** for dehydration that remains at the 4 h check.",
-            "weigh": "How much ORS did she actually take in the first 4 hours, by the mother's account?",
+            "weigh": "Once the next recheck shows her improving, what comes next for her?",
             "safety": ""
           },
           {
             "strength": "Remembers to **offer food**, which WHO advises during rehydration.",
-            "weigh": "Why did the first round fall short, and what will you change this time?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           },
           {
             "strength": "Keeps going by mouth, since she is alert and drinking.",
-            "weigh": "Why does WHO want her fed during this round, rather than after?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1570,34 +1570,34 @@
         "th": [
           {
             "strength": "ลดความเร็วด้วยการ**ป้อนช้า ๆ ทีละช้อน** ให้ ORS อาเจียนออกน้อยลง",
-            "weigh": "ป้อนทีละช้อนจนครบรอบต้องใช้ความอดทน ใครจะผลัดแม่ และได้พักเมื่อไร",
+            "weigh": "เมื่อประเมินซ้ำรอบหน้าแล้วเธอดีขึ้น ขั้นต่อไปของเธอคืออะไร",
             "safety": ""
           },
           {
             "strength": "ยังคงให้ทางปาก โดยเปลี่ยนวิธีให้ ไม่ได้เปลี่ยนสิ่งที่ให้",
-            "weigh": "ต้องป้อนถี่แค่ไหน จึงจะได้ปริมาณครบในรอบนี้",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "เลือกวิธีให้ที่เหมาะกับเด็กที่ดื่มแล้วอาเจียน",
-            "weigh": "ถ้ายังอาเจียนแม้ป้อนทีละช้อน จะเปลี่ยนแผนเมื่อไร",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Slows the pace with **slow spoonfuls**, so less ORS comes back up.",
-            "weigh": "Spoon-feeding a full round takes patience: who will relieve the mother, and when?",
+            "weigh": "Once the next recheck shows her improving, what comes next for her?",
             "safety": ""
           },
           {
             "strength": "Keeps the oral route by changing how, not what, she drinks.",
-            "weigh": "How often must the spoonfuls come for the full volume to go in this round?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           },
           {
             "strength": "Matches the method to a child who vomits sips.",
-            "weigh": "If she still vomits despite spoonfuls, at what point will you change the plan?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1606,34 +1606,34 @@
         "th": [
           {
             "strength": "ให้ ORS **ไหลช้าสม่ำเสมอ** ซึ่งเด็กที่อาเจียนทนได้ดี",
-            "weigh": "เด็กตื่นดีและดื่มเก่ง ต้องใส่สายจริงไหม",
+            "weigh": "ถ้ายังถ่ายเป็นน้ำบ่อยมาก การดูแลที่บ้านจะตามทันไหม",
             "safety": ""
           },
           {
             "strength": "ยังใช้ทางเดินอาหารให้น้ำ แม้เด็กจิบแล้วอาเจียน",
-            "weigh": "ใส่สายแล้ว ใครจะคอยดูตำแหน่งสาย และเด็กจะทนได้ไหม",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           },
           {
             "strength": "รู้ว่า**สายให้อาหาร**เป็นช่องทางให้ ORS ที่ WHO รับรอง",
-            "weigh": "ระหว่างให้ทางสาย จะประเมินการขาดน้ำและอาเจียนบ่อยแค่ไหน",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Delivers ORS in a **slow steady flow** that a vomiting child tolerates.",
-            "weigh": "She is alert and drinks eagerly: does she really need a tube?",
+            "weigh": "If watery stools keep coming very often, can home care keep up?",
             "safety": ""
           },
           {
             "strength": "Uses the gut for rehydration even when sipping fails.",
-            "weigh": "Once it is in, who will watch the tube's position, and will she tolerate it?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           },
           {
             "strength": "Recognises a **nasogastric tube** as a WHO-endorsed route for ORS.",
-            "weigh": "While the tube runs, how often will you recheck her hydration and vomiting?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           }
         ]
@@ -1642,34 +1642,34 @@
         "th": [
           {
             "strength": "ทดแทน**น้ำที่ยังขาดอยู่**ทางหลอดเลือดได้แน่นอน",
-            "weigh": "เด็กตื่นดีและยังดื่มได้ ตามแนวทาง WHO ควรให้น้ำทางไหน",
+            "weigh": "หลังขั้นตอนนี้ ควรดูแลเธอต่อที่ไหนจึงจะปลอดภัยที่สุด",
             "safety": ""
           },
           {
             "strength": "ได้ปริมาณน้ำแน่นอนโดยไม่ขึ้นกับการอาเจียน",
-            "weigh": "แทงเส้นเด็กเล็กทั้งเจ็บและอาจไม่สำเร็จ คุ้มกับสิ่งที่ได้ไหม",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอได้รับน้ำไม่ทันกับที่เสียไป",
             "safety": ""
           },
           {
             "strength": "เลือก **IV LRS** ซึ่งเหมาะกับการทดแทนน้ำที่เสียทางอุจจาระ",
-            "weigh": "ให้ IV ในเด็กที่ดื่มได้ เสี่ยงอะไรเพิ่มบ้าง",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Replaces the **remaining deficit** reliably by vein.",
-            "weigh": "She is alert and still drinking: which route does WHO favour for her?",
+            "weigh": "After this step, where is the safest place to continue her care?",
             "safety": ""
           },
           {
             "strength": "Gives a guaranteed volume regardless of vomiting.",
-            "weigh": "Cannulating a toddler hurts and can fail: is it worth it for her?",
+            "weigh": "Which signs would tell you she is falling behind on fluids?",
             "safety": ""
           },
           {
             "strength": "Chooses **Ringer's lactate**, suited to replacing losses from watery stools.",
-            "weigh": "What extra risks does a drip bring in a child who can drink?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1678,34 +1678,34 @@
         "th": [
           {
             "strength": "ยังให้**แผน B ซ้ำ**เป็นหลัก ขณะคิดถึงเชื้อแบคทีเรีย",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด WHO ว่าอย่างไรเรื่องยาปฏิชีวนะ",
+            "weigh": "หลังขั้นตอนนี้ ควรดูแลเธอต่อที่ไหนจึงจะปลอดภัยที่สุด",
             "safety": ""
           },
           {
             "strength": "ให้น้ำทางปากต่อ และพิจารณาสาเหตุจากแบคทีเรีย",
-            "weigh": "ยาปฏิชีวนะจะช่วยให้หายเร็วขึ้น หรือทำให้ถ่ายเหลวมากขึ้น",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอได้รับน้ำไม่ทันกับที่เสียไป",
             "safety": ""
           },
           {
             "strength": "หาเหตุผลว่าทำไมเด็กดีขึ้นช้า",
-            "weigh": "ที่ 4 ชม. เด็กดีขึ้นช้าเพราะขาดยา หรือเพราะดื่มได้น้อยกว่าที่เสีย",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Keeps **Plan B again** at the core while thinking about bacteria.",
-            "weigh": "With watery stools and no blood, what does WHO say about antibiotics?",
+            "weigh": "After this step, where is the safest place to continue her care?",
             "safety": ""
           },
           {
             "strength": "Continues oral rehydration and considers a bacterial cause.",
-            "weigh": "Would an antibiotic speed her recovery, or add to her loose stools?",
+            "weigh": "Which signs would tell you she is falling behind on fluids?",
             "safety": ""
           },
           {
             "strength": "Looks for a reason she is improving slowly.",
-            "weigh": "Is her slow progress at 4 h about a missing drug, or intake not keeping up with losses?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1716,34 +1716,34 @@
         "th": [
           {
             "strength": "เริ่มให้น้ำและเจาะดู**เกลือแร่กับน้ำตาล**พร้อมกัน",
-            "weigh": "จะให้สารน้ำปริมาณเท่าไร อัตราเท่าไร และประเมินซ้ำเมื่อไร",
+            "weigh": "เมื่อประเมินซ้ำรอบหน้าแล้วเธอดีขึ้น ขั้นต่อไปของเธอคืออะไร",
             "safety": ""
           },
           {
             "strength": "แทงเส้นครั้งเดียวได้ทั้งให้น้ำและเจาะเลือด เด็กไม่ต้องเจ็บซ้ำ",
-            "weigh": "แทงเส้นเด็กเล็กที่ขาดน้ำได้ยาก ถ้าแทงไม่เข้าจะมีทางสำรองอะไร",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "มองการอาเจียนซ้ำ ๆ เป็นเหตุให้เปิดเส้นและตรวจเลือดไปพร้อมกัน",
-            "weigh": "ถ้าโซเดียมหรือน้ำตาลผิดปกติ จะปรับชนิดหรืออัตราสารน้ำอย่างไร",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Starts the drip and checks **sodium and sugar** from one cannula.",
-            "weigh": "What volume and rate will you set, and when will you check her again?",
+            "weigh": "Once the next recheck shows her improving, what comes next for her?",
             "safety": ""
           },
           {
             "strength": "Uses one needle for both fluids and bloods, sparing her a second stick.",
-            "weigh": "Cannulating a dry toddler is hard: what is your backup if the line won't go in?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           },
           {
             "strength": "Treats repeated vomiting as a reason to secure the route and check her chemistry.",
-            "weigh": "If her sodium or sugar comes back abnormal, how will the fluid type or rate change?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1752,34 +1752,34 @@
         "th": [
           {
             "strength": "ให้ ORS **ไหลช้าสม่ำเสมอ** ซึ่งเด็กที่อาเจียนทนได้ดี",
-            "weigh": "ใส่สายแล้ว จะยืนยันตำแหน่งสายอย่างไร และใครคอยดู",
+            "weigh": "เมื่อประเมินซ้ำรอบหน้าแล้วเธอดีขึ้น ขั้นต่อไปของเธอคืออะไร",
             "safety": ""
           },
           {
             "strength": "ยังใช้ทางเดินอาหารให้น้ำ แม้เด็กจิบแล้วอาเจียน",
-            "weigh": "จะตั้งอัตราไหลเท่าไร ให้เด็กเก็บ ORS ไว้ได้",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           },
           {
             "strength": "รู้ว่า**สายให้อาหาร**เป็นช่องทางให้ ORS ที่ WHO รับรอง",
-            "weigh": "เด็กยังกินยาปฏิชีวนะอยู่ ยังจำเป็นไหม และยานี้ทำให้อาเจียนด้วยหรือเปล่า",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Delivers ORS in a **slow steady flow** that a vomiting child tolerates.",
-            "weigh": "How will you confirm the tube's position, and who will keep an eye on it?",
+            "weigh": "Once the next recheck shows her improving, what comes next for her?",
             "safety": ""
           },
           {
             "strength": "Uses the gut for rehydration even when sipping fails.",
-            "weigh": "What flow rate will let her keep the ORS down?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           },
           {
             "strength": "Recognises a **nasogastric tube** as a WHO-endorsed route for ORS.",
-            "weigh": "She is still on the antibiotic: does she need it, and could it be adding to the vomiting?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -1788,34 +1788,34 @@
         "th": [
           {
             "strength": "สังเกตได้ว่า**ยาปฏิชีวนะ**เองอาจทำให้อาเจียนมากขึ้น",
-            "weigh": "ถ้าหยุดยาแล้วยังอาเจียน จะคิดถึงอะไรต่อ",
+            "weigh": "ถ้ายังถ่ายเป็นน้ำบ่อยมาก การดูแลที่บ้านจะตามทันไหม",
             "safety": ""
           },
           {
             "strength": "ให้น้ำ**ทางหลอดเลือด**เมื่อดื่ม ORS แล้วอาเจียนออก",
-            "weigh": "แทงเส้นเด็กเล็กที่ขาดน้ำได้ยาก จะเตรียมอะไรไว้ก่อนลงมือ",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           },
           {
             "strength": "แก้ทั้งน้ำที่ขาดและสาเหตุจากยาที่อาจทำให้อาเจียนไปพร้อมกัน",
-            "weigh": "อาเจียนมาหลายชั่วโมง นอกจากน้ำที่ขาดแล้ว ในเลือดอาจผิดปกติอะไรอีก",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Spots that the **antibiotic** itself may be adding to the vomiting.",
-            "weigh": "If the vomiting goes on after the drug stops, what will you think of next?",
+            "weigh": "If watery stools keep coming very often, can home care keep up?",
             "safety": ""
           },
           {
             "strength": "Rehydrates **by vein** when ORS keeps coming back up.",
-            "weigh": "Cannulating a dry toddler is hard: what will you have ready before you try?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           },
           {
             "strength": "Addresses both the deficit and a possible drug cause of vomiting.",
-            "weigh": "After hours of vomiting, what else besides volume could be off in her blood?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           }
         ]
@@ -1824,34 +1824,34 @@
         "th": [
           {
             "strength": "ลดอาเจียนเพื่อให้**ลองดื่ม ORS ใหม่**ได้",
-            "weigh": "ยาครั้งเดียวมักปลอดภัย แต่เด็กที่ขาดน้ำอยู่แล้ว จะรับถ่ายเหลวที่เพิ่มขึ้นอีกหน่อยไหวไหม",
+            "weigh": "ถ้ายังถ่ายเป็นน้ำบ่อยมาก การดูแลที่บ้านจะตามทันไหม",
             "safety": ""
           },
           {
             "strength": "วาง**ประเมินซ้ำใน 1 ชม.**ไว้ชัด แผนจึงไม่ยืดเยื้อ",
-            "weigh": "WHO ไม่ได้ใส่ยานี้ไว้ในแผนรักษาอุจจาระร่วง อะไรทำให้เลือกใช้ตอนนี้",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           },
           {
             "strength": "รักษาทางปากไว้ ด้วยการแก้ที่อาการอาเจียนโดยตรง",
-            "weigh": "ถ้าลองใหม่แล้วยังอาเจียน แค่ไหนจึงถือว่าไม่ได้ผล",
+            "weigh": "ถ้ายังถ่ายเหลวต่อ จะชดเชยน้ำที่เสียไปอย่างไร",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Settles the vomiting so a **fresh ORS trial** has a chance.",
-            "weigh": "One dose is usually safe, but can an already dry child afford a little more diarrhoea?",
+            "weigh": "If watery stools keep coming very often, can home care keep up?",
             "safety": ""
           },
           {
             "strength": "Sets a firm recheck **within 1 h**, so the plan cannot drift.",
-            "weigh": "Ondansetron is not in the WHO diarrhoea plan: what makes you reach for it now?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           },
           {
             "strength": "Keeps the oral route open by treating the vomiting itself.",
-            "weigh": "If the fresh trial still comes back up, at what point does it count as failed?",
+            "weigh": "If loose stools go on, how will her fluid losses be replaced?",
             "safety": ""
           }
         ]
@@ -1860,34 +1860,34 @@
         "th": [
           {
             "strength": "ให้น้ำ**ทางหลอดเลือด**เมื่ออาเจียนจนดื่ม ORS ไม่ได้",
-            "weigh": "ถ่ายเป็นน้ำไม่มีมูกเลือด ผลเพาะเชื้อจะเปลี่ยนการดูแลไหม และต้องรอกี่วัน",
+            "weigh": "หลังขั้นตอนนี้ ควรดูแลเธอต่อที่ไหนจึงจะปลอดภัยที่สุด",
             "safety": ""
           },
           {
             "strength": "ให้น้ำได้แน่นอนและหาสาเหตุของอาการถ่ายเหลวไปด้วย",
-            "weigh": "เด็กอาเจียนระหว่างกินยาปฏิชีวนะ การรักษาที่ได้อยู่มีอะไรทำให้อาเจียนเพิ่มไหม",
+            "weigh": "อาการแสดงอะไรจะบอกว่าเธอได้รับน้ำไม่ทันกับที่เสียไป",
             "safety": ""
           },
           {
             "strength": "คิดว่าทำไมยังถ่ายอยู่ ไม่ใช่แค่ผลที่ตามมา",
-            "weigh": "ตอนนี้อะไรสำคัญกว่ากัน ชนิดของเชื้อ หรือการคืนน้ำให้เด็ก",
+            "weigh": "อะไรเป็นตัวตัดสินว่าเธอกลับบ้านได้วันนี้ หรือควรอยู่ต่อ",
             "safety": ""
           }
         ],
         "en": [
           {
             "strength": "Rehydrates **by vein** when vomiting stops ORS working.",
-            "weigh": "For watery stools without blood, would a culture change her care, and how long would it take?",
+            "weigh": "After this step, where is the safest place to continue her care?",
             "safety": ""
           },
           {
             "strength": "Secures fluids and seeks the cause of the diarrhoea.",
-            "weigh": "She vomits while on an antibiotic: could anything in her current treatment be adding to it?",
+            "weigh": "Which signs would tell you she is falling behind on fluids?",
             "safety": ""
           },
           {
             "strength": "Thinks about why the diarrhoea continues, not only its effects.",
-            "weigh": "Right now, which matters more: naming the germ, or getting her fluids back?",
+            "weigh": "What decides whether she can go home today or should stay?",
             "safety": ""
           }
         ]
@@ -2441,10 +2441,10 @@
     }
   },
   "safety_review": {
-    "model": "claude-opus-5-5",
-    "date": "2026-11-25",
-    "findings": "A fresh non-author reviewer, claude-opus-5-5, read every weigh line in all 13 banks on 2026-11-25 after the reply format B rewrite (weigh as a คิดต่อ / Next thought question), Thai and English, all 3 alternatives, against every question variant and every path into each bank. Strength and safety are byte-identical to the bank reviewed on 2026-11-14 (checked by script against HEAD). Blanked: step4.B.plana only, in all alternatives and both languages; the blank is right, since its old points either restated the option (50-100 mL per stool), pointed at the same bank's teach option (the mother's confidence with ORS) or at step 5's zinc course. Must-fixes applied: step1.age [1] \"Watery stools without blood or mucus: do they point more to a virus or to bacteria?\" -> \"Her stools have no blood or mucus: how does that shape her treatment?\" (it named the same bank's viral option, ไวรัส in Thai); step5.W.ivadmit [0] \"She is only slightly dry and drinks eagerly: which route does WHO favour?\" -> \"She is only slightly dry: which route does WHO favour for her?\" (drinks eagerly is in one stem only); step5.R.homeors [0] \"With watery stools almost hourly, can one carer keep up with ORS at home?\" -> \"With watery stools this frequent, can one carer keep up with ORS at home?\" and step5.R.recheck [2] \"With watery stools almost hourly, could she lose more than she drinks before the visit?\" -> \"With watery stools this frequent, could she lose more than she drinks before the visit?\" (almost hourly is in one stem only); step5.R.admitteach [1] \"While the mother learns, who checks that intake keeps up with hourly stools?\" -> \"While the mother learns, who checks that her intake keeps up with her stools?\" (same reason, and the Thai never said hourly). Other judgments: dropping the step 3 zinc-length point is safe; step3 planb [0] asking what WHO advises after vomiting stays on Plan B's own content and the step4.R spoon option is not reachable from a best step 3 pick; step4.W ngt [2] and ivculture [1] asking whether the antibiotic adds to the vomiting is sound against stems that state the antibiotic, and steers away from an unneeded drug; step1.moddehyd [1] correctly treats eager drinking with a 2-second refill as short of severe while prompting a search for severe signs. No weigh line names another option of its bank or gives away a later step, every number is in the vignette, the option or every variant, and the Thai reads as spoken ward-round Thai. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Replies sha256 6e0452a9c0b0383ffd35025f55be653abc45e9c3dec0e03e53a03a6239b5478c.",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-26",
+    "findings": "Fresh non-author reviewers, claude-sonnet-5-5 (three in parallel for the first read, then two confirm passes), read every weigh line in the ten step 1-4 banks on 2026-11-26 after the weigh-bridge rewrite (each step 1-4 คิดต่อ / Next thought line is now a question that turns the visitor, from the answer just chosen, toward what the next step asks), all three alternatives, Thai and English, against every question variant of its own bank and of the bank the option leads to. Strength, safety and every step 5 line are byte-identical to the bank reviewed on 2026-11-25 (checked by script). No line was found unsafe or to nudge toward harm. Must-fixes applied: step1 lines paraphrased \"Weight and dehydration signs\" (\"grade how dry\", \"bedside signs\"), and \"before any fluid goes in\" could read as delaying ORS; step3 [1] \"what does her mother need to carry on at home\" echoed the teach-the-mother option; step4 \"at home\" lines presumed discharge, the very step 5 decision, and sat against the admit-best step5.R scenario, now ask how fluid losses will be replaced; \"not safe to leave\" was the danger-sign teaching line, and its replacement \"if she is well at this recheck\" misfit the paths where she is not, now \"Once the next recheck shows her improving\" on those paths; step3 [2] \"which signs will show she is rehydrated\" fit poorly where step 4 shows her still slightly dry, now asks which signs show she is not yet rehydrated. Should-fix taken: Thai missing \"ได้\". Every replacement was re-read against all variants in a later pass, and the last pass left no must-fix open. Second round, same day: an independent Opus re-read of the committed lines found six failing lines in a sample of 30, and seven fixes were applied as given (leptospirosis step4.W.d [0] and [2], adhf step4.W.reservoir [1], motorcycle-shock step1.e [0], step3 c [0] and step2 a/b [2], alcohol-pancreatitis step3 [2]); on the FAST paths the English says \"fluid and transfusion\" instead of \"fluid and blood\", because the checker rejects \"blood\" (another option label). Then three fresh claude-sonnet-5-5 reviewers that had seen no earlier pass read every step 1-4 alternative in the ten banks (1467 alternatives, 2934 lines), each against its own bank, its own strength and safety lines, and the next bank's variants, options and explanation lines, failing any wait, overnight or next-days framing where the case is urgent, any claim not in the case, any echo of the next best option, a Thai/English mismatch and unnatural Thai. 156 read, 6 failed: \"by morning\" and \"overnight\" lines on step4.R.iv, R.abxb and W.ivculture; the confirm pass found \"still dry\" contradicted a next-step variant, now \"After this step, where is the safest place to continue her care?\". Five confirm passes re-read every replaced line; the fifth found nothing. Tree sha256 b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef. Replies sha256 8341aafd656573455d5313c6cfb768721bc7516987a391b0df04c110cab9cf0a.",
     "tree_sha256": "b81268ea8c1bc85852c117a2183108cff8af0cac7c6f18da0594288573f0a3ef",
-    "replies_sha256": "6e0452a9c0b0383ffd35025f55be653abc45e9c3dec0e03e53a03a6239b5478c"
+    "replies_sha256": "8341aafd656573455d5313c6cfb768721bc7516987a391b0df04c110cab9cf0a"
   }
 }

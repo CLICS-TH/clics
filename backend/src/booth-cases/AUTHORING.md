@@ -158,8 +158,8 @@ A bank key names a bank as the server does: `step1`, then `step2.B` through `ste
 The kiosk draws a reply in format B (2026-11-25):
 
 - `strength` is the lead sentence, with no heading: why the chosen answer fits, or what it gets right.
-- `weigh` sits under "คิดต่อ / Next thought". It is a short question about the visitor's own answer: what would sharpen, test or extend it. It never names another option of the bank and never points at a later step. English ends with "?"; Thai is a natural spoken question without one.
-- An option with nothing real to add, a best-tier option only, leaves `weigh` as `""` in all three alternatives of both languages.
+- `weigh` sits under "คิดต่อ / Next thought". From step 1 to step 4 it is a short question that turns the visitor, from the answer just chosen, toward what the next step asks (2026-11-26, from NFCME-2026 booth feedback): after a first-tests answer, how the result would change first treatment, for example. The next step is the bank the chosen option's tier leads to, and any of its question variants may be drawn, so the bridge fits all of them. It never names another option of its own bank, never hints at the wording of the next bank's options, and adds no clinical claim the case tree does not make. Step 5 has no next question: its `weigh` stays a question about the visitor's own answer. English ends with "?"; Thai is a natural spoken question without one.
+- An option with nothing real to add, a best-tier option at step 5 only, leaves `weigh` as `""` in all three alternatives of both languages.
 - `safety` keeps its own heading.
 
 A live reply to a typed answer still follows rimpl's booth rules, so its `weigh` is a statement under the same heading.
