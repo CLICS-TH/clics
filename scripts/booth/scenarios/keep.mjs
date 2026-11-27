@@ -1,11 +1,16 @@
 import { readFile, readdir } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { readRadar, checkRadar } from '../radar-check.mjs';
 
 const SCORE_KEY = 'POST /booth/plays/:id/score';
 const KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const { isAdmitted } = createRequire(import.meta.url)('../../../backend/src/booth-cases/tree-schema.js');
+/** Admitted, as far as this needs: its table is checked or waived for its own run, and it has a sandbox record or waiver.
+ *  (The booth job has no backend dependencies; the backend job's step-text.mjs check holds the full rule, ADR 0005.) */
+const isAdmitted = (t) => {
+  const a = t.admission;
+  const run = t.path_score_table?.provenance?.run_id;
+  return Boolean(a && run && (a.sandbox || a.owner_waiver) && (a.table_check?.run_id === run || a.table_waiver?.run_id === run));
+};
 const STEPS = fileURLToPath(new URL('../../../physician-ui/public/booth-steps/', import.meta.url));
 const js = (name) => fileURLToPath(new URL(`../../../physician-ui/public/js/${name}`, import.meta.url));
 
