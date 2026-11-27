@@ -213,9 +213,9 @@ describe('the build runner', () => {
   });
 
   test.each([
-    ['--cap', '140.01', /--cap needs a number from 0\.01 to 140\b/],
+    ['--cap', '170.01', /--cap needs a number from 0\.01 to 170\b/],
     ['--samples', '2', /--samples must be odd/],
-  ])('refuses %s %s: the cap is at most $140 and a median needs an odd count', (flag, v, why) => {
+  ])('refuses %s %s: the cap is at most $170 and a median needs an odd count', (flag, v, why) => {
     const res = run([flag, v]);
     expect(res.status).toBe(2);
     expect(res.stderr).toMatch(why);
@@ -461,7 +461,7 @@ describe('the build runner', () => {
     }
   });
 
-  test('init seeds the ledger with the committed record\'s $132.65 (after the reply format B rebuild), refuses to run twice, and so refuses every --go under a $132 cap', async () => {
+  test('init seeds the ledger with the committed record\'s $158.26 (after the bridged weigh-line rebuilds), refuses to run twice, and so refuses every --go under a $158 cap', async () => {
     const home = tmp();
     const co = checkout();
     const init = () => initIn(co, home);
@@ -469,7 +469,7 @@ describe('the build runner', () => {
     expect(fs.existsSync(ledgerFile(home))).toBe(true);
     const seeded = fs.readFileSync(ledgerFile(home), 'utf8');
     expect(ledgerOf(home)[0]).toMatchObject({ kind: 'init', seeded_from: 'scripts/booth/path-table-runs/spend.jsonl' });
-    expect(spentIn(ledgerOf(home))).toBeCloseTo(132.652624, 6);
+    expect(spentIn(ledgerOf(home))).toBeCloseTo(158.257042, 6);
     const again = init();
     expect(again.status).toBe(2);
     expect(again.stderr).toMatch(/already exists/);
@@ -477,10 +477,10 @@ describe('the build runner', () => {
     expect(fs.readdirSync(path.dirname(ledgerFile(home)))).toEqual(['ledger.jsonl']);
     const rimpl = await stubRimpl({ answer: locked() });
     try {
-      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '132'], goEnv(home, rimpl));
+      const res = await runAsync([...throwawayBuild().args, '--go', '--cap', '158'], goEnv(home, rimpl));
       expect(rimpl.calls).toEqual([]);
       expect(res.status).toBe(2);
-      expect(res.stderr).toMatch(/have spent \$132\.65 of the \$132 cap/);
+      expect(res.stderr).toMatch(/have spent \$158\.26 of the \$158 cap/);
     } finally {
       rimpl.close();
     }
