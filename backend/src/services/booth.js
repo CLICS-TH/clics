@@ -8,7 +8,8 @@ const { rimplChat } = require('./rimpl-client');
 const { TIERS, MAX_STEPS, tableScore } = require('../booth-cases/tree-schema');
 const { readEventFiles, eventPool } = require('../booth-cases/event-pool');
 const { readStudyCase } = require('../booth-cases/study-snapshot');
-const { displayScore } = require('../booth-cases/display-score');
+const { shownScore, byStanding } = require('../booth-cases/display-score');
+const { readAll } = require('../lib/read-all');
 const {
   BRIDGE_MAX_CHARS, REPLY_FIELDS, FIELD_MAX_CHARS, BOLD_MAX_RUNS, ANSWER_MAX_CHARS, DEIDENTIFIED_MAX_CHARS, LETTER,
   LOOK_LANGUAGE, bankAt, randomOf, isValidAsk, firstAsk, nextOf, fenced, hasReply, sortedTier, chatRequest, chatOutcome, bankOutcome, stepTiers,
@@ -31,10 +32,7 @@ const REPLY_TIMEOUT_MS = 30_000;
 const LETTERS = TIERS.map((t) => t.letter);
 const DOMAIN_KEYS = Object.keys(WEIGHTS);
 const BOARD_SIZE = 10;
-// The read is ordered like byStanding, so every play above a fetched one is fetched too: a play outside the top
-// STANDINGS_MAX just has no rank, and the today board draws on that top only. One kiosk finishes a play about
-// every 5 minutes, far below this.
-const STANDINGS_MAX = 1000;
+const STANDING_COLUMNS = 'id, tag, composite, tier_path, scored_at';
 const BANGKOK_OFFSET_MS = 7 * 3_600_000;
 const DAY_MS = 86_400_000;
 
@@ -304,14 +302,17 @@ async function settle(playId, res, reserved) {
 
 const bangkokDayStart = (ms) => Math.floor((ms + BANGKOK_OFFSET_MS) / DAY_MS) * DAY_MS - BANGKOK_OFFSET_MS;
 
-/** Higher score first; an equal score ranks the earlier play first. */
-function byStanding(a, b) {
-  return b.composite - a.composite || Date.parse(a.scored_at) - Date.parse(b.scored_at) || a.tag - b.tag;
-}
+/** A stored play as the boards rank it: its shown score (display-score.js shownScore) beside the raw composite. */
+const standingRow = (r, steps) => {
+  const composite = Number(r.composite);
+  return { ...r, composite, ...shownScore(composite, r.tier_path, steps) };
+};
 
 /**
- * Pure: the event's scored plays, ranked for the event and for the Bangkok day that `dayOf` falls in.
- * @param {{ id: string, tag: number, composite: number, scored_at: string }[]} rows ranked scored plays of one event
+ * Pure: the event's scored plays, ranked (display-score.js byStanding) for the event and for the Bangkok day that
+ * `dayOf` falls in.
+ * @param {{ id: string, tag: number, score: number, tiered: boolean, composite: number, scored_at: string }[]} rows
+ *   ranked scored plays of one event, as standingRow makes them
  */
 function standings(rows, dayOf) {
   const event = [...rows].sort(byStanding);
@@ -320,54 +321,55 @@ function standings(rows, dayOf) {
   return { event, today };
 }
 
-/** The board shows the display score (ADR 0013); rows keep and rank on the raw composite. */
-const entryOf = (steps) => (r) => ({ tag: r.tag, score: displayScore(r.composite, steps), at: r.scored_at });
+/** The board shows the shown score (ADR 0016); the raw composite only breaks its ties. */
+const entryOf = (r) => ({ tag: r.tag, score: r.score, at: r.scored_at });
 
 /** @returns {Board} */
-const boardOf = ({ today, event }, steps) => {
-  const entry = entryOf(steps);
-  return { today: today.slice(0, BOARD_SIZE).map(entry), event: event.slice(0, BOARD_SIZE).map(entry) };
-};
+const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(entryOf), event: event.slice(0, BOARD_SIZE).map(entryOf) });
 
 /** The board ranks one scale (spec #370, #386): only plays of the event's step count, so the three-step plays made
- *  before an event moved to five steps never rank against five-step ones. */
+ *  before an event moved to five steps never rank against five-step ones.
+ *
+ *  Every scored play of the event is read, a few narrow columns each, and ranked here: the order (ADR 0016) starts
+ *  from the tier path, which no index orders, so a database limit could cut a play that belongs at the top. One kiosk
+ *  finishes a play about every 5 minutes, ~100 a day, so an event is a few hundred rows: one page of readAll. */
 async function readStandings(event, dayOf) {
-  const { data, error } = await supabase.from('booth_plays').select('id, tag, composite, scored_at')
+  const rows = await readAll(() => supabase.from('booth_plays').select(STANDING_COLUMNS)
     .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true).like('tier_path', '_'.repeat(event.steps))
-    .order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
-  if (error || !Array.isArray(data)) {
-    console.error(`[booth] standings read failed for ${event.code}: ${error?.message ?? 'not a list'}`);
-    return null;
-  }
-  const rows = data.map((r) => ({ id: r.id, tag: r.tag, composite: Number(r.composite), scored_at: r.scored_at }));
-  return standings(rows, dayOf);
+    .order('id'), (why) => console.error(`[booth] standings read failed for ${event.code}: ${why}`));
+  if (!rows) return null;
+  // Offset paging on id can hand back one row twice when a play is scored mid-read; count each play once.
+  const seen = new Set();
+  const once = rows.filter((r) => !seen.has(r.id) && seen.add(r.id));
+  return standings(once.map((r) => standingRow(r, event.steps)), dayOf);
 }
 
-/** A rank of null means none: the standings did not load, or the play is outside the top STANDINGS_MAX. `steps` is
- *  stepTiers of the play: no other body carries an offered option's tier, and a reply carries only its own step's. */
-async function scoredBody(playId, event, composite, domains, scoredAt, steps) {
+/** A rank of null means none: the standings did not load. `steps` is stepTiers of the play: no other body carries an
+ *  offered option's tier, and a reply carries only its own step's. */
+async function scoredBody(playId, event, { composite, tierPath }, domains, scoredAt, steps) {
   const s = await readStandings(event, Date.parse(scoredAt));
   const rank = (list) => {
     const i = list.findIndex((r) => r.id === playId);
     return i >= 0 ? i + 1 : null;
   };
   return {
-    status: 'scored', composite: displayScore(composite, event.steps), domains, steps,
+    status: 'scored', composite: shownScore(composite, tierPath, event.steps).score, domains, steps,
     rank_today: rank(s?.today ?? []), rank_event: rank(s?.event ?? []),
-    board: s ? boardOf(s, event.steps) : null,
+    board: s ? boardOf(s) : null,
   };
 }
 
 async function settledOutcome(playId, event, steps) {
   const { data: row, error } = await supabase.from('booth_plays')
-    .select(`id, status, composite, scored_at, ${DOMAIN_KEYS.join(', ')}`)
+    .select(`id, status, composite, tier_path, scored_at, ${DOMAIN_KEYS.join(', ')}`)
     .eq('id', playId).eq('event_code', event.code).maybeSingle();
   if (error) return { refused: 'unavailable' };
   if (!row) return { refused: 'not_found' };
   if (row.status === 'started') return null;
   if (row.status !== 'scored') return UNAVAILABLE;
   const domains = Object.fromEntries(DOMAIN_KEYS.map((k) => [k, Number(row[k])]));
-  return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at, steps) };
+  const score = { composite: Number(row.composite), tierPath: row.tier_path };
+  return { body: await scoredBody(playId, event, score, domains, row.scored_at, steps) };
 }
 
 /** Scores a play still started with its table score (ADR 0009). The play's dialogue (stepRecords), score source and the
@@ -381,7 +383,7 @@ async function finish(playId, event, { domains, composite }, dialogue, source, s
     })
     .eq('id', playId).eq('status', 'started').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
-  return { body: await scoredBody(playId, event, composite, domains, scoredAt, steps) };
+  return { body: await scoredBody(playId, event, { composite, tierPath: dialogue.tierPath }, domains, scoredAt, steps) };
 }
 
 /** @returns {Promise<Result>} body: { open, reason?, event_code } */
@@ -463,7 +465,7 @@ async function boardFor(now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
   const s = await readStandings(opened.event, now.getTime());
-  return s ? { body: { board: boardOf(s, opened.event.steps) } } : { refused: 'unavailable' };
+  return s ? { body: { board: boardOf(s) } } : { refused: 'unavailable' };
 }
 
 /** One reply per step: step n is claimed only from n - 1, so a re-posted reply (to draw the AI's tier again) is refused. */
@@ -829,6 +831,6 @@ async function updateBoothSettings(input) {
 }
 
 module.exports = {
-  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, boothStatus, boardFor, drawCase, startPlay, replyToStep,
+  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, readEventCases, turnSig, fenced, standings, standingRow, boothStatus, boardFor, drawCase, startPlay, replyToStep,
   scorePlay, boothSettings, updateBoothSettings, studyCase, readBoothEvent, eventCases, openEvent,
 };

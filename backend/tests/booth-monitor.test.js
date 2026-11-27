@@ -13,7 +13,7 @@ const request = require('supertest');
 const { __mock: m } = require('../src/lib/supabase');
 const { logEventStrict } = require('../src/lib/audit');
 const { stepCount } = require('../src/services/booth-dialogue');
-const { displayScore } = require('../src/booth-cases/display-score');
+const { TIER_SCALE, DISPLAY_SCALE } = require('../src/booth-cases/display-score');
 const app = require('../src/index');
 const { SUPERADMIN, ADMIN, AUDITOR, PHYSICIAN } = require('./helpers/roles');
 
@@ -100,18 +100,47 @@ describe('superadmin only', () => {
 });
 
 describe('GET /admin/booth/standings', () => {
-  it('ranks what the kiosk ranks, by raw score, an equal score to the earlier play, overall and per case', async () => {
+  it('ranks what the kiosk ranks, in a three-step event by raw score, an equal score to the earlier play, overall and per case', async () => {
     const res = await as(SUPERADMIN)('/admin/booth/standings');
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ event_code: 'NFCME-2026', steps: STEPS, total: 4 });
     expect(res.body.overall.map((r) => [r.rank, r.tag, r.raw])).toEqual([[1, 2, 60], [2, 3, 60], [3, 4, 55], [4, 1, 40]]);
-    expect(res.body.overall[0]).toEqual({ rank: 1, tag: 2, score: displayScore(60, STEPS), raw: 60, case_id: kase.case_id,
+    expect(STEPS).toBe(3);
+    expect(res.body.overall[0]).toEqual({ rank: 1, tag: 2, score: 60, raw: 60, tier_path: PATH, case_id: kase.case_id,
       case_version: kase.version, scored_at: '2026-11-20T04:05:00Z' });
     expect(res.body.cases.map((c) => [c.case_id, c.teaser, c.rows.map((r) => [r.rank, r.tag])])).toEqual([
       [kase.case_id, kase.teaser, [[1, 2], [2, 3], [3, 1]]],
       // A case no longer in the pool keeps its rows, after the pool.
       ['retired-case', null, [[1, 4]]],
     ]);
+  });
+
+  it('in a five-step event shows the tier score and ranks on it, then on the raw score, then the earlier play (ADR 0016)', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'booth-monitor-5-'));
+    const kase5 = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8')), event_code: 'NFCME-2026',
+      path_score_table: JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table-5.json'), 'utf8')) };
+    fs.mkdirSync(path.join(dir, 'NFCME-2026'));
+    fs.writeFileSync(path.join(dir, 'NFCME-2026', `${kase5.case_id}.json`), JSON.stringify(stamped(kase5)));
+    process.env.BOOTH_CASES_DIR = dir;
+    try {
+      const five = (over) => play({ case_id: kase5.case_id, case_version: kase5.version, replied_step: 5, ...over });
+      plays = [
+        five({ tag: 1, composite: 61, tier_path: 'BBBBR' }),
+        five({ tag: 2, composite: 48, tier_path: 'BBBBB' }),
+        five({ tag: 3, composite: 50, tier_path: 'RBBBB', scored_at: '2026-11-20T02:05:00Z' }),
+        five({ tag: 4, composite: 50, tier_path: 'BRBBB' }),
+        five({ tag: 5, composite: 99, tier_path: 'WWWWW' }),
+        play({ tag: 6, composite: 99, tier_path: 'BBB' }),
+      ];
+      const res = await as(SUPERADMIN)('/admin/booth/standings');
+      expect(res.body).toMatchObject({ steps: 5, total: 5 });
+      expect(res.body.overall.map((r) => [r.rank, r.tag, r.score, r.raw, r.tier_path])).toEqual([
+        [1, 2, 100, 48, 'BBBBB'], [2, 1, 90, 61, 'BBBBR'], [3, 3, 90, 50, 'RBBBB'], [4, 4, 90, 50, 'BRBBB'], [5, 5, 0, 99, 'WWWWW'],
+      ]);
+      expect(res.body.cases[0].rows.map((r) => r.tag)).toEqual([2, 1, 3, 4, 5]);
+    } finally {
+      process.env.BOOTH_CASES_DIR = CASES_DIR;
+    }
   });
 
   it('reads past the 1000 rows one request returns', async () => {
@@ -158,11 +187,12 @@ describe('GET /admin/booth/export.json', () => {
       metadata: expect.objectContaining({ event_code: 'NFCME-2026', plays: 7 }) }));
   });
 
-  it('gives a five-step play the display score the kiosk showed, and any other play its raw score', async () => {
-    plays = [play({ tag: 1, composite: 45.5, tier_path: 'BBBBB' }), play({ tag: 2, composite: 45.5, tier_path: 'BBB' })];
+  it('gives a five-step play its tier score (ADR 0016), and any other play its raw score, and names both scales', async () => {
+    plays = [play({ tag: 1, composite: 45.5, tier_path: 'BBBRW' }), play({ tag: 2, composite: 45.5, tier_path: 'BBB' })];
     const body = JSON.parse((await as(SUPERADMIN)('/admin/booth/export.json')).text);
-    expect(body.plays.map((p) => p.display_score)).toEqual([displayScore(45.5, 5), 45.5]);
-    expect(displayScore(45.5, 5)).not.toBe(45.5);
+    expect(body.plays.map((p) => p.display_score)).toEqual([70, 45.5]);
+    expect(body.plays[0]).toMatchObject({ raw_composite: 45.5, tier_path: 'BBBRW' });
+    expect(body.export).toMatchObject({ tier_scale: TIER_SCALE, display_scale: DISPLAY_SCALE });
   });
 
   it('withholds a typed answer and its AI reply when the screen finds something, and keeps clean ones', async () => {

@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
+const { readAll } = require('../lib/read-all');
 const { compositeScore, WEIGHTS } = require('./ple-gate');
 const { studyCase } = require('./booth');
 const { studyTranscript } = require('./booth-dialogue');
@@ -9,8 +10,6 @@ const BLIND_COLUMNS = 'id, event_code, case_id, case_version, scored_at, steps, 
 const REVEAL_COLUMNS = [...DOMAINS, 'composite'].join(', ');
 const AUDIT_COLUMNS = [...DOMAINS, 'created_at'].join(', ');
 const PER_PAGE = 50;
-// PostgREST answers at most 1000 rows a request, so a longer read would be cut short silently.
-const PAGE = 1000;
 const PlayId = z.string().uuid();
 const PageNumber = z.string().regex(/^[1-9][0-9]{0,5}$/).default('1').transform(Number);
 const DROP_REASONS = ['no_snapshot', 'no_deidentified_copy', 'malformed', 'flagged'];
@@ -31,17 +30,6 @@ const scoresOf = (row) => Object.fromEntries(DOMAINS.map((k) => [k, Number(row[k
 const BANGKOK_OFFSET_MS = 7 * 3_600_000;
 const blindDay = (scoredAt) => new Date(Date.parse(scoredAt) + BANGKOK_OFFSET_MS).toISOString().slice(0, 10);
 const round2 = (x) => Math.round(x * 100) / 100;
-
-/** Every row of an ordered query, read PAGE rows a request. null when a read fails. */
-async function readAll(query) {
-  const rows = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await query().range(from, from + PAGE - 1);
-    if (error || !Array.isArray(data)) return null;
-    rows.push(...data);
-    if (data.length < PAGE) return rows;
-  }
-}
 
 /** The play as an auditor studies it, from the study snapshot of the case version it was played on, in the language
  *  of the look it was scored in.
@@ -138,4 +126,4 @@ async function summary() {
   };
 }
 
-module.exports = { queue, study, submit, summary, readAll, BLIND_COLUMNS, REVEAL_COLUMNS, AUDIT_COLUMNS };
+module.exports = { queue, study, submit, summary, BLIND_COLUMNS, REVEAL_COLUMNS, AUDIT_COLUMNS };

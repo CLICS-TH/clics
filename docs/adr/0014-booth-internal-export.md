@@ -7,7 +7,7 @@ The Booth Mode page has an export button for internal research, including the ow
 - its database id and booth tag (`#042`)
 - its full timestamps and its AI spend
 - its case and version, tier path and step count
-- the raw composite and the display score (ADR 0013; a five-step play scored before display-v1 shipped on 2026-11-18 was shown its raw score)
+- the raw composite and the display score (ADR 0013; a five-step play scored before display-v1 shipped on 2026-11-18 was shown its raw score). Since ADR 0016 a five-step play's `display_score` is its answer-tier points; a file whose header names `tier_scale` holds tier points, one without it holds the ADR 0013 rescale
 - d1–d7, the score source and the language look
 - its dialogue as stored (ADR 0010)
 

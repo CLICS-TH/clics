@@ -142,6 +142,18 @@ describe('leaderboard — overall', () => {
     expect(screen.getByTestId('booth-updated')).toHaveTextContent('อัปเดต 14:06 น. / Updated 14:06');
   });
 
+  it('in a five-step event a row shows the tier points of its path (ADR 0016), and the raw score that breaks a tie beside it', async () => {
+    const tiered = [
+      { ...row(1, 42, 100, 48, 'cap-adult', '2026-11-24T07:05:00Z'), tier_path: 'BBBBB' },
+      { ...row(2, 120, 90, 61, 'cap-adult', '2026-11-24T06:40:00Z'), tier_path: 'BBBBR' },
+      { ...row(3, 7, 90, 50, 'dka-teen', '2026-11-24T06:52:00Z'), tier_path: 'RBBBB' },
+    ];
+    wire({ ...STANDINGS, overall: tiered });
+    render(<BoothLeaderboard />);
+    const rows = bodyRows(await screen.findByRole('table'));
+    expect(rows.map((r) => within(r).getAllByRole('cell')[2].textContent)).toEqual(['100ดิบ / raw 48.0', '90ดิบ / raw 61.0', '90ดิบ / raw 50.0']);
+  });
+
   it('hands the loaded board to the page (the export names its file by the event code)', async () => {
     wire(STANDINGS);
     const onLoad = jest.fn();

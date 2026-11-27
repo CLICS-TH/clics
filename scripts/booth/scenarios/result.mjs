@@ -54,7 +54,7 @@ async function toResult(k, steps = 3) {
   await k.screen('scored');
 }
 
-/** The card's own lines: the rescale note under a five-step score, Practise next's line and the d5-d7 tags. */
+/** The card's own lines: the tier-points note under a five-step score, Practise next's line and the d5-d7 tags. */
 const readNotes = (page) => page.evaluate(() => {
   const pair = (e) => ({ th: e.querySelector('.bi-th')?.textContent, en: e.querySelector('.bi-en')?.textContent });
   return {
@@ -212,9 +212,9 @@ export default [
         'bands: Practise next names the two weakest of d1-d4, never d5-d7 however low (a booth play gives them little room)');
     },
   },
-  // A five-step play's card adds the rescale line under its score (ADR 0013), the tallest card the kiosk draws.
+  // A five-step play's card adds the tier-points line under its score (ADR 0016), the tallest card the kiosk draws.
   ...SIZES.flatMap(([width, height]) => [3, 5].map((steps) => ({
-    name: `result card at ${width}x${height}, ${steps} steps, in each look: the radar, a descriptor per domain, the two weakest first under Practise next and its line, d5-d7 tagged, ${steps === 5 ? 'the rescale line, ' : ''}the leaderboard button above the fold and "Scroll for more" clear of it`,
+    name: `result card at ${width}x${height}, ${steps} steps, in each look: the radar, a descriptor per domain, the two weakest first under Practise next and its line, d5-d7 tagged, ${steps === 5 ? 'the tier-points line, ' : ''}the leaderboard button above the fold and "Scroll for more" clear of it`,
     async run(h) {
       const tree = steps === 5 ? h.TREE5 : h.TREE;
       for (const [label, domains] of scoreSets()) {
@@ -228,8 +228,8 @@ export default [
           await h.screenCheck(page, `result card ${tag}`, { demo: true });
           await h.shot(page, `result-bands-${width}-${steps === 5 ? 'five-' : ''}${label.split(' ').slice(0, 2).join('-')}-${look}`);
           const notes = await readNotes(page);
-          h.check(h.same(notes.score, steps === 5 ? [h.COPY.displayScale] : []),
-            `${tag}: ${steps === 5 ? 'the rescaled score says so under its number, Thai and English (ADR 0013)' : 'a three-step score, shown as stored, has no rescale line'} (${JSON.stringify(notes.score)})`);
+          h.check(h.same(notes.score, steps === 5 ? [h.COPY.scoreRule] : []),
+            `${tag}: ${steps === 5 ? 'the tier-points score says how under its number, Thai and English (ADR 0016)' : 'a three-step score, shown as stored, has no tier-points line'} (${JSON.stringify(notes.score)})`);
           h.check(h.same(notes.practise, [h.COPY.practiseFrom]) && notes.otherNotes === 0, `${tag}: Practise next, and only it, says it draws on the 4 domains a booth play can show`);
           h.check(notes.tags.every((r) => h.same(r.tags, PRACTISE_KEYS.includes(r.key) ? [] : [{ ...h.COPY.littleRoom, th: h.unbroken(h.COPY.littleRoom.th) }])),
             `${tag}: the d5-d7 rows, and only they, carry the tag that a booth play gives them little room (${notes.tags.filter((r) => r.tags.length).map((r) => r.key)})`);

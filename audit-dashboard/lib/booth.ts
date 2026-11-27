@@ -13,8 +13,28 @@ export const playerTag = (tag: number, lang: 'th' | 'en') =>
 /** The score the visitor saw: the display score, rounded as the kiosk rounds it (booth-copy.js scoreText). */
 export const shownScore = (score: number) => String(Math.round(score));
 
-/** The stored composite the board ranks on, to one decimal. */
+/** The stored composite that breaks a tie on the shown score, to one decimal. */
 export const rawScore = (raw: number) => (Number.isFinite(raw) ? raw.toFixed(1) : '—');
+
+/** tiers-v1 (ADR 0016), as backend/src/booth-cases/display-score.js TIER_SCALE scores a step of a five-step play. */
+export const TIER_STEPS = 5;
+export const TIER_POINTS: Readonly<Record<string, number>> = Object.freeze({ B: 20, R: 10, W: 0 });
+
+/** A five-letter tier path's points, 0–100; null for any other path (display-score.js tierScore). */
+export function tierScore(path: string | null | undefined): number | null {
+  if (typeof path !== 'string' || path.length !== TIER_STEPS) return null;
+  let sum = 0;
+  for (const letter of path) {
+    if (!Object.hasOwn(TIER_POINTS, letter)) return null;
+    sum += TIER_POINTS[letter];
+  }
+  return sum;
+}
+
+/** The number a leaderboard row shows (display-score.js shownScore): in a five-step event its tier score, read from
+ *  its tier path; otherwise, or for a row with no readable path, the score the server sent. */
+export const rowScore = (row: { score: number; tier_path?: string | null }, steps: number) =>
+  (steps === TIER_STEPS ? tierScore(row.tier_path) : null) ?? row.score;
 
 // Asia/Bangkok explicitly: the operator reads Thai wall-clock time whatever the machine's own zone.
 const DAY_TIME = new Intl.DateTimeFormat('th-TH', {

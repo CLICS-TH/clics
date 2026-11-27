@@ -222,8 +222,12 @@ function replyBody(answers, { reply = REPLY(answers.length), bridge = BRIDGE(ans
 }
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
 /** The score the server reads from a fitted table (ADR 0009) for the path `answers` walked: that entry's one-decimal
- *  domains, and a whole composite as five-step plays send it (the stub's own, not the entry's weighted one). */
-const tableScore = (tree, table, { answers = [] } = {}) => ({ domains: table.paths[pathOf(tree, answers)], composite: Math.round(SCORED.composite) });
+ *  domains, and the shown score a five-step play sends, its tier points (ADR 0016: best 20, reasonable 10, weaker 0). */
+const TIER_POINTS = { B: 20, R: 10, W: 0 };
+const tableScore = (tree, table, { answers = [] } = {}) => {
+  const path = pathOf(tree, answers);
+  return { domains: table.paths[path], composite: [...path].reduce((sum, letter) => sum + TIER_POINTS[letter], 0) };
+};
 const TIER_NAME = Object.fromEntries(Object.entries(TIER_LETTER).map(([name, letter]) => [letter, name]));
 /** The score response's `steps`, as the server builds them (booth-dialogue stepTiers): per posted ask, the tier the
  *  answer took and each offered option's tier from its bank. */
@@ -248,7 +252,7 @@ const scoredFor = (call, over = {}, tree = TREE) => ({ status: 200, body: { ...S
  *                                  DEIDENTIFIED(n) for a typed answer n, next for the tier path walked (n < the tree's step count)
  *   'GET /booth/board'             { board: { today: [], event: [] } }
  *   'POST /booth/plays/:id/score'  scoredFor(call): SCORED with the steps' tiers for the asks posted; with a `table`
- *                                  (TABLE5), the domains of the walked path's entry and a whole composite
+ *                                  (TABLE5), the domains of the walked path's entry and its tier points
  * opts.routes merges over these: key -> (call, calls) => ({ status, body }) | 'abort'. Unknown keys answer 404.
  * stub.hold(key) returns release(): matching requests wait until released. stub.calls records every request as
  * { key, path, body, headers }; stub.of(key) filters it.

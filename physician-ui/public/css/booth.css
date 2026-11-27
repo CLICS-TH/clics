@@ -319,7 +319,7 @@ body.booth { background: transparent; }
   box-shadow: var(--shadow-card);
 }
 .result-total { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: calc(8 * var(--u)) var(--gap); padding-bottom: calc(24 * var(--u)); border-bottom: var(--line) solid var(--hairline); }
-/* A five-step play's number is a rescale (ADR 0013): the line under it says so, on a line of its own. The name gives
+/* A five-step play's number is its tier points (ADR 0016): the line under it says how, on a line of its own. The name gives
    way to the number on the first line. */
 .result-total > .result-overall { flex: 1 1 0; min-width: 0; }
 .score-note { flex: 1 0 100%; color: var(--body); }
