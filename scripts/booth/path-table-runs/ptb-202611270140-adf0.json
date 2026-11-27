@@ -1,0 +1,525 @@
+{
+  "run_id": "ptb-202611270140-adf0",
+  "date": "2026-11-27",
+  "rimpl_url": "http://localhost:3003",
+  "cap_usd": 170,
+  "spent_usd": 1.583634,
+  "stopped": false,
+  "over_cap": false,
+  "samples": 3,
+  "planned": 81,
+  "scored": 81,
+  "evaluator": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "prompt_version": "pis7-prompt-59561c29",
+    "prompt_sha256": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
+    "decoding": {
+      "temperature": 0,
+      "max_tokens": 4096,
+      "top_p": null,
+      "seed": null,
+      "num_ctx": null
+    }
+  },
+  "method": "median-regression",
+  "scripted": {
+    "best": "BBBBB",
+    "mixed": "BRWRR",
+    "weakest": "WWWWW"
+  },
+  "sampled": [
+    "BBBBB",
+    "BBBRW",
+    "BBBWR",
+    "BRWBW",
+    "BRWRR",
+    "BRWWB",
+    "BWRBR",
+    "BWRRB",
+    "BWRWW",
+    "RBWBB",
+    "RBWRW",
+    "RBWWR",
+    "RRRBW",
+    "RRRRR",
+    "RRRWB",
+    "RWBBR",
+    "RWBRB",
+    "RWBWW",
+    "WBRBB",
+    "WBRRW",
+    "WBRWR",
+    "WRBBW",
+    "WRBRR",
+    "WRBWB",
+    "WWWBR",
+    "WWWRB",
+    "WWWWW"
+  ],
+  "pooled_with": {
+    "adhf": "ptb-202611261611-53d1",
+    "alcohol-pancreatitis": "ptb-202611261445-1504",
+    "copd-exacerbation": "ptb-202611180804-ca37",
+    "ectopic-rupture": "ptb-202611261445-1504",
+    "leptospirosis": "ptb-202611261445-1504",
+    "melioidosis-farmer": "ptb-202611261445-1504",
+    "motorcycle-shock": "ptb-202611261445-1504",
+    "organophosphate": "ptb-202611270120-a57d",
+    "sjs-ten-allopurinol": "ptb-202611261445-1504",
+    "toddler-gastro-dehydration": "ptb-202611270120-a57d"
+  },
+  "cases": {
+    "dka-young-adult": {
+      "version": "18",
+      "tree_sha256": "7b0c5e9b1968ae5feee650f53b31fd2a02d696e2114f868b5ed7794c238f66ab",
+      "reviewed_commit": "0adf321335c39792eaebb75f888d7ea019b2637c",
+      "table": true,
+      "composites": {
+        "BBBBB": 52,
+        "BBBBR": 51,
+        "BBBBW": 52,
+        "BBBRB": 53,
+        "BBBRR": 52,
+        "BBBRW": 53,
+        "BBBWB": 50,
+        "BBBWR": 48,
+        "BBBWW": 49,
+        "BBRBB": 52,
+        "BBRBR": 51,
+        "BBRBW": 52,
+        "BBRRB": 53,
+        "BBRRR": 52,
+        "BBRRW": 53,
+        "BBRWB": 49,
+        "BBRWR": 48,
+        "BBRWW": 49,
+        "BBWBB": 51,
+        "BBWBR": 50,
+        "BBWBW": 50,
+        "BBWRB": 51,
+        "BBWRR": 50,
+        "BBWRW": 51,
+        "BBWWB": 49,
+        "BBWWR": 47,
+        "BBWWW": 47,
+        "BRBBB": 51,
+        "BRBBR": 51,
+        "BRBBW": 52,
+        "BRBRB": 52,
+        "BRBRR": 52,
+        "BRBRW": 52,
+        "BRBWB": 49,
+        "BRBWR": 47,
+        "BRBWW": 48,
+        "BRRBB": 52,
+        "BRRBR": 51,
+        "BRRBW": 51,
+        "BRRRB": 52,
+        "BRRRR": 51,
+        "BRRRW": 52,
+        "BRRWB": 49,
+        "BRRWR": 48,
+        "BRRWW": 48,
+        "BRWBB": 50,
+        "BRWBR": 49,
+        "BRWBW": 50,
+        "BRWRB": 51,
+        "BRWRR": 50,
+        "BRWRW": 51,
+        "BRWWB": 48,
+        "BRWWR": 46,
+        "BRWWW": 47,
+        "BWBBB": 49,
+        "BWBBR": 47,
+        "BWBBW": 47,
+        "BWBRB": 49,
+        "BWBRR": 47,
+        "BWBRW": 48,
+        "BWBWB": 47,
+        "BWBWR": 45,
+        "BWBWW": 45,
+        "BWRBB": 48,
+        "BWRBR": 46,
+        "BWRBW": 47,
+        "BWRRB": 48,
+        "BWRRR": 47,
+        "BWRRW": 48,
+        "BWRWB": 46,
+        "BWRWR": 44,
+        "BWRWW": 44,
+        "BWWBB": 47,
+        "BWWBR": 45,
+        "BWWBW": 45,
+        "BWWRB": 47,
+        "BWWRR": 45,
+        "BWWRW": 46,
+        "BWWWB": 45,
+        "BWWWR": 43,
+        "BWWWW": 43,
+        "RBBBB": 50,
+        "RBBBR": 49,
+        "RBBBW": 49,
+        "RBBRB": 51,
+        "RBBRR": 49,
+        "RBBRW": 50,
+        "RBBWB": 47,
+        "RBBWR": 46,
+        "RBBWW": 47,
+        "RBRBB": 50,
+        "RBRBR": 49,
+        "RBRBW": 50,
+        "RBRRB": 50,
+        "RBRRR": 50,
+        "RBRRW": 51,
+        "RBRWB": 47,
+        "RBRWR": 46,
+        "RBRWW": 46,
+        "RBWBB": 48,
+        "RBWBR": 47,
+        "RBWBW": 48,
+        "RBWRB": 49,
+        "RBWRR": 48,
+        "RBWRW": 49,
+        "RBWWB": 46,
+        "RBWWR": 44,
+        "RBWWW": 45,
+        "RRBBB": 49,
+        "RRBBR": 48,
+        "RRBBW": 49,
+        "RRBRB": 50,
+        "RRBRR": 49,
+        "RRBRW": 50,
+        "RRBWB": 47,
+        "RRBWR": 45,
+        "RRBWW": 46,
+        "RRRBB": 49,
+        "RRRBR": 48,
+        "RRRBW": 49,
+        "RRRRB": 50,
+        "RRRRR": 49,
+        "RRRRW": 50,
+        "RRRWB": 46,
+        "RRRWR": 45,
+        "RRRWW": 46,
+        "RRWBB": 47,
+        "RRWBR": 47,
+        "RRWBW": 48,
+        "RRWRB": 48,
+        "RRWRR": 48,
+        "RRWRW": 48,
+        "RRWWB": 45,
+        "RRWWR": 43,
+        "RRWWW": 44,
+        "RWBBB": 46,
+        "RWBBR": 44,
+        "RWBBW": 45,
+        "RWBRB": 46,
+        "RWBRR": 45,
+        "RWBRW": 46,
+        "RWBWB": 44,
+        "RWBWR": 42,
+        "RWBWW": 42,
+        "RWRBB": 45,
+        "RWRBR": 44,
+        "RWRBW": 45,
+        "RWRRB": 46,
+        "RWRRR": 45,
+        "RWRRW": 45,
+        "RWRWB": 43,
+        "RWRWR": 41,
+        "RWRWW": 42,
+        "RWWBB": 45,
+        "RWWBR": 43,
+        "RWWBW": 43,
+        "RWWRB": 45,
+        "RWWRR": 43,
+        "RWWRW": 44,
+        "RWWWB": 43,
+        "RWWWR": 41,
+        "RWWWW": 41,
+        "WBBBB": 54,
+        "WBBBR": 53,
+        "WBBBW": 54,
+        "WBBRB": 54,
+        "WBBRR": 54,
+        "WBBRW": 55,
+        "WBBWB": 51,
+        "WBBWR": 50,
+        "WBBWW": 50,
+        "WBRBB": 53,
+        "WBRBR": 53,
+        "WBRBW": 53,
+        "WBRRB": 54,
+        "WBRRR": 53,
+        "WBRRW": 54,
+        "WBRWB": 50,
+        "WBRWR": 49,
+        "WBRWW": 50,
+        "WBWBB": 52,
+        "WBWBR": 51,
+        "WBWBW": 52,
+        "WBWRB": 53,
+        "WBWRR": 52,
+        "WBWRW": 53,
+        "WBWWB": 49,
+        "WBWWR": 48,
+        "WBWWW": 49,
+        "WRBBB": 53,
+        "WRBBR": 52,
+        "WRBBW": 53,
+        "WRBRB": 54,
+        "WRBRR": 53,
+        "WRBRW": 54,
+        "WRBWB": 50,
+        "WRBWR": 49,
+        "WRBWW": 50,
+        "WRRBB": 53,
+        "WRRBR": 52,
+        "WRRBW": 53,
+        "WRRRB": 54,
+        "WRRRR": 53,
+        "WRRRW": 54,
+        "WRRWB": 50,
+        "WRRWR": 49,
+        "WRRWW": 50,
+        "WRWBB": 52,
+        "WRWBR": 51,
+        "WRWBW": 51,
+        "WRWRB": 52,
+        "WRWRR": 51,
+        "WRWRW": 52,
+        "WRWWB": 49,
+        "WRWWR": 48,
+        "WRWWW": 48,
+        "WWBBB": 49,
+        "WWBBR": 48,
+        "WWBBW": 49,
+        "WWBRB": 50,
+        "WWBRR": 49,
+        "WWBRW": 49,
+        "WWBWB": 47,
+        "WWBWR": 45,
+        "WWBWW": 46,
+        "WWRBB": 49,
+        "WWRBR": 48,
+        "WWRBW": 49,
+        "WWRRB": 50,
+        "WWRRR": 49,
+        "WWRRW": 50,
+        "WWRWB": 47,
+        "WWRWR": 45,
+        "WWRWW": 46,
+        "WWWBB": 48,
+        "WWWBR": 46,
+        "WWWBW": 47,
+        "WWWRB": 48,
+        "WWWRR": 47,
+        "WWWRW": 48,
+        "WWWWB": 46,
+        "WWWWR": 44,
+        "WWWWW": 44
+      },
+      "mislabels": [
+        {
+          "step": 1,
+          "weaker_minus_best": 1.61
+        }
+      ]
+    }
+  },
+  "recheck": {
+    "medians": {
+      "best": 51,
+      "mixed": 48,
+      "weakest": 36
+    },
+    "pool_n": {
+      "best": 11,
+      "mixed": 11,
+      "weakest": 11
+    },
+    "bands": {
+      "best": 7.25,
+      "mixed": 7.25,
+      "weakest": 7.25
+    },
+    "gap_min": 6.59,
+    "pool_from": "this run",
+    "cases": {
+      "dka-young-adult": {
+        "means": {
+          "best": 52,
+          "mixed": 50,
+          "weakest": 44
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 8,
+        "pass": false,
+        "reasons": [
+          "weakest mean 44 is 8 from the pool median 36, beyond ±7.25"
+        ]
+      },
+      "adhf": {
+        "means": {
+          "best": 51,
+          "mixed": 48,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 16,
+        "pass": true,
+        "reasons": []
+      },
+      "alcohol-pancreatitis": {
+        "means": {
+          "best": 48,
+          "mixed": 48,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 13,
+        "pass": true,
+        "reasons": []
+      },
+      "copd-exacerbation": {
+        "means": {
+          "best": 50,
+          "mixed": 51,
+          "weakest": 46
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 4,
+        "pass": false,
+        "reasons": [
+          "weakest mean 46 is 10 from the pool median 36, beyond ±7.25",
+          "best is only 4 above weakest, under 6.59"
+        ]
+      },
+      "ectopic-rupture": {
+        "means": {
+          "best": 54,
+          "mixed": 45,
+          "weakest": 33
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 21,
+        "pass": true,
+        "reasons": []
+      },
+      "leptospirosis": {
+        "means": {
+          "best": 53,
+          "mixed": 49,
+          "weakest": 38
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 15,
+        "pass": true,
+        "reasons": []
+      },
+      "melioidosis-farmer": {
+        "means": {
+          "best": 57,
+          "mixed": 48,
+          "weakest": 38
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 19,
+        "pass": true,
+        "reasons": []
+      },
+      "motorcycle-shock": {
+        "means": {
+          "best": 50,
+          "mixed": 48,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 15,
+        "pass": true,
+        "reasons": []
+      },
+      "organophosphate": {
+        "means": {
+          "best": 50,
+          "mixed": 52,
+          "weakest": 45
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 5,
+        "pass": false,
+        "reasons": [
+          "weakest mean 45 is 9 from the pool median 36, beyond ±7.25",
+          "best is only 5 above weakest, under 6.59"
+        ]
+      },
+      "sjs-ten-allopurinol": {
+        "means": {
+          "best": 52,
+          "mixed": 50,
+          "weakest": 36
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 16,
+        "pass": true,
+        "reasons": []
+      },
+      "toddler-gastro-dehydration": {
+        "means": {
+          "best": 48,
+          "mixed": 46,
+          "weakest": 35
+        },
+        "sd": {
+          "best": null,
+          "mixed": null,
+          "weakest": null
+        },
+        "separation": 13,
+        "pass": true,
+        "reasons": []
+      }
+    }
+  }
+}

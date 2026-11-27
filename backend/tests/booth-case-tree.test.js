@@ -287,15 +287,17 @@ describe('admission', () => {
       .map((k) => k.case_id)).toEqual([]);
     const admitted = cases.filter(isAdmitted);
     expect(admitted.filter((k) => (k.admission.sandbox ?? k.admission.owner_waiver)?.tree_sha256 !== treeSha(k)).map((k) => k.case_id)).toEqual([]);
-    // Ten are admitted: five from #510 (route B); ectopic-rupture and sjs-ten-allopurinol from #511 (re-check passed;
+    // Eight are admitted: five from #510 (route B); ectopic-rupture and sjs-ten-allopurinol from #511 (re-check passed;
     // sandbox run sbx-202611170505-80f6 failed and the #493 owner waiver covers it); dka-young-adult and
     // motorcycle-shock from #497's last PR (table run ptb-202611170622-b39a passed; sandbox run sbx-202611171429-9729
     // failed on unscored plays only and the #493 owner waiver covers it); melioidosis-farmer from the owner's second fix
     // round (table run ptb-202611180354-b428 passed). copd-exacerbation (run ptb-202611180804-ca37, after its fourth
-    // fix round) failed its re-check, so it holds no table check, sandbox record or waiver.
+    // fix round) failed its re-check, so it holds no table check, sandbox record or waiver. organophosphate failed the
+    // re-check three times after the bridged weigh-line rebuild (last run ptb-202611270120-a57d) and the owner dropped it; dka-young-adult
+    // failed it twice on its rebuild (last run ptb-202611270140-adf0) and the owner dropped it too.
     expect(admitted.map((k) => k.case_id).sort())
-      .toEqual(['adhf', 'alcohol-pancreatitis', 'dka-young-adult', 'ectopic-rupture', 'leptospirosis',
-        'melioidosis-farmer', 'motorcycle-shock', 'organophosphate', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
+      .toEqual(['adhf', 'alcohol-pancreatitis', 'ectopic-rupture', 'leptospirosis',
+        'melioidosis-farmer', 'motorcycle-shock', 'sjs-ten-allopurinol', 'toddler-gastro-dehydration']);
     expect(cases.filter((k) => !isAdmitted(k) && (k.admission.table_check || k.admission.sandbox || k.admission.owner_waiver))
       .map((k) => k.case_id)).toEqual([]);
   });

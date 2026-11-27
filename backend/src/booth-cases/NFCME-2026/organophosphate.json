@@ -1131,17 +1131,6 @@
       "date": "2026-11-15",
       "findings": "This is a re-check by a non-author of the final tree, organophosphate v8, after one MUST-FIX round: the current diff of both files was compared with the first pass, the only differences are the three fixes, and every question variant and option of all 13 banks was re-read in Thai and English. Sources (from knowledge, none opened this round): the Ramathibodi Poison Center protocol 2565, Organophosphate and Carbamate poisoning (airway and O2 first, atropine 1.8-3 mg IV doubled every 5 min to atropinisation, then pralidoxime, skin decontamination, the 1367 hotline); the WHO/IPCS guidance on managing pesticide poisoning (oxygen, atropine titrated to effect, an oxime as an adjunct, decontamination); Eddleston et al., Lancet 2008 (a clear chest as the main endpoint with pulse >80 and systolic >80; an infusion at 10-20% of the loading dose per hour; intermediate syndrome at about 24-96 h); Buckley et al., Cochrane 2011, on oximes. Fixes verified: (1) step3.B and step3.R a and b now read \"Oxygen and atropine to a dry chest, plus the oxime the bottle names\" / \"O2 และอะโทรปีนจนปอดแห้ง ร่วมออกซีมตามขวดยา\" and \"Oxygen and atropine to a dry chest while a gloved team washes him\" / \"O2 และอะโทรปีนจนปอดแห้ง ขณะทีมใส่ถุงมือล้างตัว\"; each best option now contains both reasonable plans, c (atropine titrated to a dry chest) and d (atropine with oxygen), and adds the oxime the Thai protocol calls for once the bottle names an organophosphate, or the decontamination his bare-handed exposure needs, so best over reasonable holds in both banks; in step3.R, where he is still drooling or at pulse 48, the titration is inside both best options; weaker e (salbutamol) and f (fluids) stay safe since both include IV atropine. (2) step5.B a Thai is now \"ผู้ป่วยพิษรุนแรงยังทรุดลงได้ในอีกสองสามวัน\", natural, matching \"Severe poisoning can still worsen in the next days\", which from day 2 covers the window to about 96 h and justifies watching to day 4 near ICU. (3) step4.B b now reads \"Each check looks for too much atropine.\" / \"เฝ้าระวังภาวะอะโทรปีนเกินขนาดทุกรอบประเมิน\", natural clinical Thai with no ward assumed. Other tiers checked closely: step4.B, where \"chest dry\" alone supports moving to an infusion (a hourly review and b best, fixed-rate c reasonable, bolus-on-relapse d weaker but safe); step4.R a and b re-atropinise and are right as best; ICU-capable care is best at step5.R and step5.W; the airway options are best at step3.W and step4.W and the weaker options carry the airway safety line. No path withholds or delays a needed treatment, and the teaser hints at no diagnosis. MUST-FIX: none. Reviewed tree sha256 cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634.",
       "tree_sha256": "cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634"
-    },
-    "table_check": {
-      "run_id": "ptb-202611250629-9975",
-      "date": "2026-11-25"
-    },
-    "owner_waiver": {
-      "date": "2026-11-16",
-      "adr": "0005",
-      "reason": "Owner waiver pre-approved in the spec #493 grill for sandbox failures; failed sandbox run sbx-202611161622-a3a2: mixed mean 60.33 is 11 from the pool median 49.33, beyond ±8",
-      "sandbox_run_id": "sbx-202611161622-a3a2",
-      "tree_sha256": "cb03afa826c90eedc7d380ee6c0fb431ef242e3d36d56873c9b316a9742b2634"
     }
   },
   "path_score_table": {
