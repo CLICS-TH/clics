@@ -1,7 +1,16 @@
 // lib/booth.ts: how the Booth Mode page writes a player, a score, a time and the export's file name. The player
 // and the score must read as the kiosk shows them (physician-ui/public/js/booth-copy.js tagText, scoreText), and
 // the file name as the backend names it (backend/src/services/booth-monitor.js exportPlays).
-import { bangkokDayKey, bangkokDayLabel, bangkokDayTime, bangkokTime, boothDays, boothExportFilename, playerTag, playerTagTh, rawScore, shownScore } from '@/lib/booth';
+import path from 'path';
+import { bangkokDayKey, bangkokDayLabel, bangkokDayTime, bangkokTime, boothDays, boothExportFilename, playerTag, playerTagTh, rawScore, rowScore, shownScore, TIER_POINTS, TIER_STEPS, tierScore } from '@/lib/booth';
+
+// The backend's scale, read as the backend runs it: the dashboard's copy must agree on every path.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const backend = require(path.join(__dirname, '..', '..', 'backend', 'src', 'booth-cases', 'display-score.js')) as {
+  TIER_SCALE: { steps: number; points: Record<string, number> };
+  tierScore: (p: unknown) => number | null;
+};
+const allPaths = (n: number): string[] => (n === 0 ? [''] : allPaths(n - 1).flatMap((p) => ['B', 'R', 'W'].map((l) => p + l)));
 
 describe('booth formatting', () => {
   it('pads the participant number to three digits, in both languages, and never cuts a longer one', () => {
@@ -12,13 +21,32 @@ describe('booth formatting', () => {
     expect(playerTag(1234, 'en')).toBe('Participant #1234');
   });
 
-  it('shows the display score rounded, as the kiosk does, and the raw composite to one decimal', () => {
+  it('shows the shown score rounded, as the kiosk does, and the raw composite to one decimal', () => {
     expect(shownScore(87.4)).toBe('87');
     expect(shownScore(87.5)).toBe('88');
     expect(shownScore(0)).toBe('0');
     expect(rawScore(61.24)).toBe('61.2');
     expect(rawScore(40)).toBe('40.0');
     expect(rawScore(Number.NaN)).toBe('—');
+  });
+
+  it('scores a five-step tier path as the backend does (ADR 0016): best 20, reasonable 10, weaker 0', () => {
+    expect(TIER_STEPS).toBe(backend.TIER_SCALE.steps);
+    expect(TIER_POINTS).toEqual(backend.TIER_SCALE.points);
+    const paths = allPaths(5);
+    expect(paths).toHaveLength(243);
+    for (const p of paths) expect(tierScore(p)).toBe(backend.tierScore(p));
+    expect(tierScore('BBBBB')).toBe(100);
+    expect(tierScore('WWWWW')).toBe(0);
+    for (const odd of [null, undefined, '', 'BBBB', 'BBBBBB', 'BBBBX', 'toStr']) expect(tierScore(odd)).toBe(backend.tierScore(odd) ?? null);
+    expect(tierScore('BBBBX')).toBeNull();
+  });
+
+  it('shows a five-step row its tier score, and any other row the score the server sent', () => {
+    expect(rowScore({ score: 63, tier_path: 'BBBBB' }, 5)).toBe(100);
+    expect(rowScore({ score: 63, tier_path: null }, 5)).toBe(63);
+    expect(rowScore({ score: 63 }, 5)).toBe(63);
+    expect(rowScore({ score: 72.4, tier_path: 'BBB' }, 3)).toBe(72.4);
   });
 
   it('writes times as Bangkok wall-clock, whatever zone the machine is in', () => {

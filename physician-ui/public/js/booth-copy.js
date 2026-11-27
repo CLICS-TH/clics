@@ -117,9 +117,10 @@ export const COPY = Object.freeze({
   leave: { th: 'ออกจากรอบนี้', en: 'Leave' },
   keepPlaying: { th: 'เล่นต่อ', en: 'Keep playing' },
   overall: { th: 'คะแนนรวม', en: 'Overall score' },
-  // Under a five-step play's number, which is the fixed 0-100 rescale of its stored score (ADR 0013).
-  // A no-break space keeps "คะแนนเต็ม 100" on one line where the note wraps (the phone page).
-  displayScale: { th: 'คะแนนสาธิต ปรับสเกลเป็นคะแนนเต็ม\u00a0100', en: 'Demo score, rescaled to 0–100' },
+  // Under a five-step play's number, which is the sum of its steps' tier points (ADR 0016, tierScore). One line on the
+  // kiosk card, no longer than the rescale note it replaced: a second line pushes the leaderboard row below the fold.
+  // The card's demo label already says it is a demo score. No-break spaces keep each number with its tier.
+  scoreRule: { th: 'ดีที่สุดขั้นละ\u00a020 สมเหตุสมผล\u00a010', en: 'Best 20 a step, Reasonable\u00a010' },
   practiseNext: { th: 'ด้านที่ควรฝึกเพิ่ม', en: 'Practise next' },
   // Practise next draws on d1-d4 alone, and d5-d7 rows carry the first clause of their reviewed MEASURES line. The
   // radar sets those four names in bold ink and the other three quieter (booth-radar.css), which the brackets point at.
@@ -168,9 +169,15 @@ export const isDomainScore = (v) => Number.isFinite(v) && v >= 0 && v <= 5 && Ma
 const FITTED_STEPS = 5;
 /** A five-step play shows each domain to one decimal ("4.0 / 5"), so its seven rows read alike; any other play as sent. */
 export const domainText = (value, steps) => (steps === FITTED_STEPS ? value.toFixed(1) : String(value));
-/** A five-step play's number is the fixed 0-100 rescale of its stored score (ADR 0013, backend display-score.js
- *  DISPLAY_SCALE.steps); any other play shows its score as stored. */
-export const isRescaled = (steps) => steps === FITTED_STEPS;
+/** A five-step play's number is the sum of its steps' tier points (ADR 0016, backend display-score.js TIER_SCALE);
+ *  any other play shows its score as stored. */
+export const isTierScored = (steps) => steps === FITTED_STEPS;
+
+/** tiers-v1 (ADR 0016), mirroring backend display-score.js TIER_SCALE.points: a step's points by its tier. */
+export const TIER_POINTS = Object.freeze({ best: 20, reasonable: 10, weaker: 0 });
+/** A five-step play's shown score from its tier names, 0-100; null for any other list. */
+export const tierScore = (tiers) => (Array.isArray(tiers) && isTierScored(tiers.length) && tiers.every((t) => Object.hasOwn(TIER_POINTS, t))
+  ? tiers.reduce((sum, t) => sum + TIER_POINTS[t], 0) : null);
 
 export const fill = (bi, vars) => {
   const sub = (text) => text.replace(/\{(\w+)\}/g, (_, k) => String(vars[k]));

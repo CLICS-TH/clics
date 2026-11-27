@@ -474,6 +474,14 @@ export default [
         const b = document.querySelector('.loop-board');
         return { shown: getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0, media: document.querySelectorAll('.loop-media video, .loop-media img').length };
       });
+      const clash = await k.page.evaluate(() => {
+        const b = document.querySelector('.loop-board').getBoundingClientRect();
+        const texts = [...document.querySelectorAll('.loop-fallback .shell-wordmark, .loop-fallback .shell-intro')].map((e) => e.getBoundingClientRect());
+        const stage = document.querySelector('.loop-stage').getBoundingClientRect();
+        return { texts: texts.length, over: texts.filter((t) => t.bottom > b.top && t.top < b.bottom).length, offTop: texts.filter((t) => t.top < stage.top).length };
+      });
+      h.check(clash.texts === 2 && clash.over === 0 && clash.offTop === 0,
+        `shipped loop: on the board item the wordmark and intro sit above the board, none covered or pushed off the stage (${JSON.stringify(clash)})`);
       h.check(!!boardItem && reached && onBoard.shown && onBoard.media === 0,
         `shipped loop: after the promo, a board item shows the board with no media under it (${JSON.stringify({ boardItem, reached, ...onBoard })})`);
       const back = boardItem && await k.page.waitForFunction((src) => document.querySelector('.loop-media')?.dataset.loopSrc === src, PROMO_SRC, { timeout: (boardItem.seconds + 10) * 1000 }).then(() => true, () => false);

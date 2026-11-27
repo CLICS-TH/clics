@@ -54,7 +54,7 @@ async function toResult(k, steps = 3) {
   await k.screen('scored');
 }
 
-/** The card's own lines: the rescale note under a five-step score, Practise next's line and the d5-d7 tags. */
+/** The card's own lines: the tier-points note under a five-step score, Practise next's line and the d5-d7 tags. */
 const readNotes = (page) => page.evaluate(() => {
   const pair = (e) => ({ th: e.querySelector('.bi-th')?.textContent, en: e.querySelector('.bi-en')?.textContent });
   return {
@@ -89,12 +89,19 @@ const readHint = (page) => page.evaluate(async () => {
 
 const TYPED = 'ไข้ ไอ และหอบ ตรวจเอกซเรย์ปอดก่อน';
 
-/** Every tier label, Thai and English: none may be on any screen before the score response. */
+/** Every tier label, Thai and English: before the score response none may be on any screen, but for the reply's own
+ *  step badge (owner, 2026-11-26), which names the tier of the answer just given and no other. */
 const tierWords = (h) => Object.values(h.TIERS).flatMap((t) => [t.label.th, t.label.en]);
-const tierLeak = (page, words) => page.evaluate((w) => ({
-  marks: document.querySelectorAll('[data-tier], .tier-chip, [data-reveal-overlay], [data-action="see-answers"]').length,
-  words: w.filter((x) => document.body.innerText.includes(x)),
-}), words);
+const BADGE = '.answer-card .answer-head .tier-chip';
+const tierLeak = (page, words, badge = null) => page.evaluate(([w, sel, b]) => {
+  const own = b ? [...document.querySelectorAll(sel)].filter((e) => e.dataset.tier === b.tier) : [];
+  const text = own.reduce((t, e) => t.replace(e.innerText, ''), document.body.innerText);
+  return {
+    marks: document.querySelectorAll('[data-tier], .tier-chip, [data-reveal-overlay], [data-action="see-answers"]').length - own.length,
+    words: w.filter((x) => text.includes(x)),
+    badge: b ? own.length === 1 && b.words.every((x) => own[0].textContent.includes(x)) : true,
+  };
+}, [words, BADGE, badge]);
 
 /**
  * Plays the three steps by `plan`: a tier name taps the offered option of that tier, 'type' types TYPED. Checks for
@@ -105,7 +112,10 @@ async function playByTier(h, k, plan, release) {
   const { page } = k;
   const words = tierWords(h);
   const leaks = [];
-  const look = async (where) => { const l = await tierLeak(page, words); if (l.marks || l.words.length) leaks.push(`${where}: ${JSON.stringify(l)}`); };
+  const look = async (where, badge = null) => {
+    const l = await tierLeak(page, words, badge);
+    if (l.marks || l.words.length || !l.badge) leaks.push(`${where}: ${JSON.stringify(l)}`);
+  };
   await k.shell('start');
   await k.toVignette();
   await look('vignette');
@@ -133,14 +143,15 @@ async function playByTier(h, k, plan, release) {
       answers.push({ choice: id });
     }
     await k.screen('reply');
-    await look(`reply ${n}`);
+    const tier = { B: 'best', R: 'reasonable', W: 'weaker' }[h.pathOf(h.TREE, answers).at(-1)];
+    await look(`reply ${n}`, { tier, words: [h.TIERS[tier].label.th, h.TIERS[tier].label.en] });
     await k.tap(`[data-action="${n === 3 ? 'see-score' : 'next'}"]`);
   }
   await k.screen('scoring');
   await look('scoring');
   release();
   await k.screen('scored');
-  h.check(leaks.length === 0, `no tier label, chip or answer button on any screen before the score response${leaks.length ? ` (${leaks.slice(0, 2).join('; ')})` : ''}`);
+  h.check(leaks.length === 0, `before the score response, no tier label, chip or answer button on any screen but each reply's one badge for its own answer's tier${leaks.length ? ` (${leaks.slice(0, 2).join('; ')})` : ''}`);
   return answers;
 }
 
@@ -201,9 +212,9 @@ export default [
         'bands: Practise next names the two weakest of d1-d4, never d5-d7 however low (a booth play gives them little room)');
     },
   },
-  // A five-step play's card adds the rescale line under its score (ADR 0013), the tallest card the kiosk draws.
+  // A five-step play's card adds the tier-points line under its score (ADR 0016), the tallest card the kiosk draws.
   ...SIZES.flatMap(([width, height]) => [3, 5].map((steps) => ({
-    name: `result card at ${width}x${height}, ${steps} steps, in each look: the radar, a descriptor per domain, the two weakest first under Practise next and its line, d5-d7 tagged, ${steps === 5 ? 'the rescale line, ' : ''}the leaderboard button above the fold and "Scroll for more" clear of it`,
+    name: `result card at ${width}x${height}, ${steps} steps, in each look: the radar, a descriptor per domain, the two weakest first under Practise next and its line, d5-d7 tagged, ${steps === 5 ? 'the tier-points line, ' : ''}the leaderboard button above the fold and "Scroll for more" clear of it`,
     async run(h) {
       const tree = steps === 5 ? h.TREE5 : h.TREE;
       for (const [label, domains] of scoreSets()) {
@@ -217,8 +228,8 @@ export default [
           await h.screenCheck(page, `result card ${tag}`, { demo: true });
           await h.shot(page, `result-bands-${width}-${steps === 5 ? 'five-' : ''}${label.split(' ').slice(0, 2).join('-')}-${look}`);
           const notes = await readNotes(page);
-          h.check(h.same(notes.score, steps === 5 ? [h.COPY.displayScale] : []),
-            `${tag}: ${steps === 5 ? 'the rescaled score says so under its number, Thai and English (ADR 0013)' : 'a three-step score, shown as stored, has no rescale line'} (${JSON.stringify(notes.score)})`);
+          h.check(h.same(notes.score, steps === 5 ? [h.COPY.scoreRule] : []),
+            `${tag}: ${steps === 5 ? 'the tier-points score says how under its number, Thai and English (ADR 0016)' : 'a three-step score, shown as stored, has no tier-points line'} (${JSON.stringify(notes.score)})`);
           h.check(h.same(notes.practise, [h.COPY.practiseFrom]) && notes.otherNotes === 0, `${tag}: Practise next, and only it, says it draws on the 4 domains a booth play can show`);
           h.check(notes.tags.every((r) => h.same(r.tags, PRACTISE_KEYS.includes(r.key) ? [] : [{ ...h.COPY.littleRoom, th: h.unbroken(h.COPY.littleRoom.th) }])),
             `${tag}: the d5-d7 rows, and only they, carry the tag that a booth play gives them little room (${notes.tags.filter((r) => r.tags.length).map((r) => r.key)})`);

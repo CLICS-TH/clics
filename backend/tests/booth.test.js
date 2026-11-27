@@ -27,7 +27,7 @@ const usage = require('../src/lib/usage');
 const { fenced } = require('../src/services/booth');
 const { evaluateRequest } = require('../src/services/booth-dialogue');
 const { compositeScore } = require('../src/services/ple-gate');
-const { displayScore } = require('../src/booth-cases/display-score');
+const { displayScore, tierScore } = require('../src/booth-cases/display-score');
 const app = require('../src/index');
 
 // The fixture case, never a real one: its admission block and its path score table are stand-ins, so the gate is
@@ -107,6 +107,20 @@ let cacheFault;
 
 // A SQL LIKE pattern: _ is any one character, % any run, the rest literal. A null column never matches.
 const likeOf = (pattern) => new RegExp(`^${pattern.replace(/[^\w%]/g, '\\$&').replace(/_/g, '.').replace(/%/g, '.*')}$`);
+// The read's .order() columns, then its .range() or .limit(), as PostgREST applies them: a test that relies on which
+// rows a capped read leaves out sees the cut a real database would make.
+const ordered = (rows, ctx) => {
+  const cmp = (a, b) => {
+    for (const [c, opts] of ctx.orders ?? []) {
+      const d = a[c] < b[c] ? -1 : a[c] > b[c] ? 1 : 0;
+      if (d) return opts?.ascending === false ? -d : d;
+    }
+    return 0;
+  };
+  const sorted = [...rows].sort(cmp);
+  if (ctx.range) return sorted.slice(ctx.range[0], ctx.range[1] + 1);
+  return ctx.limit == null ? sorted : sorted.slice(0, ctx.limit);
+};
 const matches = (row, ctx) => ctx.eqs.every(([c, v]) => row[c] === v)
   && ctx.iss.every(([c, v]) => (v === null ? row[c] == null : row[c] === v))
   && ctx.likes.every(([c, pattern]) => typeof row[c] === 'string' && likeOf(pattern).test(row[c]));
@@ -173,7 +187,7 @@ function resolve(table, kind, ctx) {
   }
   if (table === 'booth_plays' && kind === 'list') {
     if (standingsError) return { data: null, error: standingsError };
-    return [...plays.values()].filter((r) => matches(r, ctx)).map((r) => ({ ...r }));
+    return ordered([...plays.values()].filter((r) => matches(r, ctx)), ctx).map((r) => ({ ...r }));
   }
   if (table === 'booth_plays' && kind === 'maybeSingle') {
     const row = [...plays.values()].find((r) => matches(r, ctx));
@@ -766,7 +780,7 @@ describe('POST /booth/plays/:id/reply', () => {
 
   test('the play follows the tier path: best then best walks step2.B then step3.BB', async () => {
     const p = await begin();
-    expect((await answer(p, 'best')).body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String),
+    expect((await answer(p, 'best')).body).toEqual({ status: 'replied', tier: 'best', reply: AI_REPLY, reply_sig: expect.any(String),
       next: expect.anything() });
     expectFallback(bank('B'), p.next);
     await answer(p, 'best');
@@ -832,14 +846,16 @@ describe('POST /booth/plays/:id/reply', () => {
     expectFallback(bank('W'), p.next);
   });
 
-  test('no tier reaches the kiosk before the score: not the draw, the start, nor a reply to a typed or a tapped answer', async () => {
+  test('before the score, only a reply carries a tier, and only its own step\'s answer: no offered option\'s tier, no path, no steps', async () => {
     sorting('reasonable');
     const drawn = (await post('/booth/draw', { seen: [] })).body;
     expect(drawn.case_id).toBe(KASE.case_id);
     const p = await begin();
-    const before = [drawn, p.started, (await answer(p, { text: 'my own words' })).body, (await answer(p, 'best')).body,
+    for (const body of [drawn, p.started]) expect(JSON.stringify(body)).not.toMatch(/tier/i);
+    const replies = [(await answer(p, { text: 'my own words' })).body, (await answer(p, 'best')).body,
       (await answer(p, { text: 'second typed' })).body];
-    for (const body of before) {
+    expect(replies.map((b) => b.tier)).toEqual(['reasonable', 'best', 'reasonable']);
+    for (const { tier: _, ...body } of replies) {
       expect(JSON.stringify(body)).not.toMatch(/tier/i);
       expect(body).not.toHaveProperty('steps');
     }
@@ -848,6 +864,68 @@ describe('POST /booth/plays/:id/reply', () => {
     expect(scored.steps.map((s) => s.tier)).toEqual(['reasonable', 'best', 'reasonable']);
     expect(p.d.answers).toEqual([{ text: 'my own words' }, { choice: expect.any(String) }, { text: 'second typed' }]);
     expect(p.path).toBe('RBR');
+  });
+
+  describe('the per-step tier badge (ADR 0011 amendment, owner 2026-11-26): the reply names the tier of the answer just given', () => {
+    test.each(ONE_PER_TIER)('a tapped %s answer carries its option\'s tier from the bank', async (tier) => {
+      const p = await begin();
+      const res = await answer(p, tier);
+      expect(res.body).toMatchObject({ status: 'replied', tier });
+      expect(p.path).toBe(LETTER[tier]);
+    });
+
+    test.each(ONE_PER_TIER)('a typed answer the AI sorts %s carries that sorted tier, the one its path takes', async (tier) => {
+      sorting(tier);
+      const p = await begin();
+      const res = await answer(p, { text: 'my own words' });
+      expect(res.body).toMatchObject({ status: 'replied', tier });
+      expect(p.path).toBe(LETTER[tier]);
+    });
+
+    test('a typed answer recalled from the sort memo carries the memo\'s tier, not the one this call gave', async () => {
+      sorting('reasonable');
+      await answer(await begin(), { text: 'same words' });
+      sorting('best');
+      const p = await begin();
+      const res = await answer(p, { text: 'same words' });
+      // The test's own path helper reads the mocked call (best); the server took the memo's tier.
+      expect(res.body.tier).toBe('reasonable');
+    });
+
+    test.each([
+      ['the call fails', () => rimplChat.mockRejectedValueOnce(new Error('down'))],
+      ['the AI gives no tier', () => sorting(undefined)],
+      ['the AI gives null', () => sorting(null)],
+      ['the AI gives a word that is not a tier', () => sorting('unsafe')],
+    ])('a typed answer carries no tier when %s: its path still goes weaker, but the kiosk shows no guess', async (_name, arrange) => {
+      arrange();
+      const p = await begin();
+      const res = await answer(p, { text: 'my own words' });
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('replied');
+      expect(res.body).not.toHaveProperty('tier');
+      expect(p.path).toBe('W');
+    });
+
+    test('the tier is display only: a kiosk that sends it back with the answer is refused', async () => {
+      const p = await begin();
+      const choice = offered(p, 'best');
+      const res = await post(`/booth/plays/${p.id}/reply`, { ...p.d, answers: [{ choice, tier: 'best' }] });
+      expect(res.status).toBe(400);
+    });
+
+    test('a five-step play replied from the reply bank carries each tapped tier', async () => {
+      const TABLE5 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-path-score-table-5.json'), 'utf8'));
+      const KASE5 = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8')), path_score_table: TABLE5 };
+      process.env.BOOTH_CASES_DIR = casesDir(KASE5);
+      settings = { rows: eventSettings({ code: KASE5.event_code }) };
+      const p = await begin(KASE5);
+      const given = ['best', 'reasonable', 'weaker', 'reasonable', 'best'];
+      const tiers = [];
+      for (const g of given) tiers.push((await answer(p, g)).body.tier);
+      expect(tiers).toEqual(given);
+      expect(rimplChat).not.toHaveBeenCalled();
+    });
   });
 
   test('a reply for a step already answered is refused, so the AI\'s tier cannot be drawn again', async () => {
@@ -877,7 +955,7 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, 'best');
     const res = await answer(p, { text: 'my own words' });
-    expect(res.body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String), deidentified: null });
+    expect(res.body).toEqual({ status: 'replied', tier: 'reasonable', reply: AI_REPLY, reply_sig: expect.any(String), deidentified: null });
     const [args] = rimplChat.mock.calls[2];
     expect(args.booth_typed).toEqual({ current: { variants: bank('BB').variants, options: bank('BB').options } });
     expect(p.path).toBe('BBR');
@@ -889,7 +967,7 @@ describe('POST /booth/plays/:id/reply', () => {
     await answer(p, 'best');
     await answer(p, { text: 'ตรวจ CURB-65' });
     const res = await answer(p, 'weaker');
-    expect(res.body).toEqual({ status: 'replied', reply: AI_REPLY, reply_sig: expect.any(String) });
+    expect(res.body).toEqual({ status: 'replied', tier: 'weaker', reply: AI_REPLY, reply_sig: expect.any(String) });
     const [args] = rimplChat.mock.calls[2];
     expect(args).not.toHaveProperty('booth_bank');
     const [a1, a2, a3] = p.d.answers;
@@ -2429,7 +2507,7 @@ describe('the reply cache (#387: a typed answer that means the same may reuse a 
 });
 
 describe('the board (#212)', () => {
-  const { standings } = require('../src/services/booth');
+  const { standings, standingRow } = require('../src/services/booth');
   const BKK = 7 * HOUR;
   const dayStart = Math.floor((Date.now() + BKK) / (24 * HOUR)) * 24 * HOUR - BKK;
   const at = (ms) => new Date(ms).toISOString();
@@ -2443,7 +2521,24 @@ describe('the board (#212)', () => {
       { id: 'c', tag: 3, composite: 60, scored_at: at(dayStart + HOUR) },
       { id: 'd', tag: 4, composite: 60, scored_at: at(dayStart + HOUR) },
     ];
-    expect(standings(rows, dayStart).event.map((r) => r.id)).toEqual(['b', 'c', 'd', 'a']);
+    expect(standings(rows.map((r) => standingRow(r, 3)), dayStart).event.map((r) => r.id)).toEqual(['b', 'c', 'd', 'a']);
+  });
+
+  test('standings, five steps (ADR 0016): the tier score first, then the raw composite, then the earlier play, then the lower tag', () => {
+    const rows = [
+      { id: 'raw-high', tag: 1, tier_path: 'BBBBR', composite: 61, scored_at: at(dayStart + HOUR) },
+      { id: 'all-best', tag: 2, tier_path: 'BBBBB', composite: 48, scored_at: at(dayStart + 3 * HOUR) },
+      { id: 'tie-late', tag: 3, tier_path: 'BRBBB', composite: 50, scored_at: at(dayStart + 2 * HOUR) },
+      { id: 'tie-raw', tag: 4, tier_path: 'RBBBB', composite: 55, scored_at: at(dayStart + 3 * HOUR) },
+      { id: 'tie-early', tag: 6, tier_path: 'BBRBB', composite: 50, scored_at: at(dayStart + HOUR) },
+      { id: 'tie-tag', tag: 5, tier_path: 'BBBRB', composite: 50, scored_at: at(dayStart + HOUR) },
+      { id: 'no-path', tag: 7, tier_path: null, composite: 61, scored_at: at(dayStart) },
+    ].map((r) => standingRow(r, 5));
+    const event = standings(rows, dayStart).event;
+    expect(event.map((r) => r.id)).toEqual(['all-best', 'raw-high', 'tie-raw', 'tie-tag', 'tie-early', 'tie-late', 'no-path']);
+    expect(event.map((r) => r.score)).toEqual([100, 90, 90, 90, 90, 90, 100]);
+    // A row with no tier path shows display-v2 (raw 61 is 100) and still ranks after every row that has one.
+    expect(event.at(-1)).toMatchObject({ tiered: false, score: displayScore(61, 5) });
   });
 
   test('standings: today is the Bangkok day, 00:00 to 24:00 +07:00, of the given instant', () => {
@@ -2547,7 +2642,7 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
   const KASE5 = { ...JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/booth-case-tree-5.json'), 'utf8')), path_score_table: TABLE5 };
   const BOTH_DIR = casesDir(KASE, KASE5);
   const ai = (b) => ({ variants: b.variants, options: b.options });
-  const standingsReads = () => m.all('booth_plays', 'select').filter((q) => q.selectArgs[0] === 'id, tag, composite, scored_at');
+  const standingsReads = () => m.all('booth_plays', 'select').filter((q) => q.selectArgs[0] === 'id, tag, composite, tier_path, scored_at');
 
   beforeEach(() => { process.env.BOOTH_CASES_DIR = BOTH_DIR; });
 
@@ -2583,15 +2678,16 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
     const composite = Math.round(compositeScore(domains));
     expect(composite).not.toBe(compositeScore(domains));
     const { body } = await score(p);
-    // ADR 0013: the visitor sees the display rescale; the row keeps the raw composite and the raw domains.
-    expect(body).toMatchObject({ status: 'scored', composite: displayScore(composite, 5), domains, rank_event: 1 });
-    expect(body.composite).not.toBe(composite);
-    expect(body.board.event[0].score).toBe(displayScore(composite, 5));
+    // ADR 0016: the visitor sees the tier score, 20 + 10 + 0 + 10 + 20; the row keeps the raw composite and domains.
+    expect(body).toMatchObject({ status: 'scored', composite: 60, domains, rank_event: 1 });
+    expect(tierScore('BRWRB')).toBe(60);
+    expect(composite).not.toBe(60);
+    expect(body.board.event[0].score).toBe(60);
     expect(body.steps).toEqual(stepsOf(p));
     expect(body.steps.map((s) => s.tier)).toEqual(['best', 'reasonable', 'weaker', 'reasonable', 'best']);
     expect(plays.get(p.id)).toMatchObject({ status: 'scored', ...domains, composite, tier_path: 'BRWRB', replied_step: 5 });
     const replay = await score(p);
-    expect(replay.body.composite).toBe(displayScore(composite, 5));
+    expect(replay.body.composite).toBe(60);
     expect(plays.get(p.id).steps.map((s) => s.reply)).toEqual(p.d.replies);
   });
 
@@ -2745,11 +2841,28 @@ describe('a five-step play (#380, spec #370: five steps on a tree keyed on the p
       expect(fiveScore.board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
       const board = (await get('/booth/board')).body.board;
       expect(board.event.map((e) => e.tag)).toEqual([plays.get(five.id).tag, 2]);
-      // ADR 0013: the loop board shows the display rescale too; raw 50 shows as 69 on display-v2 (26–61).
-      expect(board.event[1].score).toBe(displayScore(50, 5));
-      expect(board.event[1].score).toBe(69);
+      // ADR 0016: the loop board shows the tier score too; all weaker is 0 whatever the raw 50.
+      expect(board.event[1].score).toBe(0);
       expect(standingsReads()).toHaveLength(2);
       for (const read of standingsReads()) expect(read.likes).toEqual([['tier_path', '_____']]);
+    });
+
+    test('every scored play is read, so an all-best play with a low raw score beyond the old 1000-row cut still ranks first (ADR 0016)', async () => {
+      // 1001 plays with raw scores far above it, each one weaker answer short of all best: the old read, by raw
+      // composite with .limit(1000), never fetched the all-best play.
+      for (let i = 0; i < 1001; i++) seedScored(i + 1, 60, 'BBBBR');
+      const low = seedScored(1002, 30, 'BBBBB');
+      const board = (await get('/booth/board')).body.board;
+      expect(board.event[0]).toMatchObject({ tag: low.tag, score: 100 });
+      expect(board.event.slice(1).map((e) => e.score)).toEqual(Array(9).fill(90));
+      const reads = standingsReads();
+      expect(reads.map((q) => q.range)).toEqual([[0, 999], [1000, 1999]]);
+      for (const read of reads) expect(read.limit).toBeNull();
+      const five = await walked(['best', 'best', 'best', 'best', 'best'], KASE5);
+      const body = (await score(five)).body;
+      // Equal 100s rank on the raw composite: the fitted table's all-best composite is above 30.
+      expect(body).toMatchObject({ composite: 100, rank_event: 1 });
+      expect(body.board.event.slice(0, 2).map((e) => e.tag)).toEqual([plays.get(five.id).tag, low.tag]);
     });
 
     test('in a three-step event only three-step plays rank', async () => {

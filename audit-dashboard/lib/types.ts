@@ -420,8 +420,12 @@ export interface BoothAuditSummary { audits: number; auditors: number; plays: nu
 export interface BoothStanding {
   rank: number;
   tag: number;
+  /** The shown score (ADR 0016): a five-step play's tier points, any other play's raw composite. */
   score: number;
+  /** The stored PIS-7 composite: it breaks a tie on `score`. */
   raw: number;
+  /** The play's tier path (B/R/W a step), which a five-step play's score is read from. */
+  tier_path?: string | null;
   case_id: string | null;
   case_version: string | null;
   scored_at: string;

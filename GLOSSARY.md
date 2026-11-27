@@ -69,7 +69,7 @@ One visitor's run on the booth screen, from tap to demo score. It is not a PLE: 
 _Avoid_: booth PLE, booth session, demo PLE
 
 **Demo score**:
-The PIS-7 score a booth play earns, read from its case's path score table and always shown as a demo: not CME credit and not validated. The same tier path on the same case version always gets the same demo score.
+The score a booth play earns, always shown as a demo: not CME credit and not validated. A play stores a PIS-7 score (composite and d1–d7) read from its case's path score table; the domain bands and research read that. A five-step play shows a number read from its tier path instead, best 20, reasonable 10 and weaker 0 a step, and the stored composite breaks a tie on it (ADR 0016). The same tier path on the same case version always gets the same demo score.
 _Avoid_: CME score, credit, PIS-7 score (alone)
 
 **Tier path**:
@@ -77,7 +77,7 @@ The tier letters (B, R, W) of a booth play's answers, one per step, in order. It
 _Avoid_: answer path, route, path (alone, when the tree's branches are meant)
 
 **Path score table**:
-The demo score of every tier path of one booth case version, measured by the PIS-7 evaluator before admission and frozen in the case file.
+The stored PIS-7 demo score of every tier path of one booth case version, measured by the PIS-7 evaluator before admission and frozen in the case file.
 _Avoid_: score cache, answer key, lookup table
 
 **Booth tag**:

@@ -268,6 +268,9 @@ body.booth { background: transparent; }
   border-radius: var(--radius) var(--radius) var(--radius-s) var(--radius);
 }
 .answer-label .bi-main, .answer-label .bi-sub { font-size: var(--text-en); font-weight: 600; line-height: 1.45; }
+/* The reply's tier badge sits beside "Your answer", so it adds no line of its own where the row has room. */
+.answer-head { display: flex; flex-flow: row wrap; align-items: center; gap: calc(12 * var(--u)) calc(20 * var(--u)); }
+.answer-head .tier-chip { align-self: center; }
 .answer-choice .bi-main { font-size: var(--text-label-th); font-weight: 600; line-height: 1.4; }
 .answer-choice .bi-sub { font-size: var(--text-label-en); line-height: 1.3; }
 .answer-text, .ai-text { white-space: pre-wrap; overflow-wrap: break-word; font-size: var(--text-th); line-height: 1.6; }
@@ -316,7 +319,7 @@ body.booth { background: transparent; }
   box-shadow: var(--shadow-card);
 }
 .result-total { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: calc(8 * var(--u)) var(--gap); padding-bottom: calc(24 * var(--u)); border-bottom: var(--line) solid var(--hairline); }
-/* A five-step play's number is a rescale (ADR 0013): the line under it says so, on a line of its own. The name gives
+/* A five-step play's number is its tier points (ADR 0016): the line under it says how, on a line of its own. The name gives
    way to the number on the first line. */
 .result-total > .result-overall { flex: 1 1 0; min-width: 0; }
 .score-note { flex: 1 0 100%; color: var(--body); }

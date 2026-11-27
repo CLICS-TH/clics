@@ -79,7 +79,7 @@ const readReveal = (page) => page.$$eval('[data-reveal-overlay] .reveal-step', (
   tier: li.querySelector('.reveal-answer .tier-chip').dataset.tier,
 })));
 
-/** The line under a five-step score saying it is the 0-100 rescale (ADR 0013), as drawn. */
+/** The line under a five-step score saying how its tier points add up (ADR 0016), as drawn. */
 const readScoreNote = (page) => page.$$eval('.result-card .score-note', (els) => els.map((e) => ({ th: e.querySelector('.bi-th')?.textContent, en: e.querySelector('.bi-en')?.textContent })));
 
 export default [
@@ -153,21 +153,21 @@ export default [
         `${width}: one score request with five answers, five asks and six sigs`);
       const path = h.pathOf(h.TREE5, answers);
       const domains = h.TABLE5.paths[path];
-      h.check(path === 'BRWBR' && await page.locator('[data-score]').textContent() === '72', `${width}: tier path ${path}, the composite whole (72)`);
+      h.check(path === 'BRWBR' && await page.locator('[data-score]').textContent() === '60', `${width}: tier path ${path}, its tier points 20+10+0+20+10 (60)`);
       for (const look of looks) {
         await lookIn(page, look);
         const tag = `${width}x${height} five-step result card, ${look}`;
         await h.screenCheck(page, tag, { demo: true });
         checkRows(h, tag, await readRows(page), domains, (v) => v.toFixed(1));
         checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary);
-        h.check(h.same(await readScoreNote(page), [h.COPY.displayScale]), `${tag}: under the score, the line saying it is a demo score rescaled to 0-100 (ADR 0013)`);
+        h.check(h.same(await readScoreNote(page), [h.COPY.scoreRule]), `${tag}: under the score, the line saying how its tier points add up (ADR 0016)`);
         if (look === h.DEFAULT_LOOK) await h.shot(page, `five-step-${width}-result`);
       }
       const next = await page.$$eval('.practise-next .domain', (els) => els.map((e) => e.dataset.key));
       h.check(h.same(next, weakest(domains).slice(0, 2)), `${width}: Practise next lists the two weakest of d1-d4, not the weaker fitted d5 (2.6) or d6 (${next})`);
       const kept = parseResultFragment(new URL(await page.locator('[data-keep-qr]').getAttribute('data-result-url')).hash);
-      h.check(h.same(kept?.domains, domains) && h.same(kept?.tiers, PLAN) && kept?.score === 72,
-        `${width}: the result QR keeps the fitted domains, the five tiers and the composite (${JSON.stringify(kept?.domains)}, ${kept?.tiers})`);
+      h.check(h.same(kept?.domains, domains) && h.same(kept?.tiers, PLAN) && kept?.score === 60,
+        `${width}: the result QR keeps the fitted domains, the five tiers and the shown score (${JSON.stringify(kept?.domains)}, ${kept?.tiers})`);
 
       await k.tap('[data-action="see-answers"]');
       await page.waitForSelector('[data-reveal-overlay] .reveal-step');
@@ -205,7 +205,9 @@ export default [
         checkRadar(h, tag, await readRadar(page), domains, h.LOOKS[look].primary, { phone: true });
         const tiers = await page.$$eval('.tier-step', (els) => els.map((e) => ({ th: e.querySelector('.tier-step-n .bi-th').textContent, tier: e.dataset.tier })));
         h.check(h.same(tiers, PLAN.map((tier, i) => ({ th: `ขั้นที่ ${i + 1}`, tier }))), `${tag}: five steps, each with its tier (${tiers.map((t) => t.tier).join(', ')})`);
-        h.check(h.same(await readScoreNote(page), [h.COPY.displayScale]), `${tag}: under the score, the line saying it is a demo score rescaled to 0-100 (ADR 0013)`);
+        h.check(h.same(await readScoreNote(page), [h.COPY.scoreRule]), `${tag}: under the score, the line saying how its tier points add up (ADR 0016)`);
+        // The link says 72 (a rescale kept before tiers-v1); the page reads the number from the five tiers, as the board does.
+        h.check(await page.locator('[data-score]').textContent() === '60', `${tag}: the number is the tiers' points, 60, not the link's 72`);
         await h.screenCheck(page, tag, { demo: 'auto', phone: true });
         if (look === h.DEFAULT_LOOK) await h.shot(page, `five-step-result-page-${width}`, { fullPage: true });
       }
@@ -214,7 +216,7 @@ export default [
       await page.waitForFunction(() => document.querySelectorAll('.tier-step').length === 3);
       await page.evaluate(() => { for (const d of document.querySelectorAll('details.result-fold')) d.open = true; });
       checkRows(h, `${width}px three-step result page`, await readRows(page), three, String);
-      h.check((await readScoreNote(page)).length === 0, `${width}px three-step result page: its score, shown as stored, has no rescale line`);
+      h.check((await readScoreNote(page)).length === 0, `${width}px three-step result page: its score, shown as stored, has no tier-points line`);
       await p.close();
     },
   })),
